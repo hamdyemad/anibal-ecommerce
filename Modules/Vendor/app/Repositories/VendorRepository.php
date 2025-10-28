@@ -6,6 +6,7 @@ use App\Models\Attachment;
 use App\Models\User;
 use App\Models\Translation;
 use App\Models\UserType;
+use App\Services\UserService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
@@ -16,27 +17,88 @@ use Modules\Vendor\app\Models\Vendor;
 
 class VendorRepository implements VendorInterface
 {
+
+    public function __construct(protected UserService $userService)
+    {
+        
+    }
     public function getAllVendors(array $filters = [], int $perPage = 10)
     {
-        $query = Vendor::with(['user', 'country', 'country.translations', 'activities', 'translations']);
+        $query = Vendor::with(['user', 'country', 'country.translations', 'activities', 'translations', 'commission']);
 
+        // Search in translations or user email
         if (!empty($filters['search'])) {
-            $query->where('name', 'like', '%' . $filters['search'] . '%');
+            $searchTerm = $filters['search'];
+            $query->where(function($q) use ($searchTerm) {
+                $q->whereHas('translations', function($query) use ($searchTerm) {
+                    $query->where('lang_key', 'name')
+                          ->where('lang_value', 'like', '%' . $searchTerm . '%');
+                })
+                ->orWhereHas('user', function($query) use ($searchTerm) {
+                    $query->where('email', 'like', '%' . $searchTerm . '%');
+                });
+            });
         }
 
-        if (isset($filters['status'])) {
-            $query->where('status', $filters['status']);
+        // Filter by active status
+        if (isset($filters['active']) && $filters['active'] !== '') {
+            $query->where('active', $filters['active']);
         }
 
+        // Filter by country
         if (!empty($filters['country_id'])) {
             $query->where('country_id', $filters['country_id']);
         }
 
-        if (!empty($filters['activity_id'])) {
-            $query->where('activity_id', $filters['activity_id']);
+        // Filter by date range
+        if (!empty($filters['created_date_from'])) {
+            $query->whereDate('created_at', '>=', $filters['created_date_from']);
+        }
+        
+        if (!empty($filters['created_date_to'])) {
+            $query->whereDate('created_at', '<=', $filters['created_date_to']);
         }
 
         return $query->latest()->paginate($perPage);
+    }
+
+    public function getQuery(array $filters = [])
+    {
+        $query = Vendor::latest();
+
+        // Search in translations or user email
+        if (!empty($filters['search'])) {
+            $searchTerm = $filters['search'];
+            $query->where(function($q) use ($searchTerm) {
+                $q->whereHas('translations', function($query) use ($searchTerm) {
+                    $query->where('lang_key', 'name')
+                          ->where('lang_value', 'like', '%' . $searchTerm . '%');
+                })
+                ->orWhereHas('user', function($query) use ($searchTerm) {
+                    $query->where('email', 'like', '%' . $searchTerm . '%');
+                });
+            });
+        }
+
+        // Filter by active status
+        if (isset($filters['active']) && $filters['active'] !== '') {
+            $query->where('active', $filters['active']);
+        }
+
+        // Filter by country
+        if (!empty($filters['country_id'])) {
+            $query->where('country_id', $filters['country_id']);
+        }
+
+        // Filter by date range
+        if (!empty($filters['created_date_from'])) {
+            $query->whereDate('created_at', '>=', $filters['created_date_from']);
+        }
+        
+        if (!empty($filters['created_date_to'])) {
+            $query->whereDate('created_at', '<=', $filters['created_date_to']);
+        }
+        return $query;
     }
 
     public function getVendorById(int $id)
@@ -46,9 +108,12 @@ class VendorRepository implements VendorInterface
             'country', 
             'country.translations', 
             'activities', 
+            'activities.translations',
             'translations',
             'attachments',
             'attachments.translations',
+            'logo',
+            'banner',
             'commission'
         ])->findOrFail($id);
     }
@@ -56,13 +121,11 @@ class VendorRepository implements VendorInterface
     public function createVendor(array $data)
     {
         return DB::transaction(function () use ($data) {
-            // Create user account
-            $user = User::create([
-                'uuid' => \Str::uuid(),
+            $userData = [
                 'email' => $data['email'],
-                'password' => Hash::make($data['password']),
-                'user_type_id' => UserType::VENDOR_TYPE, // Vendor type
-            ]);
+                'password' => $data['password'],
+            ];
+            $user = $this->userService->createVendorAccount($userData);
 
             // Create vendor
             $vendor = Vendor::create([
@@ -151,7 +214,7 @@ class VendorRepository implements VendorInterface
             // Update vendor
             $vendor->update([
                 'country_id' => $data['country_id'],
-                'active' => $data['active'] ?? $vendor->active,
+                'active' => $data['active'] ?? false,
                 'meta_title' => $data['meta_title'] ?? null,
                 'meta_description' => $data['meta_description'] ?? null,
                 'meta_keywords' => $data['meta_keywords'] ?? null,

@@ -38,6 +38,7 @@ Route::group(
 
         // Admin Management
         Route::prefix('admin-management')->name('admin-management.')->group(function() {
+            Route::get('/roles/datatable', [RoleController::class, 'datatable'])->name('roles.data');
             Route::resource('roles', RoleController::class);
         });
 

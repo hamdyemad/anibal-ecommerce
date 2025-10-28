@@ -18,6 +18,7 @@ class PermessionSeeder extends Seeder
         // Get languages
         $languages = Language::whereIn('code', ['en', 'ar'])->get()->keyBy('code');
 
+        Permession::query()->delete();
         $permissions = [
             // Dashboard
             ['key' => 'dashboard.view', 'translations' => [
@@ -26,58 +27,106 @@ class PermessionSeeder extends Seeder
             ]],
 
             // Catalog Management - Category Management
-            ['key' => 'categories.departments.view', 'translations' => [
+
+            // Start Activities Permessions
+            ['key' => 'activities.index', 'translations' => [
+                'name' => ['en' => 'All Activities', 'ar' => 'كل الانشطة'],
+                'group_by' => ['en' => 'Catalog Management', 'ar' => 'إدارة الكتالوج'],
+            ]],
+            ['key' => 'activities.view', 'translations' => [
+                'name' => ['en' => 'View Activities', 'ar' => 'عرض الانشطة'],
+                'group_by' => ['en' => 'Catalog Management', 'ar' => 'إدارة الكتالوج'],
+            ]],
+            ['key' => 'activities.create', 'translations' => [
+                'name' => ['en' => 'Create Activities', 'ar' => 'إنشاء الانشطة'],
+                'group_by' => ['en' => 'Catalog Management', 'ar' => 'إدارة الكتالوج'],
+            ]],
+            ['key' => 'activities.edit', 'translations' => [
+                'name' => ['en' => 'Edit Activities', 'ar' => 'تعديل الانشطة'],
+                'group_by' => ['en' => 'Catalog Management', 'ar' => 'إدارة الكتالوج'],
+            ]],
+            ['key' => 'activities.delete', 'translations' => [
+                'name' => ['en' => 'Delete Activities', 'ar' => 'ازالة الانشطة'],
+                'group_by' => ['en' => 'Catalog Management', 'ar' => 'إدارة الكتالوج'],
+            ]],
+            // End Activities Permessions
+
+
+            // Start Departments Permessions
+            ['key' => 'departments.index', 'translations' => [
+                'name' => ['en' => 'All Departments', 'ar' => 'كل الأقسام'],
+                'group_by' => ['en' => 'Catalog Management', 'ar' => 'إدارة الكتالوج'],
+            ]],
+            ['key' => 'departments.view', 'translations' => [
                 'name' => ['en' => 'View Departments', 'ar' => 'عرض الأقسام'],
-                'group_by' => ['en' => 'Catalog Management', 'ar' => 'إدارة المخزون'],
+                'group_by' => ['en' => 'Catalog Management', 'ar' => 'إدارة الكتالوج'],
             ]],
-            ['key' => 'categories.departments.create', 'translations' => [
+            ['key' => 'departments.create', 'translations' => [
                 'name' => ['en' => 'Create Department', 'ar' => 'إنشاء قسم'],
-                'group_by' => ['en' => 'Catalog Management', 'ar' => 'إدارة المخزون'],
+                'group_by' => ['en' => 'Catalog Management', 'ar' => 'إدارة الكتالوج'],
             ]],
-            ['key' => 'categories.departments.edit', 'translations' => [
+            ['key' => 'departments.edit', 'translations' => [
                 'name' => ['en' => 'Edit Department', 'ar' => 'تعديل قسم'],
-                'group_by' => ['en' => 'Catalog Management', 'ar' => 'إدارة المخزون'],
+                'group_by' => ['en' => 'Catalog Management', 'ar' => 'إدارة الكتالوج'],
             ]],
-            ['key' => 'categories.departments.delete', 'translations' => [
+            ['key' => 'departments.delete', 'translations' => [
                 'name' => ['en' => 'Delete Department', 'ar' => 'حذف قسم'],
-                'group_by' => ['en' => 'Catalog Management', 'ar' => 'إدارة المخزون'],
+                'group_by' => ['en' => 'Catalog Management', 'ar' => 'إدارة الكتالوج'],
             ]],
+            // End Departments Permessions
 
-            ['key' => 'categories.main.view', 'translations' => [
+            // Start Categories Permessions
+            ['key' => 'categories.index', 'translations' => [
+                'name' => ['en' => 'All Main Categories', 'ar' => 'كل الأقسام الرئيسية'],
+                'group_by' => ['en' => 'Catalog Management', 'ar' => 'إدارة الكتالوج'],
+            ]],
+            ['key' => 'categories.view', 'translations' => [
                 'name' => ['en' => 'View Main Categories', 'ar' => 'عرض الأقسام الرئيسية'],
-                'group_by' => ['en' => 'Catalog Management', 'ar' => 'إدارة المخزون'],
+                'group_by' => ['en' => 'Catalog Management', 'ar' => 'إدارة الكتالوج'],
             ]],
-            ['key' => 'categories.main.create', 'translations' => [
+            ['key' => 'categories.create', 'translations' => [
                 'name' => ['en' => 'Create Main Category', 'ar' => 'إنشاء قسم رئيسية'],
-                'group_by' => ['en' => 'Catalog Management', 'ar' => 'إدارة المخزون'],
+                'group_by' => ['en' => 'Catalog Management', 'ar' => 'إدارة الكتالوج'],
             ]],
-            ['key' => 'categories.main.edit', 'translations' => [
+            ['key' => 'categories.edit', 'translations' => [
                 'name' => ['en' => 'Edit Main Category', 'ar' => 'تعديل قسم رئيسية'],
-                'group_by' => ['en' => 'Catalog Management', 'ar' => 'إدارة المخزون'],
+                'group_by' => ['en' => 'Catalog Management', 'ar' => 'إدارة الكتالوج'],
             ]],
-            ['key' => 'categories.main.delete', 'translations' => [
+            ['key' => 'categories.delete', 'translations' => [
                 'name' => ['en' => 'Delete Main Category', 'ar' => 'حذف قسم رئيسية'],
-                'group_by' => ['en' => 'Catalog Management', 'ar' => 'إدارة المخزون'],
+                'group_by' => ['en' => 'Catalog Management', 'ar' => 'إدارة الكتالوج'],
             ]],
+            // End Categories Permessions
 
-            ['key' => 'categories.sub.view', 'translations' => [
+
+            // Start Sub Categories Permessions
+            ['key' => 'sub_categories.index', 'translations' => [
+                'name' => ['en' => 'All Sub Categories', 'ar' => 'كل الأقسام الفرعية'],
+                'group_by' => ['en' => 'Catalog Management', 'ar' => 'إدارة الكتالوج'],
+            ]],
+            ['key' => 'sub_categories.view', 'translations' => [
                 'name' => ['en' => 'View Sub Categories', 'ar' => 'عرض الأقسام الفرعية'],
-                'group_by' => ['en' => 'Catalog Management', 'ar' => 'إدارة المخزون'],
+                'group_by' => ['en' => 'Catalog Management', 'ar' => 'إدارة الكتالوج'],
             ]],
-            ['key' => 'categories.sub.create', 'translations' => [
+            ['key' => 'sub_categories.create', 'translations' => [
                 'name' => ['en' => 'Create Sub Category', 'ar' => 'إنشاء قسم فرعي'],
-                'group_by' => ['en' => 'Catalog Management', 'ar' => 'إدارة المخزون'],
+                'group_by' => ['en' => 'Catalog Management', 'ar' => 'إدارة الكتالوج'],
             ]],
-            ['key' => 'categories.sub.edit', 'translations' => [
+            ['key' => 'sub_categories.edit', 'translations' => [
                 'name' => ['en' => 'Edit Sub Category', 'ar' => 'تعديل قسم فرعي'],
-                'group_by' => ['en' => 'Catalog Management', 'ar' => 'إدارة المخزون'],
+                'group_by' => ['en' => 'Catalog Management', 'ar' => 'إدارة الكتالوج'],
             ]],
-            ['key' => 'categories.sub.delete', 'translations' => [
+            ['key' => 'sub_categories.delete', 'translations' => [
                 'name' => ['en' => 'Delete Sub Category', 'ar' => 'حذف قسم فرعي'],
-                'group_by' => ['en' => 'Catalog Management', 'ar' => 'إدارة المخزون'],
+                'group_by' => ['en' => 'Catalog Management', 'ar' => 'إدارة الكتالوج'],
             ]],
+            // End Sub Categories Permessions
 
-            // Products
+            // Start Products Permessions
+            ['key' => 'products.index', 'translations' => [
+                'name' => ['en' => 'All Products', 'ar' => 'كل المنتجات'],
+                'group_by' => ['en' => 'Products', 'ar' => 'منتجات'],
+            ]],
             ['key' => 'products.view', 'translations' => [
                 'name' => ['en' => 'View Products', 'ar' => 'عرض المنتجات'],
                 'group_by' => ['en' => 'Products', 'ar' => 'منتجات'],
@@ -94,6 +143,9 @@ class PermessionSeeder extends Seeder
                 'name' => ['en' => 'Delete Product', 'ar' => 'حذف منتج'],
                 'group_by' => ['en' => 'Products', 'ar' => 'منتجات'],
             ]],
+            // End Products Permessions
+
+            // Start Products Instock Permessions
             ['key' => 'products.in_stock.view', 'translations' => [
                 'name' => ['en' => 'View In Stock Products', 'ar' => 'عرض المنتجات في المخزون'],
                 'group_by' => ['en' => 'Products', 'ar' => 'منتجات'],
@@ -666,18 +718,15 @@ class PermessionSeeder extends Seeder
 
         foreach ($permissions as $permissionData) {
             // Create or update the permission
-            $permission = Permession::updateOrCreate(
-                ['key' => $permissionData['key']],
-                ['key' => $permissionData['key']]
-            );
+            $permission = Permession::updateOrCreate([]);
 
             // Add translations if available and languages exist
             if ($languages->isNotEmpty() && isset($permissionData['translations'])) {
                 foreach ($permissionData['translations']['name'] as $locale => $value) {
-                    $permission->setTranslation('name', $value, $locale);
+                    $permission->setTranslation('name', $locale, $value);
                 }
                 foreach ($permissionData['translations']['group_by'] as $locale => $value) {
-                    $permission->setTranslation('group_by', $value, $locale);
+                    $permission->setTranslation('group_by', $locale, $value);
                 }
             }
         }

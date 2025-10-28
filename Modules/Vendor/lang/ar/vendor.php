@@ -56,9 +56,12 @@ return [
     'click_to_upload_document' => 'انقر لتحميل المستند',
     'upload_logo' => 'تحميل الشعار',
     'choose_file' => 'اختر ملف',
+    'logo_recommended_size' => 'الحجم الموصى به: 200x200 بكسل',
+    'banner_recommended_size' => 'الحجم الموصى به: 1200x400 بكسل',
     'recommended_logo_size' => 'الحجم الموصى به: 200x200 بكسل',
     'recommended_banner_size' => 'الحجم الموصى به: 1200x400 بكسل',
     'accepted_document_types' => 'PDF, JPG, PNG, DOC, DOCX',
+    'branding' => 'العلامة التجارية',
     
     // Buttons
     'change' => 'تغيير',
@@ -146,6 +149,7 @@ return [
     'an_error_occurred' => 'حدث خطأ',
     
     // Validation Messages
+    'name_required_for_language' => 'الاسم (:language) مطلوب.',
     'name_required_all_languages' => 'الاسم مطلوب لجميع اللغات.',
     'at_least_one_translation_required' => 'مطلوب ترجمة واحدة على الأقل.',
     'please_select_country' => 'يرجى اختيار دولة.',

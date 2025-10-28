@@ -1,36 +1,31 @@
 <?php
 
-namespace App\Services;
+namespace App\Actions;
 
 use App\Interfaces\RoleRepositoryInterface;
-use App\Models\Role;
-use App\Models\Language;
-use App\Models\Permession;
-use Illuminate\Database\Eloquent\Collection;
+use App\Interfaces\UserInterface;
+use App\Mail\ResetPasswordMail;
+use App\Models\User;
+use App\Services\LanguageService;
+use App\Traits\Res;
+use Carbon\Carbon;
+use Exception;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 
-class RoleService
-{
+class RoleAction {
+
+    use Res;
+
     public function __construct(
-        public RoleRepositoryInterface $roleRepositoryInterface,
-        protected LanguageService $languageService
+        protected LanguageService $languageService,
+        protected RoleRepositoryInterface $roleRepositoryInterface
         )
     {
+        
     }
-
-    /**
-     * Get all roles with permissions
-     */
-    public function getAllRoles($filter = [], $per_page = 10)
-    {
-        return $this->roleRepositoryInterface->getAll($filter, $per_page);
-    }
-
-    public function getRolesQuery($filter = [])
-    {
-        return $this->roleRepositoryInterface->getRolesQuery($filter);
-    }
-
-    public function getDataTable($data) {
+   public function getDataTable($data) {
         $draw = $data['draw'];
         $start = $data['start'];
         $length = $data['length'];
@@ -55,8 +50,8 @@ class RoleService
         ];
 
         // Get total records before filtering
-        $totalRecords = $this->getRolesQuery()->count();
-        $baseQuery = $this->getRolesQuery($filters);
+        $totalRecords = $this->roleRepositoryInterface->getRolesQuery()->count();
+        $baseQuery = $this->roleRepositoryInterface->getRolesQuery($filters);
         // Get filtered count (clone query to avoid mutation)
         $filteredRecords = clone($baseQuery);
         $filteredRecords = $filteredRecords->count();
@@ -162,75 +157,5 @@ class RoleService
             'totalRecords' => $totalRecords,
             'filteredRecords' => $filteredRecords,
         ];
-    }
-
-    /**
-     * Get a single role by ID
-     */
-    public function getRoleById(int $id): ?Role
-    {
-        return $this->roleRepositoryInterface->findById($id);
-    }
-
-    /**
-     * Get grouped permissions
-     */
-    public function getGroupedPermissions(): Collection
-    {
-        return $this->roleRepositoryInterface->getGroupedPermissions();
-    }
-
-    /**
-     * Create a new role
-     */
-    public function createRole(array $data)
-    {
-        return $this->roleRepositoryInterface->create([]);
-    }
-
-    /**
-     * Update an existing role
-     */
-    public function updateRole(Role $role, array $data)
-    {
-        $this->roleRepositoryInterface->update($role, $data);
-    }
-
-    /**
-     * Delete a role
-     */
-    public function deleteRole(Role $role)
-    {
-        $this->roleRepositoryInterface->delete($role);
-    }
-
-    /**
-     * Assign permissions to a role
-     */
-    public function assignPermissions(Role $role, array $permissionIds): void
-    {
-        $this->roleRepositoryInterface->syncPermissions($role, $permissionIds);
-    }
-
-    /**
-     * Add permissions to a role
-     */
-    public function addPermissions(Role $role, array $permissionIds): void
-    {
-        $currentPermissions = $role->permessions->pluck('id')->toArray();
-        $allPermissions = array_unique(array_merge($currentPermissions, $permissionIds));
-        
-        $this->roleRepositoryInterface->syncPermissions($role, $allPermissions);
-    }
-
-    /**
-     * Remove permissions from a role
-     */
-    public function removePermissions(Role $role, array $permissionIds): void
-    {
-        $currentPermissions = $role->permessions->pluck('id')->toArray();
-        $remainingPermissions = array_diff($currentPermissions, $permissionIds);
-        
-        $this->roleRepositoryInterface->syncPermissions($role, $remainingPermissions);
     }
 }

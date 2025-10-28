@@ -16,8 +16,8 @@ return new class extends Migration
             $table->unsignedBigInteger('country_id');
             $table->boolean('active')->default(1);
             $table->foreign('country_id')->references('id')->on('countries')->onDelete('cascade');
-            $table->softDeletes();
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

@@ -7,16 +7,10 @@ use Modules\Vendor\app\Http\Controllers\VendorController;
 
 Route::group(
 [
-	'prefix' => LaravelLocalization::setLocale(),
-	'middleware' => [ 'localeSessionRedirect', 'localizationRedirect', 'localeViewPath', 'setLocaleFromUrl' ]
+	'prefix' => 'admin',
+    'as' => 'admin.'
 ], function(){
-
-    Route::middleware(['web', 'auth'])->prefix('admin/vendors')->name('admin.vendors.')->group(function() {
-        // Vendors
-        Route::get('/datatable', [VendorController::class, 'datatable'])->name('datatable');
-        Route::resource('/', VendorController::class);
-
-    });
-        
-
+    // Vendors
+    Route::get('vendors/datatable', [VendorController::class, 'datatable'])->name('vendors.datatable');
+    Route::resource('vendors', VendorController::class);
 });

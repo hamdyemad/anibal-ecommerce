@@ -14,11 +14,17 @@ return new class extends Migration
         Schema::create('vendors', function (Blueprint $table) {
             $table->id();
             $table->bigInteger('country_id')->unsigned();
+            $table->bigInteger('user_id')->unsigned();
             $table->string('slug')->unique();
             $table->enum('type', ['product', 'booking','product_booking'])->default('product');
+            $table->integer('active')->default(0);
+            $table->string('meta_title')->nullable();
+            $table->string('meta_description')->nullable();
+            $table->string('meta_keywords')->nullable();
             $table->foreign('country_id')->references('id')->on('countries')->onDelete('cascade');
-            $table->softDeletes();
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

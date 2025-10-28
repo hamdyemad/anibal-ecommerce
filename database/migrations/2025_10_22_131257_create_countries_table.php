@@ -16,8 +16,8 @@ return new class extends Migration
             $table->string('code');
             $table->string('phone_code');
             $table->boolean('active')->default(1);
-            $table->softDeletes();
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

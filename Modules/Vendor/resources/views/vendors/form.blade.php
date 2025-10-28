@@ -1,52 +1,8 @@
 @extends('layout.app')
 
 @push('styles')
-<!-- Select2 CSS -->
-<style>
-    .wizard-step-content {
-        display: none;
-    }
-    .wizard-step-content.active {
-        display: block;
-    }
-    .form-control:focus {
-        border-color: #5F63F2;
-        box-shadow: 0 0 0 0.2rem rgba(95, 99, 242, 0.25);
-    }
-    .image-preview-container {
-        position: relative;
-        width: 150px;
-        height: 150px;
-        border: 2px dashed #ddd;
-        border-radius: 8px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: #f8f9fa;
-        cursor: pointer;
-        transition: all 0.3s;
-    }
-    .image-preview-container:hover {
-        border-color: #5F63F2;
-        background: #f0f1ff;
-    }
-    .image-preview {
-        max-width: 100%;
-        max-height: 100%;
-        display: none;
-    }
-    .image-preview.show {
-        display: block;
-    }
-    .upload-icon {
-        font-size: 48px;
-        color: #adb5bd;
-    }
-    .select2-selection--multiple .select2-selection__choice {
-        background-color: #5F63F2 !important;
-        border-color: #5F63F2 !important;
-    }
-</style>
+<!-- Vendor Form Custom CSS -->
+@vite(['Modules/Vendor/resources/assets/css/vendor-form.css'])
 @endpush
 
 @section('content')
@@ -85,28 +41,28 @@
 
                         <!-- Step 1: Vendor Information -->
                         <div class="wizard-step-content active" data-step="1">
-                            <h5 class="mb-4">{{ trans('vendor::vendor.vendor_information') }}</h5>
+                            <h5 class="mb-4 mt-4">{{ trans('vendor::vendor.vendor_information') }}</h5>
 
                             <div class="row">
                                 <!-- Name Fields for each language -->
                                 @foreach($languages as $language)
                                 <div class="col-md-6 mb-3">
                                     <div class="form-group">
-                                        <label for="name_{{ $language->code }}" class="form-label {{ $language->rtl ? 'text-end' : '' }}">
-                                            {{ trans('vendor::vendor.name') }} ({{ $language->name }}) 
+                                        <label for="name_{{ $language->code }}" class="form-label w-100 {{ $language->rtl ? 'text-end' : '' }}">
                                             @if($language->code == 'en')
-                                                <span class="text-danger">*</span>
+                                              {{ trans('vendor::vendor.name') }} ({{ $language->name }}) 
+                                            @else
+                                                الاسم باللغة العربية
                                             @endif
+                                            <span class="text-danger">*</span>
                                         </label>
                                         <input 
                                             type="text" 
                                             name="translations[{{ $language->id }}][name]"
                                             id="name_{{ $language->code }}"
                                             class="form-control"
-                                            placeholder="{{ trans('vendor::vendor.enter_vendor_name_in') }} {{ $language->name }}"
                                             value="{{ isset($vendor) ? $vendor->getTranslation('name', $language->code) : old('translations.'.$language->id.'.name') }}"
                                             {{ $language->rtl ? 'dir=rtl' : '' }}
-                                            {{ $language->code == 'en' ? 'required' : '' }}
                                         >
                                         @error('translations.'.$language->id.'.name')
                                             <div class="text-danger mt-1">{{ $message }}</div>
@@ -121,15 +77,19 @@
                                 @foreach($languages as $language)
                                 <div class="col-md-6 mb-3">
                                     <div class="form-group">
-                                        <label for="description_{{ $language->code }}" class="form-label {{ $language->rtl ? 'text-end' : '' }}">
+                                        <label for="description_{{ $language->code }}" class="form-label w-100 {{ $language->rtl ? 'text-end' : '' }}">
+                                            
+                                            @if($language->code == 'en')
                                             {{ trans('vendor::vendor.description') }} ({{ $language->name }})
+                                            @else
+                                            الوصف باللغة العربية
+                                            @endif
                                         </label>
                                         <textarea 
                                             name="translations[{{ $language->id }}][description]"
                                             id="description_{{ $language->code }}"
                                             class="form-control"
                                             rows="4"
-                                            placeholder="{{ trans('vendor::vendor.enter_vendor_description_in') }} {{ $language->name }}"
                                             {{ $language->rtl ? 'dir=rtl' : '' }}
                                         >{{ isset($vendor) ? $vendor->getTranslation('description', $language->code) : old('translations.'.$language->id.'.description') }}</textarea>
                                         @error('translations.'.$language->id.'.description')
@@ -140,6 +100,109 @@
                                 @endforeach
                             </div>
 
+                            <!-- Logo and Banner Section -->
+                            <h5 class="mb-3 mt-4">{{ trans('vendor::vendor.branding') }}</h5>
+                            
+                            <div class="row">
+                                <!-- Logo Upload -->
+                                <div class="col-md-6 mb-3">
+                                    <x-image-upload
+                                        id="logo"
+                                        name="logo"
+                                        label="{{ trans('vendor::vendor.logo') }}"
+                                        :required="!isset($vendor)"
+                                        :existingImage="isset($vendor) && $vendor->logo ? $vendor->logo->path : null"
+                                        placeholder="{{ trans('vendor::vendor.click_to_upload_logo') }}"
+                                        recommendedSize="{{ trans('vendor::vendor.logo_recommended_size') }}"
+                                        accept="image/jpeg,image/png,image/jpg,image/gif"
+                                        aspectRatio="logo"
+                                    />
+                                </div>
+
+                                <!-- Banner Upload -->
+                                <div class="col-md-6 mb-3">
+                                    <x-image-upload
+                                        id="banner"
+                                        name="banner"
+                                        label="{{ trans('vendor::vendor.banner') }}"
+                                        :required="!isset($vendor)"
+                                        :existingImage="isset($vendor) && $vendor->banner ? $vendor->banner->path : null"
+                                        placeholder="{{ trans('vendor::vendor.click_to_upload_banner') }}"
+                                        recommendedSize="{{ trans('vendor::vendor.banner_recommended_size') }}"
+                                        accept="image/jpeg,image/png,image/jpg,image/gif"
+                                        aspectRatio="wide"
+                                    />
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <!-- Country Selection -->
+                                <div class="col-md-6 mb-3">
+                                    <div class="form-group">
+                                        <label for="country_id" class="form-label">
+                                            {{ trans('vendor::vendor.country') }} 
+                                            <span class="text-danger">*</span>
+                                        </label>
+                                        <select name="country_id" id="country_id" class="form-control select2">
+                                            <option value="">{{ trans('vendor::vendor.select_country') }}</option>
+                                            @foreach($countries as $country)
+                                                <option value="{{ $country['id'] }}" 
+                                                    {{ isset($vendor) && $vendor->country_id == $country['id'] ? 'selected' : '' }}>
+                                                    {{ $country['name'] }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                        @error('country_id')
+                                            <div class="text-danger mt-1">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+                                </div>
+
+                                <!-- Commission -->
+                                <div class="col-md-6 mb-3">
+                                    <div class="form-group">
+                                        <label for="commission" class="form-label">
+                                            {{ trans('vendor::vendor.commission') }} (%)
+                                            <span class="text-danger">*</span>
+                                        </label>
+                                        <input 
+                                            type="number" 
+                                            name="commission"
+                                            id="commission"
+                                            class="form-control"
+                                            min="0"
+                                            max="100"
+                                            step="0.01"
+                                            value="{{ (isset($vendor) && $vendor->commission) ? $vendor->commission->commission : old('commission') }}"
+                                            placeholder="{{ trans('vendor::vendor.enter_commission') }}"
+                                        >
+                                        @error('commission')
+                                            <div class="text-danger mt-1">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+                                </div>
+
+                                <!-- Active -->
+                                <div class="col-md-6 mb-3">
+                                    <div class="form-group">
+                                        <label for="active" class="form-label d-block">
+                                            {{ trans('vendor::vendor.active') }}
+                                        </label>
+                                        <div class="form-check form-switch form-switch-lg">
+                                            <input 
+                                                class="form-check-input" 
+                                                type="checkbox" 
+                                                role="switch" 
+                                                id="active" 
+                                                name="active"
+                                                value="1"
+                                                {{ isset($vendor) && $vendor->active ? 'checked' : (!isset($vendor) ? 'checked' : '') }}
+                                            >
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
                             <div class="row">
                                 <!-- Activities Selection -->
                                 <div class="col-md-12 mb-3">
@@ -148,7 +211,7 @@
                                             {{ trans('vendor::vendor.activities') }} 
                                             <span class="text-danger">*</span>
                                         </label>
-                                        <select name="activities[]" id="activities" class="form-control select2" multiple required>
+                                        <select name="activity_ids[]" id="activities" class="form-control select2" multiple>
                                             @foreach($activities as $activity)
                                                 <option value="{{ $activity->id }}" 
                                                     {{ isset($vendor) && $vendor->activities->contains($activity->id) ? 'selected' : '' }}>
@@ -156,7 +219,7 @@
                                                 </option>
                                             @endforeach
                                         </select>
-                                        @error('activities')
+                                        @error('activity_ids')
                                             <div class="text-danger mt-1">{{ $message }}</div>
                                         @enderror
                                     </div>
@@ -167,88 +230,278 @@
                             <h5 class="mb-3 mt-4">{{ trans('vendor::vendor.seo_information') }}</h5>
                             
                             <div class="row">
-                                <!-- Meta Title for each language -->
-                                @foreach($languages as $language)
-                                <div class="col-md-6 mb-3">
+                                <!-- Meta Title -->
+                                <div class="col-md-12 mb-3">
                                     <div class="form-group">
-                                        <label for="meta_title_{{ $language->code }}" class="form-label {{ $language->rtl ? 'text-end' : '' }}">
-                                            {{ trans('vendor::vendor.meta_title') }} ({{ $language->name }})
+                                        <label for="meta_title" class="form-label w-100">
+                                            {{ trans('vendor::vendor.meta_title') }}
                                         </label>
                                         <input 
                                             type="text" 
-                                            name="translations[{{ $language->id }}][meta_title]"
-                                            id="meta_title_{{ $language->code }}"
-                                            class="form-control"
-                                            placeholder="{{ trans('vendor::vendor.enter_meta_title') }}"
-                                            value="{{ isset($vendor) ? $vendor->getTranslation('meta_title', $language->code) : old('translations.'.$language->id.'.meta_title') }}"
-                                            {{ $language->rtl ? 'dir=rtl' : '' }}
+                                            name="meta_title"
+                                            id="meta_title"
+                                            class="form-control ih-medium ip-gray radius-xs b-light px-15"
+                                            value="{{ isset($vendor) ? $vendor->meta_title : old('meta_title') }}"
                                         >
                                     </div>
                                 </div>
-                                @endforeach
-                            </div>
 
-                            <div class="row">
-                                <!-- Meta Description for each language -->
-                                @foreach($languages as $language)
-                                <div class="col-md-6 mb-3">
+                                <!-- Meta Description -->
+                                <div class="col-md-12 mb-3">
                                     <div class="form-group">
-                                        <label for="meta_description_{{ $language->code }}" class="form-label {{ $language->rtl ? 'text-end' : '' }}">
-                                            {{ trans('vendor::vendor.meta_description') }} ({{ $language->name }})
+                                        <label for="meta_description" class="form-label w-100">
+                                            {{ trans('vendor::vendor.meta_description') }}
                                         </label>
                                         <textarea 
-                                            name="translations[{{ $language->id }}][meta_description]"
-                                            id="meta_description_{{ $language->code }}"
-                                            class="form-control"
+                                            name="meta_description"
+                                            id="meta_description"
+                                            class="form-control ih-medium ip-gray radius-xs b-light px-15"
                                             rows="3"
-                                            placeholder="{{ trans('vendor::vendor.enter_meta_description') }}"
-                                            {{ $language->rtl ? 'dir=rtl' : '' }}
-                                        >{{ isset($vendor) ? $vendor->getTranslation('meta_description', $language->code) : old('translations.'.$language->id.'.meta_description') }}</textarea>
+                                        >{{ isset($vendor) ? $vendor->meta_description : old('meta_description') }}</textarea>
                                     </div>
                                 </div>
-                                @endforeach
-                            </div>
 
-                            <div class="row">
-                                <!-- Meta Keywords for each language -->
-                                @foreach($languages as $language)
-                                <div class="col-md-6 mb-3">
+                                <!-- Meta Keywords -->
+                                <div class="col-md-12 mb-3">
                                     <div class="form-group">
-                                        <label for="meta_keywords_{{ $language->code }}" class="form-label {{ $language->rtl ? 'text-end' : '' }}">
-                                            {{ trans('vendor::vendor.meta_keywords') }} ({{ $language->name }})
+                                        <label for="meta_keywords" class="form-label w-100">
+                                            {{ trans('vendor::vendor.meta_keywords') }}
                                         </label>
                                         <input 
                                             type="text" 
-                                            name="translations[{{ $language->id }}][meta_keywords]"
-                                            id="meta_keywords_{{ $language->code }}"
-                                            class="form-control"
-                                            placeholder="{{ trans('vendor::vendor.separate_keywords_commas') }}"
-                                            value="{{ isset($vendor) ? $vendor->getTranslation('meta_keywords', $language->code) : old('translations.'.$language->id.'.meta_keywords') }}"
-                                            {{ $language->rtl ? 'dir=rtl' : '' }}
+                                            name="meta_keywords"
+                                            id="meta_keywords"
+                                            class="form-control ih-medium ip-gray radius-xs b-light px-15"
+                                            value="{{ isset($vendor) ? $vendor->meta_keywords : old('meta_keywords') }}"
                                         >
                                         <small class="text-muted">{{ trans('vendor::vendor.separate_keywords_commas') }}</small>
                                     </div>
                                 </div>
-                                @endforeach
                             </div>
                         </div>
 
-                        <!-- Step 2: Vendor Documents (Placeholder) -->
-                        <div class="wizard-step-content" data-step="2">
-                            <h5 class="mb-4">{{ trans('vendor::vendor.vendor_documents') }}</h5>
-                            <p class="text-muted">Document upload fields will be added here...</p>
+                        <!-- Step 2: Vendor Documents -->
+                        <div class="wizard-step-content" data-step="2" style="display: none;">
+                            <div class="d-flex justify-content-between">
+                                <h5 class="mb-4 mt-4">{{ trans('vendor::vendor.vendor_documents') }}</h5>
+                                <button type="button" id="addDocument" class="btn btn-success btn-squared">
+                                    <i class="uil uil-plus"></i> {{ trans('vendor::vendor.add_document') }}
+                                </button>
+                            </div>
+                            <div id="documentsContainer">
+                                <!-- Documents will be added here dynamically -->
+                            </div>
+                            
+                            
                         </div>
 
-                        <!-- Step 3: Vendor Account Details (Placeholder) -->
-                        <div class="wizard-step-content" data-step="3">
-                            <h5 class="mb-4">{{ trans('vendor::vendor.vendor_account_details') }}</h5>
-                            <p class="text-muted">Account details fields will be added here...</p>
+                        <!-- Step 3: Vendor Account Details -->
+                        <div class="wizard-step-content" data-step="3" style="display: none;">
+                            <h5 class="mb-4 mt-4">{{ trans('vendor::vendor.vendor_account_details') }}</h5>
+                            
+                            <div class="row">
+                                <!-- Email -->
+                                <div class="col-md-12 mb-3">
+                                    <div class="form-group">
+                                        <label for="email" class="form-label">
+                                            {{ trans('vendor::vendor.email') }} 
+                                            <span class="text-danger">*</span>
+                                        </label>
+                                        <input 
+                                            type="email" 
+                                            name="email"
+                                            id="email"
+                                            class="form-control"
+                                            placeholder="{{ trans('vendor::vendor.enter_email') }}"
+                                            value="{{ isset($vendor) ? $vendor->user->email ?? '' : old('email') }}"
+                                        >
+                                        @error('email')
+                                            <div class="text-danger mt-1">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+                                </div>
+                            </div>
+
+                            @if(!isset($vendor))
+                            <div class="row">
+                                <!-- Password -->
+                                <div class="col-md-6 mb-3">
+                                    <div class="form-group">
+                                        <label for="password" class="form-label">
+                                            {{ trans('vendor::vendor.password') }} 
+                                            <span class="text-danger">*</span>
+                                        </label>
+                                        <input 
+                                            type="password" 
+                                            name="password"
+                                            id="password"
+                                            class="form-control"
+                                            placeholder="{{ trans('vendor::vendor.enter_password') }}"
+                                        >
+                                        <small class="text-muted">{{ trans('vendor::vendor.password_min_8') }}</small>
+                                        @error('password')
+                                            <div class="text-danger mt-1">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+                                </div>
+
+                                <!-- Confirm Password -->
+                                <div class="col-md-6 mb-3">
+                                    <div class="form-group">
+                                        <label for="password_confirmation" class="form-label">
+                                            {{ trans('vendor::vendor.confirm_password') }} 
+                                            <span class="text-danger">*</span>
+                                        </label>
+                                        <input 
+                                            type="password" 
+                                            name="password_confirmation"
+                                            id="password_confirmation"
+                                            class="form-control"
+                                            placeholder="{{ trans('vendor::vendor.confirm_password') }}"
+                                        >
+                                        @error('password_confirmation')
+                                            <div class="text-danger mt-1">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+                                </div>
+                            </div>
+                            @else
+                            <div class="alert alert-info">
+                                <i class="uil uil-info-circle"></i> {{ trans('vendor::vendor.password_is_set') }}
+                            </div>
+                            @endif
                         </div>
 
-                        <!-- Step 4: Review & Submit (Placeholder) -->
-                        <div class="wizard-step-content" data-step="4">
+                        <!-- Step 4: Review & Submit -->
+                        <div class="wizard-step-content" data-step="4" style="display: none;">
                             <h5 class="mb-4">{{ trans('vendor::vendor.review_submit') }}</h5>
-                            <p class="text-muted">{{ trans('vendor::vendor.please_review_info') }}</p>
+                            
+                            <!-- Validation Errors Alert -->
+                            <div id="review-validation-errors" class="alert alert-danger" style="display: none; flex-direction: column;">
+                                <h6 class="alert-heading"><i class="uil uil-exclamation-triangle"></i> {{ trans('vendor::vendor.validation_errors') }}</h6>
+                                <div id="review-errors-list"></div>
+                            </div>
+                            
+                            <div class="alert alert-info">
+                                <i class="uil uil-info-circle"></i> {{ trans('vendor::vendor.please_review_info') }}
+                            </div>
+
+                            <!-- Review: Vendor Information -->
+                            <div class="card mb-3">
+                                <div class="card-header">
+                                    <h6 class="mb-0">
+                                        <i class="uil uil-info-circle"></i> {{ trans('vendor::vendor.vendor_information') }}
+                                    </h6>
+                                    <button type="button" class="btn btn-sm btn-primary float-end edit-step" data-step="1">
+                                        <i class="uil uil-edit"></i> {{ trans('common.edit') }}
+                                    </button>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        @foreach($languages as $language)
+                                        <div class="col-md-6 mb-2">
+                                            <strong>{{ trans('vendor::vendor.name') }} ({{ $language->name }}):</strong>
+                                            <span class="review-name-{{ $language->code }}">-</span>
+                                        </div>
+                                        @endforeach
+                                    </div>
+                                    <div class="row mt-2">
+                                        @foreach($languages as $language)
+                                        <div class="col-md-6 mb-2">
+                                            <strong>{{ trans('vendor::vendor.description') }} ({{ $language->name }}):</strong>
+                                            <p class="review-description-{{ $language->code }} text-muted mb-0">-</p>
+                                        </div>
+                                        @endforeach
+                                    </div>
+                                    <div class="row mt-2">
+                                        <div class="col-md-6 mb-2">
+                                            <strong>{{ trans('vendor::vendor.logo') }}:</strong>
+                                            <div class="review-logo">
+                                                <span class="text-muted">{{ trans('vendor::vendor.no_logo_uploaded') }}</span>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6 mb-2">
+                                            <strong>{{ trans('vendor::vendor.banner') }}:</strong>
+                                            <div class="review-banner">
+                                                <span class="text-muted">{{ trans('vendor::vendor.no_banner_uploaded') }}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row mt-2">
+                                        <div class="col-md-6 mb-2">
+                                            <strong>{{ trans('vendor::vendor.country') }}:</strong>
+                                            <span class="review-country">-</span>
+                                        </div>
+                                        <div class="col-md-6 mb-2">
+                                            <strong>{{ trans('vendor::vendor.commission') }}:</strong>
+                                            <span class="review-commission">-</span>
+                                        </div>
+                                    </div>
+                                    <div class="row mt-2">
+                                        <div class="col-md-6 mb-2">
+                                            <strong>{{ trans('vendor::vendor.status') }}:</strong>
+                                            <span class="review-active">
+                                                <span class="badge badge-success">{{ trans('vendor::vendor.active') }}</span>
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="row mt-2">
+                                        <div class="col-md-12">
+                                            <strong>{{ trans('vendor::vendor.activities') }}:</strong>
+                                            <span class="review-activities">-</span>
+                                        </div>
+                                    </div>
+                                    <div class="row mt-2">
+                                        <div class="col-md-12">
+                                            <strong>{{ trans('vendor::vendor.seo_information') }}:</strong>
+                                            <span class="review-seo">-</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Review: Documents -->
+                            <div class="card mb-3">
+                                <div class="card-header">
+                                    <h6 class="mb-0">
+                                        <i class="uil uil-file-alt"></i> {{ trans('vendor::vendor.vendor_documents') }}
+                                    </h6>
+                                    <button type="button" class="btn btn-sm btn-primary float-end edit-step" data-step="2">
+                                        <i class="uil uil-edit"></i> {{ trans('common.edit') }}
+                                    </button>
+                                </div>
+                                <div class="card-body">
+                                    <div class="review-documents">
+                                        <p class="text-muted">{{ trans('vendor::vendor.no_documents_uploaded') }}</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Review: Account Details -->
+                            <div class="card mb-3">
+                                <div class="card-header">
+                                    <h6 class="mb-0">
+                                        <i class="uil uil-user"></i> {{ trans('vendor::vendor.vendor_account_details') }}
+                                    </h6>
+                                    <button type="button" class="btn btn-sm btn-primary float-end edit-step" data-step="3">
+                                        <i class="uil uil-edit"></i> {{ trans('common.edit') }}
+                                    </button>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-12 mb-2">
+                                            <strong>{{ trans('vendor::vendor.email') }}:</strong>
+                                            <span class="review-email">-</span>
+                                        </div>
+                                        @if(!isset($vendor))
+                                        <div class="col-md-12">
+                                            <strong>{{ trans('vendor::vendor.password') }}:</strong>
+                                            <span class="review-password text-muted">{{ trans('vendor::vendor.password_is_set') }}</span>
+                                        </div>
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
                         <!-- Navigation Buttons -->
@@ -274,147 +527,109 @@
         </div>
     </div>
 </div>
+
+{{-- Loading Overlay Component --}}
+<x-loading-overlay 
+    loadingText="{{ trans('vendor::vendor.creating_vendor') }}"
+    loadingSubtext="{{ trans('vendor::vendor.please_wait') }}"
+/>
+
+{{-- Hidden Templates for JavaScript --}}
+<template id="document-row-template">
+    <div class="document-row mb-4 p-4 border rounded" data-document-index="__INDEX__">
+        <div class="row">
+            @foreach($languages as $language)
+            <div class="col-md-6 mb-3">
+                <div class="form-group">
+                    <label class="il-gray fs-14 fw-500 mb-10 w-100 {{ $language->rtl ? 'text-end' : '' }}">
+                        @if($language->code == 'en')
+                            {{ trans('vendor::vendor.document_name') }} ({{ $language->name }})
+                        @else
+                            الاسم باللغة العربية
+                        @endif
+                    </label>
+                    <input 
+                        type="text" 
+                        name="documents[__INDEX__][translations][{{ $language->id }}][name]"
+                        class="form-control ih-medium ip-gray radius-xs b-light px-15"
+                        placeholder="{{ trans('vendor::vendor.eg_business_license') }}"
+                        {{ $language->rtl ? 'dir=rtl' : '' }}
+                    >
+                </div>
+            </div>
+            @endforeach
+            
+            <div class="col-md-12 mb-3">
+                <div class="form-group">
+                    <label class="il-gray fs-14 fw-500 mb-10">{{ trans('vendor::vendor.document_file') }}</label>
+                    <div class="image-upload-wrapper">
+                        <div class="image-preview-container banner-preview" id="__UNIQUEID__-preview-container" data-target="__UNIQUEID__">
+                            <div class="image-placeholder" id="__UNIQUEID__-placeholder">
+                                <i class="uil uil-file-upload-alt"></i>
+                                <p>{{ trans('vendor::vendor.click_to_upload_document') }}</p>
+                                <small>{{ trans('vendor::vendor.accepted_document_types') }}</small>
+                            </div>
+                            <div class="image-overlay">
+                                <button type="button" class="btn-change-image" data-target="__UNIQUEID__">
+                                    <i class="uil uil-camera"></i> {{ trans('common.change') ?? 'Change' }}
+                                </button>
+                                <button type="button" class="btn-remove-image" data-target="__UNIQUEID__" style="display: none;">
+                                    <i class="uil uil-trash-alt"></i> {{ trans('common.remove') ?? 'Remove' }}
+                                </button>
+                            </div>
+                        </div>
+                        <input type="file" 
+                               class="d-none image-file-input" 
+                               id="__UNIQUEID__" 
+                               name="documents[__INDEX__][file]" 
+                               accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                               data-preview="__UNIQUEID__">
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="text-end">
+            <button type="button" class="btn btn-danger btn-sm btn-squared remove-document-row">
+                <i class="uil uil-trash-alt"></i> {{ trans('vendor::vendor.remove') }}
+            </button>
+        </div>
+    </div>
+</template>
+
 @endsection
 
-@push('after-body')
-    <x-loading-overlay />
-@endpush
-
 @push('scripts')
+<!-- Vendor Form Configuration (Data Only) -->
 <script>
-$(document).ready(function() {
-    let currentStep = 1;
-    const totalSteps = 4;
-
-    // Initialize Select2
-    $('.select2').select2({
-        theme: 'bootstrap-5',
-        width: '100%',
-        placeholder: '{{ trans("vendor::vendor.please_select_activity") }}'
-    });
-
-    // Show/Hide steps
-    function showStep(step) {
-        $('.wizard-step-content').removeClass('active');
-        $(`.wizard-step-content[data-step="${step}"]`).addClass('active');
-        
-        $('.wizard-step-nav').removeClass('current');
-        $(`.wizard-step-nav[data-step="${step}"]`).addClass('current');
-        
-        // Update buttons
-        if (step === 1) {
-            $('#prevBtn').hide();
-        } else {
-            $('#prevBtn').show();
-        }
-        
-        if (step === totalSteps) {
-            $('#nextBtn').hide();
-            $('#submitBtn').show();
-        } else {
-            $('#nextBtn').show();
-            $('#submitBtn').hide();
-        }
-    }
-
-    // Next button
-    $('#nextBtn').on('click', function() {
-        if (validateCurrentStep()) {
-            currentStep++;
-            if (currentStep > totalSteps) currentStep = totalSteps;
-            showStep(currentStep);
-        }
-    });
-
-    // Previous button
-    $('#prevBtn').on('click', function() {
-        currentStep--;
-        if (currentStep < 1) currentStep = 1;
-        showStep(currentStep);
-    });
-
-    // Click on wizard step navigation
-    $('.wizard-step-nav').on('click', function() {
-        const step = parseInt($(this).data('step'));
-        if (step < currentStep || validateCurrentStep()) {
-            currentStep = step;
-            showStep(currentStep);
-        }
-    });
-
-    // Validate current step
-    function validateCurrentStep() {
-        if (currentStep === 1) {
-            // Validate Step 1
-            let isValid = true;
-            
-            // Check required name field (English)
-            const nameEn = $('input[name="translations[{{ $languages->first()->id }}][name]"]').val();
-            if (!nameEn || nameEn.trim() === '') {
-                alert('{{ trans("vendor::vendor.name_required_all_languages") }}');
-                isValid = false;
-            }
-            
-            // Check activities selection
-            const activities = $('#activities').val();
-            if (!activities || activities.length === 0) {
-                alert('{{ trans("vendor::vendor.please_select_at_least_one_activity") }}');
-                isValid = false;
-            }
-            
-            return isValid;
-        }
-        
-        return true;
-    }
-
-    // Form submission
-    $('#vendorForm').on('submit', function(e) {
-        e.preventDefault();
-        
-        if (!validateCurrentStep()) {
-            return false;
-        }
-        
-        LoadingOverlay.show();
-        
-        const formData = new FormData(this);
-        
-        $.ajax({
-            url: $(this).attr('action'),
-            type: $(this).attr('method'),
-            data: formData,
-            processData: false,
-            contentType: false,
-            success: function(response) {
-                if (response.success) {
-                    LoadingOverlay.showSuccess(
-                        response.message || '{{ trans("vendor::vendor.vendor_created_successfully") }}',
-                        '{{ trans("vendor::vendor.redirecting") }}'
-                    );
-                    setTimeout(function() {
-                        window.location.href = response.redirect || '{{ route("admin.vendors.index") }}';
-                    }, 1500);
-                } else {
-                    LoadingOverlay.hide();
-                    alert(response.message || '{{ trans("vendor::vendor.an_error_occurred") }}');
-                }
-            },
-            error: function(xhr) {
-                LoadingOverlay.hide();
-                if (xhr.status === 422) {
-                    const errors = xhr.responseJSON.errors;
-                    let errorMessage = '{{ trans("vendor::vendor.validation_errors") }}:\n';
-                    Object.keys(errors).forEach(function(key) {
-                        errorMessage += '- ' + errors[key][0] + '\n';
-                    });
-                    alert(errorMessage);
-                } else {
-                    alert('{{ trans("vendor::vendor.an_error_occurred") }}');
-                }
-            }
-        });
-    });
-});
+window.vendorFormConfig = {
+    selectPlaceholder: '{{ trans("vendor::vendor.please_select_activity") }}',
+    uploadText: '{{ trans("vendor::vendor.click_to_upload_document") }}',
+    notProvided: '{{ trans("vendor::vendor.not_provided") }}',
+    noLogoUploaded: '{{ trans("vendor::vendor.no_logo_uploaded") }}',
+    noBannerUploaded: '{{ trans("vendor::vendor.no_banner_uploaded") }}',
+    noDocumentsUploaded: '{{ trans("vendor::vendor.no_documents_uploaded") }}',
+    vendorCreated: '{{ trans("vendor::vendor.vendor_created_successfully") }}',
+    redirecting: '{{ trans("vendor::vendor.redirecting") }}',
+    errorOccurred: '{{ trans("vendor::vendor.error_occurred") }}',
+    indexRoute: '{{ route("admin.vendors.index") }}',
+    metaTitle: '{{ trans("vendor::vendor.meta_title") }}',
+    metaDescription: '{{ trans("vendor::vendor.meta_description") }}',
+    metaKeywords: '{{ trans("vendor::vendor.meta_keywords") }}',
+    activeLabel: '{{ trans("vendor::vendor.active") }}',
+    inactiveLabel: '{{ trans("vendor::vendor.inactive") }}',
+    languages: [
+        @foreach($languages as $language)
+        {
+            id: {{ $language->id }},
+            code: '{{ $language->code }}',
+            name: '{{ $language->name }}'
+        }{{ !$loop->last ? ',' : '' }}
+        @endforeach
+    ]
+};
 </script>
+
+<!-- Vendor Form External JavaScript (All Logic) -->
+@vite(['Modules/Vendor/resources/assets/js/vendor-form.js'])
 @endpush

@@ -24,8 +24,8 @@ return new class extends Migration
             $table->string('password');
             $table->rememberToken();
             $table->foreign('user_type_id')->references('id')->on('users_types')->onDelete('cascade');
-            $table->softDeletes();
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

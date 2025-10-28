@@ -28,7 +28,6 @@ trait Translation
   public function setTranslation(string $key, string $locale, string $value)
   {
       $lang = Language::where('code', $locale)->first();
-
       if($lang) {
           $translation = $this->translations()
               ->firstOrNew(['lang_id' => $lang->id, 'lang_key' => $key]);

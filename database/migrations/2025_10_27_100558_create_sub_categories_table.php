@@ -16,8 +16,8 @@ return new class extends Migration
             $table->string('slug');
             $table->boolean('active')->default(1);
             $table->foreignId('category_id')->constrained('categories')->cascadeOnDelete();
-            $table->softDeletes();
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

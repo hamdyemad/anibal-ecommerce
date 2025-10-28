@@ -5,7 +5,9 @@ namespace App\Repositories;
 use App\Actions\UserAction;
 use App\Interfaces\UserInterface;
 use App\Models\User;
+use App\Models\UserType;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 
 class UserRepository implements UserInterface {
 
@@ -28,6 +30,18 @@ class UserRepository implements UserInterface {
 
     public function logout() {
         return $this->userAction->logout();
+    }
+    
+
+    public function createVendorAccount($data) {
+        // Create user account
+        $user = User::create([
+            'uuid' => \Str::uuid(),
+            'email' => $data['email'],
+            'password' => Hash::make($data['password']),
+            'user_type_id' => UserType::VENDOR_TYPE, // Vendor type
+        ]);
+        return $user;
     }
 
 

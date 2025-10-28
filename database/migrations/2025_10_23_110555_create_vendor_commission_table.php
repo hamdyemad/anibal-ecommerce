@@ -16,8 +16,8 @@ return new class extends Migration
             $table->unsignedBigInteger('vendor_id');
             $table->integer('commission');
             $table->foreign('vendor_id')->references('id')->on('vendors')->onDelete('cascade');
-            $table->softDeletes();
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

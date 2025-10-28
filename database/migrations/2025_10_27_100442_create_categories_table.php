@@ -16,8 +16,8 @@ return new class extends Migration
             $table->string('slug');
             $table->boolean('active')->default(1);
             $table->foreignId('department_id')->references('id')->on('departments')->onDelete('cascade');
-            $table->softDeletes();
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

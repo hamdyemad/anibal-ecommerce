@@ -23,12 +23,12 @@ class DatabaseSeeder extends Seeder
         // $this->call(LanguageSeeder::class);
         
         // Seed permissions with translations
-        // $this->call(PermessionSeeder::class);
+        $this->call(PermessionSeeder::class);
         
         // Seed roles with permissions
-        // $this->call(RoleSeeder::class);
+        $this->call(RoleSeeder::class);
 
-        $this->call(ActivitySeeder::class);
+        // $this->call(ActivitySeeder::class);
 
         
 

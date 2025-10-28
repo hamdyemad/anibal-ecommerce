@@ -6,21 +6,24 @@ use App\Http\Controllers\Controller;
 use Modules\Vendor\app\Services\VendorService;
 use App\Services\LanguageService;
 use Exception;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 use Modules\AreaSettings\app\Resources\CountryResource;
 use Modules\AreaSettings\app\Services\CountryService;
 use Modules\CategoryManagment\app\Http\Resources\ActivityResource;
 use Modules\CategoryManagment\app\Services\ActivityService;
+use Modules\Vendor\app\Actions\VendorAction;
 use Modules\Vendor\app\Http\Requests\Vendor\VendorRequest;
 
 class VendorController extends Controller {
 
     public function __construct(
         protected VendorService $vendorService,
+        protected VendorAction $vendorAction,
         protected CountryService $countryService,
         protected ActivityService $activityService,
-        protected LanguageService $languageService
+        protected LanguageService $languageService,
     ) {}
 
     public function index() {
@@ -28,124 +31,45 @@ class VendorController extends Controller {
         return view('vendor::vendors.index', compact('languages'));
     }
 
-    public function datatable() {
-        try {
-            // Get paginated vendors and extract the items
-            $vendorsPaginated = $this->vendorService->getAllVendors([]);
-            $vendors = $vendorsPaginated->items(); // Extract items from paginator
-            $languages = $this->languageService->getAll();
-            
-            $data = [];
-            foreach ($vendors as $vendor) {
-                $row = [];
-                
-                // ID
-                $row[] = $vendor->id;
-                
-                // Names for each language
-                foreach ($languages as $language) {
-                    $translation = $vendor->translations()
-                        ->where('lang_id', $language->id)
-                        ->where('lang_key', 'name')
-                        ->first();
-                    
-                    $name = $translation ? $translation->lang_value : '-';
-                    $row[] = '<div class="userDatatable-content"' . ($language->rtl ? ' dir="rtl"' : '') . '>' . htmlspecialchars($name) . '</div>';
-                }
-                
-                // Email
-                $email = $vendor->user ? $vendor->user->email : '-';
-                $row[] = '<div class="userDatatable-content">' . htmlspecialchars($email) . '</div>';
-                
-                // Country
-                if ($vendor->country) {
-                    $countryTranslation = $vendor->country->translations()
-                        ->where('lang_id', app()->getLocale() === 'ar' ? 2 : 1)
-                        ->where('lang_key', 'name')
-                        ->first();
-                    $countryName = $countryTranslation ? $countryTranslation->lang_value : ($vendor->country->code ?? '-');
-                } else {
-                    $countryName = '-';
-                }
-                $row[] = '<div class="userDatatable-content">' . htmlspecialchars($countryName) . '</div>';
-                
-                // Activities
-                $activitiesArray = [];
-                if($vendor->activities) {
-                    foreach($vendor->activities as $activity) {
-                        $activityTranslation = $activity->getTranslation('name', app()->getLocale());
-                        $activitiesArray[] = $activityTranslation ? $activityTranslation : $activity->name;
-                    }
-                }
-                $activitiesHtml = !empty($activitiesArray) 
-                    ? implode('', array_map(fn($act) => '<span class="badge badge-round badge-primary badge-lg me-1">' . htmlspecialchars($act) . '</span>', $activitiesArray))
-                    : '-';
-                $row[] = '<div class="userDatatable-content">' . $activitiesHtml . '</div>';
-                
-                // Active Status - check if property exists
-                $isActive = isset($vendor->active) ? $vendor->active : true;
-                $statusBadge = $isActive
-                    ? '<span class="badge badge-success">Active</span>' 
-                    : '<span class="badge badge-danger">Inactive</span>';
-                $row[] = '<div class="userDatatable-content">' . $statusBadge . '</div>';
-                
-                // Created At
-                $createdAt = $vendor->created_at ? $vendor->created_at->format('Y-m-d H:i') : '-';
-                $row[] = '<div class="userDatatable-content">' . $createdAt . '</div>';
-                
-                // Actions - safely get vendor name
-                $vendorName = 'Vendor';
-                $nameTranslation = $vendor->translations()->where('lang_key', 'name')->first();
-                if ($nameTranslation && $nameTranslation->lang_value) {
-                    $vendorName = $nameTranslation->lang_value;
-                }
-                
-                $actions = '
-                    <ul class="orderDatatable_actions mb-0 d-flex flex-wrap">
-                        <li>
-                            <a href="' . route('admin.vendors.show', $vendor->id) . '" class="view">
-                                <i class="uil uil-eye"></i>
-                            </a>
-                        </li>
-                        <li>
-                            <a href="' . route('admin.vendors.edit', $vendor->id) . '" class="edit">
-                                <i class="uil uil-edit"></i>
-                            </a>
-                        </li>
-                        <li>
-                            <a href="javascript:void(0);" 
-                               class="remove" 
-                               data-bs-toggle="modal" 
-                               data-bs-target="#modal-delete-vendor"
-                               data-item-id="' . $vendor->id . '"
-                               data-item-name="' . htmlspecialchars($vendorName) . '">
-                                <i class="uil uil-trash-alt"></i>
-                            </a>
-                        </li>
-                    </ul>
-                ';
-                $row[] = $actions;
-                
-                $data[] = $row;
-            }
-            
-            return response()->json(['data' => $data]);
-        } catch (Exception $e) {
-            Log::error('Vendor datatable error: ' . $e->getMessage(), [
-                'trace' => $e->getTraceAsString()
-            ]);
-            return response()->json(['data' => [], 'error' => $e->getMessage()], 500);
-        }
+    public function datatable(Request $request)
+    {
+        $data = [
+            'page' => $request->get('page', 1),
+            'draw' => $request->get('draw', 1),
+            'start' => $request->get('start', 0),
+            'length' => $request->get('length', 10),
+            'orderColumnIndex' => $request->get('order')[0]['column'] ?? 0,
+            'orderDirection' => $request->get('order')[0]['dir'] ?? 'desc',
+            'search' => $request->get('search'),
+            'active' => $request->get('active'),
+            'created_date_from' => $request->get('created_date_from'),
+            'created_date_to' => $request->get('created_date_to'),
+        ];
+
+        $response = $this->vendorAction->getDataTable($data);
+        return response()->json([
+            'data' => $response['data'],
+            'recordsTotal' => $response['totalRecords'],
+            'recordsFiltered' => $response['filteredRecords'],
+            'current_page' => $response['dataPaginated']->currentPage(),
+            'last_page' => $response['dataPaginated']->lastPage(),
+            'per_page' => $response['dataPaginated']->perPage(),
+            'total' => $response['dataPaginated']->total(),
+            'from' => $response['dataPaginated']->firstItem(),
+            'to' => $response['dataPaginated']->lastItem()
+        ]);
     }
+
 
     public function create() {
         // Get all countries and activities for select dropdowns
         $countriesData = $this->countryService->getAllCountries([], 1000);
         $activitiesData = $this->activityService->getAllActivities([], 1000);
         
-        // Extract items from paginated results and transform to arrays
+        // Extract items from paginated results
         $countries = CountryResource::collection($countriesData)->resolve();
-        $activities = ActivityResource::collection($activitiesData)->resolve();
+        // Pass activities as collection for form (need getTranslation method)
+        $activities = $activitiesData;
         
         // Get languages for translations
         $languages = $this->languageService->getAll();
@@ -207,9 +131,10 @@ class VendorController extends Controller {
         $countriesData = $this->countryService->getAllCountries([], 1000);
         $activitiesData = $this->activityService->getAllActivities([], 1000);
         
-        // Extract items from paginated results and transform to arrays
+        // Extract items from paginated results
         $countries = CountryResource::collection($countriesData)->resolve();
-        $activities = ActivityResource::collection($activitiesData)->resolve();
+        // Pass activities as collection for form (need getTranslation method)
+        $activities = $activitiesData;
         // Get languages for translations
         $languages = $this->languageService->getAll();
         return view('vendor::vendors.form', compact('vendor', 'countries', 'activities', 'languages'));

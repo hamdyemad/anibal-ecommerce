@@ -5,11 +5,13 @@ export default defineConfig({
   plugins: [
     laravel({
       input: [
-        'resources/scss/vendor-form.scss',
         'resources/scss/progress-bar.scss',
         'resources/scss/rtl-validation.scss',
         'resources/js/app.js',
         'resources/scss/app.scss',
+        // Vendor Module Assets
+        'Modules/Vendor/resources/assets/css/vendor-form.css',
+        'Modules/Vendor/resources/assets/js/vendor-form.js',
       ],
       refresh: true,
     }),

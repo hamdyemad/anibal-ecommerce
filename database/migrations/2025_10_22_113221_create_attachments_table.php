@@ -16,8 +16,8 @@ return new class extends Migration
             $table->morphs('attachable');
             $table->string('type')->nullable();
             $table->text('path');
-            $table->softDeletes();
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

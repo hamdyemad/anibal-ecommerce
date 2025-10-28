@@ -10,6 +10,13 @@ return [
     'active_status' => 'Activation',
     'commission' => 'Commission',
     'enter_commission' => 'Enter commission percentage',
+    'search_placeholder' => 'Search by name or email...',
+    'no_vendors_found' => 'No vendors found',
+    'all' => 'All',
+    'confirm_delete' => 'Confirm Delete',
+    'delete_confirmation' => 'Are you sure you want to delete this vendor?',
+    'delete_vendor' => 'Delete Vendor',
+    'country' => 'Country',
     // Form Labels - Step 1: Vendor Information
     'vendor_information' => 'Vendor Information',
     'logo' => 'Logo',
@@ -56,9 +63,12 @@ return [
     'click_to_upload_document' => 'Click to upload document',
     'upload_logo' => 'Upload Logo',
     'choose_file' => 'Choose File',
+    'logo_recommended_size' => 'Recommended: 200x200px',
+    'banner_recommended_size' => 'Recommended: 1200x400px',
     'recommended_logo_size' => 'Recommended: 200x200px',
     'recommended_banner_size' => 'Recommended: 1200x400px',
     'accepted_document_types' => 'PDF, JPG, PNG, DOC, DOCX',
+    'branding' => 'Branding',
     
     // Buttons
     'change' => 'Change',
@@ -69,6 +79,10 @@ return [
     'update_vendor' => 'Update Vendor',
     'save_changes' => 'Save Changes',
     'cancel' => 'Cancel',
+    'back_to_list' => 'Back to List',
+    'description' => 'Description',
+    'document' => 'Document',
+    'select_country' => 'Select Country',
     
     // Messages
     'vendor_created_successfully' => 'Vendor created successfully',
@@ -145,6 +159,7 @@ return [
     'an_error_occurred' => 'An error occurred',
     
     // Validation Messages
+    'name_required_for_language' => 'Name (:language) is required.',
     'name_required_all_languages' => 'Name is required for all languages.',
     'at_least_one_translation_required' => 'At least one translation is required.',
     'please_select_country' => 'Please select a country.',

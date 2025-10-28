@@ -129,7 +129,6 @@ class VendorRequest extends FormRequest
     public function messages(): array
     {
         $messages = [
-            'translations.*.name.required' => __('vendor::vendor.name_required_all_languages'),
             'translations.required' => __('vendor::vendor.at_least_one_translation_required'),
             'country_id.required' => __('vendor::vendor.please_select_country'),
             'country_id.exists' => __('vendor::vendor.selected_country_invalid'),
@@ -155,8 +154,14 @@ class VendorRequest extends FormRequest
             'documents.*.file.max' => __('vendor::vendor.document_max_size'),
         ];
 
-        // Add custom messages for document translations with language names
+        // Add custom messages for vendor name translations with language names
         $languages = Language::all();
+        foreach ($languages as $language) {
+            $messages["translations.{$language->id}.name.required"] = 
+                __('vendor::vendor.name_required_for_language', ['language' => $language->name]);
+        }
+
+        // Add custom messages for document translations with language names
         foreach ($languages as $language) {
             $messages["documents.*.translations.{$language->id}.name.required_with"] = 
                 __('vendor::vendor.document_name_required_for_language', ['language' => $language->name]);

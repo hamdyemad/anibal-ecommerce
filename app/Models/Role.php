@@ -4,10 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use App\Traits\Translation;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Role extends Model
 {
-    use Translation;
+    use Translation, SoftDeletes;
     
     protected $guarded = [];
     

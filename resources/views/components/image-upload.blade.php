@@ -178,19 +178,23 @@
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Image upload functionality
-    const imageInputs = document.querySelectorAll('.image-file-input');
+    // Image upload functionality - prevent duplicate initialization
+    const imageInputs = document.querySelectorAll('.image-file-input:not([data-initialized])');
     
     imageInputs.forEach(input => {
+        // Mark as initialized to prevent duplicate handlers
+        input.setAttribute('data-initialized', 'true');
+        
         const previewId = input.dataset.preview;
         const container = document.getElementById(previewId + '-preview-container');
         const placeholder = document.getElementById(previewId + '-placeholder');
         const changeBtn = container.querySelector('.btn-change-image');
         const removeBtn = container.querySelector('.btn-remove-image');
         
-        // Click on container or change button to select file
+        // Click on container to select file (but not on buttons)
         container.addEventListener('click', (e) => {
-            if (!e.target.classList.contains('btn-remove-image')) {
+            // Only open file dialog if clicking directly on container or placeholder
+            if (!e.target.closest('.btn-change-image') && !e.target.closest('.btn-remove-image')) {
                 input.click();
             }
         });
@@ -198,6 +202,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (changeBtn) {
             changeBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
+                e.preventDefault();
                 input.click();
             });
         }

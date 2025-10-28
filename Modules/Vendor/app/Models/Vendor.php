@@ -8,8 +8,8 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Models\User;
 use App\Models\Attachment;
-use App\Models\Activity;
 use Modules\AreaSettings\app\Models\Country;
+use Modules\CategoryManagment\app\Models\Activity;
 
 class Vendor extends Model
 {

@@ -2,12 +2,15 @@
 
 namespace App\Http\Controllers\AdminManagement;
 
+use App\Actions\RoleAction;
 use App\Http\Controllers\Controller;
-use App\Services\RoleService;
 use App\Models\Role;
 use App\Http\Requests\StoreRoleRequest;
 use App\Http\Requests\UpdateRoleRequest;
+use App\Models\Language;
+use App\Models\Permession;
 use App\Services\LanguageService;
+use App\Services\RoleService;
 use App\Traits\Res;
 use Illuminate\Http\Request;
 
@@ -15,7 +18,10 @@ class RoleController extends Controller
 {
     use Res;
 
-    public function __construct(protected RoleService $roleService, protected LanguageService $languageService)
+    public function __construct(
+        protected RoleService $roleService, 
+        protected RoleAction $roleAction, 
+        protected LanguageService $languageService)
     {
     }
 
@@ -24,13 +30,40 @@ class RoleController extends Controller
      */
     public function index(Request $request)
     {
-        $search = $request->get('search');
-        $dateFrom = $request->get('date_from');
-        $dateTo = $request->get('date_to');
-        
-        $roles = $this->roleService->getAllRoles();
-        
-        return view('pages.admin_management.roles.index', compact('roles', 'search', 'dateFrom', 'dateTo'));
+        $languages = $this->languageService->getAll();
+        return view('pages.admin_management.roles.index', compact('languages'));
+    }
+
+    /**
+     * Get roles data for DataTables AJAX
+     */
+    public function datatable(Request $request)
+    {
+        $data = [
+            'page' => $request->get('page', 1),
+            'draw' => $request->get('draw', 1),
+            'start' => $request->get('start', 0),
+            'length' => $request->get('length', 10),
+            'orderColumnIndex' => $request->get('order')[0]['column'] ?? 0,
+            'orderDirection' => $request->get('order')[0]['dir'] ?? 'desc',
+            'search' => $request->get('search'),
+            'created_date_from' => $request->get('created_date_from'),
+            'created_date_to' => $request->get('created_date_to'),
+        ];
+
+        // $response = $this->roleService->getDataTable($data);
+        $response = $this->roleAction->getDataTable($data);
+        return response()->json([
+            'data' => $response['data'],
+            'recordsTotal' => $response['totalRecords'],
+            'recordsFiltered' => $response['filteredRecords'],
+            'current_page' => $response['dataPaginated']->currentPage(),
+            'last_page' => $response['dataPaginated']->lastPage(),
+            'per_page' => $response['dataPaginated']->perPage(),
+            'total' => $response['dataPaginated']->total(),
+            'from' => $response['dataPaginated']->firstItem(),
+            'to' => $response['dataPaginated']->lastItem()
+        ]);
     }
 
     /**
@@ -38,9 +71,8 @@ class RoleController extends Controller
      */
     public function create()
     {
-        $languages = $this->roleService->getLanguages();
+        $languages = $this->languageService->getAll();
         $groupedPermissions = $this->roleService->getGroupedPermissions();
-        
         return view('pages.admin_management.roles.form', compact('groupedPermissions', 'languages'));
     }
 
@@ -76,7 +108,7 @@ class RoleController extends Controller
     public function edit(Role $role)
     {
         $role = $this->roleService->getRoleById($role->id);
-        $languages = $this->roleService->getLanguages();
+        $languages = $this->languageService->getAll();
         $groupedPermissions = $this->roleService->getGroupedPermissions();
         return view('pages.admin_management.roles.form', compact('role', 'groupedPermissions', 'languages'));
     }

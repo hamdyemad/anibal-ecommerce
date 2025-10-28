@@ -30,4 +30,8 @@ class UserService {
         return $this->userInterface->logout();
     }
 
+    public function createVendorAccount($data) {
+        return $this->userInterface->createVendorAccount($data);
+    }
+
 }

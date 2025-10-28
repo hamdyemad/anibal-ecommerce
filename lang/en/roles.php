@@ -26,6 +26,7 @@ return [
     'confirm_delete' => 'Are you sure you want to delete the role',
     'delete_warning' => 'This will also remove all associated permissions.',
     'no_roles_found' => 'No roles found',
+    'search_placeholder' => 'Search by role name...',
     'cancel' => 'Cancel',
     'update_role' => 'Update Role',
     'back_to_list' => 'Back to List',

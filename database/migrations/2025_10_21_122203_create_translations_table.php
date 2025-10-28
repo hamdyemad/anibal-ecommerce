@@ -19,6 +19,7 @@ return new class extends Migration
             $table->text('lang_value')->nullable();
             $table->foreign('lang_id')->references('id')->on('languages')->onDelete('cascade');
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

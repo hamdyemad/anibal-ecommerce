@@ -61,7 +61,6 @@
                                                    value="{{ isset($role) ? ($role->getTranslation('name', $language->code) ?? '') : old('name_' . $language->code) }}"
                                                    placeholder="@if($language->code == 'ar')أدخل اسم الدور بالعربية@else{{ __('roles.enter_role_name_in') }} {{ $language->name }}@endif"
                                                    @if($language->code == 'ar') dir="rtl" @endif
-                                                   required
                                                    >
                                             @error('name_' . $language->code)
                                                 <div class="invalid-feedback">{{ $message }}</div>

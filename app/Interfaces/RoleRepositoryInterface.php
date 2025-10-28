@@ -10,7 +10,14 @@ interface RoleRepositoryInterface
     /**
      * Get all roles with their permissions
      */
-    public function getAllWithPermissions(): Collection;
+    public function getAll($filter = [], $per_page = 10);
+
+    public function getRolesQuery($filters = []);
+
+    /**
+     * Get all Grouped Permessions
+     */
+    public function getGroupedPermissions(): Collection;
 
     /**
      * Find a role by ID
@@ -20,17 +27,17 @@ interface RoleRepositoryInterface
     /**
      * Create a new role
      */
-    public function create(array $data): Role;
+    public function create(array $data);
 
     /**
      * Update a role
      */
-    public function update(Role $role, array $data): Role;
+    public function update(Role $role, array $data);
 
     /**
      * Delete a role
      */
-    public function delete(Role $role): bool;
+    public function delete(Role $role);
 
     /**
      * Sync permissions for a role
