@@ -22,9 +22,15 @@
                     <span class="toggle-icon"></span>
                 </a>
                 <ul class="px-0">
+                    <li>
+                        <a class="d-flex align-items-center justify-content-between" href="{{ route('admin.category-management.activities.index') }}">
+                            {{ trans('menu.activities.title') }}
+                            <span class="badge-circle badge-secondary ms-1">8</span>
+                        </a>
+                    </li>
                     @can('categories.departments.view')
                     <li>
-                        <a class="d-flex align-items-center justify-content-between" href="{{ route('admin.dashboard') }}">
+                        <a class="d-flex align-items-center justify-content-between" href="{{ route('admin.category-management.departments.index') }}">
                             {{ trans('menu.category managment.department') }}
                             <span class="badge-circle badge-primary ms-1">8</span>
                         </a>
@@ -33,7 +39,7 @@
                     
                     @can('categories.main.view')
                     <li>
-                        <a class="d-flex align-items-center justify-content-between" href="{{ route('admin.dashboard') }}">
+                        <a class="d-flex align-items-center justify-content-between" href="{{ route('admin.category-management.categories.index') }}">
                             {{ trans('menu.category managment.main category') }}
                             <span class="badge-circle badge-info ms-1">25</span>
                         </a>
@@ -42,7 +48,7 @@
                     
                     @can('categories.sub.view')
                     <li>
-                        <a class="d-flex align-items-center justify-content-between" href="{{ route('admin.dashboard') }}">
+                        <a class="d-flex align-items-center justify-content-between" href="{{ route('admin.category-management.subcategories.index') }}">
                             {{ trans('menu.category managment.sub category') }}
                             <span class="badge-circle badge-success ms-1">45</span>
                         </a>
@@ -206,7 +212,6 @@
             </a>
         </li>
         @endcan
-
         
         @canany(['admin.roles.view', 'admin.admins.view'])
         <li class="menu-title mt-30">
@@ -244,7 +249,7 @@
             <ul class="px-0">
                 @can('vendors.view')
                 <li>
-                    <a href="{{ route('admin.dashboard') }}">
+                    <a href="{{ route('admin.vendors.index') }}">
                         <span class="d-flex align-items-center justify-content-between w-100">
                             <span>{{ trans('menu.vendors.all') }}</span>
                             <span class="badge-circle badge-success ms-1">50</span>
@@ -590,7 +595,7 @@
                 @can('area.country.view')
                 <li>
                     <a class="d-flex align-items-center justify-content-between"
-                        href="{{ route('admin.dashboard') }}">
+                        href="{{ route('admin.area-settings.countries.index') }}">
                         {{ trans('menu.area settings.country') }}
                         <span class="badge-circle badge-success ms-1">15</span>
                     </a>
@@ -600,7 +605,7 @@
                 @can('area.city.view')
                 <li>
                     <a class="d-flex align-items-center justify-content-between"
-                        href="{{ route('admin.dashboard') }}">
+                        href="{{ route('admin.area-settings.cities.index') }}">
                         {{ trans('menu.area settings.city') }}
                         <span class="badge-circle badge-info ms-1">120</span>
                     </a>
@@ -610,7 +615,7 @@
                 @can('area.region.view')
                 <li>
                     <a class="d-flex align-items-center justify-content-between"
-                        href="{{ route('admin.dashboard') }}">
+                        href="{{ route('admin.area-settings.regions.index') }}">
                         {{ trans('menu.area settings.region') }}
                         <span class="badge-circle badge-warning ms-1">45</span>
                     </a>
@@ -620,7 +625,7 @@
                 @can('area.subregion.view')
                 <li>
                     <a class="d-flex align-items-center justify-content-between"
-                        href="{{ route('admin.dashboard') }}">
+                        href="{{ route('admin.area-settings.subregions.index') }}">
                         {{ trans('menu.area settings.subregion') }}
                         <span class="badge-circle badge-secondary ms-1">80</span>
                     </a>

@@ -30,6 +30,9 @@
     {{-- Message Wrapper for Notifications --}}
     <div class="message-wrapper"></div>
     
+    {{-- Loading Overlay Stack --}}
+    @stack('after-body')
+    
     <div id="overlayer">
         <span class="loader-overlay">
             <div class="dm-spin-dots spin-lg">
@@ -52,12 +55,36 @@
         }
     </script>
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDduF2tLXicDEPDMAtC6-NLOekX0A5vlnY"></script>
+    
     <script src="{{ asset('assets/js/plugins.min.js') }}"></script>
-    {{-- <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script> --}}
+
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+    {{-- Add stub functions for missing plugins to prevent console errors --}}
+    <script>
+        // Prevent errors for optional plugins that script.min.js might try to initialize
+        if (typeof jQuery !== 'undefined') {
+            // Add stub for sortable if not loaded
+            if (!jQuery.fn.sortable) {
+                jQuery.fn.sortable = function() { return this; };
+            }
+            // Add stub for footable if not loaded
+            if (!jQuery.fn.footable) {
+                jQuery.fn.footable = function() { return this; };
+            }
+        }
+    </script>
+    
     <script src="{{ asset('assets/js/script.min.js') }}"></script>
     <script src="{{ asset('js/app.min.js') }}"></script>
+    @vite('resources/js/app.js')
 
     <script>
+        $('.select2').select2({
+            theme: 'bootstrap-5',
+            width: '100%'
+        });
+
         // Custom message function using utilities message system
         function showMessage(type, message, icon = 'check-circle', duration = 3000) {
             const messageWrapper = document.querySelector('.message-wrapper');
@@ -143,7 +170,7 @@
             }
         }
     </style>
-
     @stack('scripts')
+
 </body>
 </html>

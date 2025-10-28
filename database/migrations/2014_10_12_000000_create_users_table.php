@@ -15,9 +15,8 @@ return new class extends Migration
     {
         Schema::create('users', function (Blueprint $table) {
             $table->id();
-            $table->integer('user_type_id');
+            $table->bigInteger('user_type_id')->unsigned();
             $table->string('uuid');
-            $table->string('name');
             $table->string('email')->unique();
             $table->timestamp('reset_code_timestamp')->nullable();
             $table->string('reset_code')->nullable();
@@ -25,6 +24,7 @@ return new class extends Migration
             $table->string('password');
             $table->rememberToken();
             $table->foreign('user_type_id')->references('id')->on('users_types')->onDelete('cascade');
+            $table->softDeletes();
             $table->timestamps();
         });
     }

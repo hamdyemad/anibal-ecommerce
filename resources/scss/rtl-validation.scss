@@ -1,0 +1,63 @@
+// RTL Validation Styles
+// Fix validation icons and feedback for RTL inputs
+
+// For RTL inputs, move validation icons to the left
+input[dir="rtl"],
+textarea[dir="rtl"],
+select[dir="rtl"] {
+    &.is-invalid {
+        background-position: left calc(0.375em + 0.1875rem) center;
+        padding-left: calc(1.5em + 0.75rem);
+        padding-right: 0.75rem;
+    }
+    
+    &.is-valid {
+        background-position: left calc(0.375em + 0.1875rem) center;
+        padding-left: calc(1.5em + 0.75rem);
+        padding-right: 0.75rem;
+    }
+}
+
+// Invalid feedback for RTL
+[dir="rtl"] .invalid-feedback,
+.invalid-feedback[dir="rtl"] {
+    text-align: right;
+    display: block;
+    margin-top: 0.25rem;
+}
+
+// Valid feedback for RTL
+[dir="rtl"] .valid-feedback,
+.valid-feedback[dir="rtl"] {
+    text-align: right;
+    display: block;
+    margin-top: 0.25rem;
+}
+
+// Form control with RTL
+.form-control[dir="rtl"] {
+    text-align: right;
+    
+    &.is-invalid {
+        background-position: left 0.75rem center;
+        padding-left: 2.5rem;
+        padding-right: 0.75rem;
+    }
+    
+    &.is-valid {
+        background-position: left 0.75rem center;
+        padding-left: 2.5rem;
+        padding-right: 0.75rem;
+    }
+}
+
+// Ensure error messages display properly in RTL
+.form-group {
+    [dir="rtl"] ~ .invalid-feedback {
+        text-align: right;
+    }
+    
+    [dir="rtl"] ~ .valid-feedback {
+        text-align: right;
+    }
+}

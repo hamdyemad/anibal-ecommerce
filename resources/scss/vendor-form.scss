@@ -1,0 +1,468 @@
+@use "variables" as *;
+
+// Note: Wizard progress styles are handled by the original theme
+// No custom wizard styles to avoid conflicts
+
+// Logo Upload Styles (Same as Banner)
+.logo-upload-wrapper {
+    position: relative;
+}
+
+.logo-preview-container {
+    position: relative;
+    width: 200px;
+    height: 200px;
+    border: 2px dashed $border-color;
+    border-radius: 50%;
+    overflow: hidden;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background-color: $bg-light;
+    margin: 0;
+    
+    &:hover {
+        border-color: $primary-color;
+        background-color: $bg-hover;
+        
+        .logo-placeholder i {
+            color: $primary-color;
+            transform: scale(1.1);
+        }
+    }
+    
+    // Show overlay only when file is uploaded
+    &.has-file:hover {
+        .logo-overlay {
+            opacity: 1;
+        }
+    }
+}
+
+.logo-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: $text-light;
+    
+    i {
+        font-size: 48px;
+        margin-bottom: 10px;
+        color: $icon-color;
+        transition: all 0.3s ease;
+    }
+    
+    p {
+        margin: 0;
+        font-weight: 500;
+        color: $text-gray;
+        font-size: 14px;
+    }
+    
+    small {
+        color: $text-light;
+        margin-top: 5px;
+        font-size: 12px;
+    }
+}
+
+.logo-preview {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.logo-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    backdrop-filter: blur(2px);
+    border-radius: 50%;
+    padding: 20px;
+}
+
+.image-upload-wrapper {
+    position: relative;
+}
+
+.image-preview-container {
+    position: relative;
+    width: 100%;
+    height: 200px;
+    border: 2px dashed $border-color;
+    border-radius: 10px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background-color: $bg-light;
+    
+    &:hover {
+        border-color: $primary-color;
+        background-color: $bg-hover;
+        
+        .image-placeholder i {
+            color: $primary-color;
+            transform: scale(1.1);
+        }
+    }
+    
+    // Show overlay only when file is uploaded
+    &.has-file:hover {
+        .image-overlay {
+            opacity: 1;
+        }
+    }
+    
+    &.banner-preview {
+        height: 150px;
+    }
+    
+    &.document-preview {
+        height: 120px;
+        
+        .image-placeholder {
+            i {
+                font-size: 36px;
+            }
+            
+            p {
+                font-size: 13px;
+            }
+            
+            small {
+                font-size: 11px;
+            }
+        }
+    }
+}
+
+.image-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: $text-light;
+    
+    i {
+        font-size: 48px;
+        margin-bottom: 10px;
+        color: $icon-color;
+        transition: all 0.3s ease;
+    }
+    
+    p {
+        margin: 0;
+        font-weight: 500;
+        color: $text-gray;
+        font-size: 14px;
+    }
+    
+    small {
+        color: $text-light;
+        margin-top: 5px;
+        font-size: 12px;
+    }
+}
+
+.image-preview {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.file-preview {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    text-align: center;
+    background-color: $bg-light;
+}
+
+.image-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    backdrop-filter: blur(2px);
+    border-radius: 10px;
+    padding: 20px;
+}
+
+.btn-change-image,
+.btn-remove-image {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 6px;
+    background-color: #fff;
+    color: $text-gray;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center;
+    gap: 6px;
+    white-space: nowrap;
+    
+    i {
+        font-size: 16px;
+        line-height: 1;
+        display: inline-block;
+        margin: 0;
+    }
+    
+    &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+}
+
+.btn-change-image:hover {
+    background-color: $primary-color;
+    color: #fff;
+}
+
+.btn-remove-image {
+    background-color: $danger-color;
+    color: #fff;
+    
+    &:hover {
+        background-color: $danger-dark;
+    }
+}
+
+// Form Enhancements
+.wizard-step {
+    .card-header {
+        h4 {
+            color: $text-dark;
+            font-weight: 600;
+        }
+    }
+    
+    .form-group {
+        label {
+            font-weight: 500;
+            color: $text-gray;
+            margin-bottom: 8px;
+            
+            .text-danger {
+                color: $danger-color;
+            }
+        }
+        
+        .form-control {
+            transition: all 0.3s ease;
+            
+            &:focus {
+                border-color: $primary-color;
+                box-shadow: 0 0 0 0.2rem rgba($primary-color, 0.1);
+            }
+        }
+        
+        textarea.form-control {
+            resize: vertical;
+            min-height: 100px;
+        }
+    }
+    
+    // SEO Section
+    h6 {
+        color: $text-dark;
+        font-weight: 600;
+        
+        i {
+            color: $primary-color;
+        }
+    }
+}
+
+.next-step,
+.prev-step {
+    transition: all 0.3s ease;
+    
+    &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+    
+    i {
+        transition: transform 0.3s ease;
+    }
+}
+
+.next-step:hover i {
+    transform: translateX(3px);
+}
+
+.prev-step:hover i {
+    transform: translateX(-3px);
+}
+
+@media (max-width: 768px) {
+    .checkout-progress .step span:first-child {
+        width: 40px;
+        height: 40px;
+        font-size: 16px;
+    }
+    
+    .image-preview-container {
+        height: 150px;
+        
+        &.banner-preview {
+            height: 120px;
+        }
+    }
+    
+    .image-placeholder i {
+        font-size: 36px;
+    }
+    
+    .btn-change-image,
+    .btn-remove-image {
+        padding: 6px 12px;
+        font-size: 12px;
+    }
+    
+    .logo-upload-box .logo-preview-wrapper {
+        width: 150px;
+        height: 150px;
+    }
+    
+    img#logo-preview-img {
+        width: 100px !important;
+        height: 100px !important;
+    }
+}
+
+[dir="rtl"] {
+    .next-step i {
+        margin-right: 10px;
+        margin-left: 0;
+    }
+    
+    .prev-step i {
+        margin-left: 10px;
+        margin-right: 0;
+    }
+}
+
+// Wizard Step Navigation
+.wizard-step-nav {
+    transition: all 0.3s ease;
+    
+    &:hover {
+        transform: scale(1.05);
+        opacity: 0.8;
+    }
+    
+    &:active {
+        transform: scale(0.98);
+    }
+}
+
+// Review Section Styles
+.review-section {
+    &:hover {
+        opacity: 0.9;
+    }
+    
+    .card {
+        transition: all 0.3s ease;
+    }
+    
+    &:hover .card {
+        box-shadow: 0 0 15px rgba($primary-color, 0.2);
+        border-color: $primary-color !important;
+    }
+    
+    .card-header {
+        background-color: $bg-light !important;
+        border-bottom: 1px solid $border-color;
+        padding: 15px 20px;
+        
+        h6 {
+            color: $text-dark;
+            font-weight: 600;
+        }
+    }
+}
+
+.review-image-container {
+    border: 2px dashed $border-color;
+    border-radius: 8px;
+    padding: 15px;
+    min-height: 180px;
+    height: 180px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f8f9fa;
+    overflow: hidden;
+    
+    img {
+        max-width: 100%;
+        max-height: 150px;
+        width: auto;
+        height: auto;
+        border-radius: 6px;
+        object-fit: contain;
+    }
+}
+
+#review-logo img {
+    width: 200px;
+    height: 200px;
+}
+
+#review-banner img {
+    max-width: 100%;
+    max-height: 150px;
+}
+
+.review-document-item {
+    border: 1px solid $border-color;
+    border-radius: 6px;
+    padding: 15px;
+    margin-bottom: 10px;
+    background: #f8f9fa;
+}
+
+.review-document-preview {
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    background: white;
+    border: 1px solid $border-color;
+}

@@ -16,16 +16,16 @@ trait Translation
   {
     $lang = Language::where('code', $locale)->first();
     if($lang) {
-      return $this->translations()
+      $translation = $this->translations()
           ->where('lang_id', $lang->id)
           ->where('lang_key', $key)
-          ->first()
-          ->lang_value ?? null;
+          ->first();
+      return $translation ? $translation->lang_value : null;
     }
     return null;
   }
 
-  public function setTranslation(string $key, string $value, string $locale)
+  public function setTranslation(string $key, string $locale, string $value)
   {
       $lang = Language::where('code', $locale)->first();
 

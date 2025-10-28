@@ -51,10 +51,7 @@ class RoleSeeder extends Seeder
 
         foreach ($rolesData as $roleData) {
             // Create or update the role
-            $role = Role::updateOrCreate(
-                ['name' => $roleData['name']],
-                ['name' => $roleData['name']]
-            );
+            $role = Role::updateOrCreate([]);
 
             // Add translations if available and languages exist
             if ($languages->isNotEmpty() && isset($roleData['translations'])) {

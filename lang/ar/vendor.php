@@ -1,0 +1,175 @@
+<?php
+
+return [
+    // Page Titles
+    'vendors_management' => 'إدارة الموردين',
+    'create_vendor' => 'إنشاء مورد',
+    'add_vendor' => 'إضافة مورد',
+    'edit_vendor' => 'تعديل مورد',
+    'vendor_details' => 'تفاصيل المورد',
+    'active_status' => 'التفعيل',
+    'commission' => 'العمولة',
+    'enter_commission' => 'أدخل نسبة العمولة',
+    // Form Labels - Step 1: Vendor Information
+    'vendor_information' => 'معلومات المورد',
+    'logo' => 'الشعار',
+    'banner' => 'البانر',
+    'name_english' => 'الاسم (إنجليزي)',
+    'name_arabic' => 'الاسم (عربي)',
+    'description_english' => 'الوصف (إنجليزي)',
+    'description_arabic' => 'الوصف (عربي)',
+    'seo_information' => 'معلومات SEO',
+    'meta_title' => 'عنوان الميتا',
+    'meta_description' => 'وصف الميتا',
+    'meta_keywords' => 'كلمات الميتا المفتاحية',
+    
+    // Form Labels - Step 2: Vendor Documents
+    'vendor_documents' => 'مستندات المورد',
+    'document_name' => 'اسم المستند',
+    'document_name_english' => 'اسم المستند (إنجليزي)',
+    'document_name_arabic' => 'اسم المستند (عربي)',
+    'document_file' => 'ملف المستند',
+    'add_document' => 'إضافة مستند',
+    
+    // Form Labels - Step 3: Vendor Account
+    'vendor_account_details' => 'تفاصيل حساب المورد',
+    
+    // Form Labels - Step 4: Review & Submit
+    'review_submit' => 'المراجعة والإرسال',
+    'review_info_message' => 'يرجى مراجعة معلوماتك قبل الإرسال.',
+    
+    // Placeholders
+    'enter_vendor_name_english' => 'أدخل اسم المورد بالإنجليزية',
+    'enter_vendor_name_arabic' => 'أدخل اسم المورد بالعربية',
+    'enter_vendor_description_english' => 'أدخل وصف المورد بالإنجليزية',
+    'enter_vendor_description_arabic' => 'أدخل وصف المورد بالعربية',
+    'enter_meta_title' => 'أدخل عنوان الميتا لتحسين محركات البحث',
+    'enter_meta_description' => 'أدخل وصف الميتا لتحسين محركات البحث',
+    'enter_meta_keywords' => 'أدخل كلمات الميتا المفتاحية مفصولة بفواصل',
+    'separate_keywords_commas' => 'افصل الكلمات المفتاحية بفواصل',
+    'eg_business_license' => 'مثال: رخصة تجارية',
+    'eg_business_license_tax' => 'مثال: رخصة تجارية، شهادة ضريبية',
+    
+    // Upload Labels
+    'click_to_upload_logo' => 'انقر لتحميل الشعار',
+    'click_to_upload_banner' => 'انقر لتحميل البانر',
+    'click_to_upload_document' => 'انقر لتحميل المستند',
+    'upload_logo' => 'تحميل الشعار',
+    'choose_file' => 'اختر ملف',
+    'recommended_logo_size' => 'الحجم الموصى به: 200x200 بكسل',
+    'recommended_banner_size' => 'الحجم الموصى به: 1200x400 بكسل',
+    'accepted_document_types' => 'PDF, JPG, PNG, DOC, DOCX',
+    
+    // Buttons
+    'change' => 'تغيير',
+    'remove' => 'إزالة',
+    'previous' => 'السابق',
+    'next' => 'التالي',
+    'create_vendor_button' => 'إنشاء مورد',
+    'update_vendor' => 'تحديث المورد',
+    'save_changes' => 'حفظ التغييرات',
+    'cancel' => 'إلغاء',
+    
+    // Messages
+    'vendor_created_successfully' => 'تم إنشاء المورد بنجاح',
+    'vendor_updated_successfully' => 'تم تحديث المورد بنجاح',
+    'vendor_deleted_successfully' => 'تم حذف المورد بنجاح',
+    'error_creating_vendor' => 'خطأ في إنشاء المورد',
+    'error_updating_vendor' => 'خطأ في تحديث المورد',
+    'error_deleting_vendor' => 'خطأ في حذف المورد',
+    
+    // Table Headers
+    'id' => 'الرقم',
+    'name' => 'الاسم',
+    'email' => 'البريد الإلكتروني',
+    'phone' => 'الهاتف',
+    'status' => 'الحالة',
+    'created_at' => 'تاريخ الإنشاء',
+    'actions' => 'الإجراءات',
+    
+    // Status
+    'active' => 'نشط',
+    'inactive' => 'غير نشط',
+    'pending' => 'قيد الانتظار',
+    'approved' => 'موافق عليه',
+    'rejected' => 'مرفوض',
+    'activation' => 'التفعيل',
+    'all' => 'الكل',
+    
+    // Actions
+    'view' => 'عرض',
+    'edit' => 'تعديل',
+    'delete' => 'حذف',
+    'delete_vendor' => 'حذف المورد',
+    'activate' => 'تفعيل',
+    'deactivate' => 'إلغاء التفعيل',
+    'confirm_delete' => 'تأكيد الحذف',
+    'delete_confirmation' => 'هل أنت متأكد من رغبتك في حذف هذا المورد؟',
+    
+    // Validation
+    'required_field' => 'هذا الحقل مطلوب',
+    'invalid_email' => 'عنوان بريد إلكتروني غير صالح',
+    'invalid_phone' => 'رقم هاتف غير صالح',
+    
+    // Additional Form Fields
+    'name' => 'الاسم',
+    'description' => 'الوصف',
+    'country' => 'الدولة',
+    'select_country' => 'اختر الدولة',
+    'activities' => 'الأنشطة',
+    'email' => 'البريد الإلكتروني',
+    'search' => 'البحث',
+    'no_vendors_found' => 'لم يتم العثور على موردين',
+    'enter_email' => 'أدخل عنوان البريد الإلكتروني',
+    'password' => 'كلمة المرور',
+    'enter_password' => 'أدخل كلمة المرور',
+    'confirm_password' => 'تأكيد كلمة المرور',
+    'enter_vendor_name_in' => 'أدخل اسم المورد بـ',
+    'enter_vendor_description_in' => 'أدخل وصف المورد بـ',
+    'enter_vendor_name_arabic' => 'أدخل اسم المورد بالعربية',
+    'enter_vendor_description_arabic' => 'أدخل وصف المورد بالعربية',
+    'no_logo_uploaded' => 'لم يتم تحميل شعار',
+    'no_banner_uploaded' => 'لم يتم تحميل بانر',
+    'no_documents_uploaded' => 'لم يتم تحميل مستندات',
+    'password_is_set' => 'تم تعيين كلمة المرور',
+    'please_review_info' => 'يرجى مراجعة معلوماتك قبل الإرسال. انقر على أي قسم للتعديل.',
+    'validation_errors' => 'أخطاء التحقق',
+    'please_fix_errors' => 'يرجى إصلاح الأخطاء التالية قبل الإرسال:',
+    'error' => 'خطأ',
+    'creating_vendor' => 'جاري إنشاء المورد...',
+    'please_wait' => 'يرجى الانتظار بينما نقوم بمعالجة طلبك',
+    
+    // Additional translations
+    'not_provided' => 'غير محدد',
+    'redirecting' => 'جاري إعادة التوجيه...',
+    'please_check_form_errors' => 'يرجى التحقق من الأخطاء في النموذج',
+    'an_error_occurred' => 'حدث خطأ',
+    
+    // Validation Messages
+    'name_required_all_languages' => 'الاسم مطلوب لجميع اللغات.',
+    'at_least_one_translation_required' => 'مطلوب ترجمة واحدة على الأقل.',
+    'please_select_country' => 'يرجى اختيار دولة.',
+    'selected_country_invalid' => 'الدولة المحددة غير صالحة.',
+    'please_select_activity' => 'يرجى اختيار نشاط.',
+    'please_select_at_least_one_activity' => 'يرجى اختيار نشاط واحد على الأقل.',
+    'selected_activity_invalid' => 'النشاط المحدد غير صالح.',
+    'email_required' => 'عنوان البريد الإلكتروني مطلوب.',
+    'email_valid' => 'يرجى إدخال عنوان بريد إلكتروني صالح.',
+    'email_already_registered' => 'عنوان البريد الإلكتروني هذا مسجل بالفعل.',
+    'password_required' => 'كلمة المرور مطلوبة.',
+    'password_min_8' => 'يجب أن تتكون كلمة المرور من 8 أحرف على الأقل.',
+    'password_confirmation_mismatch' => 'تأكيد كلمة المرور غير متطابق.',
+    'logo_required' => 'الشعار مطلوب.',
+    'logo_must_be_image' => 'يجب أن يكون الشعار ملف صورة.',
+    'logo_file_types' => 'يجب أن يكون الشعار من نوع: jpeg, png, jpg, gif.',
+    'logo_max_size' => 'يجب ألا يتجاوز حجم الشعار 2 ميجابايت.',
+    'banner_required' => 'البانر مطلوب.',
+    'banner_must_be_image' => 'يجب أن يكون البانر ملف صورة.',
+    'banner_file_types' => 'يجب أن يكون البانر من نوع: jpeg, png, jpg, gif.',
+    'banner_max_size' => 'يجب ألا يتجاوز حجم البانر 4 ميجابايت.',
+    'document_name_required' => 'اسم المستند مطلوب.',
+    'document_name_required_for_language' => 'اسم المستند مطلوب لـ :language.',
+    'document_file_required' => 'ملف المستند مطلوب.',
+    'document_file_types' => 'يجب أن يكون المستند من نوع: pdf, doc, docx, jpg, jpeg, png.',
+    'document_max_size' => 'يجب ألا يتجاوز حجم المستند 5 ميجابايت.',
+];

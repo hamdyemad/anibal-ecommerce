@@ -1,0 +1,30 @@
+{
+    "name": "nwidart/areasettings",
+    "description": "",
+    "authors": [
+        {
+            "name": "Nicolas Widart",
+            "email": "n.widart@gmail.com"
+        }
+    ],
+    "extra": {
+        "laravel": {
+            "providers": [],
+            "aliases": {
+
+            }
+        }
+    },
+    "autoload": {
+        "psr-4": {
+            "Modules\\AreaSettings\\": "app/",
+            "Modules\\AreaSettings\\Database\\Factories\\": "database/factories/",
+            "Modules\\AreaSettings\\Database\\Seeders\\": "database/seeders/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Modules\\AreaSettings\\Tests\\": "tests/"
+        }
+    }
+}

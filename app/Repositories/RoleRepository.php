@@ -46,6 +46,7 @@ class RoleRepository implements RoleRepositoryInterface
      */
     public function delete(Role $role): bool
     {
+        $role->translations()->delete();
         return $role->delete();
     }
 

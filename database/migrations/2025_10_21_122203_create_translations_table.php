@@ -16,7 +16,7 @@ return new class extends Migration
             $table->morphs('translatable');
             $table->unsignedBigInteger('lang_id');
             $table->string('lang_key', 255)->nullable();
-            $table->string('lang_value', 255)->nullable();
+            $table->text('lang_value')->nullable();
             $table->foreign('lang_id')->references('id')->on('languages')->onDelete('cascade');
             $table->timestamps();
         });

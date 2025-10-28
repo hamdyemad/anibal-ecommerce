@@ -155,6 +155,10 @@
             'content and engagement' => 'Content & Engagement',
             'reports' => 'Reports',
             'settings' => 'Settings',
+            'business activities' => 'Business Activities',
+        ],
+        'activities' => [
+            'title' => 'Activities',
         ],
         'promocodes' => [
             'title' => 'promocodes',

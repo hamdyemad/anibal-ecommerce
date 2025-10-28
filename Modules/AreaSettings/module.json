@@ -1,0 +1,11 @@
+{
+    "name": "AreaSettings",
+    "alias": "areasettings",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\AreaSettings\\app\\Providers\\AreaSettingsServiceProvider"
+    ],
+    "files": []
+}

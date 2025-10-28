@@ -2,7 +2,7 @@
     <div class="dropdown-custom">
         <a href="javascript:;" class="nav-item-toggle"><img src="{{ asset('assets/img/author-nav.jpg') }}" alt="" class="rounded-circle">
             @if(Auth::check())
-                <span class="nav-item__title">{{ Auth::user()->name }}<i class="las la-angle-down nav-item__arrow"></i></span>
+                <span class="nav-item__title">user name<i class="las la-angle-down nav-item__arrow"></i></span>
             @endif
         </a>
         <div class="dropdown-wrapper">
@@ -12,7 +12,7 @@
                 </div>
                 <div>
                     @if(Auth::check())
-                        <h6 class="text-capitalize">{{ Auth::user()->name }}</h6>
+                        <h6 class="text-capitalize">user name</h6>
                     @endif
                     <span>UI Designer</span>
                 </div>

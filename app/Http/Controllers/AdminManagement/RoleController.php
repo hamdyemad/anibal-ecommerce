@@ -7,27 +7,30 @@ use App\Services\RoleService;
 use App\Models\Role;
 use App\Http\Requests\StoreRoleRequest;
 use App\Http\Requests\UpdateRoleRequest;
+use App\Services\LanguageService;
 use App\Traits\Res;
 use Illuminate\Http\Request;
 
 class RoleController extends Controller
 {
     use Res;
-    protected RoleService $roleService;
 
-    public function __construct(RoleService $roleService)
+    public function __construct(protected RoleService $roleService, protected LanguageService $languageService)
     {
-        $this->roleService = $roleService;
     }
 
     /**
      * Display a listing of the roles.
      */
-    public function index()
+    public function index(Request $request)
     {
+        $search = $request->get('search');
+        $dateFrom = $request->get('date_from');
+        $dateTo = $request->get('date_to');
+        
         $roles = $this->roleService->getAllRoles();
         
-        return view('admin_management.roles.index', compact('roles'));
+        return view('pages.admin_management.roles.index', compact('roles', 'search', 'dateFrom', 'dateTo'));
     }
 
     /**
@@ -38,7 +41,7 @@ class RoleController extends Controller
         $languages = $this->roleService->getLanguages();
         $groupedPermissions = $this->roleService->getGroupedPermissions();
         
-        return view('admin_management.roles.form', compact('groupedPermissions', 'languages'));
+        return view('pages.admin_management.roles.form', compact('groupedPermissions', 'languages'));
     }
 
     /**
@@ -61,9 +64,10 @@ class RoleController extends Controller
      */
     public function show(Role $role)
     {
+        $languages = $this->languageService->getAll();
         $role = $this->roleService->getRoleById($role->id);
         
-        return view('admin_management.roles.show', compact('role'));
+        return view('pages.admin_management.roles.show', compact('role', 'languages'));
     }
 
     /**
@@ -74,8 +78,7 @@ class RoleController extends Controller
         $role = $this->roleService->getRoleById($role->id);
         $languages = $this->roleService->getLanguages();
         $groupedPermissions = $this->roleService->getGroupedPermissions();
-        
-        return view('admin_management.roles.form', compact('role', 'groupedPermissions', 'languages'));
+        return view('pages.admin_management.roles.form', compact('role', 'groupedPermissions', 'languages'));
     }
 
     /**

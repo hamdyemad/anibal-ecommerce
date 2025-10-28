@@ -147,6 +147,10 @@
             'content and engagement' => 'المحتوى والتفاعل',
             'reports' => 'التقارير',
             'settings' => 'الإعدادات',
+            'business activities' => 'الأنشطة التجارية',
+        ],
+        'activities' => [
+            'title' => 'الأنشطة',
         ],
         'promocodes' => [
             'title' => 'أكواد الخصم',

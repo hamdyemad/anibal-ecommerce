@@ -1,0 +1,174 @@
+<?php
+
+return [
+    // Page Titles
+    'vendors_management' => 'Vendors Management',
+    'create_vendor' => 'Create Vendor',
+    'add_vendor' => 'Add Vendor',
+    'edit_vendor' => 'Edit Vendor',
+    'vendor_details' => 'Vendor Details',
+    'active_status' => 'Activation',
+    'commission' => 'Commission',
+    'enter_commission' => 'Enter commission percentage',
+    // Form Labels - Step 1: Vendor Information
+    'vendor_information' => 'Vendor Information',
+    'logo' => 'Logo',
+    'banner' => 'Banner',
+    'name_english' => 'Name (English)',
+    'name_arabic' => 'Name (Arabic)',
+    'description_english' => 'Description (English)',
+    'description_arabic' => 'Description (Arabic)',
+    'seo_information' => 'SEO Information',
+    'meta_title' => 'Meta Title',
+    'meta_description' => 'Meta Description',
+    'meta_keywords' => 'Meta Keywords',
+    
+    // Form Labels - Step 2: Vendor Documents
+    'vendor_documents' => 'Vendor Documents',
+    'document_name' => 'Document Name',
+    'document_name_english' => 'Document Name (English)',
+    'document_name_arabic' => 'Document Name (Arabic)',
+    'document_file' => 'Document File',
+    'add_document' => 'Add Document',
+    
+    // Form Labels - Step 3: Vendor Account
+    'vendor_account_details' => 'Vendor Account Details',
+    
+    // Form Labels - Step 4: Review & Submit
+    'review_submit' => 'Review & Submit',
+    'review_info_message' => 'Please review your information before submitting.',
+    
+    // Placeholders
+    'enter_vendor_name_english' => 'Enter vendor name in English',
+    'enter_vendor_name_arabic' => 'Enter vendor name in Arabic',
+    'enter_vendor_description_english' => 'Enter vendor description in English',
+    'enter_vendor_description_arabic' => 'Enter vendor description in Arabic',
+    'enter_meta_title' => 'Enter meta title for SEO',
+    'enter_meta_description' => 'Enter meta description for SEO',
+    'enter_meta_keywords' => 'Enter meta keywords separated by commas',
+    'separate_keywords_commas' => 'Separate keywords with commas',
+    'eg_business_license' => 'e.g., Business License',
+    'eg_business_license_tax' => 'e.g., Business License, Tax Certificate',
+    
+    // Upload Labels
+    'click_to_upload_logo' => 'Click to upload logo',
+    'click_to_upload_banner' => 'Click to upload banner',
+    'click_to_upload_document' => 'Click to upload document',
+    'upload_logo' => 'Upload Logo',
+    'choose_file' => 'Choose File',
+    'recommended_logo_size' => 'Recommended: 200x200px',
+    'recommended_banner_size' => 'Recommended: 1200x400px',
+    'accepted_document_types' => 'PDF, JPG, PNG, DOC, DOCX',
+    
+    // Buttons
+    'change' => 'Change',
+    'remove' => 'Remove',
+    'previous' => 'Previous',
+    'next' => 'Next',
+    'create_vendor_button' => 'Create Vendor',
+    'update_vendor' => 'Update Vendor',
+    'save_changes' => 'Save Changes',
+    'cancel' => 'Cancel',
+    
+    // Messages
+    'vendor_created_successfully' => 'Vendor created successfully',
+    'vendor_updated_successfully' => 'Vendor updated successfully',
+    'vendor_deleted_successfully' => 'Vendor deleted successfully',
+    'error_creating_vendor' => 'Error creating vendor',
+    'error_updating_vendor' => 'Error updating vendor',
+    'error_deleting_vendor' => 'Error deleting vendor',
+    
+    // Table Headers
+    'id' => 'ID',
+    'name' => 'Name',
+    'email' => 'Email',
+    'phone' => 'Phone',
+    'status' => 'Status',
+    'created_at' => 'Created At',
+    'actions' => 'Actions',
+    
+    // Status
+    'active' => 'Active',
+    'inactive' => 'Inactive',
+    'pending' => 'Pending',
+    'approved' => 'Approved',
+    'rejected' => 'Rejected',
+    'activation' => 'Activation',
+    'all' => 'All',
+    
+    // Actions
+    'view' => 'View',
+    'edit' => 'Edit',
+    'delete' => 'Delete',
+    'delete_vendor' => 'Delete Vendor',
+    'activate' => 'Activate',
+    'deactivate' => 'Deactivate',
+    'confirm_delete' => 'Confirm Deletion',
+    'delete_confirmation' => 'Are you sure you want to delete this vendor?',
+    
+    // Validation
+    'required_field' => 'This field is required',
+    'invalid_email' => 'Invalid email address',
+    'invalid_phone' => 'Invalid phone number',
+    
+    // Additional Form Fields
+    'name' => 'Name',
+    'description' => 'Description',
+    'country' => 'Country',
+    'select_country' => 'Select Country',
+    'activities' => 'Activities',
+    'email' => 'Email',
+    'search' => 'Search',
+    'no_vendors_found' => 'No vendors found',
+    'enter_email' => 'Enter email address',
+    'password' => 'Password',
+    'enter_password' => 'Enter password',
+    'confirm_password' => 'Confirm Password',
+    'enter_vendor_name_in' => 'Enter vendor name in',
+    'enter_vendor_description_in' => 'Enter vendor description in',
+    'no_logo_uploaded' => 'No logo uploaded',
+    'no_banner_uploaded' => 'No banner uploaded',
+    'no_documents_uploaded' => 'No documents uploaded',
+    'password_is_set' => 'Password is set',
+    'please_review_info' => 'Please review your information before submitting. Click on any section to edit.',
+    'validation_errors' => 'Validation Errors',
+    'please_fix_errors' => 'Please fix the following errors before submitting:',
+    'error' => 'Error',
+    'creating_vendor' => 'Creating Vendor...',
+    'please_wait' => 'Please wait while we process your request',
+    
+    // Additional translations
+    'change' => 'Change',
+    'not_provided' => 'Not provided',
+    'redirecting' => 'Redirecting...',
+    'please_check_form_errors' => 'Please check the form for errors',
+    'an_error_occurred' => 'An error occurred',
+    
+    // Validation Messages
+    'name_required_all_languages' => 'Name is required for all languages.',
+    'at_least_one_translation_required' => 'At least one translation is required.',
+    'please_select_country' => 'Please select a country.',
+    'selected_country_invalid' => 'The selected country is invalid.',
+    'please_select_activity' => 'Please select an activity.',
+    'please_select_at_least_one_activity' => 'Please select at least one activity.',
+    'selected_activity_invalid' => 'The selected activity is invalid.',
+    'email_required' => 'Email address is required.',
+    'email_valid' => 'Please enter a valid email address.',
+    'email_already_registered' => 'This email address is already registered.',
+    'password_required' => 'Password is required.',
+    'password_min_8' => 'Password must be at least 8 characters.',
+    'password_confirmation_mismatch' => 'Password confirmation does not match.',
+    'logo_required' => 'Logo is required.',
+    'logo_must_be_image' => 'Logo must be an image file.',
+    'logo_file_types' => 'Logo must be a file of type: jpeg, png, jpg, gif.',
+    'logo_max_size' => 'Logo size must not exceed 2MB.',
+    'banner_required' => 'Banner is required.',
+    'banner_must_be_image' => 'Banner must be an image file.',
+    'banner_file_types' => 'Banner must be a file of type: jpeg, png, jpg, gif.',
+    'banner_max_size' => 'Banner size must not exceed 4MB.',
+    'document_name_required' => 'Document name is required.',
+    'document_name_required_for_language' => 'Document name is required for :language.',
+    'document_file_required' => 'Document file is required.',
+    'document_file_types' => 'Document must be a file of type: pdf, doc, docx, jpg, jpeg, png.',
+    'document_max_size' => 'Document size must not exceed 5MB.',
+];

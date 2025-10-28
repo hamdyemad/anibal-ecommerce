@@ -1,0 +1,16 @@
+@use "variables" as *;
+/* Bootstrap-styled pagination - smaller and cleaner */
+
+.pagination {
+    justify-content: end;
+    .page-item {
+        .page-link {
+            padding: 3px 10px;
+        }
+        &.active {
+            .page-link {
+                background-color: $primary-color;
+            }
+        }
+    }
+}

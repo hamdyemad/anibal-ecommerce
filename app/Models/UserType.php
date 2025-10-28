@@ -8,4 +8,7 @@ class UserType extends Model
 {
     protected $table = 'users_types';
     protected $guarded = [];
+    const SUPERADMIN_TYPE = 1;
+    const ADMIN_TYPE = 2;
+    const VENDOR_TYPE = 3;
 }

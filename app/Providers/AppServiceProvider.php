@@ -2,10 +2,18 @@
 
 namespace App\Providers;
 
+use App\Interfaces\DepartmentRepositoryInterface;
+use App\Interfaces\LanguageRepositoryInterface;
+use App\Interfaces\ActivityRepositoryInterface;
 use App\Interfaces\UserInterface;
 use App\Interfaces\RoleRepositoryInterface;
+use App\Interfaces\VendorInterface;
+use App\Repositories\DepartmentRepository;
+use App\Repositories\LanguageRepository;
+use App\Repositories\ActivityRepository;
 use App\Repositories\UserRepository;
 use App\Repositories\RoleRepository;
+use App\Repositories\VendorRepository;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -19,6 +27,7 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->app->bind(UserInterface::class, UserRepository::class);
         $this->app->bind(RoleRepositoryInterface::class, RoleRepository::class);
+        $this->app->bind(LanguageRepositoryInterface::class, LanguageRepository::class);
     }
 
     /**

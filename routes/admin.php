@@ -7,6 +7,12 @@ use App\Http\Controllers\LanguageController;
 use App\Http\Controllers\PaginationController;
 use App\Http\Controllers\VendorController;
 use App\Http\Controllers\AdminManagement\RoleController;
+use App\Http\Controllers\AreaSettings\CountryController;
+use App\Http\Controllers\AreaSettings\CityController;
+use App\Http\Controllers\AreaSettings\RegionController;
+use App\Http\Controllers\AreaSettings\SubRegionController;
+use App\Http\Controllers\DepartmentController;
+use App\Http\Controllers\ActivityController;
 
 /*
 |--------------------------------------------------------------------------
@@ -35,8 +41,7 @@ Route::group(
             Route::resource('roles', RoleController::class);
         });
 
-        // Vendors
-        Route::resource('vendors', VendorController::class);
+
     });
 });
 

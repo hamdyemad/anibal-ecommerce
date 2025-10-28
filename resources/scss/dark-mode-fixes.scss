@@ -1,0 +1,135 @@
+/* Dark Mode Fixes for Admin Pages */
+
+.dark-mode {
+    /* Cards and Datatables */
+    .userDatatable.bg-white,
+    .bg-white {
+        background-color: #1b1e2b !important;
+    }
+
+    /* Card Headers */
+    .card-header {
+        background-color: #23262f !important;
+        border-bottom-color: #2d3139 !important;
+        
+        h6, h5, h4, h3 {
+            color: #ffffff !important;
+        }
+    }
+
+    /* Card Body */
+    .card-body {
+        background-color: #1b1e2b !important;
+    }
+
+    /* Cards */
+    .card {
+        background-color: #23262f !important;
+        border-color: #2d3139 !important;
+    }
+
+    /* Form Controls */
+    .form-control {
+        background-color: #23262f !important;
+        border-color: #2d3139 !important;
+        color: #ffffff !important;
+
+        &:focus {
+            background-color: #23262f !important;
+            border-color: #5a5f73 !important;
+            color: #ffffff !important;
+        }
+
+        &::placeholder {
+            color: #6c757d !important;
+        }
+    }
+
+    /* Labels */
+    label {
+        color: #a0a0a0 !important;
+    }
+
+    /* Text Colors */
+    .color-dark {
+        color: #ffffff !important;
+    }
+
+    .il-gray {
+        color: #a0a0a0 !important;
+    }
+
+    /* Borders */
+    .border-bottom {
+        border-bottom-color: #2d3139 !important;
+    }
+
+    .border-top {
+        border-top-color: #2d3139 !important;
+    }
+
+    /* Shadows */
+    .global-shadow {
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3) !important;
+    }
+
+    /* Badges */
+    .badge-light-info {
+        background-color: #1e3a5f !important;
+        color: #5dade2 !important;
+    }
+
+    .badge-light-primary {
+        background-color: #1e2a5f !important;
+        color: #6c9bd1 !important;
+    }
+
+    .badge-light-secondary {
+        background-color: #2d3139 !important;
+        color: #a0a0a0 !important;
+    }
+
+    .badge-light-warning {
+        background-color: #5f4a1e !important;
+        color: #f39c12 !important;
+    }
+
+    .badge-light-success {
+        background-color: #1e5f3a !important;
+        color: #27ae60 !important;
+    }
+
+    .badge-light-danger {
+        background-color: #5f1e1e !important;
+        color: #e74c3c !important;
+    }
+
+    /* Loading Overlay */
+    .loading-overlay {
+        background-color: rgba(27, 30, 43, 0.95) !important;
+    }
+
+    .loading-content {
+        background-color: #23262f !important;
+        border: 1px solid #2d3139 !important;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5) !important;
+    }
+
+    .loading-text {
+        color: #ffffff !important;
+    }
+
+    .loading-subtext {
+        color: #a0a0a0 !important;
+    }
+
+    .loading-spinner {
+        border-color: #2d3139 !important;
+        border-top-color: #5a5f73 !important;
+    }
+
+    /* Progress Bar */
+    #loading-progress-bar {
+        background: linear-gradient(90deg, #5a5f73, #8e94b0) !important;
+    }
+}
