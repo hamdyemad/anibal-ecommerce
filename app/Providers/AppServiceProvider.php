@@ -4,13 +4,11 @@ namespace App\Providers;
 
 use App\Interfaces\DepartmentRepositoryInterface;
 use App\Interfaces\LanguageRepositoryInterface;
-use App\Interfaces\ActivityRepositoryInterface;
 use App\Interfaces\UserInterface;
 use App\Interfaces\RoleRepositoryInterface;
 use App\Interfaces\VendorInterface;
 use App\Repositories\DepartmentRepository;
 use App\Repositories\LanguageRepository;
-use App\Repositories\ActivityRepository;
 use App\Repositories\UserRepository;
 use App\Repositories\RoleRepository;
 use App\Repositories\VendorRepository;

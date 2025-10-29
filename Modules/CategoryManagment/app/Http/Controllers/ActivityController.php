@@ -7,132 +7,78 @@ use App\Services\LanguageService;
 use Modules\CategoryManagment\app\Services\ActivityService;
 use Modules\CategoryManagment\app\Http\Requests\ActivityRequest;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Modules\CategoryManagment\app\Actions\ActivityAction;
 
 class ActivityController extends Controller
 {
 
     public function __construct(protected ActivityService $activityService, 
-    protected LanguageService $languageService)
+    protected LanguageService $languageService,
+    protected ActivityAction $activityAction)
     {
     }
 
     /**
      * Datatable endpoint for server-side processing
      */
+    
     public function datatable(Request $request)
     {
-        try {
-            // Get pagination parameters
-            $perPage = $request->get('per_page', $request->get('length', 10));
-            $page = $request->get('page', 1);
-            
-            // Get filter parameters
-            $filters = [
-                'search' => $request->get('search'),
-                'active' => $request->get('active'),
-                'created_date_from' => $request->get('created_date_from'),
-                'created_date_to' => $request->get('created_date_to'),
-            ];
-            
-            // Debug logging
-            \Log::info('Activity Datatable Request:', [
-                'all_params' => $request->all(),
-                'filters' => $filters
-            ]);
-            
-            // Get total and filtered counts
-            $totalRecords = $this->activityService->getActivitiesQuery([])->count();
-            $filteredRecords = $this->activityService->getActivitiesQuery($filters)->count();
-            
-            // Get activities with pagination
-            $activitiesQuery = $this->activityService->getActivitiesQuery($filters);
-            $activities = $activitiesQuery->paginate($perPage, ['*'], 'page', $page);
-            
-            // Get languages
-            $languages = $this->languageService->getAll();
-            
-            // Format data for DataTables
-            $data = [];
-            foreach ($activities as $activity) {
-                $row = [];
-                
-                // ID column
-                $row[] = $activity->id;
-                
-                // Name columns for each language
-                foreach ($languages as $language) {
-                    $translation = $activity->translations->where('lang_id', $language->id)
-                        ->where('lang_key', 'name')
-                        ->first();
-                    $name = $translation ? $translation->lang_value : '-';
-                    
-                    if ($language->rtl) {
-                        $row[] = '<span dir="rtl">' . e($name) . '</span>';
-                    } else {
-                        $row[] = e($name);
-                    }
-                }
-                
-                // Active status column
-                $activeStatus = $activity->active 
-                    ? '<span class="badge badge-success">' . __('activity.active') . '</span>'
-                    : '<span class="badge badge-danger">' . __('activity.inactive') . '</span>';
-                $row[] = $activeStatus;
-                
-                // Created at column
-                $row[] = $activity->created_at->format('Y-m-d H:i');
-                
-                // Actions
-                $actionsHtml = '
-                    <ul class="orderDatatable_actions mb-0 d-flex flex-wrap justify-content-start">
-                        <li>
-                            <a href="' . route('admin.category-management.activities.show', $activity->id) . '" 
-                            class="view" 
-                            title="' . e(trans('common.view')) . '">
-                                <i class="uil uil-eye"></i>
-                            </a>
-                        </li>
-                        <li>
-                            <a href="' . route('admin.category-management.activities.edit', $activity->id) . '" 
-                            class="edit" 
-                            title="' . e(trans('common.edit')) . '">
-                                <i class="uil uil-edit"></i>
-                            </a>
-                        </li>
-                        <li>
-                            <a href="javascript:void(0);" 
-                            class="remove delete-activity" 
-                            title="' . e(trans('common.delete')) . '"
-                            data-bs-toggle="modal" 
-                            data-bs-target="#modal-delete-activity"
-                            data-item-id="' . $activity->id . '"
-                            data-item-name="' . e($activity->translations->where("lang_key", "name")->first()->lang_value ?? "") . '"
-                            data-url="' . route('admin.category-management.activities.destroy', $activity->id) . '">
-                                <i class="uil uil-trash-alt"></i>
-                            </a>
-                        </li>
-                    </ul>';
+        
+        // Handle search parameter - could be string (custom input) or array (DataTables)
+        $search = $request->get('search');
+        if (is_array($search)) {
+            $searchValue = $search['value'] ?? null;
+        } else {
+            $searchValue = $search;
+        }
+        
+        $data = [
+            'page' => $request->get('page', 1),
+            'draw' => $request->get('draw', 1),
+            'start' => $request->get('start', 0),
+            'length' => $request->get('length', 10),
+            'orderColumnIndex' => $request->get('order')[0]['column'] ?? 0,
+            'orderDirection' => $request->get('order')[0]['dir'] ?? 'desc',
+            'search' => $searchValue,
+            'active' => $request->get('active'),
+            'created_date_from' => $request->get('created_date_from'),
+            'created_date_to' => $request->get('created_date_to'),
+        ];
 
-                $row[] = $actionsHtml;
-                
-                $data[] = $row;
-            }
+        try {
+            $response = $this->activityAction->getDataTable($data);
             
-            return response()->json([
-                'data' => $data,
-                'recordsTotal' => $totalRecords,
-                'recordsFiltered' => $filteredRecords,
-                'current_page' => $activities->currentPage(),
-                'last_page' => $activities->lastPage(),
-                'per_page' => $activities->perPage(),
-                'total' => $activities->total(),
-                'from' => $activities->firstItem(),
-                'to' => $activities->lastItem()
+            Log::info('Activity Datatable Response', [
+                'data_count' => count($response['data']),
+                'totalRecords' => $response['totalRecords'],
+                'filteredRecords' => $response['filteredRecords']
             ]);
             
-        } catch (\Exception $e) {
             return response()->json([
-                'error' => 'Error loading activities: ' . $e->getMessage()
+                'draw' => $data['draw'],
+                'data' => $response['data'],
+                'recordsTotal' => $response['totalRecords'],
+                'recordsFiltered' => $response['filteredRecords'],
+                'current_page' => $response['dataPaginated']->currentPage(),
+                'last_page' => $response['dataPaginated']->lastPage(),
+                'per_page' => $response['dataPaginated']->perPage(),
+                'total' => $response['dataPaginated']->total(),
+                'from' => $response['dataPaginated']->firstItem(),
+                'to' => $response['dataPaginated']->lastItem()
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Activity Datatable Error: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return response()->json([
+                'draw' => $data['draw'],
+                'data' => [],
+                'recordsTotal' => 0,
+                'recordsFiltered' => 0,
+                'error' => $e->getMessage()
             ], 500);
         }
     }

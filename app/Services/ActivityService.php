@@ -2,7 +2,7 @@
 
 namespace App\Services;
 
-use App\Interfaces\ActivityRepositoryInterface;
+use Modules\CategoryManagment\app\Interfaces\ActivityRepositoryInterface;
 use Illuminate\Support\Facades\Log;
 
 class ActivityService
