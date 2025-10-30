@@ -40,6 +40,7 @@ class VariantsConfiguration extends Model
     {
         return $this->children()->with('childrenRecursive', 'key');
     }
+    
 
     /**
      * Get all of the ProductVariantConfiguration for the VariantsConfiguration
