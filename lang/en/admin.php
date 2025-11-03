@@ -15,6 +15,7 @@ return [
     'password' => 'Password',
     'confirm_password' => 'Confirm Password',
     'role' => 'Role',
+    'roles' => 'Roles',
     'active' => 'Active',
     'inactive' => 'Inactive',
     'block' => 'Block',
@@ -32,6 +33,7 @@ return [
     'enter_password' => 'Enter password',
     'leave_empty_to_keep_password' => 'Leave empty to keep current password',
     'select_role' => 'Select Role',
+    'select_roles' => 'Select Roles',
     
     // Messages
     'admin_created_successfully' => 'Admin created successfully',
@@ -70,4 +72,7 @@ return [
     'password_confirmation_mismatch' => 'Password confirmation does not match',
     'role_required' => 'Role is required',
     'role_invalid' => 'The selected role is invalid',
+    'roles_required' => 'At least one role is required',
+    'roles_must_be_array' => 'Roles must be an array',
+    'at_least_one_role_required' => 'At least one role must be selected',
 ];

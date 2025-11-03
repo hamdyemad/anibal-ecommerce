@@ -133,9 +133,9 @@ class AdminRepository
                 'block' => $data['block'] ?? false,
             ]);
 
-            // Assign role to user
-            if (!empty($data['role_id'])) {
-                $user->roles()->sync([$data['role_id']]);
+            // Assign roles to user
+            if (!empty($data['role_ids'])) {
+                $user->roles()->sync($data['role_ids']);
             }
 
             // Store translations
@@ -174,9 +174,9 @@ class AdminRepository
             // Update user
             $user->update($updateData);
 
-            // Update role
-            if (isset($data['role_id'])) {
-                $user->roles()->sync([$data['role_id']]);
+            // Update roles
+            if (isset($data['role_ids'])) {
+                $user->roles()->sync($data['role_ids']);
             }
 
             // Update translations

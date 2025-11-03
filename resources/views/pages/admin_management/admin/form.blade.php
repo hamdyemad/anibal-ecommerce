@@ -82,23 +82,25 @@
                                     </div>
                                 </div>
 
-                                <!-- Role -->
+                                <!-- Roles -->
                                 <div class="col-md-6">
                                     <div class="form-group mb-3">
-                                        <label for="role_id" class="form-label">
-                                            {{ __('admin.role') }} 
+                                        <label for="role_ids" class="form-label">
+                                            {{ __('admin.roles') }} 
                                             <span class="text-danger">*</span>
                                         </label>
-                                        <select class="form-control" id="role_id" name="role_id">
-                                            <option value="">{{ __('admin.select_role') }}</option>
+                                        <select class="form-control select2-multiple" id="role_ids" name="role_ids[]" multiple="multiple">
                                             @foreach($roles as $role)
                                                 <option value="{{ $role->id }}" 
-                                                    {{ old('role_id', isset($admin) && $admin->roles->contains($role->id) ? $role->id : '') == $role->id ? 'selected' : '' }}>
+                                                    {{ (is_array(old('role_ids')) && in_array($role->id, old('role_ids'))) || (isset($admin) && $admin->roles->contains($role->id)) ? 'selected' : '' }}>
                                                     {{ $role->getTranslation('name', app()->getLocale()) }}
                                                 </option>
                                             @endforeach
                                         </select>
-                                        @error('role_id')
+                                        @error('role_ids')
+                                            <div class="text-danger small mt-1">{{ $message }}</div>
+                                        @enderror
+                                        @error('role_ids.*')
                                             <div class="text-danger small mt-1">{{ $message }}</div>
                                         @enderror
                                     </div>
@@ -225,6 +227,13 @@
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Initialize Select2 for roles
+    $('#role_ids').select2({
+        placeholder: '{{ __('admin.select_roles') }}',
+        allowClear: true,
+        width: '100%'
+    });
+
     const adminForm = document.getElementById('adminForm');
     const submitBtn = adminForm.querySelector('button[type="submit"]');
     const alertContainer = document.getElementById('alertContainer');

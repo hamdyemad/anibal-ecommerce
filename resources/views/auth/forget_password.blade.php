@@ -2,10 +2,9 @@
 @section('content')
     <div class="row justify-content-center">
         <div class="col-xxl-3 col-xl-4 col-md-6 col-sm-8">
-            <div class="edit-profile">
+            <div class="edit-profile mt-5">
                 <div class="edit-profile__logos">
-                    <img class="dark" src="{{ asset('assets/img/logo-dark.png') }}" alt="">
-                    <img class="light" src="{{ asset('assets/img/logo-white.png') }}" alt="">
+                    <img src="{{ asset('assets/img/logo.png') }}" alt="">
                 </div>
                 <div class="card border-0">
                     <div class="card-header">

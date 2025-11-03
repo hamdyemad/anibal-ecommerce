@@ -44,8 +44,9 @@ class AdminRequest extends FormRequest
             // Status
             'active' => 'nullable|boolean',
             
-            // Role
-            'role_id' => 'required|exists:roles,id',
+            // Roles
+            'role_ids' => 'required|array|min:1',
+            'role_ids.*' => 'required|exists:roles,id',
             
             // Account
             'email' => $emailRule,
@@ -77,7 +78,8 @@ class AdminRequest extends FormRequest
             'translations.*.name' => __('admin.name'),
             'email' => __('admin.email'),
             'password' => __('admin.password'),
-            'role_id' => __('admin.role'),
+            'role_ids' => __('admin.roles'),
+            'role_ids.*' => __('admin.role'),
         ];
     }
 
@@ -94,8 +96,11 @@ class AdminRequest extends FormRequest
             'password.required' => __('admin.password_required'),
             'password.min' => __('admin.password_min_8'),
             'password.confirmed' => __('admin.password_confirmation_mismatch'),
-            'role_id.required' => __('admin.role_required'),
-            'role_id.exists' => __('admin.role_invalid'),
+            'role_ids.required' => __('admin.roles_required'),
+            'role_ids.array' => __('admin.roles_must_be_array'),
+            'role_ids.min' => __('admin.at_least_one_role_required'),
+            'role_ids.*.required' => __('admin.role_required'),
+            'role_ids.*.exists' => __('admin.role_invalid'),
         ];
 
         // Add custom messages for admin name translations with language names

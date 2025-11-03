@@ -15,6 +15,7 @@ return [
     'password' => 'كلمة المرور',
     'confirm_password' => 'تأكيد كلمة المرور',
     'role' => 'الدور',
+    'roles' => 'الأدوار',
     'active' => 'نشط',
     'inactive' => 'غير نشط',
     'block' => 'حظر',
@@ -32,6 +33,7 @@ return [
     'enter_password' => 'أدخل كلمة المرور',
     'leave_empty_to_keep_password' => 'اتركه فارغاً للحفاظ على كلمة المرور الحالية',
     'select_role' => 'اختر الدور',
+    'select_roles' => 'اختر الأدوار',
     
     // Messages
     'admin_created_successfully' => 'تم إنشاء المسؤول بنجاح',
@@ -70,4 +72,7 @@ return [
     'password_confirmation_mismatch' => 'تأكيد كلمة المرور غير متطابق',
     'role_required' => 'الدور مطلوب',
     'role_invalid' => 'الدور المحدد غير صالح',
+    'roles_required' => 'مطلوب دور واحد على الأقل',
+    'roles_must_be_array' => 'يجب أن تكون الأدوار مصفوفة',
+    'at_least_one_role_required' => 'يجب اختيار دور واحد على الأقل',
 ];

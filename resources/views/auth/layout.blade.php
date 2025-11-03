@@ -4,14 +4,25 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>{{ $title }} - HexaDash</title>
+    <title>{{ $title }} - Bnaia</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('assets/css/plugin.min.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/style.min.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/variables.css') }}">
     <link rel="stylesheet" href="https://unicons.iconscout.com/release/v3.0.0/css/line.css">
     <link rel="stylesheet" href="{{ asset('css/plugins/toastr.min.css') }}">
-    <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('assets/img/favicon.png') }}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('assets/img/logo.ico') }}">
+    <style>
+        :root {
+            --color-primary: #0056B7;
+            --bg-primary-hover: #003f87;
+        }
+        .btn-primary:hover {
+            color: var(--color-white);
+            background-color: var(--bg-primary-hover) !important;
+            border-color: var(--bg-primary-hover);
+        }
+    </style>
 </head>
 <body>
     <main class="main-content">
@@ -31,7 +42,7 @@
             </div>
         </div>
     </div>
-    <div class="enable-dark-mode dark-trigger">
+    {{-- <div class="enable-dark-mode dark-trigger">
         <ul>
             <li>
                 <a href="#">
@@ -39,7 +50,7 @@
                 </a>
             </li>
         </ul>
-    </div>
+    </div> --}}
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="{{ asset('js/plugins/toastr.min.js') }}"></script>
     <script src="{{ asset('assets/js/plugins.min.js') }}"></script>
