@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('brands', function (Blueprint $table) {
             $table->id();
+            $table->string('vendor_id')->nullable();
             $table->string('slug')->unique();
             $table->string('facebook_url')->nullable();
             $table->string('linkedin_url')->nullable();

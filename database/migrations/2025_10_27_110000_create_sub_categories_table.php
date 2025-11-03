@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('sub_categories', function (Blueprint $table) {
             $table->id();
+            $table->string('vendor_id')->nullable();
             $table->string('slug');
             $table->boolean('active')->default(1);
             $table->foreignId('category_id')->references('id')->on('categories')->onDelete('cascade');

@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('departments', function (Blueprint $table) {
             $table->id();
+            $table->string('vendor_id')->nullable();
             $table->string('slug');
             $table->boolean('active')->default(1);
             $table->timestamps();

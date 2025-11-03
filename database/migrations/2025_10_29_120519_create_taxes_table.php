@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('taxes', function (Blueprint $table) {
             $table->id();
+            $table->string('vendor_id')->nullable();
             $table->string('slug')->unique();
             $table->decimal('tax_rate', 5, 2); // e.g., 15.00 for 15%
             $table->boolean('active')->default(1);
