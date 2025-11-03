@@ -17,11 +17,13 @@
                 <div class="userDatatable global-shadow border-light-0 p-30 bg-white radius-xl w-100 mb-30">
                     <div class="d-flex justify-content-between align-items-center mb-25">
                         <h4 class="mb-0 fw-500">{{ __('activity.activities_management') }}</h4>
-                        <div class="d-flex gap-2">
-                            <a href="{{ route('admin.category-management.activities.create') }}" class="btn btn-primary btn-default btn-squared text-capitalize">
-                                <i class="uil uil-plus"></i> {{ __('activity.add_activity') }}
-                            </a>
-                        </div>
+                        @can('activities.create')
+                            <div class="d-flex gap-2">
+                                <a href="{{ route('admin.category-management.activities.create') }}" class="btn btn-primary btn-default btn-squared text-capitalize">
+                                    <i class="uil uil-plus"></i> {{ __('activity.add_activity') }}
+                                </a>
+                            </div>
+                        @endcan
                     </div>
 
                     {{-- Search and Filter --}}
@@ -283,6 +285,7 @@
                             deleteRoute = '{{ route('admin.category-management.activities.destroy', ':id') }}';
                         return `
                             <ul class="orderDatatable_actions mb-0 d-flex flex-wrap justify-content-start">
+                                @can('activities.show')
                                 <li>
                                     <a href="${viewRoute.replace(':id', row.id)}" 
                                     class="view" 
@@ -290,6 +293,8 @@
                                         <i class="uil uil-eye"></i>
                                     </a>
                                 </li>
+                                @endcan
+                                @can('activities.edit')
                                 <li>
                                     <a href="${editRoute.replace(':id', row.id)}" 
                                     class="edit" 
@@ -297,6 +302,8 @@
                                         <i class="uil uil-edit"></i>
                                     </a>
                                 </li>
+                                @endcan
+                                @can('activities.delete')
                                 <li>
                                     <a href="javascript:void(0);" 
                                     class="remove delete-activity" 
@@ -309,6 +316,7 @@
                                         <i class="uil uil-trash-alt"></i>
                                     </a>
                                 </li>
+                                @endcan
                             </ul>`;
                     }
                 }

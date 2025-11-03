@@ -17,6 +17,11 @@ class ActivityController extends Controller
     protected LanguageService $languageService,
     protected ActivityAction $activityAction)
     {
+        $this->middleware('can:activities.index')->only(['index']);
+        $this->middleware('can:activities.show')->only(['show']);
+        $this->middleware('can:activities.create')->only(['create', 'store']);
+        $this->middleware('can:activities.edit')->only(['edit', 'update']);
+        $this->middleware('can:activities.delete')->only(['destroy']);
     }
 
     /**

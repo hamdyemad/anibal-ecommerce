@@ -171,4 +171,9 @@
         'brands' => [
             'title' => 'العلامات التجارية',
         ],
+        'variant configurations' => [
+            'title' => 'تكوينات المتغيرات',
+            'variant config keys' => 'مفاتيح تكوين المتغيرات',
+            'variant config' => 'تكوينات المتغيرات',
+        ],
     ];

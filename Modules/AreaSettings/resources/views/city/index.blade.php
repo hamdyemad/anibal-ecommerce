@@ -21,11 +21,13 @@
                 <div class="userDatatable global-shadow border-light-0 p-30 bg-white radius-xl w-100 mb-30">
                     <div class="d-flex justify-content-between align-items-center mb-25">
                         <h4 class="mb-0 fw-500">{{ __('areasettings::city.cities_management') }}</h4>
+                        @can('area.city.create')
                         <div class="d-flex gap-2">
                             <a href="{{ route('admin.area-settings.cities.create') }}" class="btn btn-primary btn-default btn-squared text-capitalize">
                                 <i class="uil uil-plus"></i> {{ __('areasettings::city.add_city') }}
                             </a>
                         </div>
+                        @endcan
                     </div>
 
                     <!-- Filters Section -->
@@ -232,15 +234,114 @@ $(document).ready(function() {
             }
         },
         columns: [
-            { data: 0, name: 'id', orderable: true }, // #
+            { 
+                data: 'index', 
+                name: 'index', 
+                orderable: false,
+                searchable: false,
+                render: function(data, type, row) {
+                    return '<div class="userDatatable-content">' + data + '</div>';
+                }
+            },
             @foreach($languages as $language)
-            { data: {{ $loop->index + 1 }}, name: 'name_{{ $language->code }}', orderable: true, render: function(data) { return data; } },
+            { 
+                data: 'names.{{ $language->id }}.value',
+                name: 'name_{{ $language->code }}', 
+                orderable: true,
+                render: function(data, type, row) {
+                    const nameData = row.names[{{ $language->id }}];
+                    const rtlAttr = nameData.rtl ? ' dir="rtl"' : '';
+                    return '<div class="userDatatable-content"' + rtlAttr + '><strong>' + (nameData.value || '-') + '</strong></div>';
+                }
+            },
             @endforeach
-            { data: {{ count($languages) + 1 }}, name: 'country', orderable: true, render: function(data) { return data; } }, // Country
-            { data: {{ count($languages) + 2 }}, name: 'regions', orderable: false, render: function(data) { return data; } }, // Regions
-            { data: {{ count($languages) + 3 }}, name: 'active', orderable: true, render: function(data) { return data; } }, // Active Status
-            { data: {{ count($languages) + 4 }}, name: 'created_at', orderable: true, render: function(data) { return data; } }, // Created At
-            { data: {{ count($languages) + 5 }}, name: 'actions', orderable: false, searchable: false, render: function(data) { return data; } } // Actions
+            { 
+                data: 'country.name',
+                name: 'country', 
+                orderable: true,
+                render: function(data, type, row) {
+                    return '<div class="userDatatable-content">' + data + '</div>';
+                }
+            },
+            { 
+                data: 'regions_count',
+                name: 'regions', 
+                orderable: false,
+                render: function(data, type, row) {
+                    return `<div class="userDatatable-content">
+                                <span class="badge badge-primary" style="border-radius: 6px; padding: 6px 12px;">
+                                    <i class="uil uil-map-marker me-1"></i>${data}
+                                </span>
+                            </div>`;
+                }
+            },
+            { 
+                data: 'active',
+                name: 'active', 
+                orderable: true,
+                render: function(data, type, row) {
+                    if (data) {
+                        return `<div class="userDatatable-content">
+                                    <span class="badge badge-success" style="border-radius: 6px; padding: 6px 12px;">
+                                        <i class="uil uil-check me-1"></i>{{ __("areasettings::city.active") }}
+                                    </span>
+                                </div>`;
+                    } else {
+                        return `<div class="userDatatable-content">
+                                    <span class="badge badge-danger" style="border-radius: 6px; padding: 6px 12px;">
+                                        <i class="uil uil-times me-1"></i>{{ __("areasettings::city.inactive") }}
+                                    </span>
+                                </div>`;
+                    }
+                }
+            },
+            { 
+                data: 'created_at',
+                name: 'created_at', 
+                orderable: true,
+                render: function(data, type, row) {
+                    return '<div class="userDatatable-content">' + data + '</div>';
+                }
+            },
+            { 
+                data: null,
+                name: 'actions', 
+                orderable: false, 
+                searchable: false,
+                render: function(data, type, row) {
+                    return `
+                        <ul class="orderDatatable_actions mb-0 d-flex flex-wrap justify-content-start">
+                            @can('area.city.show')
+                            <li>
+                                <a href="{{ url('admin/area-settings/cities') }}/${row.id}" class="view" title="{{ trans('common.view') }}">
+                                    <i class="uil uil-eye"></i>
+                                </a>
+                            </li>
+                            @endcan
+                            @can('area.city.edit')
+                            <li>
+                                <a href="{{ url('admin/area-settings/cities') }}/${row.id}/edit" class="edit" title="{{ trans('common.edit') }}">
+                                    <i class="uil uil-edit"></i>
+                                </a>
+                            </li>
+                            @endcan
+                            @can('area.city.delete')
+                            <li>
+                                <a href="javascript:void(0);" 
+                                   class="remove" 
+                                   title="{{ trans('common.delete') }}"
+                                   data-bs-toggle="modal" 
+                                   data-bs-target="#modal-delete-city"
+                                   data-item-id="${row.id}"
+                                   data-item-name="${row.display_name}">
+                                    <i class="uil uil-trash-alt"></i>
+                                </a>
+                            </li>
+                            @endcan
+                        </ul>
+                    `;
+                }
+            }
         ],
         pageLength: per_page,
         lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]],

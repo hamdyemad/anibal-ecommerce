@@ -24,8 +24,9 @@ class UserSeeder extends Seeder
             'email' => 'super_admin@gmail.com',
             'user_type_id' => UserType::SUPER_ADMIN_TYPE,
             'password' => Hash::make('123456789'),
+            'active' => 1
         ];
         
-        User::create($super_admin_data);
+        $user = User::create($super_admin_data);
     }
 }

@@ -179,4 +179,9 @@
         'brands' => [
             'title' => 'Brands',
         ],
+        'variant configurations' => [
+            'title' => 'Variant Configurations',
+            'variant config keys' => 'Variant Configuration Keys',
+            'variant config' => 'Variant Configurations',
+        ],
     ];

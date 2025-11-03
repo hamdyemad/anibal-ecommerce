@@ -3,6 +3,7 @@
 namespace Modules\AreaSettings\app\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use Modules\AreaSettings\app\Actions\RegionAction;
 use Modules\AreaSettings\app\Http\Requests\RegionRequest;
 use Modules\AreaSettings\app\Services\RegionService;
 use Modules\AreaSettings\app\Services\CityService;
@@ -12,18 +13,17 @@ use Modules\AreaSettings\app\Resources\CityResource;
 
 class RegionController extends Controller
 {
-    protected $regionService;
-    protected $cityService;
-    protected $languageService;
-
     public function __construct(
-        RegionService $regionService,
-        CityService $cityService,
-        LanguageService $languageService
+        protected RegionService $regionService,
+        protected CityService $cityService,
+        protected LanguageService $languageService,
+        protected RegionAction $regionAction
     ) {
-        $this->regionService = $regionService;
-        $this->cityService = $cityService;
-        $this->languageService = $languageService;
+        $this->middleware('can:area.region.index')->only(['index']);
+        $this->middleware('can:area.region.show')->only(['show']);
+        $this->middleware('can:area.region.create')->only(['create', 'store']);
+        $this->middleware('can:area.region.edit')->only(['edit', 'update']);
+        $this->middleware('can:area.region.delete')->only(['destroy']);
     }
 
     /**
@@ -64,161 +64,8 @@ class RegionController extends Controller
      */
     public function datatable(Request $request)
     {
-        $draw = $request->get('draw', 1);
-        $start = $request->get('start', 0);
-        $length = $request->get('length', 10);
-        
-        // Get search value from custom parameter or DataTables default
-        $searchValue = $request->get('search');
-        if (is_array($searchValue)) {
-            $searchValue = $searchValue['value'] ?? '';
-        }
-        
-        $orderColumnIndex = $request->get('order')[0]['column'] ?? 0;
-        $orderDirection = $request->get('order')[0]['dir'] ?? 'asc';
-
-        // Get filter parameters
-        $countryId = $request->get('country_id');
-        $cityId = $request->get('city_id');
-        $active = $request->get('active');
-        $dateFrom = $request->get('created_date_from');
-        $dateTo = $request->get('created_date_to');
-
-        // Prepare filters array
-        $filters = [
-            'search' => $searchValue,
-            'country_id' => $countryId,
-            'city_id' => $cityId,
-            'active' => $active,
-            'created_date_from' => $dateFrom,
-            'created_date_to' => $dateTo,
-        ];
-
-        // Get languages
-        $languages = $this->languageService->getAll();
-
-        // Get total records before filtering
-        $totalRecords = $this->regionService->getRegionsQuery([])->count();
-
-        // Get regions with filters - Clone query for counting
-        $baseQuery = $this->regionService->getRegionsQuery($filters);
-        $filteredRecords = clone($baseQuery);
-        $filteredRecords = $filteredRecords->count();
-
-        // Prepare sorting parameters
-        $orderBy = null;
-        // Check if sorting by name column (columns 1 to count($languages))
-        if ($orderColumnIndex >= 1 && $orderColumnIndex <= count($languages)) {
-            // Sort by translated name - pass language ID to repository
-            $languageIndex = $orderColumnIndex - 1;
-            $language = $languages[$languageIndex];
-            $orderBy = ['lang_id' => $language->id];
-        } else {
-            // Sort by regular columns
-            $orderColumns = [
-                0 => 'id',
-                (count($languages) + 1) => 'city_id',
-                (count($languages) + 2) => 'id', // subregions count (not sortable)
-                (count($languages) + 3) => 'active',
-                (count($languages) + 4) => 'created_at',
-            ];
-
-            if (isset($orderColumns[$orderColumnIndex])) {
-                $orderBy = $orderColumns[$orderColumnIndex];
-            }
-        }
-
-        // Get regions with sorting applied
-        $sortedQuery = $this->regionService->getRegionsQuery($filters, $orderBy, $orderDirection);
-        
-        // Apply pagination
-        $perPage = $request->get('per_page', $request->get('length', 15));
-        $page = $request->get('page', 1);
-        $regions = $sortedQuery->paginate($perPage, ['*'], 'page', $page);
-
-        // Format data for DataTables
-        $data = [];
-        foreach ($regions as $index => $region) {
-            $row = [];
-            $row[] = ($regions->currentPage() - 1) * $regions->perPage() + $index + 1; // Row number with pagination offset
-
-            // Add name columns for each language
-            foreach ($languages as $language) {
-                $name = $region->getTranslation('name', $language->code) ?? '-';
-                $row[] = '<div class="userDatatable-content" ' . ($language->rtl ? 'dir="rtl"' : '') . '>
-                            <strong>' . e($name) . '</strong>
-                          </div>';
-            }
-
-            // City name
-            $cityName = $region->city ? $region->city->getTranslation('name', app()->getLocale()) : '-';
-            $row[] = '<div class="userDatatable-content">' . e($cityName) . '</div>';
-
-            // Subregions count
-            $subregionsCount = $region->subregions()->count();
-            $row[] = '<div class="userDatatable-content">
-                        <span class="badge badge-primary" style="border-radius: 6px; padding: 6px 12px;">
-                            <i class="uil uil-map-marker me-1"></i>' . $subregionsCount . '
-                        </span>
-                      </div>';
-
-            // Active status
-            $activeHtml = '<div class="userDatatable-content">';
-            if ($region->active) {
-                $activeHtml .= '<span class="badge badge-success" style="border-radius: 6px; padding: 6px 12px;">
-                                    <i class="uil uil-check me-1"></i>' . e(__('areasettings::region.active')) . '
-                                </span>';
-            } else {
-                $activeHtml .= '<span class="badge badge-danger" style="border-radius: 6px; padding: 6px 12px;">
-                                    <i class="uil uil-times me-1"></i>' . e(__('areasettings::region.inactive')) . '
-                                </span>';
-            }
-            $activeHtml .= '</div>';
-            $row[] = $activeHtml;
-
-            // Created at
-            $row[] = '<div class="userDatatable-content">' . e($region->created_at->format('Y-m-d H:i')) . '</div>';
-
-            // Actions
-            $actionsHtml = '<ul class="orderDatatable_actions mb-0 d-flex flex-wrap justify-content-start">
-                                <li>
-                                    <a href="' . route('admin.area-settings.regions.show', $region->id) . '" class="view" title="' . e(trans('common.view')) . '">
-                                        <i class="uil uil-eye"></i>
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="' . route('admin.area-settings.regions.edit', $region->id) . '" class="edit" title="' . e(trans('common.edit')) . '">
-                                        <i class="uil uil-edit"></i>
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="javascript:void(0);" 
-                                       class="remove" 
-                                       title="' . e(trans('common.delete')) . '"
-                                       data-bs-toggle="modal" 
-                                       data-bs-target="#modal-delete-region"
-                                       data-item-id="' . $region->id . '"
-                                       data-item-name="' . e($region->name_en ?? '') . '">
-                                        <i class="uil uil-trash-alt"></i>
-                                    </a>
-                                </li>
-                            </ul>';
-            $row[] = $actionsHtml;
-
-            $data[] = $row;
-        }
-
-        return response()->json([
-            'data' => $data,
-            'recordsTotal' => $totalRecords,
-            'recordsFiltered' => $filteredRecords,
-            'current_page' => $regions->currentPage(),
-            'last_page' => $regions->lastPage(),
-            'per_page' => $regions->perPage(),
-            'total' => $regions->total(),
-            'from' => $regions->firstItem(),
-            'to' => $regions->lastItem()
-        ]);
+        $data = $this->regionAction->getDatatableData($request);
+        return response()->json($data);
     }
 
     /**

@@ -73,16 +73,26 @@
                                         @enderror
                                     </div>
                                 </div>
-                                <!-- Active Status -->
+                                {{-- Active Status Switcher --}}
                                 <div class="col-md-6">
                                     <div class="form-group mb-25">
-                                        <label for="active" class="form-label">{{ __('areasettings::subregion.status') }}</label>
-                                        <select name="active" id="active" class="form-control">
-                                            <option value="1" {{ (isset($subregion) && $subregion->active) || !isset($subregion) ? 'selected' : '' }}>{{ __('areasettings::subregion.active') }}</option>
-                                            <option value="0" {{ (isset($subregion) && !$subregion->active) ? 'selected' : '' }}>{{ __('areasettings::subregion.inactive') }}</option>
-                                        </select>
+                                        <label class="il-gray fs-14 fw-500 mb-10 d-block">
+                                            {{ __('areasettings::subregion.active') }}
+                                        </label>
+                                        <div class="dm-switch-wrap d-flex align-items-center">
+                                            <div class="form-check form-switch form-switch-primary form-switch-md">
+                                                <input type="hidden" name="active" value="0">
+                                                <input type="checkbox" 
+                                                       class="form-check-input" 
+                                                       id="active" 
+                                                       name="active" 
+                                                       value="1"
+                                                       {{ old('active', isset($subregion) ? $subregion->active : 1) == 1 ? 'checked' : '' }}>
+                                                <label class="form-check-label" for="active"></label>
+                                            </div>
+                                        </div>
                                         @error('active')
-                                            <div class="text-danger">{{ $message }}</div>
+                                            <div class="text-danger fs-12 mt-1">{{ $message }}</div>
                                         @enderror
                                     </div>
                                 </div>
@@ -113,116 +123,236 @@
 
 @push('scripts')
 <script>
-$(document).ready(function() {
+document.addEventListener('DOMContentLoaded', function() {
     // Initialize Select2
-    $('.select2').select2({
-        allowClear: true
-    });
+    if (typeof jQuery !== 'undefined' && $.fn.select2) {
+        $('.select2').select2({
+            allowClear: true
+        });
+    }
+
+    const countrySelect = document.getElementById('country_id');
+    const citySelect = document.getElementById('city_id');
+    const regionSelect = document.getElementById('region_id');
 
     // Load cities when country changes
-    $('#country_id').on('change', function() {
-        const countryId = $(this).val();
-        const citySelect = $('#city_id');
-        const regionSelect = $('#region_id');
-        
-        citySelect.empty().append('<option value="">{{ __("areasettings::subregion.select_city") }}</option>');
-        regionSelect.empty().append('<option value="">{{ __("areasettings::subregion.select_region") }}</option>');
-        
-        if (countryId) {
-            $.ajax({
-                url: '{{ route("admin.area-settings.cities.by-country", ":id") }}'.replace(':id', countryId),
-                type: 'GET',
-                success: function(cities) {
-                    cities.forEach(function(city) {
-                        const cityName = city.translations.find(t => t.lang_key === 'name' && t.lang_id == {{ $languages->first()->id }})?.lang_value || city.id;
-                        citySelect.append(`<option value="${city.id}">${cityName}</option>`);
+    if (countrySelect) {
+        countrySelect.addEventListener('change', function() {
+            const countryId = this.value;
+            
+            citySelect.innerHTML = '<option value="">{{ __("areasettings::subregion.select_city") }}</option>';
+            regionSelect.innerHTML = '<option value="">{{ __("areasettings::subregion.select_region") }}</option>';
+            
+            if (countryId) {
+                fetch('{{ route("admin.area-settings.cities.by-country", ":id") }}'.replace(':id', countryId))
+                    .then(response => response.json())
+                    .then(cities => {
+                        cities.forEach(city => {
+                            const translation = city.translations.find(t => t.lang_key === 'name' && t.lang_id == {{ $languages->first()->id }});
+                            const cityName = translation ? translation.lang_value : city.id;
+                            const option = new Option(cityName, city.id);
+                            citySelect.add(option);
+                        });
+                        if (typeof jQuery !== 'undefined' && $.fn.select2) {
+                            $(citySelect).trigger('change.select2');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error loading cities:', error);
+                        if (typeof toastr !== 'undefined') {
+                            toastr.error('Error loading cities. Please try again.');
+                        }
                     });
-                },
-                error: function(xhr) {
-                    console.error('Error loading cities:', xhr);
-                    alert('Error loading cities. Please try again.');
-                }
-            });
-        }
-    });
+            }
+        });
+    }
 
     // Load regions when city changes
-    $('#city_id').on('change', function() {
-        const cityId = $(this).val();
-        const regionSelect = $('#region_id');
-        
-        regionSelect.empty().append('<option value="">{{ __("areasettings::subregion.select_region") }}</option>');
-        
-        if (cityId) {
-            $.ajax({
-                url: '{{ route("admin.area-settings.regions.by-city", ":id") }}'.replace(':id', cityId),
-                type: 'GET',
-                success: function(regions) {
-                    regions.forEach(function(region) {
-                        const regionName = region.translations.find(t => t.lang_key === 'name' && t.lang_id == {{ $languages->first()->id }})?.lang_value || region.id;
-                        regionSelect.append(`<option value="${region.id}">${regionName}</option>`);
+    if (citySelect) {
+        citySelect.addEventListener('change', function() {
+            const cityId = this.value;
+            
+            regionSelect.innerHTML = '<option value="">{{ __("areasettings::subregion.select_region") }}</option>';
+            
+            if (cityId) {
+                fetch('{{ route("admin.area-settings.regions.by-city", ":id") }}'.replace(':id', cityId))
+                    .then(response => response.json())
+                    .then(regions => {
+                        regions.forEach(region => {
+                            const translation = region.translations.find(t => t.lang_key === 'name' && t.lang_id == {{ $languages->first()->id }});
+                            const regionName = translation ? translation.lang_value : region.id;
+                            const option = new Option(regionName, region.id);
+                            regionSelect.add(option);
+                        });
+                        if (typeof jQuery !== 'undefined' && $.fn.select2) {
+                            $(regionSelect).trigger('change.select2');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error loading regions:', error);
+                        if (typeof toastr !== 'undefined') {
+                            toastr.error('Error loading regions. Please try again.');
+                        }
                     });
-                },
-                error: function(xhr) {
-                    console.error('Error loading regions:', xhr);
-                    alert('Error loading regions. Please try again.');
-                }
-            });
-        }
-    });
+            }
+        });
+    }
 
-    // Form submission
-    $('#subregionForm').on('submit', function(e) {
+    // AJAX Form Submission
+    const subregionForm = document.getElementById('subregionForm');
+    const submitBtn = subregionForm.querySelector('button[type="submit"]');
+    let originalBtnHtml = '';
+
+    subregionForm.addEventListener('submit', function(e) {
         e.preventDefault();
-        
-        const form = $(this);
-        const submitBtn = form.find('button[type="submit"]');
-        const originalText = submitBtn.html();
+
+        // Disable submit button and show loading
+        submitBtn.disabled = true;
+        originalBtnHtml = submitBtn.innerHTML;
+        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>{{ __("common.processing") ?? "Processing..." }}';
+
+        // Update loading text dynamically
+        const loadingText = @json(isset($subregion) ? trans('loading.updating') : trans('loading.creating'));
+        const loadingSubtext = '{{ trans("loading.please_wait") }}';
+        const overlay = document.getElementById('loadingOverlay');
+        if (overlay) {
+            overlay.querySelector('.loading-text').textContent = loadingText;
+            overlay.querySelector('.loading-subtext').textContent = loadingSubtext;
+        }
         
         // Show loading overlay
         LoadingOverlay.show();
-        
-        // Disable submit button
-        submitBtn.prop('disabled', true);
-        
-        $.ajax({
-            url: form.attr('action'),
-            type: form.attr('method'),
-            data: form.serialize(),
-            success: function(response) {
-                if (response.success) {
-                    LoadingOverlay.showSuccess(
-                        response.message || '{{ __("areasettings::subregion.subregion_created") }}',
-                        '{{ __("common.redirecting") ?? "Redirecting..." }}'
-                    );
-                    setTimeout(function() {
-                        if (response.redirect) {
-                            window.location.href = response.redirect;
-                        } else {
-                            window.location.href = '{{ route("admin.area-settings.subregions.index") }}';
-                        }
-                    }, 1500);
-                } else {
-                    LoadingOverlay.hide();
-                    alert(response.message || '{{ __("areasettings::subregion.error_occurred") }}');
-                    submitBtn.prop('disabled', false);
+
+        // Start progress bar animation
+        LoadingOverlay.animateProgressBar(30, 300).then(() => {
+            // Prepare form data
+            const formData = new FormData(subregionForm);
+
+            // Send AJAX request
+            return fetch(subregionForm.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json',
                 }
-            },
-            error: function(xhr) {
-                LoadingOverlay.hide();
-                if (xhr.status === 422) {
-                    // Validation errors
-                    const errors = xhr.responseJSON.errors;
-                    let errorMessage = '{{ __("areasettings::subregion.validation_errors") }}:\n';
-                    Object.keys(errors).forEach(function(key) {
-                        errorMessage += '- ' + errors[key][0] + '\n';
-                    });
-                    alert(errorMessage);
-                } else {
-                    alert('{{ __("areasettings::subregion.error_occurred") }}');
-                }
-                submitBtn.prop('disabled', false);
+            });
+        })
+        .then(response => {
+            // Progress to 60%
+            LoadingOverlay.animateProgressBar(60, 200);
+            
+            if (!response.ok) {
+                return response.json().then(data => {
+                    throw data;
+                });
             }
+            return response.json();
+        })
+        .then(data => {
+            // Progress to 90%
+            return LoadingOverlay.animateProgressBar(90, 200).then(() => data);
+        })
+        .then(data => {
+            // Complete progress bar
+            return LoadingOverlay.animateProgressBar(100, 200).then(() => {
+                // Show success animation with dynamic message
+                const successMessage = @json(isset($subregion) ? trans('loading.updated_successfully') : trans('loading.created_successfully'));
+                LoadingOverlay.showSuccess(
+                    successMessage,
+                    '{{ trans("loading.redirecting") }}'
+                );
+                
+                // Redirect after 1.5 seconds
+                setTimeout(() => {
+                    window.location.href = data.redirect || '{{ route("admin.area-settings.subregions.index") }}';
+                }, 1500);
+            });
+        })
+        .catch(error => {
+            // Hide loading overlay
+            LoadingOverlay.hide();
+            
+            // Remove previous validation errors
+            document.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+            document.querySelectorAll('.invalid-feedback').forEach(el => el.remove());
+            
+            // Handle validation errors
+            if (error.errors) {
+                Object.keys(error.errors).forEach(key => {
+                    const errorMessages = error.errors[key];
+                    
+                    // Find the input field
+                    let input = null;
+                    const possibleSelectors = [];
+                    
+                    // Add original key
+                    possibleSelectors.push(`[name="${key}"]`);
+                    
+                    // If key contains dots (Laravel format: translations.0.name)
+                    if (key.includes('.')) {
+                        // Convert to bracket notation: translations[0][name]
+                        const bracketKey = key.replace(/^([^.]+)\.(\d+)\.([^.]+)$/, '$1[$2][$3]');
+                        possibleSelectors.push(`[name="${bracketKey}"]`);
+                        
+                        // Also try with escaped brackets
+                        const escapedBracketKey = bracketKey.replace(/\[/g, '\\\\[').replace(/\]/g, '\\\\]');
+                        possibleSelectors.push(`[name="${escapedBracketKey}"]`);
+                    }
+                    
+                    // If key contains brackets, try escaping them
+                    if (key.includes('[')) {
+                        const escapedKey = key.replace(/\[/g, '\\\\[').replace(/\]/g, '\\\\]');
+                        possibleSelectors.push(`[name="${escapedKey}"]`);
+                    }
+                    
+                    // Try each selector until we find the input
+                    for (const selector of possibleSelectors) {
+                        try {
+                            input = document.querySelector(selector);
+                            if (input) break;
+                        } catch (e) {
+                            // Invalid selector, continue
+                        }
+                    }
+                    
+                    // If still not found, try to find by ID pattern (for translation fields)
+                    if (!input && key.match(/^translations\.(\d+)\.name$/)) {
+                        const languageId = key.match(/^translations\.(\d+)\.name$/)[1];
+                        input = document.querySelector(`#name_${languageId}`);
+                    }
+                    
+                    if (input) {
+                        // Add is-invalid class
+                        input.classList.add('is-invalid');
+                        
+                        // Remove any existing feedback
+                        const existingFeedback = input.parentNode.querySelector('.invalid-feedback');
+                        if (existingFeedback) {
+                            existingFeedback.remove();
+                        }
+                        
+                        // Create and append error message
+                        const feedback = document.createElement('div');
+                        feedback.className = 'invalid-feedback d-block';
+                        feedback.textContent = errorMessages[0];
+                        input.parentNode.appendChild(feedback);
+                    }
+                    
+                    // Also show toastr notification
+                    if (typeof toastr !== 'undefined') {
+                        toastr.error(errorMessages[0]);
+                    }
+                });
+            } else if (error.message) {
+                if (typeof toastr !== 'undefined') {
+                    toastr.error(error.message);
+                }
+            }
+            
+            // Re-enable submit button
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalBtnHtml;
         });
     });
 });

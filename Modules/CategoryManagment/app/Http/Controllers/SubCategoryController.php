@@ -13,22 +13,19 @@ use Modules\CategoryManagment\app\Actions\SubCategoryAction;
 
 class SubCategoryController extends Controller
 {
-    protected $subCategoryService;
-    protected $categoryService;
-    protected $languageService;
-    protected $subCategoryAction;
 
     public function __construct(
-        SubCategoryService $subCategoryService, 
-        CategoryService $categoryService, 
-        LanguageService $languageService,
-        SubCategoryAction $subCategoryAction
+        protected SubCategoryService $subCategoryService, 
+        protected CategoryService $categoryService, 
+        protected LanguageService $languageService,
+        protected SubCategoryAction $subCategoryAction
     )
     {
-        $this->subCategoryService = $subCategoryService;
-        $this->categoryService = $categoryService;
-        $this->languageService = $languageService;
-        $this->subCategoryAction = $subCategoryAction;
+        $this->middleware('can:sub_categories.index')->only(['index']);
+        $this->middleware('can:sub_categories.show')->only(['show']);
+        $this->middleware('can:sub_categories.create')->only(['create', 'store']);
+        $this->middleware('can:sub_categories.edit')->only(['edit', 'update']);
+        $this->middleware('can:sub_categories.delete')->only(['destroy']);
     }
 
     /**

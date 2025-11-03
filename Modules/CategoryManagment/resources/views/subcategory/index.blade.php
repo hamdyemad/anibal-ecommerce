@@ -17,11 +17,13 @@
                 <div class="userDatatable global-shadow border-light-0 p-30 bg-white radius-xl w-100 mb-30">
                     <div class="d-flex justify-content-between align-items-center mb-25">
                         <h4 class="mb-0 fw-500">{{ trans('categorymanagment::subcategory.subcategories_management') }}</h4>
+                        @can('sub_categories.create')
                         <div class="d-flex gap-2">
                             <a href="{{ route('admin.category-management.subcategories.create') }}" class="btn btn-primary btn-default btn-squared text-capitalize">
                                 <i class="uil uil-plus"></i> {{ trans('categorymanagment::subcategory.add_subcategory') }}
                             </a>
                         </div>
+                        @endcan
                     </div>
 
                     {{-- Search and Filter --}}
@@ -290,6 +292,7 @@
                         
                         return `
                             <ul class="orderDatatable_actions mb-0 d-flex flex-wrap justify-content-start">
+                                @can('sub_categories.show')
                                 <li>
                                     <a href="${showUrl}" 
                                        class="view" 
@@ -297,6 +300,8 @@
                                         <i class="uil uil-eye"></i>
                                     </a>
                                 </li>
+                                @endcan
+                                @can('sub_categories.edit')
                                 <li>
                                     <a href="${editUrl}" 
                                        class="edit" 
@@ -304,6 +309,8 @@
                                         <i class="uil uil-edit"></i>
                                     </a>
                                 </li>
+                                @endcan
+                                @can('sub_categories.delete')
                                 <li>
                                     <a href="javascript:void(0);" 
                                        class="remove delete-subcategory" 
@@ -316,6 +323,7 @@
                                         <i class="uil uil-trash-alt"></i>
                                     </a>
                                 </li>
+                                @endcan
                             </ul>
                         `;
                     }

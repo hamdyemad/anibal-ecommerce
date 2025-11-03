@@ -22,7 +22,7 @@ class RoleSeeder extends Seeder
         // Get languages
         $languages = Language::whereIn('code', ['en', 'ar'])->get()->keyBy('code');
 
-        Role::query()->delete();
+        Role::query()->forceDelete();
 
         // Define roles with translations
         $rolesData = [

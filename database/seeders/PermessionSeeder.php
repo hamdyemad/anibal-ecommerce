@@ -18,7 +18,7 @@ class PermessionSeeder extends Seeder
         // Get languages
         $languages = Language::whereIn('code', ['en', 'ar'])->get()->keyBy('code');
 
-        Permession::query()->delete();
+        Permession::query()->forceDelete();
         $permissions = [
             // Dashboard
             ['key' => 'dashboard.view', 'translations' => [
@@ -645,6 +645,10 @@ class PermessionSeeder extends Seeder
             ]],
 
             // Area Settings
+            ['key' => 'area.country.index', 'translations' => [
+                'name' => ['en' => 'All Countries', 'ar' => 'كل البلاد'],
+                'group_by' => ['en' => 'Area Settings', 'ar' => 'إعدادات المنطقة'],
+            ]],
             ['key' => 'area.country.view', 'translations' => [
                 'name' => ['en' => 'View Country', 'ar' => 'عرض البلد'],
                 'group_by' => ['en' => 'Area Settings', 'ar' => 'إعدادات المنطقة'],
@@ -662,6 +666,11 @@ class PermessionSeeder extends Seeder
                 'group_by' => ['en' => 'Area Settings', 'ar' => 'إعدادات المنطقة'],
             ]],
 
+            
+            ['key' => 'area.city.index', 'translations' => [
+                'name' => ['en' => 'All Cities', 'ar' => 'كل المدن'],
+                'group_by' => ['en' => 'Area Settings', 'ar' => 'إعدادات المنطقة'],
+            ]],
             ['key' => 'area.city.view', 'translations' => [
                 'name' => ['en' => 'View City', 'ar' => 'عرض المدينة'],
                 'group_by' => ['en' => 'Area Settings', 'ar' => 'إعدادات المنطقة'],
@@ -679,6 +688,10 @@ class PermessionSeeder extends Seeder
                 'group_by' => ['en' => 'Area Settings', 'ar' => 'إعدادات المنطقة'],
             ]],
 
+            ['key' => 'area.region.index', 'translations' => [
+                'name' => ['en' => 'All Regions', 'ar' => 'كل المناطق'],
+                'group_by' => ['en' => 'Area Settings', 'ar' => 'إعدادات المنطقة'],
+            ]],
             ['key' => 'area.region.view', 'translations' => [
                 'name' => ['en' => 'View Region', 'ar' => 'عرض المنطقة'],
                 'group_by' => ['en' => 'Area Settings', 'ar' => 'إعدادات المنطقة'],
@@ -696,6 +709,10 @@ class PermessionSeeder extends Seeder
                 'group_by' => ['en' => 'Area Settings', 'ar' => 'إعدادات المنطقة'],
             ]],
 
+            ['key' => 'area.subregion.index', 'translations' => [
+                'name' => ['en' => 'All Subregions', 'ar' => 'كل المناطق الفرعية'],
+                'group_by' => ['en' => 'Area Settings', 'ar' => 'إعدادات المنطقة'],
+            ]],
             ['key' => 'area.subregion.view', 'translations' => [
                 'name' => ['en' => 'View Subregion', 'ar' => 'عرض المنطقة الفرعية'],
                 'group_by' => ['en' => 'Area Settings', 'ar' => 'إعدادات المنطقة'],
@@ -758,9 +775,11 @@ class PermessionSeeder extends Seeder
 
         foreach ($permissions as $permissionData) {
             // Create or update the permission
-            $permission = Permession::updateOrCreate(
-                ['key' => $permissionData['key']],
-                ['type' => $permissionData['type'] ?? 'other']
+            $permission = Permession::create(
+                [
+                    'type' => $permissionData['type'] ?? 'other',
+                    'key' => $permissionData['key']
+                ]
             );
             
             // Add translations if available and languages exist

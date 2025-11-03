@@ -15,25 +15,19 @@ use Modules\CategoryManagment\app\Actions\CategoryAction;
 
 class CategoryController extends Controller
 {
-    protected $categoryService;
-    protected $departmentService;
-    protected $activityService;
-    protected $languageService;
-    protected $categoryAction;
-
     public function __construct(
-        CategoryService $categoryService, 
-        DepartmentService $departmentService, 
-        ActivityService $activityService, 
-        LanguageService $languageService,
-        CategoryAction $categoryAction
+        protected CategoryService $categoryService, 
+        protected DepartmentService $departmentService, 
+        protected ActivityService $activityService, 
+        protected LanguageService $languageService,
+        protected CategoryAction $categoryAction
     )
     {
-        $this->categoryService = $categoryService;
-        $this->departmentService = $departmentService;
-        $this->activityService = $activityService;
-        $this->languageService = $languageService;
-        $this->categoryAction = $categoryAction;
+        $this->middleware('can:categories.index')->only(['index']);
+        $this->middleware('can:categories.show')->only(['show']);
+        $this->middleware('can:categories.create')->only(['create', 'store']);
+        $this->middleware('can:categories.edit')->only(['edit', 'update']);
+        $this->middleware('can:categories.delete')->only(['destroy']);
     }
 
     /**

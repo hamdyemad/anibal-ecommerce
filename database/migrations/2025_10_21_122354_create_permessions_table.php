@@ -15,7 +15,6 @@ return new class extends Migration
             $table->id();
             $table->enum('type', ['admin', 'other'])->default('other');
             $table->string('key', 100)->unique();
-            $table->string('group_by', 255)->nullable();
             $table->timestamps();
         });
     }

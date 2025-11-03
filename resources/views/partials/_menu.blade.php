@@ -11,7 +11,12 @@
         @endcan
         
         
-        @canany(['activities.index', 'categories.departments.view', 'categories.main.view', 'categories.sub.view'])
+        @canany([
+            'activities.index', 
+            'departments.index',
+            'categories.index', 
+            'sub_categories.index',
+        ])
             <li class="menu-title mt-30">
                 <span>{{ trans('menu.sections.catalog management') }}</span>
             </li>
@@ -31,7 +36,7 @@
                     </li>
                     @endcan
                     
-                    @can('categories.departments.view')
+                    @can('departments.index')
                     <li>
                         <a class="d-flex align-items-center justify-content-between" href="{{ route('admin.category-management.departments.index') }}">
                             {{ trans('menu.category managment.department') }}
@@ -40,7 +45,7 @@
                     </li>
                     @endcan
                     
-                    @can('categories.main.view')
+                    @can('categories.index')
                     <li>
                         <a class="d-flex align-items-center justify-content-between" href="{{ route('admin.category-management.categories.index') }}">
                             {{ trans('menu.category managment.main category') }}
@@ -49,7 +54,7 @@
                     </li>
                     @endcan
                     
-                    @can('categories.sub.view')
+                    @can('sub_categories.index')
                     <li>
                         <a class="d-flex align-items-center justify-content-between" href="{{ route('admin.category-management.subcategories.index') }}">
                             {{ trans('menu.category managment.sub category') }}
@@ -105,19 +110,19 @@
             <li class="has-child">
                 <a href="#" class="">
                     <span class="nav-icon uil uil-box"></span>
-                    <span class="menu-text">variant configurations</span>
+                    <span class="menu-text">{{ trans('menu.variant configurations.title') }}</span>
                     <span class="toggle-icon"></span>
                 </a>
                 <ul class="px-0">
                     <li>
                         <a class="d-flex align-items-center justify-content-between" href="{{ route('admin.variant-keys.index') }}">
-                            variant config keys
+                            {{ trans('menu.variant configurations.variant config keys') }}
                             <span class="badge-circle badge-primary ms-1">20</span>
                         </a>
                     </li>
                     <li>
                         <a class="d-flex align-items-center justify-content-between" href="{{ route('admin.variants-configurations.index') }}">
-                            variant config
+                            {{ trans('menu.variant configurations.variant config') }}
                             <span class="badge-circle badge-primary ms-1">10</span>
                         </a>
                     </li>
@@ -238,18 +243,20 @@
             </ul>
         </li>
         @endcanany
-        
-        <li>
-            <a href="{{ route('admin.brands.index') }}">
-                <span class="d-flex align-items-center justify-content-between w-100">
-                    <span class="d-flex align-items-center">
-                        <span class="nav-icon uil uil-ticket"></span>
-                        <span class="menu-text">{{ trans('menu.brands.title') }}</span>
+
+        @can('brands.index')
+            <li>
+                <a href="{{ route('admin.brands.index') }}">
+                    <span class="d-flex align-items-center justify-content-between w-100">
+                        <span class="d-flex align-items-center">
+                            <span class="nav-icon uil uil-ticket"></span>
+                            <span class="menu-text">{{ trans('menu.brands.title') }}</span>
+                        </span>
+                        <span class="badge-circle badge-success ms-1">20</span>
                     </span>
-                    <span class="badge-circle badge-success ms-1">20</span>
-                </span>
-            </a>
-        </li>
+                </a>
+            </li>
+        @endcan
 
         @can('promocodes.view')
         <li>
@@ -358,36 +365,7 @@
             </ul>
         </li>
         @endcan
-
-        
-        @canany(['users.index', 'users.create'])
-        <li class="has-child">
-            <a href="#" class="">
-                <span class="nav-icon uil uil-user"></span>
-                <span class="menu-text">{{ trans('menu.users.title') }}</span>
-                <span class="toggle-icon"></span>
-            </a>
-            <ul class="px-0">
-                @can('users.index')
-                <li>
-                    <a class="d-flex align-items-center justify-content-between" href="{{ route('admin.dashboard') }}">
-                        {{ trans('menu.users.all') }}
-                    </a>
-                </li>
-                @endcan
-                @can('users.create')
-                <li>
-                    <a class="d-flex align-items-center justify-content-between" href="{{ route('admin.dashboard') }}">
-                        {{ trans('menu.users.create') }}
-                    </a>
-                </li>
-                @endcan
-            </ul>
-        </li>
-        @endcanany
-
-
-        
+    
         @canany(['orders.new', 'orders.inprogress', 'orders.delivered', 'orders.canceled', 'orders.refunded'])
         <li class="menu-title mt-30">
             <span>{{ trans('menu.sections.order and fulfillment') }}</span>
@@ -641,6 +619,7 @@
         <li class="menu-title mt-30">
             <span>{{ trans('menu.sections.settings') }}</span>
         </li>
+        @endcan
         
         @can('settings.logs.view')
         <li>
@@ -651,7 +630,12 @@
         </li>
         @endcan
         
-        @canany(['area.country.view', 'area.city.view', 'area.region.view', 'area.subregion.view'])
+        @canany([
+        'area.country.index', 
+        'area.city.index', 
+        'area.region.index', 
+        'area.subregion.index'
+        ])
         <li class="has-child">
             <a href="#" class="">
                 <span class="nav-icon uil uil-map-marker"></span>
@@ -659,7 +643,7 @@
                 <span class="toggle-icon"></span>
             </a>
             <ul class="px-0">
-                @can('area.country.view')
+                @can('area.country.index')
                 <li>
                     <a class="d-flex align-items-center justify-content-between"
                         href="{{ route('admin.area-settings.countries.index') }}">
@@ -669,7 +653,7 @@
                 </li>
                 @endcan
                 
-                @can('area.city.view')
+                @can('area.city.index')
                 <li>
                     <a class="d-flex align-items-center justify-content-between"
                         href="{{ route('admin.area-settings.cities.index') }}">
@@ -679,7 +663,7 @@
                 </li>
                 @endcan
                 
-                @can('area.region.view')
+                @can('area.region.index')
                 <li>
                     <a class="d-flex align-items-center justify-content-between"
                         href="{{ route('admin.area-settings.regions.index') }}">
@@ -689,7 +673,7 @@
                 </li>
                 @endcan
                 
-                @can('area.subregion.view')
+                @can('area.subregion.index')
                 <li>
                     <a class="d-flex align-items-center justify-content-between"
                         href="{{ route('admin.area-settings.subregions.index') }}">
@@ -746,7 +730,7 @@
             </ul>
         </li>
         @endcanany
-        @endcan
+        
         <li class="has-child">
             <a href="#" class="">
                 <span class="nav-icon uil uil-window-section"></span>

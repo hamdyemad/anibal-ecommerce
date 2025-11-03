@@ -63,15 +63,26 @@
                                         @enderror
                                     </div>
                                 </div>
+                                {{-- Active Status Switcher --}}
                                 <div class="col-md-6">
-                                    <div class="form-group mb-3">
-                                        <label for="active" class="form-label">{{ __('areasettings::region.status') }}</label>
-                                        <select name="active" id="active" class="form-control">
-                                            <option value="1" {{ (isset($region) && $region->active) || !isset($region) ? 'selected' : '' }}>{{ __('areasettings::region.active') }}</option>
-                                            <option value="0" {{ (isset($region) && !$region->active) ? 'selected' : '' }}>{{ __('areasettings::region.inactive') }}</option>
-                                        </select>
+                                    <div class="form-group mb-25">
+                                        <label class="il-gray fs-14 fw-500 mb-10 d-block">
+                                            {{ __('areasettings::region.active') }}
+                                        </label>
+                                        <div class="dm-switch-wrap d-flex align-items-center">
+                                            <div class="form-check form-switch form-switch-primary form-switch-md">
+                                                <input type="hidden" name="active" value="0">
+                                                <input type="checkbox" 
+                                                       class="form-check-input" 
+                                                       id="active" 
+                                                       name="active" 
+                                                       value="1"
+                                                       {{ old('active', isset($region) ? $region->active : 1) == 1 ? 'checked' : '' }}>
+                                                <label class="form-check-label" for="active"></label>
+                                            </div>
+                                        </div>
                                         @error('active')
-                                            <div class="text-danger small mt-1">{{ $message }}</div>
+                                            <div class="text-danger fs-12 mt-1">{{ $message }}</div>
                                         @enderror
                                     </div>
                                 </div>
@@ -102,114 +113,171 @@
 
 @push('scripts')
 <script>
-$(document).ready(function() {
-    // Setup AJAX with CSRF token
-    $.ajaxSetup({
-        headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-        }
-    });
-
+document.addEventListener('DOMContentLoaded', function() {
     // Initialize Select2
-    $('.select2').select2({
-        placeholder: "{{ __('areasettings::region.select_city') }}",
-        allowClear: true
-    });
+    if (typeof jQuery !== 'undefined' && $.fn.select2) {
+        $('.select2').select2({
+            placeholder: "{{ __('areasettings::region.select_city') }}",
+            allowClear: true
+        });
+    }
 
-    // Form submission
-    $('#regionForm').on('submit', function(e) {
+    // AJAX Form Submission
+    const regionForm = document.getElementById('regionForm');
+    const submitBtn = regionForm.querySelector('button[type="submit"]');
+    let originalBtnHtml = '';
+
+    regionForm.addEventListener('submit', function(e) {
         e.preventDefault();
-        e.stopPropagation();
-        console.log('Form submitted via AJAX');
-        
-        const form = $(this);
-        const submitBtn = form.find('button[type="submit"]');
-        const originalText = submitBtn.html();
+
+        // Disable submit button and show loading
+        submitBtn.disabled = true;
+        originalBtnHtml = submitBtn.innerHTML;
+        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>{{ __("common.processing") ?? "Processing..." }}';
+
+        // Update loading text dynamically
+        const loadingText = @json(isset($region) ? trans('loading.updating') : trans('loading.creating'));
+        const loadingSubtext = '{{ trans("loading.please_wait") }}';
+        const overlay = document.getElementById('loadingOverlay');
+        if (overlay) {
+            overlay.querySelector('.loading-text').textContent = loadingText;
+            overlay.querySelector('.loading-subtext').textContent = loadingSubtext;
+        }
         
         // Show loading overlay
-        console.log('Showing loading overlay...');
-        if (typeof window.showLoadingOverlay === 'function') {
-            window.showLoadingOverlay();
-        } else {
-            console.warn('showLoadingOverlay function not found');
-        }
-        
-        // Disable submit button
-        submitBtn.prop('disabled', true);
-        
-        $.ajax({
-            url: form.attr('action'),
-            type: form.attr('method'),
-            data: form.serialize(),
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest',
-                'Accept': 'application/json'
-            },
-            dataType: 'json',
-            success: function(response) {
-                // Hide loading overlay
-                if (typeof window.hideLoadingOverlay === 'function') {
-                    window.hideLoadingOverlay();
+        LoadingOverlay.show();
+
+        // Start progress bar animation
+        LoadingOverlay.animateProgressBar(30, 300).then(() => {
+            // Prepare form data
+            const formData = new FormData(regionForm);
+
+            // Send AJAX request
+            return fetch(regionForm.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json',
                 }
-                
-                if (response.success) {
-                    // Show success message
-                    if (typeof toastr !== 'undefined') {
-                        toastr.success(response.message);
-                    } else {
-                        alert(response.message);
-                    }
-                    
-                    // Redirect after a short delay
-                    setTimeout(function() {
-                        if (response.redirect) {
-                            window.location.href = response.redirect;
-                        } else {
-                            window.location.href = '{{ route("admin.area-settings.regions.index") }}';
-                        }
-                    }, 1000);
-                } else {
-                    if (typeof toastr !== 'undefined') {
-                        toastr.error(response.message || '{{ __("areasettings::region.error_occurred") }}');
-                    } else {
-                        alert(response.message || '{{ __("areasettings::region.error_occurred") }}');
-                    }
-                    submitBtn.prop('disabled', false);
-                }
-            },
-            error: function(xhr) {
-                // Hide loading overlay
-                if (typeof window.hideLoadingOverlay === 'function') {
-                    window.hideLoadingOverlay();
-                }
-                
-                if (xhr.status === 422) {
-                    // Validation errors
-                    const errors = xhr.responseJSON.errors;
-                    let errorMessage = '{{ __("areasettings::region.validation_errors") }}:\n';
-                    Object.keys(errors).forEach(function(key) {
-                        errorMessage += '- ' + errors[key][0] + '\n';
-                    });
-                    
-                    if (typeof toastr !== 'undefined') {
-                        toastr.error(errorMessage);
-                    } else {
-                        alert(errorMessage);
-                    }
-                } else {
-                    if (typeof toastr !== 'undefined') {
-                        toastr.error('{{ __("areasettings::region.error_occurred") }}');
-                    } else {
-                        alert('{{ __("areasettings::region.error_occurred") }}');
-                    }
-                }
-                
-                // Re-enable submit button
-                submitBtn.prop('disabled', false);
+            });
+        })
+        .then(response => {
+            // Progress to 60%
+            LoadingOverlay.animateProgressBar(60, 200);
+            
+            if (!response.ok) {
+                return response.json().then(data => {
+                    throw data;
+                });
             }
+            return response.json();
+        })
+        .then(data => {
+            // Progress to 90%
+            return LoadingOverlay.animateProgressBar(90, 200).then(() => data);
+        })
+        .then(data => {
+            // Complete progress bar
+            return LoadingOverlay.animateProgressBar(100, 200).then(() => {
+                // Show success animation with dynamic message
+                const successMessage = @json(isset($region) ? trans('loading.updated_successfully') : trans('loading.created_successfully'));
+                LoadingOverlay.showSuccess(
+                    successMessage,
+                    '{{ trans("loading.redirecting") }}'
+                );
+                
+                // Redirect after 1.5 seconds
+                setTimeout(() => {
+                    window.location.href = data.redirect || '{{ route("admin.area-settings.regions.index") }}';
+                }, 1500);
+            });
+        })
+        .catch(error => {
+            // Hide loading overlay
+            LoadingOverlay.hide();
+            
+            // Remove previous validation errors
+            document.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+            document.querySelectorAll('.invalid-feedback').forEach(el => el.remove());
+            
+            // Handle validation errors
+            if (error.errors) {
+                Object.keys(error.errors).forEach(key => {
+                    const errorMessages = error.errors[key];
+                    
+                    // Find the input field
+                    let input = null;
+                    const possibleSelectors = [];
+                    
+                    // Add original key
+                    possibleSelectors.push(`[name="${key}"]`);
+                    
+                    // If key contains dots (Laravel format: translations.0.name)
+                    if (key.includes('.')) {
+                        // Convert to bracket notation: translations[0][name]
+                        const bracketKey = key.replace(/^([^.]+)\.(\d+)\.([^.]+)$/, '$1[$2][$3]');
+                        possibleSelectors.push(`[name="${bracketKey}"]`);
+                        
+                        // Also try with escaped brackets
+                        const escapedBracketKey = bracketKey.replace(/\[/g, '\\\\[').replace(/\]/g, '\\\\]');
+                        possibleSelectors.push(`[name="${escapedBracketKey}"]`);
+                    }
+                    
+                    // If key contains brackets, try escaping them
+                    if (key.includes('[')) {
+                        const escapedKey = key.replace(/\[/g, '\\\\[').replace(/\]/g, '\\\\]');
+                        possibleSelectors.push(`[name="${escapedKey}"]`);
+                    }
+                    
+                    // Try each selector until we find the input
+                    for (const selector of possibleSelectors) {
+                        try {
+                            input = document.querySelector(selector);
+                            if (input) break;
+                        } catch (e) {
+                            // Invalid selector, continue
+                        }
+                    }
+                    
+                    // If still not found, try to find by ID pattern (for translation fields)
+                    if (!input && key.match(/^translations\.(\d+)\.name$/)) {
+                        const languageId = key.match(/^translations\.(\d+)\.name$/)[1];
+                        input = document.querySelector(`#name_${languageId}`);
+                    }
+                    
+                    if (input) {
+                        // Add is-invalid class
+                        input.classList.add('is-invalid');
+                        
+                        // Remove any existing feedback
+                        const existingFeedback = input.parentNode.querySelector('.invalid-feedback');
+                        if (existingFeedback) {
+                            existingFeedback.remove();
+                        }
+                        
+                        // Create and append error message
+                        const feedback = document.createElement('div');
+                        feedback.className = 'invalid-feedback d-block';
+                        feedback.textContent = errorMessages[0];
+                        input.parentNode.appendChild(feedback);
+                    }
+                    
+                    // Also show toastr notification
+                    if (typeof toastr !== 'undefined') {
+                        toastr.error(errorMessages[0]);
+                    }
+                });
+            } else if (error.message) {
+                if (typeof toastr !== 'undefined') {
+                    toastr.error(error.message);
+                }
+            }
+            
+            // Re-enable submit button
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalBtnHtml;
         });
-        
-        return false; // Ensure form doesn't submit normally
     });
 });
 </script>
