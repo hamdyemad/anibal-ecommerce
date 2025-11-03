@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Traits\Translation;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -89,5 +90,19 @@ class User extends Authenticatable
             }
         }
         return false;
+    }
+
+
+    public function scopeActive(Builder $builder) {
+        $builder->where('active', 1);
+    }
+    public function scopeUnActive(Builder $builder) {
+        $builder->where('active', 0);
+    }
+    public function scopeBlocked(Builder $builder) {
+        $builder->where('block', 1);
+    }
+    public function scopeUnBlocked(Builder $builder) {
+        $builder->where('block', 0);
     }
 }

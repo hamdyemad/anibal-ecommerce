@@ -40,7 +40,7 @@ class AuthController extends Controller {
         if(isset($res) && $res['status']) {
             return redirect()->intended(route('admin.dashboard'))->with('success','Welcome back !');
         } else {
-            return redirect()->route('login')->with('message', __('auth.failed'));
+            return redirect()->route('login')->with('message', $res['message']);
         }
     }
 

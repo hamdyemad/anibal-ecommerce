@@ -22,12 +22,12 @@ class UserAction {
         
         if($user) {
             // Check if user account is inactive
-            if(!$user->active) {
+            if(!$user->active()) {
                 return $this->sendData(__('auth.account_not_activated'), false);
             }
             
             // Check if user account is blocked
-            if($user->block) {
+            if(!$user->blocked()) {
                 return $this->sendData(__('auth.account_blocked'), false);
             }
         }
