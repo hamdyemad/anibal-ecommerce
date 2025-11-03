@@ -17,7 +17,7 @@
             --color-primary: #0056B7;
             --bg-primary-hover: #003f87;
         }
-        .btn-primary:hover {
+        .btn-primary:hover, .btn-primary:focus {
             color: var(--color-white);
             background-color: var(--bg-primary-hover) !important;
             border-color: var(--bg-primary-hover);

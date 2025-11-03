@@ -26,8 +26,11 @@
                                     @enderror
                                 </div>
                                 <div class="d-flex">
+                                    <a class="btn btn-light me-2" href="{{ route('login') }}">
+                                        Go Back
+                                    </a>
                                     <button type="submit"
-                                        class="btn btn-primary btn-default btn-squared text-capitalize lh-normal px-md-50 py-15 signIn-createBtn">
+                                        class="btn btn-primary">
                                         Send Reset Instructions
                                     </button>
                                 </div>
