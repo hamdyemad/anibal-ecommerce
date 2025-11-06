@@ -15,6 +15,8 @@ return [
     'description' => 'Description',
     'enter_name_placeholder' => 'Enter brand name',
     'enter_description_placeholder' => 'Enter brand description',
+    'enter_brand_name' => 'Enter brand name',
+    'enter_brand_description' => 'Enter brand description',
     'logo' => 'Logo',
     'cover' => 'Cover Image',
     'activation' => 'Status',

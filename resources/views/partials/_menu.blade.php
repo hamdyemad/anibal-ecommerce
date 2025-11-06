@@ -394,7 +394,7 @@
                         <span class="nav-icon uil uil-process"></span>
                         <span class="menu-text">{{ trans('menu.orders.order stages') }}</span>
                     </span>
-                    <span class="badge badge-success badge-round ms-1">50000</span>
+                    <span class="badge badge-success badge-round ms-1">500</span>
                 </span>
             </a>
         </li>

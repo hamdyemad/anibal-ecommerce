@@ -47,8 +47,8 @@
     
     .image-preview-container:hover,
     .logo-preview-container:hover {
-        border-color: #5f63f2;
-        background: #f0f0ff;
+        border-color: #0056B7;
+        background: #e7f3ff;
     }
     
     .preview-image {
@@ -119,7 +119,7 @@
     }
     
     .btn-change-image:hover {
-        background: #5f63f2;
+        background: #0056B7;
         color: white;
     }
     

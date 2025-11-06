@@ -46,9 +46,10 @@
                                                 type="text" 
                                                 name="translations[{{ $language->id }}][name]" 
                                                 id="translations_{{ $language->id }}_name"
-                                                class="form-control" 
+                                                class="form-control ih-medium ip-gray radius-xs b-light px-15" 
                                                 value="{{ isset($city) ? $city->getTranslation('name', $language->code) : old('translations.'.$language->id.'.name') }}"
                                                 {{ $language->rtl ? 'dir=rtl' : '' }}
+                                                placeholder="{{ $language->code == 'ar' ? 'أدخل اسم المدينة' : 'Enter city name' }}"
                                             >
                                             @error('translations.'.$language->id.'.name')
                                                 <div class="text-danger">{{ $message }}</div>
@@ -60,7 +61,7 @@
                                 <div class="col-md-6">
                                     <div class="form-group mb-25">
                                         <label for="country_id" class="form-label">{{ __('areasettings::city.country') }} <span class="text-danger">*</span></label>
-                                        <select name="country_id" id="country_id" class="form-control select2">
+                                        <select name="country_id" id="country_id" class="form-control ih-medium ip-gray radius-xs b-light px-15 select2">
                                             <option value="">{{ __('areasettings::city.select_country') }}</option>
                                             @foreach($countries as $country)
                                                 <option value="{{ $country['id'] }}" {{ (isset($city) && $city->country_id == $country['id']) ? 'selected' : '' }}>

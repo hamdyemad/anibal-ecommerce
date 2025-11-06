@@ -24,6 +24,7 @@ return [
     // Fields
     'name' => 'Name',
     'enter_name' => 'Enter name',
+    'enter_variant_name' => 'Enter variant name',
     'key' => 'Key',
     'keys' => 'Keys',
     'related_keys' => 'Related Keys',

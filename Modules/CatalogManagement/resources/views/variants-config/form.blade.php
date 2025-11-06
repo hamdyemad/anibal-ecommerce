@@ -103,6 +103,7 @@
                                                    id="translation_{{ $language->id }}_name" 
                                                    name="translations[{{ $language->id }}][name]"  
                                                    value="{{ isset($variantsConfig) ? ($variantsConfig->getTranslation('name', $language->code) ?? '') : old('translations.' . $language->id . '.name') }}"
+                                                   placeholder="@if($language->code == 'ar')أدخل اسم المتغير@else{{ trans('catalogmanagement::variantsconfig.enter_variant_name') }}@endif"
                                                    @if($language->rtl) dir="rtl" @endif
                                                    data-lang="{{ $language->code }}"
                                                    >
@@ -136,6 +137,7 @@
                                         @enderror
                                     </div>
                                 </div>
+                                
                                 <!-- Type Selection -->
                                 <div class="col-md-6">
                                     <div class="form-group mb-25">
@@ -153,8 +155,11 @@
                                             </option>
                                         </select>
                                     </div>
-                                    <!-- Value - Text Input (shown when type is 'text') -->
-                                    <div class="form-group mb-25" id="textValueContainer" style="display: none;">
+                                </div>
+
+                                <!-- Value - Text Input (shown when type is 'text') -->
+                                <div class="col-md-6" id="textValueContainer" style="display: none;">
+                                    <div class="form-group mb-25">
                                         <label for="value_text" class="il-gray fs-14 fw-500 mb-10">
                                             {{ trans('catalogmanagement::variantsconfig.value') }}
                                         </label>
@@ -166,8 +171,6 @@
                                                placeholder="{{ trans('catalogmanagement::variantsconfig.enter_text_value') }}">
                                     </div>
                                 </div>
-
-                                
 
                                 <!-- Value - Color Picker (shown when type is 'color') -->
                                 <div class="col-md-6" id="colorValueContainer" style="display: none;">

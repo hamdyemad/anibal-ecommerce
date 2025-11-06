@@ -40,7 +40,7 @@
                                                 @endif
                                                 <span class="text-danger">*</span>
                                             </label>
-                                            <input type="text" class="form-control" id="name_{{ $language->id }}" name="translations[{{ $language->id }}][name]" value="{{ old('translations.' . $language->id . '.name', isset($region) ? $region->translations->where('lang_id', $language->id)->first()->lang_value ?? '' : '') }}" {{ $language->rtl ? 'dir=rtl' : '' }}>
+                                            <input type="text" class="form-control ih-medium ip-gray radius-xs b-light px-15" id="name_{{ $language->id }}" name="translations[{{ $language->id }}][name]" value="{{ old('translations.' . $language->id . '.name', isset($region) ? $region->translations->where('lang_id', $language->id)->first()->lang_value ?? '' : '') }}" {{ $language->rtl ? 'dir=rtl' : '' }} placeholder="{{ $language->code == 'ar' ? 'أدخل اسم المنطقة' : 'Enter region name' }}">
                                             @error('translations.' . $language->id . '.name')
                                                 <div class="text-danger small mt-1">{{ $message }}</div>
                                             @enderror
@@ -50,7 +50,7 @@
                                 <div class="col-md-6">
                                     <div class="form-group mb-3">
                                         <label for="city_id" class="form-label">{{ __('areasettings::region.city') }} <span class="text-danger">*</span></label>
-                                        <select name="city_id" id="city_id" class="form-control select2">
+                                        <select name="city_id" id="city_id" class="form-control ih-medium ip-gray radius-xs b-light px-15 select2">
                                             <option value="">{{ __('areasettings::region.select_city') }}</option>
                                             @foreach($cities as $city)
                                                 <option value="{{ $city['id'] }}" {{ (isset($region) && $region->city_id == $city['id']) ? 'selected' : '' }}>

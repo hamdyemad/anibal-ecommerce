@@ -37,12 +37,18 @@
                         @endif
 
                         <!-- Step 1: Product Details -->
-                        <div class="wizard-step-content active" data-step="1">
-                            <h5 class="mb-4 mt-4">Product Details</h5>
+                        <div class="wizard-step-content active" data-step="1" style="margin-top: 60px;">
+                            <h5 class="mb-4" style="background: #0056B7; color: white; padding: 16px 20px; border-radius: 8px; display: flex; align-items: center; gap: 12px; margin-top: 0;">
+                                <i class="uil uil-box" style="font-size: 22px;"></i>
+                                Product Details
+                            </h5>
 
                             <!-- Box 1: Product Information -->
-                            <div class="info-box mb-4">
-                                <h6 class="box-title">Product Information</h6>
+                            <div class="info-box mb-4" style="margin-top: 20px;">
+                                <h6 class="box-title" style="background: #0056B7; color: white; padding: 12px 16px; border-radius: 8px; display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
+                                    <i class="uil uil-info-circle" style="font-size: 18px;"></i>
+                                    Product Information
+                                </h6>
                                 <div class="row">
                                     @foreach($languages as $language)
                                     <div class="col-md-6 mb-3">
@@ -56,7 +62,9 @@
                                                 <span class="text-danger">*</span>
                                             </label>
                                             <input type="text" name="translations[{{ $language->id }}][title]" id="title_{{ $language->code }}"
-                                                class="form-control" {{ $language->rtl ? 'dir=rtl' : '' }}>
+                                                class="form-control ih-medium ip-gray radius-xs b-light px-15" 
+                                                placeholder="{{ $language->code == 'ar' ? 'أدخل عنوان المنتج' : 'Enter product title' }}"
+                                                {{ $language->rtl ? 'dir=rtl' : '' }}>
                                         </div>
                                     </div>
                                     @endforeach
@@ -64,14 +72,14 @@
                                     <div class="col-md-6 mb-3">
                                         <div class="form-group">
                                             <label for="sku" class="form-label">SKU <span class="text-danger">*</span></label>
-                                            <input type="text" name="sku" id="sku" class="form-control" placeholder="Enter SKU">
+                                            <input type="text" name="sku" id="sku" class="form-control ih-medium ip-gray radius-xs b-light px-15" placeholder="Enter SKU">
                                         </div>
                                     </div>
 
                                     <div class="col-md-6 mb-3">
                                         <div class="form-group">
                                             <label for="points" class="form-label">Points</label>
-                                            <input type="number" name="points" id="points" class="form-control" min="0" value="0">
+                                            <input type="number" name="points" id="points" class="form-control ih-medium ip-gray radius-xs b-light px-15" min="0" value="0" placeholder="Enter points">
                                         </div>
                                     </div>
 
@@ -97,7 +105,10 @@
 
                             <!-- Box 2: Organization -->
                             <div class="info-box mb-4">
-                                <h6 class="box-title">Organization</h6>
+                                <h6 class="box-title" style="background: #0056B7; color: white; padding: 12px 16px; border-radius: 8px; display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
+                                    <i class="uil uil-sitemap" style="font-size: 18px;"></i>
+                                    Organization
+                                </h6>
                                 <div class="row">
                                     <div class="col-md-6 mb-3">
                                         <div class="form-group">
@@ -145,7 +156,10 @@
 
                             <!-- Box 3: Logistics & Taxes -->
                             <div class="info-box mb-4">
-                                <h6 class="box-title">Logistics & Taxes</h6>
+                                <h6 class="box-title" style="background: #0056B7; color: white; padding: 12px 16px; border-radius: 8px; display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
+                                    <i class="uil uil-truck" style="font-size: 18px;"></i>
+                                    Logistics & Taxes
+                                </h6>
                                 <div class="row">
                                     <div class="col-md-6 mb-3">
                                         <div class="form-group">
@@ -170,7 +184,10 @@
 
                             <!-- Box 4: Product Tags -->
                             <div class="info-box mb-4">
-                                <h6 class="box-title">Product Tags</h6>
+                                <h6 class="box-title" style="background: #0056B7; color: white; padding: 12px 16px; border-radius: 8px; display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
+                                    <i class="uil uil-tag-alt" style="font-size: 18px;"></i>
+                                    Product Tags
+                                </h6>
                                 <div class="row">
                                     @foreach($languages as $language)
                                     <div class="col-md-6 mb-3">
@@ -193,8 +210,11 @@
                         </div>
 
                         <!-- Step 2: Images & Media -->
-                        <div class="wizard-step-content" data-step="2" style="display: none;">
-                            <h5 class="mb-4 mt-4">Images & Media</h5>
+                        <div class="wizard-step-content" data-step="2" style="display: none; margin-top: 60px;">
+                            <h5 class="mb-4" style="background: #0056B7; color: white; padding: 16px 20px; border-radius: 8px; display: flex; align-items: center; gap: 12px; margin-top: 0;">
+                                <i class="uil uil-images" style="font-size: 22px;"></i>
+                                Images & Media
+                            </h5>
                             <div class="row">
                                 <div class="col-md-6 mb-3">
                                     <x-image-upload
@@ -210,8 +230,11 @@
                         </div>
 
                         <!-- Step 3: Pricing & Inventory -->
-                        <div class="wizard-step-content" data-step="3" style="display: none;">
-                            <h5 class="mb-4 mt-4">Pricing & Inventory</h5>
+                        <div class="wizard-step-content" data-step="3" style="display: none; margin-top: 60px;">
+                            <h5 class="mb-4" style="background: #0056B7; color: white; padding: 16px 20px; border-radius: 8px; display: flex; align-items: center; gap: 12px; margin-top: 0;">
+                                <i class="uil uil-dollar-alt" style="font-size: 22px;"></i>
+                                Pricing & Inventory
+                            </h5>
                             <div class="row">
                                 <div class="col-md-6 mb-3">
                                     <div class="form-group">
@@ -244,8 +267,11 @@
                         </div>
 
                         <!-- Step 4: Review & Submit -->
-                        <div class="wizard-step-content" data-step="4" style="display: none;">
-                            <h5 class="mb-4">Review & Submit</h5>
+                        <div class="wizard-step-content" data-step="4" style="display: none; margin-top: 60px;">
+                            <h5 class="mb-4" style="background: #0056B7; color: white; padding: 16px 20px; border-radius: 8px; display: flex; align-items: center; gap: 12px; margin-top: 0;">
+                                <i class="uil uil-check-circle" style="font-size: 22px;"></i>
+                                Review & Submit
+                            </h5>
                             
                             <div id="review-validation-errors" class="alert alert-danger" style="display: none;">
                                 <h6 class="alert-heading"><i class="uil uil-exclamation-triangle"></i> Validation Errors</h6>
@@ -257,9 +283,9 @@
                             </div>
 
                             <div class="card mb-3">
-                                <div class="card-header">
-                                    <h6 class="mb-0"><i class="uil uil-info-circle"></i> Product Details</h6>
-                                    <button type="button" class="btn btn-sm btn-primary float-end edit-step" data-step="1">
+                                <div class="card-header" style="background: #0056B7; color: white; display: flex; justify-content: space-between; align-items: center;">
+                                    <h6 class="mb-0" style="color: white;"><i class="uil uil-info-circle"></i> Product Details</h6>
+                                    <button type="button" class="btn btn-sm edit-step" data-step="1" style="background: white; color: #0056B7; border-color: white;">
                                         <i class="uil uil-edit"></i> Edit
                                     </button>
                                 </div>
@@ -284,9 +310,9 @@
                             </div>
 
                             <div class="card mb-3">
-                                <div class="card-header">
-                                    <h6 class="mb-0"><i class="uil uil-usd-circle"></i> Pricing</h6>
-                                    <button type="button" class="btn btn-sm btn-primary float-end edit-step" data-step="3">
+                                <div class="card-header" style="background: #0056B7; color: white; display: flex; justify-content: space-between; align-items: center;">
+                                    <h6 class="mb-0" style="color: white;"><i class="uil uil-usd-circle"></i> Pricing</h6>
+                                    <button type="button" class="btn btn-sm edit-step" data-step="3" style="background: white; color: #0056B7; border-color: white;">
                                         <i class="uil uil-edit"></i> Edit
                                     </button>
                                 </div>
@@ -312,7 +338,7 @@
                                 <a href="#" class="btn btn-light btn-squared">
                                     <i class="uil uil-times"></i> Cancel
                                 </a>
-                                <button type="button" id="nextBtn" class="btn btn-primary btn-squared">
+                                <button type="button" id="nextBtn" class="btn btn-squared" style="background: #0056B7; color: white; border-color: #0056B7;">
                                     Next <i class="uil uil-arrow-right"></i>
                                 </button>
                                 <button type="submit" id="submitBtn" class="btn btn-success btn-squared" style="display: none;">

@@ -24,6 +24,7 @@ return [
     'choose_color' => 'اختر لوناً',
     'name' => 'الاسم',
     'enter_name' => 'أدخل الاسم',
+    'enter_variant_name' => 'أدخل اسم المتغير',
     'key' => 'المفتاح',
     'keys' => 'المفاتيح',
     'related_keys' => 'المفاتيح المرتبطة',

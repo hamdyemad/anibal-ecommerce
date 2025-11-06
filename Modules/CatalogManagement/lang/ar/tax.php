@@ -13,6 +13,7 @@ return [
     'name' => 'اسم الضريبة',
     'tax_rate' => 'معدل الضريبة (%)',
     'enter_name_placeholder' => 'أدخل اسم الضريبة',
+    'enter_tax_name' => 'أدخل اسم الضريبة',
     'activation' => 'الحالة',
     'active' => 'نشط',
     'inactive' => 'غير نشط',

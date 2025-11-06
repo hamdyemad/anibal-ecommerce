@@ -53,7 +53,7 @@
                                     <div class="col-md-6">
                                         <div class="form-group mb-3">
                                             <label for="name_{{ $language->id }}" class="form-label w-100" @if($language->code == 'ar') dir="rtl" @endif>{{ __('areasettings::country.name_' . ($language->code == 'ar' ? 'ar' : 'en')) }} <span class="text-danger">*</span></label>
-                                            <input type="text" class="form-control" id="name_{{ $language->id }}" @if($language->code == 'ar') dir="rtl" @endif name="translations[{{ $language->id }}][name]" value="{{ old('translations.' . $language->id . '.name', isset($country) ? $country->translations->where('lang_id', $language->id)->first()->lang_value ?? '' : '') }}">
+                                            <input type="text" class="form-control ih-medium ip-gray radius-xs b-light px-15" id="name_{{ $language->id }}" @if($language->code == 'ar') dir="rtl" @endif name="translations[{{ $language->id }}][name]" value="{{ old('translations.' . $language->id . '.name', isset($country) ? $country->translations->where('lang_id', $language->id)->first()->lang_value ?? '' : '') }}" placeholder="{{ $language->code == 'ar' ? 'أدخل اسم الدولة' : 'Enter country name' }}">
                                             @error('translations.' . $language->id . '.name')
                                                 <div class="text-danger small mt-1">{{ $message }}</div>
                                             @enderror
@@ -63,7 +63,7 @@
                                 <div class="col-md-6">
                                     <div class="form-group mb-3">
                                         <label for="code" class="form-label">{{ __('areasettings::country.country_code') }} <span class="text-danger">*</span></label>
-                                        <input type="text" class="form-control" id="code" name="code" value="{{ old('code', isset($country) ? $country->code : '') }}" maxlength="3">
+                                        <input type="text" class="form-control ih-medium ip-gray radius-xs b-light px-15" id="code" name="code" value="{{ old('code', isset($country) ? $country->code : '') }}" maxlength="3" placeholder="e.g., USA, SAU, EGY">
                                         @error('code')
                                             <div class="text-danger small mt-1">{{ $message }}</div>
                                         @enderror
@@ -72,7 +72,7 @@
                                 <div class="col-md-6">
                                     <div class="form-group mb-3">
                                         <label for="phone_code" class="form-label">{{ __('areasettings::country.phone_code') }} <span class="text-danger">*</span></label>
-                                        <input type="text" class="form-control" id="phone_code" name="phone_code" value="{{ old('phone_code', isset($country) ? $country->phone_code : '') }}" maxlength="10">
+                                        <input type="text" class="form-control ih-medium ip-gray radius-xs b-light px-15" id="phone_code" name="phone_code" value="{{ old('phone_code', isset($country) ? $country->phone_code : '') }}" maxlength="10" placeholder="e.g., +1, +966, +20">
                                         @error('phone_code')
                                             <div class="text-danger small mt-1">{{ $message }}</div>
                                         @enderror
@@ -82,7 +82,7 @@
                                 <div class="col-md-6">
                                     <div class="form-group mb-3">
                                         <label for="currency_id" class="form-label">{{ __('areasettings::country.currency') }} <span class="text-danger">*</span></label>
-                                        <select class="form-control" id="currency_id" name="currency_id">
+                                        <select class="form-control ih-medium ip-gray radius-xs b-light px-15" id="currency_id" name="currency_id">
                                             <option value="">{{ __('areasettings::country.select_currency') }}</option>
                                             @foreach($currencies as $currency)
                                                 <option value="{{ $currency->id }}" 

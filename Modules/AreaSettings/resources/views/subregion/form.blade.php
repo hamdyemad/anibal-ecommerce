@@ -46,9 +46,10 @@
                                                 type="text" 
                                                 name="translations[{{ $language->id }}][name]" 
                                                 id="translations_{{ $language->id }}_name"
-                                                class="form-control" 
+                                                class="form-control ih-medium ip-gray radius-xs b-light px-15" 
                                                 value="{{ isset($subregion) ? $subregion->getTranslation('name', $language->code) : old('translations.'.$language->id.'.name') }}"
                                                 {{ $language->rtl ? 'dir=rtl' : '' }}
+                                                placeholder="{{ $language->code == 'ar' ? 'أدخل اسم المنطقة الفرعية' : 'Enter subregion name' }}"
                                             >
                                             @error('translations.'.$language->id.'.name')
                                                 <div class="text-danger">{{ $message }}</div>
@@ -60,7 +61,7 @@
                                 <div class="col-md-6">
                                     <div class="form-group mb-25">
                                         <label for="region_id" class="form-label">{{ __('areasettings::subregion.region') }} <span class="text-danger">*</span></label>
-                                        <select name="region_id" id="region_id" class="form-control select2">
+                                        <select name="region_id" id="region_id" class="form-control ih-medium ip-gray radius-xs b-light px-15 select2">
                                             <option value="">{{ __('areasettings::subregion.select_region') }}</option>
                                             @foreach ($regions as $region)
                                                 <option value="{{ $region['id'] }}" {{ isset($subregion) && $subregion->region_id == $region['id'] ? 'selected' : '' }}>
