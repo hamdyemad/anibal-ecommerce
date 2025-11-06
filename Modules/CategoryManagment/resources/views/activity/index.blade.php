@@ -13,7 +13,7 @@
 
         <div class="row">
             <div class="col-lg-12">
-                
+
                 <div class="userDatatable global-shadow border-light-0 p-30 bg-white radius-xl w-100 mb-30">
                     <div class="d-flex justify-content-between align-items-center mb-25">
                         <h4 class="mb-0 fw-500">{{ __('activity.activities_management') }}</h4>
@@ -34,9 +34,9 @@
                                         <div class="col-md-3">
                                             <div class="form-group">
                                                 <label for="search" class="il-gray fs-14 fw-500 mb-10">{{ __('common.search') }}</label>
-                                                <input type="text" 
-                                                       class="form-control ih-medium ip-gray radius-xs b-light px-15" 
-                                                       id="search" 
+                                                <input type="text"
+                                                       class="form-control ih-medium ip-gray radius-xs b-light px-15"
+                                                       id="search"
                                                        placeholder="{{ __('activity.search_by_name') }}"
                                                        autocomplete="off">
                                             </div>
@@ -44,7 +44,7 @@
                                         <div class="col-md-2">
                                             <div class="form-group">
                                                 <label for="active" class="il-gray fs-14 fw-500 mb-10">{{ __('activity.activation') }}</label>
-                                                <select class="form-control ih-medium ip-gray radius-xs b-light px-15" 
+                                                <select class="form-control ih-medium ip-gray radius-xs b-light px-15"
                                                         id="active">
                                                     <option value="">{{ __('activity.all') }}</option>
                                                     <option value="1">{{ __('activity.active') }}</option>
@@ -55,16 +55,16 @@
                                         <div class="col-md-2">
                                             <div class="form-group">
                                                 <label for="created_date_from" class="il-gray fs-14 fw-500 mb-10">{{ __('common.created_date_from') }}</label>
-                                                <input type="date" 
-                                                       class="form-control ih-medium ip-gray radius-xs b-light px-15" 
+                                                <input type="date"
+                                                       class="form-control ih-medium ip-gray radius-xs b-light px-15"
                                                        id="created_date_from">
                                             </div>
                                         </div>
                                         <div class="col-md-2">
                                             <div class="form-group">
                                                 <label for="created_date_to" class="il-gray fs-14 fw-500 mb-10">{{ __('common.created_date_to') }}</label>
-                                                <input type="date" 
-                                                       class="form-control ih-medium ip-gray radius-xs b-light px-15" 
+                                                <input type="date"
+                                                       class="form-control ih-medium ip-gray radius-xs b-light px-15"
                                                        id="created_date_to">
                                             </div>
                                         </div>
@@ -174,21 +174,21 @@
                     // Map DataTables parameters to backend parameters
                     d.per_page = d.length;
                     d.page = (d.start / d.length) + 1;
-                    
+
                     // Add search parameter from custom input
                     d.search = $('#search').val();
-                    
+
                     // Add filter parameters
                     d.active = $('#active').val();
                     d.created_date_from = $('#created_date_from').val();
                     d.created_date_to = $('#created_date_to').val();
-                    
+
                     // Add sorting parameters
                     if (d.order && d.order.length > 0) {
                         d.orderColumnIndex = d.order[0].column;
                         d.orderDirection = d.order[0].dir;
                     }
-                    
+
                     console.log('📤 Sending to server:', {
                         search: d.search,
                         active: d.active,
@@ -197,7 +197,7 @@
                         orderColumnIndex: d.orderColumnIndex,
                         orderDirection: d.orderDirection
                     });
-                    
+
                     return d;
                 },
                 dataSrc: function(json) {
@@ -213,8 +213,8 @@
             },
             columns: [
                 // ID column
-                { 
-                    data: 'index', 
+                {
+                    data: 'index',
                     name: 'index',
                     orderable: false,
                     searchable: false,
@@ -224,16 +224,16 @@
                 },
                 // Name columns for each language
                 @foreach($languages as $language)
-                { 
+                {
                     data: 'translations.{{ $language->code }}.name',
                     name: 'name_{{ $language->code }}',
                     render: function(data, type, row) {
                         // For sorting, return the raw text value
                         if (type === 'sort' || type === 'type') {
-                            return row.translations && row.translations['{{ $language->code }}'] ? 
+                            return row.translations && row.translations['{{ $language->code }}'] ?
                                    row.translations['{{ $language->code }}'].name : '-';
                         }
-                        
+
                         // For display, return formatted HTML
                         if (row.translations && row.translations['{{ $language->code }}']) {
                             const translation = row.translations['{{ $language->code }}'];
@@ -248,7 +248,7 @@
                 },
                 @endforeach
                 // Active Status column
-                { 
+                {
                     data: 'active',
                     name: 'active',
                     render: function(data, type, row) {
@@ -256,7 +256,7 @@
                         if (type === 'sort' || type === 'type') {
                             return data ? 1 : 0;
                         }
-                        
+
                         // For display, return formatted HTML
                         if (data == 1) {
                             return '<span class="badge badge-success badge-round badge-lg">{{ __('activity.active') }}</span>';
@@ -266,7 +266,7 @@
                     }
                 },
                 // Created At column
-                { 
+                {
                     data: 'created_at',
                     name: 'created_at',
                     render: function(data) {
@@ -274,7 +274,7 @@
                     }
                 },
                 // Actions column
-                { 
+                {
                     data: null,
                     name: 'actions',
                     orderable: false,
@@ -287,8 +287,8 @@
                             <ul class="orderDatatable_actions mb-0 d-flex flex-wrap justify-content-start">
                                 @can('activities.show')
                                 <li>
-                                    <a href="${viewRoute.replace(':id', row.id)}" 
-                                    class="view" 
+                                    <a href="${viewRoute.replace(':id', row.id)}"
+                                    class="view"
                                     title="{{ trans('common.view') }}">
                                         <i class="uil uil-eye"></i>
                                     </a>
@@ -296,8 +296,8 @@
                                 @endcan
                                 @can('activities.edit')
                                 <li>
-                                    <a href="${editRoute.replace(':id', row.id)}" 
-                                    class="edit" 
+                                    <a href="${editRoute.replace(':id', row.id)}"
+                                    class="edit"
                                     title="{{ trans('common.edit') }}">
                                         <i class="uil uil-edit"></i>
                                     </a>
@@ -305,10 +305,10 @@
                                 @endcan
                                 @can('activities.delete')
                                 <li>
-                                    <a href="javascript:void(0);" 
-                                    class="remove delete-activity" 
+                                    <a href="javascript:void(0);"
+                                    class="remove delete-activity"
                                     title="{{ trans('common.delete') }}"
-                                    data-bs-toggle="modal" 
+                                    data-bs-toggle="modal"
                                     data-bs-target="#modal-delete-activity"
                                     data-item-id="${row.id}"
                                     data-item-name="${$('<div>').text(row.first_name).html()}"
@@ -388,7 +388,7 @@
                 table.ajax.reload(); // Reload data from server with new search value
             }, 500);
         });
-        
+
         $('#search').on('change', function() {
             clearTimeout(searchTimer);
             console.log('🔍 Search changed:', $(this).val());
@@ -402,37 +402,37 @@
                 if (settings.nTable.id !== 'activitiesDataTable') {
                     return true;
                 }
-                
+
                 var activeFilter = $('#active').val();
                 var dateFrom = $('#created_date_from').val();
                 var dateTo = $('#created_date_to').val();
-                
+
                 // Active filter (column {{ count($languages) + 1 }})
                 if (activeFilter && activeFilter !== '') {
                     var colIndex = {{ count($languages) + 1 }};
-                    
+
                     // Get the actual rendered cell content (with HTML)
                     var rowNode = table.row(dataIndex).node();
                     if (!rowNode) {
                         return true;
                     }
-                    
+
                     var cells = $(rowNode).find('td');
                     if (cells.length <= colIndex) {
                         return true;
                     }
-                    
+
                     // Get the HTML content of the cell
                     var cellHtml = $(cells[colIndex]).html();
-                    
+
                     if (!cellHtml) {
                         return true;
                     }
-                    
+
                     // Check if the cell contains the success badge (active) or danger badge (inactive)
                     var isActiveRow = cellHtml.indexOf('badge-success') > -1;
                     var isInactiveRow = cellHtml.indexOf('badge-danger') > -1;
-                    
+
                     // Filter logic
                     if (activeFilter === '1') {
                         // Show only active rows (must have badge-success)
@@ -442,7 +442,7 @@
                         return isInactiveRow;
                     }
                 }
-                
+
                 // Date filters (column {{ count($languages) + 2 }})
                 if (dateFrom || dateTo) {
                     var dateColumn = data[{{ count($languages) + 2 }}];
@@ -452,7 +452,7 @@
                         if (dateTo && rowDate > dateTo) return false;
                     }
                 }
-                
+
                 return true;
             }
         );
@@ -462,7 +462,7 @@
             console.log('Filter changed:', $(this).attr('id'), '=', $(this).val());
             table.ajax.reload();
         });
-        
+
         // Reset filters button
         $('#resetFilters').on('click', function() {
             console.log('Resetting all filters...');
@@ -474,7 +474,7 @@
             // Clear search and reload table
             table.search('').ajax.reload();
         });
-        
+
         // Delete functionality is now handled by the delete-with-loading component
     });
 </script>
