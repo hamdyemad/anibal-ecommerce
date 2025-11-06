@@ -124,7 +124,7 @@
                         {{-- Media Section --}}
                         <div class="col-12">
                             <h6 class="fw-500" style="background: #0056B7; color: white; padding: 12px 16px; border-radius: 8px; display: flex; align-items: center; gap: 8px;">
-                                <i class="uil uil-image"></i>{{ trans('vendor::vendor.brand_images') ?? 'Images' }}
+                                <i class="uil uil-image"></i>{{ trans('vendor::vendor.branding') }}
                             </h6>
                         </div>
 
