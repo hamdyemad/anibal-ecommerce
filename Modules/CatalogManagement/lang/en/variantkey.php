@@ -12,7 +12,8 @@ return [
     'variant_configuration_keys_tree' => 'Variant Configuration Keys Tree',
     'children_count' => 'Children Count',
     'no_variant_keys_found' => 'No variant keys found',
-    
+    'search_by_name' => 'Search by name',
+
     // Fields
     'parent_key' => 'Parent Key',
     'all_parents' => 'All Parents',
@@ -25,7 +26,7 @@ return [
     'edit' => 'Edit Variant Key',
     'create' => 'Create Variant Key',
     'update' => 'Update Variant Key',
-    
+
     // Messages
     'created_successfully' => 'Variant key created successfully',
     'updated_successfully' => 'Variant key updated successfully',
