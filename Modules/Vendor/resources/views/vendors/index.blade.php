@@ -251,58 +251,36 @@
                         name: 'vendor_info',
                         orderable: false,
                         render: function(data, type, row) {
-                            let html = `
-                                <div class="vendor-card p-2 bg-light-subtle">
-                                    <div class="fw-bold text-capitalize mb-1 text-dark">
-
-                            `;
+                            console.log('DDDDDDDDDDDDDDDDDDDDDDDDDDDDDd', row);
+                            // Vendor Logo URL
+                            const logo = row.logo ?
+                                                `<img src="${row.logo}" alt="Vendor Logo" class="rounded-circle me-2" width="40" height="40">` :
+                                                `<div class="rounded-circle bg-secondary-subtle d-flex align-items-center justify-content-center me-2" style="width:40px; height:40px;">
+                                    <i class="uil uil-image text-muted"></i>
+                            </div>`;
 
                             // English Name only
-                            const nameEn = row.translations && row.translations['en'] ? row
-                                .translations['en'].name : '-';
-                            html += `
-                                <div class="d-flex align-items-center small" dir="ltr">
-                                    <span class="fw-semibold text-dark"><i class="uil uil-user me-1 text-primary"></i>${$('<div>').text(nameEn).html()}</span>
-                                    <small class="text-muted ms-1">(English)</small>
-                                </div>
-                            `;
+                            const nameEn = row.translations && row.translations['en'] ?
+                                row.translations['en'].name :
+                                '-';
 
-                            html += `
+                            let html = `
+                                <div class="vendor-card p-2 bg-light-subtle rounded-3">
+                                    <div class="d-flex align-items-center mb-2">
+                                        ${logo}
+                                        <div>
+                                            <div class="fw-semibold text-dark text-capitalize">
+                                                ${$('<div>').text(nameEn).html()}
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div class="vendor-details mt-2">
-                                        <div class="d-flex align-items-center mb-1 text-secondary">
-                                            <i class="uil uil-envelope-alt me-1 text-info"></i>
-                                            <span class="small">${$('<div>').text(row.email || '-').html()}</span>
-                                        </div>
-                                        <div class="d-flex align-items-center mb-1 text-secondary">
-                                            <i class="uil uil-map-marker me-1 text-danger"></i>
-                                            <span class="small">${$('<div>').text(row.country_name || '-').html()}</span>
-                                        </div>
                             `;
-
-                            // Status Badge
-                            if (row.active == 1) {
-                                html += `
-                                    <div class="mt-2">
-                                        <span class="badge bg-success-subtle text-success border border-success px-3 py-1 rounded-pill">
-                                            <i class="uil uil-check-circle me-1"></i> {{ trans('vendor::vendor.active') }}
-                                        </span>
-                                    </div>
-                                `;
-                            } else {
-                                html += `
-                                    <div class="mt-2">
-                                        <span class="badge bg-danger-subtle text-danger border border-danger px-3 py-1 rounded-pill">
-                                            <i class="uil uil-times-circle me-1"></i> {{ trans('vendor::vendor.inactive') }}
-                                        </span>
-                                    </div>
-                                `;
-                            }
 
                             html += `</div></div>`;
                             return html;
                         }
                     },
+
                     // Commission column
                     {
                         data: 'commission',
