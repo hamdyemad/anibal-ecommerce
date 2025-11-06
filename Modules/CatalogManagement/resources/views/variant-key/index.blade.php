@@ -1,5 +1,7 @@
 @extends('layout.app')
-
+@section('title')
+    Variant keys | Bnaia
+@endsection
 @section('content')
     <div class="container-fluid">
         <div class="row">

@@ -11,7 +11,7 @@ return [
     // Form Fields
     'name' => 'Name',
     'name_english' => 'Name (English)',
-    'name_arabic' => 'Name (Arabic)',
+    'name_arabic' => 'الاسم باللغه العربيه',
     'description' => 'Description',
     'description_english' => 'Description (English)',
     'description_arabic' => 'Description (Arabic)',
@@ -34,7 +34,7 @@ return [
 
     // Table Headers
     'name_en' => 'Name (English)',
-    'name_ar' => 'Name (Arabic)',
+    'name_ar' => 'الاسم باللغه العربيه',
     'created_at' => 'Created At',
 
     // Buttons

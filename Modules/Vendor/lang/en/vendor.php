@@ -22,29 +22,29 @@ return [
     'logo' => 'Logo',
     'banner' => 'Banner',
     'name_english' => 'Name (English)',
-    'name_arabic' => 'Name (Arabic)',
+    'name_arabic' => 'الاسم باللغه العربيه',
     'description_english' => 'Description (English)',
     'description_arabic' => 'Description (Arabic)',
     'seo_information' => 'SEO Information',
     'meta_title' => 'Meta Title',
     'meta_description' => 'Meta Description',
     'meta_keywords' => 'Meta Keywords',
-    
+
     // Form Labels - Step 2: Vendor Documents
     'vendor_documents' => 'Vendor Documents',
     'document_name' => 'Document Name',
     'document_name_english' => 'Document Name (English)',
-    'document_name_arabic' => 'Document Name (Arabic)',
+    'document_name_arabic' => 'Document الاسم باللغه العربيه',
     'document_file' => 'Document File',
     'add_document' => 'Add Document',
-    
+
     // Form Labels - Step 3: Vendor Account
     'vendor_account_details' => 'Vendor Account Details',
-    
+
     // Form Labels - Step 4: Review & Submit
     'review_submit' => 'Review & Submit',
     'review_info_message' => 'Please review your information before submitting.',
-    
+
     // Placeholders
     'enter_vendor_name' => 'Enter vendor name',
     'enter_vendor_description' => 'Enter vendor description',
@@ -58,7 +58,7 @@ return [
     'separate_keywords_commas' => 'Separate keywords with commas',
     'eg_business_license' => 'e.g., Business License',
     'eg_business_license_tax' => 'e.g., Business License, Tax Certificate',
-    
+
     // Upload Labels
     'click_to_upload_logo' => 'Click to upload logo',
     'click_to_upload_banner' => 'Click to upload banner',
@@ -71,7 +71,7 @@ return [
     'recommended_banner_size' => 'Recommended: 1200x400px',
     'accepted_document_types' => 'PDF, JPG, PNG, DOC, DOCX',
     'branding' => 'Branding',
-    
+
     // Buttons
     'change' => 'Change',
     'remove' => 'Remove',
@@ -85,7 +85,7 @@ return [
     'description' => 'Description',
     'document' => 'Document',
     'select_country' => 'Select Country',
-    
+
     // Messages
     'vendor_created_successfully' => 'Vendor created successfully',
     'vendor_updated_successfully' => 'Vendor updated successfully',
@@ -93,7 +93,7 @@ return [
     'error_creating_vendor' => 'Error creating vendor',
     'error_updating_vendor' => 'Error updating vendor',
     'error_deleting_vendor' => 'Error deleting vendor',
-    
+
     // Table Headers
     'id' => 'ID',
     'name' => 'Name',
@@ -102,7 +102,7 @@ return [
     'status' => 'Status',
     'created_at' => 'Created At',
     'actions' => 'Actions',
-    
+
     // Status
     'active' => 'Active',
     'inactive' => 'Inactive',
@@ -111,7 +111,7 @@ return [
     'rejected' => 'Rejected',
     'activation' => 'Activation',
     'all' => 'All',
-    
+
     // Actions
     'view' => 'View',
     'edit' => 'Edit',
@@ -121,12 +121,12 @@ return [
     'deactivate' => 'Deactivate',
     'confirm_delete' => 'Confirm Deletion',
     'delete_confirmation' => 'Are you sure you want to delete this vendor?',
-    
+
     // Validation
     'required_field' => 'This field is required',
     'invalid_email' => 'Invalid email address',
     'invalid_phone' => 'Invalid phone number',
-    
+
     // Additional Form Fields
     'name' => 'Name',
     'description' => 'Description',
@@ -159,14 +159,14 @@ return [
     'error' => 'Error',
     'creating_vendor' => 'Creating Vendor...',
     'please_wait' => 'Please wait while we process your request',
-    
+
     // Additional translations
     'change' => 'Change',
     'not_provided' => 'Not provided',
     'redirecting' => 'Redirecting...',
     'please_check_form_errors' => 'Please check the form for errors',
     'an_error_occurred' => 'An error occurred',
-    
+
     // Validation Messages
     'name_required_for_language' => 'Name (:language) is required.',
     'name_required_all_languages' => 'Name is required for all languages.',

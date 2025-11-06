@@ -56,7 +56,7 @@ class AdminController extends Controller
 
         try {
             $this->adminService->createAdmin($validated);
-            
+
             if ($request->ajax() || $request->wantsJson()) {
                 return response()->json([
                     'success' => true,
@@ -64,7 +64,7 @@ class AdminController extends Controller
                     'redirect' => route('admin.admin-management.admins.index')
                 ]);
             }
-            
+
             return redirect()->route('admin.admin-management.admins.index')
                 ->with('success', __('admin.admin_created_successfully'));
         } catch (\Exception $e) {
@@ -74,7 +74,7 @@ class AdminController extends Controller
                     'message' => __('admin.error_creating_admin') . ': ' . $e->getMessage()
                 ], 422);
             }
-            
+
             return redirect()->back()
                 ->withInput()
                 ->with('error', __('admin.error_creating_admin') . ': ' . $e->getMessage());
@@ -121,7 +121,7 @@ class AdminController extends Controller
 
         try {
             $this->adminService->updateAdmin($id, $validated);
-            
+
             if ($request->ajax() || $request->wantsJson()) {
                 return response()->json([
                     'success' => true,
@@ -129,7 +129,7 @@ class AdminController extends Controller
                     'redirect' => route('admin.admin-management.admins.index')
                 ]);
             }
-            
+
             return redirect()->route('admin.admin-management.admins.index')
                 ->with('success', __('admin.admin_updated_successfully'));
         } catch (\Exception $e) {
@@ -139,7 +139,7 @@ class AdminController extends Controller
                     'message' => __('admin.error_updating_admin') . ': ' . $e->getMessage()
                 ], 422);
             }
-            
+
             return redirect()->back()
                 ->withInput()
                 ->with('error', __('admin.error_updating_admin') . ': ' . $e->getMessage());
@@ -153,7 +153,7 @@ class AdminController extends Controller
     {
         try {
             $this->adminService->deleteAdmin($id);
-            
+
             if ($request->ajax() || $request->wantsJson()) {
                 return response()->json([
                     'success' => true,
@@ -161,7 +161,7 @@ class AdminController extends Controller
                     'redirect' => route('admin.admin-management.admins.index')
                 ]);
             }
-            
+
             return redirect()->route('admin.admin-management.admins.index')
                 ->with('success', __('admin.admin_deleted_successfully'));
         } catch (\Exception $e) {
@@ -171,7 +171,7 @@ class AdminController extends Controller
                     'message' => __('admin.error_deleting_admin') . ': ' . $e->getMessage()
                 ], 422);
             }
-            
+
             return redirect()->route('admin.admin-management.admins.index')
                 ->with('error', __('admin.error_deleting_admin') . ': ' . $e->getMessage());
         }

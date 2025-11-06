@@ -15,7 +15,8 @@ return [
     'variants_count' => 'عدد المتغيرات',
     'no_variants_configs_found' => 'لم يتم العثور على تكوينات متغيرة',
     'no_variant_keys_found' => 'لم يتم العثور على مفاتيح المتغيرات',
-    
+    'search_by_name' => 'البحث بالاسم',
+
     // Fields
     'type' => 'النوع',
     'text' => 'نص',
@@ -32,7 +33,7 @@ return [
     'value' => 'القيمة',
     'all_parents' => 'جميع الآباء',
     'no_parent' => 'لا يوجد أب',
-    
+
     // Messages
     'created_successfully' => 'تم إنشاء تكوين المتغير بنجاح',
     'updated_successfully' => 'تم تحديث تكوين المتغير بنجاح',

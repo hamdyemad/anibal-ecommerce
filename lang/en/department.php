@@ -26,7 +26,7 @@ return [
 
     // Table Headers
     'name_en' => 'Name (English)',
-    'name_ar' => 'Name (Arabic)',
+    'name_ar' => 'الاسم باللغه العربيه',
     'code' => 'Code',
     'created_at' => 'Created At',
 

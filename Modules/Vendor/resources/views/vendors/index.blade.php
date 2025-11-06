@@ -20,7 +20,7 @@
 
         <div class="row">
             <div class="col-lg-12">
-                
+
                 <div class="userDatatable global-shadow border-light-0 p-30 bg-white radius-xl w-100 mb-30">
                     <div class="d-flex justify-content-between align-items-center mb-25">
                         <h4 class="mb-0 fw-500">{{ __('vendor::vendor.vendors_management') }}</h4>
@@ -39,12 +39,12 @@
                                     <div class="col-md-3">
                                         <div class="form-group">
                                             <label for="search" class="il-gray fs-14 fw-500 mb-10">
-                                                {{ __('common.search') }} 
+                                                {{ __('common.search') }}
                                                 <small class="text-muted">({{ __('common.real_time') ?? 'Real-time' }})</small>
                                             </label>
-                                            <input type="text" 
-                                                   class="form-control ih-medium ip-gray radius-xs b-light px-15" 
-                                                   id="search" 
+                                            <input type="text"
+                                                   class="form-control ih-medium ip-gray radius-xs b-light px-15"
+                                                   id="search"
                                                    placeholder="{{ __('vendor::vendor.search_placeholder') }}"
                                                    autocomplete="off">
                                         </div>
@@ -62,16 +62,16 @@
                                     <div class="col-md-2">
                                         <div class="form-group">
                                             <label for="created_date_from" class="il-gray fs-14 fw-500 mb-10">{{ __('common.created_date_from') }}</label>
-                                            <input type="date" 
-                                                   class="form-control ih-medium ip-gray radius-xs b-light px-15" 
+                                            <input type="date"
+                                                   class="form-control ih-medium ip-gray radius-xs b-light px-15"
                                                    id="created_date_from">
                                         </div>
                                     </div>
                                     <div class="col-md-2">
                                         <div class="form-group">
                                             <label for="created_date_to" class="il-gray fs-14 fw-500 mb-10">{{ __('common.created_date_to') }}</label>
-                                            <input type="date" 
-                                                   class="form-control ih-medium ip-gray radius-xs b-light px-15" 
+                                            <input type="date"
+                                                   class="form-control ih-medium ip-gray radius-xs b-light px-15"
                                                    id="created_date_to">
                                         </div>
                                     </div>
@@ -133,7 +133,7 @@
         </div>
     </div>
     {{-- Delete Confirmation Modal Component --}}
-    <x-delete-modal 
+    <x-delete-modal
         modalId="modal-delete-vendor"
         :title="__('vendor::vendor.confirm_delete')"
         :message="__('vendor::vendor.delete_confirmation')"
@@ -153,7 +153,7 @@
 <script>
 $(document).ready(function() {
     console.log('Vendors page loaded, initializing DataTable...');
-    
+
     let per_page = 10;
 
     // Server-side processing with pagination
@@ -185,11 +185,11 @@ $(document).ready(function() {
                 console.log('Total records:', json.total);
                 console.log('Filtered records:', json.recordsFiltered);
                 console.log('Current page:', json.current_page);
-                
+
                 // Map backend response to DataTables format
                 json.recordsTotal = json.total || json.recordsTotal || 0;
                 json.recordsFiltered = json.recordsFiltered || json.total || 0;
-                
+
                 if (json.error) {
                     console.error('❌ Server returned error:', json.error);
                     alert('Error: ' + json.error);
@@ -204,7 +204,7 @@ $(document).ready(function() {
                 console.error('❌ DataTables AJAX Error:', {xhr: xhr, error: error, code: code});
                 console.error('Response Status:', xhr.status);
                 console.error('Response Text:', xhr.responseText);
-                
+
                 // Try to parse JSON error
                 let errorMsg = 'Error loading data. Status: ' + xhr.status;
                 try {
@@ -219,19 +219,19 @@ $(document).ready(function() {
                 } catch (e) {
                     console.error('Could not parse error response');
                 }
-                
+
                 alert(errorMsg + '\n\nCheck console for full details.');
             }
         },
         columns: [
             // Vendor Information column (combined)
-            { 
+            {
                 data: null,
                 name: 'vendor_info',
                 orderable: false,
                 render: function(data, type, row) {
                     let html = '<div class="userDatatable-content text-lowercase">';
-                    
+
                     // Vendor Names (all languages)
                     @foreach($languages as $index => $language)
                         if (row.translations && row.translations['{{ $language->code }}']) {
@@ -243,26 +243,26 @@ $(document).ready(function() {
                             @endif
                         }
                     @endforeach
-                    
+
                     // Email
                     html += '<div class="mt-1"><i class="uil uil-envelope"></i> ' + $('<div>').text(row.email).html() + '</div>';
-                    
+
                     // Country
                     html += '<div><i class="uil uil-map-marker"></i> ' + $('<div>').text(row.country_name).html() + '</div>';
-                    
+
                     // Status Badge
                     if (row.active == 1) {
                         html += '<div class="mt-1"><span class="badge badge-success badge-round badge-lg">{{ trans('vendor::vendor.active') }}</span></div>';
                     } else {
                         html += '<div class="mt-1"><span class="badge badge-danger badge-round badge-lg">{{ trans('vendor::vendor.inactive') }}</span></div>';
                     }
-                    
+
                     html += '</div>';
                     return html;
                 }
             },
             // Commission column
-            { 
+            {
                 data: 'commission',
                 name: 'commission',
                 orderable: true,
@@ -271,7 +271,7 @@ $(document).ready(function() {
                 }
             },
             // Actions column
-            { 
+            {
                 data: null,
                 name: 'actions',
                 orderable: false,
@@ -290,10 +290,10 @@ $(document).ready(function() {
                                 </a>
                             </li>
                             <li>
-                                <a href="javascript:void(0);" 
-                                   class="remove" 
+                                <a href="javascript:void(0);"
+                                   class="remove"
                                    title="{{ trans('common.delete') }}"
-                                   data-bs-toggle="modal" 
+                                   data-bs-toggle="modal"
                                    data-bs-target="#modal-delete-vendor"
                                    data-item-id="${row.id}"
                                    data-item-name="${$('<div>').text(row.first_name).html()}">
@@ -372,7 +372,7 @@ $(document).ready(function() {
             table.ajax.reload();
         }, 500);
     });
-    
+
     $('#search').on('change', function() {
         clearTimeout(searchTimer);
         table.ajax.reload();
@@ -395,12 +395,12 @@ $(document).ready(function() {
         // Reload table
         table.ajax.reload();
     });
-    
+
     // Delete vendor
     $('#confirmDeleteVendorBtn').on('click', function() {
         const vendorId = $(this).data('item-id');
         const deleteUrl = '{{ route("admin.vendors.index") }}/' + vendorId;
-        
+
         $.ajax({
             url: deleteUrl,
             type: 'DELETE',
@@ -417,7 +417,7 @@ $(document).ready(function() {
             }
         });
     });
-    
+
     // Set delete modal data
     $(document).on('click', '.remove', function() {
         const itemId = $(this).data('item-id');

@@ -19,8 +19,8 @@ class RoleController extends Controller
     use Res;
 
     public function __construct(
-        protected RoleService $roleService, 
-        protected RoleAction $roleAction, 
+        protected RoleService $roleService,
+        protected RoleAction $roleAction,
         protected LanguageService $languageService)
     {
         $this->middleware('can:roles.index')->only(['index']);
@@ -124,7 +124,7 @@ class RoleController extends Controller
             'role' => $role,
             'languages' => $languages,
             'title' => __('roles.show_role'),
-        ];        
+        ];
         return view('pages.admin_management.roles.show', $data);
     }
 
