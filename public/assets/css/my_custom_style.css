@@ -104,3 +104,17 @@
              0 0 30px rgba(0, 162, 255, 0.5);
      }
  }
+.orderDatatable_actions li a{
+    width: auto;
+    height: auto;
+}
+
+/* Remove fixed height for textareas with ih-medium class */
+textarea.form-control.ih-medium {
+    height: auto !important;
+}
+
+/* Match image upload height with input fields in vendor form */
+.image-preview-container.logo-preview-container {
+    height: 48px !important;
+}

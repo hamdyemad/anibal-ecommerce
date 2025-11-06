@@ -53,8 +53,8 @@
             <div class="col-lg-12">
                 <x-breadcrumb :items="[
                     ['title' => trans('dashboard.title'), 'url' => route('admin.dashboard'), 'icon' => 'uil uil-estate'],
-                    ['title' => 'Variant Configuration Keys', 'url' => route('admin.variant-keys.index')],
-                    ['title' => isset($variantKey) ? 'Edit Variant Key' : 'Add Variant Key']
+                    ['title' => trans('catalogmanagement::variantkey.title'), 'url' => route('admin.variant-keys.index')],
+                    ['title' => isset($variantKey) ? trans('catalogmanagement::variantkey.edit') : trans('catalogmanagement::variantkey.add')]
                 ]" />
             </div>
         </div>
@@ -64,7 +64,7 @@
                 <div class="card border-0 shadow-sm">
                     <div class="card-header bg-white border-bottom py-20">
                         <h5 class="mb-0 fw-500">
-                            {{ isset($variantKey) ? 'Edit Variant Key' : 'Add Variant Key' }}
+                            {{ isset($variantKey) ? trans('catalogmanagement::variantkey.edit') : trans('catalogmanagement::variantkey.add') }}
                         </h5>
                     </div>
                     <div class="card-body">
@@ -86,17 +86,14 @@
                                             <label for="translation_{{ $language->id }}_name" 
                                                    class="il-gray fs-14 fw-500 mb-10" 
                                                    @if($language->rtl) dir="rtl" style="text-align: right; display: block;" @endif>
-                                                @if($language->code == 'ar')
-                                                    اسم المفتاح ({{ $language->name }}) <span class="text-danger">*</span>
-                                                @else
-                                                    Variant Key Name ({{ $language->name }}) <span class="text-danger">*</span>
-                                                @endif
+                                                {{ trans('catalogmanagement::variantkey.name') }} ({{ $language->name }}) <span class="text-danger">*</span>
                                             </label>
                                             <input type="text" 
                                                    class="form-control ih-medium ip-gray radius-xs b-light px-15 @error('translations.' . $language->id . '.name') is-invalid @enderror" 
                                                    id="translation_{{ $language->id }}_name" 
                                                    name="translations[{{ $language->id }}][name]"  
                                                    value="{{ isset($variantKey) ? ($variantKey->getTranslation('name', $language->code) ?? '') : old('translations.' . $language->id . '.name') }}"
+                                                   placeholder="{{ trans('catalogmanagement::variantkey.enter_name') }}"
                                                    @if($language->rtl) dir="rtl" @endif
                                                    data-lang="{{ $language->code }}"
                                                    >
@@ -109,12 +106,12 @@
                                 <!-- Parent Variant Key -->
                                 <div class="col-md-12">
                                     <label for="parent_key_id" class="il-gray fs-14 fw-500 align-center">
-                                        Parent Variant Key 
-                                        <span class="text-muted">(Optional)</span>
+                                        {{ trans('catalogmanagement::variantkey.parent_key') }} 
+                                        <span class="text-muted">({{ trans('common.optional') }})</span>
                                     </label>
                                     <select name="parent_key_id" id="parent_key_id" 
                                             class="form-control select2 ih-medium ip-gray radius-xs b-light px-15">
-                                        <option value="">-- No Parent --</option>
+                                        <option value="">-- {{ trans('catalogmanagement::variantkey.no_parent') }} --</option>
                                         @foreach($variantKeys as $key)
                                             <option value="{{ $key['id'] }}" 
                                                 {{ (isset($variantKey) && $variantKey->parent_key_id == $key['id']) ? 'selected' : '' }}>
@@ -135,7 +132,7 @@
                                         <button type="submit" id="submitBtn" 
                                                 class="btn btn-primary btn-default btn-squared text-capitalize">
                                             <i class="uil uil-check"></i> 
-                                            <span>{{ isset($variantKey) ? 'Update Variant Key' : 'Create Variant Key' }}</span>
+                                            <span>{{ isset($variantKey) ? trans('catalogmanagement::variantkey.update') : trans('catalogmanagement::variantkey.create') }}</span>
                                             <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
                                         </button>
                                     </div>

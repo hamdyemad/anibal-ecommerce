@@ -13,6 +13,7 @@ return [
     'name' => 'Tax Name',
     'tax_rate' => 'Tax Rate (%)',
     'enter_name_placeholder' => 'Enter tax name',
+    'enter_tax_name' => 'Enter tax name',
     'activation' => 'Status',
     'active' => 'Active',
     'inactive' => 'Inactive',

@@ -28,9 +28,9 @@
 
 .tree-node-content:hover {
     background: #e9ecef;
-    border-color: #8231D3;
+    border-color: #0056B7;
     transform: translateX(4px);
-    box-shadow: 0 2px 8px rgba(130, 49, 211, 0.15);
+    box-shadow: 0 2px 8px rgba(0, 86, 183, 0.15);
 }
 
 .tree-node-content.has-children::before {
@@ -100,8 +100,8 @@
 }
 
 .tree-value:hover {
-    border-color: #8231D3;
-    background: #f8f5ff;
+    border-color: #0056B7;
+    background: #e7f3ff;
 }
 
 /* Tree Names Styles (for multi-language support) */
@@ -122,8 +122,8 @@
 }
 
 .tree-name-item:hover {
-    border-color: #8231D3;
-    background: #f8f5ff;
+    border-color: #0056B7;
+    background: #e7f3ff;
 }
 
 .tree-name-item[dir="rtl"] {
@@ -290,16 +290,16 @@
 
 /* Tree Key Node Styles */
 .tree-key-node > .tree-node-content {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #0056B7 0%, #003d82 100%);
     color: white;
     border: none;
     font-weight: 600;
 }
 
 .tree-key-node > .tree-node-content:hover {
-    background: linear-gradient(135deg, #5568d3 0%, #63408a 100%);
+    background: linear-gradient(135deg, #003d82 0%, #002952 100%);
     transform: translateX(4px);
-    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    box-shadow: 0 4px 12px rgba(0, 86, 183, 0.4);
 }
 
 .tree-key-node .tree-toggle {
@@ -320,7 +320,7 @@
 
 .tree-key-node .tree-name-item {
     background: rgba(255, 255, 255, 0.95);
-    color: #667eea;
+    color: #0056B7;
     font-weight: 600;
     border: none;
 }
@@ -354,11 +354,11 @@
 
 .tree-variant-node > .tree-node-content:hover {
     background: #f8f9fa;
-    border-color: #8231D3;
+    border-color: #0056B7;
 }
 
 .tree-variant-node .tree-id {
-    color: #667eea;
+    color: #0056B7;
     background: #f0f0f0;
     padding: 2px 8px;
     border-radius: 4px;
@@ -377,9 +377,9 @@
 }
 
 .tree-variant-node .tree-name-item:hover {
-    border-color: #667eea;
-    background: #e7f0ff;
-    color: #667eea;
+    border-color: #0056B7;
+    background: #e7f3ff;
+    color: #0056B7;
 }
 
 .tree-variant-node .tree-name-item[dir="rtl"] {

@@ -52,11 +52,12 @@
                                         <div class="form-group mb-3">
                                             <label for="name_{{ $language->id }}" class="form-label">{{ __('systemsetting::currency.name_' . ($language->code == 'ar' ? 'arabic' : 'english')) }} <span class="text-danger">*</span></label>
                                             <input type="text" 
-                                                   class="form-control" 
+                                                   class="form-control ih-medium ip-gray radius-xs b-light px-15" 
                                                    id="name_{{ $language->id }}" 
                                                    name="translations[{{ $language->id }}][name]" 
                                                    value="{{ old('translations.' . $language->id . '.name', isset($currency) ? $currency->translations->where('lang_id', $language->id)->first()->lang_value ?? '' : '') }}"
-                                                   @if($language->rtl) dir="rtl" @endif>
+                                                   @if($language->rtl) dir="rtl" @endif
+                                                   placeholder="{{ $language->code == 'ar' ? 'أدخل اسم العملة' : 'e.g., US Dollar, Saudi Riyal' }}">
                                             @error('translations.' . $language->id . '.name')
                                                 <div class="text-danger small mt-1">{{ $message }}</div>
                                             @enderror
@@ -68,12 +69,12 @@
                                     <div class="form-group mb-3">
                                         <label for="code" class="form-label">{{ __('systemsetting::currency.currency_code') }} <span class="text-danger">*</span></label>
                                         <input type="text" 
-                                               class="form-control text-uppercase" 
+                                               class="form-control ih-medium ip-gray radius-xs b-light px-15 text-uppercase" 
                                                id="code" 
                                                name="code" 
                                                value="{{ old('code', isset($currency) ? $currency->code : '') }}" 
                                                maxlength="3"
-                                               placeholder="USD">
+                                               placeholder="e.g., USD, SAR, EUR">
                                         @error('code')
                                             <div class="text-danger small mt-1">{{ $message }}</div>
                                         @enderror
@@ -84,12 +85,12 @@
                                     <div class="form-group mb-3">
                                         <label for="symbol" class="form-label">{{ __('systemsetting::currency.currency_symbol') }} <span class="text-danger">*</span></label>
                                         <input type="text" 
-                                               class="form-control" 
+                                               class="form-control ih-medium ip-gray radius-xs b-light px-15" 
                                                id="symbol" 
                                                name="symbol" 
                                                value="{{ old('symbol', isset($currency) ? $currency->symbol : '') }}" 
                                                maxlength="10"
-                                               placeholder="$">
+                                               placeholder="e.g., $, ﷼, €">
                                         @error('symbol')
                                             <div class="text-danger small mt-1">{{ $message }}</div>
                                         @enderror

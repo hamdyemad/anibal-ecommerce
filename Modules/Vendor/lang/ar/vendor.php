@@ -39,6 +39,8 @@ return [
     'review_info_message' => 'يرجى مراجعة معلوماتك قبل الإرسال.',
     
     // Placeholders
+    'enter_vendor_name' => 'أدخل اسم المتجر',
+    'enter_vendor_description' => 'أدخل وصف المتجر',
     'enter_vendor_name_english' => 'أدخل اسم المورد بالإنجليزية',
     'enter_vendor_name_arabic' => 'أدخل اسم المورد بالعربية',
     'enter_vendor_description_english' => 'أدخل وصف المورد بالإنجليزية',

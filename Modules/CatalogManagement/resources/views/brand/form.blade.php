@@ -97,6 +97,7 @@
                                                    id="translation_{{ $language->id }}_name" 
                                                    name="translations[{{ $language->id }}][name]"  
                                                    value="{{ isset($brand) ? ($brand->getTranslation('name', $language->code) ?? '') : old('translations.' . $language->id . '.name') }}"
+                                                   placeholder="@if($language->code == 'ar')أدخل اسم العلامة التجارية@else{{ trans('catalogmanagement::brand.enter_brand_name') }}@endif"
                                                    @if($language->rtl) dir="rtl" @endif
                                                    data-lang="{{ $language->code }}">
                                             @error('translations.' . $language->id . '.name')
@@ -122,6 +123,7 @@
                                                    id="translation_{{ $language->id }}_description" 
                                                    name="translations[{{ $language->id }}][description]"  
                                                    rows="4"
+                                                   placeholder="@if($language->code == 'ar')أدخل وصف العلامة التجارية@else{{ trans('catalogmanagement::brand.enter_brand_description') }}@endif"
                                                    @if($language->rtl) dir="rtl" @endif
                                                    data-lang="{{ $language->code }}">{{ isset($brand) ? ($brand->getTranslation('description', $language->code) ?? '') : old('translations.' . $language->id . '.description') }}</textarea>
                                             @error('translations.' . $language->id . '.description')

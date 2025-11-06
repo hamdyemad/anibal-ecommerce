@@ -96,6 +96,7 @@
                                                    id="translation_{{ $language->id }}_name" 
                                                    name="translations[{{ $language->id }}][name]"  
                                                    value="{{ isset($tax) ? ($tax->getTranslation('name', $language->code) ?? '') : old('translations.' . $language->id . '.name') }}"
+                                                   placeholder="@if($language->code == 'ar')أدخل اسم الضريبة@else{{ trans('catalogmanagement::tax.enter_tax_name') }}@endif"
                                                    @if($language->rtl) dir="rtl" @endif
                                                    data-lang="{{ $language->code }}">
                                             @error('translations.' . $language->id . '.name')

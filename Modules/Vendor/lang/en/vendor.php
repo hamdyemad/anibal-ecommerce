@@ -46,6 +46,8 @@ return [
     'review_info_message' => 'Please review your information before submitting.',
     
     // Placeholders
+    'enter_vendor_name' => 'Enter vendor name',
+    'enter_vendor_description' => 'Enter vendor description',
     'enter_vendor_name_english' => 'Enter vendor name in English',
     'enter_vendor_name_arabic' => 'Enter vendor name in Arabic',
     'enter_vendor_description_english' => 'Enter vendor description in English',

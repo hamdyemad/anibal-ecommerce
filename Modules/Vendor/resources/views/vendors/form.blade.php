@@ -43,10 +43,13 @@
                         @endif
 
                         <!-- Step 1: Vendor Information -->
-                        <div class="wizard-step-content active" data-step="1">
-                            <h5 class="mb-4 mt-4">{{ trans('vendor::vendor.vendor_information') }}</h5>
+                        <div class="wizard-step-content active" data-step="1" style="margin-top: 60px;">
+                            <h5 class="mb-4" style="background: #0056B7; color: white; padding: 16px 20px; border-radius: 8px; display: flex; align-items: center; gap: 12px; margin-top: 0;">
+                                <i class="uil uil-store" style="font-size: 22px;"></i>
+                                {{ trans('vendor::vendor.vendor_information') }}
+                            </h5>
 
-                            <div class="row">
+                            <div class="row" style="margin-top: 20px;">
                                 <!-- Name Fields for each language -->
                                 @foreach($languages as $language)
                                 <div class="col-md-6 mb-3">
@@ -63,8 +66,9 @@
                                             type="text" 
                                             name="translations[{{ $language->id }}][name]"
                                             id="name_{{ $language->code }}"
-                                            class="form-control"
+                                            class="form-control ih-medium ip-gray radius-xs b-light px-15"
                                             value="{{ isset($vendor) ? $vendor->getTranslation('name', $language->code) : old('translations.'.$language->id.'.name') }}"
+                                            placeholder="@if($language->code == 'ar')أدخل اسم المتجر@else{{ trans('vendor::vendor.enter_vendor_name') }}@endif"
                                             {{ $language->rtl ? 'dir=rtl' : '' }}
                                         >
                                         @error('translations.'.$language->id.'.name')
@@ -91,8 +95,9 @@
                                         <textarea 
                                             name="translations[{{ $language->id }}][description]"
                                             id="description_{{ $language->code }}"
-                                            class="form-control"
+                                            class="form-control ih-medium ip-gray radius-xs b-light px-15"
                                             rows="4"
+                                            placeholder="@if($language->code == 'ar')أدخل وصف المتجر@else{{ trans('vendor::vendor.enter_vendor_description') }}@endif"
                                             {{ $language->rtl ? 'dir=rtl' : '' }}
                                         >{{ isset($vendor) ? $vendor->getTranslation('description', $language->code) : old('translations.'.$language->id.'.description') }}</textarea>
                                         @error('translations.'.$language->id.'.description')
@@ -104,7 +109,10 @@
                             </div>
 
                             <!-- Logo and Banner Section -->
-                            <h5 class="mb-3 mt-4">{{ trans('vendor::vendor.branding') }}</h5>
+                            <h5 class="mb-4" style="background: #0056B7; color: white; padding: 16px 20px; border-radius: 8px; display: flex; align-items: center; gap: 12px; margin-top: 0;">
+                                <i class="uil uil-palette" style="font-size: 22px;"></i>
+                                {{ trans('vendor::vendor.branding') }}
+                            </h5>
                             
                             <div class="row">
                                 <!-- Logo Upload -->
@@ -172,7 +180,7 @@
                                             type="number" 
                                             name="commission"
                                             id="commission"
-                                            class="form-control"
+                                            class="form-control ih-medium ip-gray radius-xs b-light px-15"
                                             min="0"
                                             max="100"
                                             step="0.01"
@@ -255,7 +263,10 @@
                             </div>
 
                             <!-- SEO Information -->
-                            <h5 class="mb-3 mt-4">{{ trans('vendor::vendor.seo_information') }}</h5>
+                            <h5 class="mb-4" style="background: #0056B7; color: white; padding: 16px 20px; border-radius: 8px; display: flex; align-items: center; gap: 12px; margin-top: 0;">
+                                <i class="uil uil-search" style="font-size: 22px;"></i>
+                                {{ trans('vendor::vendor.seo_information') }}
+                            </h5>
                             
                             <div class="row">
                                 <!-- Meta Title Fields for each language -->
@@ -273,8 +284,9 @@
                                             type="text" 
                                             name="translations[{{ $language->id }}][meta_title]"
                                             id="meta_title_{{ $language->code }}"
-                                            class="form-control"
+                                            class="form-control ih-medium ip-gray radius-xs b-light px-15"
                                             value="{{ isset($vendor) ? $vendor->getTranslation('meta_title', $language->code) : old('translations.'.$language->id.'.meta_title') }}"
+                                            placeholder="{{ $language->code == 'ar' ? 'أدخل عنوان SEO' : trans('vendor::vendor.enter_meta_title') }}"
                                             {{ $language->rtl ? 'dir=rtl' : '' }}
                                         >
                                         @error('translations.'.$language->id.'.meta_title')
@@ -300,8 +312,9 @@
                                         <textarea 
                                             name="translations[{{ $language->id }}][meta_description]"
                                             id="meta_description_{{ $language->code }}"
-                                            class="form-control"
+                                            class="form-control ih-medium ip-gray radius-xs b-light px-15"
                                             rows="3"
+                                            placeholder="{{ $language->code == 'ar' ? 'أدخل وصف SEO' : trans('vendor::vendor.enter_meta_description') }}"
                                             {{ $language->rtl ? 'dir=rtl' : '' }}
                                         >{{ isset($vendor) ? $vendor->getTranslation('meta_description', $language->code) : old('translations.'.$language->id.'.meta_description') }}</textarea>
                                         @error('translations.'.$language->id.'.meta_description')
@@ -328,8 +341,9 @@
                                             type="text" 
                                             name="translations[{{ $language->id }}][meta_keywords]"
                                             id="meta_keywords_{{ $language->code }}"
-                                            class="form-control"
+                                            class="form-control ih-medium ip-gray radius-xs b-light px-15"
                                             value="{{ isset($vendor) ? $vendor->getTranslation('meta_keywords', $language->code) : old('translations.'.$language->id.'.meta_keywords') }}"
+                                            placeholder="{{ $language->code == 'ar' ? 'أدخل الكلمات المفتاحية' : trans('vendor::vendor.enter_meta_keywords') }}"
                                             {{ $language->rtl ? 'dir=rtl' : '' }}
                                         >
                                         <small class="text-muted">{{ trans('vendor::vendor.separate_keywords_commas') }}</small>
@@ -343,13 +357,16 @@
                         </div>
 
                         <!-- Step 2: Vendor Documents -->
-                        <div class="wizard-step-content" data-step="2" style="display: none;">
-                            <div class="d-flex justify-content-between">
-                                <h5 class="mb-4 mt-4">{{ trans('vendor::vendor.vendor_documents') }}</h5>
-                                <button type="button" id="addDocument" class="btn btn-success btn-squared">
+                        <div class="wizard-step-content" data-step="2" style="display: none; margin-top: 60px;">
+                            <h5 class="mb-4" style="background: #0056B7; color: white; padding: 16px 20px; border-radius: 8px; display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 0;">
+                                <div style="display: flex; align-items: center; gap: 12px;">
+                                    <i class="uil uil-file-alt" style="font-size: 22px;"></i>
+                                    {{ trans('vendor::vendor.vendor_documents') }}
+                                </div>
+                                <button type="button" id="addDocument" class="btn btn-squared" style="background: #ffffff; color: #0056B7; border: none; font-weight: 500;">
                                     <i class="uil uil-plus"></i> {{ trans('vendor::vendor.add_document') }}
                                 </button>
-                            </div>
+                            </h5>
                             <div id="documentsContainer">
                                 <!-- Documents will be added here dynamically -->
                             </div>
@@ -358,8 +375,11 @@
                         </div>
 
                         <!-- Step 3: Vendor Account Details -->
-                        <div class="wizard-step-content" data-step="3" style="display: none;">
-                            <h5 class="mb-4 mt-4">{{ trans('vendor::vendor.vendor_account_details') }}</h5>
+                        <div class="wizard-step-content" data-step="3" style="display: none; margin-top: 60px;">
+                            <h5 class="mb-4" style="background: #0056B7; color: white; padding: 16px 20px; border-radius: 8px; display: flex; align-items: center; gap: 12px; margin-top: 0;">
+                                <i class="uil uil-user-circle" style="font-size: 22px;"></i>
+                                {{ trans('vendor::vendor.vendor_account_details') }}
+                            </h5>
                             
                             <div class="row">
                                 <!-- Email -->
@@ -373,7 +393,7 @@
                                             type="email" 
                                             name="email"
                                             id="email"
-                                            class="form-control"
+                                            class="form-control ih-medium ip-gray radius-xs b-light px-15"
                                             placeholder="{{ trans('vendor::vendor.enter_email') }}"
                                             value="{{ isset($vendor) ? $vendor->user->email ?? '' : old('email') }}"
                                         >
@@ -398,7 +418,7 @@
                                             type="password" 
                                             name="password"
                                             id="password"
-                                            class="form-control"
+                                            class="form-control ih-medium ip-gray radius-xs b-light px-15"
                                             placeholder="{{ trans('vendor::vendor.enter_password') }}"
                                         >
                                         <small class="text-muted">
@@ -427,7 +447,7 @@
                                             type="password" 
                                             name="password_confirmation"
                                             id="password_confirmation"
-                                            class="form-control"
+                                            class="form-control ih-medium ip-gray radius-xs b-light px-15"
                                             placeholder="{{ trans('vendor::vendor.confirm_password') }}"
                                         >
                                         @error('password_confirmation')
@@ -439,8 +459,11 @@
                         </div>
 
                         <!-- Step 4: Review & Submit -->
-                        <div class="wizard-step-content" data-step="4" style="display: none;">
-                            <h5 class="mb-4">{{ trans('vendor::vendor.review_submit') }}</h5>
+                        <div class="wizard-step-content" data-step="4" style="display: none; margin-top: 60px;">
+                            <h5 class="mb-4" style="background: #0056B7; color: white; padding: 16px 20px; border-radius: 8px; display: flex; align-items: center; gap: 12px;">
+                                <i class="uil uil-check-circle" style="font-size: 22px;"></i>
+                                {{ trans('vendor::vendor.review_submit') }}
+                            </h5>
                             
                             <!-- Validation Errors Alert -->
                             <div id="review-validation-errors" class="alert alert-danger" style="display: none; flex-direction: column;">
@@ -454,11 +477,11 @@
 
                             <!-- Review: Vendor Information -->
                             <div class="card mb-3">
-                                <div class="card-header">
-                                    <h6 class="mb-0">
-                                        <i class="uil uil-info-circle"></i> {{ trans('vendor::vendor.vendor_information') }}
+                                <div class="card-header" style="background: #0056B7; color: white; padding: 12px 16px; border: none; display: flex; justify-content: space-between; align-items: center;">
+                                    <h6 class="mb-0" style="color: white; display: flex; align-items: center; gap: 8px; flex: 1;">
+                                        <i class="uil uil-store" style="font-size: 18px;"></i> {{ trans('vendor::vendor.vendor_information') }}
                                     </h6>
-                                    <button type="button" class="btn btn-sm btn-primary float-end edit-step" data-step="1">
+                                    <button type="button" class="btn btn-sm edit-step" data-step="1" style="background: white; color: #0056B7; border: none; padding: 6px 16px; font-weight: 500; transition: all 0.3s ease; flex-shrink: 0;" onmouseover="this.style.background='#f8f9fa'" onmouseout="this.style.background='white'">
                                         <i class="uil uil-edit"></i> {{ trans('common.edit') }}
                                     </button>
                                 </div>
@@ -507,7 +530,7 @@
                                         <div class="col-md-6 mb-2">
                                             <strong>{{ trans('vendor::vendor.status') }}:</strong>
                                             <span class="review-active">
-                                                <span class="badge badge-success">{{ trans('vendor::vendor.active') }}</span>
+                                                <span class="badge badge-success badge-round badge-lg">{{ trans('vendor::vendor.active') }}</span>
                                             </span>
                                         </div>
                                     </div>
@@ -517,10 +540,43 @@
                                             <span class="review-activities">-</span>
                                         </div>
                                     </div>
-                                    <div class="row mt-2">
-                                        <div class="col-md-12">
+                                    <div class="row mt-3">
+                                        <div class="col-md-12 mb-2">
                                             <strong>{{ trans('vendor::vendor.seo_information') }}:</strong>
-                                            <span class="review-seo">-</span>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-2">
+                                                <strong class="text-muted" style="font-size: 14px;">English</strong>
+                                            </div>
+                                            <div class="mb-2">
+                                                <strong>Meta Title:</strong>
+                                                <span class="review-meta-title-en text-muted">Not provided</span>
+                                            </div>
+                                            <div class="mb-2">
+                                                <strong>Meta Description:</strong>
+                                                <span class="review-meta-description-en text-muted">Not provided</span>
+                                            </div>
+                                            <div class="mb-2">
+                                                <strong>Meta Keywords:</strong>
+                                                <span class="review-meta-keywords-en text-muted">Not provided</span>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-2">
+                                                <strong class="text-muted w-100 d-block" dir="rtl" style="font-size: 14px;">العربية</strong>
+                                            </div>
+                                            <div class="mb-2" dir="rtl">
+                                                <strong>عنوان الميتا:</strong>
+                                                <span class="review-meta-title-ar text-muted">غير محدد</span>
+                                            </div>
+                                            <div class="mb-2" dir="rtl">
+                                                <strong>وصف الميتا:</strong>
+                                                <span class="review-meta-description-ar text-muted">غير محدد</span>
+                                            </div>
+                                            <div class="mb-2" dir="rtl">
+                                                <strong>كلمات الميتا المفتاحية:</strong>
+                                                <span class="review-meta-keywords-ar text-muted">غير محدد</span>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -528,11 +584,11 @@
 
                             <!-- Review: Documents -->
                             <div class="card mb-3">
-                                <div class="card-header">
-                                    <h6 class="mb-0">
-                                        <i class="uil uil-file-alt"></i> {{ trans('vendor::vendor.vendor_documents') }}
+                                <div class="card-header" style="background: #0056B7; color: white; padding: 12px 16px; border: none; display: flex; justify-content: space-between; align-items: center;">
+                                    <h6 class="mb-0" style="color: white; display: flex; align-items: center; gap: 8px; flex: 1;">
+                                        <i class="uil uil-file-alt" style="font-size: 18px;"></i> {{ trans('vendor::vendor.vendor_documents') }}
                                     </h6>
-                                    <button type="button" class="btn btn-sm btn-primary float-end edit-step" data-step="2">
+                                    <button type="button" class="btn btn-sm edit-step" data-step="2" style="background: white; color: #0056B7; border: none; padding: 6px 16px; font-weight: 500; transition: all 0.3s ease; flex-shrink: 0;" onmouseover="this.style.background='#f8f9fa'" onmouseout="this.style.background='white'">
                                         <i class="uil uil-edit"></i> {{ trans('common.edit') }}
                                     </button>
                                 </div>
@@ -545,11 +601,11 @@
 
                             <!-- Review: Account Details -->
                             <div class="card mb-3">
-                                <div class="card-header">
-                                    <h6 class="mb-0">
-                                        <i class="uil uil-user"></i> {{ trans('vendor::vendor.vendor_account_details') }}
+                                <div class="card-header" style="background: #0056B7; color: white; padding: 12px 16px; border: none; display: flex; justify-content: space-between; align-items: center;">
+                                    <h6 class="mb-0" style="color: white; display: flex; align-items: center; gap: 8px; flex: 1;">
+                                        <i class="uil uil-user-circle" style="font-size: 18px;"></i> {{ trans('vendor::vendor.vendor_account_details') }}
                                     </h6>
-                                    <button type="button" class="btn btn-sm btn-primary float-end edit-step" data-step="3">
+                                    <button type="button" class="btn btn-sm edit-step" data-step="3" style="background: white; color: #0056B7; border: none; padding: 6px 16px; font-weight: 500; transition: all 0.3s ease; flex-shrink: 0;" onmouseover="this.style.background='#f8f9fa'" onmouseout="this.style.background='white'">
                                         <i class="uil uil-edit"></i> {{ trans('common.edit') }}
                                     </button>
                                 </div>

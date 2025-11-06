@@ -15,6 +15,8 @@ return [
     'description' => 'الوصف',
     'enter_name_placeholder' => 'أدخل اسم العلامة التجارية',
     'enter_description_placeholder' => 'أدخل وصف العلامة التجارية',
+    'enter_brand_name' => 'أدخل اسم العلامة التجارية',
+    'enter_brand_description' => 'أدخل وصف العلامة التجارية',
     'logo' => 'الشعار',
     'cover' => 'صورة الغلاف',
     'activation' => 'الحالة',

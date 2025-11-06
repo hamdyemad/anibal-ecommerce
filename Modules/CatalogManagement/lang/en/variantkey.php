@@ -17,8 +17,14 @@ return [
     'parent_key' => 'Parent Key',
     'all_parents' => 'All Parents',
     'no_parent' => 'No Parent',
-    'name' => 'Name',
+    'name' => 'Variant Key Name',
     'name_language' => 'Name (:language)',
+    'enter_name' => 'Enter variant key name',
+    'title' => 'Variant Configuration Keys',
+    'add' => 'Add Variant Key',
+    'edit' => 'Edit Variant Key',
+    'create' => 'Create Variant Key',
+    'update' => 'Update Variant Key',
     
     // Messages
     'created_successfully' => 'Variant key created successfully',
