@@ -31,6 +31,7 @@ return [
     'name_en' => 'الاسم (إنجليزي)',
     'name_ar' => 'الاسم (عربي)',
     'created_at' => 'تاريخ الإنشاء',
+    'department' => 'القسم',
 
     // Buttons
     'add_activity' => 'إضافة نشاط',

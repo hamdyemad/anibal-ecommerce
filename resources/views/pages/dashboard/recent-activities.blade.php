@@ -9,10 +9,10 @@
                     <table class="table">
                         <thead>
                             <tr>
-                                <th>#</th>
-                                <th>{{ trans('dashboard.employee') }}</th>
-                                <th>{{ trans('dashboard.activity') }}</th>
-                                <th>{{ trans('dashboard.activity_date') }}</th>
+                                <th style="color: #fff !important;">#</th>
+                                <th style="color: #fff !important;">{{ trans('dashboard.employee') }}</th>
+                                <th style="color: #fff !important;">{{ trans('dashboard.activity') }}</th>
+                                <th style="color: #fff !important;">{{ trans('dashboard.activity_date') }}</th>
                             </tr>
                         </thead>
                         <tbody>

@@ -9,13 +9,13 @@
                     <table class="table">
                         <thead>
                             <tr>
-                                <th>#</th>
-                                <th>{{ trans('dashboard.vendor_name') }}</th>
-                                <th>{{ trans('dashboard.total_selling') }}</th>
-                                <th>{{ trans('dashboard.commission') }} %</th>
-                                <th>{{ trans('dashboard.commission') }} EGP</th>
-                                <th>{{ trans('dashboard.joined_at') }}</th>
-                                <th>{{ trans('dashboard.actions') }}</th>
+                                <th style="color: #fff !important;">#</th>
+                                <th style="color: #fff !important;">{{ trans('dashboard.vendor_name') }}</th>
+                                <th style="color: #fff !important;">{{ trans('dashboard.total_selling') }}</th>
+                                <th style="color: #fff !important;">{{ trans('dashboard.commission') }} %</th>
+                                <th style="color: #fff !important;">{{ trans('dashboard.commission') }} EGP</th>
+                                <th style="color: #fff !important;">{{ trans('dashboard.joined_at') }}</th>
+                                <th style="color: #fff !important;">{{ trans('dashboard.actions') }}</th>
                             </tr>
                         </thead>
                         <tbody>

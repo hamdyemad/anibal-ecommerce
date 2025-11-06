@@ -9,12 +9,12 @@
                     <table class="table">
                         <thead>
                             <tr style="background-color: #0157b7; color: #fff;">
-                                <th>#</th>
-                                <th>{{ trans('dashboard.name') }}</th>
-                                <th>{{ trans('dashboard.orders_count') }}</th>
-                                <th>{{ trans('dashboard.revenue') }}</th>
-                                <th>{{ trans('dashboard.joined_at') }}</th>
-                                <th>{{ trans('dashboard.actions') }}</th>
+                                <th style="color: #fff !important;">#</th>
+                                <th style="color: #fff !important;">{{ trans('dashboard.name') }}</th>
+                                <th style="color: #fff !important;">{{ trans('dashboard.orders_count') }}</th>
+                                <th style="color: #fff !important;">{{ trans('dashboard.revenue') }}</th>
+                                <th style="color: #fff !important;">{{ trans('dashboard.joined_at') }}</th>
+                                <th style="color: #fff !important;">{{ trans('dashboard.actions') }}</th>
                             </tr>
                         </thead>
                         <tbody>

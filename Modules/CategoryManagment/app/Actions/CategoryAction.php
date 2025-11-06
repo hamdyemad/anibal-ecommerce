@@ -27,17 +27,17 @@ class CategoryAction {
             // Get pagination parameters
             $perPage = $data['per_page'] ?? $data['length'] ?? 10;
             $page = $data['page'] ?? 1;
-            
+
             // Get sorting parameters
             $orderColumnIndex = $data['orderColumnIndex'] ?? 0;
             $orderDirection = $data['orderDirection'] ?? 'desc';
-            
+
             Log::info('CategoryAction - Sorting Parameters', [
                 'orderColumnIndex' => $orderColumnIndex,
                 'orderDirection' => $orderDirection,
                 'all_data' => $data
             ]);
-            
+
             // Get filter parameters
             $filters = [
                 'search' => $data['search'] ?? null,
@@ -46,14 +46,14 @@ class CategoryAction {
                 'created_date_from' => $data['created_date_from'] ?? null,
                 'created_date_to' => $data['created_date_to'] ?? null,
             ];
-            
+
             // Get languages
             $languages = $this->languageService->getAll();
-            
+
             // Get total and filtered counts
             $totalRecords = $this->categoryRepositoryInterface->getCategoriesQuery([])->count();
             $filteredRecords = $this->categoryRepositoryInterface->getCategoriesQuery($filters)->count();
-            
+
             // Determine sort column
             // Column 0 is 'index' (row number) - not sortable
             // Columns 1 to count($languages) are name translations
@@ -79,17 +79,17 @@ class CategoryAction {
                 // Default sorting
                 $orderBy = 'id';
             }
-            
+
             Log::info('CategoryAction - Determined Sort', [
                 'orderBy' => $orderBy,
                 'orderDirection' => $orderDirection,
                 'languagesCount' => count($languages)
             ]);
-            
+
             // Get categories with pagination and sorting
             $categoriesQuery = $this->categoryRepositoryInterface->getCategoriesQuery($filters, $orderBy, $orderDirection);
             $categories = $categoriesQuery->paginate($perPage, ['*'], 'page', $page);
-            
+
             // Return raw data - rendering will be handled by DataTables in the view
             $data = [];
             foreach ($categories as $index => $category) {
@@ -101,7 +101,7 @@ class CategoryAction {
                     'active' => $category->active,
                     'created_at' => $category->created_at->format('Y-m-d H:i'),
                 ];
-                
+
                 // Add translations for each language
                 foreach ($languages as $language) {
                     $translation = $category->translations->where('lang_id', $language->id)
@@ -112,7 +112,7 @@ class CategoryAction {
                         'rtl' => $language->rtl
                     ];
                 }
-                
+
                 // Add department info
                 if ($category->department) {
                     $rowData['department'] = [
@@ -120,21 +120,21 @@ class CategoryAction {
                         'name' => $category->department->getTranslation('name', app()->getLocale())
                     ];
                 }
-                
+
                 // Add first translation name for delete modal
                 $firstTranslation = $category->translations->where('lang_key', 'name')->first();
                 $rowData['first_name'] = $firstTranslation ? $firstTranslation->lang_value : '';
-                
+
                 $data[] = $rowData;
             }
-            
+
             return [
                 'data' => $data,
                 'totalRecords' => $totalRecords,
                 'filteredRecords' => $filteredRecords,
                 'dataPaginated' => $categories
             ];
-            
+
         } catch (\Exception $e) {
             Log::error('Error in CategoryAction getDataTable: ' . $e->getMessage());
             return [
@@ -145,5 +145,5 @@ class CategoryAction {
             ];
         }
     }
-        
+
 }

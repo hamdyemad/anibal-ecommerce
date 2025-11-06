@@ -9,15 +9,15 @@
                     <table class="table">
                         <thead>
                             <tr>
-                                <th>#</th>
-                                <th>{{ trans('dashboard.order_number') }}</th>
-                                <th>{{ trans('dashboard.vendor_name') }}</th>
-                                <th>{{ trans('dashboard.user') }}</th>
-                                <th>{{ trans('dashboard.price') }}</th>
-                                <th>{{ trans('dashboard.total') }}</th>
-                                <th>{{ trans('dashboard.commission') }} %</th>
-                                <th>{{ trans('dashboard.commission') }} EGP</th>
-                                <th>{{ trans('dashboard.actions') }}</th>
+                                <th style="color: #fff !important;">#</th>
+                                <th style="color: #fff !important;">{{ trans('dashboard.order_number') }}</th>
+                                <th style="color: #fff !important;">{{ trans('dashboard.vendor_name') }}</th>
+                                <th style="color: #fff !important;">{{ trans('dashboard.user') }}</th>
+                                <th style="color: #fff !important;">{{ trans('dashboard.price') }}</th>
+                                <th style="color: #fff !important;">{{ trans('dashboard.total') }}</th>
+                                <th style="color: #fff !important;">{{ trans('dashboard.commission') }} %</th>
+                                <th style="color: #fff !important;">{{ trans('dashboard.commission') }} EGP</th>
+                                <th style="color: #fff !important;">{{ trans('dashboard.actions') }}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -40,7 +40,7 @@
                                 <td>
                                     <a href="#" class="btn btn-sm btn-light">
                                         <i class="uil uil-eye"></i>
-
+                                        Show
                                     </a>
                                 </td>
                             </tr>
@@ -63,7 +63,7 @@
                                 <td>
                                     <a href="#" class="btn btn-sm btn-light">
                                         <i class="uil uil-eye"></i>
-
+                                        Show
                                     </a>
                                 </td>
                             </tr>
@@ -86,7 +86,7 @@
                                 <td>
                                     <a href="#" class="btn btn-sm btn-light">
                                         <i class="uil uil-eye"></i>
-
+                                        Show
                                     </a>
                                 </td>
                             </tr>
@@ -109,7 +109,7 @@
                                 <td>
                                     <a href="#" class="btn btn-sm btn-light">
                                         <i class="uil uil-eye"></i>
-
+                                        Show
                                     </a>
                                 </td>
                             </tr>
@@ -132,7 +132,7 @@
                                 <td>
                                     <a href="#" class="btn btn-sm btn-light">
                                         <i class="uil uil-eye"></i>
-
+                                        Show
                                     </a>
                                 </td>
                             </tr>

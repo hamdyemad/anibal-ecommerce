@@ -1,5 +1,7 @@
 @extends('layout.app')
-
+@section('title')
+Activities | Bnaia
+@endsection
 @section('content')
     <div class="container-fluid">
         <div class="row">
@@ -30,7 +32,7 @@
                             </div>
                         @endcan
                     </div>
-                    <div class="alert alert-info" role="alert">
+                    <div class="alert alert-info  glowing-alert" role="alert">
                         As soon as you type anything, the search will be performed instantly (live search).
                     </div>
                     {{-- Search and Filter --}}
@@ -116,7 +118,7 @@
                     </div>
 
                     <div class="table-responsive">
-                        <table id="activitiesDataTable" class="table mb-0 table-bordered custom-table" style="width:100%">
+                        <table id="activitiesDataTable" class="table mb-0 table-bordered table-hover" style="width:100%">
                             <thead>
                                 <tr class="userDatatable-header">
                                     <th><span class="userDatatable-title">#</span></th>
@@ -288,32 +290,32 @@
                                 @can('activities.show')
                                 <li>
                                     <a href="${viewRoute.replace(':id', row.id)}"
-                                    class="btn btn-warning"
+                                    class="btn btn-warning table_action_father"
                                     title="{{ trans('common.view') }}">
-                                        <i class="uil uil-eye" style="font-size:20px;"></i>
+                                        <i class="uil uil-eye table_action_icon"></i>
                                     </a>
                                 </li>
                                 @endcan
                                 @can('activities.edit')
                                 <li>
                                     <a href="${editRoute.replace(':id', row.id)}"
-                                    class="btn btn-info"
+                                    class="btn btn-info table_action_father"
                                     title="{{ trans('common.edit') }}">
-                                        <i class="uil uil-edit" style="font-size:20px;"></i>
+                                        <i class="uil uil-edit table_action_icon"></i>
                                     </a>
                                 </li>
                                 @endcan
                                 @can('activities.delete')
                                 <li>
-                                    <a href="javascript:void(0);"
-                                    class="btn btn-danger delete-activity"
+                                    <a href="javascript:void(0);" style=""
+                                    class="btn btn-danger delete-activity table_action_father"
                                     title="{{ trans('common.delete') }}"
                                     data-bs-toggle="modal"
                                     data-bs-target="#modal-delete-activity"
                                     data-item-id="${row.id}"
                                     data-item-name="${$('<div>').text(row.first_name).html()}"
                                     data-url="${deleteRoute.replace(':id', row.id)}">
-                                        <i class="uil uil-trash-alt" style="font-size:20px;"></i>
+                                        <i class="uil uil-trash-alt table_action_icon" ></i>
                                     </a>
                                 </li>
                                 @endcan

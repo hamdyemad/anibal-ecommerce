@@ -9,15 +9,15 @@
                     <table class="table">
                         <thead>
                             <tr>
-                                <th>#</th>
-                                <th>{{ trans('dashboard.product_name') }}</th>
-                                <th>{{ trans('dashboard.vendor_name') }}</th>
-                                <th>{{ trans('dashboard.sold_count') }}</th>
-                                <th>{{ trans('dashboard.price') }}</th>
-                                <th>{{ trans('dashboard.total') }}</th>
-                                <th>{{ trans('dashboard.commission') }} %</th>
-                                <th>{{ trans('dashboard.commission') }} EGP</th>
-                                <th>{{ trans('dashboard.actions') }}</th>
+                                <th style="color: #fff !important;">#</th>
+                                <th style="color: #fff !important;">{{ trans('dashboard.product_name') }}</th>
+                                <th style="color: #fff !important;">{{ trans('dashboard.vendor_name') }}</th>
+                                <th style="color: #fff !important;">{{ trans('dashboard.sold_count') }}</th>
+                                <th style="color: #fff !important;">{{ trans('dashboard.price') }}</th>
+                                <th style="color: #fff !important;">{{ trans('dashboard.total') }}</th>
+                                <th style="color: #fff !important;">{{ trans('dashboard.commission') }} %</th>
+                                <th style="color: #fff !important;">{{ trans('dashboard.commission') }} EGP</th>
+                                <th style="color: #fff !important;">{{ trans('dashboard.actions') }}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -47,7 +47,7 @@
                                 <td>
                                     <a href="#" class="btn btn-sm btn-light">
                                         <i class="uil uil-eye"></i>
-                                        
+                                        Show
                                     </a>
                                 </td>
                             </tr>
@@ -75,7 +75,7 @@
                                 <td>
                                     <a href="#" class="btn btn-sm btn-light">
                                         <i class="uil uil-eye"></i>
-
+                                        Show
                                     </a>
                                 </td>
                             </tr>
@@ -98,12 +98,12 @@
                                 <td>189</td>
                                 <td>45.50 EGP</td>
                                 <td class="fw-bold text-success">8,599.50 EGP</td>
-                                 <td class="fw-bold text-success">10%</td>
+                                <td class="fw-bold text-success">10%</td>
                                 <td class="fw-bold text-success">859.95 EGP</td>
                                 <td>
                                     <a href="#" class="btn btn-sm btn-light">
                                         <i class="uil uil-eye"></i>
-
+                                        Show
                                     </a>
                                 </td>
                             </tr>
@@ -131,7 +131,7 @@
                                 <td>
                                     <a href="#" class="btn btn-sm btn-light">
                                         <i class="uil uil-eye"></i>
-
+                                        Show
                                     </a>
                                 </td>
                             </tr>
@@ -159,7 +159,7 @@
                                 <td>
                                     <a href="#" class="btn btn-sm btn-light">
                                         <i class="uil uil-eye"></i>
-
+                                        Show
                                     </a>
                                 </td>
                             </tr>

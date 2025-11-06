@@ -2,7 +2,7 @@
 
 return [
     // Page Titles
-    'subcategories_management' => 'Sub-Categories Management',
+    'subcategories_management' => 'Sub Categories Management',
     'create_subcategory' => 'Create Sub-Category',
     'edit_subcategory' => 'Edit Sub-Category',
     'view_subcategory' => 'View Sub-Category',
@@ -43,7 +43,7 @@ return [
 
     // Table
     'all' => 'All',
-    'no_subcategories_found' => 'No sub-categories found',
+    'no_subcategories_found' => 'No sub categories found',
 
     // Messages
     'subcategory_created' => 'Sub-category created successfully',
@@ -72,5 +72,5 @@ return [
 
     // Info
     'basic_information' => 'Basic Information',
-    'subcategories_list' => 'Sub-Categories List',
+    'subcategories_list' => 'Sub Categories List',
 ];

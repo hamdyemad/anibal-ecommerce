@@ -31,6 +31,7 @@ return [
     'name_en' => 'Name (English)',
     'name_ar' => 'Name (Arabic)',
     'created_at' => 'Created At',
+    'department' => 'Departments',
 
     // Buttons
     'add_activity' => 'Add Activity',

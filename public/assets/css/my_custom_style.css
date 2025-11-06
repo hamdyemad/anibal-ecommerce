@@ -3,12 +3,8 @@
      color: #fff !important;
  }
 
- .table>:not(:last-child)>:last-child>* {
-     color: #fff !important;
- }
-
- .userDatatable table{
-    border-collapse: collapse;
+ .userDatatable table {
+     border-collapse: collapse;
  }
 
  .userDatatable table thead tr:not(.footable-filtering) th {
@@ -39,26 +35,72 @@
      font-weight: 600;
  }
 
- .table>:not(:last-child)>:last-child>*{
-    color: #ffffff !important;
+ .table>:not(:last-child)>:last-child>* {
+     color: #000000 !important;
  }
-.custom-table tbody tr{
-    border-bottom: 1px solid #a9a9a9 !important;
-}
 
-.custom-table tbody tr:nth-child(odd) {
-    background-color: #f9f9f9; /* لون الصف الفردي */
-}
+ .custom-table tbody tr {
+     border-bottom: 1px solid #a9a9a9 !important;
+ }
 
-.custom-table tbody tr:nth-child(even) {
-    background-color: #ffffff; /* لون الصف الزوجي */
-}
+ .custom-table tbody tr:nth-child(odd) {
+     background-color: #f9f9f9;
+     /* لون الصف الفردي */
+ }
 
-.orderDatatable_actions li a{
-    border-radius: 0px !important;
-}
+ .custom-table tbody tr:nth-child(even) {
+     background-color: #ffffff;
+     /* لون الصف الزوجي */
+ }
 
-.orderDatatable_actions li a{
-    width: auto;
-    height: auto;
-}
+ .orderDatatable_actions li a {
+     border-radius: 0px !important;
+ }
+
+ .orderDatatable_actions li a {
+     width: auto;
+     height: auto;
+ }
+
+ table.dataTable thead>tr>th div.dt-column-header span.dt-column-title,
+ table.dataTable thead>tr>th div.dt-column-footer span.dt-column-title,
+ table.dataTable thead>tr>td div.dt-column-header span.dt-column-title,
+ table.dataTable thead>tr>td div.dt-column-footer span.dt-column-title,
+ table.dataTable tfoot>tr>th div.dt-column-header span.dt-column-title,
+ table.dataTable tfoot>tr>th div.dt-column-footer span.dt-column-title,
+ table.dataTable tfoot>tr>td div.dt-column-header span.dt-column-title,
+ table.dataTable tfoot>tr>td div.dt-column-footer span.dt-column-title {
+     text-align: center;
+ }
+
+
+ .table_action_father {
+     padding: 1px 10px !important;
+     margin-right: 1px;
+ }
+
+ .table_action_father>.table_action_icon {
+     font-size: 20px !important;
+     margin: auto;
+ }
+
+ .userDatatable table tbody tr td {
+     text-align: center !important;
+ }
+
+ .glowing-alert {
+     animation: softGlow 2s ease-in-out infinite alternate;
+     box-shadow: 0 0 10px rgba(0, 162, 255, 0.5);
+ }
+
+ @keyframes softGlow {
+     from {
+         box-shadow: 0 0 5px rgba(0, 162, 255, 0.4),
+             0 0 10px rgba(0, 162, 255, 0.3);
+     }
+
+     to {
+         box-shadow: 0 0 20px rgba(0, 162, 255, 0.8),
+             0 0 30px rgba(0, 162, 255, 0.5);
+     }
+ }

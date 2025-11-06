@@ -73,6 +73,19 @@
                             <span class="label d-block small">{{ trans('dashboard.cancelled') }}</span>
                             <span class="data fw-bold">3</span>
                         </div>
+
+                    </div>
+
+                    <div class="chart-content__single d-flex align-items-center flex-grow-1 flex-sm-fill">
+                        <span class="icon d-flex align-items-center justify-content-center rounded-circle me-2"
+                            style="background-color: #8561c5; width: 36px; height: 36px;">
+                            <span class="uil uil-money-bill" style="color: #ffffff;"></span>
+                        </span>
+                        <div>
+                            <span class="label d-block small">{{ trans('dashboard.refunded') }}</span>
+                            <span class="data fw-bold">1</span>
+                        </div>
+
                     </div>
 
                     <!-- باقي العناصر -->
