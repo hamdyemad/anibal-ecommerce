@@ -1,4 +1,10 @@
 {
+  "Modules/CatalogManagement/resources/assets/js/product-form.js": {
+    "file": "assets/product-form-Dz7e8yxU.js",
+    "name": "product-form",
+    "src": "Modules/CatalogManagement/resources/assets/js/product-form.js",
+    "isEntry": true
+  },
   "Modules/CatalogManagement/resources/assets/sass/product-form.scss": {
     "file": "assets/product-form-CvUEfgPx.css",
     "src": "Modules/CatalogManagement/resources/assets/sass/product-form.scss",
