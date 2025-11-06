@@ -28,11 +28,11 @@ class VendorController extends Controller {
 
     public function index() {
         $languages = $this->languageService->getAll();
+        
         $data = [
             'title' => 'Vendors Management',
             'languages' => $languages
         ];
-
         return view('vendor::vendors.index', $data);
     }
 
