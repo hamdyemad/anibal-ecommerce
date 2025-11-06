@@ -32,6 +32,7 @@ class VendorController extends Controller {
             'title' => 'Vendors Management',
             'languages' => $languages
         ];
+
         return view('vendor::vendors.index', $data);
     }
 
@@ -69,15 +70,15 @@ class VendorController extends Controller {
         // Get all countries and activities for select dropdowns
         $countriesData = $this->countryService->getAllCountries([], 1000);
         $activitiesData = $this->activityService->getAllActivities([], 1000);
-        
+
         // Extract items from paginated results
         $countries = CountryResource::collection($countriesData)->resolve();
         // Pass activities as collection for form (need getTranslation method)
         $activities = $activitiesData;
-        
+
         // Get languages for translations
         $languages = $this->languageService->getAll();
-        
+
         $data = [
             'title' => 'Create Vendor',
             'countries' => $countries,
@@ -112,7 +113,7 @@ class VendorController extends Controller {
                 'line' => $e->getLine(),
                 'trace' => $e->getTraceAsString()
             ]);
-            
+
             // Check if it's an AJAX request
             if ($request->wantsJson() || $request->ajax()) {
                 return response()->json([
@@ -146,7 +147,7 @@ class VendorController extends Controller {
         // Get all countries and activities for select dropdowns
         $countriesData = $this->countryService->getAllCountries([], 1000);
         $activitiesData = $this->activityService->getAllActivities([], 1000);
-        
+
         // Extract items from paginated results
         $countries = CountryResource::collection($countriesData)->resolve();
         // Pass activities as collection for form (need getTranslation method)
@@ -166,7 +167,7 @@ class VendorController extends Controller {
     public function update(VendorRequest $request, $id) {
         try {
             $this->vendorService->updateVendor($id, $request->all());
-            
+
             return response()->json([
                 'success' => true,
                 'message' => __('vendor::vendor.vendor_updated_successfully'),
@@ -183,7 +184,7 @@ class VendorController extends Controller {
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);
-            
+
             return response()->json([
                 'success' => false,
                 'message' => __('vendor::vendor.error_updating_vendor'),
@@ -195,7 +196,7 @@ class VendorController extends Controller {
     public function destroy($id) {
         try {
             $this->vendorService->deleteVendor($id);
-            
+
             return response()->json([
                 'success' => true,
                 'message' => __('vendor::vendor.vendor_deleted_successfully')
@@ -206,7 +207,7 @@ class VendorController extends Controller {
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);
-            
+
             return response()->json([
                 'success' => false,
                 'message' => __('vendor::vendor.error_deleting_vendor'),
@@ -215,6 +216,6 @@ class VendorController extends Controller {
         }
     }
 
-    
+
 
 }

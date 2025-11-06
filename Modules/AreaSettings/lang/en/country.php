@@ -32,7 +32,7 @@ return [
     // Table Headers
     'sr_no' => '#',
     'name_en' => 'Name (English)',
-    'name_ar' => 'Name (Arabic)',
+    'name_ar' => 'الاسم باللغه العربيه',
     'code' => 'Code',
     'phone' => 'Phone Code',
     'action' => 'Actions',
@@ -110,14 +110,14 @@ return [
     'view_cities' => 'View Cities',
     'add_city' => 'Add City',
     'updated_at' => 'Updated At',
-    
+
     // Table headers
     'sr_no' => '#',
     'name_english' => 'Name (English)',
-    'name_arabic' => 'Name (Arabic)',
+    'name_arabic' => 'الاسم باللغه العربيه',
     'action' => 'Actions',
     'no_countries_found' => 'No countries found',
-    
+
     // Pagination
     'showing' => 'Showing',
     'to' => 'to',

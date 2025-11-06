@@ -20,7 +20,8 @@ return [
     'color' => 'Color',
     'enter_text_value' => 'Enter text value',
     'choose_color' => 'Choose a color',
-    
+    'search_by_name' => 'Search by name',
+
     // Fields
     'name' => 'Name',
     'enter_name' => 'Enter name',
@@ -32,7 +33,7 @@ return [
     'value' => 'Value',
     'all_parents' => 'All Parents',
     'no_parent' => 'No Parent',
-    
+
     // Messages
     'created_successfully' => 'Variants configuration created successfully',
     'updated_successfully' => 'Variants configuration updated successfully',
