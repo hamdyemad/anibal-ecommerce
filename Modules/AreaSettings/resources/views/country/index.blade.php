@@ -1,6 +1,7 @@
 @extends('layout.app')
-
-@section('title', __('areasettings::country.countries_management'))
+@section('title')
+    Countries | Bnaia
+@endsection
 @push('styles')
     <!-- Select2 CSS loaded via Vite -->
 @endpush

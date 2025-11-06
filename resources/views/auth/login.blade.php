@@ -1,104 +1,225 @@
 @extends('auth.layout')
+
 @section('content')
-    <div class="row justify-content-center">
-        <div class="col-xxl-3 col-xl-4 col-md-6 col-sm-8">
-            <div class="edit-profile mt-5">
-                <div class="edit-profile__logos">
-                    <img src="{{ asset('assets/img/logo.png') }}" alt="">
-                </div>
-                <div class="card border-0">
-                    <div class="card-header">
-                        <div class="edit-profile__title">
-                            <h6>Sign in</h6>
-                        </div>
-                    </div>
-                    <div class="card-body">
-                        @if (session('message'))
-                            <div class="alert alert-danger">
-                                {{ session('message') }}
-                            </div>
-                        @endif
-                        <form action="{{ route('authenticate') }}" method="POST">
-                            @csrf
-                            <div class="edit-profile__body">
-                                <div class="form-group mb-20">
-                                    <label for="email">Email Address</label>
-                                    <input type="text" class="form-control" id="email" name="email" value="{{ old('email') }}" placeholder="Email address">
-                                    @error('email')
-                                        <p class="text-danger">{{ $message }}</p>
-                                    @enderror
-                                </div>
-                                <div class="form-group mb-15">
-                                    <label for="password-field">password</label>
-                                    <div class="position-relative">
-                                        <input id="password-field" type="password" class="form-control" name="password"
-                                            placeholder="Password">
-                                        <span toggle="#password-field"
-                                            class="uil uil-eye-slash text-lighten fs-15 field-icon toggle-password2"></span>
-                                    </div>
-                                    @error('password')
-                                        <p class="text-danger">{{ $message }}</p>
-                                    @enderror
-                                </div>
-                                <div class="admin-condition">
-                                    <div class="checkbox-theme-default custom-checkbox">
-                                        <input class="checkbox" name="remember" type="checkbox" id="check-1">
-                                        <label for="check-1">
-                                            <span class="checkbox-text">Keep me logged in</span>
-                                        </label>
-                                    </div>
-                                    <a href="{{ route('forgetPassword.index') }}">forget password?</a>
-                                </div>
-                                <div
-                                    class="admin__button-group button-group d-flex pt-1 justify-content-md-start justify-content-center">
-                                    <button
-                                        class="btn btn-primary btn-default w-100 btn-squared text-capitalize lh-normal px-50 signIn-createBtn ">
-                                        sign in
-                                    </button>
-                                </div>
-                            </div>
-                        </form>
-                    </div>
-                    {{-- <div class="px-20">
-                        <p class="social-connector social-connector__admin text-center">
-                            <span>Or</span>
-                        </p>
-                        <div class="button-group d-flex align-items-center justify-content-center">
-                            <ul class="admin-socialBtn">
-                                <li>
-                                    <button class="btn text-dark google">
-                                        <img class="svg" src="{{ asset('assets/img/google-Icon.svg') }}"
-                                            alt="img" />
-                                    </button>
-                                </li>
-                                <li>
-                                    <button class=" radius-md wh-48 content-center facebook">
-                                        <i class="uil uil-facebook-f"></i>
-                                    </button>
-                                </li>
-                                <li>
-                                    <button class="radius-md wh-48 content-center twitter">
-                                        <i class="uil uil-twitter"></i>
-                                    </button>
-                                </li>
-                                <li>
-                                    <button class="radius-md wh-48 content-center github">
-                                        <i class="uil uil-github"></i>
-                                    </button>
-                                </li>
-                            </ul>
-                        </div>
-                    </div> --}}
-                    {{-- <div class="admin-topbar">
-                        <p class="mb-0">
-                            Don't have an account?
-                            <a href="{{ route('register') }}" class="color-primary">
-                                Sign up
-                            </a>
-                        </p>
-                    </div> --}}
-                </div>
+<style>
+    body {
+        background-color: #0098ff;
+        font-family: 'Poppins', sans-serif;
+    }
+
+    .auth-wrapper {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        padding: 30px;
+    }
+
+    .auth-card {
+        display: flex;
+        width: 100%;
+        max-width: 1000px;
+        background: #fff;
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        animation: slideIn 0.8s ease-out;
+    }
+
+    @keyframes slideIn {
+        from { transform: translateY(30px); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+    }
+
+    .auth-image {
+        flex: 1;
+        background: url('https://services2.bnaia.com/_next/image?url=%2Fassets%2Fservices%2Felectrical.png&w=1080&q=85') center center/cover no-repeat;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+        padding: 40px;
+        color: #fff;
+        position: relative;
+    }
+
+    .auth-image::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.3);
+    }
+
+    .auth-image-content {
+        position: relative;
+        z-index: 2;
+    }
+
+    .auth-image h2 {
+        font-size: 28px;
+        font-weight: 700;
+    }
+
+    .auth-image p {
+        font-size: 15px;
+        opacity: 0.9;
+        margin-top: 10px;
+    }
+
+    .auth-form {
+        flex: 1;
+        padding: 60px 50px;
+    }
+
+    .auth-form h3 {
+        font-weight: 700;
+        color: #0056b7;
+        margin-bottom: 10px;
+        font-size: 28px;
+    }
+
+    .auth-form p {
+        color: #555;
+        margin-bottom: 30px;
+    }
+
+    .form-control {
+        height: 50px;
+        border-radius: 10px;
+        border: 1px solid #ddd;
+        padding-left: 45px;
+        font-size: 15px;
+        transition: 0.3s;
+    }
+
+    .form-control:focus {
+        border-color: #0056b7;
+        box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.2);
+    }
+
+    .input-icon {
+        position: absolute;
+        top: 50%;
+        left: 15px;
+        transform: translateY(-50%);
+        color: #aaa;
+        font-size: 18px;
+    }
+
+    .position-relative {
+        position: relative;
+    }
+
+    .login-btn {
+        width: 100%;
+        background: #0056b7;
+        border: none;
+        border-radius: 10px;
+        height: 50px;
+        color: #fff;
+        font-weight: 600;
+        text-transform: uppercase;
+        transition: 0.3s;
+    }
+
+    .login-btn:hover {
+        background: #0056b3;
+    }
+
+    .social-login {
+        text-align: center;
+        margin-top: 20px;
+    }
+
+    .social-login button {
+        border: 1px solid #ddd;
+        border-radius: 10px;
+        background: #fff;
+        height: 45px;
+        width: 45px;
+        margin: 0 6px;
+        font-size: 18px;
+        color: #555;
+        transition: 0.3s;
+    }
+
+    .social-login button:hover {
+        background: #f0f0f0;
+    }
+
+    .forgot-pass {
+        text-align: right;
+        font-size: 14px;
+    }
+
+    .forgot-pass a {
+        color: #0056b7;
+        text-decoration: none;
+    }
+
+    .forgot-pass a:hover {
+        text-decoration: underline;
+    }
+
+    @media (max-width: 768px) {
+        .auth-card {
+            flex-direction: column;
+        }
+
+        .auth-image {
+            height: 250px;
+        }
+
+        .auth-form {
+            padding: 40px 25px;
+        }
+    }
+</style>
+
+<div class="auth-wrapper">
+    <div class="auth-card">
+        <div class="auth-image">
+            <div class="auth-image-content">
+                <h2 style="color: #fff;">Welcome to Bnaia</h2>
+                <p>Are you unsure about pricing the order you need for your home finishing? Send us your order as an image, Excel file, or PDF, and we will price it within an hour.</p>
             </div>
         </div>
+        <div class="auth-form">
+
+
+            <div style="text-align: center; margin-bottom: 30px;">
+                <img src="{{ asset('assets/img/logo.png') }}" alt="svg" style="width: 100px;">
+            </div>
+
+            <h3>Welcome Back </h3>
+            <p>Login to continue to your account</p>
+
+            @if (session('message'))
+                <div class="alert alert-danger text-center mb-3">
+                    {{ session('message') }}
+                </div>
+            @endif
+
+            <form action="{{ route('authenticate') }}" method="POST">
+                @csrf
+                <div class="mb-3 position-relative">
+                    <i class="uil uil-envelope input-icon"></i>
+                    <input type="text" class="form-control" name="email" value="{{ old('email') }}" placeholder="Email Address">
+                    @error('email') <p class="text-danger small mt-1">{{ $message }}</p> @enderror
+                </div>
+
+                <div class="mb-3 position-relative">
+                    <i class="uil uil-lock-alt input-icon"></i>
+                    <input type="password" class="form-control" name="password" placeholder="Password">
+                    @error('password') <p class="text-danger small mt-1">{{ $message }}</p> @enderror
+                </div>
+
+                <div class="forgot-pass mb-3">
+                    <a href="{{ route('forgetPassword.index') }}">Forgot password?</a>
+                </div>
+
+                <button type="submit" class="login-btn">Login</button>
+            </form>
+        </div>
     </div>
+</div>
 @endsection
