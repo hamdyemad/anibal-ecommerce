@@ -13,6 +13,7 @@ export default defineConfig({
         'Modules/Vendor/resources/assets/css/vendor-form.css',
         'Modules/Vendor/resources/assets/js/vendor-form.js',
         'Modules/CatalogManagement/resources/css/tree-view.css',
+        'Modules/CatalogManagement/resources/assets/sass/product-form.scss',
       ],
       refresh: true,
     }),

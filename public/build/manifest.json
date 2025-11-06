@@ -1,4 +1,9 @@
 {
+  "Modules/CatalogManagement/resources/assets/sass/product-form.scss": {
+    "file": "assets/product-form-CvUEfgPx.css",
+    "src": "Modules/CatalogManagement/resources/assets/sass/product-form.scss",
+    "isEntry": true
+  },
   "Modules/CatalogManagement/resources/css/tree-view.css": {
     "file": "assets/tree-view-BOY9Y-Ju.css",
     "src": "Modules/CatalogManagement/resources/css/tree-view.css",
