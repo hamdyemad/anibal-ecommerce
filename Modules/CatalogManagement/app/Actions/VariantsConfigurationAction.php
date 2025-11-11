@@ -25,11 +25,11 @@ class VariantsConfigurationAction
             // Get pagination parameters
             $perPage = $data['per_page'] ?? $data['length'] ?? 10;
             $page = $data['page'] ?? 1;
-            
+
             // Build query with filters
             $query = VariantsConfiguration::query()
                 ->with(['translations', 'key.translations', 'parent_data', 'children']);
-            
+
             // Apply search filter
             if (!empty($data['search'])) {
                 $search = $data['search'];
@@ -48,35 +48,35 @@ class VariantsConfigurationAction
                       });
                 });
             }
-            
+
             // Apply date filters
             if (!empty($data['created_date_from'])) {
                 $query->whereDate('created_at', '>=', $data['created_date_from']);
             }
-            
+
             if (!empty($data['created_date_to'])) {
                 $query->whereDate('created_at', '<=', $data['created_date_to']);
             }
-            
+
             // Get total and filtered counts
             $totalRecords = \Modules\CatalogManagement\app\Models\VariantsConfiguration::count();
             $filteredRecords = $query->count();
-            
+
             // Get all variants configurations
             $variantsConfigsCollection = $query->get();
-            
+
             // Apply sorting using Eloquent collections
             if (isset($data['orderColumnIndex']) && isset($data['orderDirection'])) {
                 $columnIndex = $data['orderColumnIndex'];
                 $direction = $data['orderDirection'];
-                
+
                 switch ($columnIndex) {
                     case 0: // ID column
-                        $variantsConfigsCollection = $direction === 'asc' 
-                            ? $variantsConfigsCollection->sortBy('id') 
+                        $variantsConfigsCollection = $direction === 'asc'
+                            ? $variantsConfigsCollection->sortBy('id')
                             : $variantsConfigsCollection->sortByDesc('id');
                         break;
-                        
+
                     case 1: // Name (EN) column
                         $variantsConfigsCollection = $direction === 'asc'
                             ? $variantsConfigsCollection->sortBy(function($item) {
@@ -88,7 +88,7 @@ class VariantsConfigurationAction
                                 return $trans ? strtolower($trans->lang_value) : '';
                               });
                         break;
-                        
+
                     case 2: // Name (AR) column
                         $variantsConfigsCollection = $direction === 'asc'
                             ? $variantsConfigsCollection->sortBy(function($item) {
@@ -100,25 +100,25 @@ class VariantsConfigurationAction
                                 return $trans ? $trans->lang_value : '';
                               });
                         break;
-                        
+
                     case 3: // Type column
                         $variantsConfigsCollection = $direction === 'asc'
                             ? $variantsConfigsCollection->sortBy('type')
                             : $variantsConfigsCollection->sortByDesc('type');
                         break;
-                        
+
                     case 4: // Value column
                         $variantsConfigsCollection = $direction === 'asc'
                             ? $variantsConfigsCollection->sortBy('value')
                             : $variantsConfigsCollection->sortByDesc('value');
                         break;
-                        
+
                     case 6: // Created At column (updated index after removing parent and children_count columns)
                         $variantsConfigsCollection = $direction === 'asc'
                             ? $variantsConfigsCollection->sortBy('created_at')
                             : $variantsConfigsCollection->sortByDesc('created_at');
                         break;
-                        
+
                     default:
                         $variantsConfigsCollection = $variantsConfigsCollection->sortByDesc('created_at');
                         break;
@@ -127,11 +127,11 @@ class VariantsConfigurationAction
                 // Default sorting by created_at
                 $variantsConfigsCollection = $variantsConfigsCollection->sortByDesc('created_at');
             }
-            
+
             // Manual pagination
             $offset = ($page - 1) * $perPage;
             $variantsConfigs = $variantsConfigsCollection->slice($offset, $perPage)->values();
-            
+
             // Create paginator instance
             $paginator = new \Illuminate\Pagination\LengthAwarePaginator(
                 $variantsConfigs,
@@ -140,14 +140,14 @@ class VariantsConfigurationAction
                 $page,
                 ['path' => request()->url()]
             );
-            
+
             // Build data array for DataTables
             $responseData = [];
             foreach ($variantsConfigs as $index => $variantsConfig) {
                 // Get name translations
                 $nameEn = '-';
                 $nameAr = '-';
-                
+
                 if ($variantsConfig->translations) {
                     $enTranslation = $variantsConfig->translations
                         ->where('lang_key', 'name')
@@ -157,11 +157,11 @@ class VariantsConfigurationAction
                         ->where('lang_key', 'name')
                         ->where('lang_id', 2) // Arabic language ID
                         ->first();
-                    
+
                     $nameEn = $enTranslation ? $enTranslation->lang_value : '-';
                     $nameAr = $arTranslation ? $arTranslation->lang_value : '-';
                 }
-                
+
                 $rowData = [
                     'index' => $index + 1,
                     'id' => $variantsConfig->id,
@@ -170,9 +170,9 @@ class VariantsConfigurationAction
                     'type' => $variantsConfig->type ?? '',
                     'value' => $variantsConfig->value,
                     'key_name' => '-',
-                    'created_at' => $variantsConfig->created_at->format('Y-m-d H:i'),
+                    'created_at' => $variantsConfig->created_at,
                 ];
-                
+
                 // Add key name
                 if ($variantsConfig->key) {
                     $keyTranslation = $variantsConfig->key->translations
@@ -180,22 +180,22 @@ class VariantsConfigurationAction
                         ->first();
                     $rowData['key_name'] = $keyTranslation ? $keyTranslation->lang_value : '-';
                 }
-                
+
                 // Add parent information if exists
                 if ($variantsConfig->parent_data) {
                     $rowData['parent'] = $variantsConfig->parent_data->value;
                 }
-                
+
                 $responseData[] = $rowData;
             }
-            
+
             return [
                 'data' => $responseData,
                 'totalRecords' => $totalRecords,
                 'filteredRecords' => $filteredRecords,
                 'dataPaginated' => $paginator
             ];
-            
+
         } catch (\Exception $e) {
             \Illuminate\Support\Facades\Log::error('Error in VariantsConfigurationAction getDataTable: ' . $e->getMessage());
             return [

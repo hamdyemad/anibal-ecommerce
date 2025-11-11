@@ -15,19 +15,19 @@ class VendorAction {
         protected VendorInterface $vendorInterface
         )
     {
-        
+
     }
    public function getDataTable($data) {
         $draw = $data['draw'];
         $start = $data['start'];
         $length = $data['length'];
-        
+
         // Get search value from custom parameter or DataTables default
         $searchValue = $data['search'];
         if (is_array($searchValue)) {
             $searchValue = $searchValue['value'] ?? '';
         }
-        
+
         $orderColumnIndex = $data['orderColumnIndex'];
         $orderDirection = $data['orderDirection'];
 
@@ -49,17 +49,17 @@ class VendorAction {
         $filteredRecords = clone($baseQuery);
         $filteredRecords = $filteredRecords->count();
         $query = $baseQuery;
-        
+
         // Clear existing orders to prevent conflicts with latest() in base query
         $query->reorder();
-        
+
         // Apply sorting
         // Check if sorting by name column (columns 1 to count($languages))
         if ($orderColumnIndex >= 1 && $orderColumnIndex <= count($languages)) {
             // Get the language for this column
             $languageIndex = $orderColumnIndex - 1;
             $selectedLanguage = $languages->values()->get($languageIndex);
-            
+
             // Join with translations table to sort by translated name
             $query->leftJoin('translations as trans_sort', function($join) use ($selectedLanguage) {
                 $join->on('vendors.id', '=', 'trans_sort.translatable_id')
@@ -108,9 +108,9 @@ class VendorAction {
                 'country_name' => $vendor->country ? $vendor->country->getTranslation('name', app()->getLocale()) : '-',
                 'commission' => ($vendor->commission) ? $vendor->commission->commission : 0,
                 'active' => $vendor->active,
-                'created_at' => $vendor->created_at->format('Y-m-d H:i'),
+                'created_at' => $vendor->created_at,
             ];
-            
+
             // Add translations for each language
             foreach ($languages as $language) {
                 $name = $vendor->getTranslation('name', $language->code) ?? '-';
@@ -119,7 +119,7 @@ class VendorAction {
                     'rtl' => $language->rtl
                 ];
             }
-            
+
             // Add first translation name for delete modal
             $firstTranslation = $vendor->translations->where('lang_key', 'name')->first();
             $rowData['first_name'] = $firstTranslation ? $firstTranslation->lang_value : '';

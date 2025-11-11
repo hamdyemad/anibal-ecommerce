@@ -30,7 +30,7 @@
                     <div class="card-body">
                         <div class="row">
                             <div class="col-md-12">
-                                <div class="card">
+                                <div class="card card-holder">
                                     <div class="card-header">
                                         <h3>
                                             <i class="uil uil-info-circle me-1"></i>{{ trans('roles.role_information') }}
@@ -82,7 +82,7 @@
                                     @endphp
 
                                     @foreach($groupedPermissions as $groupName => $permissions)
-                                        <div class="card mt-3">
+                                        <div class="card card-holder mt-3">
                                             <div class="card-header">
                                                 <h3>
                                                     <i class="uil uil-shield-check me-1"></i>{{ $groupName }}
@@ -104,7 +104,7 @@
                                         </div>
                                     @endforeach
                                 @else
-                                    <div class="card mt-3">
+                                    <div class="card card-holder mt-3">
                                         <div class="card-body">
                                             <div class="alert alert-warning d-flex align-items-center mb-0" role="alert">
                                                 <i class="uil uil-exclamation-triangle me-2 fs-20"></i>
@@ -114,7 +114,7 @@
                                     </div>
                                 @endif
 
-                                <div class="card mt-3">
+                                <div class="card card-holder mt-3">
                                     <div class="card-header">
                                         <h3>
                                             <i class="uil uil-clock me-1"></i>{{ trans('common.timestamps') }}
@@ -125,13 +125,13 @@
                                             <div class="col-md-6">
                                                 <div class="view-item">
                                                     <label class="il-gray fs-14 fw-500 mb-10">{{ trans('common.created_at') }}</label>
-                                                    <p class="fs-15 color-dark">{{ $role->created_at->format('d M, Y h:i A') }}</p>
+                                                    <p class="fs-15 color-dark">{{ $role->created_at }}</p>
                                                 </div>
                                             </div>
                                             <div class="col-md-6">
                                                 <div class="view-item">
                                                     <label class="il-gray fs-14 fw-500 mb-10">{{ trans('common.updated_at') }}</label>
-                                                    <p class="fs-15 color-dark">{{ $role->updated_at->format('d M, Y h:i A') }}</p>
+                                                    <p class="fs-15 color-dark">{{ $role->updated_at }}</p>
                                                 </div>
                                             </div>
                                         </div>

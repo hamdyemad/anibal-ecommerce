@@ -2,6 +2,7 @@
 
 namespace Modules\CatalogManagement\app\Models;
 
+use App\Models\Traits\HumanDates;
 use App\Traits\Translation;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -10,7 +11,7 @@ use Illuminate\Database\Eloquent\Builder;
 
 class VariantConfigurationKey extends Model
 {
-    use HasFactory, Translation, SoftDeletes;
+    use HasFactory, Translation, SoftDeletes, HumanDates;
 
     protected $table = 'variants_configurations_keys';
     protected $guarded = [];
@@ -62,17 +63,17 @@ class VariantConfigurationKey extends Model
                 $builder->where('parent_key_id', $filters['parent_key_id']);
             }
         }
-        
+
         // Date from filter
         if (isset($filters['created_date_from'])) {
             $builder->whereDate('created_at', '>=', $filters['created_date_from']);
         }
-        
+
         // Date to filter
         if (isset($filters['created_date_to'])) {
             $builder->whereDate('created_at', '<=', $filters['created_date_to']);
         }
-        
+
         return $builder;
     }
 }

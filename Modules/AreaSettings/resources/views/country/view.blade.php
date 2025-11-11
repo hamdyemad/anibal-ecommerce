@@ -31,7 +31,7 @@
                     <div class="card-body">
                         <div class="row">
                             <div class="col-md-6">
-                                <div class="card">
+                                <div class="card card-holder">
                                     <div class="card-header">
                                         <h3>
                                             <i class="uil uil-info-circle me-1"></i>{{ __('common.basic_information') }}
@@ -105,7 +105,7 @@
                                 </div>
                             </div>
                             <div class="col-md-6">
-                                <div class="card">
+                                <div class="card card-holder">
                                     <div class="card-header">
                                         <h3>
                                             <i class="uil uil-clock me-1"></i>{{ __('common.timestamps') }}

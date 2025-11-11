@@ -15,15 +15,15 @@ class DepartmentResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        
+
         return [
             'id' => $this->id,
             'image' => ($this->image) ? Storage::disk('public')->url($this->image) : '',
             'name' => $this->getTranslation('name', app()->getLocale()) ?? 'N/A',
             'description' => $this->getTranslation('description', app()->getLocale()) ?? '',
             'active' => $this->active,
-            'created_at' => $this->created_at?->format('Y-m-d H:i:s'),
-            'updated_at' => $this->updated_at?->format('Y-m-d H:i:s'),
+            'created_at' => $this->created_at,
+            'updated_at' => $this->updated_at,
         ];
     }
 }

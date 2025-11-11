@@ -30,7 +30,7 @@
                     <div class="card-body">
                         <div class="row">
                             <div class="col-md-12">
-                                <div class="card">
+                                <div class="card card-holder">
                                     <div class="card-header">
                                         <h3>
                                             <i class="uil uil-info-circle me-1"></i>{{ __('admin.basic_information') }}
@@ -38,6 +38,24 @@
                                     </div>
                                     <div class="card-body">
                                         <div class="row">
+                                            @foreach($languages as $language)
+                                                <div class="col-md-6">
+                                                    <div class="view-item">
+                                                        <label class="il-gray fs-14 fw-500 mb-10" @if($language->rtl) dir="rtl" style="text-align: right; display: block;" @endif>
+                                                            @if($language->code == 'ar')
+                                                                الاسم بالعربية
+                                                            @elseif($language->code == 'en')
+                                                                {{ __('admin.name') }}
+                                                            @else
+                                                                {{ __('admin.name') }} ({{ $language->name }})
+                                                            @endif
+                                                        </label>
+                                                        <p class="fs-15 color-dark fw-500" @if($language->rtl) dir="rtl" style="text-align: right;" @endif>
+                                                            {{ $admin->getTranslation('name', $language->code) ?? '-' }}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            @endforeach
                                             {{-- Email --}}
                                             <div class="col-md-6">
                                                 <div class="view-item">
@@ -47,7 +65,7 @@
                                                     </p>
                                                 </div>
                                             </div>
-                                            
+
                                             {{-- Role --}}
                                             <div class="col-md-6">
                                                 <div class="view-item">
@@ -81,37 +99,6 @@
                                     </div>
                                 </div>
 
-                                {{-- Translations Card --}}
-                                <div class="card mt-3">
-                                    <div class="card-header">
-                                        <h3>
-                                            <i class="uil uil-language me-1"></i>{{ __('admin.translations') }}
-                                        </h3>
-                                    </div>
-                                    <div class="card-body">
-                                        <div class="row">
-                                            @foreach($languages as $language)
-                                                <div class="col-md-6">
-                                                    <div class="view-item">
-                                                        <label class="il-gray fs-14 fw-500 mb-10" @if($language->rtl) dir="rtl" style="text-align: right; display: block;" @endif>
-                                                            @if($language->code == 'ar')
-                                                                الاسم بالعربية
-                                                            @elseif($language->code == 'en')
-                                                                {{ __('admin.name') }}
-                                                            @else
-                                                                {{ __('admin.name') }} ({{ $language->name }})
-                                                            @endif
-                                                        </label>
-                                                        <p class="fs-15 color-dark fw-500" @if($language->rtl) dir="rtl" style="text-align: right;" @endif>
-                                                            {{ $admin->getTranslation('name', $language->code) ?? '-' }}
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                            @endforeach
-                                        </div>
-                                    </div>
-                                </div>
-
                                 {{-- Permissions Card --}}
                                 @if($admin->roles->isNotEmpty() && $admin->roles->first()->permessions->isNotEmpty())
                                     @php
@@ -121,7 +108,7 @@
                                     @endphp
 
                                     @foreach($groupedPermissions as $groupName => $permissions)
-                                        <div class="card mt-3">
+                                        <div class="card card-holder mt-3">
                                             <div class="card-header">
                                                 <h3>
                                                     <i class="uil uil-shield-check me-1"></i>{{ $groupName }}
@@ -144,7 +131,7 @@
                                     @endforeach
                                 @endif
 
-                                <div class="card mt-3">
+                                <div class="card card-holder mt-3">
                                     <div class="card-header">
                                         <h3>
                                             <i class="uil uil-clock me-1"></i>{{ trans('common.timestamps') }}
@@ -155,13 +142,13 @@
                                             <div class="col-md-6">
                                                 <div class="view-item">
                                                     <label class="il-gray fs-14 fw-500 mb-10">{{ trans('common.created_at') }}</label>
-                                                    <p class="fs-15 color-dark">{{ $admin->created_at->format('d M, Y h:i A') }}</p>
+                                                    <p class="fs-15 color-dark">{{ $admin->created_at }}</p>
                                                 </div>
                                             </div>
                                             <div class="col-md-6">
                                                 <div class="view-item">
                                                     <label class="il-gray fs-14 fw-500 mb-10">{{ trans('common.updated_at') }}</label>
-                                                    <p class="fs-15 color-dark">{{ $admin->updated_at->format('d M, Y h:i A') }}</p>
+                                                    <p class="fs-15 color-dark">{{ $admin->updated_at }}</p>
                                                 </div>
                                             </div>
                                         </div>

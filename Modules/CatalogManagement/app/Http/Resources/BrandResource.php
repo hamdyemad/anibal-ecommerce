@@ -23,8 +23,8 @@ class BrandResource extends JsonResource
             'twitter_url' => $this->twitter_url ?? "",
             'linkedin_url' => $this->linkedin_url ?? "",
             'youtube_url' => $this->youtube_url ?? "",
-            'created_at' => $this->created_at?->format('Y-m-d H:i:s'),
-            'updated_at' => $this->updated_at?->format('Y-m-d H:i:s'),
+            'created_at' => $this->created_at,
+            'updated_at' => $this->updated_at,
         ];
     }
 }

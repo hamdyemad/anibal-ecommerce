@@ -2,6 +2,7 @@
 
 namespace Modules\CatalogManagement\app\Models;
 
+use App\Models\Traits\HumanDates;
 use App\Traits\Translation;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -9,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class VariantsConfiguration extends Model
 {
-    use HasFactory, Translation;
+    use HasFactory, Translation, HumanDates;
 
     protected $guarded = [];
 
@@ -40,7 +41,7 @@ class VariantsConfiguration extends Model
     {
         return $this->children()->with('childrenRecursive', 'key');
     }
-    
+
 
     /**
      * Get all of the ProductVariantConfiguration for the VariantsConfiguration

@@ -100,13 +100,13 @@
                                             <div class="col-md-6">
                                                 <div class="view-item">
                                                     <label class="il-gray fs-14 fw-500 mb-10">{{ __('common.created_at') }}</label>
-                                                    <p class="fs-15 color-dark">{{ $city->created_at->format('d M, Y h:i A') }}</p>
+                                                    <p class="fs-15 color-dark">{{ $city->created_at }}</p>
                                                 </div>
                                             </div>
                                             <div class="col-md-6">
                                                 <div class="view-item">
                                                     <label class="il-gray fs-14 fw-500 mb-10">{{ trans('common.updated_at') }}</label>
-                                                    <p class="fs-15 color-dark">{{ $city->updated_at->format('d M, Y h:i A') }}</p>
+                                                    <p class="fs-15 color-dark">{{ $city->updated_at }}</p>
                                                 </div>
                                             </div>
                                         </div>
@@ -150,7 +150,7 @@
                                                                         <span class="badge badge-danger badge-round badge-lg">{{ __('areasettings::region.inactive') }}</span>
                                                                     @endif
                                                                 </td>
-                                                                <td>{{ $region->created_at->format('d M, Y') }}</td>
+                                                                <td>{{ $region->created_at }}</td>
                                                                 <td>
                                                                     <a href="{{ route('admin.area-settings.regions.show', $region->id) }}" class="btn btn-sm btn-primary">
                                                                         <i class="uil uil-eye"></i>

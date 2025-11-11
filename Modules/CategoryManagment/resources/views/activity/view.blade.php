@@ -31,7 +31,7 @@
                     <div class="card-body">
                         <div class="row">
                             <div class="col-md-6">
-                                <div class="card">
+                                <div class="card  card-holder">
                                     <div class="card-header">
                                         <h3>
                                             <i class="uil uil-info-circle me-1"></i>{{ __('common.basic_information') }}
@@ -94,7 +94,7 @@
                                 </div>
                             </div>
                             <div class="col-md-6">
-                                <div class="card">
+                                <div class="card card-holder">
                                     <div class="card-header">
                                         <h3>
                                             <i class="uil uil-clock me-1"></i>{{ __('common.timestamps') }}
@@ -105,13 +105,13 @@
                                             <div class="col-md-6">
                                                 <div class="view-item">
                                                     <label class="il-gray fs-14 fw-500 mb-10">{{ __('common.created_at') }}</label>
-                                                    <p class="fs-15 color-dark">{{ $activity->created_at->format('d M, Y h:i A') }}</p>
+                                                    <p class="fs-15 color-dark">{{ $activity->created_at }}</p>
                                                 </div>
                                             </div>
                                             <div class="col-md-6">
                                                 <div class="view-item">
                                                     <label class="il-gray fs-14 fw-500 mb-10">{{ trans('common.updated_at') }}</label>
-                                                    <p class="fs-15 color-dark">{{ $activity->updated_at->format('d M, Y h:i A') }}</p>
+                                                    <p class="fs-15 color-dark">{{ $activity->updated_at }}</p>
                                                 </div>
                                             </div>
                                         </div>
@@ -125,16 +125,3 @@
         </div>
     </div>
 @endsection
-
-@push('styles')
-<style>
-    .view-item label {
-        color: #9299b8;
-        margin-bottom: 8px;
-    }
-    .view-item p {
-        margin-bottom: 0;
-        font-weight: 500;
-    }
-</style>
-@endpush

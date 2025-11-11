@@ -8,12 +8,13 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Models\User;
 use App\Models\Attachment;
+use App\Models\Traits\HumanDates;
 use Modules\AreaSettings\app\Models\Country;
 use Modules\CategoryManagment\app\Models\Activity;
 
 class Vendor extends Model
 {
-    use HasFactory, SoftDeletes, Translation;
+    use HasFactory, SoftDeletes, Translation, HumanDates;
 
     protected $guarded = [];
 

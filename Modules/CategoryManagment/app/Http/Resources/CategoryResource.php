@@ -15,7 +15,7 @@ class CategoryResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        
+
         return [
             'id' => $this->id,
             'name' => $this->getTranslation('name', app()->getLocale()) ?? '',
@@ -25,8 +25,8 @@ class CategoryResource extends JsonResource
             'department' => $this->whenLoaded('department', function () {
                 return new DepartmentResource($this->department);
             }),
-            'created_at' => $this->created_at?->format('Y-m-d H:i:s'),
-            'updated_at' => $this->updated_at?->format('Y-m-d H:i:s'),
+            'created_at' => $this->created_at,
+            'updated_at' => $this->updated_at,
         ];
     }
 }
