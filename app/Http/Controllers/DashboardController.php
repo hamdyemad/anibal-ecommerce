@@ -8,7 +8,7 @@ class DashboardController extends Controller
     public function index()
     {
         $data = [
-            'title' => 'Dashboard'
+            'title' => __('menu.dashboard.title'),
         ];
         return view('pages.dashboard.dashboard', $data);
     }
