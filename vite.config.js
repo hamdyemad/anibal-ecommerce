@@ -10,6 +10,15 @@ export default defineConfig({
         'resources/js/app.js',
         'resources/scss/app.scss',
 
+        // ✅ Vendor module assets
+        'Modules/Vendor/resources/assets/scss/vendor-form.scss',
+        'Modules/Vendor/resources/assets/js/vendor-form.js',
+
+        // Product forms
+        'Modules/CatalogManagement/resources/assets/sass/product-form.scss',
+        'Modules/CatalogManagement/resources/css/tree-view.css',
+        'Modules/CatalogManagement/resources/assets/js/product-form.js',
+
       ],
       refresh: true,
     }),
