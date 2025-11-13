@@ -125,7 +125,6 @@
                                             {{ trans('categorymanagment::department.activities') }} <span class="text-danger">*</span>
                                         </label>
                                         <select id="activities" class="form-control select2 @error('activities') is-invalid @enderror" multiple name="activities[]">
-                                            <option value="">{{ trans('categorymanagment::department.select_activities') }}</option>
                                             @foreach($activities as $activity)
                                                 <option value="{{ $activity['id'] }}"
                                                     {{ isset($department) && $department->activities->contains($activity['id']) ? 'selected' : '' }}>
