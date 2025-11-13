@@ -151,22 +151,27 @@ class ActivityRepository implements ActivityRepositoryInterface
             if (isset($data['translations']) && is_array($data['translations'])) {
                 foreach ($data['translations'] as $langId => $translation) {
                     if (isset($translation['name'])) {
-                        $activity->translations()->create([
-                            'lang_id' => $langId,
-                            'lang_key' => 'name',
-                            'lang_value' => $translation['name'],
-                        ]);
+                        $activity->translations()->updateOrCreate(
+                            [
+                                'lang_id' => $langId,
+                                'lang_key' => 'name',
+                            ],
+                            [
+                                'lang_value' => $translation['name'],
+                            ]
+                        );
                     }
                     if (isset($translation['description'])) {
-                        $activity->translations()->create([
+                        $activity->translations()->updateOrCreate([
                             'lang_id' => $langId,
                             'lang_key' => 'description',
+                        ], [
                             'lang_value' => $translation['description'],
                         ]);
                     }
                 }
             }
-            
+
             return $activity;
         });
     }

@@ -78,9 +78,14 @@ class ActivityService
 
             // Format results for Select2
             $results = $activities->map(function ($activity) {
+                $activityName = $activity->getTranslation('name', app()->getLocale()) 
+                    ?: $activity->getTranslation('name', 'en') 
+                    ?: $activity->getTranslation('name', 'ar')
+                    ?: 'Activity #' . $activity->id;
+                    
                 return [
                     'id' => $activity->id,
-                    'text' => $activity->getTranslation('name', app()->getLocale())
+                    'text' => $activityName
                 ];
             });
 

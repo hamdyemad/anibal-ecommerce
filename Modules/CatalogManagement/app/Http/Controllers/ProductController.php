@@ -115,7 +115,6 @@ class ProductController extends Controller
         if (in_array($userType, [UserType::SUPER_ADMIN_TYPE, UserType::ADMIN_TYPE])) {
             // Admin/Super Admin can select any vendor
             $vendorsData = $this->vendorService->getAllVendors([], 0);
-            return $vendorsData;
             $vendors = $vendorsData->map(function($vendor) {
                 return [
                     'id' => $vendor->id,

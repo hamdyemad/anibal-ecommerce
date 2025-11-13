@@ -8,25 +8,25 @@
         font-size: 0.875rem;
         margin-top: 0.25rem;
     }
-    
+
     /* RTL support for Arabic validation messages */
     input[data-lang="ar"] + .invalid-feedback,
     textarea[data-lang="ar"] + .invalid-feedback {
         direction: rtl;
         text-align: right;
     }
-    
+
     /* Highlight invalid fields with red border */
     .is-invalid {
         border-color: #dc3545 !important;
     }
-    
+
     /* Select2 invalid state styling */
     .select2.is-invalid + .select2-container .select2-selection,
     .select2-container.is-invalid .select2-selection {
         border-color: #dc3545 !important;
     }
-    
+
     /* Smooth transition for error states */
     .form-control {
         transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
@@ -58,8 +58,8 @@
                         <!-- Alert Container -->
                         <div id="alertContainer"></div>
 
-                        <form id="departmentForm" 
-                              action="{{ isset($department) ? route('admin.category-management.departments.update', $department->id) : route('admin.category-management.departments.store') }}" 
+                        <form id="departmentForm"
+                              action="{{ isset($department) ? route('admin.category-management.departments.update', $department->id) : route('admin.category-management.departments.store') }}"
                               method="POST"
                               enctype="multipart/form-data">
                             @csrf
@@ -79,10 +79,10 @@
                                                     {{ trans('categorymanagment::department.name_english') }} ({{ $language->name }}) <span class="text-danger">*</span>
                                                 @endif
                                             </label>
-                                            <input type="text" 
-                                                   class="form-control ih-medium ip-gray radius-xs b-light px-15 @error('translations.' . $language->id . '.name') is-invalid @enderror" 
-                                                   id="translation_{{ $language->id }}_name" 
-                                                   name="translations[{{ $language->id }}][name]"  
+                                            <input type="text"
+                                                   class="form-control ih-medium ip-gray radius-xs b-light px-15 @error('translations.' . $language->id . '.name') is-invalid @enderror"
+                                                   id="translation_{{ $language->id }}_name"
+                                                   name="translations[{{ $language->id }}][name]"
                                                    value="{{ isset($department) ? ($department->getTranslation('name', $language->code) ?? '') : old('translations.' . $language->id . '.name') }}"
                                                    placeholder="@if($language->code == 'ar')أدخل اسم القسم بالعربية@else{{ trans('categorymanagment::department.enter_department_name_english') }}@endif"
                                                    @if($language->rtl) dir="rtl" @endif
@@ -105,10 +105,10 @@
                                                     {{ trans('categorymanagment::department.description') }} ({{ $language->name }})
                                                 @endif
                                             </label>
-                                            <textarea 
-                                                   class="form-control ip-gray radius-xs b-light px-15 @error('translations.' . $language->id . '.description') is-invalid @enderror" 
-                                                   id="translation_{{ $language->id }}_description" 
-                                                   name="translations[{{ $language->id }}][description]"  
+                                            <textarea
+                                                   class="form-control ip-gray radius-xs b-light px-15 @error('translations.' . $language->id . '.description') is-invalid @enderror"
+                                                   id="translation_{{ $language->id }}_description"
+                                                   name="translations[{{ $language->id }}][description]"
                                                    rows="4"
                                                    placeholder="@if($language->code == 'ar')أدخل وصف القسم بالعربية@else{{ trans('categorymanagment::department.enter_department_name_english') }}@endif"
                                                    @if($language->rtl) dir="rtl" @endif
@@ -127,9 +127,9 @@
                                         <select id="activities" class="form-control select2 @error('activities') is-invalid @enderror" multiple name="activities[]">
                                             <option value="">{{ trans('categorymanagment::department.select_activities') }}</option>
                                             @foreach($activities as $activity)
-                                                <option value="{{ $activity->id }}" 
-                                                    {{ isset($department) && $department->activities->contains($activity->id) ? 'selected' : '' }}>
-                                                    {{ $activity->getTranslation('name', app()->getLocale()) }}
+                                                <option value="{{ $activity['id'] }}"
+                                                    {{ isset($department) && $department->activities->contains($activity['id']) ? 'selected' : '' }}>
+                                                    {{ $activity['name'] }}
                                                 </option>
                                             @endforeach
                                         </select>
@@ -164,10 +164,10 @@
                                         <div class="dm-switch-wrap d-flex align-items-center">
                                             <div class="form-check form-switch form-switch-primary form-switch-md">
                                                 <input type="hidden" name="active" value="0">
-                                                <input type="checkbox" 
-                                                       class="form-check-input" 
-                                                       id="active" 
-                                                       name="active" 
+                                                <input type="checkbox"
+                                                       class="form-check-input"
+                                                       id="active"
+                                                       name="active"
                                                        value="1"
                                                        {{ old('active', $department->active ?? 1) == 1 ? 'checked' : '' }}>
                                             </div>
@@ -180,14 +180,14 @@
                             </div>
 
                             <div class="d-flex justify-content-end gap-15 mt-30">
-                                <a href="{{ route('admin.category-management.departments.index') }}" 
+                                <a href="{{ route('admin.category-management.departments.index') }}"
                                    class="btn btn-light btn-default btn-squared fw-400 text-capitalize">
                                     <i class="uil uil-angle-left"></i> {{ trans('categorymanagment::department.cancel') }}
                                 </a>
-                                <button type="submit" id="submitBtn" 
+                                <button type="submit" id="submitBtn"
                                         class="btn btn-primary btn-default btn-squared text-capitalize"
                                         style="display: inline-flex; align-items: center; justify-content: center;">
-                                    <i class="uil uil-check"></i> 
+                                    <i class="uil uil-check"></i>
                                     <span>{{ isset($department) ? trans('categorymanagment::department.update_department') : trans('categorymanagment::department.add_department') }}</span>
                                     <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
                                 </button>
@@ -287,7 +287,7 @@
                     overlay.querySelector('.loading-text').textContent = loadingText;
                     overlay.querySelector('.loading-subtext').textContent = loadingSubtext;
                 }
-                
+
                 // Show loading overlay
                 LoadingOverlay.show();
 
@@ -316,7 +316,7 @@
                 .then(response => {
                     // Progress to 60%
                     LoadingOverlay.animateProgressBar(60, 200);
-                    
+
                     if (!response.ok) {
                         return response.json().then(data => {
                             throw data;
@@ -337,10 +337,10 @@
                             successMessage,
                             '{{ trans("loading.redirecting") }}'
                         );
-                        
+
                         // Show success alert
                         showAlert('success', data.message || successMessage);
-                        
+
                         // Redirect after 1.5 seconds
                         setTimeout(() => {
                             window.location.href = data.redirect || '{{ route("admin.category-management.departments.index") }}';
@@ -350,7 +350,7 @@
                 .catch(error => {
                     // Hide loading overlay and reset progress bar
                     LoadingOverlay.hide();
-                    
+
                     // Handle validation errors
                     if (error.errors) {
                         let errorCount = 0;
@@ -358,7 +358,7 @@
                             // Handle both dot notation and bracket notation for nested fields
                             const inputName = key.replace(/\./g, '][').replace(/^/, '').replace(/\]$/, '');
                             let input = document.querySelector(`[name="${key}"]`);
-                            
+
                             // Try alternative selectors for nested fields
                             if (!input) {
                                 const bracketKey = key.replace(/\./g, '][');
@@ -375,23 +375,23 @@
                             if (!input && key.startsWith('activities')) {
                                 input = document.querySelector('[name="activities[]"]');
                             }
-                            
+
                             if (input) {
                                 errorCount++;
                                 input.classList.add('is-invalid');
-                                
+
                                 // Remove existing feedback to avoid duplicates
                                 const existingFeedback = input.parentNode.querySelector('.invalid-feedback');
                                 if (existingFeedback) {
                                     existingFeedback.remove();
                                 }
-                                
+
                                 const feedback = document.createElement('div');
                                 feedback.className = 'invalid-feedback d-block';
                                 feedback.style.display = 'block';
                                 feedback.textContent = error.errors[key][0];
                                 input.parentNode.appendChild(feedback);
-                                
+
                                 // For Select2, also add invalid class to the Select2 container
                                 if (input.classList.contains('select2')) {
                                     const select2Container = input.parentNode.querySelector('.select2-container');
@@ -399,20 +399,20 @@
                                         select2Container.classList.add('is-invalid');
                                     }
                                 }
-                                
+
                                 // Scroll to first error
                                 if (errorCount === 1) {
                                     input.scrollIntoView({ behavior: 'smooth', block: 'center' });
                                 }
                             }
                         });
-                        
+
                         const errorMessage = error.message || '{{ __("Please check the form for errors") }}';
                         showAlert('danger', errorMessage + ` (${errorCount} ${errorCount === 1 ? 'error' : 'errors'})`);
                     } else {
                         showAlert('danger', error.message || '{{ __("An error occurred") }}');
                     }
-                    
+
                     // Re-enable submit button
                     submitBtn.disabled = false;
                     const btnIcon = submitBtn.querySelector('i');
@@ -443,8 +443,8 @@
 
 {{-- Include Loading Overlay Component outside content section --}}
 @push('after-body')
-    <x-loading-overlay 
-        :loadingText="trans('loading.processing')" 
-        :loadingSubtext="trans('loading.please_wait')" 
+    <x-loading-overlay
+        :loadingText="trans('loading.processing')"
+        :loadingSubtext="trans('loading.please_wait')"
     />
 @endpush
