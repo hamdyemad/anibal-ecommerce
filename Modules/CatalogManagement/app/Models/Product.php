@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\CategoryManagment\app\Models\Category;
 use Modules\CategoryManagment\app\Models\Department;
 use Modules\CategoryManagment\app\Models\SubCategory;
+use Modules\Vendor\app\Models\Vendor;
 
 class Product extends Model
 {
@@ -103,6 +104,14 @@ class Product extends Model
     public function tax()
     {
         return $this->belongsTo(Tax::class);
+    }
+
+    /**
+     * Get the vendor
+     */
+    public function vendor()
+    {
+        return $this->belongsTo(Vendor::class);
     }
 
 

@@ -10,6 +10,8 @@ use Modules\CatalogManagement\app\Interfaces\ProductInterface;
 use Modules\CatalogManagement\app\Models\Product;
 use Modules\CatalogManagement\app\Models\ProductVariant;
 use Modules\CatalogManagement\app\Models\VariantStock;
+use App\Models\UserType;
+use Illuminate\Support\Facades\Auth;
 
 class ProductRepository implements ProductInterface
 {
@@ -131,6 +133,9 @@ class ProductRepository implements ProductInterface
     public function createProduct(array $data)
     {
         return DB::transaction(function () use ($data) {
+            // Determine vendor_id based on user role
+            $vendorId = $this->determineVendorId($data);
+            
             // Create product
             $product = Product::create([
                 'slug' => $this->generateSlug($data),
@@ -138,6 +143,7 @@ class ProductRepository implements ProductInterface
                 'points' => $data['points'] ?? 0,
                 'is_active' => $data['is_active'] ?? true,
                 'is_featured' => $data['is_featured'] ?? false,
+                'vendor_id' => $vendorId,
                 'brand_id' => $data['brand_id'] ?? null,
                 'department_id' => $data['department_id'] ?? null,
                 'category_id' => $data['category_id'] ?? null,
@@ -168,12 +174,16 @@ class ProductRepository implements ProductInterface
         return DB::transaction(function () use ($id, $data) {
             $product = Product::findOrFail($id);
 
+            // Determine vendor_id based on user role
+            $vendorId = $this->determineVendorId($data);
+
             // Update product
             $product->update([
                 'sku' => $data['sku'],
                 'points' => $data['points'] ?? 0,
                 'is_active' => $data['is_active'] ?? true,
                 'is_featured' => $data['is_featured'] ?? false,
+                'vendor_id' => $vendorId,
                 'brand_id' => $data['brand_id'] ?? null,
                 'department_id' => $data['department_id'] ?? null,
                 'category_id' => $data['category_id'] ?? null,
@@ -406,5 +416,25 @@ class ProductRepository implements ProductInterface
                 }
             }
         }
+    }
+
+    /**
+     * Determine vendor ID based on user role and form data
+     */
+    protected function determineVendorId(array $data): ?int
+    {
+        $currentUser = Auth::user();
+        $userType = $currentUser->user_type_id;
+
+        if (in_array($userType, [UserType::SUPER_ADMIN_TYPE, UserType::ADMIN_TYPE])) {
+            // Admin/Super Admin can select vendor from form
+            return $data['vendor_id'] ?? null;
+        } elseif ($userType === UserType::VENDOR_TYPE) {
+            // Vendor can only create products for themselves
+            $vendor = $currentUser->vendor;
+            return $vendor ? $vendor->id : null;
+        }
+
+        return null;
     }
 }

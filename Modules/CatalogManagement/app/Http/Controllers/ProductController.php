@@ -22,6 +22,9 @@ use Modules\CategoryManagment\app\Services\CategoryService;
 use Modules\CategoryManagment\app\Services\SubCategoryService;
 use Modules\CatalogManagement\app\Http\Requests\Product\StoreProductRequest;
 use Modules\CatalogManagement\app\Http\Requests\Product\UpdateProductRequest;
+use Modules\Vendor\app\Services\VendorService;
+use App\Models\UserType;
+use Illuminate\Support\Facades\Auth;
 
 class ProductController extends Controller
 {
@@ -34,6 +37,7 @@ class ProductController extends Controller
         protected SubCategoryService $subCategoryService,
         protected RegionService $regionService,
         protected TaxService $taxService,
+        protected VendorService $vendorService,
     ) {
     }
     /**
@@ -104,7 +108,32 @@ class ProductController extends Controller
         $regions = $this->regionService->getAllRegions([], 0);
         $regions = RegionResource::collection($regions)->resolve();
 
-        return view('catalogmanagement::product.form', compact('languages', 'brands', 'departments', 'taxes', 'regions'));
+        // Get vendors for admin/super admin, or current vendor for vendor users
+        $vendors = [];
+        $currentUser = Auth::user();
+        $userType = $currentUser->user_type_id;
+        if (in_array($userType, [UserType::SUPER_ADMIN_TYPE, UserType::ADMIN_TYPE])) {
+            // Admin/Super Admin can select any vendor
+            $vendorsData = $this->vendorService->getAllVendors([], 0);
+            return $vendorsData;
+            $vendors = $vendorsData->map(function($vendor) {
+                return [
+                    'id' => $vendor->id,
+                    'name' => $vendor->getTranslation('name', 'Vendor #' . $vendor->id)
+                ];
+            })->toArray();
+        } elseif ($userType === UserType::VENDOR_TYPE) {
+            // Vendor can only create products for themselves
+            $vendor = $currentUser->vendor;
+            if ($vendor) {
+                $vendors = [[
+                    'id' => $vendor->id,
+                    'name' => $vendor->getTranslation('name', 'Vendor #' . $vendor->id)
+                ]];
+            }
+        }
+
+        return view('catalogmanagement::product.form', compact('languages', 'brands', 'departments', 'taxes', 'regions', 'vendors'));
     }
 
     /**
@@ -185,6 +214,31 @@ class ProductController extends Controller
         $regions = $this->regionService->getAllRegions([], 0);
         $regions = RegionResource::collection($regions)->resolve();
 
+        // Get vendors for admin/super admin, or current vendor for vendor users
+        $vendors = [];
+        $currentUser = Auth::user();
+        $userType = $currentUser->user_type_id;
+
+        if (in_array($userType, [UserType::SUPER_ADMIN_TYPE, UserType::ADMIN_TYPE])) {
+            // Admin/Super Admin can select any vendor
+            $vendorsData = $this->vendorService->getAllVendors([], 0);
+            $vendors = $vendorsData->map(function($vendor) {
+                return [
+                    'id' => $vendor->id,
+                    'name' => $vendor->getTranslation('name', 'Vendor #' . $vendor->id)
+                ];
+            })->toArray();
+        } elseif ($userType === UserType::VENDOR_TYPE) {
+            // Vendor can only create products for themselves
+            $vendor = $currentUser->vendor;
+            if ($vendor) {
+                $vendors = [[
+                    'id' => $vendor->id,
+                    'name' => $vendor->getTranslation('name', 'Vendor #' . $vendor->id)
+                ]];
+            }
+        }
+
         $data = [
             'title' => __('catalogmanagement::product.edit_product'),
             'product' => $product,
@@ -192,7 +246,8 @@ class ProductController extends Controller
             'brands' => $brands,
             'departments' => $departments,
             'taxes' => $taxes,
-            'regions' => $regions
+            'regions' => $regions,
+            'vendors' => $vendors
         ];
         return view('catalogmanagement::product.form', $data);
     }

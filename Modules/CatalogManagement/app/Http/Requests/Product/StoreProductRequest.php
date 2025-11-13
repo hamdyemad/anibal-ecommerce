@@ -4,6 +4,8 @@ namespace Modules\CatalogManagement\app\Http\Requests\Product;
 
 use Illuminate\Foundation\Http\FormRequest;
 use App\Models\Language;
+use App\Models\UserType;
+use Illuminate\Support\Facades\Auth;
 
 class StoreProductRequest extends FormRequest
 {
@@ -37,6 +39,9 @@ class StoreProductRequest extends FormRequest
             'category_id' => 'nullable|exists:categories,id',
             'sub_category_id' => 'nullable|exists:sub_categories,id',
             'tax_id' => 'nullable|exists:taxes,id',
+            
+            // Vendor validation based on user role
+            'vendor_id' => $this->getVendorValidationRule(),
             
             // Images
             'main_image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
@@ -154,5 +159,24 @@ class StoreProductRequest extends FormRequest
             'is_featured' => filter_var($this->input('is_featured', false), FILTER_VALIDATE_BOOLEAN),
             'has_discount' => filter_var($this->input('has_discount', false), FILTER_VALIDATE_BOOLEAN),
         ]);
+    }
+
+    /**
+     * Get vendor validation rule based on user role
+     */
+    protected function getVendorValidationRule(): string
+    {
+        $currentUser = Auth::user();
+        $userType = $currentUser->user_type_id;
+
+        if (in_array($userType, [UserType::SUPER_ADMIN_TYPE, UserType::ADMIN_TYPE])) {
+            // Admin/Super Admin must select a vendor
+            return 'required|exists:vendors,id';
+        } elseif ($userType === UserType::VENDOR_TYPE) {
+            // Vendor can only create products for themselves (optional in form but handled in repository)
+            return 'nullable|exists:vendors,id';
+        }
+
+        return 'nullable';
     }
 }

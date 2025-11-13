@@ -258,6 +258,31 @@
                                         Organization
                                     </h5>
                                     <div class="row">
+                                        @if(isset($vendors) && count($vendors) > 0)
+                                        <div class="col-md-6 mb-3">
+                                            <div class="form-group">
+                                                <label for="vendor_id" class="form-label">
+                                                    Vendor 
+                                                    @if(auth()->user()->user_type_id == App\Models\UserType::SUPER_ADMIN_TYPE || auth()->user()->user_type_id == App\Models\UserType::ADMIN_TYPE)
+                                                        <span class="text-danger">*</span>
+                                                    @endif
+                                                </label>
+                                                <select name="vendor_id" id="vendor_id" class="form-control select2" 
+                                                    @if(auth()->user()->user_type_id == App\Models\UserType::VENDOR_TYPE && count($vendors) == 1) readonly @endif>
+                                                    @if(auth()->user()->user_type_id == App\Models\UserType::SUPER_ADMIN_TYPE || auth()->user()->user_type_id == App\Models\UserType::ADMIN_TYPE)
+                                                        <option value="">Select Vendor</option>
+                                                    @endif
+                                                    @foreach($vendors as $vendor)
+                                                        <option value="{{ $vendor['id'] }}" 
+                                                            @if(auth()->user()->user_type_id == App\Models\UserType::VENDOR_TYPE || (isset($product) && $product->vendor_id == $vendor['id'])) selected @endif>
+                                                            {{ $vendor['name'] }}
+                                                        </option>
+                                                    @endforeach
+                                                </select>
+                                            </div>
+                                        </div>
+                                        @endif
+
                                         <div class="col-md-6 mb-3">
                                             <div class="form-group">
                                                 <label for="brand_id" class="form-label">Brand <span class="text-danger">*</span></label>
