@@ -36,41 +36,61 @@ class AreaSettingsServiceProvider extends ServiceProvider
     {
         $this->app->register(EventServiceProvider::class);
         $this->app->register(RouteServiceProvider::class);
-        
+
         // Bind Repository Interfaces to Implementations
         $this->app->bind(
             \Modules\AreaSettings\app\Interfaces\CountryRepositoryInterface::class,
             \Modules\AreaSettings\app\Repositories\CountryRepository::class
         );
-        
+
         $this->app->bind(
             \Modules\AreaSettings\app\Interfaces\CityRepositoryInterface::class,
             \Modules\AreaSettings\app\Repositories\CityRepository::class
         );
-        
+
         $this->app->bind(
             \Modules\AreaSettings\app\Interfaces\RegionRepositoryInterface::class,
             \Modules\AreaSettings\app\Repositories\RegionRepository::class
         );
-        
+
         $this->app->bind(
             \Modules\AreaSettings\app\Interfaces\SubRegionRepositoryInterface::class,
             \Modules\AreaSettings\app\Repositories\SubRegionRepository::class
         );
-        
+
+        $this->app->bind(
+            \Modules\AreaSettings\app\Interfaces\Api\CountryApiRepositoryInterface::class,
+            \Modules\AreaSettings\app\Repositories\Api\CountryApiRepository::class
+        );
+
+        $this->app->bind(
+            \Modules\AreaSettings\app\Interfaces\Api\CityApiRepositoryInterface::class,
+            \Modules\AreaSettings\app\Repositories\Api\CityApiRepository::class
+        );
+
+        $this->app->bind(
+            \Modules\AreaSettings\app\Interfaces\Api\RegionApiRepositoryInterface::class,
+            \Modules\AreaSettings\app\Repositories\Api\RegionApiRepository::class
+        );
+
+        $this->app->bind(
+            \Modules\AreaSettings\app\Interfaces\Api\SubRegionApiRepositoryInterface::class,
+            \Modules\AreaSettings\app\Repositories\Api\SubRegionApiRepository::class
+        );
+
         // Bind Services
         $this->app->bind(
             \Modules\AreaSettings\app\Services\CountryService::class
         );
-        
+
         $this->app->bind(
             \Modules\AreaSettings\app\Services\CityService::class
         );
-        
+
         $this->app->bind(
             \Modules\AreaSettings\app\Services\RegionService::class
         );
-        
+
         $this->app->bind(
             \Modules\AreaSettings\app\Services\SubRegionService::class
         );

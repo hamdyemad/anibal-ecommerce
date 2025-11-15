@@ -6,12 +6,20 @@ trait Res
 {
     public function sendRes($message, $status = true,  $data = [], $errors = [], $code = 200)
     {
-        return response()->json([
+        $response = [
             'status' => $status,
             'message' => $message,
-            'data' => $data,
             'errors' => $errors,
-        ], $code);
+        ];
+
+        if (is_object($data) && $data->resource instanceof \Illuminate\Pagination\LengthAwarePaginator) {
+            $response['data'] = $data->items();
+            $response['pagination'] = $this->getPaginationMeta($data);
+        } else {
+            $response['data'] = $data;
+        }
+
+        return response()->json($response, $code);
     }
 
     public function sendData($message, $status = true,  $data = [], $errors = [])
@@ -32,17 +40,13 @@ trait Res
      */
     public function getPaginationMeta($data)
     {
-        if (method_exists($data, 'lastPage')) {
-            return [
-                'current_page' => $data->currentPage(),
-                'last_page' => $data->lastPage(),
-                'per_page' => $data->perPage(),
-                'total' => $data->total(),
-                'from' => $data->firstItem(),
-                'to' => $data->lastItem(),
-            ];
-        }
-
-        return null;
+        return [
+            'current_page' => $data->currentPage(),
+            'last_page' => $data->lastPage(),
+            'per_page' => $data->perPage(),
+            'total' => $data->total(),
+            'from' => $data->firstItem(),
+            'to' => $data->lastItem(),
+        ];
     }
 }

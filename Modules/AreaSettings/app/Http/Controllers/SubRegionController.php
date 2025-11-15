@@ -3,7 +3,7 @@
 namespace Modules\AreaSettings\app\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-use Modules\AreaSettings\app\Actions\SubRegionAction;
+use Modules\AreaSettings\app\Actions\SubregionAction;
 use Modules\AreaSettings\app\Http\Requests\SubRegionRequest;
 use Modules\AreaSettings\app\Services\SubRegionService;
 use Modules\AreaSettings\app\Services\RegionService;
@@ -18,7 +18,7 @@ class SubRegionController extends Controller
         protected SubRegionService $subregionService,
         protected RegionService $regionService,
         protected LanguageService $languageService,
-        protected SubRegionAction $subregionAction
+        protected SubregionAction $subregionAction
     ) {
         $this->middleware('can:area.subregion.index')->only(['index']);
         $this->middleware('can:area.subregion.show')->only(['show']);
