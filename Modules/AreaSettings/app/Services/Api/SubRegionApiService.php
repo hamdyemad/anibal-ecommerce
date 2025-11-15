@@ -21,7 +21,7 @@ class SubRegionApiService
         return $this->RegionRepository->getAllSubRegions($filters);
     }
 
-    public function getSubRegionsByRegions(array $filters = [], int $id)
+    public function getSubRegionsByRegions(array $filters = [], $id)
     {
         return $this->RegionRepository->getSubRegionsByRegions($filters, $id);
     }

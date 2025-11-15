@@ -3,6 +3,7 @@
 namespace Modules\AreaSettings\app\Models;
 
 use App\Models\Traits\HumanDates;
+use App\Traits\HasSlug;
 use App\Traits\Translation;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -11,7 +12,7 @@ use Illuminate\Database\Eloquent\Builder;
 
 class City extends Model
 {
-    use Translation, SoftDeletes, HumanDates;
+    use Translation, SoftDeletes, HumanDates, HasSlug;
 
     protected $table = 'cities';
     protected $guarded = [];

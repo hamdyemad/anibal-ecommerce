@@ -18,8 +18,8 @@ class CountryApiRepository implements CountryApiRepositoryInterface
         return $result;
     }
 
-    public function getCountryById(array $filters = [], int $id)
+    public function getCountryById(array $filters = [], $id)
     {
-        return $this->query->handle($filters)->with('currency.translations')->find($id);
+        return $this->query->handle($filters)->with('currency.translations')->where(fn($q) => $q->where('id', $id)->orWhere('slug', $id))->first();
     }
 }

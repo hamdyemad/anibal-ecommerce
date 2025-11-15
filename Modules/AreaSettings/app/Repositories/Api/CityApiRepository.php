@@ -18,12 +18,12 @@ class CityApiRepository implements CityApiRepositoryInterface
         return $result;
     }
 
-    public function getCitiesByCountry(array $filters = [], int $id)
+    public function getCitiesByCountry(array $filters = [], $id)
     {
         $paginated = isset($filters["paginated"]) ? true : false;
 
         $query = $this->query->handle($filters)->whereHas('country', function($q) use ($id) {
-            $q->where('id', $id);
+            $q->where(fn($q) => $q->where('id', $id)->orWhere('slug', $id));
         });
 
         $result = $this->paginated->handle($query, $paginated, $filters["per_page"] ?? null);

@@ -3,6 +3,7 @@
 namespace Modules\AreaSettings\app\Models;
 
 use App\Models\Traits\HumanDates;
+use App\Traits\HasSlug;
 use App\Traits\Translation;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -11,7 +12,7 @@ use Modules\SystemSetting\app\Models\Currency;
 
 class Country extends Model
 {
-    use Translation, SoftDeletes, HumanDates;
+    use Translation, SoftDeletes, HumanDates, HasSlug;
 
     protected $table = 'countries';
     protected $guarded = [];
@@ -28,7 +29,6 @@ class Country extends Model
         // Search filter
         if (!empty($filters['search'])) {
             $search = $filters['search'];
-            \Log::info('Applying search filter:', ['search' => $search]);
             $query->where(function($q) use ($search) {
                 $q->whereHas('translations', function($query) use ($search) {
                     $query->where('lang_value', 'like', "%{$search}%");
@@ -41,19 +41,16 @@ class Country extends Model
 
         // Active filter
         if (isset($filters['active']) && $filters['active'] !== '') {
-            \Log::info('Applying active filter:', ['active' => $filters['active']]);
             $query->where('active', $filters['active']);
         }
 
         // Date from filter
         if (!empty($filters['created_date_from'])) {
-            \Log::info('Applying date from filter:', ['date_from' => $filters['created_date_from']]);
             $query->whereDate('created_at', '>=', $filters['created_date_from']);
         }
 
         // Date to filter
         if (!empty($filters['created_date_to'])) {
-            \Log::info('Applying date to filter:', ['date_to' => $filters['created_date_to']]);
             $query->whereDate('created_at', '<=', $filters['created_date_to']);
         }
         $query->orderBy('created_at', 'desc');

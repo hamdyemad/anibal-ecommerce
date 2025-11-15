@@ -18,12 +18,12 @@ class RegionApiRepository implements RegionApiRepositoryInterface
         return $result;
     }
 
-    public function getRegionsByCity(array $filters = [], int $id)
+    public function getRegionsByCity(array $filters = [], $id)
     {
         $paginated = isset($filters["paginated"]) ? true : false;
 
         $query = $this->query->handle($filters)->whereHas('city', function($q) use ($id) {
-            $q->where('id', $id);
+            $q->where(fn($q) => $q->where('id', $id)->orWhere('slug', $id));
         });
 
         $result = $this->paginated->handle($query, $paginated, $filters["per_page"] ?? null);

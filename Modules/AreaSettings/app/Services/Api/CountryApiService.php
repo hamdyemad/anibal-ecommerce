@@ -21,7 +21,7 @@ class CountryApiService
         return $this->countryRepository->getAllCountries($filters);
     }
 
-    public function getCountryById(array $filters = [], int $id)
+    public function getCountryById(array $filters = [], $id)
     {
         return $this->countryRepository->getCountryById($filters, $id);
 

@@ -21,7 +21,7 @@ class CityApiService
         return $this->CityRepository->getAllCities($filters);
     }
 
-    public function getCitiesByCountry(array $filters = [], int $id)
+    public function getCitiesByCountry(array $filters = [], $id)
     {
         return $this->CityRepository->getCitiesByCountry($filters, $id);
 

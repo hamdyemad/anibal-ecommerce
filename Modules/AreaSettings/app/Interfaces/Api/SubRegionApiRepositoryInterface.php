@@ -5,5 +5,5 @@ namespace Modules\AreaSettings\app\Interfaces\Api;
 interface SubRegionApiRepositoryInterface
 {
     public function getAllSubRegions(array $filters = []);
-    public function getSubRegionsByRegions(array $filters = [], int $id);
+    public function getSubRegionsByRegions(array $filters = [], $id);
 }

@@ -18,12 +18,12 @@ class SubRegionApiRepository implements SubRegionApiRepositoryInterface
         return $result;
     }
 
-    public function getSubRegionsByRegions(array $filters = [], int $id)
+    public function getSubRegionsByRegions(array $filters = [], $id)
     {
         $paginated = isset($filters["paginated"]) ? true : false;
 
         $query = $this->query->handle($filters)->whereHas('region', function($q) use ($id) {
-            $q->where('id', $id);
+            $q->where(fn($q) => $q->where('id', $id)->orWhere('slug', $id));
         });
 
         $result = $this->paginated->handle($query, $paginated, $filters["per_page"] ?? null);
