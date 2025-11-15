@@ -16,7 +16,11 @@ class SetLanguage
      */
     public function handle(Request $request, Closure $next)
     {
-        app()->setLocale($request->language);
+        $language = $request->header('lang') 
+            ?? $request->input('language')
+            ?? config('app.locale', 'en');
+
+        app()->setLocale($language);
         return $next($request);
     }
 }
