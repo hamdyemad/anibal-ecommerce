@@ -643,11 +643,18 @@
                                                         الكلمات المفتاحية ({{ $language->name }})
                                                     @endif
                                                 </label>
-                                                <input type="text" name="translations[{{ $language->id }}][meta_keywords]" id="meta_keywords_{{ $language->code }}"
-                                                    class="form-control ih-medium ip-gray radius-xs b-light px-15"
-                                                    placeholder="{{ $language->code == 'ar' ? 'أدخل الكلمات المفتاحية مفصولة بفواصل' : 'Enter keywords separated by commas' }}"
-                                                    {{ $language->rtl ? 'dir=rtl' : '' }}>
-                                                <small class="text-muted">Separate keywords with commas</small>
+                                                <x-tags-input
+                                                    name="translations[{{ $language->id }}][meta_keywords]"
+                                                    :value="isset($product) ? $product->getMetaKeywordsString($language->code) : old('translations.'.$language->id.'.meta_keywords')"
+                                                    placeholder="{{ $language->code == 'ar' ? 'اكتب كلمة مفتاحية واضغط انتر' : 'Type a keyword and press Enter...' }}"
+                                                    rtl-placeholder="اكتب كلمة مفتاحية واضغط انتر"
+                                                    language="{{ $language->code }}"
+                                                    :allow-duplicates="true"
+                                                    theme="primary"
+                                                    size="md"
+                                                    id="meta_keywords_{{ $language->code }}"
+                                                />
+                                                <small class="text-muted w-100 d-block" @if($language->code == 'ar') dir="rtl" style="text-align: right;" @endif>{{ $language->code == 'ar' ? 'اضغط انتر أو فاصلة لإنشاء كلمة مفتاحية' : 'Press Enter or comma to create a keyword' }}</small>
                                             </div>
                                         </div>
                                         @endforeach
@@ -732,13 +739,15 @@
     </div>
 </div>
 
-{{-- Loading Overlay Component --}}
-<x-loading-overlay
-    loadingText="{{ isset($product) ? trans('catalog::product.updating_product') : trans('catalog::product.creating_product') }}"
-    loadingSubtext="{{ trans('catalog::product.please_wait') }}"
-/>
-
 @endsection
+
+@push('after-body')
+    {{-- Loading Overlay Component --}}
+    <x-loading-overlay
+        loadingText="{{ isset($product) ? trans('catalog::product.updating_product') : trans('catalog::product.creating_product') }}"
+        loadingSubtext="{{ trans('catalog::product.please_wait') }}"
+    />
+@endpush
 
 @push('scripts')
 <!-- Product Form Configuration (Data Only) -->

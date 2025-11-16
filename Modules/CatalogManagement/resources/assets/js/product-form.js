@@ -398,6 +398,10 @@ jQuery(document).ready(function ($) {
     setTimeout(waitForSelect2AndAttach, 200);
 
     // Initialize wizard on page load
+    
+    // Add form submission handler
+    $('#productForm').on('submit', handleFormSubmission);
+    
     showStep(currentStep);
 
     // Next button
@@ -1113,11 +1117,19 @@ function restoreRequiredAttributes() {
  * Handle form submission
  */
 function handleFormSubmission(e) {
+    console.log('Form submission started');
     e.preventDefault();
 
     const config = window.productFormConfig;
     if (!config) {
+        console.error('productFormConfig is not defined');
         return;
+    }
+    
+    // Debug: Check if LoadingOverlay is defined
+    console.log('LoadingOverlay available:', typeof LoadingOverlay !== 'undefined');
+    if (typeof LoadingOverlay === 'undefined') {
+        console.error('LoadingOverlay is not defined. Make sure the loading-overlay component is included in the layout.');
     }
 
     // Temporarily disable required attributes on hidden fields to prevent HTML5 validation errors
