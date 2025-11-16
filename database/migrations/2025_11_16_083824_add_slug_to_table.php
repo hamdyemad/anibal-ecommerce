@@ -11,18 +11,20 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('countries', function (Blueprint $table) {
-            $table->string('slug')->nullable();
-        });
-        Schema::table('cities', function (Blueprint $table) {
-            $table->string('slug')->nullable();
-        });
-        Schema::table('regions', function (Blueprint $table) {
-            $table->string('slug')->nullable();
-        });
-        Schema::table('subregions', function (Blueprint $table) {
-            $table->string('slug')->nullable();
-        });
+        $tables = [
+            'countries',
+            'cities',
+            'regions',
+            'subregions',
+        ];
+
+        foreach ($tables as $tableName) {
+            if (!Schema::hasColumn($tableName, 'slug')) {
+                Schema::table($tableName, function (Blueprint $table) {
+                    $table->string('slug')->nullable();
+                });
+            }
+        }
     }
 
     /**
