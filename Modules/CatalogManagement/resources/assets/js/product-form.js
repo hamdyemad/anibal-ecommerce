@@ -574,6 +574,12 @@ jQuery(document).ready(function ($) {
     $("#nextBtn").on("click", function () {
         console.log("📍 Next button clicked. Current step:", currentStep);
 
+        // Validate current step before proceeding
+        if (!validateStep(currentStep)) {
+            console.log("❌ Step validation failed. Cannot proceed.");
+            return;
+        }
+
         // Proceed to next step
         currentStep++;
         if (currentStep > totalSteps) currentStep = totalSteps;
@@ -594,6 +600,19 @@ jQuery(document).ready(function ($) {
         console.log("🖱️ Wizard step clicked!");
         const targetStep = parseInt($(this).data("step"));
         console.log("Clicked step:", targetStep);
+
+        // If trying to go to a future step, validate all steps in between
+        if (targetStep > currentStep) {
+            console.log(`🔍 Attempting to jump from step ${currentStep} to step ${targetStep}`);
+
+            // Validate all steps from current to target
+            for (let step = currentStep; step < targetStep; step++) {
+                if (!validateStep(step)) {
+                    console.log(`❌ Step ${step} validation failed. Cannot proceed to step ${targetStep}.`);
+                    return;
+                }
+            }
+        }
 
         // Hide validation alert when clicking on steps
         $('#validation-alerts-container').hide().empty();
@@ -2214,5 +2233,374 @@ function toggleAdditionalImagesVisibility() {
         container.hide();
         emptyState.show();
     }
+}
+
+/**
+ * Validate a specific step
+ */
+function validateStep(step) {
+    console.log(`🔍 Validating step ${step}...`);
+
+    let isValid = true;
+    const errors = {};
+
+    switch(step) {
+        case 1:
+            isValid = validateStep1(errors);
+            break;
+        case 2:
+            isValid = validateStep2(errors);
+            break;
+        case 3:
+            isValid = validateStep3(errors);
+            break;
+        case 4:
+            isValid = validateStep4(errors);
+            break;
+    }
+
+    if (!isValid) {
+        console.log(`❌ Step ${step} validation failed:`, errors);
+        displayValidationErrors(errors);
+        return false;
+    }
+
+    console.log(`✅ Step ${step} validation passed`);
+    return true;
+}
+
+/**
+ * Validate Step 1: Basic Information
+ * Required: Product titles (EN & AR), SKU, Brand, Vendor, Department, Category, Sub-category, Tax
+ */
+function validateStep1(errors) {
+    let isValid = true;
+
+    // Get all language IDs from the form
+    const languages = [];
+    $('input[name^="translations["][name$="][title]"]').each(function() {
+        const match = $(this).attr('name').match(/translations\[(\d+)\]/);
+        if (match && !languages.includes(match[1])) {
+            languages.push(match[1]);
+        }
+    });
+
+    // Validate titles for each language
+    languages.forEach(langId => {
+        const titleInput = $(`input[name="translations[${langId}][title]"]`);
+        const titleValue = titleInput.val().trim();
+
+        if (!titleValue) {
+            const langName = titleInput.closest('.col-md-6').find('label').text();
+            errors[`translations.${langId}.title`] = [`${langName} is required`];
+            isValid = false;
+        }
+    });
+
+    // Validate SKU
+    const skuInput = $('input[name="sku"]');
+    if (skuInput.length && !skuInput.val().trim()) {
+        errors['sku'] = ['SKU is required'];
+        isValid = false;
+    }
+
+    // Validate Brand
+    const brandSelect = $('#brand_id');
+    if (brandSelect.length && !brandSelect.val()) {
+        errors['brand_id'] = ['Brand is required'];
+        isValid = false;
+    }
+
+    // Validate Vendor
+    const vendorSelect = $('#vendor_id');
+    if (vendorSelect.length && !vendorSelect.val()) {
+        errors['vendor_id'] = ['Vendor is required'];
+        isValid = false;
+    }
+
+    // Validate Department
+    const departmentSelect = $('#department_id');
+    if (departmentSelect.length && !departmentSelect.val()) {
+        errors['department_id'] = ['Department is required'];
+        isValid = false;
+    }
+
+    // Validate Category
+    const categorySelect = $('#category_id');
+    if (categorySelect.length && !categorySelect.val()) {
+        errors['category_id'] = ['Category is required'];
+        isValid = false;
+    }
+
+    // Sub-category is optional - no validation needed
+
+    // Validate Tax
+    const taxSelect = $('#tax_id');
+    if (taxSelect.length && !taxSelect.val()) {
+        errors['tax_id'] = ['Tax is required'];
+        isValid = false;
+    }
+
+    // Validate Max Per Order
+    const maxPerOrder = $('input[name="max_per_order"]');
+    if (maxPerOrder.length && !maxPerOrder.val()) {
+        errors['max_per_order'] = ['Max per order is required'];
+        isValid = false;
+    } else if (maxPerOrder.length && parseInt(maxPerOrder.val()) <= 0) {
+        errors['max_per_order'] = ['Max per order must be greater than 0'];
+        isValid = false;
+    }
+
+    // Validate Points
+    const points = $('input[name="points"]');
+    if (points.length && points.val() === '') {
+        errors['points'] = ['Points is required'];
+        isValid = false;
+    } else if (points.length && parseInt(points.val()) < 0) {
+        errors['points'] = ['Points must be a valid number'];
+        isValid = false;
+    }
+
+    return isValid;
+}
+
+/**
+ * Validate Step 2: Details
+ * Required: Main image, Description (EN & AR)
+ */
+function validateStep2(errors) {
+    let isValid = true;
+
+    // Validate Main Image
+    const mainImageInput = $('input[name="main_image"]');
+    const mainImagePreview = $('#main_image-preview-img');
+
+    // Check if main image is uploaded (either new file or existing image)
+    if (mainImageInput.length) {
+        const hasNewImage = mainImageInput.val() !== '';
+        const hasExistingImage = mainImagePreview.length > 0 && mainImagePreview.attr('src');
+
+        if (!hasNewImage && !hasExistingImage) {
+            errors['main_image'] = ['Main image is required'];
+            isValid = false;
+        }
+    }
+
+    // Get all language IDs from the form
+    const languages = [];
+    $('textarea[name^="translations["][name$="][details]"]').each(function() {
+        const match = $(this).attr('name').match(/translations\[(\d+)\]/);
+        if (match && !languages.includes(match[1])) {
+            languages.push(match[1]);
+        }
+    });
+
+    // Validate details (description) for each language
+    languages.forEach(langId => {
+        const detailsInput = $(`textarea[name="translations[${langId}][details]"]`);
+        const detailsValue = detailsInput.val().trim();
+
+        if (!detailsValue) {
+            const langName = detailsInput.closest('.col-md-6').find('label').text();
+            errors[`translations.${langId}.details`] = [`${langName} is required`];
+            isValid = false;
+        }
+    });
+
+    return isValid;
+}
+
+/**
+ * Validate Step 3: Pricing & Inventory
+ * Required: Configuration type, and based on type:
+ *   - Simple: SKU, Price, Stock (at least one region)
+ *   - Variants: At least one variant with all required fields
+ */
+function validateStep3(errors) {
+    let isValid = true;
+
+    // Validate Configuration Type
+    const configType = $('#configuration_type').val();
+    if (!configType) {
+        errors['configuration_type'] = ['Product type is required'];
+        isValid = false;
+    }
+
+    if (configType === 'simple') {
+        // Validate Simple Product
+        isValid = validateSimpleProduct(errors) && isValid;
+    } else if (configType === 'variants') {
+        // Validate Variants
+        isValid = validateVariants(errors) && isValid;
+    }
+
+    return isValid;
+}
+
+/**
+ * Validate Simple Product
+ */
+function validateSimpleProduct(errors) {
+    let isValid = true;
+
+    // Validate SKU
+    const simpleSku = $('input[name="simple_sku"]');
+    if (simpleSku.length && !simpleSku.val().trim()) {
+        errors['simple_sku'] = ['SKU is required'];
+        isValid = false;
+    }
+
+    // Validate Price
+    const price = $('input[name="price"]');
+    if (price.length && !price.val()) {
+        errors['price'] = ['Price is required'];
+        isValid = false;
+    } else if (price.length && parseFloat(price.val()) <= 0) {
+        errors['price'] = ['Price must be greater than 0'];
+        isValid = false;
+    }
+
+    // Validate Stock (at least one region)
+    const stockRows = $('.stock-row').length;
+    if (stockRows === 0) {
+        errors['stocks'] = ['At least one region stock is required'];
+        isValid = false;
+    } else {
+        // Validate each stock row
+        $('.stock-row').each(function(index) {
+            const regionSelect = $(this).find('select[name*="region_id"]');
+            const quantityInput = $(this).find('input[name*="quantity"]');
+
+            if (!regionSelect.val()) {
+                errors[`stocks.${index}.region_id`] = ['Region is required'];
+                isValid = false;
+            }
+
+            if (!quantityInput.val() || parseInt(quantityInput.val()) < 0) {
+                errors[`stocks.${index}.quantity`] = ['Quantity must be a valid number'];
+                isValid = false;
+            }
+        });
+    }
+
+    return isValid;
+}
+
+/**
+ * Validate Variants
+ */
+function validateVariants(errors) {
+    let isValid = true;
+
+    const variantBoxes = $('.variant-box');
+
+    if (variantBoxes.length === 0) {
+        errors['variants'] = ['At least one variant is required'];
+        return false;
+    }
+
+    variantBoxes.each(function(index) {
+        const variantBox = $(this);
+        const variantIndex = variantBox.data('variant-index');
+
+        // Validate variant key is selected
+        const keySelect = variantBox.find('.variant-key-select');
+        if (!keySelect.val()) {
+            errors[`variants.${variantIndex}.key_id`] = ['Variant key is required'];
+            isValid = false;
+        }
+
+        // Validate final variant is selected
+        const finalVariantId = variantBox.find('.final-variant-id').val();
+        if (!finalVariantId) {
+            errors[`variants.${variantIndex}.value_id`] = ['Variant value is required'];
+            isValid = false;
+        }
+
+        // Validate product details if variant is selected
+        if (finalVariantId) {
+            // Validate SKU
+            const skuInput = variantBox.find(`input[name="variants[${variantIndex}][sku]"]`);
+            if (!skuInput.val().trim()) {
+                errors[`variants.${variantIndex}.sku`] = ['Variant SKU is required'];
+                isValid = false;
+            }
+
+            // Validate Price
+            const priceInput = variantBox.find(`input[name="variants[${variantIndex}][price]"]`);
+            if (!priceInput.val()) {
+                errors[`variants.${variantIndex}.price`] = ['Variant price is required'];
+                isValid = false;
+            } else if (parseFloat(priceInput.val()) <= 0) {
+                errors[`variants.${variantIndex}.price`] = ['Variant price must be greater than 0'];
+                isValid = false;
+            }
+
+            // Validate Stock (at least one region)
+            const stockRows = variantBox.find(`.variant-stock-rows[data-variant-index="${variantIndex}"] tr`).length;
+            if (stockRows === 0) {
+                errors[`variants.${variantIndex}.stock`] = ['At least one region stock is required for this variant'];
+                isValid = false;
+            } else {
+                // Validate each stock row
+                variantBox.find(`.variant-stock-rows[data-variant-index="${variantIndex}"] tr`).each(function(rowIndex) {
+                    const regionSelect = $(this).find('select[name*="region_id"]');
+                    const quantityInput = $(this).find('input[name*="quantity"]');
+
+                    if (!regionSelect.val()) {
+                        errors[`variants.${variantIndex}.stock.${rowIndex}.region_id`] = ['Region is required'];
+                        isValid = false;
+                    }
+
+                    if (!quantityInput.val() || parseInt(quantityInput.val()) < 0) {
+                        errors[`variants.${variantIndex}.stock.${rowIndex}.quantity`] = ['Quantity must be a valid number'];
+                        isValid = false;
+                    }
+                });
+            }
+        }
+    });
+
+    return isValid;
+}
+
+/**
+ * Validate Step 4: SEO & Images
+ * Required: Meta title and description for each language
+ */
+function validateStep4(errors) {
+    let isValid = true;
+
+    // Get all language IDs from the form
+    const languages = [];
+    $('input[name^="translations["][name$="][meta_title]"]').each(function() {
+        const match = $(this).attr('name').match(/translations\[(\d+)\]/);
+        if (match && !languages.includes(match[1])) {
+            languages.push(match[1]);
+        }
+    });
+
+    // Validate meta titles and descriptions for each language
+    languages.forEach(langId => {
+        const metaTitleInput = $(`input[name="translations[${langId}][meta_title]"]`);
+        const metaDescInput = $(`textarea[name="translations[${langId}][meta_description]"]`);
+
+        const metaTitleValue = metaTitleInput.val().trim();
+        const metaDescValue = metaDescInput.val().trim();
+
+        if (!metaTitleValue) {
+            const langName = metaTitleInput.closest('.col-md-6').find('label').text();
+            errors[`translations.${langId}.meta_title`] = [`${langName} is required`];
+            isValid = false;
+        }
+
+        if (!metaDescValue) {
+            const langName = metaDescInput.closest('.col-md-6').find('label').text();
+            errors[`translations.${langId}.meta_description`] = [`${langName} is required`];
+            isValid = false;
+        }
+    });
+
+    return isValid;
 }
 

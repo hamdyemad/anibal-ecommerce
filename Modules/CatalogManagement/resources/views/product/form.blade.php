@@ -87,7 +87,7 @@
                                         <div class="col-md-6 mb-3">
                                             <div class="form-group">
                                                 <label for="points" class="form-label">{{ __('catalogmanagement::product.points') }} <span class="text-danger">*</span></label>
-                                                <input type="number" name="points" id="points" class="form-control ih-medium ip-gray radius-xs b-light px-15" min="0" value="{{ isset($product) ? $product->points ?? 0 : 0 }}" placeholder="Enter points">
+                                                <input type="number" name="points" id="points" class="form-control ih-medium ip-gray radius-xs b-light px-15" min="0" value="{{ isset($product) ? $product->points ?? 0 : 0 }}" placeholder="Enter points" required>
                                                 <div class="error-message text-danger" id="error-points" style="display: none;"></div>
                                             </div>
                                         </div>
@@ -220,7 +220,9 @@
                                     <div class="row">
                                         <div class="col-md-6 mb-3">
                                             <div class="form-group">
-                                                <label for="tax_id" class="form-label">{{ __('catalogmanagement::product.tax') }}</label>
+                                                <label for="tax_id" class="form-label">{{ __('catalogmanagement::product.tax') }}
+                                                    <span class="text-danger">*</span>
+                                                </label>
                                                 <select name="tax_id" id="tax_id" class="form-control select2">
                                                     <option value="">{{ __('common.select_option') }}</option>
                                                     @foreach($taxes as $tax)
@@ -233,7 +235,7 @@
                                         <div class="col-md-6 mb-3">
                                             <div class="form-group">
                                                 <label for="max_per_order" class="form-label">{{ __('catalogmanagement::product.max_per_order') }} <span class="text-danger">*</span></label>
-                                                <input type="number" name="max_per_order" id="max_per_order" class="form-control ih-medium ip-gray radius-xs b-light px-15" min="1" placeholder="Enter max per order" value="{{ isset($product) ? $product->max_per_order ?? '' : '' }}">
+                                                <input type="number" name="max_per_order" id="max_per_order" class="form-control ih-medium ip-gray radius-xs b-light px-15" min="1" placeholder="Enter max per order" value="{{ isset($product) ? $product->max_per_order ?? '' : '' }}" required>
                                                 <div class="error-message text-danger" id="error-max_per_order" style="display: none;"></div>
                                             </div>
                                         </div>
@@ -343,7 +345,7 @@
                                                     class="form-control ih-medium ip-gray radius-xs b-light px-15 tinymce-editor"
                                                     rows="6"
                                                     placeholder="{{ $language->code == 'ar' ? 'أدخل تفاصيل المنتج' : 'Enter product details' }}"
-                                                    dir="{{ $language->code == 'ar' ? 'rtl' : 'ltr' }}"></textarea>
+                                                    dir="{{ $language->code == 'ar' ? 'rtl' : 'ltr' }}" required></textarea>
                                                 <div class="error-message text-danger" id="error-translations-{{ $language->id }}-details" style="display: none;"></div>
                                             </div>
                                         </div>

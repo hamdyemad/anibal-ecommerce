@@ -38,7 +38,7 @@ class StoreProductRequest extends FormRequest
             'department_id' => 'required|exists:departments,id',
             'category_id' => 'required|exists:categories,id',
             'sub_category_id' => 'nullable|exists:sub_categories,id',
-            'tax_id' => 'nullable|exists:taxes,id',
+            'tax_id' => 'required|exists:taxes,id',
 
             // Vendor validation based on user role
             'vendor_id' => $this->getVendorValidationRule(),
