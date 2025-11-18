@@ -45,6 +45,7 @@ return [
     'basic_information' => 'Basic Information',
     'details' => 'Details',
     'pricing' => 'Pricing',
+    'variant_configurations' => 'Variant Configurations',
     'seo' => 'SEO',
     'organization' => 'Organization',
     'logistics' => 'Logistics & Taxes',

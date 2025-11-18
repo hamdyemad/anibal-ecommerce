@@ -17,6 +17,10 @@ Route::group(
 
     // Products
     Route::get('products/datatable', 'ProductController@datatable')->name('products.datatable');
+    Route::get('products/{id}/manage-pricing-stock', 'ProductController@managePricingStock')->name('products.manage-pricing-stock');
+    Route::post('products/{id}/save-pricing-stock', 'ProductController@savePricingStock')->name('products.save-pricing-stock');
+    Route::post('products/{id}/approve', 'ProductController@approve')->name('products.approve');
+    Route::post('products/{id}/reject', 'ProductController@reject')->name('products.reject');
     Route::resource('products', 'ProductController');
 
     // Variant Configuration Keys
@@ -29,7 +33,7 @@ Route::group(
     Route::get('variants-configurations/get-parents-by-key', 'VariantsConfigurationController@getParentsByKey')->name('variants-configurations.get-parents-by-key');
     Route::get('variants-configurations-tree', 'VariantsConfigurationController@tree')->name('variants-configurations.tree');
     Route::resource('variants-configurations', 'VariantsConfigurationController');
-    
+
     // API routes for variant selection in product form
     Route::get('api/variant-keys', 'VariantsConfigurationController@getVariantKeys')->name('api.variant-keys');
     Route::get('api/variants-by-key', 'VariantsConfigurationController@getVariantsByKey')->name('api.variants-by-key');

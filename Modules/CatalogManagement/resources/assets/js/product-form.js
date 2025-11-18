@@ -29,6 +29,12 @@ jQuery(document).ready(function ($) {
     // Initialize Select2 for main form selects with placeholder
     setTimeout(function() {
         $('#brand_id, #vendor_id, #department_id, #category_id, #sub_category_id, #tax_id, #configuration_type').each(function() {
+            // Skip if this is a hidden input
+            if ($(this).attr('type') === 'hidden') {
+                console.log('⏭️ Skipping Select2 init for hidden input:', $(this).attr('id'));
+                return;
+            }
+
             var emptyOptionText = $(this).find('option[value=""]').text().trim();
             console.log('📋 Select2 Init - ID:', $(this).attr('id'), 'Placeholder:', emptyOptionText);
 
@@ -41,67 +47,118 @@ jQuery(document).ready(function ($) {
         });
     }, 100);
 
-    // Handle vendor change to filter departments
+    // Helper function to filter departments by vendor activities
+    function filterDepartmentsByVendor(vendorId) {
+        if (!vendorId) {
+            console.log('⚠️ No vendor ID provided');
+            return;
+        }
+
+        console.log('🔄 Fetching departments for vendor:', vendorId);
+
+        // Fetch departments from API with vendor_id parameter
+        const departmentsRoute = window.productFormConfig?.departmentsRoute || '/api/departments';
+        const url = `${departmentsRoute}?vendor_id=${vendorId}`;
+
+        console.log('🌐 Fetching from:', url);
+
+        fetch(url, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+            }
+        })
+        .then(response => {
+            console.log('📥 Response status:', response.status);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('✅ Departments fetched:', data);
+
+            const departmentSelect = $('#department_id');
+
+            // Reset with empty option
+            departmentSelect.empty().append('<option value="">Select Department</option>');
+
+            // Handle API response
+            if (data && Array.isArray(data) && data.length > 0) {
+                // If data is array of departments
+                data.forEach(dept => {
+                    departmentSelect.append(
+                        `<option value="${dept.id}">${dept.name}</option>`
+                    );
+                });
+                console.log(`✅ Loaded ${data.length} departments`);
+            } else if (data && data.data && Array.isArray(data.data) && data.data.length > 0) {
+                // If data is wrapped in {data: [...]}
+                data.data.forEach(dept => {
+                    departmentSelect.append(
+                        `<option value="${dept.id}">${dept.name}</option>`
+                    );
+                });
+                console.log(`✅ Loaded ${data.data.length} departments`);
+            } else {
+                console.log('⚠️ No departments found for vendor:', vendorId);
+                departmentSelect.append('<option value="">No departments available</option>');
+            }
+
+            // Refresh Select2
+            if (departmentSelect.data('select2')) {
+                departmentSelect.select2('destroy');
+            }
+            departmentSelect.select2({
+                theme: 'bootstrap-5',
+                width: '100%',
+                allowClear: false
+            });
+        })
+        .catch(error => {
+            console.error('❌ Error fetching departments:', error);
+            const departmentSelect = $('#department_id');
+            departmentSelect.empty().append('<option value="">Error loading departments</option>');
+
+            // Refresh Select2
+            if (departmentSelect.data('select2')) {
+                departmentSelect.select2('destroy');
+            }
+            departmentSelect.select2({
+                theme: 'bootstrap-5',
+                width: '100%',
+                allowClear: false
+            });
+        });
+    }
+
+    // Handle vendor change to filter departments (only for select elements, not hidden inputs)
     $('#vendor_id').on('change', function() {
+        // Skip if this is a hidden input
+        if ($(this).attr('type') === 'hidden') {
+            console.log('⏭️ Skipping vendor change handler for hidden input');
+            return;
+        }
+
         const vendorId = $(this).val();
-        const vendorActivitiesMap = window.productFormConfig?.vendorActivitiesMap || {};
-        const vendorActivities = vendorActivitiesMap[vendorId] || [];
-
-        console.log('🔄 Vendor changed to:', vendorId);
-        console.log('📊 Vendor Activities Map:', vendorActivitiesMap);
-        console.log('📋 Vendor Activities:', vendorActivities);
-
-        // Filter departments based on vendor activities
-        $('#department_id option').each(function() {
-            const $option = $(this);
-            const optionValue = $option.val();
-
-            // Always show empty option
-            if (optionValue === '') {
-                $option.show();
-                return;
-            }
-
-            // Get department activities from data attribute
-            try {
-                let deptActivitiesStr = $option.attr('data-activities');
-                let deptActivities = [];
-
-                if (deptActivitiesStr) {
-                    // Decode HTML entities first
-                    const textarea = document.createElement('textarea');
-                    textarea.innerHTML = deptActivitiesStr;
-                    const decodedStr = textarea.value;
-
-                    // Try to parse as JSON
-                    deptActivities = JSON.parse(decodedStr);
-                }
-
-                // Show department if it has matching activities with vendor
-                const hasMatchingActivity = deptActivities.some(activity => vendorActivities.includes(activity));
-
-                if (hasMatchingActivity || vendorActivities.length === 0) {
-                    $option.show();
-                } else {
-                    $option.hide();
-                    // Clear selection if hidden
-                    if ($option.is(':selected')) {
-                        $('#department_id').val('').trigger('change');
-                    }
-                }
-            } catch (e) {
-                console.error('Error parsing department activities:', e);
-                $option.show();
-            }
-        });
-
-        // Refresh Select2
-        $('#department_id').select2('destroy').select2({
-            theme: 'bootstrap-5',
-            width: '100%',
-            allowClear: false
-        });
+        if (vendorId) {
+            filterDepartmentsByVendor(vendorId);
+        }
     });
+
+    // Load departments on page load if vendor_id is set (for vendor users)
+    setTimeout(function() {
+        const vendorIdInput = $('#vendor_id');
+        const vendorId = vendorIdInput.val();
+
+        // Only process if vendor_id has a value and it's a hidden input (vendor user)
+        if (vendorId && vendorIdInput.attr('type') === 'hidden') {
+            console.log('📦 Loading departments for vendor:', vendorId);
+            filterDepartmentsByVendor(vendorId);
+        }
+    }, 200);
 
     // Ensure all form fields have error containers
     setTimeout(function() {
@@ -234,85 +291,11 @@ jQuery(document).ready(function ($) {
             .on("change.productForm", "#vendor_id", function (e) {
                 console.log("🎯 Vendor changed");
                 const vendorId = $(this).val();
-                const departmentSelect = $("#department_id");
-                const currentDepartmentValue = departmentSelect.val();
-                const url = `${window.productFormConfig.departmentsRoute}?vendor_id=${vendorId}&select2=1`;
 
-                console.log("🔍 Vendor ID:", vendorId);
-                fetch(url, {
-                        method: "GET",
-                        headers: {
-                            "Content-Type": "application/json",
-                            Accept: "application/json",
-                            "X-Requested-With": "XMLHttpRequest",
-                            lang: document.documentElement.lang || "en", // Custom header for app locale
-                        },
-                    })
-                        .then((response) => {
-                            console.log(
-                                "📥 Departments response status:",
-                                response.status
-                            );
-                            if (!response.ok) {
-                                throw new Error(
-                                    `HTTP error! status: ${response.status}`
-                                );
-                            }
-                            return response.json();
-                        })
-                        .then((response) => {
-                            console.log(
-                                "✅ Departments API response:",
-                                response
-                            );
-
-                            // Reset with empty option
-                            departmentSelect
-                                .empty()
-                                .append(
-                                    '<option value="">Select Department</option>'
-                                )
-                                .prop("disabled", false);
-
-                            // Handle API response format: {status, message, data, errors, code}
-                            if (
-                                response.status &&
-                                response.data &&
-                                response.data.length > 0
-                            ) {
-                                response.data.forEach((department) => {
-                                    departmentSelect.append(
-                                        `<option value="${department.id}">${department.name}</option>`
-                                    );
-                                });
-                                console.log(
-                                    `✅ Loaded ${response.data.length} departments`
-                                );
-                            } else {
-                                console.log(
-                                    "⚠️ No departments found for vendor:",
-                                    vendorId
-                                );
-                                departmentSelect.append(
-                                    '<option value="">No departments available</option>'
-                                );
-                            }
-                            // Refresh Select2 dropdown
-                            departmentSelect.trigger("change");
-                        })
-                        .catch((error) => {
-                            console.error(
-                                "❌ Error loading departments:",
-                                error
-                            );
-                            departmentSelect
-                                .empty()
-                                .append(
-                                    '<option value="">Error loading departments</option>'
-                                )
-                                .prop("disabled", false)
-                                .trigger("change");
-                        });
+                if (vendorId) {
+                    // Use the optimized local filtering function
+                    filterDepartmentsByVendor(vendorId);
+                }
             });
 
         // Department change handler - Use namespaced events and listen for select2:select
@@ -574,13 +557,7 @@ jQuery(document).ready(function ($) {
     $("#nextBtn").on("click", function () {
         console.log("📍 Next button clicked. Current step:", currentStep);
 
-        // Validate current step before proceeding
-        if (!validateStep(currentStep)) {
-            console.log("❌ Step validation failed. Cannot proceed.");
-            return;
-        }
-
-        // Proceed to next step
+        // Proceed to next step without validation
         currentStep++;
         if (currentStep > totalSteps) currentStep = totalSteps;
         showStep(currentStep);
@@ -601,18 +578,8 @@ jQuery(document).ready(function ($) {
         const targetStep = parseInt($(this).data("step"));
         console.log("Clicked step:", targetStep);
 
-        // If trying to go to a future step, validate all steps in between
-        if (targetStep > currentStep) {
-            console.log(`🔍 Attempting to jump from step ${currentStep} to step ${targetStep}`);
-
-            // Validate all steps from current to target
-            for (let step = currentStep; step < targetStep; step++) {
-                if (!validateStep(step)) {
-                    console.log(`❌ Step ${step} validation failed. Cannot proceed to step ${targetStep}.`);
-                    return;
-                }
-            }
-        }
+        // Allow navigation to any step without validation
+        console.log(`🔍 Navigating from step ${currentStep} to step ${targetStep}`);
 
         // Hide validation alert when clicking on steps
         $('#validation-alerts-container').hide().empty();
@@ -2386,26 +2353,8 @@ function validateStep2(errors) {
         }
     }
 
-    // Get all language IDs from the form
-    const languages = [];
-    $('textarea[name^="translations["][name$="][details]"]').each(function() {
-        const match = $(this).attr('name').match(/translations\[(\d+)\]/);
-        if (match && !languages.includes(match[1])) {
-            languages.push(match[1]);
-        }
-    });
-
-    // Validate details (description) for each language
-    languages.forEach(langId => {
-        const detailsInput = $(`textarea[name="translations[${langId}][details]"]`);
-        const detailsValue = detailsInput.val().trim();
-
-        if (!detailsValue) {
-            const langName = detailsInput.closest('.col-md-6').find('label').text();
-            errors[`translations.${langId}.details`] = [`${langName} is required`];
-            isValid = false;
-        }
-    });
+    // Details field is optional, so no validation needed for it
+    // Step 2 only requires main image which is already validated above
 
     return isValid;
 }

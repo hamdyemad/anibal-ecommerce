@@ -88,6 +88,32 @@ class Vendor extends Model
         return $this->hasOne(VendorCommission::class);
     }
 
+    /**
+     * Get vendor products (bank products added by this vendor)
+     */
+    public function vendorProducts()
+    {
+        return $this->hasMany(\Modules\CatalogManagement\app\Models\VendorProduct::class);
+    }
+
+    /**
+     * Get bank products through vendor_products
+     */
+    public function bankProducts()
+    {
+        return $this->belongsToMany(\Modules\CatalogManagement\app\Models\Product::class, 'vendor_products')
+                    ->withPivot('status', 'rejection_reason')
+                    ->withTimestamps();
+    }
+
+    /**
+     * Get vendor-specific product variants with pricing and stock
+     */
+    public function vendorProductVariants()
+    {
+        return $this->hasMany(\Modules\CatalogManagement\app\Models\VendorProductVariant::class);
+    }
+
     public function scopeFilter(Builder $query, $filters)
     {
         // Search in translations or user email
@@ -162,18 +188,18 @@ class Vendor extends Model
     {
         // Try to get from existing translations first
         $name = $this->getTranslation('name', 'en');
-        
+
         if (!empty($name)) {
             return $name;
         }
-        
+
         // Fallback to any available translation
         $name = $this->getTranslation('name', 'ar');
-        
+
         if (!empty($name)) {
             return $name;
         }
-        
+
         // Final fallback
         return $this->getSlugFallbackText();
     }

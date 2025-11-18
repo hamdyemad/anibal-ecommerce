@@ -40,11 +40,21 @@ class ProductAction {
                 'created_date_to' => $data['created_date_to'] ?? '',
             ];
 
-            // Get total records count
-            $totalRecords = Product::count();
+            // Get total records count - filter by vendor if user is vendor
+            $totalQuery = Product::query();
+            if (auth()->check() && auth()->user()->vendor) {
+                $totalQuery->where('created_by', auth()->user()->vendor->id);
+            }
+            $totalRecords = $totalQuery->count();
 
             // Build query with filters
             $query = Product::with(['brand', 'category', 'variants', 'translations'])->filter($filters);
+
+            // Filter by vendor if user is vendor
+            if (auth()->check() && auth()->user()->vendor) {
+                $query->where('created_by', auth()->user()->vendor->id);
+            }
+
             $filteredRecords = $query->count();
 
             // Apply pagination

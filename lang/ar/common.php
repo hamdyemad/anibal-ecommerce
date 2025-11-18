@@ -45,6 +45,7 @@ return [
     'basic_information' => 'المعلومات الأساسية',
     'details' => 'التفاصيل',
     'pricing' => 'التسعير',
+    'variant_configurations' => 'تكوينات المتغيرات',
     'seo' => 'تحسين محركات البحث',
     'organization' => 'التنظيم',
     'logistics' => 'اللوجستيات والضرائب',

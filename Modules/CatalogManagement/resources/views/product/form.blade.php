@@ -31,7 +31,7 @@
                     <x-wizard :steps="[
                         __('common.basic_information'),
                         __('common.details'),
-                        __('common.pricing'),
+                        __('common.variant_configurations'),
                         __('common.seo')
                     ]" :currentStep="1" />
 
@@ -132,30 +132,28 @@
                                                 </select>
                                             </div>
                                         </div>
-                                        @if(isset($vendors) && count($vendors) > 0)
-                                        <div class="col-md-6 mb-3">
-                                            <div class="form-group">
-                                                <label for="vendor_id" class="form-label">
-                                                    {{ __('catalogmanagement::product.vendor') }}
-                                                    @if(auth()->user()->user_type_id == App\Models\UserType::SUPER_ADMIN_TYPE || auth()->user()->user_type_id == App\Models\UserType::ADMIN_TYPE)
+                                        @if(in_array(auth()->user()->user_type_id, \App\Models\UserType::vendorIds()))
+                                            <!-- Hidden input for vendor users -->
+                                            <input class="form-control" type="hidden" name="vendor_id" id="vendor_id" value="{{ auth()->user()->vendor->id ?? '' }}">
+                                        @else
+                                            <!-- Vendor select for admin users -->
+                                            <div class="col-md-6 mb-3">
+                                                <div class="form-group">
+                                                    <label for="vendor_id" class="form-label">
+                                                        {{ __('catalogmanagement::product.vendor') }}
                                                         <span class="text-danger">*</span>
-                                                    @endif
-                                                </label>
-                                                <select name="vendor_id" id="vendor_id" class="form-control select2"
-                                                    @if(auth()->user()->user_type_id == App\Models\UserType::VENDOR_TYPE && count($vendors) == 1) readonly @endif>
-                                                    @if(auth()->user()->user_type_id == App\Models\UserType::SUPER_ADMIN_TYPE || auth()->user()->user_type_id == App\Models\UserType::ADMIN_TYPE)
+                                                    </label>
+                                                    <select name="vendor_id" id="vendor_id" class="form-control select2">
                                                         <option value="">{{ __('common.select_option') }}</option>
-                                                    @endif
-                                                    @foreach($vendors as $vendor)
-                                                        <option value="{{ $vendor['id'] }}" {{ isset($product) && $product->vendor_id == $vendor['id'] ? 'selected' : '' }}
-                                                            @if(auth()->user()->user_type_id == App\Models\UserType::VENDOR_TYPE || (isset($product) && $product->vendor_id == $vendor['id'])) selected @endif>
-                                                            {{ $vendor['name'] }}
-                                                        </option>
-                                                    @endforeach
-                                                </select>
-                                                <div class="error-message text-danger" id="error-vendor_id" style="display: none;"></div>
+                                                        @foreach($vendors as $vendor)
+                                                            <option value="{{ $vendor['id'] }}" {{ isset($product) && $product->vendor_id == $vendor['id'] ? 'selected' : '' }}>
+                                                                {{ $vendor['name'] }}
+                                                            </option>
+                                                        @endforeach
+                                                    </select>
+                                                    <div class="error-message text-danger" id="error-vendor_id" style="display: none;"></div>
+                                                </div>
                                             </div>
-                                        </div>
                                         @endif
 
 
@@ -339,13 +337,12 @@
                                                     @else
                                                         التفاصيل باللغة العربية
                                                     @endif
-                                                    <span class="text-danger">*</span>
                                                 </label>
                                                 <textarea name="translations[{{ $language->id }}][details]" id="details_{{ $language->code }}"
                                                     class="form-control ih-medium ip-gray radius-xs b-light px-15 tinymce-editor"
                                                     rows="6"
                                                     placeholder="{{ $language->code == 'ar' ? 'أدخل تفاصيل المنتج' : 'Enter product details' }}"
-                                                    dir="{{ $language->code == 'ar' ? 'rtl' : 'ltr' }}" required></textarea>
+                                                    dir="{{ $language->code == 'ar' ? 'rtl' : 'ltr' }}"></textarea>
                                                 <div class="error-message text-danger" id="error-translations-{{ $language->id }}-details" style="display: none;"></div>
                                             </div>
                                         </div>
@@ -485,7 +482,7 @@
                             </div>
                         </div>
 
-                        <!-- Step 3: Pricing & Inventory -->
+                        <!-- Step 3: Variant Configurations -->
                         <div class="wizard-step-content" data-step="3" style="display: none;">
                             <!-- Configuration Type -->
                             <div class="card mb-4">
@@ -504,107 +501,6 @@
                                                     <option value="variants">{{ __('common.with_variants') }}</option>
                                                 </select>
                                                 <div class="error-message text-danger" id="error-configuration_type" style="display: none;"></div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Simple Product Details (shown when "simple" is selected) -->
-                            <div id="simple-product-section" style="display: none;">
-                                <!-- Card 1: Product Details -->
-                                <div class="card mb-4">
-                                    <div class="card-body">
-                                        <h5 class="mb-4">
-                                            <i class="uil uil-receipt"></i>
-                                            {{ __('catalogmanagement::product.product_details') }}
-                                        </h5>
-                                        <div class="row">
-                                            <div class="col-md-6 mb-3">
-                                                <div class="form-group">
-                                                    <label for="simple_sku" class="form-label">{{ __('catalogmanagement::product.sku') }} <span class="text-danger">*</span></label>
-                                                    <input type="text" name="simple_sku" id="simple_sku" class="form-control ih-medium ip-gray radius-xs b-light px-15" placeholder="Enter SKU">
-                                                </div>
-                                            </div>
-
-                                            <div class="col-md-6 mb-3">
-                                                <div class="form-group">
-                                                    <label for="price" class="form-label">{{ __('catalogmanagement::product.price') }} <span class="text-danger">*</span></label>
-                                                    <input type="number" name="price" id="price" class="form-control ih-medium ip-gray radius-xs b-light px-15" min="0" step="0.01" placeholder="Enter price">
-                                                </div>
-                                            </div>
-
-                                            <div class="col-md-12 mb-3">
-                                                <div class="form-group">
-                                                    <label for="has_discount" class="form-label d-block">{{ __('common.enable_discount') }}</label>
-                                                    <div class="form-check form-switch form-switch-lg">
-                                                        <input class="form-check-input" type="checkbox" role="switch" id="has_discount" name="has_discount" value="1">
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <!-- Discount Fields (shown when discount is checked) -->
-                                            <div id="discount-fields" style="display: none;" class="col-md-12">
-                                                <div class="row">
-                                                    <div class="col-md-6 mb-3">
-                                                        <div class="form-group">
-                                                            <label for="price_before_discount" class="form-label">{{ __('common.price_before_discount') }}</label>
-                                                            <input type="number" name="price_before_discount" id="price_before_discount" class="form-control ih-medium ip-gray radius-xs b-light px-15" min="0" step="0.01" placeholder="{{ __('common.price_before_discount') }}">
-                                                        </div>
-                                                    </div>
-
-                                                    <div class="col-md-6 mb-3">
-                                                        <div class="form-group">
-                                                            <label for="offer_end_date" class="form-label">{{ __('common.offer_end_date') }}</label>
-                                                            <input type="date" name="offer_end_date" id="offer_end_date" class="form-control ih-medium ip-gray radius-xs b-light px-15">
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <h5 class="mb-0 d-flex justify-content-between align-items-center mb-4">
-                                            <div>
-                                                <i class="uil uil-package"></i>
-                                                {{ __('catalogmanagement::product.stock_per_region') }}
-                                            </div>
-                                            <button type="button" id="add-stock-row" class="btn btn-primary btn-sm">
-                                                <i class="uil uil-plus"></i> {{ __('common.add_new_region') }}
-                                            </button>
-                                        </h5>
-
-                                        <!-- Empty state message -->
-                                        <div id="stock-empty-state" class="text-center py-4">
-                                            <i class="uil uil-package text-muted" style="font-size: 48px;"></i>
-                                            <p class="text-muted mb-0">{{ __('common.no_regions_added') }}</p>
-                                        </div>
-
-                                        <!-- Stock table (hidden initially) -->
-                                        <div id="stock-table-container" style="display: none;">
-                                            <div class="userDatatable global-shadow border-light-0 p-30 bg-white radius-xl w-100">
-                                                <div class="table-responsive">
-                                                    <table class="table mb-0 table-bordered table-hover" id="stock-table" style="width:100%">
-                                                        <thead>
-                                                            <tr class="userDatatable-header">
-                                                                <th><span class="userDatatable-title">#</span></th>
-                                                                <th><span class="userDatatable-title">{{ __('catalogmanagement::product.region') }}</span></th>
-                                                                <th><span class="userDatatable-title">{{ __('catalogmanagement::product.stock_quantity') }}</span></th>
-                                                                <th><span class="userDatatable-title">{{ __('common.actions') }}</span></th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody id="stock-rows">
-                                                            <!-- Stock rows will be added here -->
-                                                        </tbody>
-                                                        <tfoot>
-                                                            <tr class="table-light">
-                                                                <td colspan="2" class="text-end fw-bold">{{ __('common.total') }} {{ __('catalogmanagement::product.stock') }}:</td>
-                                                                <td class="fw-bold text-primary">
-                                                                    <span id="total-stock">0</span>
-                                                                </td>
-                                                                <td>-</td>
-                                                            </tr>
-                                                        </tfoot>
-                                                    </table>
-                                                </div>
                                             </div>
                                         </div>
                                     </div>

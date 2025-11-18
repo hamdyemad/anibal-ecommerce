@@ -74,34 +74,17 @@
                     <span class="toggle-icon"></span>
                 </a>
                 <ul class="px-0">
-                    @can('products.create')
                     <li>
                         <a class="d-flex align-items-center justify-content-between fw-bold" href="{{ route('admin.products.create') }}">
                             {{ trans('menu.products.create') }}
                         </a>
                     </li>
-                    @endcan
 
-                    @can('products.view')
                     <li>
-                        <a class="d-flex align-items-center justify-content-between fw-bold" href="{{ route('admin.dashboard') }}">
+                        <a class="d-flex align-items-center justify-content-between fw-bold" href="{{ route('admin.products.index') }}">
                             {{ trans('menu.products.all') }}
-                            <span class="badge badge-round badge-primary ms-1">250</span>
                         </a>
                     </li>
-                    <li>
-                        <a class="d-flex align-items-center justify-content-between fw-bold" href="{{ route('admin.dashboard') }}">
-                            {{ trans('menu.products.in stock') }}
-                            <span class="badge badge-round badge-success ms-1">200</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a class="d-flex align-items-center justify-content-between fw-bold" href="{{ route('admin.dashboard') }}">
-                            {{ trans('menu.products.out of stock') }}
-                            <span class="badge badge-round badge-danger ms-1">50</span>
-                        </a>
-                    </li>
-                    @endcan
                 </ul>
             </li>
         @endcanany
@@ -714,6 +697,7 @@
         </li>
         @endcan
 
+        {{-- Vendor Menu Items --}}
         {{-- <li class="has-child">
             <a href="#" class="">
                 <span class="nav-icon uil uil-window-section"></span>

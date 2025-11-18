@@ -48,6 +48,19 @@
             'create' => 'إضافة',
             'in stock' => 'متوفر',
             'out of stock' => 'غير متوفر',
+            'manage stock & pricing' => 'إدارة المخزون والتسعير',
+        ],
+        'product bank' => [
+            'title' => 'بنك المنتجات',
+            'bank products' => 'منتجات البنك',
+            'vendor product requests' => 'طلبات منتجات البائعين',
+            'vendor products by vendor' => 'منتجات البائعين حسب البائع',
+        ],
+        'vendor products' => [
+            'title' => 'منتجات البائع',
+            'product requests' => 'طلبات المنتجات',
+            'available bank products' => 'منتجات البنك المتاحة',
+            'my products' => 'منتجاتي',
         ],
         'area settings' => [
             'title' => 'إعدادات المنطقة',

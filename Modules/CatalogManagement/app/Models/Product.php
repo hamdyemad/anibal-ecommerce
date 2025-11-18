@@ -3,6 +3,7 @@
 namespace Modules\CatalogManagement\app\Models;
 
 use App\Models\Attachment;
+use App\Models\User;
 use App\Traits\HasSlug;
 use App\Traits\Translation;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -103,14 +104,31 @@ class Product extends Model
     }
 
     /**
-     * Get the vendor
+     * Get the user who created this product
      */
-    public function vendor()
+    public function createdBy()
     {
-        return $this->belongsTo(Vendor::class);
+        return $this->belongsTo(User::class, 'created_by');
     }
 
 
+    /**
+     * Get vendors that have added this product
+     */
+    public function vendorProducts()
+    {
+        return $this->hasMany(VendorProduct::class);
+    }
+
+    /**
+     * Get vendors through vendor_products
+     */
+    public function vendors()
+    {
+        return $this->belongsToMany(Vendor::class, 'vendor_products')
+                    ->withPivot('status', 'rejection_reason')
+                    ->withTimestamps();
+    }
 
     /**
      * Get the route key for the model

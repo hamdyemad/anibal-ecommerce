@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Log;
 use Exception;
 use Illuminate\Validation\ValidationException;
 use Modules\CatalogManagement\app\Models\Product;
+use Modules\CatalogManagement\app\Models\VendorProduct;
 use App\Services\LanguageService;
 use Modules\AreaSettings\app\Resources\RegionResource;
 use Modules\AreaSettings\app\Services\RegionService;
@@ -99,7 +100,7 @@ class ProductController extends Controller
         $vendors = [];
         $currentUser = Auth::user();
         $userType = $currentUser->user_type_id;
-        if (in_array($userType, [UserType::SUPER_ADMIN_TYPE, UserType::ADMIN_TYPE])) {
+        if (in_array($userType, UserType::adminIds())) {
             // Admin/Super Admin can select any vendor
             $vendorsData = $this->vendorService->getAllVendors([], 0);
             $vendors = $vendorsData->map(function($vendor) {
@@ -108,7 +109,7 @@ class ProductController extends Controller
                     'name' => $vendor->getTranslation('name', app()->getLocale())
                 ];
             })->toArray();
-        } elseif ($userType === UserType::VENDOR_TYPE) {
+        } elseif (in_array($userType, UserType::vendorIds())) {
             // Vendor can only create products for themselves
             $vendor = $currentUser->vendor;
             if ($vendor) {
@@ -227,7 +228,7 @@ class ProductController extends Controller
         $currentUser = Auth::user();
         $userType = $currentUser->user_type_id;
 
-        if (in_array($userType, [UserType::SUPER_ADMIN_TYPE, UserType::ADMIN_TYPE])) {
+        if (in_array($userType, UserType::adminIds())) {
             // Admin/Super Admin can select any vendor
             $vendorsData = $this->vendorService->getAllVendors([], 0);
             $vendors = $vendorsData->map(function($vendor) {
@@ -236,7 +237,7 @@ class ProductController extends Controller
                     'name' => $vendor->getTranslation('name', app()->getLocale())
                 ];
             })->toArray();
-        } elseif ($userType === UserType::VENDOR_TYPE) {
+        } elseif (in_array($userType, UserType::vendorIds())) {
             // Vendor can only create products for themselves
             $vendor = $currentUser->vendor;
             if ($vendor) {
@@ -341,4 +342,5 @@ class ProductController extends Controller
             ], 500);
         }
     }
+
 }

@@ -251,6 +251,7 @@
                             const showUrl = "{{ route('admin.products.show', ':id') }}".replace(':id', data.id);
                             const editUrl = "{{ route('admin.products.edit', ':id') }}".replace(':id', data.id);
                             const destroyUrl = "{{ route('admin.products.destroy', ':id') }}".replace(':id', data.id);
+                            const stockPricingUrl = "{{ route('admin.products.manage-pricing-stock', ':id') }}".replace(':id', data.id);
 
                             return `
                             <div class="orderDatatable_actions d-inline-flex gap-1">
@@ -262,6 +263,11 @@
                                 @can('products.edit')
                                 <a href="${editUrl}" class="edit btn btn-warning table_action_father" title="{{ trans('common.edit') }}">
                                     <i class="uil uil-edit table_action_icon"></i>
+                                </a>
+                                @endcan
+                                @can('products.edit')
+                                <a href="${stockPricingUrl}" class="stock-pricing btn btn-info table_action_father" title="{{ trans('catalogmanagement::product.manage_stock_pricing') }}">
+                                    <i class="uil uil-package table_action_icon"></i>
                                 </a>
                                 @endcan
                                 @can('products.delete')

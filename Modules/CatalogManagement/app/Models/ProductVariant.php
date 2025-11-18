@@ -22,6 +22,9 @@ class ProductVariant extends Model
         'discount_end_date' => 'date',
     ];
 
+    // Note: Price-related fields have been moved to VendorProductVariant table
+    // This model now only stores variant configuration (key, value, etc.)
+
     /**
      * The field to generate slug from (for HasSlug trait)
      */
@@ -52,7 +55,7 @@ class ProductVariant extends Model
     }
 
     /**
-     * Get the variant stocks
+     * Get the variant stocks (deprecated - use vendorProductVariants instead)
      */
     public function stocks()
     {
@@ -60,22 +63,10 @@ class ProductVariant extends Model
     }
 
     /**
-     * Get the effective price (with discount if applicable)
+     * Get vendor-specific product variants with pricing
      */
-    public function getEffectivePrice()
+    public function vendorProductVariants()
     {
-        if ($this->has_discount && $this->discount_end_date && $this->discount_end_date->isFuture()) {
-            return $this->discount_price;
-        }
-
-        return $this->price;
-    }
-
-    /**
-     * Get total stock across all regions
-     */
-    public function getTotalStock()
-    {
-        return $this->stocks()->sum('stock');
+        return $this->hasMany(VendorProductVariant::class);
     }
 }

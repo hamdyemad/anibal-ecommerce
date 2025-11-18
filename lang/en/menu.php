@@ -56,6 +56,19 @@
             'create' => 'create',
             'in stock' => 'in stock',
             'out of stock' => 'out of stock',
+            'manage stock & pricing' => 'manage stock & pricing',
+        ],
+        'product bank' => [
+            'title' => 'product bank',
+            'bank products' => 'bank products',
+            'vendor product requests' => 'vendor product requests',
+            'vendor products by vendor' => 'vendor products by vendor',
+        ],
+        'vendor products' => [
+            'title' => 'vendor products',
+            'product requests' => 'product requests',
+            'available bank products' => 'available bank products',
+            'my products' => 'my products',
         ],
         'area settings' => [
             'title' => 'area settings',

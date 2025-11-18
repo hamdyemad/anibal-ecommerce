@@ -50,7 +50,7 @@ class StoreProductRequest extends FormRequest
             // Translations
             'translations' => 'required|array|min:1',
             'translations.*.title' => 'required|string|max:255',
-            'translations.*.details' => 'required|string',
+            'translations.*.details' => 'nullable|string',
             'translations.*.summary' => 'nullable|string',
             'translations.*.features' => 'nullable|string',
             'translations.*.instructions' => 'nullable|string',
