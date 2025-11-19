@@ -53,8 +53,15 @@
             <ul class="px-0">
                 <li>
                     <a class="d-flex align-items-center justify-content-between fw-bold"
-                        href="{{ url('admin.sendMoney') }}">
+                        href="{{ route('admin.sendMoney') }}">
                         Send money
+                    </a>
+                </li>
+
+                <li>
+                    <a class="d-flex align-items-center justify-content-between fw-bold"
+                        href="{{ route('admin.allTransactions') }}">
+                        All Transactions
                     </a>
                 </li>
             </ul>

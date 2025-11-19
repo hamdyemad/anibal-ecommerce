@@ -33,6 +33,10 @@ return new class extends Migration
 
             $table->text("after_sending_amount");
 
+            $table->text("invoice")->nullable();
+
+            $table->enum("status", ["new","accepted","rejected"]);
+
             $table->timestamps();
         });
     }
