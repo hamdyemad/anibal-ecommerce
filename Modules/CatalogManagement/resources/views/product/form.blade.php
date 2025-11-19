@@ -722,6 +722,9 @@ window.productFormConfig = {
     rootVariantsLabel: '{{ __('common.root_variants_label') }}',
     selectedColon: '{{ __('common.selected_colon') }}',
     pleaseSelectVariant: '{{ __('common.please_select_variant') }}',
+    variantSelected: '{{ __('common.variant_selected') ?? 'Variant configuration selected' }}',
+    errorLoadingTree: '{{ __('common.error_loading_tree') ?? 'Error loading variant tree' }}',
+    noVariantKeys: '{{ __('common.no_variant_keys') ?? 'No variant keys available' }}',
     addNewRegion: '{{ __('common.add_new_region') }}',
     actionsLabel: '{{ __('common.actions') }}',
     languages: [
@@ -742,6 +745,16 @@ window.productFormConfig = {
                 id: {{ $tax['id'] ?? 0 }},
                 name: '{{ addslashes($tax['name'] ?? 'Unknown') }}',
                 percentage: {{ is_numeric($tax['percentage']) ? $tax['percentage'] : 0 }}
+            }{{ !$loop->last ? ',' : '' }}
+            @endforeach
+        @endif
+    ],
+    variantKeys: [
+        @if(isset($variantKeys))
+            @foreach($variantKeys as $variantKey)
+            {
+                id: {{ $variantKey['id'] ?? 0 }},
+                name: '{{ addslashes($variantKey['name'] ?? 'Unknown') }}'
             }{{ !$loop->last ? ',' : '' }}
             @endforeach
         @endif
@@ -767,81 +780,104 @@ window.productFormConfig = {
     // Preserve selected values for edit mode
     selectedValues: {
         @if(isset($product))
-        brand_id: {{ $product->product->brand_id ?? 'null' }},
-        vendor_id: {{ $product->vendor_id ?? 'null' }},
-        department_id: {{ $product->product->department_id ?? 'null' }},
-        category_id: {{ $product->product->category_id ?? 'null' }},
-        sub_category_id: {{ $product->product->sub_category_id ?? 'null' }},
-        tax_id: {{ $product->tax_id ?? 'null' }},
-        configuration_type: '{{ $product->configuration_type ?? $product->product->configuration_type ?? '' }}',
-        hasVariants: {{ isset($product) && $product->variants && $product->variants->count() > 0 ? 'true' : 'false' }},
-        variantsCount: {{ isset($product) && $product->variants ? $product->variants->count() : 0 }},
-        // Product details for simple products
-        @if(isset($product) && ($product->configuration_type ?? $product->product->configuration_type ?? '') == 'simple')
-        productSku: '{{ addslashes($product->product->sku ?? '') }}',
-        productPrice: {{ $product->product->price ?? 0 }},
-        productHasDiscount: {{ isset($product->product->has_discount) && $product->product->has_discount ? 'true' : 'false' }},
-        productPriceBeforeDiscount: {{ $product->product->price_before_discount ?? 0 }},
-        productOfferEndDate: '{{ $product->product->offer_end_date ?? '' }}',
-        @else
-        productSku: '',
-        productPrice: 0,
-        productHasDiscount: false,
-        productPriceBeforeDiscount: 0,
-        productOfferEndDate: '',
-        @endif
-        // Existing variants data
-        @if(isset($product) && $product->variants && $product->variants->count() > 0)
-        existingVariants: [
-            @foreach($product->variants as $variant)
-            {
-                id: {{ $variant->id }},
-                sku: '{{ addslashes($variant->sku ?? '') }}',
-                price: {{ $variant->price ?? 0 }},
-                has_discount: {{ $variant->has_discount ? 'true' : 'false' }},
-                price_before_discount: {{ $variant->price_before_discount ?? 0 }},
-                offer_end_date: '{{ $variant->offer_end_date ?? '' }}',
-                key_id: {{ $variant->key_id ?? 'null' }},
-                value_id: {{ $variant->value_id ?? 'null' }},
-                // Add stock data if available
-                stocks: [
-                    @if($variant->stocks)
-                        @foreach($variant->stocks as $stock)
-                        {
-                            region_id: {{ $stock->region_id }},
-                            quantity: {{ $stock->quantity ?? 0 }}
-                        }{{ !$loop->last ? ',' : '' }}
-                        @endforeach
+            brand_id: {{ $product->product->brand_id ?? 'null' }},
+            vendor_id: {{ $product->vendor_id ?? 'null' }},
+            department_id: {{ $product->product->department_id ?? 'null' }},
+            category_id: {{ $product->product->category_id ?? 'null' }},
+            sub_category_id: {{ $product->product->sub_category_id ?? 'null' }},
+            tax_id: {{ $product->tax_id ?? 'null' }},
+            configuration_type: '{{ $product->configuration_type ?? $product->product->configuration_type ?? '' }}',
+            hasVariants: {{ isset($product) && $product->variants && $product->variants->count() > 0 ? 'true' : 'false' }},
+            variantsCount: {{ isset($product) && $product->variants ? $product->variants->count() : 0 }},
+            // Product details for simple products
+            @if(isset($product) && ($product->configuration_type ?? $product->product->configuration_type ?? '') == 'simple')
+                productSku: '{{ addslashes($product->variants && $product->variants->first() ? $product->variants->first()->sku : '') }}',
+                productPrice: {{ $product->variants && $product->variants->first() ? $product->variants->first()->price : 0 }},
+                productHasDiscount: {{ $product->variants && $product->variants->first() && $product->variants->first()->has_offer ? 'true' : 'false' }},
+                productPriceBeforeDiscount: {{ $product->variants && $product->variants->first() ? $product->variants->first()->price_before_discount : 0 }},
+                productOfferEndDate: '{{ $product->variants && $product->variants->first() ? $product->variants->first()->offer_end_date : '' }}',
+            @else
+                productSku: '',
+                productPrice: 0,
+                productHasDiscount: false,
+                productPriceBeforeDiscount: 0,
+                productOfferEndDate: '',
+            @endif
+            // Existing variants data
+            @if(isset($product) && $product->variants && $product->variants->count() > 0)
+                existingVariants: [
+                    @foreach($product->variants as $variant)
+                    {
+                        id: {{ $variant->id }},
+                        sku: '{{ addslashes($variant->sku ?? '') }}',
+                        price: {{ $variant->price ?? 0 }},
+                        has_discount: {{ $variant->has_offer ? 'true' : 'false' }},
+                        price_before_discount: {{ $variant->price_before_discount ?? 0 }},
+                        offer_end_date: '{{ $variant->offer_end_date ?? '' }}',
+                        key_id: {{ $variant->key_id ?? 'null' }},
+                        value_id: {{ $variant->value_id ?? 'null' }},
+                        // Add stock data if available
+                        stocks: [
+                            @if($variant->stocks && $variant->stocks->count() > 0)
+                                @foreach($variant->stocks as $stock)
+                                {
+                                    region_id: {{ $stock->region_id ?? 0 }},
+                                    quantity: {{ $stock->quantity ?? 0 }},
+                                    region_name: '{{ addslashes($stock->region && method_exists($stock->region, 'getTranslation') ? $stock->region->getTranslation('name', app()->getLocale()) : ($stock->region->name ?? 'Unknown Region')) }}'
+                                }{{ !$loop->last ? ',' : '' }}
+                                @endforeach
+                            @endif
+                        ]
+                    }{{ !$loop->last ? ',' : '' }}
+                    @endforeach
+                ],
+                // Debug info for variants
+                debugVariants: {
+                    hasProduct: {{ isset($product) ? 'true' : 'false' }},
+                    hasVariants: {{ isset($product) && $product->variants ? 'true' : 'false' }},
+                    variantsCount: {{ isset($product) && $product->variants ? $product->variants->count() : 0 }},
+                    @if(isset($product) && $product->variants && $product->variants->count() > 0)
+                        firstVariantHasStocks: {{ $product->variants->first()->stocks && $product->variants->first()->stocks->count() > 0 ? 'true' : 'false' }},
+                        firstVariantStocksCount: {{ $product->variants->first()->stocks ? $product->variants->first()->stocks->count() : 0 }}
                     @endif
-                ]
-            }{{ !$loop->last ? ',' : '' }}
-            @endforeach
-        ],
+                },
+            @else
+                existingVariants: [],
+                debugVariants: {
+                    hasProduct: {{ isset($product) ? 'true' : 'false' }},
+                    hasVariants: false,
+                    variantsCount: 0
+                },
+            @endif
         @else
-        existingVariants: [],
-        @endif
-        @else
-        brand_id: null,
-        vendor_id: null,
-        department_id: null,
-        category_id: null,
-        sub_category_id: null,
-        tax_id: null,
-        configuration_type: null,
-        hasVariants: false,
-        variantsCount: 0,
-        productSku: '',
-        productPrice: 0,
-        productHasDiscount: false,
-        productPriceBeforeDiscount: 0,
-        productOfferEndDate: '',
-        existingVariants: [],
+            brand_id: null,
+            vendor_id: null,
+            department_id: null,
+            category_id: null,
+            sub_category_id: null,
+            tax_id: null,
+            configuration_type: null,
+            hasVariants: false,
+            variantsCount: 0,
+            productSku: '',
+            productPrice: 0,
+            productHasDiscount: false,
+            productPriceBeforeDiscount: 0,
+            productOfferEndDate: '',
+            existingVariants: [],
         @endif
     }
 };
 console.log('✅ productFormConfig loaded successfully:', window.productFormConfig);
 </script>
 
-<!-- Product Form External JavaScript (All Logic) -->
-@vite(['Modules/CatalogManagement/resources/assets/js/product-form.js'])
+<!-- Product Form Modular JavaScript -->
+@vite([
+    'Modules/CatalogManagement/resources/assets/js/modules/form-init.js',
+    'Modules/CatalogManagement/resources/assets/js/modules/form-edit.js',
+    'Modules/CatalogManagement/resources/assets/js/modules/form-variants.js',
+    'Modules/CatalogManagement/resources/assets/js/modules/form-validation.js',
+    'Modules/CatalogManagement/resources/assets/js/modules/form-wizard.js',
+    'Modules/CatalogManagement/resources/assets/js/product-form-refactored.js'
+])
 @endpush

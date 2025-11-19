@@ -106,4 +106,13 @@ class VariantConfigurationKeyRepository implements VariantConfigurationKeyReposi
         $variantKey->translations()->delete();
         return $variantKey->delete();
     }
+
+    /**
+     * Get variant configuration key with children tree for product form
+     */
+    public function getVariantKeyTree(int $keyId)
+    {
+        return VariantConfigurationKey::with(['childrenKeys.translations', 'translations'])
+            ->findOrFail($keyId);
+    }
 }

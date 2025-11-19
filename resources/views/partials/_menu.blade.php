@@ -155,34 +155,24 @@
                         <span class="badge badge-round badge-primary ms-1">20</span>
                     </a>
                 </li>
-            </ul>
-        </li>
-
-        @canany(['variant-keys.view', 'variant-keys.create'])
-            <li class="has-child">
-                <a href="#" class="">
-                    <span class="nav-icon uil uil-box"></span>
-                    <span class="menu-text">{{ trans('menu.variant configurations.title') }}</span>
-                    <span class="toggle-icon"></span>
-                </a>
-                <ul class="px-0">
+                @canany(['variant-keys.view', 'variant-keys.create'])
                     <li>
                         <a class="d-flex align-items-center justify-content-between fw-bold"
                             href="{{ route('admin.variant-keys.index') }}">
                             {{ trans('menu.variant configurations.variant config keys') }}
-                            <span class="badge badge-round badge-primary ms-1">20</span>
+                            <span class="badge badge-round badge-info ms-1">20</span>
                         </a>
                     </li>
                     <li>
                         <a class="d-flex align-items-center justify-content-between fw-bold"
                             href="{{ route('admin.variants-configurations.index') }}">
                             {{ trans('menu.variant configurations.variant config') }}
-                            <span class="badge badge-round badge-primary ms-1">10</span>
+                            <span class="badge badge-round badge-success ms-1">10</span>
                         </a>
                     </li>
-                </ul>
-            </li>
-        @endcanany
+                @endcanany
+            </ul>
+        </li>
         @can('reviews.view')
             <li class="has-child">
                 <a href="#" class="">
