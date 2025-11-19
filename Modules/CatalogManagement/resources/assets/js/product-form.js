@@ -47,7 +47,326 @@ jQuery(document).ready(function () {
                 placeholder: emptyOptionText || 'Select An Option'
             });
         });
+
+        // Initialize edit mode if needed
+        if (window.productFormConfig?.isEditMode) {
+            initializeEditMode();
+
+            // Debug: Log department select state after initialization
+            setTimeout(() => {
+                debugDepartmentSelect();
+            }, 1000);
+        }
     }, 100);
+
+    // Function to initialize edit mode without triggering change events
+    function initializeEditMode() {
+        console.log("🔧 Initializing edit mode...");
+
+        const selectedValues = window.productFormConfig?.selectedValues;
+        if (!selectedValues) return;
+
+        // Load departments first (like in create mode), then set selected values
+        if (selectedValues.vendor_id) {
+            loadDepartmentsForEdit(selectedValues.vendor_id, selectedValues.department_id);
+        }
+
+        // Load categories for selected department if needed
+        if (selectedValues.department_id && selectedValues.category_id) {
+            setTimeout(() => {
+                loadCategoriesForEdit(selectedValues.department_id, selectedValues.category_id);
+            }, 300);
+        }
+
+        // Load subcategories for selected category if needed
+        if (selectedValues.category_id && selectedValues.sub_category_id) {
+            setTimeout(() => {
+                loadSubCategoriesForEdit(selectedValues.category_id, selectedValues.sub_category_id);
+            }, 600);
+        }
+
+        // Set configuration type and trigger appropriate sections
+        if (selectedValues.configuration_type) {
+            setTimeout(() => {
+                const configSelect = $('#configuration_type');
+                configSelect.val(selectedValues.configuration_type);
+
+                // Trigger change to show appropriate sections
+                configSelect.trigger('change');
+
+                console.log('🔧 Configuration type set to:', selectedValues.configuration_type);
+
+                // Populate product details after sections are shown
+                setTimeout(() => {
+                    populateProductDetailsForEdit();
+                }, 200);
+            }, 800);
+        }
+    }
+
+    // Function to load departments for edit mode (like create mode)
+    function loadDepartmentsForEdit(vendorId, selectedDepartmentId) {
+        console.log("🔧 Loading departments for edit mode, vendor:", vendorId);
+
+        const departmentsRoute = window.productFormConfig?.departmentsRoute || '/api/departments';
+        const url = `${departmentsRoute}?vendor_id=${vendorId}`;
+
+        fetch(url, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            const departmentSelect = $('#department_id');
+
+            // Clear and rebuild options
+            departmentSelect.empty().append('<option value="">Select Department</option>');
+
+            if (data && Array.isArray(data) && data.length > 0) {
+                data.forEach(dept => {
+                    departmentSelect.append(`<option value="${dept.id}">${dept.name}</option>`);
+                });
+
+                // Set selected value
+                if (selectedDepartmentId) {
+                    departmentSelect.val(selectedDepartmentId);
+                    console.log('🔧 Department loaded and selected for edit mode:', selectedDepartmentId);
+                }
+            } else if (data && data.data && Array.isArray(data.data) && data.data.length > 0) {
+                data.data.forEach(dept => {
+                    departmentSelect.append(`<option value="${dept.id}">${dept.name}</option>`);
+                });
+
+                // Set selected value
+                if (selectedDepartmentId) {
+                    departmentSelect.val(selectedDepartmentId);
+                    console.log('🔧 Department loaded and selected for edit mode:', selectedDepartmentId);
+                }
+            }
+
+            // Refresh Select2 without triggering change
+            if (departmentSelect.data('select2')) {
+                departmentSelect.select2('destroy');
+            }
+            departmentSelect.select2({
+                theme: 'bootstrap-5',
+                width: '100%',
+                allowClear: false
+            });
+        })
+        .catch(error => console.error("❌ Error loading departments for edit:", error));
+    }
+
+    // Function to load categories without triggering events
+    function loadCategoriesForEdit(departmentId, selectedCategoryId) {
+        const url = `${window.productFormConfig.categoriesRoute}?department_id=${departmentId}&select2=1`;
+        console.log("🔧 Loading categories for edit mode:", url);
+
+        fetch(url, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+                Accept: "application/json",
+                "X-Requested-With": "XMLHttpRequest",
+            },
+        })
+        .then(response => response.json())
+        .then(response => {
+            const categorySelect = $("#category_id");
+            categorySelect.empty().append('<option value="">Select Category</option>');
+
+            if (response.status && response.data && response.data.length > 0) {
+                response.data.forEach(category => {
+                    categorySelect.append(`<option value="${category.id}">${category.name}</option>`);
+                });
+                categorySelect.val(selectedCategoryId);
+                console.log("🔧 Categories loaded and selected for edit mode");
+            }
+        })
+        .catch(error => console.error("❌ Error loading categories for edit:", error));
+    }
+
+    // Function to load subcategories without triggering events
+    function loadSubCategoriesForEdit(categoryId, selectedSubCategoryId) {
+        const url = `${window.productFormConfig.subCategoriesRoute}?category_id=${categoryId}`;
+        console.log("🔧 Loading subcategories for edit mode:", url);
+
+        fetch(url, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+                Accept: "application/json",
+                "X-Requested-With": "XMLHttpRequest",
+            },
+        })
+        .then(response => response.json())
+        .then(response => {
+            const subCategorySelect = $("#sub_category_id");
+            subCategorySelect.empty().append('<option value="">Select Sub Category</option>');
+
+            if (response.status && response.data && response.data.length > 0) {
+                response.data.forEach(subcategory => {
+                    subCategorySelect.append(`<option value="${subcategory.id}">${subcategory.name}</option>`);
+                });
+            }
+        })
+        .catch(error => {
+            console.error('❌ Error fetching departments:', error);
+            const departmentSelect = $('#department_id');
+            departmentSelect.empty().append('<option value="">Error loading departments</option>');
+
+            // Refresh Select2
+            if (departmentSelect.data('select2')) {
+                departmentSelect.select2('destroy');
+            }
+            departmentSelect.select2({
+                theme: 'bootstrap-5',
+                width: '100%',
+                allowClear: false
+            });
+        });
+    }
+
+    // Function to populate product details in edit mode
+    function populateProductDetailsForEdit() {
+        const config = window.productFormConfig;
+        const selectedValues = config?.selectedValues;
+
+        if (!selectedValues || !config.isEditMode) {
+            return;
+        }
+
+        console.log('🔧 Populating product details for edit mode');
+
+        if (selectedValues.configuration_type === 'simple') {
+            // Populate simple product fields
+            populateSimpleProductFields();
+        } else if (selectedValues.configuration_type === 'variants' && config.existingVariants?.length > 0) {
+            // Populate existing variants
+            populateExistingVariants();
+        }
+    }
+
+    // Function to populate simple product fields
+    function populateSimpleProductFields() {
+        const config = window.productFormConfig;
+        const selectedValues = config?.selectedValues;
+
+        console.log('🔧 Populating simple product fields');
+
+        // Set SKU
+        if (selectedValues.productSku) {
+            $('#sku').val(selectedValues.productSku);
+            console.log('🔧 Set SKU:', selectedValues.productSku);
+        }
+
+        // Set Price
+        if (selectedValues.productPrice) {
+            $('#price').val(selectedValues.productPrice);
+            console.log('🔧 Set Price:', selectedValues.productPrice);
+        }
+
+        // Set Discount
+        if (selectedValues.productHasDiscount) {
+            $('.simple-discount-toggle').prop('checked', true).trigger('change');
+
+            if (selectedValues.productPriceBeforeDiscount) {
+                $('input[name="price_before_discount"]').val(selectedValues.productPriceBeforeDiscount);
+            }
+
+            if (selectedValues.productOfferEndDate) {
+                $('input[name="offer_end_date"]').val(selectedValues.productOfferEndDate);
+            }
+
+            console.log('🔧 Set Discount fields');
+        }
+    }
+
+    // Function to populate existing variants
+    function populateExistingVariants() {
+        const config = window.productFormConfig;
+        const existingVariants = config?.existingVariants || [];
+
+        console.log('🔧 Populating existing variants:', existingVariants.length);
+
+        existingVariants.forEach((variant, index) => {
+            // Add variant box
+            addVariantBox();
+
+            // Populate variant fields
+            setTimeout(() => {
+                const variantIndex = index + 1; // addVariantBox increments from 1
+
+                // Set SKU
+                if (variant.sku) {
+                    $(`input[name="variants[${variantIndex}][sku]"]`).val(variant.sku);
+                }
+
+                // Set Price
+                if (variant.price) {
+                    $(`input[name="variants[${variantIndex}][price]"]`).val(variant.price);
+                }
+
+                // Set Discount
+                if (variant.has_discount) {
+                    $(`.variant-discount-toggle[name="variants[${variantIndex}][has_discount]"]`).prop('checked', true).trigger('change');
+
+                    if (variant.price_before_discount) {
+                        $(`input[name="variants[${variantIndex}][price_before_discount]"]`).val(variant.price_before_discount);
+                    }
+
+                    if (variant.offer_end_date) {
+                        $(`input[name="variants[${variantIndex}][offer_end_date]"]`).val(variant.offer_end_date);
+                    }
+                }
+
+                console.log(`🔧 Populated variant ${variantIndex}:`, variant.sku);
+            }, 100 * (index + 1)); // Stagger the population
+        });
+    }
+
+    // Debug function to log department select state
+    function debugDepartmentSelect() {
+        console.log("🔍 DEBUG: Department Select State");
+        const departmentSelect = $("#department_id");
+        const selectedValues = window.productFormConfig?.selectedValues;
+
+        console.log("🔍 Department select element:", departmentSelect.length > 0 ? "Found" : "Not found");
+        console.log("🔍 Current selected value:", departmentSelect.val());
+        console.log("🔍 Expected value from config:", selectedValues?.department_id);
+        console.log("🔍 All options:", departmentSelect.find('option').map(function() {
+            return { value: $(this).val(), text: $(this).text(), selected: $(this).prop('selected') };
+        }).get());
+        console.log("🔍 Visible options:", departmentSelect.find('option:visible').length);
+        console.log("🔍 Hidden options:", departmentSelect.find('option:hidden').length);
+    }
+
+    // Manual fix function for department selection (can be called from console)
+    window.fixDepartmentSelection = function() {
+        console.log("🔧 Manual fix: Setting department selection...");
+        const departmentSelect = $("#department_id");
+        const selectedValues = window.productFormConfig?.selectedValues;
+
+        if (selectedValues?.department_id) {
+            // Show all options first
+            departmentSelect.find('option').show();
+
+            // Set the value
+            departmentSelect.val(selectedValues.department_id);
+
+            // Trigger Select2 update
+            departmentSelect.trigger('change.select2');
+
+            console.log("🔧 Department selection fixed:", selectedValues.department_id);
+            debugDepartmentSelect();
+        } else {
+            console.log("❌ No department ID found in config");
+        }
+    };
 
     // Helper function to filter departments by vendor activities
     function filterDepartmentsByVendor(vendorId) {
@@ -87,6 +406,10 @@ jQuery(document).ready(function () {
             // Reset with empty option
             departmentSelect.empty().append('<option value="">Select Department</option>');
 
+            // Store current selected value if in edit mode
+            const currentDepartmentId = window.productFormConfig?.selectedValues?.department_id;
+            console.log('🔧 Edit mode:', window.productFormConfig?.isEditMode);
+            console.log('🔧 Current department ID from config:', currentDepartmentId, typeof currentDepartmentId);
             // Handle API response
             if (data && Array.isArray(data) && data.length > 0) {
                 // If data is array of departments
@@ -118,6 +441,30 @@ jQuery(document).ready(function () {
                 width: '100%',
                 allowClear: false
             });
+
+            // Set selected value without triggering change in edit mode
+            if (window.productFormConfig?.isEditMode && currentDepartmentId && currentDepartmentId !== 'null') {
+                console.log('🔧 Setting department value:', currentDepartmentId);
+                console.log('🔧 Available options:', departmentSelect.find('option').map(function() { return $(this).val(); }).get());
+
+                // Set the value with a small delay to ensure DOM is ready
+                setTimeout(() => {
+                    departmentSelect.val(currentDepartmentId);
+
+                    // Trigger Select2 to refresh its display
+                    departmentSelect.trigger('change.select2');
+
+                    console.log('🔧 Department value after setting:', departmentSelect.val());
+                    console.log('🔧 Selected option text:', departmentSelect.find('option:selected').text());
+
+                    // Verify the selection is visible
+                    const selectedText = departmentSelect.select2('data')[0]?.text;
+                    console.log('🔧 Select2 displayed text:', selectedText);
+                }, 100);
+            } else if (!window.productFormConfig?.isEditMode && currentDepartmentId) {
+                // In create mode, trigger change to load categories
+                departmentSelect.val(currentDepartmentId).trigger('change');
+            }
         })
         .catch(error => {
             console.error('❌ Error fetching departments:', error);
@@ -155,8 +502,8 @@ jQuery(document).ready(function () {
         const vendorIdInput = $('#vendor_id');
         const vendorId = vendorIdInput.val();
 
-        // Only process if vendor_id has a value and it's a hidden input (vendor user)
-        if (vendorId && vendorIdInput.attr('type') === 'hidden') {
+        // Process if vendor_id has a value (both hidden input for vendor users and select for admin users)
+        if (vendorId) {
             console.log('📦 Loading departments for vendor:', vendorId);
             filterDepartmentsByVendor(vendorId);
         }
@@ -273,6 +620,12 @@ jQuery(document).ready(function () {
     function attachEventHandlers() {
         console.log("🔧 Attaching event handlers to Select2 dropdowns...");
 
+        // Debug: Check if elements exist
+        const deptElement = $("#department_id");
+        console.log("🔍 Department element found:", deptElement.length > 0);
+        console.log("🔍 Department element:", deptElement);
+        console.log("🔍 Has Select2:", deptElement.hasClass("select2-hidden-accessible"));
+
         // Initialize: Hide all departments except empty option until vendor is selected
         const vendorSelect = $("#vendor_id");
         const departmentSelect = $("#department_id");
@@ -281,10 +634,12 @@ jQuery(document).ready(function () {
         // Check if this is Admin/Super Admin (has vendorActivitiesMap with multiple vendors)
         const isAdminUser = Object.keys(vendorActivitiesMap).length > 0;
 
-        if (isAdminUser) {
+        if (isAdminUser && !window.productFormConfig?.isEditMode) {
             console.log("👤 Admin/Super Admin user detected - hiding departments until vendor selected");
             // Hide all department options except empty option
             departmentSelect.find("option[value!=''][data-activities]").hide();
+        } else if (window.productFormConfig?.isEditMode) {
+            console.log("🔧 Edit mode detected - keeping all department options visible");
         }
 
         // Vendor change handler - Filter departments based on vendor activities
@@ -292,6 +647,7 @@ jQuery(document).ready(function () {
             .off("change.productForm", "#vendor_id")
             .on("change.productForm", "#vendor_id", function (e) {
                 console.log("🎯 Vendor changed");
+
                 const vendorId = $(this).val();
 
                 if (vendorId) {
@@ -300,17 +656,42 @@ jQuery(document).ready(function () {
                 }
             });
 
-        // Department change handler - Use namespaced events and listen for select2:select
+        // Department change handler - Use namespaced events and listen for both change and select2:select
         // Use event delegation on the body to ensure it survives re-initialization
-        $(document)
-            .off("change.productForm", "#department_id")
-            .on("change.productForm", "#department_id", function (e) {
+        // IMPORTANT: Use a more specific event namespace to ensure this runs before the global error clearing handler
+        console.log("🔗 Attempting to bind department change handler...");
+        const departmentElement = $("#department_id");
+        console.log("🔍 Department element for binding:", departmentElement.length, departmentElement);
+
+        departmentElement
+            .off("change.departmentHandler select2:select.departmentHandler")
+            .on("change.departmentHandler select2:select.departmentHandler", function (e) {
                 console.log("🎯 Department event triggered:", e.type);
+                console.log("🎯 Event target:", e.target);
+                console.log("🎯 jQuery element:", $(this));
                 const departmentId = $(this).val();
                 console.log("🔄 Department changed:", departmentId);
+                console.log("🔄 Department ID type:", typeof departmentId);
+                console.log("🔄 Categories route:", window.productFormConfig.categoriesRoute);
+
+                // Skip processing if in edit mode and values are already set correctly
+                if (window.productFormConfig?.isEditMode) {
+                    const expectedDepartmentId = window.productFormConfig?.selectedValues?.department_id;
+                    const currentCategoryValue = $("#category_id").val();
+                    const currentSubCategoryValue = $("#sub_category_id").val();
+
+                    if (departmentId == expectedDepartmentId && currentCategoryValue && currentSubCategoryValue) {
+                        console.log("⏭️ Skipping department change processing - edit mode with correct values");
+                        return;
+                    }
+                }
 
                 const categorySelect = $("#category_id");
                 const subCategorySelect = $("#sub_category_id");
+
+                // Store current selected values if in edit mode
+                const currentCategoryId = window.productFormConfig?.selectedValues?.category_id;
+                const currentSubCategoryId = window.productFormConfig?.selectedValues?.sub_category_id;
 
                 // Reset category and subcategory
                 categorySelect
@@ -387,6 +768,13 @@ jQuery(document).ready(function () {
                                     '<option value="">No categories available</option>'
                                 );
                             }
+
+                            // Restore selected category if in edit mode
+                            if (window.productFormConfig?.isEditMode && currentCategoryId) {
+                                categorySelect.val(currentCategoryId);
+                                console.log('🔄 Restored category selection:', currentCategoryId);
+                            }
+
                             // Refresh Select2 dropdown
                             categorySelect.trigger("change");
                         })
@@ -414,18 +802,44 @@ jQuery(document).ready(function () {
 
         console.log("✅ Department handler attached");
 
-        // Remove any existing handlers for category to prevent duplicates
-        $("#category_id").off("change.productForm select2:select.productForm");
+        // Test: Verify handler is attached by checking events
+        const events = $._data(departmentElement[0], "events");
+        console.log("🔍 Events attached to department element:", events);
 
-        // Category change handler - Use event delegation to survive re-initialization
-        $(document)
-            .off("change.productForm", "#category_id")
-            .on("change.productForm", "#category_id", function (e) {
+        // Test: Manual trigger to verify handler works (skip in edit mode)
+        if (!window.productFormConfig?.isEditMode) {
+            setTimeout(() => {
+                console.log("🧪 Testing manual trigger of department change...");
+                departmentElement.trigger("change.departmentHandler");
+            }, 1000);
+        }
+
+        // Remove any existing handlers for category to prevent duplicates
+        $("#category_id").off("change.categoryHandler select2:select.categoryHandler");
+
+        // Category change handler - Use direct binding with specific namespace
+        $("#category_id")
+            .off("change.categoryHandler select2:select.categoryHandler")
+            .on("change.categoryHandler select2:select.categoryHandler", function (e) {
                 console.log("🎯 Category event triggered:", e.type);
                 const categoryId = $(this).val();
                 console.log("🔄 Category changed:", categoryId);
 
+                // Skip processing if in edit mode and subcategory is already set correctly
+                if (window.productFormConfig?.isEditMode) {
+                    const expectedCategoryId = window.productFormConfig?.selectedValues?.category_id;
+                    const currentSubCategoryValue = $("#sub_category_id").val();
+
+                    if (categoryId == expectedCategoryId && currentSubCategoryValue) {
+                        console.log("⏭️ Skipping category change processing - edit mode with correct values");
+                        return;
+                    }
+                }
+
                 const subCategorySelect = $("#sub_category_id");
+
+                // Store current selected subcategory if in edit mode
+                const currentSubCategoryId = window.productFormConfig?.selectedValues?.sub_category_id;
 
                 // Reset subcategory
                 subCategorySelect
@@ -498,6 +912,13 @@ jQuery(document).ready(function () {
                                     '<option value="">No subcategories available</option>'
                                 );
                             }
+
+                            // Restore selected subcategory if in edit mode
+                            if (window.productFormConfig?.isEditMode && currentSubCategoryId) {
+                                subCategorySelect.val(currentSubCategoryId);
+                                console.log('🔄 Restored subcategory selection:', currentSubCategoryId);
+                            }
+
                             // Refresh Select2 dropdown
                             subCategorySelect.trigger("change");
                         })

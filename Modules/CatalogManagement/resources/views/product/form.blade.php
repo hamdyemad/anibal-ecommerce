@@ -39,7 +39,7 @@
                     <div id="validation-alerts-container" class="mb-3"></div>
 
                     <!-- Form -->
-                    <form id="productForm" method="POST" action="{{ isset($product) ? route('admin.products.update', $product->id) : route('admin.products.store') }}" enctype="multipart/form-data" novalidate onkeydown="return event.key != 'Enter';">
+                    <form id="productForm" method="POST" action="{{ isset($product) ? route('admin.products.update', $product->product ? $product->product->id : $product->id) : route('admin.products.store') }}" enctype="multipart/form-data" novalidate onkeydown="return event.key != 'Enter';">
                         @csrf
                         @if(isset($product))
                             @method('PUT')
@@ -70,7 +70,7 @@
                                                     class="form-control ih-medium ip-gray radius-xs b-light px-15"
                                                     placeholder="{{ $language->code == 'ar' ? 'أدخل عنوان المنتج' : 'Enter product title' }}"
                                                     dir="{{ $language->code == 'ar' ? 'rtl' : 'ltr' }}"
-                                                    value="{{ isset($product) ? $product->getTranslation('title', $language->code) ?? '' : '' }}">
+                                                    value="{{ isset($product) ? ($product->product && method_exists($product->product, 'getTranslation') ? $product->product->getTranslation('title', $language->code) : (method_exists($product, 'getTranslation') ? $product->getTranslation('title', $language->code) : '')) ?? '' : '' }}">
                                                 <div class="error-message text-danger" id="error-translations-{{ $language->id }}-title" style="display: none;"></div>
                                             </div>
                                         </div>
@@ -79,7 +79,7 @@
                                         <div class="col-md-6 mb-3">
                                             <div class="form-group">
                                                 <label for="sku" class="form-label">{{ __('catalogmanagement::product.sku') }} <span class="text-danger">*</span></label>
-                                                <input type="text" name="sku" id="sku" class="form-control ih-medium ip-gray radius-xs b-light px-15" placeholder="{{ __('catalogmanagement::product.sku') }}" value="{{ isset($product) ? $product->sku ?? '' : '' }}">
+                                                <input type="text" name="sku" id="sku" class="form-control ih-medium ip-gray radius-xs b-light px-15" placeholder="{{ __('catalogmanagement::product.sku') }}" value="{{ isset($product) ? $product->sku : '' }}">
                                                 <div class="error-message text-danger" id="error-sku" style="display: none;"></div>
                                             </div>
                                         </div>
@@ -87,7 +87,7 @@
                                         <div class="col-md-6 mb-3">
                                             <div class="form-group">
                                                 <label for="points" class="form-label">{{ __('catalogmanagement::product.points') }} <span class="text-danger">*</span></label>
-                                                <input type="number" name="points" id="points" class="form-control ih-medium ip-gray radius-xs b-light px-15" min="0" value="{{ isset($product) ? $product->points ?? 0 : 0 }}" placeholder="Enter points" required>
+                                                <input type="number" name="points" id="points" class="form-control ih-medium ip-gray radius-xs b-light px-15" min="0" value="{{ isset($product) ? $product->points : 0 }}" placeholder="Enter points" required>
                                                 <div class="error-message text-danger" id="error-points" style="display: none;"></div>
                                             </div>
                                         </div>
@@ -96,7 +96,7 @@
                                             <div class="form-group">
                                                 <label class="form-label d-block">{{ __('catalogmanagement::product.status') }}</label>
                                                 <div class="form-check form-switch form-switch-lg">
-                                                    <input class="form-check-input" type="checkbox" role="switch" id="status" name="status" value="1" {{ isset($product) && $product->is_active ? 'checked' : (isset($product) ? '' : 'checked') }}>
+                                                    <input class="form-check-input" type="checkbox" role="switch" id="status" name="status" value="1" {{ isset($product) && $product->is_active ? 'checked' : '' }}>
                                                 </div>
                                             </div>
                                         </div>
@@ -127,7 +127,7 @@
                                                 <select name="brand_id" id="brand_id" class="form-control select2">
                                                     <option value="">{{ __('common.select_option') }}</option>
                                                     @foreach($brands as $brand)
-                                                        <option value="{{ $brand['id'] }}" {{ isset($product) && $product->brand_id == $brand['id'] ? 'selected' : '' }}>{{ $brand['name'] }}</option>
+                                                        <option value="{{ $brand['id'] }}" {{ isset($product) && $product->product->brand_id == $brand['id'] ? 'selected' : '' }}>{{ $brand['name'] }}</option>
                                                     @endforeach
                                                 </select>
                                             </div>
@@ -163,16 +163,6 @@
                                                 <label for="department_id" class="form-label">{{ __('catalogmanagement::product.department') }} <span class="text-danger">*</span></label>
                                                 <select name="department_id" id="department_id" class="form-control select2">
                                                     <option value="">{{ __('common.select_option') }}</option>
-                                                    @foreach($departments as $dept)
-                                                        @php
-                                                            $deptModel = \Modules\CategoryManagment\app\Models\Department::find($dept['id']);
-                                                            $activityIds = $deptModel ? $deptModel->activities()->pluck('activity_id')->toArray() : [];
-                                                        @endphp
-                                                        <option value="{{ $dept['id'] }}" data-activities="{{ htmlspecialchars(json_encode($activityIds), ENT_QUOTES, 'UTF-8') }}"
-                                                            @if(isset($product) && $product->department_id == $dept['id']) selected @endif>
-                                                            {{ $dept['name'] }}
-                                                        </option>
-                                                    @endforeach
                                                 </select>
                                             </div>
                                         </div>
@@ -182,11 +172,6 @@
                                                 <label for="category_id" class="form-label">{{ __('catalogmanagement::product.category') }} <span class="text-danger">*</span></label>
                                                 <select name="category_id" id="category_id" class="form-control select2">
                                                     <option value="">{{ __('common.select_option') }}</option>
-                                                    @if(isset($categories))
-                                                        @foreach($categories as $category)
-                                                            <option value="{{ $category['id'] }}" {{ isset($product) && $product->category_id == $category['id'] ? 'selected' : '' }}>{{ $category['name'] }}</option>
-                                                        @endforeach
-                                                    @endif
                                                 </select>
                                             </div>
                                         </div>
@@ -196,11 +181,6 @@
                                                 <label for="sub_category_id" class="form-label">{{ __('catalogmanagement::product.sub_category') }}</label>
                                                 <select name="sub_category_id" id="sub_category_id" class="form-control select2">
                                                     <option value="">{{ __('common.select_option') }}</option>
-                                                    @if(isset($subCategories))
-                                                        @foreach($subCategories as $subCategory)
-                                                            <option value="{{ $subCategory['id'] }}" data-category="{{ $subCategory['category_id'] }}" {{ isset($product) && $product->sub_category_id == $subCategory['id'] ? 'selected' : '' }}>{{ $subCategory['name'] }}</option>
-                                                        @endforeach
-                                                    @endif
                                                 </select>
                                             </div>
                                         </div>
@@ -233,7 +213,7 @@
                                         <div class="col-md-6 mb-3">
                                             <div class="form-group">
                                                 <label for="max_per_order" class="form-label">{{ __('catalogmanagement::product.max_per_order') }} <span class="text-danger">*</span></label>
-                                                <input type="number" name="max_per_order" id="max_per_order" class="form-control ih-medium ip-gray radius-xs b-light px-15" min="1" placeholder="Enter max per order" value="{{ isset($product) ? $product->max_per_order ?? '' : '' }}" required>
+                                                <input type="number" name="max_per_order" id="max_per_order" class="form-control ih-medium ip-gray radius-xs b-light px-15" min="1" placeholder="Enter max per order" value="{{ isset($product) ? $product->max_per_order : '' }}" required>
                                                 <div class="error-message text-danger" id="error-max_per_order" style="display: none;"></div>
                                             </div>
                                         </div>
@@ -261,7 +241,7 @@
                                                 </label>
                                                 <x-tags-input
                                                     name="translations[{{ $language->id }}][tags]"
-                                                    :value="isset($product) ? $product->getTagsString($language->code) : old('translations.'.$language->id.'.tags')"
+                                                    :value="isset($product) ? (isset($product->product) && method_exists($product->product, 'getTagsString') ? $product->product->getTagsString($language->code) : (method_exists($product, 'getTagsString') ? $product->getTagsString($language->code) : '')) : old('translations.'.$language->id.'.tags', '')"
                                                     placeholder="{{ $language->code == 'ar' ? 'اكتب وسم واضغط انتر' : 'Type a tag and press Enter...' }}"
                                                     rtl-placeholder="اكتب وسم واضغط انتر"
                                                     language="{{ $language->code }}"
@@ -296,7 +276,7 @@
                                                 name="main_image"
                                                 label="{{ __('common.product_image') }}"
                                                 :required="true"
-                                                :existingImage="isset($product) && $product->main_image ? $product->main_image->path : null"
+                                                :existingImage="isset($product) && $product->product && $product->product->mainImage ? $product->product->mainImage->path : null"
                                                 placeholder="{{ __('common.click_to_upload') }}"
                                                 recommendedSize="{{ __('common.recommended_logo_size') }}"
                                                 accept="image/jpeg,image/png,image/jpg,image/webp"
@@ -473,7 +453,7 @@
                                         <div class="col-md-12 mb-3">
                                             <div class="form-group">
                                                 <label for="video_link" class="form-label">{{ __('catalogmanagement::product.video_link') }}</label>
-                                                <input type="url" name="video_link" id="video_link" class="form-control ih-medium ip-gray radius-xs b-light px-15" placeholder="https://www.youtube.com/watch?v=...">
+                                                <input type="url" name="video_link" id="video_link" value="{{ isset($product) ? $product->video_link : '' }}" class="form-control ih-medium ip-gray radius-xs b-light px-15" placeholder="https://www.youtube.com/watch?v=...">
                                                 <small class="text-muted">{{ __('common.enter_valid_video_url') }}</small>
                                             </div>
                                         </div>
@@ -497,8 +477,8 @@
                                                 <label for="configuration_type" class="form-label">{{ __('common.product_type') }} <span class="text-danger">*</span></label>
                                                 <select name="configuration_type" id="configuration_type" class="form-control select2">
                                                     <option value="">{{ __('common.select_option') }}</option>
-                                                    <option value="simple">{{ __('common.simple_product') }}</option>
-                                                    <option value="variants">{{ __('common.with_variants') }}</option>
+                                                    <option value="simple" {{ isset($product) && ($product->configuration_type ?? $product->product->configuration_type ?? '') == 'simple' ? 'selected' : '' }}>{{ __('common.simple_product') }}</option>
+                                                    <option value="variants" {{ isset($product) && ($product->configuration_type ?? $product->product->configuration_type ?? '') == 'variants' ? 'selected' : '' }}>{{ __('common.with_variants') }}</option>
                                                 </select>
                                                 <div class="error-message text-danger" id="error-configuration_type" style="display: none;"></div>
                                             </div>
@@ -609,7 +589,7 @@
                                                 </label>
                                                 <x-tags-input
                                                     name="translations[{{ $language->id }}][meta_keywords]"
-                                                    :value="isset($product) ? $product->getMetaKeywordsString($language->code) : old('translations.'.$language->id.'.meta_keywords')"
+                                                    :value="isset($product) ? (isset($product->product) && method_exists($product->product, 'getMetaKeywordsString') ? $product->product->getMetaKeywordsString($language->code) : (method_exists($product, 'getMetaKeywordsString') ? $product->getMetaKeywordsString($language->code) : '')) : old('translations.'.$language->id.'.meta_keywords', '')"
                                                     placeholder="{{ $language->code == 'ar' ? 'اكتب كلمة مفتاحية واضغط انتر' : 'Type a keyword and press Enter...' }}"
                                                     rtl-placeholder="اكتب كلمة مفتاحية واضغط انتر"
                                                     language="{{ $language->code }}"
@@ -695,6 +675,7 @@
 @push('scripts')
 <!-- Product Form Configuration (Data Only) -->
 <script>
+console.log('🔧 Loading productFormConfig...');
 window.productFormConfig = {
     selectPlaceholder: '{{ trans("catalog::product.select_option") ?? "Select..." }}',
     uploadText: '{{ trans("catalog::product.click_to_upload_image") ?? "Click to upload image" }}',
@@ -744,24 +725,121 @@ window.productFormConfig = {
     addNewRegion: '{{ __('common.add_new_region') }}',
     actionsLabel: '{{ __('common.actions') }}',
     languages: [
-        @foreach($languages as $language)
-        {
-            id: {{ $language->id }},
-            code: '{{ $language->code }}',
-            name: '{{ $language->name }}'
-        }{{ !$loop->last ? ',' : '' }}
-        @endforeach
+        @if(isset($languages))
+            @foreach($languages as $language)
+            {
+                id: {{ $language->id ?? 0 }},
+                code: '{{ addslashes($language->code ?? 'en') }}',
+                name: '{{ addslashes($language->name ?? 'Unknown') }}'
+            }{{ !$loop->last ? ',' : '' }}
+            @endforeach
+        @endif
     ],
     taxes: [
-        @foreach($taxes as $tax)
-        {
-            id: {{ $tax['id'] }},
-            name: '{{ $tax['name'] }}',
-            percentage: {{ $tax['percentage'] }}
-        }{{ !$loop->last ? ',' : '' }}
-        @endforeach
-    ]
+        @if(isset($taxes))
+            @foreach($taxes as $tax)
+            {
+                id: {{ $tax['id'] ?? 0 }},
+                name: '{{ addslashes($tax['name'] ?? 'Unknown') }}',
+                percentage: {{ is_numeric($tax['percentage']) ? $tax['percentage'] : 0 }}
+            }{{ !$loop->last ? ',' : '' }}
+            @endforeach
+        @endif
+    ],
+    regions: [
+        @if(isset($regions))
+            @foreach($regions as $region)
+            {
+                id: {{ $region['id'] ?? 0 }},
+                name: '{{ addslashes($region['name'] ?? 'Unknown') }}'
+            }{{ !$loop->last ? ',' : '' }}
+            @endforeach
+        @endif
+    ],
+    vendorActivitiesMap: {},
+    // Edit mode flag
+    isEditMode: {{ isset($product) ? 'true' : 'false' }},
+    // Debug info
+    debugInfo: {
+        hasProduct: {{ isset($product) ? 'true' : 'false' }},
+        productId: {{ isset($product) ? ($product->id ?? 'null') : 'null' }}
+    },
+    // Preserve selected values for edit mode
+    selectedValues: {
+        @if(isset($product))
+        brand_id: {{ $product->product->brand_id ?? 'null' }},
+        vendor_id: {{ $product->vendor_id ?? 'null' }},
+        department_id: {{ $product->product->department_id ?? 'null' }},
+        category_id: {{ $product->product->category_id ?? 'null' }},
+        sub_category_id: {{ $product->product->sub_category_id ?? 'null' }},
+        tax_id: {{ $product->tax_id ?? 'null' }},
+        configuration_type: '{{ $product->configuration_type ?? $product->product->configuration_type ?? '' }}',
+        hasVariants: {{ isset($product) && $product->variants && $product->variants->count() > 0 ? 'true' : 'false' }},
+        variantsCount: {{ isset($product) && $product->variants ? $product->variants->count() : 0 }},
+        // Product details for simple products
+        @if(isset($product) && ($product->configuration_type ?? $product->product->configuration_type ?? '') == 'simple')
+        productSku: '{{ addslashes($product->product->sku ?? '') }}',
+        productPrice: {{ $product->product->price ?? 0 }},
+        productHasDiscount: {{ isset($product->product->has_discount) && $product->product->has_discount ? 'true' : 'false' }},
+        productPriceBeforeDiscount: {{ $product->product->price_before_discount ?? 0 }},
+        productOfferEndDate: '{{ $product->product->offer_end_date ?? '' }}',
+        @else
+        productSku: '',
+        productPrice: 0,
+        productHasDiscount: false,
+        productPriceBeforeDiscount: 0,
+        productOfferEndDate: '',
+        @endif
+        // Existing variants data
+        @if(isset($product) && $product->variants && $product->variants->count() > 0)
+        existingVariants: [
+            @foreach($product->variants as $variant)
+            {
+                id: {{ $variant->id }},
+                sku: '{{ addslashes($variant->sku ?? '') }}',
+                price: {{ $variant->price ?? 0 }},
+                has_discount: {{ $variant->has_discount ? 'true' : 'false' }},
+                price_before_discount: {{ $variant->price_before_discount ?? 0 }},
+                offer_end_date: '{{ $variant->offer_end_date ?? '' }}',
+                key_id: {{ $variant->key_id ?? 'null' }},
+                value_id: {{ $variant->value_id ?? 'null' }},
+                // Add stock data if available
+                stocks: [
+                    @if($variant->stocks)
+                        @foreach($variant->stocks as $stock)
+                        {
+                            region_id: {{ $stock->region_id }},
+                            quantity: {{ $stock->quantity ?? 0 }}
+                        }{{ !$loop->last ? ',' : '' }}
+                        @endforeach
+                    @endif
+                ]
+            }{{ !$loop->last ? ',' : '' }}
+            @endforeach
+        ],
+        @else
+        existingVariants: [],
+        @endif
+        @else
+        brand_id: null,
+        vendor_id: null,
+        department_id: null,
+        category_id: null,
+        sub_category_id: null,
+        tax_id: null,
+        configuration_type: null,
+        hasVariants: false,
+        variantsCount: 0,
+        productSku: '',
+        productPrice: 0,
+        productHasDiscount: false,
+        productPriceBeforeDiscount: 0,
+        productOfferEndDate: '',
+        existingVariants: [],
+        @endif
+    }
 };
+console.log('✅ productFormConfig loaded successfully:', window.productFormConfig);
 </script>
 
 <!-- Product Form External JavaScript (All Logic) -->

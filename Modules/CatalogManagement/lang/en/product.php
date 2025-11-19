@@ -30,6 +30,7 @@ return [
     'sub_category' => 'Sub Category',
     'tax' => 'Tax',
     'vendor' => 'Vendor',
+    'product_information' => 'Product Information',
     'main_image' => 'Main Image',
     'additional_images' => 'Additional Images',
     'images' => 'Images',

@@ -30,6 +30,7 @@ return [
     'sub_category' => 'الفئة الفرعية',
     'tax' => 'الضريبة',
     'vendor' => 'البائع',
+    'product_information' => 'معلومات المنتج',
     'main_image' => 'الصورة الرئيسية',
     'additional_images' => 'صور إضافية',
     'images' => 'الصور',

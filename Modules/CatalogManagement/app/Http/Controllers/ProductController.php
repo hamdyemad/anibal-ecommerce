@@ -95,7 +95,6 @@ class ProductController extends Controller
         $taxes = TaxResource::collection($taxes)->resolve();
         $regions = $this->regionService->getAllRegions([], 0);
         $regions = RegionResource::collection($regions)->resolve();
-        $departments = [];
         // Get vendors for admin/super admin, or current vendor for vendor users
         $vendors = [];
         $currentUser = Auth::user();
@@ -119,7 +118,7 @@ class ProductController extends Controller
                 ]];
             }
         }
-        return view('catalogmanagement::product.form', compact('languages', 'departments', 'brands', 'taxes', 'regions', 'vendors'));
+        return view('catalogmanagement::product.form', compact('languages', 'brands', 'taxes', 'regions', 'vendors'));
     }
 
     /**
@@ -193,31 +192,6 @@ class ProductController extends Controller
         $languages = $this->languageService->getAll();
         $brands = $this->brandService->getAllBrands([], 0);
         $brands = BrandResource::collection($brands)->resolve();
-        $departments = $this->departmentService->getAllDepartments([
-            'vendor_id' => $product->vendor_id
-        ], 0)->map(function($department) {
-            return [
-                'id' => $department->id,
-                'name' => $department->getTranslation('name', app()->getLocale())
-            ];
-        });
-        $categories = $this->categoryService->getAllCategories([
-            'department_id' => $product->department_id
-        ], 0)->map(function($category) {
-            return [
-                'id' => $category->id,
-                'name' => $category->getTranslation('name', app()->getLocale())
-            ];
-        });
-        $subCategories = $this->subCategoryService->getAllSubCategories([
-            'category_id' => $product->category_id
-        ], 0)->map(function($subCategory) {
-            return [
-                'id' => $subCategory->id,
-                'name' => $subCategory->getTranslation('name', app()->getLocale()),
-                'category_id' => $subCategory->category_id
-            ];
-        });
         $taxes = $this->taxService->getAllTaxes([], 0);
         $taxes = TaxResource::collection($taxes)->resolve();
         $regions = $this->regionService->getAllRegions([], 0);
@@ -247,15 +221,11 @@ class ProductController extends Controller
                 ]];
             }
         }
-
         $data = [
             'title' => __('catalogmanagement::product.edit_product'),
             'product' => $product,
             'languages' => $languages,
             'brands' => $brands,
-            'departments' => $departments,
-            'categories' => $categories,
-            'subCategories' => $subCategories,
             'taxes' => $taxes,
             'regions' => $regions,
             'vendors' => $vendors,
@@ -270,27 +240,7 @@ class ProductController extends Controller
     {
         try {
             $data = $request->validated();
-
-            // Handle deletion of additional images
-            $deleteImages = $request->input('delete_images', []);
-            if (!empty($deleteImages)) {
-                $product = Product::find($id);
-                if ($product) {
-                    foreach ($deleteImages as $imageId) {
-                        $image = $product->additionalImages()->find($imageId);
-                        if ($image) {
-                            // Delete the file from storage
-                            if (file_exists(public_path($image->path))) {
-                                unlink(public_path($image->path));
-                            }
-                            $image->delete();
-                        }
-                    }
-                }
-            }
-
             $this->productService->updateProduct($id, $data);
-
             return response()->json([
                 'success' => true,
                 'message' => __('catalogmanagement::product.product_updated_successfully'),

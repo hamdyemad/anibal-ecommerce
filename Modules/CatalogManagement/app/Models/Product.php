@@ -9,6 +9,7 @@ use App\Traits\Translation;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Builder;
 use Modules\CategoryManagment\app\Models\Category;
 use Modules\CategoryManagment\app\Models\Department;
 use Modules\CategoryManagment\app\Models\SubCategory;
@@ -176,6 +177,54 @@ class Product extends Model
             ->first();
 
         return $translation ? $translation->lang_value : '';
+    }
+
+    /**
+     * Scope to filter products based on various criteria
+     */
+    public function scopeFilter(Builder $query, array $filters)
+    {
+        // Search filter
+        if (!empty($filters['search'])) {
+            $search = $filters['search'];
+            $query->where(function($q) use ($search) {
+                $q->whereHas('translations', function($query) use ($search) {
+                    $query->where('lang_value', 'like', "%{$search}%");
+                })
+                ->orWhereHas('brand', function($query) use ($search) {
+                    $query->whereHas('translations', function($subQuery) use ($search) {
+                        $subQuery->where('lang_value', 'like', "%{$search}%");
+                    });
+                })
+                ->orWhereHas('category', function($query) use ($search) {
+                    $query->whereHas('translations', function($subQuery) use ($search) {
+                        $subQuery->where('lang_value', 'like', "%{$search}%");
+                    });
+                });
+            });
+        }
+
+        // Active filter
+        if (isset($filters['is_active']) && $filters['is_active'] !== '') {
+            $query->where('is_active', $filters['is_active']);
+        }
+
+        // Status filter
+        if (!empty($filters['status'])) {
+            $query->where('status', $filters['status']);
+        }
+
+        // Date from filter
+        if (!empty($filters['created_date_from'])) {
+            $query->whereDate('created_at', '>=', $filters['created_date_from']);
+        }
+
+        // Date to filter
+        if (!empty($filters['created_date_to'])) {
+            $query->whereDate('created_at', '<=', $filters['created_date_to']);
+        }
+
+        $query->orderBy('created_at', 'desc');
     }
 
 }

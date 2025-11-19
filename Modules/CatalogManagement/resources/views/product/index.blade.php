@@ -24,12 +24,10 @@
                             <i class="uil uil-box me-2"></i>
                             {{ trans('catalogmanagement::product.products_management') }}
                         </h4>
-                        @can('products.create')
-                            <a href="{{ route('admin.products.create') }}"
-                                class="btn btn-primary btn-squared shadow-sm px-4">
-                                <i class="uil uil-plus"></i> {{ trans('catalogmanagement::product.add_product') }}
-                            </a>
-                        @endcan
+                        <a href="{{ route('admin.products.create') }}"
+                            class="btn btn-primary btn-squared shadow-sm px-4">
+                            <i class="uil uil-plus"></i> {{ trans('catalogmanagement::product.add_product') }}
+                        </a>
                     </div>
                     <div class="alert alert-info glowing-alert" role="alert">
                         {{ __('common.live_search_info') }}
@@ -135,14 +133,10 @@
                             <thead>
                                 <tr class="userDatatable-header">
                                     <th class="text-center"><span class="userDatatable-title">#</span></th>
-                                    @foreach ($languages as $language)
-                                        <th>
-                                            <span class="userDatatable-title"
-                                                @if ($language->rtl) dir="rtl" @endif>
-                                                {{ __('activity.name') }} ({{ $language->name }})
-                                            </span>
-                                        </th>
-                                    @endforeach
+                                    <th><span class="userDatatable-title">{{ __('catalogmanagement::product.product_information') }}</span></th>
+                                    @if(auth()->user() && in_array(auth()->user()->user_type_id, \App\Models\UserType::adminIds()))
+                                        <th><span class="userDatatable-title">{{ __('catalogmanagement::product.vendor') }}</span></th>
+                                    @endif
                                     <th><span class="userDatatable-title">{{ __('catalogmanagement::product.brand') }}</span></th>
                                     <th><span class="userDatatable-title">{{ __('catalogmanagement::product.category') }}</span></th>
                                     <th><span class="userDatatable-title">{{ __('common.status') }}</span></th>
@@ -168,6 +162,7 @@
 @push('after-body')
     <x-loading-overlay />
 @endpush
+
 
 
 @push('scripts')
@@ -196,19 +191,47 @@
                         orderable: false,
                         className: 'text-center fw-bold'
                     },
-                    @foreach ($languages as $language)
-                        {
-                            data: 'translations.{{ $language->code }}.name',
-                            name: 'name_{{ $language->code }}',
-                            render: function(data, type, row) {
-                                if (!data) return '<span class="text-muted">—</span>';
-                                return `@if ($language->rtl) <span dir="rtl"> @endif` +
-                                    $('<div/>').text(data).html() +
-                                    `@if ($language->rtl) </span> @endif`;
-                            },
-                            className: '{{ $language->rtl ? 'text-end' : 'text-start' }}'
+                    {
+                        data: 'product_information',
+                        name: 'product_information',
+                        orderable: false,
+                        render: function(data, type, row) {
+                            if (!data) return '<span class="text-muted">—</span>';
+                            let html = '<div class="product-info-container">';
+
+                            if (data.name_en && data.name_en !== '-') {
+                                html += `<div class="product-name-item mb-2">
+                                    <span class="language-badge badge bg-primary text-white px-2 py-1 me-2 rounded-pill fw-bold" style="font-size: 10px;">EN</span>
+                                    <span class="product-name text-dark fw-semibold">${$('<div/>').text(data.name_en).html()}</span>
+                                </div>`;
+                            }
+
+                            if (data.name_ar && data.name_ar !== '-') {
+                                html += `<div class="product-name-item">
+                                    <span class="language-badge badge bg-success text-white px-2 py-1 me-2 rounded-pill fw-bold" style="font-size: 10px;">AR</span>
+                                    <span class="product-name text-dark fw-semibold" dir="rtl" style="font-family: 'Cairo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">${$('<div/>').text(data.name_ar).html()}</span>
+                                </div>`;
+                            }
+
+                            html += '</div>';
+                            return html;
                         },
-                    @endforeach {
+                        className: 'text-start'
+                    },
+                    @if(auth()->user() && in_array(auth()->user()->user_type_id, \App\Models\UserType::adminIds()))
+                    {
+                        data: 'vendor',
+                        name: 'vendor',
+                        render: function(data, type, row) {
+                            console.log('Vendor data:', data); // Debug log
+                            if (!data || !data.name) {
+                                return '<span class="text-muted">—</span>';
+                            }
+                            return `<span class="badge badge-primary badge-round badge-lg">${$('<div/>').text(data.name).html()}</span>`;
+                        }
+                    },
+                    @endif
+                    {
                         data: 'brand',
                         name: 'brand',
                         render: function(data) {
@@ -255,22 +278,15 @@
 
                             return `
                             <div class="orderDatatable_actions d-inline-flex gap-1">
-                                @can('products.show')
                                 <a href="${showUrl}" class="view btn btn-primary table_action_father" title="{{ trans('common.view') }}">
                                     <i class="uil uil-eye table_action_icon"></i>
                                 </a>
-                                @endcan
-                                @can('products.edit')
                                 <a href="${editUrl}" class="edit btn btn-warning table_action_father" title="{{ trans('common.edit') }}">
                                     <i class="uil uil-edit table_action_icon"></i>
                                 </a>
-                                @endcan
-                                @can('products.edit')
                                 <a href="${stockPricingUrl}" class="stock-pricing btn btn-info table_action_father" title="{{ trans('catalogmanagement::product.manage_stock_pricing') }}">
                                     <i class="uil uil-package table_action_icon"></i>
                                 </a>
-                                @endcan
-                                @can('products.delete')
                                 <a href="javascript:void(0);" class="remove delete-product btn btn-danger table_action_father"
                                    data-bs-toggle="modal" data-bs-target="#modal-delete-product"
                                    data-item-id="${data.id}"
@@ -279,7 +295,6 @@
                                    title="{{ trans('common.delete') }}">
                                     <i class="uil uil-trash-alt table_action_icon"></i>
                                 </a>
-                                @endcan
                             </div>`;
                         }
                     }
@@ -287,7 +302,11 @@
                 pageLength: 10,
                 lengthMenu: [10, 25, 50, 100],
                 order: [
-                    [{{ count($languages) + 3 }}, 'desc']
+                    @if(auth()->user() && in_array(auth()->user()->user_type_id, [\App\Models\UserType::SUPER_ADMIN_TYPE, \App\Models\UserType::ADMIN_TYPE]))
+                        [5, 'desc'] // Created at column for admin users (with vendor column)
+                    @else
+                        [4, 'desc'] // Created at column for vendor users (without vendor column)
+                    @endif
                 ],
                 language: {
                     lengthMenu: "{{ __('common.show') ?? 'Show' }} _MENU_",

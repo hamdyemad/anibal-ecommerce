@@ -11,6 +11,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Modules\CatalogManagement\app\Interfaces\ProductInterface;
 use Modules\CatalogManagement\app\Models\Product;
+use App\Models\UserType;
+use Illuminate\Support\Facades\Auth;
 
 class ProductAction {
 
@@ -40,20 +42,28 @@ class ProductAction {
                 'created_date_to' => $data['created_date_to'] ?? '',
             ];
 
+            // Get current user and user type
+            $currentUser = Auth::user();
+            $userType = $currentUser ? $currentUser->user_type_id : null;
+
             // Get total records count - filter by vendor if user is vendor
             $totalQuery = Product::query();
-            if (auth()->check() && auth()->user()->vendor) {
-                $totalQuery->where('created_by', auth()->user()->vendor->id);
+            if ($currentUser && in_array($userType, UserType::vendorIds())) {
+                // Vendor users see only their own products
+                $totalQuery->where('created_by_user_id', $currentUser->id);
             }
+            // Admin users see all products (no filter applied)
             $totalRecords = $totalQuery->count();
 
             // Build query with filters
-            $query = Product::with(['brand', 'category', 'variants', 'translations'])->filter($filters);
+            $query = Product::with(['brand', 'category', 'variants', 'translations', 'vendor'])->filter($filters);
 
             // Filter by vendor if user is vendor
-            if (auth()->check() && auth()->user()->vendor) {
-                $query->where('created_by', auth()->user()->vendor->id);
+            if ($currentUser && in_array($userType, UserType::vendorIds())) {
+                // Vendor users see only their own products
+                $query->where('created_by_user_id', $currentUser->id);
             }
+            // Admin users see all products (no filter applied)
 
             $filteredRecords = $query->count();
 
@@ -66,9 +76,17 @@ class ProductAction {
             $data = [];
             $index = 1;
             foreach ($products as $product) {
+                // Get product names in EN and AR
+                $nameEn = $product->getTranslation('title', 'en') ?? '-';
+                $nameAr = $product->getTranslation('title', 'ar') ?? '-';
+
                 $rowData = [
                     'id' => $product->id,
                     'index' => $index++,
+                    'product_information' => [
+                        'name_en' => $nameEn,
+                        'name_ar' => $nameAr,
+                    ],
                     'translations' => [],
                     'brand' => $product->brand ? [
                         'id' => $product->brand->id,
@@ -86,7 +104,24 @@ class ProductAction {
                     'created_at' => $product->created_at,
                 ];
 
-                // Add translations for each language
+                // Add vendor information for admin users
+                if ($currentUser && in_array($userType, UserType::adminIds())) {
+                    if ($product->vendor) {
+                        $vendorName = $product->vendor->getTranslation('name', app()->getLocale()) ??
+                                     $product->vendor->getTranslation('name', 'en') ??
+                                     $product->vendor->getTranslation('name', 'ar') ??
+                                     $product->vendor->name ?? '-';
+
+                        $rowData['vendor'] = [
+                            'id' => $product->vendor->id,
+                            'name' => $vendorName
+                        ];
+                    } else {
+                        $rowData['vendor'] = null;
+                    }
+                }
+
+                // Add translations for each language (keeping for backward compatibility)
                 foreach ($languages as $language) {
                     $translation = $product->translations->where('lang_id', $language->id)
                         ->where('lang_key', 'title')

@@ -10,11 +10,11 @@ use Modules\CatalogManagement\app\Interfaces\ProductInterface;
 use Modules\CatalogManagement\app\Models\Product;
 use Modules\CatalogManagement\app\Models\ProductVariant;
 use Modules\CatalogManagement\app\Models\VariantStock;
+use Modules\CatalogManagement\app\Models\VendorProduct;
 use Modules\CatalogManagement\app\Models\VendorProductVariant;
 use Modules\CatalogManagement\app\Models\VendorProductVariantStock;
 use App\Models\UserType;
 use Illuminate\Support\Facades\Auth;
-use Modules\CatalogManagement\app\Models\VendorProduct;
 
 class ProductRepository implements ProductInterface
 {
@@ -27,17 +27,19 @@ class ProductRepository implements ProductInterface
 
     public function getProductById($id)
     {
-        return Product::with([
-            'brand',
-            'department',
-            'category',
-            'subCategory',
+        return VendorProduct::with([
+            'product.brand',
+            'product.department',
+            'product.category',
+            'product.subCategory',
+            'product.translations',
+            'product.attachments',
+            'vendor',
             'tax',
-            'translations',
-            'attachments',
-            'variants.translations',
-            'variants.stocks.region'
-        ])->findOrFail($id);
+            'variants',
+            'variants.stocks.region.translations',
+            'variants.variantConfiguration',
+        ])->where('product_id', $id)->firstOrFail();
     }
 
     public function createProduct(array $data)
@@ -57,8 +59,9 @@ class ProductRepository implements ProductInterface
             }
             $status = $isVendorCreated ? 'pending' : 'approved';
 
-            // Create product
+            // Create product with temporary slug
             $product = Product::create([
+                'slug' => Str::random(8), // Temporary slug
                 'is_active' => $data['is_active'] ?? true,
                 'configuration_type' => $data['configuration_type'],
                 'status' => $status,
@@ -70,9 +73,11 @@ class ProductRepository implements ProductInterface
                 'created_by_user_id' => $currentUser->id,
             ]);
 
-
             // Store translations
             $this->storeTranslations($product, $data);
+
+            // Generate proper slug after translations are saved
+            $product->regenerateSlug();
 
             // Handle main image
             $this->handleMainImage($product, $data);
