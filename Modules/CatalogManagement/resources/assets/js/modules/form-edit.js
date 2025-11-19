@@ -194,16 +194,27 @@ class ProductFormEdit {
         console.log('🔧 Product SKU from config:', selectedValues?.productSku);
         console.log('🔧 Product Price from config:', selectedValues?.productPrice);
 
-        // Set SKU
+        // Set SKU (for simple product in Step 3, not the basic SKU in Step 1)
         if (selectedValues?.productSku) {
-            $('#sku').val(selectedValues.productSku);
-            console.log('🔧 Set SKU:', selectedValues.productSku);
+            // Target the simple product SKU field (input[name="sku"] but not #sku from Step 1)
+            const simpleSkuField = $('input[name="sku"]').not('#sku');
+            if (simpleSkuField.length) {
+                simpleSkuField.val(selectedValues.productSku);
+                console.log('🔧 Set simple product SKU field:', selectedValues.productSku);
+            } else {
+                console.warn('⚠️ Simple product SKU field not found');
+            }
         }
 
         // Set Price
         if (selectedValues?.productPrice) {
-            $('#price').val(selectedValues.productPrice);
-            console.log('🔧 Set Price:', selectedValues.productPrice);
+            const priceField = $('input[name="price"]');
+            if (priceField.length) {
+                priceField.val(selectedValues.productPrice);
+                console.log('🔧 Set Price:', selectedValues.productPrice);
+            } else {
+                console.warn('⚠️ Price field not found');
+            }
         }
 
         // Set Discount
@@ -230,59 +241,89 @@ class ProductFormEdit {
     /**
      * Populate stock data for simple products
      */
-    populateSimpleProductStocks() {
+    async populateSimpleProductStocks() {
         const existingVariants = this.config.selectedValues?.existingVariants || [];
 
-        console.log('🔧 Populating simple product stocks, variants:', existingVariants);
+        console.log('🔧 Populating simple product stocks');
+        console.log('🔧 Existing variants:', existingVariants);
 
         if (existingVariants.length > 0 && existingVariants[0].stocks && existingVariants[0].stocks.length > 0) {
             const stocks = existingVariants[0].stocks;
-            console.log('🔧 Found stocks to populate:', stocks);
+            console.log('🔧 Found ' + stocks.length + ' stock(s) to populate:', stocks);
 
-            setTimeout(() => {
-                stocks.forEach((stock, index) => {
-                    setTimeout(() => {
-                        this.addStockRow(stock, index);
-                    }, 400 * index);
+            // Log each stock for debugging
+            stocks.forEach((stock, idx) => {
+                console.log(`📦 Stock ${idx + 1}:`, {
+                    region_id: stock.region_id,
+                    region_name: stock.region_name,
+                    quantity: stock.quantity
                 });
-            }, 500);
+            });
+
+            // Add and populate stock rows sequentially using async/await
+            for (let index = 0; index < stocks.length; index++) {
+                const stock = stocks[index];
+                console.log(`🔄 Adding and populating stock row ${index + 1}...`);
+                await this.addAndPopulateStockRow(stock, index);
+            }
+
+            console.log('✅ All stock rows populated successfully');
         } else {
             console.log('⚠️ No stocks found for simple product');
+            console.log('⚠️ Variants length:', existingVariants.length);
+            if (existingVariants.length > 0) {
+                console.log('⚠️ First variant:', existingVariants[0]);
+                console.log('⚠️ Stocks:', existingVariants[0].stocks);
+            }
         }
     }
 
     /**
-     * Add and populate a stock row
+     * Add and populate a stock row using Promise-based approach
      */
-    addStockRow(stock, index) {
-        // Find and click add stock button
-        let addButton = $('.add-stock-row').first();
-        if (!addButton.length) {
-            addButton = $('button:contains("Add New Region")').first();
+    async addAndPopulateStockRow(stock, index) {
+        console.log(`🔄 Adding stock row ${index + 1} with data:`, stock);
+
+        // Find the stock container
+        const container = $('#simple-product-section').length ? $('#simple-product-section') : $('.card:has(.stock-rows-container)');
+
+        if (!container.length) {
+            console.warn('⚠️ Stock container not found');
+            return;
         }
 
-        if (addButton.length) {
-            addButton.trigger('click');
+        // Get the variants module instance from the main productForm
+        const variantsModule = window.productForm?.getModule('variants');
+        if (!variantsModule) {
+            console.warn('⚠️ ProductFormVariants module not available');
+            return;
+        }
 
-            setTimeout(() => {
-                const stockRows = $('.stock-row, [class*="stock-row"]');
-                const currentRow = stockRows.eq(index);
+        try {
+            // Add stock row and get the row elements
+            const rowData = await variantsModule.addStockRow(container, false, null);
 
-                if (currentRow.length) {
-                    const regionSelect = currentRow.find('select[name*="region"]').first();
-                    const quantityInput = currentRow.find('input[name*="quantity"]').first();
+            console.log('✅ Stock row created, received:', rowData);
 
-                    if (regionSelect.length && quantityInput.length) {
-                        regionSelect.val(stock.region_id);
-                        quantityInput.val(stock.quantity);
+            if (rowData && rowData.regionSelect && rowData.quantityInput) {
+                const { regionSelect, quantityInput } = rowData;
 
-                        regionSelect.trigger('change');
-                        quantityInput.trigger('input');
+                console.log(`📝 Setting region_id to: ${stock.region_id}`);
+                console.log(`📝 Setting quantity to: ${stock.quantity}`);
 
-                        console.log(`✅ Populated stock row ${index + 1}: Region ${stock.region_id}, Quantity ${stock.quantity}`);
-                    }
-                }
-            }, 300);
+                // Set values using Select2 API
+                regionSelect.val(stock.region_id).trigger('change');
+                quantityInput.val(stock.quantity).trigger('input');
+
+                console.log('🔍 Region select value after set:', regionSelect.val());
+                console.log('🔍 Quantity input value after set:', quantityInput.val());
+
+                console.log(`✅ Populated stock row ${index + 1}: Region ${stock.region_id} (${stock.region_name}), Quantity ${stock.quantity}`);
+            } else {
+                console.warn('⚠️ Row elements not returned properly');
+            }
+        } catch (error) {
+            console.error(`❌ Error adding stock row ${index + 1}:`, error);
         }
     }
 

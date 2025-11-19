@@ -271,6 +271,10 @@ class ProductFormWizard {
                 console.log(`✅ Moving to next step...`);
                 this.currentStep++;
                 this.updateWizardDisplay();
+                // Scroll to top when moving to next step
+                setTimeout(() => {
+                    this.scrollToTop();
+                }, 200);
                 console.log(`✅ Moved to step ${this.currentStep}`);
             } else {
                 console.log(`❌ Step ${this.currentStep} validation failed`);
@@ -290,6 +294,10 @@ class ProductFormWizard {
         if (this.currentStep > 1) {
             this.currentStep--;
             this.updateWizardDisplay();
+            // Scroll to top when moving to previous step
+            setTimeout(() => {
+                this.scrollToTop();
+            }, 200);
             console.log(`✅ Moved to step ${this.currentStep}`);
         } else {
             console.log('⚠️ Already at first step');
@@ -330,6 +338,9 @@ class ProductFormWizard {
      */
     updateWizardDisplay() {
         console.log(`🎨 Updating wizard display for step ${this.currentStep}`);
+
+        // Clear validation alerts when navigating between steps
+        this.clearValidationAlerts();
 
         // Hide all step content
         $('.wizard-step-content').hide();
@@ -448,7 +459,7 @@ class ProductFormWizard {
                 const fieldName = $element.attr('name');
                 if (fieldName) {
                     const errorId = `error-${fieldName.replace(/[\[\]\.]/g, '-')}`;
-                    $(`#${errorId}`).text('This field is required').show();
+                    $(`#${errorId}`).text(this.config.fieldRequired || 'This field is required').show();
                 }
             } else {
                 $element.removeClass('is-invalid');
@@ -469,7 +480,7 @@ class ProductFormWizard {
         const alertHtml = `
             <div class="alert alert-danger alert-dismissible fade show" role="alert">
                 <i class="uil uil-exclamation-triangle me-2"></i>
-                <strong>Validation Error!</strong> Please fill in all required fields before proceeding.
+                <strong>${this.config.validationErrorTitle || 'Validation Error!'}</strong> ${this.config.validationErrorMessage || 'Please fill in all required fields before proceeding.'}
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
         `;
@@ -511,6 +522,25 @@ class ProductFormWizard {
      */
     isLastStep() {
         return this.currentStep === this.totalSteps;
+    }
+
+    /**
+     * Clear validation alerts
+     */
+    clearValidationAlerts() {
+        // Clear the main validation alerts container
+        $('#validation-alerts-container').empty();
+
+        // Clear all inline error messages
+        $('.error-message').hide().text('');
+
+        // Remove is-invalid class from fields
+        $('.is-invalid').removeClass('is-invalid');
+
+        // Clear variant validation errors
+        $('.variant-validation-error').remove();
+
+        console.log('🧹 Validation alerts cleared');
     }
 
     /**

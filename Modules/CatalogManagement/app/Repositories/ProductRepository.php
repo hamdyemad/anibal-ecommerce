@@ -77,7 +77,7 @@ class ProductRepository implements ProductInterface
             $this->storeTranslations($product, $data);
 
             // Generate proper slug after translations are saved
-            $product->regenerateSlug();
+            // $product->regenerateSlug();
 
             // Handle main image
             $this->handleMainImage($product, $data);
@@ -94,44 +94,54 @@ class ProductRepository implements ProductInterface
 
     public function updateProduct(int $id, array $data)
     {
-        // return DB::transaction(function () use ($id, $data) {
-        //     $product = Product::findOrFail($id);
+        return DB::transaction(function () use ($id, $data) {
+            $product = Product::findOrFail($id);
 
-        //     // Determine vendor_id based on user role
-        //     $vendorId = $this->determineVendorId($data);
+            // Determine vendor_id based on user role
+            $vendorId = $this->determineVendorId($data);
 
-        //     // Update product
-        //     $product->update([
-        //         'sku' => $data['sku'],
-        //         'points' => $data['points'] ?? 0,
-        //         'is_active' => $data['is_active'] ?? true,
-        //         'is_featured' => $data['is_featured'] ?? false,
-        //         'created_by' => $vendorId,
-        //         'brand_id' => $data['brand_id'] ?? null,
-        //         'department_id' => $data['department_id'] ?? null,
-        //         'category_id' => $data['category_id'] ?? null,
-        //         'sub_category_id' => $data['sub_category_id'] ?? null,
-        //         'tax_id' => $data['tax_id'] ?? null,
-        //         'max_per_order' => $data['max_per_order'] ?? null,
-        //         'video_link' => $data['video_link'] ?? null,
-        //         'configuration_type' => $data['configuration_type'] ?? 'simple',
-        //     ]);
+            // Get current user for status determination
+            $currentUser = Auth::user();
+            $userType = $currentUser->user_type_id;
 
-        //     // Update translations
-        //     $this->storeTranslations($product, $data);
+            // Determine if status should change (only if vendor is editing)
+            if (in_array($userType, UserType::vendorIds())) {
+                // Vendor editing: set status to pending for re-approval
+                $status = 'pending';
+            } else {
+                // Admin editing: keep current status or set from data
+                $status = $data['status'] ?? $product->status;
+            }
 
-        //     // Handle main image update
-        //     $this->handleMainImage($product, $data, true);
+            // Update product
+            $product->update([
+                'is_active' => $data['is_active'] ?? true,
+                'configuration_type' => $data['configuration_type'],
+                'status' => $status,
+                'vendor_id' => $vendorId,
+                'brand_id' => $data['brand_id'] ?? null,
+                'department_id' => $data['department_id'] ?? null,
+                'category_id' => $data['category_id'] ?? null,
+                'sub_category_id' => $data['sub_category_id'] ?? null,
+            ]);
 
-        //     // Handle additional images
-        //     $this->handleAdditionalImages($product, $data);
+            // Update translations
+            $this->storeTranslations($product, $data);
 
-        //     // Update variants (delete old ones and create new ones)
-        //     $product->variants()->delete();
-        //     $this->handleProductVariants($product, $data);
+            // Regenerate slug after translations are updated
+            // $product->regenerateSlug();
 
-        //     return $product;
-        // });
+            // Handle main image update
+            $this->handleMainImage($product, $data);
+
+            // Handle additional images
+            $this->handleAdditionalImages($product, $data);
+
+            // Handle variants (unified method for both create and update)
+            $this->handleProductVariants($product, $data);
+
+            return $product;
+        });
     }
 
     public function deleteProduct(int $id)
@@ -247,17 +257,28 @@ class ProductRepository implements ProductInterface
     }
 
     /**
-     * Handle product variants or simple product
+     * Handle product variants or simple product (works for both create and update)
      */
     protected function handleProductVariants(Product $product, array $data): void
     {
         $configurationType = $data['configuration_type'] ?? 'simple';
         $vendorId = $product->vendor_id;
 
-        // Create vendor-specific pricing for simple product
-        $vendorProduct = VendorProduct::create([
-            'vendor_id' => $vendorId,
-            'product_id' => $product->id,
+        // Get or create VendorProduct (handles both create and update)
+        $vendorProduct = VendorProduct::firstOrCreate(
+            ['vendor_id' => $vendorId, 'product_id' => $product->id],
+            [
+                'tax_id' => $data['tax_id'],
+                'sku' => $data['sku'],
+                'points' => $data['points'] ?? 0,
+                'max_per_order' => $data['max_per_order'],
+                'is_active' => $data['is_active'] ?? false,
+                'is_featured' => $data['is_featured'] ?? false,
+            ]
+        );
+
+        // Update VendorProduct fields (in case it already existed)
+        $vendorProduct->update([
             'tax_id' => $data['tax_id'],
             'sku' => $data['sku'],
             'points' => $data['points'] ?? 0,
@@ -266,57 +287,128 @@ class ProductRepository implements ProductInterface
             'is_featured' => $data['is_featured'] ?? false,
         ]);
         if ($configurationType === 'simple') {
-            $vendorProductVariant = $vendorProduct->variants()->create([
-                'sku' => $data['sku'],
-                'price' => ($data['price'] ?? 0),
-                'has_offer' => $data['has_discount'] ?? false,
-                'price_before_discount' => isset($data['price_before_discount']) ? $data['price_before_discount'] : 0,
-                'offer_end_date' => $data['offer_end_date'] ?? null,
-            ]);
+            // Handle simple product variant (update or create)
+            $existingVariant = $vendorProduct->variants()->first();
 
-            // Create vendor-specific stocks for simple product
-            if (isset($data['stocks']) && is_array($data['stocks'])) {
-                foreach ($data['stocks'] as $stockData) {
-                    if (isset($stockData['region_id']) && isset($stockData['quantity'])) {
-                        $vendorProductVariant->stocks()->create([
-                            'region_id' => $stockData['region_id'],
-                            'quantity' => $stockData['quantity'],
-                        ]);
-                    }
-                }
+            if ($existingVariant) {
+                // Update existing variant
+                $existingVariant->update([
+                    'sku' => $data['sku'],
+                    'price' => ($data['price'] ?? 0),
+                    'has_offer' => $data['has_discount'] ?? false,
+                    'price_before_discount' => isset($data['price_before_discount']) ? $data['price_before_discount'] : 0,
+                    'offer_end_date' => $data['offer_end_date'] ?? null,
+                ]);
+                $vendorProductVariant = $existingVariant;
+            } else {
+                // Create new variant
+                $vendorProductVariant = $vendorProduct->variants()->create([
+                    'sku' => $data['sku'],
+                    'price' => ($data['price'] ?? 0),
+                    'has_offer' => $data['has_discount'] ?? false,
+                    'price_before_discount' => isset($data['price_before_discount']) ? $data['price_before_discount'] : 0,
+                    'offer_end_date' => $data['offer_end_date'] ?? null,
+                ]);
             }
-        } else {
-            // Handle variants
-            if (isset($data['variants']) && is_array($data['variants'])) {
-                foreach ($data['variants'] as $variantData) {
-                    // Create Global Variant To The Product
-                    $productVariant = $product->variants()->create([
-                        'variant_configuration_id' => $variantData['value_id'],
-                    ]);
-                    // Create vendor-specific pricing for variant
-                    $vendorProductVariant = $vendorProduct->variants()->create([
-                        'variant_configuration_id' => $variantData['value_id'],
-                        'sku' => $variantData['sku'] ?? null,
-                        'price' => $variantData['price'] ?? 0,
-                        'has_discount' => $variantData['has_discount'] ?? false,
-                        'discount_price' => $variantData['price_before_discount'] ?? 0,
-                        'discount_end_date' => $variantData['offer_end_date'] ?? null,
-                    ]);
 
-                    // Create vendor-specific stocks for variant
-                    if (isset($variantData['stock']) && is_array($variantData['stock'])) {
-                        foreach ($variantData['stock'] as $stockData) {
-                            if (isset($stockData['region_id']) && isset($stockData['quantity'])) {
-                                $vendorProductVariant->stocks()->create([
-                                    'region_id' => $stockData['region_id'],
-                                    'quantity' => $stockData['quantity'],
-                                ]);
-                            }
-                        }
+            // Sync stocks for simple product
+            $this->syncVariantStocks($vendorProductVariant, $data['stocks'] ?? []);
+        } else {
+            // Handle variants with multiple configurations
+            if (isset($data['variants']) && is_array($data['variants'])) {
+                $incomingVariantIds = [];
+
+                foreach ($data['variants'] as $variantData) {
+                    $variantConfigId = $variantData['value_id'] ?? null;
+
+                    if (!$variantConfigId) {
+                        continue;
                     }
+
+                    // Find existing variant by configuration ID
+                    $existingProductVariant = $product->variants()
+                        ->where('variant_configuration_id', $variantConfigId)
+                        ->first();
+
+                    $existingVendorVariant = $vendorProduct->variants()
+                        ->where('variant_configuration_id', $variantConfigId)
+                        ->first();
+
+                    if ($existingVendorVariant) {
+                        // Update existing vendor variant
+                        $existingVendorVariant->update([
+                            'sku' => $variantData['sku'] ?? null,
+                            'price' => $variantData['price'] ?? 0,
+                            'has_discount' => $variantData['has_discount'] ?? false,
+                            'discount_price' => $variantData['price_before_discount'] ?? 0,
+                            'discount_end_date' => $variantData['offer_end_date'] ?? null,
+                        ]);
+                        $vendorProductVariant = $existingVendorVariant;
+                        $incomingVariantIds[] = $existingVendorVariant->id;
+                    } else {
+                        // Create new global variant if it doesn't exist
+                        if (!$existingProductVariant) {
+                            $product->variants()->create([
+                                'variant_configuration_id' => $variantConfigId,
+                            ]);
+                        }
+
+                        // Create new vendor variant
+                        $vendorProductVariant = $vendorProduct->variants()->create([
+                            'variant_configuration_id' => $variantConfigId,
+                            'sku' => $variantData['sku'] ?? null,
+                            'price' => $variantData['price'] ?? 0,
+                            'has_discount' => $variantData['has_discount'] ?? false,
+                            'discount_price' => $variantData['price_before_discount'] ?? 0,
+                            'discount_end_date' => $variantData['offer_end_date'] ?? null,
+                        ]);
+                        $incomingVariantIds[] = $vendorProductVariant->id;
+                    }
+
+                    // Sync stocks for this variant
+                    $this->syncVariantStocks($vendorProductVariant, $variantData['stock'] ?? []);
+                }
+
+                // Delete variants that are no longer in the data (only for updates)
+                if (!empty($incomingVariantIds)) {
+                    $vendorProduct->variants()->whereNotIn('id', $incomingVariantIds)->delete();
                 }
             }
         }
+    }
+
+    /**
+     * Sync stocks for a variant (add new, update existing, delete removed)
+     */
+    protected function syncVariantStocks($variant, array $stocksData): void
+    {
+        $incomingStockRegionIds = [];
+
+        foreach ($stocksData as $stockData) {
+            if (isset($stockData['region_id']) && isset($stockData['quantity'])) {
+                $existingStock = $variant->stocks()
+                    ->where('region_id', $stockData['region_id'])
+                    ->first();
+
+                if ($existingStock) {
+                    // Update existing stock
+                    $existingStock->update([
+                        'quantity' => $stockData['quantity'],
+                    ]);
+                    $incomingStockRegionIds[] = $existingStock->id;
+                } else {
+                    // Create new stock
+                    $newStock = $variant->stocks()->create([
+                        'region_id' => $stockData['region_id'],
+                        'quantity' => $stockData['quantity'],
+                    ]);
+                    $incomingStockRegionIds[] = $newStock->id;
+                }
+            }
+        }
+
+        // Delete stocks that are no longer in the data
+        $variant->stocks()->whereNotIn('id', $incomingStockRegionIds)->delete();
     }
 
     /**

@@ -59,11 +59,7 @@
                                         <div class="col-md-6 mb-3">
                                             <div class="form-group">
                                                 <label for="title_{{ $language->code }}" class="form-label w-100 {{ (app()->getLocale() == 'ar') ? 'text-start' : '' }}">
-                                                    @if($language->code == 'en')
-                                                        {{ __('catalogmanagement::product.title') }} ({{ $language->name }})
-                                                    @else
-                                                        العنوان باللغة العربية
-                                                    @endif
+                                                    {{ __('catalogmanagement::product.title') }} ({{ strtoupper($language->code) }})
                                                     <span class="text-danger">*</span>
                                                 </label>
                                                 <input type="text" name="translations[{{ $language->id }}][title]" id="title_{{ $language->code }}"
@@ -96,7 +92,8 @@
                                             <div class="form-group">
                                                 <label class="form-label d-block">{{ __('catalogmanagement::product.status') }}</label>
                                                 <div class="form-check form-switch form-switch-lg">
-                                                    <input class="form-check-input" type="checkbox" role="switch" id="status" name="status" value="1" {{ isset($product) && $product->is_active ? 'checked' : '' }}>
+                                                    <input class="form-check-input" type="checkbox" role="switch" id="status" name="status" value="1"
+                                                    @if(isset($product) && $product->is_active) checked @endif>
                                                 </div>
                                             </div>
                                         </div>
@@ -232,24 +229,25 @@
                                         @foreach($languages as $language)
                                         <div class="col-md-6 mb-3">
                                             <div class="form-group">
-                                                <label for="tags_{{ $language->code }}" class="form-label w-100 {{ $language->rtl ? 'text-end' : '' }}">
-                                                    @if($language->code == 'en')
-                                                        {{ __('common.tags') }} ({{ $language->name }})
-                                                    @else
-                                                        الوسوم باللغة العربية
-                                                    @endif
+                                                <label for="tags_{{ $language->code }}" class="form-label w-100
+                                                     @if(app()->getLocale() == 'ar') dir='rtl' @endif
+                                                     ">
+                                                    {{ __('common.tags') }} ({{ strtoupper($language->code) }})
                                                 </label>
-                                                <x-tags-input
-                                                    name="translations[{{ $language->id }}][tags]"
-                                                    :value="isset($product) ? (isset($product->product) && method_exists($product->product, 'getTagsString') ? $product->product->getTagsString($language->code) : (method_exists($product, 'getTagsString') ? $product->getTagsString($language->code) : '')) : old('translations.'.$language->id.'.tags', '')"
-                                                    placeholder="{{ $language->code == 'ar' ? 'اكتب وسم واضغط انتر' : 'Type a tag and press Enter...' }}"
-                                                    rtl-placeholder="اكتب وسم واضغط انتر"
-                                                    language="{{ $language->code }}"
-                                                    :allow-duplicates="true"
-                                                    theme="primary"
-                                                    size="md"
-                                                    id="tags_{{ $language->code }}"
-                                                />
+                                                <div>
+                                                    <x-tags-input
+                                                        name="translations[{{ $language->id }}][tags]"
+                                                        :value="isset($product) ? (isset($product->product) && method_exists($product->product, 'getTagsString') ? $product->product->getTagsString($language->code) : (method_exists($product, 'getTagsString') ? $product->getTagsString($language->code) : '')) : old('translations.'.$language->id.'.tags', '')"
+                                                        placeholder="{{ app()->getLocale() == 'ar' ? 'اكتب وسم واضغط انتر' : 'Type a tag and press Enter...' }}"
+                                                        rtl-placeholder="اكتب وسم واضغط انتر"
+                                                        language="{{ $language->code }}"
+                                                        :allow-duplicates="true"
+                                                        theme="primary"
+                                                        size="md"
+                                                        id="tags_{{ $language->code }}"
+                                                        dir="{{ (app()->getLocale() == 'ar' && $language->code == 'ar') ? 'rtl' : 'ltr' }}"
+                                                    />
+                                                </div>
                                                 <small class="text-muted w-100 d-block" @if($language->code == 'ar') dir="rtl" style="text-align: right;" @endif>{{ $language->code == 'ar' ? 'اضغط انتر أو فاصلة لإنشاء وسم' : 'Press Enter or comma to create a tag' }}</small>
                                             </div>
                                         </div>
@@ -312,11 +310,7 @@
                                         <div class="col-md-6 mb-3">
                                             <div class="form-group">
                                                 <label for="details_{{ $language->code }}" class="form-label w-100 {{ $language->rtl ? 'text-end' : '' }}">
-                                                    @if($language->code == 'en')
-                                                        {{ __('common.details') }} ({{ $language->name }})
-                                                    @else
-                                                        التفاصيل باللغة العربية
-                                                    @endif
+                                                    {{ __('common.details') }} ({{ strtoupper($language->code) }})
                                                 </label>
                                                 <textarea name="translations[{{ $language->id }}][details]" id="details_{{ $language->code }}"
                                                     class="form-control ih-medium ip-gray radius-xs b-light px-15 tinymce-editor"
@@ -343,11 +337,7 @@
                                         <div class="col-md-6 mb-3">
                                             <div class="form-group">
                                                 <label for="summary_{{ $language->code }}" class="form-label w-100 {{ $language->rtl ? 'text-end' : '' }}">
-                                                    @if($language->code == 'en')
-                                                        {{ __('common.summary') }} ({{ $language->name }})
-                                                    @else
-                                                        الملخص باللغة العربية
-                                                    @endif
+                                                    {{ __('common.summary') }} ({{ strtoupper($language->code) }})
                                                 </label>
                                                 <textarea name="translations[{{ $language->id }}][summary]" id="summary_{{ $language->code }}"
                                                     class="form-control ih-medium ip-gray radius-xs b-light px-15 tinymce-editor"
@@ -363,11 +353,7 @@
                                         <div class="col-md-6 mb-3">
                                             <div class="form-group">
                                                 <label for="features_{{ $language->code }}" class="form-label w-100 {{ $language->rtl ? 'text-end' : '' }}">
-                                                    @if($language->code == 'en')
-                                                        {{ __('common.features') }} ({{ $language->name }})
-                                                    @else
-                                                        المميزات باللغة العربية
-                                                    @endif
+                                                    {{ __('common.features') }} ({{ strtoupper($language->code) }})
                                                 </label>
                                                 <textarea name="translations[{{ $language->id }}][features]" id="features_{{ $language->code }}"
                                                     class="form-control ih-medium ip-gray radius-xs b-light px-15 tinymce-editor"
@@ -383,11 +369,7 @@
                                         <div class="col-md-6 mb-3">
                                             <div class="form-group">
                                                 <label for="instructions_{{ $language->code }}" class="form-label w-100 {{ $language->rtl ? 'text-end' : '' }}">
-                                                    @if($language->code == 'en')
-                                                        {{ __('common.instructions') }} ({{ $language->name }})
-                                                    @else
-                                                        التعليمات باللغة العربية
-                                                    @endif
+                                                    {{ __('common.instructions') }} ({{ strtoupper($language->code) }})
                                                 </label>
                                                 <textarea name="translations[{{ $language->id }}][instructions]" id="instructions_{{ $language->code }}"
                                                     class="form-control ih-medium ip-gray radius-xs b-light px-15 tinymce-editor"
@@ -403,11 +385,7 @@
                                         <div class="col-md-6 mb-3">
                                             <div class="form-group">
                                                 <label for="extra_description_{{ $language->code }}" class="form-label w-100 {{ $language->rtl ? 'text-end' : '' }}">
-                                                    @if($language->code == 'en')
-                                                        {{ __('catalogmanagement::product.extra_description') }} ({{ $language->name }})
-                                                    @else
-                                                        وصف إضافي باللغة العربية
-                                                    @endif
+                                                    {{ __('catalogmanagement::product.extra_description') }} ({{ strtoupper($language->code) }})
                                                 </label>
                                                 <textarea name="translations[{{ $language->id }}][extra_description]" id="extra_description_{{ $language->code }}"
                                                     class="form-control ih-medium ip-gray radius-xs b-light px-15 tinymce-editor"
@@ -434,11 +412,7 @@
                                         <div class="col-md-6 mb-3">
                                             <div class="form-group">
                                                 <label for="material_{{ $language->code }}" class="form-label w-100 {{ $language->rtl ? 'text-end' : '' }}">
-                                                    @if($language->code == 'en')
-                                                        {{ __('catalogmanagement::product.material') }} ({{ $language->name }})
-                                                    @else
-                                                        المواد باللغة العربية
-                                                    @endif
+                                                    {{ __('catalogmanagement::product.material') }} ({{ strtoupper($language->code) }})
                                                 </label>
                                                 <textarea name="translations[{{ $language->id }}][material]" id="material_{{ $language->code }}"
                                                     class="form-control ih-medium ip-gray radius-xs b-light px-15 tinymce-editor"
@@ -538,11 +512,7 @@
                                         <div class="col-md-6 mb-3">
                                             <div class="form-group">
                                                 <label for="meta_title_{{ $language->code }}" class="form-label w-100 {{ $language->rtl ? 'text-end' : '' }}">
-                                                    @if($language->code == 'en')
-                                                        {{ __('catalogmanagement::product.meta_title') }} ({{ $language->name }})
-                                                    @else
-                                                        العنوان الوصفي باللغة العربية
-                                                    @endif
+                                                    {{ __('catalogmanagement::product.meta_title') }} ({{ strtoupper($language->code) }})
                                                 </label>
                                                 <input type="text" name="translations[{{ $language->id }}][meta_title]" id="meta_title_{{ $language->code }}"
                                                     class="form-control ih-medium ip-gray radius-xs b-light px-15"
@@ -559,11 +529,7 @@
                                         <div class="col-md-6 mb-3">
                                             <div class="form-group">
                                                 <label for="meta_description_{{ $language->code }}" class="form-label w-100 {{ $language->rtl ? 'text-end' : '' }}">
-                                                    @if($language->code == 'en')
-                                                        {{ __('catalogmanagement::product.meta_description') }} ({{ $language->name }})
-                                                    @else
-                                                        الوصف الوصفي باللغة العربية
-                                                    @endif
+                                                    {{ __('catalogmanagement::product.meta_description') }} ({{ strtoupper($language->code) }})
                                                 </label>
                                                 <textarea name="translations[{{ $language->id }}][meta_description]" id="meta_description_{{ $language->code }}"
                                                     class="form-control ih-medium ip-gray radius-xs b-light px-15"
@@ -581,23 +547,22 @@
                                         <div class="col-md-6 mb-3">
                                             <div class="form-group">
                                                 <label for="meta_keywords_{{ $language->code }}" class="form-label w-100 {{ $language->rtl ? 'text-end' : '' }}">
-                                                    @if($language->code == 'en')
-                                                        {{ __('catalogmanagement::product.meta_keywords') }} ({{ $language->name }})
-                                                    @else
-                                                        الكلمات المفتاحية باللغة العربية
-                                                    @endif
+                                                    {{ __('catalogmanagement::product.meta_keywords') }} ({{ strtoupper($language->code) }})
                                                 </label>
-                                                <x-tags-input
-                                                    name="translations[{{ $language->id }}][meta_keywords]"
-                                                    :value="isset($product) ? (isset($product->product) && method_exists($product->product, 'getMetaKeywordsString') ? $product->product->getMetaKeywordsString($language->code) : (method_exists($product, 'getMetaKeywordsString') ? $product->getMetaKeywordsString($language->code) : '')) : old('translations.'.$language->id.'.meta_keywords', '')"
-                                                    placeholder="{{ $language->code == 'ar' ? 'اكتب كلمة مفتاحية واضغط انتر' : 'Type a keyword and press Enter...' }}"
-                                                    rtl-placeholder="اكتب كلمة مفتاحية واضغط انتر"
-                                                    language="{{ $language->code }}"
-                                                    :allow-duplicates="true"
-                                                    theme="primary"
-                                                    size="md"
-                                                    id="meta_keywords_{{ $language->code }}"
-                                                />
+                                                <div @if($language->code == 'ar') dir="rtl" @endif>
+                                                    <x-tags-input
+                                                        name="translations[{{ $language->id }}][meta_keywords]"
+                                                        :value="isset($product) ? (isset($product->product) && method_exists($product->product, 'getMetaKeywordsString') ? $product->product->getMetaKeywordsString($language->code) : (method_exists($product, 'getMetaKeywordsString') ? $product->getMetaKeywordsString($language->code) : '')) : old('translations.'.$language->id.'.meta_keywords', '')"
+                                                        placeholder="{{ $language->code == 'ar' ? 'اكتب كلمة مفتاحية واضغط انتر' : 'Type a keyword and press Enter...' }}"
+                                                        rtl-placeholder="اكتب كلمة مفتاحية واضغط انتر"
+                                                        language="{{ $language->code }}"
+                                                        :allow-duplicates="true"
+                                                        theme="primary"
+                                                        size="md"
+                                                        id="meta_keywords_{{ $language->code }}"
+                                                        dir="{{ $language->code == 'ar' ? 'rtl' : 'ltr' }}"
+                                                    />
+                                                </div>
                                                 <small class="text-muted w-100 d-block" @if($language->code == 'ar') dir="rtl" style="text-align: right;" @endif>{{ $language->code == 'ar' ? 'اضغط انتر أو فاصلة لإنشاء كلمة مفتاحية' : 'Press Enter or comma to create a keyword' }}</small>
                                             </div>
                                         </div>
@@ -727,6 +692,38 @@ window.productFormConfig = {
     noVariantKeys: '{{ __('common.no_variant_keys') ?? 'No variant keys available' }}',
     addNewRegion: '{{ __('common.add_new_region') }}',
     actionsLabel: '{{ __('common.actions') }}',
+    selectPlaceholder: '{{ __('common.select') }}',
+    // Wizard translations
+    validationErrorTitle: '{{ trans('common.validation_error') !== 'common.validation_error' ? trans('common.validation_error') : 'Validation Error' }}',
+    validationErrorMessage: '{{ trans('common.validation_error_message') !== 'common.validation_error_message' ? trans('common.validation_error_message') : 'Please fill in all required fields before proceeding.' }}',
+    fieldRequired: '{{ trans('common.field_required') !== 'common.field_required' ? trans('common.field_required') : 'This field is required' }}',
+    // Validation messages
+    titleRequired: '{{ trans('catalogmanagement::product.title_required') !== 'catalogmanagement::product.title_required' ? trans('catalogmanagement::product.title_required') : 'Title is required' }}',
+    skuRequired: '{{ trans('catalogmanagement::product.sku_required') !== 'catalogmanagement::product.sku_required' ? trans('catalogmanagement::product.sku_required') : 'SKU is required' }}',
+    pointsPositive: '{{ trans('catalogmanagement::product.points_positive') !== 'catalogmanagement::product.points_positive' ? trans('catalogmanagement::product.points_positive') : 'Points must be a positive number' }}',
+    brandRequired: '{{ trans('catalogmanagement::product.brand_required') !== 'catalogmanagement::product.brand_required' ? trans('catalogmanagement::product.brand_required') : 'Brand is required' }}',
+    vendorRequired: '{{ trans('catalogmanagement::product.vendor_required') !== 'catalogmanagement::product.vendor_required' ? trans('catalogmanagement::product.vendor_required') : 'Vendor is required' }}',
+    departmentRequired: '{{ trans('catalogmanagement::product.department_required') !== 'catalogmanagement::product.department_required' ? trans('catalogmanagement::product.department_required') : 'Department is required' }}',
+    categoryRequired: '{{ trans('catalogmanagement::product.category_required') !== 'catalogmanagement::product.category_required' ? trans('catalogmanagement::product.category_required') : 'Category is required' }}',
+    taxRequired: '{{ trans('catalogmanagement::product.tax_required') !== 'catalogmanagement::product.tax_required' ? trans('catalogmanagement::product.tax_required') : 'Tax is required' }}',
+    maxPerOrderMin: '{{ trans('catalogmanagement::product.max_per_order_min') !== 'catalogmanagement::product.max_per_order_min' ? trans('catalogmanagement::product.max_per_order_min') : 'Max per order must be at least 1' }}',
+    mainImageRequired: '{{ trans('catalogmanagement::product.main_image_required') !== 'catalogmanagement::product.main_image_required' ? trans('catalogmanagement::product.main_image_required') : 'Main product image is required' }}',
+    productTypeRequired: '{{ trans('catalogmanagement::product.product_type_required') !== 'catalogmanagement::product.product_type_required' ? trans('catalogmanagement::product.product_type_required') : 'Product type is required' }}',
+    priceGreaterThanZero: '{{ trans('catalogmanagement::product.price_greater_than_zero') !== 'catalogmanagement::product.price_greater_than_zero' ? trans('catalogmanagement::product.price_greater_than_zero') : 'Price must be greater than 0' }}',
+    stockEntryRequired: '{{ trans('catalogmanagement::product.stock_entry_required') !== 'catalogmanagement::product.stock_entry_required' ? trans('catalogmanagement::product.stock_entry_required') : 'At least one stock entry is required' }}',
+    regionRequired: '{{ trans('catalogmanagement::product.region_required') !== 'catalogmanagement::product.region_required' ? trans('catalogmanagement::product.region_required') : 'Region is required' }}',
+    quantityPositive: '{{ trans('catalogmanagement::product.quantity_positive') !== 'catalogmanagement::product.quantity_positive' ? trans('catalogmanagement::product.quantity_positive') : 'Quantity must be 0 or greater' }}',
+    variantRequired: '{{ trans('catalogmanagement::product.variant_required') !== 'catalogmanagement::product.variant_required' ? trans('catalogmanagement::product.variant_required') : 'At least one variant is required' }}',
+    variantKeyRequired: '{{ trans('catalogmanagement::product.variant_key_required') !== 'catalogmanagement::product.variant_key_required' ? trans('catalogmanagement::product.variant_key_required') : 'Variant key is required' }}',
+    variantValueRequired: '{{ trans('catalogmanagement::product.variant_value_required') !== 'catalogmanagement::product.variant_value_required' ? trans('catalogmanagement::product.variant_value_required') : 'Variant value is required' }}',
+    variantSkuRequired: '{{ trans('catalogmanagement::product.variant_sku_required') !== 'catalogmanagement::product.variant_sku_required' ? trans('catalogmanagement::product.variant_sku_required') : 'Variant SKU is required' }}',
+    variantPriceGreaterThanZero: '{{ trans('catalogmanagement::product.variant_price_greater_than_zero') !== 'catalogmanagement::product.variant_price_greater_than_zero' ? trans('catalogmanagement::product.variant_price_greater_than_zero') : 'Variant price must be greater than 0' }}',
+    variantStockRequired: '{{ trans('catalogmanagement::product.variant_stock_required') !== 'catalogmanagement::product.variant_stock_required' ? trans('catalogmanagement::product.variant_stock_required') : 'At least one stock entry is required for this variant' }}',
+    metaTitleMax: '{{ trans('catalogmanagement::product.meta_title_max') !== 'catalogmanagement::product.meta_title_max' ? trans('catalogmanagement::product.meta_title_max') : 'Meta title should be 60 characters or less' }}',
+    metaDescriptionMax: '{{ trans('catalogmanagement::product.meta_description_max') !== 'catalogmanagement::product.meta_description_max' ? trans('catalogmanagement::product.meta_description_max') : 'Meta description should be 160 characters or less' }}',
+    fixErrorsBeforeSubmit: '{{ trans('catalogmanagement::product.fix_errors_before_submit') !== 'catalogmanagement::product.fix_errors_before_submit' ? trans('catalogmanagement::product.fix_errors_before_submit') : 'Please fix {count} error(s) before submitting.' }}',
+    updateProduct: '{{ trans('catalogmanagement::product.update_product') !== 'catalogmanagement::product.update_product' ? trans('catalogmanagement::product.update_product') : 'Update Product' }}',
+    createProduct: '{{ trans('catalogmanagement::product.create_product') !== 'catalogmanagement::product.create_product' ? trans('catalogmanagement::product.create_product') : 'Create Product' }}',
     languages: [
         @if(isset($languages))
             @foreach($languages as $language)

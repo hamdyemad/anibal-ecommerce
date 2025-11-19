@@ -87,6 +87,15 @@ class ProductFormVariants {
         const stockManagementHtml = this.generateStockManagementBox('simple');
         container.append(stockManagementHtml);
 
+        // Auto-populate simple product SKU from basic SKU (Step 1)
+        setTimeout(() => {
+            const basicSku = $('#sku').val(); // From step 1
+            if (basicSku) {
+                $('input[name="sku"]').not('#sku').val(basicSku); // Simple product SKU
+                console.log('✅ Auto-populated simple product SKU from basic SKU:', basicSku);
+            }
+        }, 100);
+
         console.log("✅ Simple product boxes generated");
     }
 
@@ -556,54 +565,77 @@ class ProductFormVariants {
 
     /**
      * Add stock row
+     * Returns a promise that resolves when Select2 is initialized
      */
     addStockRow(container, isVariant = false, variantIndex = null) {
-        const regions = this.config.regions || [];
-        const stockRowHtml = this.generateStockRowHtml(regions, isVariant, variantIndex);
+        return new Promise((resolve) => {
+            const regions = this.config.regions || [];
 
-        container.find('.stock-rows-container').append(stockRowHtml);
-        container.find('.stock-empty-state, .variant-stock-empty-state').hide();
-        container.find('.stock-table-container').show();
-        container.find('.total-stock-display').show();
+            // Get the current stock row count to generate proper index
+            const currentStockCount = container.find('.stock-rows-container tr').length;
 
-        // Initialize Select2 on the newly added select element
-        const newRow = container.find('.stock-rows-container').children().last();
-        const selectElement = newRow.find('select.select2');
+            const stockRowHtml = this.generateStockRowHtml(regions, isVariant, variantIndex, currentStockCount);
 
-        if (selectElement.length > 0 && typeof $.fn.select2 !== 'undefined') {
-            selectElement.select2({
-                theme: 'bootstrap-5',
-                width: '100%',
-                dropdownParent: container.find('.stock-table-container'),
-                placeholder: this.config.selectPlaceholder || 'Select Region'
-            });
+            container.find('.stock-rows-container').append(stockRowHtml);
+            container.find('.stock-empty-state, .variant-stock-empty-state').hide();
+            container.find('.stock-table-container').show();
+            container.find('.total-stock-display').show();
 
-            console.log('✅ Select2 initialized for stock region selector');
-        } else {
-            console.warn('⚠️ Select2 not available or element not found');
-        }
+            // Initialize Select2 on the newly added select element
+            const newRow = container.find('.stock-rows-container').children().last();
+            const selectElement = newRow.find('select.select2');
+            const quantityInput = newRow.find('input[name*="quantity"]');
 
-        this.updateTotalStock(container);
+            if (selectElement.length > 0 && typeof $.fn.select2 !== 'undefined') {
+                selectElement.select2({
+                    theme: 'bootstrap-5',
+                    width: '100%',
+                    dropdownParent: container.find('.stock-table-container'),
+                    placeholder: this.config.selectPlaceholder || 'Select Region'
+                });
+
+                console.log('✅ Select2 initialized for stock region selector');
+
+                // Resolve with the row elements after Select2 is ready
+                resolve({
+                    row: newRow,
+                    regionSelect: selectElement,
+                    quantityInput: quantityInput
+                });
+            } else {
+                console.warn('⚠️ Select2 not available or element not found');
+                resolve({
+                    row: newRow,
+                    regionSelect: selectElement,
+                    quantityInput: quantityInput
+                });
+            }
+
+            this.updateTotalStock(container);
+        });
     }
 
     /**
      * Generate stock row HTML
      */
-    generateStockRowHtml(regions, isVariant, variantIndex) {
+    generateStockRowHtml(regions, isVariant, variantIndex, stockIndex = 0) {
         const namePrefix = isVariant ? `variants[${variantIndex}]` : '';
         const rowClass = isVariant ? 'variant-stock-row' : 'stock-row';
         const dataAttr = isVariant ? `data-variant-index="${variantIndex}"` : '';
 
+        // Generate proper indexed names instead of empty brackets
+        const stocksArrayName = isVariant ? `[stocks][${stockIndex}]` : `stocks[${stockIndex}]`;
+
         return `
             <tr class="${rowClass}" ${dataAttr}>
                 <td class="align-middle">
-                    <select name="${namePrefix}${isVariant ? '[stocks]' : 'stocks'}[][region_id]" class="form-control form-select ih-medium ip-gray radius-xs b-light px-15 select2" required>
+                    <select name="${namePrefix}${stocksArrayName}[region_id]" class="form-control form-select ih-medium ip-gray radius-xs b-light px-15 select2" required>
                         <option value="">${this.config.selectPlaceholder || 'Select Region'}</option>
                         ${regions.map(region => `<option value="${region.id}">${region.name}</option>`).join('')}
                     </select>
                 </td>
                 <td class="align-middle">
-                    <input type="number" name="${namePrefix}${isVariant ? '[stocks]' : 'stocks'}[][quantity]" class="form-control ih-medium ip-gray radius-xs b-light px-15 stock-quantity" min="0" placeholder="${this.config.stockQuantity || 'Stock Quantity'}" required>
+                    <input type="number" name="${namePrefix}${stocksArrayName}[quantity]" class="form-control ih-medium ip-gray radius-xs b-light px-15 stock-quantity" min="0" placeholder="${this.config.stockQuantity || 'Stock Quantity'}" required>
                 </td>
                 <td class="text-center align-middle">
                     <div class='actions'>

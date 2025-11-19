@@ -148,8 +148,17 @@ class ProductForm {
             }
         });
 
-        // Load departments on page load if vendor is set
+        // Load departments on page load if vendor is set (only in create mode)
+        // In edit mode, the edit module handles this with proper value restoration
         setTimeout(() => {
+            const config = window.productFormConfig || {};
+            const isEditMode = config.isEditMode || false;
+
+            if (isEditMode) {
+                console.log('📝 Edit mode detected - skipping automatic department load (edit module will handle it)');
+                return;
+            }
+
             const vendorId = $('#vendor_id').val();
             if (vendorId) {
                 console.log('📦 Loading departments for vendor:', vendorId);

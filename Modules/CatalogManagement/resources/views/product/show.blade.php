@@ -77,23 +77,25 @@
                                                     <label
                                                         class="il-gray fs-14 fw-500 mb-10">{{ __('catalogmanagement::product.details') }}</label>
                                                     <div class="row">
-                                                        @foreach (['en' => 'English', 'ar' => 'العربية'] as $lang => $langName)
+                                                        @foreach ($languages as $lang)
                                                             @php
                                                                 $translation = $product->product->getTranslation(
                                                                     'details',
-                                                                    $lang,
+                                                                    $lang->code,
                                                                 );
                                                             @endphp
-                                                            @if ($translation)
                                                                 <div class="col-md-6 mb-3">
                                                                     <small class="text-muted d-block"
-                                                                        style="@if ($lang == 'ar') direction: rtl; text-align: right; @endif">{{ $langName }}:</small>
+                                                                        style="@if ($lang->code == 'ar') direction: rtl; text-align: right; @endif">{{ $lang->code }}:</small>
                                                                     <div class="fs-15 color-dark mb-0"
-                                                                        style="@if ($lang == 'ar') direction: rtl; text-align: right; font-family: 'Cairo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; @endif">
-                                                                        {!! nl2br(e($translation)) !!}
+                                                                        style="@if ($lang->code == 'ar') direction: rtl; text-align: right; font-family: 'Cairo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; @endif">
+                                                                        @if($translation)
+                                                                            {!! nl2br(e($translation)) !!}
+                                                                        @else
+                                                                            --
+                                                                        @endif
                                                                     </div>
                                                                 </div>
-                                                            @endif
                                                         @endforeach
                                                     </div>
                                                 </div>
@@ -105,20 +107,24 @@
                                                     <label
                                                         class="il-gray fs-14 fw-500 mb-10">{{ __('catalogmanagement::product.summary') }}</label>
                                                     <div class="row">
-                                                        @foreach (['en' => 'English', 'ar' => 'العربية'] as $lang => $langName)
+                                                        @foreach ($languages as $lang)
                                                             @php
                                                                 $translation = $product->product->getTranslation(
                                                                     'summary',
-                                                                    $lang,
+                                                                    $lang->code,
                                                                 );
                                                             @endphp
                                                             @if ($translation)
                                                                 <div class="col-md-6 mb-3">
                                                                     <small class="text-muted d-block"
-                                                                        style="@if ($lang == 'ar') direction: rtl; text-align: right; @endif">{{ $langName }}:</small>
+                                                                        style="@if ($lang->code == 'ar') direction: rtl; text-align: right; @endif">{{ $lang->code }}:</small>
                                                                     <div class="fs-15 color-dark mb-0"
-                                                                        style="@if ($lang == 'ar') direction: rtl; text-align: right; font-family: 'Cairo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; @endif">
-                                                                        {!! nl2br(e($translation)) !!}
+                                                                        style="@if ($lang->code == 'ar') direction: rtl; text-align: right; font-family: 'Cairo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; @endif">
+                                                                        @if($translation)
+                                                                            {!! nl2br(e($translation)) !!}
+                                                                        @else
+                                                                            --
+                                                                        @endif
                                                                     </div>
                                                                 </div>
                                                             @endif
@@ -133,20 +139,24 @@
                                                     <label
                                                         class="il-gray fs-14 fw-500 mb-10">{{ __('catalogmanagement::product.features') }}</label>
                                                     <div class="row">
-                                                        @foreach (['en' => 'English', 'ar' => 'العربية'] as $lang => $langName)
+                                                        @foreach ($languages as $lang)
                                                             @php
                                                                 $translation = $product->product->getTranslation(
                                                                     'features',
-                                                                    $lang,
+                                                                    $lang->code,
                                                                 );
                                                             @endphp
                                                             @if ($translation)
                                                                 <div class="col-md-6 mb-3">
                                                                     <small class="text-muted d-block"
-                                                                        style="@if ($lang == 'ar') direction: rtl; text-align: right; @endif">{{ $langName }}:</small>
+                                                                        style="@if ($lang->code == 'ar') direction: rtl; text-align: right; @endif">{{ $lang->code }}:</small>
                                                                     <div class="fs-15 color-dark mb-0"
-                                                                        style="@if ($lang == 'ar') direction: rtl; text-align: right; font-family: 'Cairo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; @endif">
-                                                                        {!! nl2br(e($translation)) !!}
+                                                                        style="@if ($lang->code == 'ar') direction: rtl; text-align: right; font-family: 'Cairo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; @endif">
+                                                                        @if($translation)
+                                                                            {!! nl2br(e($translation)) !!}
+                                                                        @else
+                                                                            --
+                                                                        @endif
                                                                     </div>
                                                                 </div>
                                                             @endif
@@ -161,20 +171,24 @@
                                                     <label
                                                         class="il-gray fs-14 fw-500 mb-10">{{ __('catalogmanagement::product.instructions') }}</label>
                                                     <div class="row">
-                                                        @foreach (['en' => 'English', 'ar' => 'العربية'] as $lang => $langName)
+                                                        @foreach ($languages as $lang)
                                                             @php
                                                                 $translation = $product->product->getTranslation(
                                                                     'instructions',
-                                                                    $lang,
+                                                                    $lang->code,
                                                                 );
                                                             @endphp
                                                             @if ($translation)
                                                                 <div class="col-md-6 mb-3">
                                                                     <small class="text-muted d-block"
-                                                                        style="@if ($lang == 'ar') direction: rtl; text-align: right; @endif">{{ $langName }}:</small>
+                                                                        style="@if ($lang->code == 'ar') direction: rtl; text-align: right; @endif">{{ $lang->code }}:</small>
                                                                     <div class="fs-15 color-dark mb-0"
-                                                                        style="@if ($lang == 'ar') direction: rtl; text-align: right; font-family: 'Cairo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; @endif">
-                                                                        {!! nl2br(e($translation)) !!}
+                                                                        style="@if ($lang->code == 'ar') direction: rtl; text-align: right; font-family: 'Cairo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; @endif">
+                                                                        @if($translation)
+                                                                            {!! nl2br(e($translation)) !!}
+                                                                        @else
+                                                                            --
+                                                                        @endif
                                                                     </div>
                                                                 </div>
                                                             @endif
@@ -320,20 +334,24 @@
                                                     <label
                                                         class="il-gray fs-14 fw-500 mb-10">{{ __('catalogmanagement::product.meta_title') }}</label>
                                                     <div class="row">
-                                                        @foreach (['en' => 'English', 'ar' => 'العربية'] as $lang => $langName)
+                                                        @foreach ($languages as $lang)
                                                             @php
                                                                 $translation = $product->product->getTranslation(
                                                                     'meta_title',
-                                                                    $lang,
+                                                                    $lang->code,
                                                                 );
                                                             @endphp
                                                             @if ($translation)
                                                                 <div class="col-md-6 mb-3">
                                                                     <small class="text-muted d-block"
-                                                                        style="@if ($lang == 'ar') direction: rtl; text-align: right; @endif">{{ $langName }}:</small>
+                                                                        style="@if ($lang->code == 'ar') direction: rtl; text-align: right; @endif">{{ $lang->code }}:</small>
                                                                     <div class="fs-15 color-dark mb-0"
-                                                                        style="@if ($lang == 'ar') direction: rtl; text-align: right; font-family: 'Cairo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; @endif">
-                                                                        {{ $translation }}
+                                                                        style="@if ($lang->code == 'ar') direction: rtl; text-align: right; font-family: 'Cairo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; @endif">
+                                                                        @if($translation)
+                                                                            {{ $translation }}
+                                                                        @else
+                                                                            --
+                                                                        @endif
                                                                     </div>
                                                                 </div>
                                                             @endif
@@ -348,20 +366,24 @@
                                                     <label
                                                         class="il-gray fs-14 fw-500 mb-10">{{ __('catalogmanagement::product.meta_description') }}</label>
                                                     <div class="row">
-                                                        @foreach (['en' => 'English', 'ar' => 'العربية'] as $lang => $langName)
+                                                        @foreach ($languages as $lang)
                                                             @php
                                                                 $translation = $product->product->getTranslation(
                                                                     'meta_description',
-                                                                    $lang,
+                                                                    $lang->code,
                                                                 );
                                                             @endphp
                                                             @if ($translation)
                                                                 <div class="col-md-6 mb-3">
                                                                     <small class="text-muted d-block"
-                                                                        style="@if ($lang == 'ar') direction: rtl; text-align: right; @endif">{{ $langName }}:</small>
+                                                                        style="@if ($lang->code == 'ar') direction: rtl; text-align: right; @endif">{{ $lang->code }}:</small>
                                                                     <div class="fs-15 color-dark mb-0"
-                                                                        style="@if ($lang == 'ar') direction: rtl; text-align: right; font-family: 'Cairo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; @endif">
-                                                                        {{ $translation }}
+                                                                        style="@if ($lang->code == 'ar') direction: rtl; text-align: right; font-family: 'Cairo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; @endif">
+                                                                        @if($translation)
+                                                                            {{ $translation }}
+                                                                        @else
+                                                                            --
+                                                                        @endif
                                                                     </div>
                                                                 </div>
                                                             @endif
@@ -376,23 +398,23 @@
                                                     <label
                                                         class="il-gray fs-14 fw-500 mb-10">{{ __('catalogmanagement::product.meta_keywords') }}</label>
                                                     <div class="row">
-                                                        @foreach (['en' => 'English', 'ar' => 'العربية'] as $lang => $langName)
+                                                        @foreach ($languages as $lang)
                                                             @php
                                                                 $translation = $product->product->getTranslation(
                                                                     'meta_keywords',
-                                                                    $lang,
+                                                                    $lang->code,
                                                                 );
                                                             @endphp
                                                             @if ($translation)
                                                                 <div class="col-md-6 mb-3">
                                                                     <small class="text-muted d-block"
-                                                                        style="@if ($lang == 'ar') direction: rtl; text-align: right; @endif">{{ $langName }}:</small>
+                                                                        style="@if ($lang->code == 'ar') direction: rtl; text-align: right; @endif">{{ $lang->code }}:</small>
                                                                     <div class="fs-15 color-dark mb-0"
-                                                                        style="@if ($lang == 'ar') direction: rtl; text-align: right; font-family: 'Cairo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; @endif">
+                                                                        style="@if ($lang->code == 'ar') direction: rtl; text-align: right; font-family: 'Cairo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; @endif">
                                                                         @if (is_array(json_decode($translation, true)))
                                                                             @foreach (json_decode($translation, true) as $keyword)
                                                                                 <span class="badge badge-light me-1 mb-1"
-                                                                                    style="@if ($lang == 'ar') font-family: 'Cairo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; @endif">{{ $keyword }}</span>
+                                                                                    style="@if ($lang->code == 'ar') font-family: 'Cairo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; @endif">{{ $keyword }}</span>
                                                                             @endforeach
                                                                         @else
                                                                             {{ $translation }}
@@ -411,25 +433,25 @@
                                                     <label
                                                         class="il-gray fs-14 fw-500 mb-10">{{ __('catalogmanagement::product.tags') }}</label>
                                                     <div class="row">
-                                                        @foreach (['en' => 'English', 'ar' => 'العربية'] as $lang => $langName)
+                                                        @foreach ($languages as $lang)
                                                             @php
-                                                                $translation = $product->product->getTranslation('tags', $lang);
+                                                                $translation = $product->product->getTranslation('tags', $lang->code);
                                                             @endphp
                                                             @if ($translation)
                                                                 <div class="col-md-6 mb-3">
                                                                     <small class="text-muted d-block"
-                                                                        style="@if ($lang == 'ar') direction: rtl; text-align: right; @endif">{{ $langName }}:</small>
+                                                                        style="@if ($lang->code == 'ar') direction: rtl; text-align: right; @endif">{{ $lang->code }}:</small>
                                                                     <div class="fs-15 color-dark mb-0"
-                                                                        style="@if ($lang == 'ar') direction: rtl; text-align: right; font-family: 'Cairo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; @endif">
+                                                                        style="@if ($lang->code == 'ar') direction: rtl; text-align: right; font-family: 'Cairo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; @endif">
                                                                         @if (str_contains($translation, ','))
                                                                             @foreach (explode(',', $translation) as $tag)
                                                                                 <span
                                                                                     class="badge badge-primary badge-lg badge-round me-1 mb-1"
-                                                                                    style="@if ($lang == 'ar') font-family: 'Cairo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; @endif">{{ trim($tag) }}</span>
+                                                                                    style="@if ($lang->code == 'ar') font-family: 'Cairo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; @endif">{{ trim($tag) }}</span>
                                                                             @endforeach
                                                                         @else
                                                                             <span class="badge badge-primary"
-                                                                                style="@if ($lang == 'ar') font-family: 'Cairo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; @endif">{{ $translation }}</span>
+                                                                                style="@if ($lang->code == 'ar') font-family: 'Cairo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; @endif">{{ $translation }}</span>
                                                                         @endif
                                                                     </div>
                                                                 </div>
