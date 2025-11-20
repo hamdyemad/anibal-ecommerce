@@ -85,6 +85,13 @@
 
                     <li>
                         <a class="d-flex align-items-center justify-content-between fw-bold"
+                            href="{{ route('admin.allVendorsTransactions') }}">
+                            Vendors Transactions Overview
+                        </a>
+                    </li>
+
+                    <li>
+                        <a class="d-flex align-items-center justify-content-between fw-bold"
                             href="{{ route('admin.allTransactions') }}">
                             All Transactions
                         </a>

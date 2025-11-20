@@ -179,6 +179,12 @@
 
                                     <th>
                                         <span class="userDatatable-title">
+                                            Status
+                                        </span>
+                                    </th>
+
+                                    <th>
+                                        <span class="userDatatable-title">
                                             Invoice
                                         </span>
                                     </th>
@@ -368,6 +374,21 @@
                         name: 'after_sending_amount',
                         render: function(data) {
                             return `<div class="userDatatable-content">${data || '-'}</div>`;
+                        }
+                    },
+                    { // Status
+                        data: 'status',
+                        name: 'status',
+                        orderable: false,
+                        searchable: false,
+                        render: function(data) {
+                            if (data == "accepted") {
+                                return '<p class="text-success" style="text-transform: capitalize; font-weight: bold;">' + data + '</p>';
+                            } else if( data == "rejected" ) {
+                                return '<p class="text-danger" style="text-transform: capitalize; font-weight: bold;">'+ data +'</p>';
+                            } else if( data == "new" ) {
+                                return '<p class="text-primary" style="text-transform: capitalize; font-weight: bold;">'+ data +'</p>';
+                            }
                         }
                     },
                     { // Invoice
