@@ -18,7 +18,7 @@
                         'url' => route('admin.dashboard'),
                         'icon' => 'uil uil-estate',
                     ],
-                    ['title' =>  '{{ $status }} Withdraw Transactions | Bnaia'],
+                    ['title' =>  $status . ' Withdraw Transactions | Bnaia'],
                 ]" />
             </div>
         </div>
@@ -179,6 +179,12 @@
 
                                     <th>
                                         <span class="userDatatable-title">
+                                            Status
+                                        </span>
+                                    </th>
+
+                                    <th>
+                                        <span class="userDatatable-title">
                                             Invoice
                                         </span>
                                     </th>
@@ -217,7 +223,7 @@
                         <input type="file" required class="form-control" id="invoice_file" name="invoice" accept="image/*">
 
                         <div class="mt-3">
-                            <img id="invoice_preview" src="{{ asset('assets/img/3d-message.png') }}"
+                            <img id="invoice_preview" src="{{ asset('assets/img/empty_image.jpg') }}"
                                 style="margin-top:10px; max-width:200px; border:1px solid #ddd; padding:5px; cursor: pointer;">
                         </div>
                     </div>
@@ -369,6 +375,21 @@
                         name: 'after_sending_amount',
                         render: function(data) {
                             return `<div class="userDatatable-content">${data || '-'}</div>`;
+                        }
+                    },
+                    { // Status
+                        data: 'status',
+                        name: 'status',
+                        orderable: false,
+                        searchable: false,
+                        render: function(data) {
+                            if (data == "accepted") {
+                                return '<p class="text-success" style="text-transform: capitalize; font-weight: bold;">' + data + '</p>';
+                            } else if( data == "rejected" ) {
+                                return '<p class="text-danger" style="text-transform: capitalize; font-weight: bold;">'+ data +'</p>';
+                            } else if( data == "new" ) {
+                                return '<p class="text-primary" style="text-transform: capitalize; font-weight: bold;">'+ data +'</p>';
+                            }
                         }
                     },
                     { // Invoice

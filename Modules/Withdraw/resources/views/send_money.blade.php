@@ -71,7 +71,7 @@
                                                                 <div class="ap-po-details__titlebar">
                                                                     <h1 style="font-size: 20px;"><span
                                                                             id="total_orders">0.00</span> EGP</h1>
-                                                                    <p>Total Vendor's Transactions</p>
+                                                                    <p style="font-size:11px">Total Vendor's Transactions</p>
                                                                 </div>
                                                                 <div class="ap-po-details__icon-area">
                                                                     <div class="svg-icon order-bg-opacity-info color-info">
@@ -91,17 +91,18 @@
                                                                 <div class="ap-po-details__titlebar">
                                                                     <h1 style="font-size: 20px;"><span
                                                                             id="bnaia_balance">0.00</span> EGP</h1>
-                                                                    <p>Bnaia Commission from Transactions <span class="badge text-bg-secondary"
+                                                                    <p style="font-size:11px">Bnaia Commission from Transactions <span
+                                                                            class="badge text-bg-secondary"
                                                                             style="background-color: #0056b7; border-radius: 5px"
                                                                             id="vendor_commission_percentage">(0%)</span>
                                                                     </p>
                                                                 </div>
-                                                                <div class="ap-po-details__icon-area">
-                                                                    <div
-                                                                        class="svg-icon order-bg-opacity-primary color-primary" style="width: 50px; height: 50px;">
+                                                                {{-- <div class="ap-po-details__icon-area">
+                                                                    <div class="svg-icon order-bg-opacity-primary color-primary"
+                                                                        style="width: 50px; height: 50px;">
                                                                         <i class="uil uil-export"></i>
                                                                     </div>
-                                                                </div>
+                                                                </div> --}}
                                                             </div>
                                                         </div>
                                                     </div>
@@ -115,7 +116,7 @@
                                                                 <div class="ap-po-details__titlebar">
                                                                     <h1 style="font-size: 20px;"><span
                                                                             id="vendor_balance_money">0.00</span> EGP</h1>
-                                                                    <p>Total Vendor's Credit</p>
+                                                                    <p style="font-size:11px">Total Vendor's Credit</p>
                                                                 </div>
                                                                 <div class="ap-po-details__icon-area">
                                                                     <div
@@ -132,7 +133,7 @@
                                     </div>
                                     <br>
                                     <div class="col-12">
-                                        <div class="card" style="background-color: #0056b7; color: #fff">
+                                        <div class="card" style="background-color: #0056b7; color: #fff; border-radius: 1px !important">
                                             <div class="card-body fw-bold">
                                                 {{ trans('dashboard.vendors_withdraw_transactions') }}
                                             </div>
@@ -211,13 +212,20 @@
                                 <div class="col-md-12 mb-10">
                                     <div class="form-group">
                                         <label class="mb-3">
-                                            Enter Amount <span class="text-danger">*</span> <span class="badge text-bg-secondary"
+                                            Enter Amount <span class="text-danger">*</span> <span
+                                                class="badge text-bg-secondary"
                                                 style="background-color: #0056b7; border-radius: 5px"><span
                                                     id="amount_max_which_will_be_sent">0.00</span> <span
                                                     style="margin: 0px 4px">EGP</span></span>
+
+                                            <span class="badge text-bg-secondary"
+                                                style="background-color: #fa0000; border-radius: 5px"> <span
+                                                    style="margin: 0px 3px">Waiting approve :</span> <span
+                                                    id="waiting_approve_requests">0.000</span>
+                                                <span style="margin: 0px 4px">EGP</span></span>
                                         </label>
                                         <input required type="text" class="form-control"
-                                            placeholder="Example: 4,000.50 EGP" name="sent_amount" id="sent_amount"
+                                            placeholder="Example: 4,000.50" name="sent_amount" id="sent_amount"
                                             value="{{ old('sent_amount') }}">
                                     </div>
                                 </div>
@@ -228,7 +236,7 @@
                                             Upload invoice <span class="text-danger">*</span>
                                         </label><br>
 
-                                        <img id="imagePreview" src="{{ asset('assets/img/3d-message.png') }}"
+                                        <img id="imagePreview" src="{{ asset('assets/img/empty_image.jpg') }}"
                                             alt="Preview"
                                             style="margin-top:10px; max-width:200px; border:1px solid #ddd; padding:5px; cursor: pointer;">
 
@@ -286,9 +294,12 @@
         </div>
     </div>
 
-
-
     @push('scripts')
+        <script>
+            let sentAmountInput = document.getElementById('sent_amount');
+            let maxAmount = 0; // سيتم تحديثه من الـ AJAX
+        </script>
+
         <script>
             function getVendorBalance(vendor_id) {
                 let url = "{{ route('admin.getVendorBalance', ':vendor_id') }}";
@@ -308,18 +319,42 @@
                         $("#remaining_after_sent_money").html(response.remaining);
 
                         $("#amount_max_which_will_be_sent").html(response.remaining);
+                        $("#waiting_approve_requests").html(response.waiting_approve_requests);
 
-                        // تحويل الرقم اللي فيه commas لصافي رقم
-                        let maxAmount = Number(response.remaining.replace(/,/g, ''));
-
-                        // تعيين Max للـ input
-                        $("#sent_amount").attr("max", maxAmount);
+                        let remaining = Number(response.remaining.replace(/,/g, ''));
+                        let waiting = Number(response.waiting_approve_requests.replace(/,/g, ''));
+                        maxAmount = remaining - waiting;
+                        $("#sent_amount").attr("data-max", maxAmount);
                     },
                     error: function(xhr, status, error) {
                         console.log("Error:", error);
                     }
                 });
             }
+
+            // تنسيق الرقم + منع تجاوز max أثناء الكتابة
+            sentAmountInput.addEventListener('input', function() {
+                let value = this.value.replace(/,/g, ''); // إزالة الفواصل
+                if (value === '') return;
+
+                // السماح فقط بالأرقام والنقطة العشرية
+                if (!/^\d*\.?\d*$/.test(value)) {
+                    this.value = this.value.slice(0, -1);
+                    return;
+                }
+
+                let numVal = parseFloat(value);
+                if (!isNaN(numVal)) {
+                    if (numVal > maxAmount) {
+                        alert("Max amount: " + maxAmount.toLocaleString());
+                        numVal = maxAmount; // يمنع تجاوز max
+                    }
+                    // إعادة تنسيق الرقم مع commas
+                    let parts = numVal.toString().split('.');
+                    parts[0] = Number(parts[0]).toLocaleString('en-US');
+                    this.value = parts.join('.');
+                }
+            });
         </script>
 
         <script>

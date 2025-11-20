@@ -13,6 +13,8 @@ use App\Models\Traits\HumanDates;
 use Illuminate\Database\Eloquent\Builder;
 use Modules\AreaSettings\app\Models\Country;
 use Modules\CategoryManagment\app\Models\Activity;
+use Modules\Order\app\Models\OrderProduct;
+use Modules\Withdraw\app\Models\Withdraw;
 
 class Vendor extends Model
 {
@@ -24,6 +26,14 @@ class Vendor extends Model
     protected $slugWithRandomSuffix = true;
     protected $slugSuffixLength = 6;
 
+
+    public function total_orders(){
+        return $this->hasMany(OrderProduct::class, "vendor_id");
+    }
+
+    public function withdraw(){
+        return $this->hasMany(Withdraw::class, "reciever_id") ;
+    }
 
     /**
      * Get the user that owns the vendor

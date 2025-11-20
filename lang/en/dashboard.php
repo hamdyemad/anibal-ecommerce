@@ -30,15 +30,23 @@ return [
 
     // Withdraw Transactions
     'withdraw_transactions' => 'Withdraw Transactions',
-    'total_money' => 'Total Money',
-    'bnaia_balance' => 'bnaia balance',
-    'vendors_balance' => 'Vendors Balance',
+    'Total Delivered Transactions' => 'Total Delivered Transactions',
+    'Bnaia Commission' => 'Bnaia Commission',
+    'Bnaia Credit Balance' => 'Bnaia Credit Balance',
+    "Vendor's Credit Balance" => "Vendor's Credit Balance",
 
     // Vendors Withdraw Transactions
     'vendors_withdraw_transactions' => 'Vendors Withdraw Transactions',
-    'total_vendors_balance' => 'Total Vendors Balance',
-    'total_sent_money' => 'Total Sent Money',
-    'total_remaining' => 'Total Remaining',
+    'Total Needed From Bnaia To Vendors' => 'Total Needed From Bnaia To Vendors',
+    'Total Sent Money To Vendors' => 'Total Sent Money To Vendors',
+    "Total Vendor's Remaining" => "Total Vendor's Remaining",
+
+    "Total Expenses" => "Total Expenses",
+    "Total Income (After Delivery)" => "Total Income (After Delivery)",
+    "Net Profit Y.T.D" => "Net Profit Y.T.D",
+    "Revenue Y.T.D" => "Revenue Y.T.D",
+    "Total New Orders" => "Total New Orders",
+    "Total In Progress Orders" => "Total In Progress Orders",
 
     // Sales Overview
     'sales_overview' => 'Sales Overview',

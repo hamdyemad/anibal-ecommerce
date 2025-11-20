@@ -30,15 +30,23 @@ return [
 
     // Withdraw Transactions
     'withdraw_transactions' => 'معاملات السحب',
-    'total_money' => 'إجمالي المبلغ',
-    'bnaia_balance' => 'رصيد بنايا',
-    'vendors_balance' => 'رصيد التجار',
+    'Total Delivered Transactions' => 'معاملات التسليم',
+    'Bnaia Commission' => 'عمولة بنايا',
+    'Bnaia Credit Balance' => 'رصيد بنايا',
+    "Vendor's Credit Balance" => "رصيد التجار",
 
     // Vendors Withdraw Transactions
     'vendors_withdraw_transactions' => 'معاملات سحب التجار',
-    'total_vendors_balance' => 'إجمالي رصيد التجار',
-    'total_sent_money' => 'إجمالي المبالغ المرسلة',
-    'total_remaining' => 'إجمالي المتبقي',
+    'Total Needed From Bnaia To Vendors' => 'إجمالي المطلوب من بنايا للتجار',
+    'Total Sent Money To Vendors' => 'إجمالي المبلغ المرسل للتجار',
+    "Total Vendor's Remaining" => "إجمالي المتبقي للتجار",
+    "Total Expenses" => "إجمالي المصروفات",
+    "Total Income (After Delivery)" => "إجمالي الدخل (بعد التسليم)",
+    "Net Profit Y.T.D" => "صافي الربح Y.T.D",
+    "Revenue Y.T.D" => "إجمالي الإيرادات Y.T.D",
+    "Total New Orders" => "إجمالي الطلبات الجديدة",
+    "Total In Progress Orders" => "إجمالي الطلبات قيد التنفيذ",
+
 
     // Sales Overview
     'sales_overview' => 'نظرة عامة على المبيعات',
