@@ -71,7 +71,7 @@
                                                                 <div class="ap-po-details__titlebar">
                                                                     <h1 style="font-size: 20px;"><span
                                                                             id="total_orders">0.00</span> EGP</h1>
-                                                                    <p>Total Vendor's Transactions</p>
+                                                                    <p style="font-size:11px">Total Vendor's Transactions</p>
                                                                 </div>
                                                                 <div class="ap-po-details__icon-area">
                                                                     <div class="svg-icon order-bg-opacity-info color-info">
@@ -91,18 +91,18 @@
                                                                 <div class="ap-po-details__titlebar">
                                                                     <h1 style="font-size: 20px;"><span
                                                                             id="bnaia_balance">0.00</span> EGP</h1>
-                                                                    <p>Bnaia Commission from Transactions <span
+                                                                    <p style="font-size:11px">Bnaia Commission from Transactions <span
                                                                             class="badge text-bg-secondary"
                                                                             style="background-color: #0056b7; border-radius: 5px"
                                                                             id="vendor_commission_percentage">(0%)</span>
                                                                     </p>
                                                                 </div>
-                                                                <div class="ap-po-details__icon-area">
+                                                                {{-- <div class="ap-po-details__icon-area">
                                                                     <div class="svg-icon order-bg-opacity-primary color-primary"
                                                                         style="width: 50px; height: 50px;">
                                                                         <i class="uil uil-export"></i>
                                                                     </div>
-                                                                </div>
+                                                                </div> --}}
                                                             </div>
                                                         </div>
                                                     </div>
@@ -116,7 +116,7 @@
                                                                 <div class="ap-po-details__titlebar">
                                                                     <h1 style="font-size: 20px;"><span
                                                                             id="vendor_balance_money">0.00</span> EGP</h1>
-                                                                    <p>Total Vendor's Credit</p>
+                                                                    <p style="font-size:11px">Total Vendor's Credit</p>
                                                                 </div>
                                                                 <div class="ap-po-details__icon-area">
                                                                     <div

@@ -234,7 +234,7 @@ class RoleService
         $this->roleRepositoryInterface->syncPermissions($role, $remainingPermissions);
     }
 
-    public function getVendorRole()
+    public function getVendorRole(): Role
     {
         return $this->roleRepositoryInterface->getVendorRole();
     }
