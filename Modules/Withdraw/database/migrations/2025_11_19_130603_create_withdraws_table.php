@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->enum("request_from", ["vendor", "admin"]);
 
-            $table->unsignedBigInteger('sender_id');
+            $table->unsignedBigInteger('sender_id')->nullable();
             $table->foreign('sender_id')
                 ->references('id')
                 ->on('users')

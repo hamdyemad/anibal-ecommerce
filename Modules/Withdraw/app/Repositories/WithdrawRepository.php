@@ -28,7 +28,7 @@ class WithdrawRepository implements WithdrawRepositoryInterface
 
     public function getVendorBalance($vendor_id)
     {
-        $orders = OrderProduct::where("vendor_id", $vendor_id);
+        $orders = OrderProduct::where("vendor_id", $vendor_id)->get();
 
         $total_vendor_balance = $orders->sum("price") - ($orders->sum("price") * ($orders->first()->commission / 100));
 
