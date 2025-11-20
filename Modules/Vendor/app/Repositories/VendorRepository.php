@@ -69,7 +69,7 @@ class VendorRepository implements VendorInterface
                 'active' => $data['active'] ?? false,
             ];
             $user = $this->userService->createVendorAccount($userData);
-            if($role) {
+            if(isset($role)) {
                 $user->roles()->sync([$role->id]);
             }
 
