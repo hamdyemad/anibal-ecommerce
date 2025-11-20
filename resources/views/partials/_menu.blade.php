@@ -142,34 +142,32 @@
             </ul>
         </li>
 
-        @can('accounting.view')
-            <li class="menu-title mt-30">
-                <span>{{ trans('menu.sections.financials') }}</span>
-            </li>
-            <li
-                class="has-child {{ isParentMenuOpen(['admin.accounting.overview', 'admin.accounting.balance', 'admin.accounting.expenses'], ['admin/accounting*']) ? 'open' : '' }}">
-                <a href="#"
-                    class="{{ isParentMenuOpen(['admin.accounting.overview', 'admin.accounting.balance', 'admin.accounting.expenses'], ['admin/accounting*']) ? 'active' : '' }}">
-                    <span class="nav-icon uil uil-invoice"></span>
-                    <span class="menu-text">{{ trans('menu.accounting module.title') }}</span>
-                    <span class="toggle-icon"></span>
-                </a>
-                <ul class="px-0">
-                    <li><a class="d-flex align-items-center justify-content-between fw-bold"
-                            href="{{ route('admin.dashboard') }}">{{ trans('menu.accounting module.overview') }}</a>
-                    </li>
-                    <li><a class="d-flex align-items-center justify-content-between fw-bold"
-                            href="{{ route('admin.dashboard') }}">{{ trans('menu.accounting module.balance') }}</a>
-                    </li>
-                    <li><a class="d-flex align-items-center justify-content-between fw-bold"
-                            href="{{ route('admin.dashboard') }}">{{ trans('menu.accounting module.expenses keys') }}</a>
-                    </li>
-                    <li><a class="d-flex align-items-center justify-content-between fw-bold"
-                            href="{{ route('admin.dashboard') }}">{{ trans('menu.accounting module.expenses') }}</a>
-                    </li>
-                </ul>
-            </li>
-        @endcan
+        <li class="menu-title mt-30">
+            <span>{{ trans('menu.sections.financials') }}</span>
+        </li>
+        <li
+            class="has-child {{ isParentMenuOpen(['admin.accounting.overview', 'admin.accounting.balance', 'admin.accounting.expenses'], ['admin/accounting*']) ? 'open' : '' }}">
+            <a href="#"
+                class="{{ isParentMenuOpen(['admin.accounting.overview', 'admin.accounting.balance', 'admin.accounting.expenses'], ['admin/accounting*']) ? 'active' : '' }}">
+                <span class="nav-icon uil uil-invoice"></span>
+                <span class="menu-text">{{ trans('menu.accounting module.title') }}</span>
+                <span class="toggle-icon"></span>
+            </a>
+            <ul class="px-0">
+                <li><a class="d-flex align-items-center justify-content-between fw-bold"
+                        href="{{ route('admin.dashboard') }}">{{ trans('menu.accounting module.overview') }}</a>
+                </li>
+                <li><a class="d-flex align-items-center justify-content-between fw-bold"
+                        href="{{ route('admin.dashboard') }}">{{ trans('menu.accounting module.balance') }}</a>
+                </li>
+                <li><a class="d-flex align-items-center justify-content-between fw-bold"
+                        href="{{ route('admin.dashboard') }}">{{ trans('menu.accounting module.expenses keys') }}</a>
+                </li>
+                <li><a class="d-flex align-items-center justify-content-between fw-bold"
+                        href="{{ route('admin.dashboard') }}">{{ trans('menu.accounting module.expenses') }}</a>
+                </li>
+            </ul>
+        </li>
 
 
 
@@ -419,39 +417,39 @@
             @endcan
         @endif
 
-        @canany(['roles.index', 'admins.index'])
-            <li class="menu-title mt-30">
-                <span>{{ trans('menu.sections.user management') }}</span>
-            </li>
-            <li
-                class="has-child {{ isParentMenuOpen(['admin.admin-management.roles.index', 'admin.admin-management.admins.index'], ['admin/admin-management*']) ? 'open' : '' }}">
-                <a href="#"
-                    class="{{ isParentMenuOpen(['admin.admin-management.roles.index', 'admin.admin-management.admins.index'], ['admin/admin-management*']) ? 'active' : '' }}">
-                    <span class="nav-icon uil uil-user-check"></span>
-                    <span class="menu-text">{{ trans('menu.admin managment.title') }}</span>
-                    <span class="toggle-icon"></span>
-                </a>
-                <ul class="px-0">
-                    @can('roles.index')
-                        <li>
-                            <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive(['admin.admin-management.roles.index', 'admin.admin-management.roles.create', 'admin.admin-management.roles.show', 'admin.admin-management.roles.edit'], $currentRoute) ? 'active' : '' }}"
-                                href="{{ route('admin.admin-management.roles.index') }}">
-                                {{ trans('menu.admin managment.roles managment') }}
-                            </a>
-                        </li>
-                    @endcan
 
-                    @can('admins.index')
-                        <li>
-                            <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive(['admin.admin-management.admins.index', 'admin.admin-management.admins.create', 'admin.admin-management.admins.show', 'admin.admin-management.admins.edit'], $currentRoute) ? 'active' : '' }}"
-                                href="{{ route('admin.admin-management.admins.index') }}">
-                                {{ trans('menu.admin managment.admin managment') }}
-                            </a>
-                        </li>
-                    @endcan
-                </ul>
-            </li>
-        @endcanany
+        <li class="menu-title mt-30">
+            <span>{{ trans('menu.sections.user management') }}</span>
+        </li>
+        <li
+            class="has-child {{ isParentMenuOpen(['admin.admin-management.roles.index', 'admin.admin-management.admins.index'], ['admin/admin-management*']) ? 'open' : '' }}">
+            <a href="#"
+                class="{{ isParentMenuOpen(['admin.admin-management.roles.index', 'admin.admin-management.admins.index'], ['admin/admin-management*']) ? 'active' : '' }}">
+                <span class="nav-icon uil uil-user-check"></span>
+                <span class="menu-text">{{ trans('menu.admin managment.title') }}</span>
+                <span class="toggle-icon"></span>
+            </a>
+            <ul class="px-0">
+                @can('roles.index')
+                    <li>
+                        <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive(['admin.admin-management.roles.index', 'admin.admin-management.roles.create', 'admin.admin-management.roles.show', 'admin.admin-management.roles.edit'], $currentRoute) ? 'active' : '' }}"
+                            href="{{ route('admin.admin-management.roles.index') }}">
+                            {{ trans('menu.admin managment.roles managment') }}
+                        </a>
+                    </li>
+                @endcan
+
+                @can('admins.index')
+                    <li>
+                        <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive(['admin.admin-management.admins.index', 'admin.admin-management.admins.create', 'admin.admin-management.admins.show', 'admin.admin-management.admins.edit'], $currentRoute) ? 'active' : '' }}"
+                            href="{{ route('admin.admin-management.admins.index') }}">
+                            {{ trans('menu.admin managment.admin managment') }}
+                        </a>
+                    </li>
+                @endcan
+            </ul>
+        </li>
+
         @if ($user_type == 'super_admin')
             @canany(['vendors.index', 'vendors.create'])
                 <li
@@ -520,72 +518,68 @@
 
         @endif
 
-        @canany(['orders.new', 'orders.inprogress', 'orders.delivered', 'orders.canceled', 'orders.refunded'])
-            <li class="menu-title mt-30">
-                <span>{{ trans('menu.sections.order and fulfillment') }}</span>
-            </li>
-            <li
-                class="has-child {{ isParentMenuOpen(['admin.orders.new', 'admin.orders.inprogress', 'admin.orders.delivered', 'admin.orders.canceled', 'admin.orders.refunded'], ['admin/orders*']) ? 'open' : '' }}">
-                <a href="#"
-                    class="{{ isParentMenuOpen(['admin.orders.new', 'admin.orders.inprogress', 'admin.orders.delivered', 'admin.orders.canceled', 'admin.orders.refunded'], ['admin/orders*']) ? 'active' : '' }}">
-                    <span class="nav-icon uil uil-shopping-cart"></span>
-                    <span class="menu-text">{{ trans('menu.orders.title') }}</span>
-                    <span class="toggle-icon"></span>
-                </a>
-                <ul class="px-0">
-                    <li class="l_sidebar">
-                        <a class="d-flex align-items-center justify-content-between fw-bold"
-                            href="{{ route('admin.dashboard') }}">
-                            {{ trans('menu.orders.new') }}
-                            <span class="badge badge-round badge-success ms-1">50</span>
-                        </a>
-                    </li>
-                    <li class="l_sidebar">
-                        <a class="d-flex align-items-center justify-content-between fw-bold"
-                            href="{{ route('admin.dashboard') }}">
-                            {{ trans('menu.orders.inprogress') }}
-                            <span class="badge badge-round badge-success ms-1">50</span>
-                        </a>
-                    </li>
-                    <li class="l_sidebar">
-                        <a class="d-flex align-items-center justify-content-between fw-bold"
-                            href="{{ route('admin.dashboard') }}">
-                            {{ trans('menu.orders.delivered') }}
-                            <span class="badge badge-round badge-success ms-1">50</span>
-                        </a>
-                    </li>
-                    <li class="l_sidebar">
-                        <a class="d-flex align-items-center justify-content-between fw-bold"
-                            href="{{ route('admin.dashboard') }}">
-                            {{ trans('menu.orders.canceled') }}
-                            <span class="badge badge-round badge-success ms-1">50</span>
-                        </a>
-                    </li>
-                    <li class="l_sidebar">
-                        <a class="d-flex align-items-center justify-content-between fw-bold"
-                            href="{{ route('admin.dashboard') }}">
-                            {{ trans('menu.orders.refunded') }}
-                            <span class="badge badge-success badge-round ms-1">50</span>
-                        </a>
-                    </li>
-                </ul>
-            </li>
-        @endcanany
+        <li class="menu-title mt-30">
+            <span>{{ trans('menu.sections.order and fulfillment') }}</span>
+        </li>
+        <li
+            class="has-child {{ isParentMenuOpen(['admin.orders.new', 'admin.orders.inprogress', 'admin.orders.delivered', 'admin.orders.canceled', 'admin.orders.refunded'], ['admin/orders*']) ? 'open' : '' }}">
+            <a href="#"
+                class="{{ isParentMenuOpen(['admin.orders.new', 'admin.orders.inprogress', 'admin.orders.delivered', 'admin.orders.canceled', 'admin.orders.refunded'], ['admin/orders*']) ? 'active' : '' }}">
+                <span class="nav-icon uil uil-shopping-cart"></span>
+                <span class="menu-text">{{ trans('menu.orders.title') }}</span>
+                <span class="toggle-icon"></span>
+            </a>
+            <ul class="px-0">
+                <li class="l_sidebar">
+                    <a class="d-flex align-items-center justify-content-between fw-bold"
+                        href="{{ route('admin.dashboard') }}">
+                        {{ trans('menu.orders.new') }}
+                        <span class="badge badge-round badge-success ms-1">50</span>
+                    </a>
+                </li>
+                <li class="l_sidebar">
+                    <a class="d-flex align-items-center justify-content-between fw-bold"
+                        href="{{ route('admin.dashboard') }}">
+                        {{ trans('menu.orders.inprogress') }}
+                        <span class="badge badge-round badge-success ms-1">50</span>
+                    </a>
+                </li>
+                <li class="l_sidebar">
+                    <a class="d-flex align-items-center justify-content-between fw-bold"
+                        href="{{ route('admin.dashboard') }}">
+                        {{ trans('menu.orders.delivered') }}
+                        <span class="badge badge-round badge-success ms-1">50</span>
+                    </a>
+                </li>
+                <li class="l_sidebar">
+                    <a class="d-flex align-items-center justify-content-between fw-bold"
+                        href="{{ route('admin.dashboard') }}">
+                        {{ trans('menu.orders.canceled') }}
+                        <span class="badge badge-round badge-success ms-1">50</span>
+                    </a>
+                </li>
+                <li class="l_sidebar">
+                    <a class="d-flex align-items-center justify-content-between fw-bold"
+                        href="{{ route('admin.dashboard') }}">
+                        {{ trans('menu.orders.refunded') }}
+                        <span class="badge badge-success badge-round ms-1">50</span>
+                    </a>
+                </li>
+            </ul>
+        </li>
 
-        @can('order_stages.index')
-            <li>
-                <a href="{{ route('admin.dashboard') }}"
-                    class="{{ isMenuActive('admin.order-stages.index', $currentRoute) ? 'active' : '' }}">
-                    <span class="d-flex align-items-center justify-content-between fw-bold w-100">
-                        <span class="d-flex align-items-center">
-                            <span class="nav-icon uil uil-process"></span>
-                            <span class="menu-text">{{ trans('menu.orders.order stages') }}</span>
-                        </span>
-                        <span class="badge badge-success badge-round ms-1">500</span>
+        <li>
+            <a href="{{ route('admin.dashboard') }}"
+                class="{{ isMenuActive('admin.order-stages.index', $currentRoute) ? 'active' : '' }}">
+                <span class="d-flex align-items-center justify-content-between fw-bold w-100">
+                    <span class="d-flex align-items-center">
+                        <span class="nav-icon uil uil-process"></span>
+                        <span class="menu-text">{{ trans('menu.orders.order stages') }}</span>
                     </span>
-                </a>
-            </li>
-        @endcan
+                    <span class="badge badge-success badge-round ms-1">500</span>
+                </span>
+            </a>
+        </li>
 
         @if ($user_type == 'super_admin')
             @can('shipping_methods.index')
