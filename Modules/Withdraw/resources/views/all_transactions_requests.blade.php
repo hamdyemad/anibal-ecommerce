@@ -191,6 +191,11 @@
 
                                     <th>
                                         <span class="userDatatable-title">
+                                            Created at
+                                        </span>
+                                    </th>
+                                    <th>
+                                        <span class="userDatatable-title">
                                             Action
                                         </span>
                                     </th>
@@ -406,7 +411,15 @@
                             }
                             return '-';
                         }
-                    }, { // Actions
+                    },
+                    { // Created at
+                        data: 'created_at',
+                        name: 'created_at',
+                        render: function(data, type, row) {
+                            return `<div class="userDatatable-content">${row.created_at || '-'}</div>`;
+                        }
+                    },
+                    { // Actions
                         data: null,
                         name: 'actions',
                         orderable: false,

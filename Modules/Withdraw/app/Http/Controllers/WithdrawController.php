@@ -74,7 +74,7 @@ class WithdrawController extends Controller
                     'before_sending_money' => number_format($item->before_sending_money, 2) . " EGP",
                     'sent_amount' => number_format($item->sent_amount, 2) . " EGP",
                     'after_sending_amount' => number_format($item->after_sending_amount, 2) . " EGP",
-                    'created_at' => $item->created_at->format('Y-m-d H:i:s'),
+                    'created_at' => $item->created_at,
                 ];
             });
 
@@ -161,6 +161,7 @@ class WithdrawController extends Controller
                     'before_sending_money' => number_format($item->total_orders->sum("price"), 2) . " EGP",
                     'total_sent_money' => number_format($item->withdraw->where("status", "accepted")->sum("sent_amount"), 2) . " EGP",
                     'remaining' => number_format($item->total_orders->sum("price") - $item->withdraw->where("status", "accepted")->sum("sent_amount"), 2) . " EGP",
+                    'created_at' => $item->created_at,
                 ];
             });
 
@@ -394,7 +395,7 @@ class WithdrawController extends Controller
                 'before_sending_money' => number_format($item->before_sending_money, 2) . " EGP",
                 'sent_amount' => number_format($item->sent_amount, 2) . " EGP",
                 'after_sending_amount' => number_format($item->after_sending_amount, 2) . " EGP",
-                'created_at' => $item->created_at->format('Y-m-d H:i:s'),
+                'created_at' => $item->created_at,
             ];
         });
 
