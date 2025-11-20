@@ -165,17 +165,81 @@ class VariantsConfigurationController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show(Request $request, string $id)
     {
         $variantsConfig = $this->variantsConfigService->findById($id);
-        $languages = $this->languageService->getAll();
+        // For API requests, load children recursively
+        if ($request->wantsJson() || $request->is('api/*')) {
+            if (!$variantsConfig) {
+                return response()->json([
+                    'error' => trans('catalogmanagement::variantsconfig.not_found')
+                ], 404);
+            }
+            return response()->json(VariantsConfigurationResource::make($variantsConfig));
+        }
 
         if (!$variantsConfig) {
             return redirect()->route('admin.variants-configurations.index')
                 ->with('error', trans('catalogmanagement::variantsconfig.not_found'));
         }
 
+        $languages = $this->languageService->getAll();
         return view('catalogmanagement::variants-config.show', compact('variantsConfig', 'languages'));
+    }
+
+    /**
+     * Get variant configuration tree by key ID (for product form)
+     */
+    public function getKeyTree(string $keyId)
+    {
+        try {
+            // Get variant key using service
+            $key = $this->variantConfigKeyService->getVariantKeyTree($keyId);
+
+            if (!$key) {
+                return response()->json([
+                    'error' => 'Variant key not found'
+                ], 404);
+            }
+
+            // Get variants configuration for this key using service
+            $variantsConfig = $this->variantsConfigService->getVariantsByKey($keyId);
+
+            $result = [
+                'id' => $key->id,
+                'name' => $key->getTranslation('name', app()->getLocale()),
+                'children' => $variantsConfig->map(function($variant) {
+                    return [
+                        'id' => $variant->id,
+                        'name' => $variant->getTranslation('name', app()->getLocale()),
+                        'children' => $this->buildVariantChildrenTree($variant->id)
+                    ];
+                })->toArray()
+            ];
+
+            return response()->json($result);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Error loading variant tree',
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get children for a variant configuration recursively (using service)
+     */
+    private function buildVariantChildrenTree($parentId)
+    {
+        $children = $this->variantsConfigService->getVariantChildren($parentId);
+
+        return $children->map(function($child) {
+            return [
+                'id' => $child->id,
+                'name' => $child->getTranslation('name', app()->getLocale()),
+                'children' => $this->buildVariantChildrenTree($child->id)
+            ];
+        })->toArray();
     }
 
     /**

@@ -34,4 +34,9 @@ interface VariantConfigurationKeyRepositoryInterface
      */
     public function deleteVariantConfigurationKey(int $id);
 
+    /**
+     * Get variant configuration key with children tree
+     */
+    public function getVariantKeyTree(int $keyId);
+
 }

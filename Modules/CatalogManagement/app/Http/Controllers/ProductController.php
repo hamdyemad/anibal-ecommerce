@@ -27,11 +27,14 @@ use Modules\Vendor\app\Services\VendorService;
 use App\Models\UserType;
 use Illuminate\Support\Facades\Auth;
 use Modules\CatalogManagement\app\Actions\ProductAction;
+use Modules\CatalogManagement\app\Http\Resources\VariantsConfigurationKeyResource;
+use Modules\CatalogManagement\app\Services\VariantConfigurationKeyService;
 
 class ProductController extends Controller
 {
     public function __construct(
         protected ProductService $productService,
+        protected VariantConfigurationKeyService $variantConfigurationKeyService,
         protected LanguageService $languageService,
         protected BrandService $brandService,
         protected DepartmentService $departmentService,
@@ -118,7 +121,12 @@ class ProductController extends Controller
                 ]];
             }
         }
-        return view('catalogmanagement::product.form', compact('languages', 'brands', 'taxes', 'regions', 'vendors'));
+        // Get variant keys for variant configuration
+        $variantKeys = $this->variantConfigurationKeyService->getAllVariantConfigurationKeys([], 0);
+        $variantKeys = VariantsConfigurationKeyResource::collection(
+            $variantKeys->map(fn ($v) => $v->setAttribute('select2', true))
+        )->resolve();
+        return view('catalogmanagement::product.form', compact('languages', 'brands', 'taxes', 'regions', 'vendors', 'variantKeys'));
     }
 
     /**
@@ -221,6 +229,12 @@ class ProductController extends Controller
                 ]];
             }
         }
+        // Get variant keys for variant configuration
+        $variantKeys = $this->variantConfigurationKeyService->getAllVariantConfigurationKeys([], 0);
+        $variantKeys = VariantsConfigurationKeyResource::collection(
+            $variantKeys->map(fn ($v) => $v->setAttribute('select2', true))
+        )->resolve();
+
         $data = [
             'title' => __('catalogmanagement::product.edit_product'),
             'product' => $product,
@@ -229,6 +243,7 @@ class ProductController extends Controller
             'taxes' => $taxes,
             'regions' => $regions,
             'vendors' => $vendors,
+            'variantKeys' => $variantKeys,
         ];
         return view('catalogmanagement::product.form', $data);
     }

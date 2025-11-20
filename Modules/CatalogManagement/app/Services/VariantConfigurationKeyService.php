@@ -92,4 +92,17 @@ class VariantConfigurationKeyService
         }
     }
 
+    /**
+     * Get variant configuration key with children for tree display
+     */
+    public function getVariantKeyTree(int $keyId)
+    {
+        try {
+            return $this->variantKeyRepository->getVariantKeyTree($keyId);
+        } catch (\Exception $e) {
+            Log::error('Error fetching variant key tree: ' . $e->getMessage());
+            throw $e;
+        }
+    }
+
 }

@@ -137,26 +137,29 @@ class ProductRepository implements ProductInterface
     public function deleteProduct(int $id)
     {
         return DB::transaction(function () use ($id) {
-            $product = Product::with(['attachments', 'variants'])->findOrFail($id);
+            $vendorProduct = VendorProduct::with(['product.attachments', 'variants'])->findOrFail($id);
 
             // Delete associated images
-            foreach ($product->attachments as $attachment) {
+            foreach ($vendorProduct->product->attachments as $attachment) {
                 Storage::disk('public')->delete($attachment->path);
                 $attachment->delete();
             }
 
             // Delete translations
-            $product->translations()->delete();
+            $vendorProduct->product->translations()->delete();
 
             // Delete variants and their stocks
-            foreach ($product->variants as $variant) {
+            foreach ($vendorProduct->variants as $variant) {
                 $variant->stocks()->delete();
-                $variant->translations()->delete();
                 $variant->delete();
             }
-
+            $vendorProduct->product->delete();
+            if($vendorProduct->product->variants){
+                $vendorProduct->product->variants()->delete();
+            }
             // Delete the product (soft delete)
-            $product->delete();
+            $vendorProduct->delete();
+
 
             return true;
         });

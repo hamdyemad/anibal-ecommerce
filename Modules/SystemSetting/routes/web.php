@@ -1,7 +1,6 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use Modules\SystemSetting\app\Http\Controllers\SystemSettingController;
 use Modules\SystemSetting\app\Http\Controllers\CurrencyController;
 use Modules\SystemSetting\app\Http\Controllers\ActivityLogController;
 
