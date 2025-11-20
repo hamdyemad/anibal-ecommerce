@@ -147,7 +147,7 @@ class ProductFormVariants {
                                 <div class="col-md-6 mb-3">
                                     <div class="form-group">
                                         <label class="form-label">${this.config.offerEndDate || 'Offer End Date'}</label>
-                                        <input type="date" name="${namePrefix}${isVariant ? '[offer_end_date]' : 'offer_end_date'}" class="form-control ih-medium ip-gray radius-xs b-light px-15">
+                                        <input type="date" name="${namePrefix}${isVariant ? '[discount_end_date]' : 'discount_end_date'}" class="form-control ih-medium ip-gray radius-xs b-light px-15">
                                     </div>
                                 </div>
                             </div>

@@ -163,7 +163,7 @@ class ProductFormInit {
                                 <div class="col-md-6 mb-3">
                                     <div class="form-group">
                                         <label class="form-label">Offer End Date</label>
-                                        <input type="date" name="offer_end_date" class="form-control">
+                                        <input type="date" name="discount_end_date" class="form-control">
                                     </div>
                                 </div>
                             </div>

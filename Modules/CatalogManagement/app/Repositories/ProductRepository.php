@@ -295,9 +295,9 @@ class ProductRepository implements ProductInterface
                 $existingVariant->update([
                     'sku' => $data['sku'],
                     'price' => ($data['price'] ?? 0),
-                    'has_offer' => $data['has_discount'] ?? false,
+                    'has_discount' => $data['has_discount'] ?? false,
                     'price_before_discount' => isset($data['price_before_discount']) ? $data['price_before_discount'] : 0,
-                    'offer_end_date' => $data['offer_end_date'] ?? null,
+                    'discount_end_date' => $data['discount_end_date'] ?? null,
                 ]);
                 $vendorProductVariant = $existingVariant;
             } else {
@@ -305,9 +305,9 @@ class ProductRepository implements ProductInterface
                 $vendorProductVariant = $vendorProduct->variants()->create([
                     'sku' => $data['sku'],
                     'price' => ($data['price'] ?? 0),
-                    'has_offer' => $data['has_discount'] ?? false,
+                    'has_discount' => $data['has_discount'] ?? false,
                     'price_before_discount' => isset($data['price_before_discount']) ? $data['price_before_discount'] : 0,
-                    'offer_end_date' => $data['offer_end_date'] ?? null,
+                    'discount_end_date' => $data['discount_end_date'] ?? null,
                 ]);
             }
 
@@ -339,9 +339,9 @@ class ProductRepository implements ProductInterface
                         $existingVendorVariant->update([
                             'sku' => $variantData['sku'] ?? null,
                             'price' => $variantData['price'] ?? 0,
-                            'has_offer' => $variantData['has_discount'] ?? false,
+                            'has_discount' => $variantData['has_discount'] ?? false,
                             'price_before_discount' => $variantData['price_before_discount'] ?? 0,
-                            'offer_end_date' => $variantData['offer_end_date'] ?? null,
+                            'discount_end_date' => $variantData['discount_end_date'] ?? null,
                         ]);
                         $vendorProductVariant = $existingVendorVariant;
                         $incomingVariantIds[] = $existingVendorVariant->id;
@@ -358,9 +358,9 @@ class ProductRepository implements ProductInterface
                             'variant_configuration_id' => $variantConfigId,
                             'sku' => $variantData['sku'] ?? null,
                             'price' => $variantData['price'] ?? 0,
-                            'has_offer' => $variantData['has_discount'] ?? false,
+                            'has_discount' => $variantData['has_discount'] ?? false,
                             'price_before_discount' => $variantData['price_before_discount'] ?? 0,
-                            'offer_end_date' => $variantData['offer_end_date'] ?? null,
+                            'discount_end_date' => $variantData['discount_end_date'] ?? null,
                         ]);
                         $incomingVariantIds[] = $vendorProductVariant->id;
                     }
@@ -469,9 +469,9 @@ class ProductRepository implements ProductInterface
             // Update variant pricing
             $variant->update([
                 'price' => $data['price'] ?? $variant->price,
-                'has_offer' => isset($data['has_discount']) ? (bool)$data['has_discount'] : $variant->has_offer,
+                'has_discount' => isset($data['has_discount']) ? (bool)$data['has_discount'] : $variant->has_discount,
                 'price_before_discount' => $data['price_before_discount'] ?? $variant->price_before_discount,
-                'offer_end_date' => $data['offer_end_date'] ?? $variant->offer_end_date,
+                'discount_end_date' => $data['discount_end_date'] ?? $variant->discount_end_date,
             ]);
 
             // Update stock data
@@ -511,9 +511,9 @@ class ProductRepository implements ProductInterface
                     // Update variant pricing
                     $variant->update([
                         'price' => $variantData['price'] ?? $variant->price,
-                        'has_offer' => isset($variantData['has_discount']) ? (bool)$variantData['has_discount'] : $variant->has_offer,
+                        'has_discount' => isset($variantData['has_discount']) ? (bool)$variantData['has_discount'] : $variant->has_discount,
                         'price_before_discount' => $variantData['price_before_discount'] ?? $variant->price_before_discount,
-                        'offer_end_date' => $variantData['offer_end_date'] ?? $variant->offer_end_date,
+                        'discount_end_date' => $variantData['discount_end_date'] ?? $variant->discount_end_date,
                     ]);
 
                     // Update stock data for this variant

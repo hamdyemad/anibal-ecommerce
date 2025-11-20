@@ -177,6 +177,24 @@ class ProductFormEdit {
 
         console.log('🔧 Populating product details for edit mode');
 
+        // Set Status switcher
+        if (typeof selectedValues.status !== 'undefined') {
+            const statusSwitch = $('#status');
+            if (statusSwitch.length) {
+                statusSwitch.prop('checked', selectedValues.status);
+                console.log('🔧 Set status:', selectedValues.status);
+            }
+        }
+
+        // Set Featured switcher
+        if (typeof selectedValues.featured !== 'undefined') {
+            const featuredSwitch = $('#featured');
+            if (featuredSwitch.length) {
+                featuredSwitch.prop('checked', selectedValues.featured);
+                console.log('🔧 Set featured:', selectedValues.featured);
+            }
+        }
+
         if (selectedValues.configuration_type === 'simple') {
             this.populateSimpleProductFields();
         } else if (selectedValues.configuration_type === 'variants' && selectedValues.existingVariants?.length > 0) {
@@ -223,13 +241,24 @@ class ProductFormEdit {
 
             setTimeout(() => {
                 if (selectedValues?.productPriceBeforeDiscount) {
-                    $('input[name="price_before_discount"]').val(selectedValues.productPriceBeforeDiscount);
+                    let priceBeforeInput = $('input[name="price_before_discount"]');
+                    if (!priceBeforeInput.length) {
+                        priceBeforeInput = $('.simple-discount-fields input[type="number"]').first();
+                    }
+                    if (priceBeforeInput.length) {
+                        priceBeforeInput.val(selectedValues.productPriceBeforeDiscount);
+                        console.log('🔧 Set price before discount:', selectedValues.productPriceBeforeDiscount);
+                    } else {
+                        console.warn('⚠️ Simple price before discount field not found');
+                    }
                 }
 
-                if (selectedValues?.productOfferEndDate) {
-                    $('input[name="offer_end_date"]').val(selectedValues.productOfferEndDate);
+                if (selectedValues?.productDiscountEndDate) {
+                    const dateValue = selectedValues.productDiscountEndDate;
+                    let discountEndDateInput = $('input[name="discount_end_date"]');
+                    discountEndDateInput.val(dateValue);
                 }
-            }, 100);
+            }, 300); // Increased timeout
 
             console.log('🔧 Set Discount fields');
         }
@@ -413,46 +442,56 @@ class ProductFormEdit {
         }
 
         // Set Discount
-        if (variant.has_discount) {
+        if (variant.has_discount || variant.has_offer) {
             const discountToggle = variantBox.find(`input[name*="[has_discount]"]`);
             if (discountToggle.length) {
                 discountToggle.prop('checked', true).trigger('change');
                 console.log(`✅ Set discount toggle: true`);
 
+                // Wait longer for discount fields to appear
                 setTimeout(() => {
                     if (variant.price_before_discount) {
-                        const priceBeforeInput = variantBox.find(`input[name*="[price_before_discount]"]`);
-                        if (priceBeforeInput.length) {
-                            priceBeforeInput.val(variant.price_before_discount);
-                            console.log(`✅ Set price before discount: ${variant.price_before_discount}`);
+                        // Try multiple selectors for price before discount
+                        let priceBeforeInput = variantBox.find(`input[name*="[price_before_discount]"]`);
+                        if (!priceBeforeInput.length) {
+                            priceBeforeInput = variantBox.find(`input[name*="price_before_discount"]`);
                         }
+                        if (!priceBeforeInput.length) {
+                            priceBeforeInput = variantBox.find('.variant-discount-fields input[type="number"]').first();
+                        }
+
+                        priceBeforeInput.val(variant.price_before_discount);
+                        console.log(`✅ Set price before discount: ${variant.price_before_discount}`);
                     }
 
-                    if (variant.offer_end_date) {
-                        const offerEndInput = variantBox.find(`input[name*="[offer_end_date]"]`);
-                        if (offerEndInput.length) {
-                            offerEndInput.val(variant.offer_end_date);
-                            console.log(`✅ Set offer end date: ${variant.offer_end_date}`);
-                        }
+                    if (variant.discount_end_date) {
+                        // Try multiple selectors for offer end date
+                        let offerEndInput = variantBox.find(`input[name*="[discount_end_date]"]`);
+                        offerEndInput.val(variant.discount_end_date);
                     }
-                }, 300);
+                }, 500); // Increased timeout
             }
         }
 
         // Populate stock data for this variant (wait for variant tree to fully load)
         if (variant.stocks && variant.stocks.length > 0) {
             console.log(`🔧 Populating ${variant.stocks.length} stock rows for variant ${variantIndex}`);
+            console.log(`🔧 Stock data:`, variant.stocks);
 
             // Wait for variant tree to be fully loaded and stock section to be visible
             setTimeout(() => {
                 this.waitForStockSection(variantBox, () => {
+                    console.log(`🔧 Stock section ready, adding ${variant.stocks.length} stock rows`);
                     variant.stocks.forEach((stock, stockIndex) => {
                         setTimeout(() => {
+                            console.log(`🔧 Adding stock row ${stockIndex + 1}/${variant.stocks.length}:`, stock);
                             this.addVariantStockRow(variantIndex, stock, stockIndex, variantBox);
-                        }, 400 * (stockIndex + 1));
+                        }, 600 * (stockIndex + 1)); // Increased delay between stock rows
                     });
                 });
-            }, 2500); // Wait even longer for variant tree to fully load
+            }, 3000); // Increased initial wait time
+        } else {
+            console.log(`⚠️ No stock data found for variant ${variantIndex}`);
         }
 
         console.log(`✅ Populated variant ${variantIndex}:`, variant.sku);

@@ -202,50 +202,23 @@ class ProductController extends Controller
         $brands = BrandResource::collection($brands)->resolve();
         $taxes = $this->taxService->getAllTaxes([], 0);
         $taxes = TaxResource::collection($taxes)->resolve();
-        $regions = $this->regionService->getAllRegions([], 0);
-        $regions = RegionResource::collection($regions)->resolve();
 
-        // Get vendors for admin/super admin, or current vendor for vendor users
-        $vendors = [];
-        $currentUser = Auth::user();
-        $userType = $currentUser->user_type_id;
-
-        if (in_array($userType, UserType::adminIds())) {
-            // Admin/Super Admin can select any vendor
-            $vendorsData = $this->vendorService->getAllVendors([], 0);
-            $vendors = $vendorsData->map(function($vendor) {
-                return [
-                    'id' => $vendor->id,
-                    'name' => $vendor->getTranslation('name', app()->getLocale())
-                ];
-            })->toArray();
-        } elseif (in_array($userType, UserType::vendorIds())) {
-            // Vendor can only create products for themselves
-            $vendor = $currentUser->vendor;
-            if ($vendor) {
-                $vendors = [[
-                    'id' => $vendor->id,
-                    'name' => $vendor->getTranslation('name', app()->getLocale())
-                ]];
-            }
+        $vendorsParams = [];
+        if(in_array(auth()->user()->user_type_id, UserType::vendorIds())) {
+            $vendorsParams = ['id' => $product->vendor_id];
+        } else {
+            $vendorsParams = [];
         }
-        // Get variant keys for variant configuration
-        $variantKeys = $this->variantConfigurationKeyService->getAllVariantConfigurationKeys([], 0);
-        $variantKeys = VariantsConfigurationKeyResource::collection(
-            $variantKeys->map(fn ($v) => $v->setAttribute('select2', true))
-        )->resolve();
-
+        $vendors = $this->vendorService->getAllVendors($vendorsParams, 0);
         $data = [
             'title' => __('catalogmanagement::product.edit_product'),
             'product' => $product,
             'languages' => $languages,
             'brands' => $brands,
             'taxes' => $taxes,
-            'regions' => $regions,
             'vendors' => $vendors,
-            'variantKeys' => $variantKeys,
         ];
-        return view('catalogmanagement::product.form', $data);
+        return view('catalogmanagement::product.edit', $data);
     }
 
     /**

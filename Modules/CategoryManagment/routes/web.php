@@ -25,3 +25,10 @@ Route::group(
     Route::get('subcategories/datatable', 'SubCategoryController@datatable')->name('subcategories.datatable');
     Route::resource('subcategories', 'SubCategoryController');
 });
+
+// API Routes for cascading dropdowns
+Route::group(['prefix' => 'admin'], function() {
+    Route::get('departments/by-vendor', 'DepartmentController@getDepartmentsByVendor')->name('admin.departments.by-vendor');
+    Route::get('categories/by-department', 'CategoryController@getCategoriesByDepartment')->name('admin.categories.by-department');
+    Route::get('subcategories/by-category', 'SubCategoryController@getSubCategoriesByCategory')->name('admin.subcategories.by-category');
+});

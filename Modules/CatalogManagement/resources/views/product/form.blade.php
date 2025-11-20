@@ -672,7 +672,7 @@ window.productFormConfig = {
     price: '{{ __('common.price') }}',
     enableDiscountOffer: '{{ __('common.enable_discount_offer') }}',
     priceBeforeDiscount: '{{ __('common.price_before_discount') }}',
-    offerEndDate: '{{ __('common.offer_end_date') }}',
+    offerEndDate: '{{ __('common.discount_end_date') }}',
     stockPerRegion: '{{ __('common.stock_per_region') }}',
     region: '{{ __('common.region') }}',
     stockQuantity: '{{ __('common.stock_quantity') }}',
@@ -783,6 +783,8 @@ window.productFormConfig = {
             category_id: {{ $product->product->category_id ?? 'null' }},
             sub_category_id: {{ $product->product->sub_category_id ?? 'null' }},
             tax_id: {{ $product->tax_id ?? 'null' }},
+            status: {{ isset($product) && ($product->product ? $product->product->is_active : $product->is_active) ? 'true' : 'false' }},
+            featured: {{ isset($product) && ($product->product ? $product->product->is_featured : $product->is_featured) ? 'true' : 'false' }},
             configuration_type: '{{ $product->configuration_type ?? $product->product->configuration_type ?? '' }}',
             hasVariants: {{ isset($product) && $product->variants && $product->variants->count() > 0 ? 'true' : 'false' }},
             variantsCount: {{ isset($product) && $product->variants ? $product->variants->count() : 0 }},
@@ -790,15 +792,17 @@ window.productFormConfig = {
             @if(isset($product) && ($product->configuration_type ?? $product->product->configuration_type ?? '') == 'simple')
                 productSku: '{{ addslashes($product->sku ?? '') }}',
                 productPrice: {{ $product->variants && $product->variants->first() ? $product->variants->first()->price : 0 }},
-                productHasDiscount: {{ $product->variants && $product->variants->first() && $product->variants->first()->has_offer ? 'true' : 'false' }},
+                productHasDiscount: {{ $product->variants && $product->variants->first() && $product->variants->first()->has_discount ? 'true' : 'false' }},
                 productPriceBeforeDiscount: {{ $product->variants && $product->variants->first() ? $product->variants->first()->price_before_discount : 0 }},
-                productOfferEndDate: '{{ $product->variants && $product->variants->first() && $product->variants->first()->offer_end_date ? \Carbon\Carbon::parse($product->variants->first()->offer_end_date)->format('Y-m-d') : '' }}',
+                productOfferEndDate: '{{ $product->variants && $product->variants->first() && $product->variants->first()->discount_end_date ? \Carbon\Carbon::parse($product->variants->first()->discount_end_date)->format('Y-m-d') : '' }}',
+                productDiscountEndDate: '{{ $product->variants && $product->variants->first() && $product->variants->first()->discount_end_date ? \Carbon\Carbon::parse($product->variants->first()->discount_end_date)->format('Y-m-d') : '' }}',
             @else
                 productSku: '',
                 productPrice: 0,
                 productHasDiscount: false,
                 productPriceBeforeDiscount: 0,
                 productOfferEndDate: '',
+                productDiscountEndDate: '',
             @endif
             // Existing variants data
             @if(isset($product) && $product->variants && $product->variants->count() > 0)
@@ -808,9 +812,9 @@ window.productFormConfig = {
                         id: {{ $variant->id }},
                         sku: '{{ addslashes($variant->sku ?? '') }}',
                         price: {{ $variant->price ?? 0 }},
-                        has_discount: {{ ($variant->has_offer ?? false) ? 'true' : 'false' }},
+                        has_discount: {{ ($variant->has_discount ?? false) ? 'true' : 'false' }},
                         price_before_discount: {{ $variant->price_before_discount ?? 0 }},
-                        offer_end_date: '{{ $variant->offer_end_date ? \Carbon\Carbon::parse($variant->offer_end_date)->format('Y-m-d') : '' }}',
+                        discount_end_date: '{{ $variant->discount_end_date ? \Carbon\Carbon::parse($variant->discount_end_date)->format('Y-m-d') : '' }}',
                         variant_configuration_id: {{ $variant->variant_configuration_id ?? 'null' }},
                         variant_config: @if($variant->variantConfiguration)
                         {
@@ -862,6 +866,8 @@ window.productFormConfig = {
             category_id: null,
             sub_category_id: null,
             tax_id: null,
+            status: true,
+            featured: false,
             configuration_type: null,
             hasVariants: false,
             variantsCount: 0,
@@ -869,7 +875,7 @@ window.productFormConfig = {
             productPrice: 0,
             productHasDiscount: false,
             productPriceBeforeDiscount: 0,
-            productOfferEndDate: '',
+            productDiscountEndDate: '',
             existingVariants: [],
         @endif
     }
