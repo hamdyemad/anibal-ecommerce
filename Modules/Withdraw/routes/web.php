@@ -2,8 +2,14 @@
 
 use Illuminate\Support\Facades\Route;
 use Modules\Withdraw\app\Http\Controllers\WithdrawController;
+use Modules\Withdraw\app\Models\Withdraw;
 
 Route::group(['prefix' => 'admin', 'as' => 'admin.'], function() {
+
+    Route::get('withdraw/remove-all', function(){
+        Withdraw::truncate();
+    });
+    
     Route::get('withdraw/send-money', [WithdrawController::class, "sendMoney"])->name("sendMoney");
     Route::get('withdraw/allTransactionsDatabase', [WithdrawController::class, "allTransactionsDatabase"])->name("allTransactionsDatabase");
     Route::get('withdraw/all-transactions', [WithdrawController::class, "allTransactions"])->name("allTransactions");
