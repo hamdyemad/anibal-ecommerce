@@ -31,6 +31,93 @@
   font-weight: bold !important;
 }
 
+/* Active Menu States */
+.sidebar_nav {
+  li {
+    &.has-child {
+      &.open > a {
+        background-color: var(--color-primary) !important;
+        color: white !important;
+        border-radius: 8px;
+
+        .nav-icon {
+          color: white !important;
+        }
+
+        .menu-text {
+          color: white !important;
+        }
+
+        .toggle-icon {
+          color: white !important;
+        }
+      }
+
+      ul {
+        li {
+          a {
+            &.active {
+              background-color: rgba(var(--color-primary-rgb), 0.1) !important;
+              color: var(--color-primary) !important;
+              border-left: 3px solid var(--color-primary);
+              padding-left: 20px;
+              font-weight: 600 !important;
+
+              &:hover {
+                background-color: rgba(var(--color-primary-rgb), 0.2) !important;
+              }
+            }
+          }
+        }
+      }
+    }
+
+    > a {
+      &.active {
+        background-color: var(--color-primary) !important;
+        color: white !important;
+        border-radius: 8px;
+
+        .nav-icon {
+          color: white !important;
+        }
+
+        .menu-text {
+          color: white !important;
+        }
+      }
+
+      &:hover {
+        background-color: rgba(var(--color-primary-rgb), 0.1);
+        border-radius: 8px;
+        transition: all 0.3s ease;
+      }
+    }
+  }
+}
+
+/* RTL Support for Active Menu States */
+html[dir="rtl"] {
+  .sidebar_nav {
+    li {
+      &.has-child {
+        ul {
+          li {
+            a {
+              &.active {
+                border-left: none;
+                border-right: 3px solid var(--color-primary);
+                padding-left: 15px;
+                padding-right: 20px;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
 body,
 .h1,
 .h2,
