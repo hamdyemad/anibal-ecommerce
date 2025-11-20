@@ -77,18 +77,18 @@
                                                                     <h1 style="font-size: 20px;"><span
                                                                             id="bnaia_balance">{{ $general_info['bnaia_balance'] }}</span>
                                                                         EGP</h1>
-                                                                    <p>Bnaia Commission from Transactions <span
+                                                                    <p style="font-size: 11px;">Bnaia Commission from Transactions <span
                                                                             class="badge text-bg-secondary"
                                                                             style="background-color: #0056b7; border-radius: 5px"
                                                                             id="vendor_commission_percentage">(0%)</span>
                                                                     </p>
                                                                 </div>
-                                                                <div class="ap-po-details__icon-area">
+                                                                {{-- <div class="ap-po-details__icon-area">
                                                                     <div class="svg-icon order-bg-opacity-primary color-primary"
                                                                         style="width: 50px; height: 50px;">
                                                                         <i class="uil uil-export"></i>
                                                                     </div>
-                                                                </div>
+                                                                </div> --}}
                                                             </div>
                                                         </div>
                                                     </div>
