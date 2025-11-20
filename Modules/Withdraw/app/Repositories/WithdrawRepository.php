@@ -48,15 +48,13 @@ class WithdrawRepository implements WithdrawRepositoryInterface
         $total_vendor_balance = $orders->sum("price") - ($orders->sum("price") * ($orders->first()->commission / 100));
 
         $total_sent_money = Withdraw::where(function ($q) use ($vendor) {
-            $q->where('sender_id', $vendor->user_id)
-                ->orWhere('reciever_id', $vendor->user_id);
+            $q->where('reciever_id', $vendor->id);
         })
             ->where('status', 'accepted')
             ->sum('sent_amount');
 
         $waiting_approve_requests = Withdraw::where(function ($q) use ($vendor) {
-            $q->where('sender_id', $vendor->user_id)
-                ->orWhere('reciever_id', $vendor->user_id);
+            $q->where('reciever_id', $vendor->id);
         })
             ->where('status', 'new')
             ->sum('sent_amount');
