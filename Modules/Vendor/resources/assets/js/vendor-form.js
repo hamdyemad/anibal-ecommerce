@@ -684,6 +684,7 @@ function handleFormSubmission(e) {
         contentType: false,
         success: function(response) {
             console.log(response)
+            LoadingOverlay.hide();
             if (typeof LoadingOverlay !== 'undefined') {
                 LoadingOverlay.animateProgressBar(100);
             }
@@ -697,7 +698,7 @@ function handleFormSubmission(e) {
                 }
 
                 setTimeout(function() {
-                    window.location.href = config.indexRoute;
+                    // window.location.href = config.indexRoute;
                 }, 1500);
             }
         },
