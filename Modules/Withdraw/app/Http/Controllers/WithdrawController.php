@@ -214,6 +214,7 @@ class WithdrawController extends Controller
 
 
 
+
     public function getVendorBalance($vendor_id)
     {
         return $vendors = $this->withdrawService->getVendorBalance($vendor_id);
@@ -229,13 +230,26 @@ class WithdrawController extends Controller
 
         // return $data ;
 
+        // Get the vendor to access the user_id
+        $vendor = \Modules\Vendor\app\Models\Vendor::find($data["vendor_id"]);
+
+        if (!$vendor) {
+            return redirect()->back()
+                ->with('error', "Vendor not found!");
+        }
+
+        if (!$vendor->user_id) {
+            return redirect()->back()
+                ->with('error', "Vendor is not associated with a user!");
+        }
+
         // get latest withdraw transaction for this vendor
         $orders = OrderProduct::where("vendor_id", $data["vendor_id"]);
         $total_vendor_balance = $orders->sum("price") - ($orders->sum("price") * ($orders->first()->commission / 100));
 
-        $last_withdraw = Withdraw::where(function ($q) use ($data) {
-            $q->where('sender_id', $data['vendor_id'])
-                ->orWhere('reciever_id', $data['vendor_id']);
+        $last_withdraw = Withdraw::where(function ($q) use ($vendor) {
+            $q->where('sender_id', $vendor->user_id)
+                ->orWhere('reciever_id', $vendor->user_id);
         })
             ->where('status', 'accepted')
             ->latest()
@@ -247,10 +261,11 @@ class WithdrawController extends Controller
             return redirect()->back()
                 ->with('error', "Invalid amount !");
         }
+
         Withdraw::create([
             "request_from" => "admin",
             "sender_id" => auth()->user()->id,
-            "reciever_id" => $data["vendor_id"],
+            "reciever_id" => $vendor->user_id,
             "before_sending_money" => $final_last_before_sending_money,
             "sent_amount" => $data["sent_amount"],
             "after_sending_amount" => $final_last_before_sending_money - $data["sent_amount"],
@@ -286,15 +301,17 @@ class WithdrawController extends Controller
 
         $data = $request->all();
 
-        $vendor_id = auth()->user()->vendor->id;
+        $vendor = auth()->user()->vendor;
+        $vendor_id = $vendor->id;
+        $user_id = auth()->user()->id;
 
         // get latest withdraw transaction for this vendor
         $orders = OrderProduct::where("vendor_id", $vendor_id);
         $total_vendor_balance = $orders->sum("price") - ($orders->sum("price") * ($orders->first()->commission / 100));
 
-        $last_withdraw = Withdraw::where(function ($q) use ($vendor_id) {
-            $q->where('sender_id', $vendor_id)
-                ->orWhere('reciever_id', $vendor_id);
+        $last_withdraw = Withdraw::where(function ($q) use ($user_id) {
+            $q->where('sender_id', $user_id)
+                ->orWhere('reciever_id', $user_id);
         })
             ->where('status', 'accepted')
             ->latest()
@@ -306,9 +323,18 @@ class WithdrawController extends Controller
             return redirect()->back()
                 ->with('error', "Invalid amount !");
         }
+        // Find an admin user to receive the request (get first super admin or admin)
+        $adminUser = \App\Models\User::whereIn('user_type_id', [1, 2])->first();
+
+        if (!$adminUser) {
+            return redirect()->back()
+                ->with('error', "No admin user found to receive the request!");
+        }
+
         Withdraw::create([
-            "request_from" => "admin",
-            "reciever_id" => $vendor_id,
+            "request_from" => "vendor",
+            "sender_id" => $user_id,
+            "reciever_id" => $adminUser->id,
             "before_sending_money" => $final_last_before_sending_money,
             "sent_amount" => $data["sent_amount"],
             "after_sending_amount" => $final_last_before_sending_money - $data["sent_amount"],

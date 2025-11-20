@@ -1,6 +1,39 @@
 @php
     $user_type = auth()->user()->user_type->name;
     $vendor = auth()->user()->vendor;
+    $currentLocale = LaravelLocalization::getCurrentLocale();
+    $currentRoute = Request::route()->getName();
+    $currentUrl = Request::url();
+
+    // Helper function to check if menu item is active
+    function isMenuActive($routes, $currentRoute = null, $urlPatterns = []) {
+        global $currentLocale;
+
+        if ($currentRoute && is_array($routes)) {
+            if (in_array($currentRoute, $routes)) {
+                return true;
+            }
+        } elseif ($currentRoute && is_string($routes)) {
+            if ($currentRoute === $routes) {
+                return true;
+            }
+        }
+
+        // Check URL patterns
+        foreach ($urlPatterns as $pattern) {
+            if (Request::is($currentLocale . '/' . $pattern)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    // Helper function to check if parent menu should be open
+    function isParentMenuOpen($childRoutes, $urlPatterns = []) {
+        global $currentRoute;
+        return isMenuActive($childRoutes, $currentRoute, $urlPatterns);
+    }
 
     $new_transactions = 0;
     $accepted_transactions = 0;
@@ -66,20 +99,20 @@
 
 
         <li class="menu-title mt-30">
-            <span>Withdraw Module</span>
+            <span>{{ trans('menu.sections.withdraw module') }}</span>
         </li>
-        <li class="has-child">
-            <a href="#" class="">
+        <li class="has-child {{ isParentMenuOpen(['admin.sendMoney', 'admin.allTransactions', 'admin.sendMoneyRequest', 'admin.transactionsRequests'], ['admin/send-money*', 'admin/transactions*', 'admin/withdraw*']) ? 'open' : '' }}">
+            <a href="#" class="{{ isParentMenuOpen(['admin.sendMoney', 'admin.allTransactions', 'admin.sendMoneyRequest', 'admin.transactionsRequests'], ['admin/send-money*', 'admin/transactions*', 'admin/withdraw*']) ? 'active' : '' }}">
                 <span class="nav-icon uil uil-sitemap"></span>
-                <span class="menu-text">Withdraw Module</span>
+                <span class="menu-text">{{ trans('menu.withdraw module.title') }}</span>
                 <span class="toggle-icon"></span>
             </a>
             <ul class="px-0">
                 @if ($user_type == 'super_admin')
                     <li>
-                        <a class="d-flex align-items-center justify-content-between fw-bold"
+                        <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive('admin.sendMoney', $currentRoute) ? 'active' : '' }}"
                             href="{{ route('admin.sendMoney') }}">
-                            Send money
+                            {{ trans('menu.withdraw module.send money') }}
                         </a>
                     </li>
 
@@ -91,41 +124,41 @@
                     </li>
 
                     <li>
-                        <a class="d-flex align-items-center justify-content-between fw-bold"
+                        <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive('admin.allTransactions', $currentRoute) ? 'active' : '' }}"
                             href="{{ route('admin.allTransactions') }}">
-                            All Transactions
+                            {{ trans('menu.withdraw module.all transactions') }}
                         </a>
                     </li>
                 @endif
                 @if ($user_type == 'vendor')
                     <li>
-                        <a class="d-flex align-items-center justify-content-between fw-bold"
+                        <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive('admin.sendMoneyRequest', $currentRoute) ? 'active' : '' }}"
                             href="{{ route('admin.sendMoneyRequest') }}">
-                            Send money request
+                            {{ trans('menu.withdraw module.send money request') }}
                         </a>
                     </li>
                 @endif
 
                 <li>
-                    <a class="d-flex align-items-center justify-content-between fw-bold"
+                    <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive('admin.transactionsRequests', $currentRoute) && request()->route('status') === 'new' ? 'active' : '' }}"
                         href="{{ route('admin.transactionsRequests', 'new') }}">
-                        New Transaction requests
+                        {{ trans('menu.withdraw module.new transaction requests') }}
                         <span class="badge badge-round badge-primary ms-1">{{ $new_transactions }}</span>
                     </a>
                 </li>
 
                 <li>
-                    <a class="d-flex align-items-center justify-content-between fw-bold"
+                    <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive('admin.transactionsRequests', $currentRoute) && request()->route('status') === 'accepted' ? 'active' : '' }}"
                         href="{{ route('admin.transactionsRequests', 'accepted') }}">
-                        Accepted Transaction requests
+                        {{ trans('menu.withdraw module.accepted transaction requests') }}
                         <span class="badge badge-round badge-primary ms-1">{{ $accepted_transactions }}</span>
                     </a>
                 </li>
 
                 <li>
-                    <a class="d-flex align-items-center justify-content-between fw-bold"
+                    <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive('admin.transactionsRequests', $currentRoute) && request()->route('status') === 'rejected' ? 'active' : '' }}"
                         href="{{ route('admin.transactionsRequests', 'rejected') }}">
-                        Rejected Transaction requests
+                        {{ trans('menu.withdraw module.rejected transaction requests') }}
                         <span class="badge badge-round badge-primary ms-1">{{ $rejected_transactions }}</span>
                     </a>
                 </li>
@@ -138,8 +171,8 @@
             <li class="menu-title mt-30">
                 <span>{{ trans('menu.sections.financials') }}</span>
             </li>
-            <li class="has-child">
-                <a href="#" class="">
+            <li class="has-child {{ isParentMenuOpen(['admin.accounting.overview', 'admin.accounting.balance', 'admin.accounting.expenses'], ['admin/accounting*']) ? 'open' : '' }}">
+                <a href="#" class="{{ isParentMenuOpen(['admin.accounting.overview', 'admin.accounting.balance', 'admin.accounting.expenses'], ['admin/accounting*']) ? 'active' : '' }}">
                     <span class="nav-icon uil uil-invoice"></span>
                     <span class="menu-text">{{ trans('menu.accounting module.title') }}</span>
                     <span class="toggle-icon"></span>
@@ -187,8 +220,8 @@
                 <span>{{ trans('menu.sections.catalog management') }}</span>
             </li>
             @if ($user_type == 'super_admin')
-                <li class="has-child">
-                    <a href="#" class="">
+                <li class="has-child {{ isParentMenuOpen(['admin.category-management.activities.index', 'admin.category-management.departments.index', 'admin.category-management.categories.index', 'admin.category-management.subcategories.index'], ['admin/category-management*']) ? 'open' : '' }}">
+                    <a href="#" class="{{ isParentMenuOpen(['admin.category-management.activities.index', 'admin.category-management.departments.index', 'admin.category-management.categories.index', 'admin.category-management.subcategories.index'], ['admin/category-management*']) ? 'active' : '' }}">
                         <span class="nav-icon uil uil-sitemap"></span>
                         <span class="menu-text">{{ trans('menu.category managment.title') }}</span>
                         <span class="toggle-icon"></span>
@@ -196,7 +229,7 @@
                     <ul class="px-0">
                         @can('activities.index')
                             <li>
-                                <a class="d-flex align-items-center justify-content-between fw-bold"
+                                <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive('admin.category-management.activities.index', $currentRoute) ? 'active' : '' }}"
                                     href="{{ route('admin.category-management.activities.index') }}">
                                     {{ trans('menu.activities.title') }}
                                     <span class="badge badge-round badge-secondary ms-1">8</span>
@@ -206,7 +239,7 @@
 
                         @can('departments.index')
                             <li>
-                                <a class="d-flex align-items-center justify-content-between fw-bold"
+                                <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive('admin.category-management.departments.index', $currentRoute) ? 'active' : '' }}"
                                     href="{{ route('admin.category-management.departments.index') }}">
                                     {{ trans('menu.category managment.department') }}
                                     <span class="badge badge-round badge-primary ms-1">8</span>
@@ -216,7 +249,7 @@
 
                         @can('categories.index')
                             <li>
-                                <a class="d-flex align-items-center justify-content-between fw-bold"
+                                <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive('admin.category-management.categories.index', $currentRoute) ? 'active' : '' }}"
                                     href="{{ route('admin.category-management.categories.index') }}">
                                     {{ trans('menu.category managment.main category') }}
                                     <span class="badge badge-round badge-info ms-1">25</span>
@@ -226,7 +259,7 @@
 
                         @can('sub_categories.index')
                             <li>
-                                <a class="d-flex align-items-center justify-content-between fw-bold"
+                                <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive('admin.category-management.subcategories.index', $currentRoute) ? 'active' : '' }}"
                                     href="{{ route('admin.category-management.subcategories.index') }}">
                                     {{ trans('menu.category managment.sub category') }}
                                     <span class="badge badge-round badge-success ms-1">45</span>
@@ -238,15 +271,15 @@
             @endif
         @endcanany
 
-        <li class="has-child">
-            <a href="#" class="">
+        <li class="has-child {{ isParentMenuOpen(['admin.products.index', 'admin.products.create', 'admin.products.show', 'admin.products.edit', 'admin.variant-keys.index', 'admin.variants-configurations.index'], ['admin/products*', 'admin/variant*']) ? 'open' : '' }}">
+            <a href="#" class="{{ isParentMenuOpen(['admin.products.index', 'admin.products.create', 'admin.products.show', 'admin.products.edit', 'admin.variant-keys.index', 'admin.variants-configurations.index'], ['admin/products*', 'admin/variant*']) ? 'active' : '' }}">
                 <span class="nav-icon uil uil-box"></span>
                 <span class="menu-text">{{ trans('menu.products.title') }}</span>
                 <span class="toggle-icon"></span>
             </a>
             <ul class="px-0">
                 <li>
-                    <a class="d-flex align-items-center justify-content-between fw-bold"
+                    <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive(['admin.products.index', 'admin.products.create', 'admin.products.show', 'admin.products.edit'], $currentRoute) ? 'active' : '' }}"
                         href="{{ route('admin.products.index') }}">
                         {{ trans('menu.products.all_products') }}
                         <span class="badge badge-round badge-primary ms-1">20</span>
@@ -254,14 +287,14 @@
                 </li>
                 @canany(['variant-keys.view', 'variant-keys.create'])
                     <li>
-                        <a class="d-flex align-items-center justify-content-between fw-bold"
+                        <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive('admin.variant-keys.index', $currentRoute) ? 'active' : '' }}"
                             href="{{ route('admin.variant-keys.index') }}">
                             {{ trans('menu.variant configurations.variant config keys') }}
                             <span class="badge badge-round badge-info ms-1">20</span>
                         </a>
                     </li>
                     <li>
-                        <a class="d-flex align-items-center justify-content-between fw-bold"
+                        <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive('admin.variants-configurations.index', $currentRoute) ? 'active' : '' }}"
                             href="{{ route('admin.variants-configurations.index') }}">
                             {{ trans('menu.variant configurations.variant config') }}
                             <span class="badge badge-round badge-success ms-1">10</span>
@@ -307,8 +340,8 @@
 
         @if ($user_type == 'super_admin')
             @canany(['taxes.view', 'taxes.create'])
-                <li class="has-child">
-                    <a href="#" class="">
+                <li class="has-child {{ isParentMenuOpen(['admin.taxes.index', 'admin.taxes.create', 'admin.taxes.show', 'admin.taxes.edit'], ['admin/taxes*']) ? 'open' : '' }}">
+                    <a href="#" class="{{ isParentMenuOpen(['admin.taxes.index', 'admin.taxes.create', 'admin.taxes.show', 'admin.taxes.edit'], ['admin/taxes*']) ? 'active' : '' }}">
                         <span class="nav-icon uil uil-percentage"></span>
                         <span class="menu-text">{{ trans('menu.taxes.title') }}</span>
                         <span class="toggle-icon"></span>
@@ -316,7 +349,7 @@
                     <ul class="px-0">
                         @can('taxes.index')
                             <li>
-                                <a class="d-flex align-items-center justify-content-between fw-bold"
+                                <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive(['admin.taxes.index', 'admin.taxes.show', 'admin.taxes.edit'], $currentRoute) ? 'active' : '' }}"
                                     href="{{ route('admin.taxes.index') }}">
                                     {{ trans('menu.taxes.all') }}
                                     <span class="badge badge-round badge-info ms-1">12</span>
@@ -325,7 +358,7 @@
                         @endcan
 
                         @can('taxes.create')
-                            <li><a href="{{ route('admin.taxes.create') }}">{{ trans('menu.taxes.create') }}</a></li>
+                            <li><a href="{{ route('admin.taxes.create') }}" class="{{ isMenuActive('admin.taxes.create', $currentRoute) ? 'active' : '' }}">{{ trans('menu.taxes.create') }}</a></li>
                         @endcan
                     </ul>
                 </li>
@@ -368,7 +401,7 @@
 
         @can('brands.index')
             <li>
-                <a href="{{ route('admin.brands.index') }}">
+                <a href="{{ route('admin.brands.index') }}" class="{{ isMenuActive(['admin.brands.index', 'admin.brands.create', 'admin.brands.show', 'admin.brands.edit'], $currentRoute) ? 'active' : '' }}">
                     <span class="d-flex align-items-center justify-content-between fw-bold w-100">
                         <span class="d-flex align-items-center">
                             <span class="nav-icon uil uil-ticket"></span>
@@ -400,8 +433,8 @@
             <li class="menu-title mt-30">
                 <span>{{ trans('menu.sections.user management') }}</span>
             </li>
-            <li class="has-child">
-                <a href="#" class="">
+            <li class="has-child {{ isParentMenuOpen(['admin.admin-management.roles.index', 'admin.admin-management.admins.index'], ['admin/admin-management*']) ? 'open' : '' }}">
+                <a href="#" class="{{ isParentMenuOpen(['admin.admin-management.roles.index', 'admin.admin-management.admins.index'], ['admin/admin-management*']) ? 'active' : '' }}">
                     <span class="nav-icon uil uil-user-check"></span>
                     <span class="menu-text">{{ trans('menu.admin managment.title') }}</span>
                     <span class="toggle-icon"></span>
@@ -409,7 +442,7 @@
                 <ul class="px-0">
                     @can('roles.index')
                         <li>
-                            <a class="d-flex align-items-center justify-content-between fw-bold"
+                            <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive(['admin.admin-management.roles.index', 'admin.admin-management.roles.create', 'admin.admin-management.roles.show', 'admin.admin-management.roles.edit'], $currentRoute) ? 'active' : '' }}"
                                 href="{{ route('admin.admin-management.roles.index') }}">
                                 {{ trans('menu.admin managment.roles managment') }}
                             </a>
@@ -418,7 +451,7 @@
 
                     @can('admins.index')
                         <li>
-                            <a class="d-flex align-items-center justify-content-between fw-bold"
+                            <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive(['admin.admin-management.admins.index', 'admin.admin-management.admins.create', 'admin.admin-management.admins.show', 'admin.admin-management.admins.edit'], $currentRoute) ? 'active' : '' }}"
                                 href="{{ route('admin.admin-management.admins.index') }}">
                                 {{ trans('menu.admin managment.admin managment') }}
                             </a>
@@ -440,7 +473,7 @@
                     <ul class="px-0">
                         @can('vendors.index')
                             <li>
-                                <a class="d-flex align-items-center justify-content-between fw-bold"
+                                <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive(['admin.vendors.index', 'admin.vendors.show', 'admin.vendors.edit'], $currentRoute) ? 'active' : '' }}"
                                     href="{{ route('admin.vendors.index') }}">
                                     {{ trans('menu.vendors.all') }}
                                     <span class="badge badge-round badge-success ms-1">50</span>
@@ -450,7 +483,7 @@
 
                         @can('vendors.create')
                             <li>
-                                <a class="d-flex align-items-center justify-content-between fw-bold"
+                                <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive('admin.vendors.create', $currentRoute) ? 'active' : '' }}"
                                     href="{{ route('admin.vendors.create') }}">
                                     {{ trans('menu.vendors.create') }}
                                 </a>
@@ -499,8 +532,8 @@
             <li class="menu-title mt-30">
                 <span>{{ trans('menu.sections.order and fulfillment') }}</span>
             </li>
-            <li class="has-child">
-                <a href="#" class="">
+            <li class="has-child {{ isParentMenuOpen(['admin.orders.new', 'admin.orders.inprogress', 'admin.orders.delivered', 'admin.orders.canceled', 'admin.orders.refunded'], ['admin/orders*']) ? 'open' : '' }}">
+                <a href="#" class="{{ isParentMenuOpen(['admin.orders.new', 'admin.orders.inprogress', 'admin.orders.delivered', 'admin.orders.canceled', 'admin.orders.refunded'], ['admin/orders*']) ? 'active' : '' }}">
                     <span class="nav-icon uil uil-shopping-cart"></span>
                     <span class="menu-text">{{ trans('menu.orders.title') }}</span>
                     <span class="toggle-icon"></span>
@@ -547,7 +580,7 @@
 
         @can('order_stages.index')
             <li>
-                <a href="{{ route('admin.dashboard') }}">
+                <a href="{{ route('admin.dashboard') }}" class="{{ isMenuActive('admin.order-stages.index', $currentRoute) ? 'active' : '' }}">
                     <span class="d-flex align-items-center justify-content-between fw-bold w-100">
                         <span class="d-flex align-items-center">
                             <span class="nav-icon uil uil-process"></span>
@@ -710,7 +743,7 @@
 
             @can('settings.logs.view')
                 <li>
-                    <a href="{{ route('admin.system-settings.activity-logs.index') }}">
+                    <a href="{{ route('admin.system-settings.activity-logs.index') }}" class="{{ isMenuActive('admin.system-settings.activity-logs.index', $currentRoute) ? 'active' : '' }}">
                         <span class="nav-icon uil uil-history"></span>
                         <span class="menu-text">{{ trans('menu.system log.title') }}</span>
                     </a>
@@ -718,8 +751,8 @@
             @endcan
 
             @canany(['area.country.index', 'area.city.index', 'area.region.index', 'area.subregion.index'])
-                <li class="has-child">
-                    <a href="#" class="">
+                <li class="has-child {{ isParentMenuOpen(['admin.area-settings.countries.index', 'admin.area-settings.cities.index', 'admin.area-settings.regions.index', 'admin.area-settings.subregions.index'], ['admin/area-settings*']) ? 'open' : '' }}">
+                    <a href="#" class="{{ isParentMenuOpen(['admin.area-settings.countries.index', 'admin.area-settings.cities.index', 'admin.area-settings.regions.index', 'admin.area-settings.subregions.index'], ['admin/area-settings*']) ? 'active' : '' }}">
                         <span class="nav-icon uil uil-map-marker"></span>
                         <span class="menu-text">{{ trans('menu.area settings.title') }}</span>
                         <span class="toggle-icon"></span>
@@ -727,7 +760,7 @@
                     <ul class="px-0">
                         @can('area.country.index')
                             <li>
-                                <a class="d-flex align-items-center justify-content-between fw-bold"
+                                <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive(['admin.area-settings.countries.index', 'admin.area-settings.countries.create', 'admin.area-settings.countries.show', 'admin.area-settings.countries.edit'], $currentRoute) ? 'active' : '' }}"
                                     href="{{ route('admin.area-settings.countries.index') }}">
                                     {{ trans('menu.area settings.country') }}
                                     <span class="badge badge-round badge-success ms-1">15</span>
@@ -737,7 +770,7 @@
 
                         @can('area.city.index')
                             <li>
-                                <a class="d-flex align-items-center justify-content-between fw-bold"
+                                <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive(['admin.area-settings.cities.index', 'admin.area-settings.cities.create', 'admin.area-settings.cities.show', 'admin.area-settings.cities.edit'], $currentRoute) ? 'active' : '' }}"
                                     href="{{ route('admin.area-settings.cities.index') }}">
                                     {{ trans('menu.area settings.city') }}
                                     <span class="badge badge-round badge-info ms-1">120</span>
@@ -747,7 +780,7 @@
 
                         @can('area.region.index')
                             <li>
-                                <a class="d-flex align-items-center justify-content-between fw-bold"
+                                <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive(['admin.area-settings.regions.index', 'admin.area-settings.regions.create', 'admin.area-settings.regions.show', 'admin.area-settings.regions.edit'], $currentRoute) ? 'active' : '' }}"
                                     href="{{ route('admin.area-settings.regions.index') }}">
                                     {{ trans('menu.area settings.region') }}
                                     <span class="badge badge-round badge-warning ms-1">45</span>
@@ -757,7 +790,7 @@
 
                         @can('area.subregion.index')
                             <li>
-                                <a class="d-flex align-items-center justify-content-between fw-bold"
+                                <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive(['admin.area-settings.subregions.index', 'admin.area-settings.subregions.create', 'admin.area-settings.subregions.show', 'admin.area-settings.subregions.edit'], $currentRoute) ? 'active' : '' }}"
                                     href="{{ route('admin.area-settings.subregions.index') }}">
                                     {{ trans('menu.area settings.subregion') }}
                                     <span class="badge badge-round badge-secondary ms-1">80</span>
@@ -816,7 +849,7 @@
 
             @can('system.currency.index')
                 <li>
-                    <a href="{{ route('admin.system-settings.currencies.index') }}">
+                    <a href="{{ route('admin.system-settings.currencies.index') }}" class="{{ isMenuActive(['admin.system-settings.currencies.index', 'admin.system-settings.currencies.create', 'admin.system-settings.currencies.show', 'admin.system-settings.currencies.edit'], $currentRoute) ? 'active' : '' }}">
                         <span class="d-flex align-items-center justify-content-between fw-bold w-100">
                             <span class="d-flex align-items-center">
                                 <span class="nav-icon uil uil-dollar-alt"></span>
