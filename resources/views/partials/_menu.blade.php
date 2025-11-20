@@ -117,6 +117,13 @@
                     </li>
 
                     <li>
+                        <a class="d-flex align-items-center justify-content-between fw-bold"
+                            href="{{ route('admin.allVendorsTransactions') }}">
+                            Vendors Transactions Overview
+                        </a>
+                    </li>
+
+                    <li>
                         <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive('admin.allTransactions', $currentRoute) ? 'active' : '' }}"
                             href="{{ route('admin.allTransactions') }}">
                             {{ trans('menu.withdraw module.all transactions') }}

@@ -1,7 +1,7 @@
 @extends('layout.app')
 
 @section('title')
-   {{ $status }} Withdraw Transactions | Bnaia
+    All Vendors Transactions
 @endsection
 
 @push('styles')
@@ -18,7 +18,7 @@
                         'url' => route('admin.dashboard'),
                         'icon' => 'uil uil-estate',
                     ],
-                    ['title' =>  $status . ' Withdraw Transactions | Bnaia'],
+                    ['title' => 'All Vendors Transactions'],
                 ]" />
             </div>
         </div>
@@ -28,7 +28,7 @@
 
                 <div class="userDatatable global-shadow border-light-0 p-30 bg-white radius-xl w-100 mb-30">
                     <div class="d-flex justify-content-between align-items-center mb-25">
-                        <h4 class="mb-0 fw-500"><span style="text-transform: capitalize">{{ $status }}</span> Withdraw Transactions</h4>
+                        <h4 class="mb-0 fw-500">All Vendors Transactions</h4>
                     </div>
 
                     {{-- Alert --}}
@@ -155,13 +155,19 @@
                                     <th><span class="userDatatable-title">#</span></th>
                                     <th>
                                         <span class="userDatatable-title">
-                                            Vendor
+                                            Vendor Logo
                                         </span>
                                     </th>
 
                                     <th>
                                         <span class="userDatatable-title">
-                                            Balance Before Send Money
+                                            Vendor Name
+                                        </span>
+                                    </th>
+
+                                    <th>
+                                        <span class="userDatatable-title">
+                                            Total Vendor's Balance
                                         </span>
                                     </th>
 
@@ -173,25 +179,7 @@
 
                                     <th>
                                         <span class="userDatatable-title">
-                                            Balance After Send Money
-                                        </span>
-                                    </th>
-
-                                    <th>
-                                        <span class="userDatatable-title">
-                                            Status
-                                        </span>
-                                    </th>
-
-                                    <th>
-                                        <span class="userDatatable-title">
-                                            Invoice
-                                        </span>
-                                    </th>
-
-                                    <th>
-                                        <span class="userDatatable-title">
-                                            Action
+                                            Remaining
                                         </span>
                                     </th>
                                 </tr>
@@ -204,63 +192,6 @@
             </div>
         </div>
     </div>
-
-    <div class="modal fade" id="approveModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog">
-            <form method="post" action="{{ route('admin.changeTransactionRequestsStatus') }}" enctype="multipart/form-data">
-                @csrf
-                <input type="text" name="request_id" hidden id="approve_id">
-                <input type="text" name="status" hidden id="approve_status_id">
-
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title">Upload Invoice</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                    </div>
-
-                    <div class="modal-body">
-                        <label class="form-label">Invoice Image</label>
-                        <input type="file" required class="form-control" id="invoice_file" name="invoice" accept="image/*">
-
-                        <div class="mt-3">
-                            <img id="invoice_preview" src="{{ asset('assets/img/empty_image.jpg') }}"
-                                style="margin-top:10px; max-width:200px; border:1px solid #ddd; padding:5px; cursor: pointer;">
-                        </div>
-                    </div>
-
-                    <div class="modal-footer">
-                        <button type="submit" class="btn btn-success">Approve Now</button>
-                    </div>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <div class="modal fade" id="rejectModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog">
-            <form id="rejectForm" method="POST" action="{{ route('admin.changeTransactionRequestsStatus') }}">
-                @csrf
-                <input type="text" name="request_id" hidden id="reject_id">
-                <input type="text" name="status" hidden id="reject_status_id">
-
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title">Confirm Reject</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                    </div>
-
-                    <div class="modal-body">
-                        <p class="text-danger fw-bold" style="font-size: 25px;">Are you sure you want to reject this request?</p>
-                    </div>
-
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-danger">Yes, Reject</button>
-                    </div>
-                </div>
-            </form>
-        </div>
-    </div>
 @endsection
 
 @push('after-body')
@@ -268,41 +199,6 @@
 @endpush
 
 @push('scripts')
-    <script>
-        // === OPEN APPROVE MODAL ===
-        $(document).on('click', '.approve-withdraw', function() {
-            let id = $(this).data('id');
-            $('#approve_id').val(id);
-            $('#approve_status_id').val("accepted");
-            $('#invoice_file').val('');
-            $('#approveModal').modal('show');
-        });
-
-
-        // === PREVIEW IMAGE ===
-        $('#invoice_file').on('change', function() {
-            let file = this.files[0];
-            if (file) {
-                let reader = new FileReader();
-                reader.onload = function(e) {
-                    $('#invoice_preview').attr('src', e.target.result).show();
-                }
-                reader.readAsDataURL(file);
-            }
-        });
-
-        // === OPEN REJECT MODAL ===
-        $(document).on('click', '.reject-withdraw', function() {
-            let id = $(this).data('id');
-            $('#reject_id').val(id);
-            $('#reject_status_id').val("rejected");
-            $('#rejectModal').modal('show');
-        });
-    </script>
-    <script>
-        let vendorExists = @json($vendor ? true : false);
-    </script>
-
     <script>
         $(document).ready(function() {
             console.log('Cities page loaded, initializing DataTable...');
@@ -314,7 +210,7 @@
                 processing: true,
                 serverSide: true,
                 ajax: {
-                    url: '{{ route('admin.transactionsRequestsDatatable', ['status' => $status]) }}',
+                    url: '{{ route('admin.allTransactionsDatabase') }}',
                     type: 'GET',
                     data: function(d) {
                         d.per_page = d.length;
@@ -344,93 +240,44 @@
                         }
                     },
                     { // Vendor
-                        data: 'vendor',
-                        name: 'vendor',
+                        data: 'vendor_logo',
+                        name: 'vendor_logo',
                         render: function(data, type, row) {
                             const logo = row.vendor_logo ?
                                 `<img src="${row.vendor_logo}" alt="${data}" style="width:30px; height:30px; border-radius:50%; margin-right:8px;">` :
                                 '';
                             return `<div class="userDatatable-content d-flex align-items-center">
-                    ${logo}
-                            <span>${data || '-'}</span>
-                        </div>`;
+                            ${logo}`;
                         }
                     },
                     { // Before Money
-                        data: 'before_sending_money',
-                        name: 'before_sending_money',
-                        render: function(data) {
-                            return `<div class="userDatatable-content">${data || '-'}</div>`;
+                        data: 'vendor',
+                        name: 'vendor',
+                        render: function(data, type, row) {
+                            return `<div class="userDatatable-content">${row.vendor || '-'}</div>`;
                         }
                     },
                     { // Sent Amount
+                        data: 'before_sending_money',
+                        name: 'before_sending_money',
+                        render: function(data, type, row) {
+                            return `<div class="userDatatable-content">${row.before_sending_money || '-'}</div>`;
+                        }
+                    },
+                    { // After Money
                         data: 'sent_amount',
                         name: 'sent_amount',
-                        render: function(data) {
-                            return `<div class="userDatatable-content">${data || '-'}</div>`;
+                        render: function(data, type, row) {
+                            return `<div class="userDatatable-content">${row.sent_amount || '-'}</div>`;
                         }
                     },
                     { // After Money
                         data: 'after_sending_amount',
                         name: 'after_sending_amount',
-                        render: function(data) {
-                            return `<div class="userDatatable-content">${data || '-'}</div>`;
-                        }
-                    },
-                    { // Status
-                        data: 'status',
-                        name: 'status',
-                        orderable: false,
-                        searchable: false,
-                        render: function(data) {
-                            if (data == "accepted") {
-                                return '<p class="text-success" style="text-transform: capitalize; font-weight: bold;">' + data + '</p>';
-                            } else if( data == "rejected" ) {
-                                return '<p class="text-danger" style="text-transform: capitalize; font-weight: bold;">'+ data +'</p>';
-                            } else if( data == "new" ) {
-                                return '<p class="text-primary" style="text-transform: capitalize; font-weight: bold;">'+ data +'</p>';
-                            }
-                        }
-                    },
-                    { // Invoice
-                        data: 'invoice',
-                        name: 'invoice',
-                        orderable: false,
-                        searchable: false,
-                        render: function(data) {
-                            if (data) {
-                                return `<a href="${data}" class="btn btn-sm btn-primary" target="_blank" download>
-                                    <i class="uil uil-download-alt"></i> Download
-                                </a>`;
-                            }
-                            return '-';
-                        }
-                    }, { // Actions
-                        data: null,
-                        name: 'actions',
-                        orderable: false,
-                        searchable: false,
                         render: function(data, type, row) {
-                            if (row.status === 'new') {
-                                if (!vendorExists) {
-                                    return `
-                                        <div class="d-inline-flex gap-1">
-                                            <button class="btn btn-success approve-withdraw" data-id="${row.id}">
-                                                <i class="uil uil-check"></i> Approve
-                                            </button>
-                                            <button class="btn btn-danger reject-withdraw" data-id="${row.id}">
-                                                <i class="uil uil-times"></i> Reject
-                                            </button>
-                                        </div>`;
-                                } else {
-                                    return '-';
-                                }
-                            } else {
-                                return '-';
-                            }
+                            return `<div class="userDatatable-content">${row.after_sending_amount || '-'}</div>`;
                         }
-
-                    }
+                    },
                 ],
                 pageLength: 10,
                 lengthMenu: [

@@ -7,6 +7,7 @@ use App\Services\LanguageService;
 use Illuminate\Http\Request;
 use Modules\Order\app\Models\OrderProduct;
 use Modules\SystemSetting\app\Resources\VendorResource;
+use Modules\Vendor\app\Models\Vendor;
 use Modules\Withdraw\app\Models\Withdraw;
 use Modules\Withdraw\app\Services\WithdrawService;
 
@@ -64,7 +65,7 @@ class WithdrawController extends Controller
             $data = $query->get()->map(function ($item) {
                 return [
                     'id' => $item->id,
-                    'vendor_logo' => asset('storage/' . $item->vendor->logo->path),
+                    'vendor_logo' => $item->vendor ? asset('storage/' . $item->vendor->logo->path) : '',
                     'vendor' => $item->vendor
                         ? optional($item->vendor->translations->first())->lang_value ?? $item->vendor->name
                         : '-',
@@ -108,6 +109,93 @@ class WithdrawController extends Controller
         $languages = $this->languageService->getAll();
         return view('withdraw::all_transactions', compact('languages'));
     }
+
+
+
+
+
+
+
+
+
+
+    public function allVendorsTransactionsDatatable(Request $request)
+    {
+        if (auth()->user()->user_type->name == "vendor") {
+            abort(404);
+        }
+
+        $perPage = $request->input('length', 10);
+        $page = ($request->input('start', 0) / $perPage) + 1;
+        $searchValue = $request->input('search.value', '');
+
+        try {
+            $query = Vendor::latest()->with([
+                'translations' => function ($q) {
+                    $q->where('lang_key', 'name');
+                }
+            ]);
+
+            // Filter by search
+            if ($searchValue) {
+                $query->where(function ($q) use ($searchValue) {
+                    $q->whereHas('vendor', function ($q2) use ($searchValue) {
+                        $q2->where('name', 'like', "%$searchValue%");
+                    })->orWhereHas('admin', function ($q2) use ($searchValue) {
+                        $q2->where('name', 'like', "%$searchValue%");
+                    });
+                });
+            }
+
+            $totalRecords = $query->count();
+            $dataPaginated = $query->orderBy('created_at', 'desc')->paginate($perPage, ['*'], 'page', $page);
+
+            // Prepare data for DataTable
+            $data = $query->get()->map(function ($item) {
+                return [
+                    'id' => $item->id,
+                    'vendor_logo' => asset('storage/' . $item->logo->path),
+                    'vendor_name' => $item
+                        ? optional($item->translations->first())->lang_value ?? $item->name
+                        : '-',
+                    'before_sending_money' => number_format($item->total_orders->sum("price"), 2) . " EGP",
+                    'total_sent_money' => number_format($item->withdraw->where("status", "accepted")->sum("sent_amount"), 2) . " EGP",
+                    'remaining' => number_format($item->total_orders->sum("price") - $item->withdraw->where("status", "accepted")->sum("sent_amount"), 2) . " EGP",
+                ];
+            });
+
+            return response()->json([
+                'draw' => $request->input('draw', 1),
+                'recordsTotal' => $totalRecords,
+                'recordsFiltered' => $totalRecords,
+                'data' => $data,
+                'current_page' => $dataPaginated->currentPage(),
+                'last_page' => $dataPaginated->lastPage(),
+                'per_page' => $dataPaginated->perPage(),
+                'total' => $dataPaginated->total(),
+                'from' => $dataPaginated->firstItem(),
+                'to' => $dataPaginated->lastItem()
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'draw' => $request->input('draw', 1),
+                'data' => [],
+                'recordsTotal' => 0,
+                'recordsFiltered' => 0,
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function allVendorsTransactions()
+    {
+        if (auth()->user()->user_type->name == "vendor") {
+            abort(404);
+        }
+        $languages = $this->languageService->getAll();
+        return view('withdraw::all_vendors_transactions', compact('languages'));
+    }
+
 
 
 
@@ -185,7 +273,7 @@ class WithdrawController extends Controller
             "status" => "accepted"
         ]);
 
-        return redirect()->route('admin.sendMoney')
+        return redirect()->route('admin.allTransactions')
             ->with('success', "Money sent successfully !");
     }
 
@@ -354,7 +442,7 @@ class WithdrawController extends Controller
             $withdraw->update($data);
         }
 
-        return redirect()->route('admin.sendMoney')
+        return redirect()->route('admin.allTransactions')
             ->with('success', "Request is updated successfully !");
     }
 }
