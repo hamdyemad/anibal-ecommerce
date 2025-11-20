@@ -39,6 +39,13 @@ class WithdrawRepository implements WithdrawRepositoryInterface
             ->where('status', 'accepted')
             ->sum('sent_amount');
 
+        $waiting_approve_requests = Withdraw::where(function ($q) use ($vendor_id) {
+            $q->where('sender_id', $vendor_id)
+                ->orWhere('reciever_id', $vendor_id);
+        })
+            ->where('status', 'new')
+            ->sum('sent_amount');
+
         return [
             "orders_price" => number_format($orders->sum("price"), 3),
             "vendor_commission" => $orders->first()->commission,
@@ -47,7 +54,9 @@ class WithdrawRepository implements WithdrawRepositoryInterface
 
             "total_sent_money" => number_format($total_sent_money, 3),
             "remaining" => number_format($total_vendor_balance - $total_sent_money, 3),
-            "bnaia_balance" => number_format($orders->sum("price") * ($orders->first()->commission / 100), 3)
+            "bnaia_balance" => number_format($orders->sum("price") * ($orders->first()->commission / 100), 3),
+
+            "waiting_approve_requests" => number_format($waiting_approve_requests, 3)
         ];
     }
 }

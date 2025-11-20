@@ -168,7 +168,9 @@ class WithdrawController extends Controller
 
         $vendor_name = auth()->user()->vendor->translations[0]->lang_value;
 
-        return view('withdraw::send_money_request', compact('languages', 'general_info', 'vendor_name'));
+        $final_remaining = floatval(str_replace(',', '', $general_info['remaining'])) - floatval(str_replace(',', '', $general_info['waiting_approve_requests'])) ;
+
+        return view('withdraw::send_money_request', compact('languages', 'general_info', 'vendor_name', 'final_remaining'));
     }
 
     public function sendMoneyRequestAction(Request $request)
@@ -179,7 +181,7 @@ class WithdrawController extends Controller
 
         $data = $request->all();
 
-        $vendor_id = auth()->user()->vendor->id ;
+        $vendor_id = auth()->user()->vendor->id;
 
         // get latest withdraw transaction for this vendor
         $orders = OrderProduct::where("vendor_id", $vendor_id);
@@ -212,70 +214,71 @@ class WithdrawController extends Controller
             ->with('success', "Money request sent successfully !");
     }
 
-    public function transactionsRequestsDatatable(Request $request, $status){
+    public function transactionsRequestsDatatable(Request $request, $status)
+    {
         $perPage = $request->input('length', 10);
         $page = ($request->input('start', 0) / $perPage) + 1;
         $searchValue = $request->input('search.value', '');
 
         // try {
 
-            $query = Withdraw::where("status", $status) ;
+        $query = Withdraw::where("status", $status);
 
-            $vendor = auth()->user()->vendor ;
+        $vendor = auth()->user()->vendor;
 
-            if ( $vendor && $vendor->id ) {
-                $query->where("reciever_id", $vendor->id);
-            }
-            $query->with([
-                'vendor.translations' => function ($q) {
-                    $q->where('lang_key', 'name');
-                },
-                'admin'
-            ]);
+        if ($vendor && $vendor->id) {
+            $query->where("reciever_id", $vendor->id);
+        }
+        $query->with([
+            'vendor.translations' => function ($q) {
+                $q->where('lang_key', 'name');
+            },
+            'admin'
+        ]);
 
-            // Filter by search
-            if ($searchValue) {
-                $query->where(function ($q) use ($searchValue) {
-                    $q->whereHas('vendor', function ($q2) use ($searchValue) {
-                        $q2->where('name', 'like', "%$searchValue%");
-                    })->orWhereHas('admin', function ($q2) use ($searchValue) {
-                        $q2->where('name', 'like', "%$searchValue%");
-                    });
+        // Filter by search
+        if ($searchValue) {
+            $query->where(function ($q) use ($searchValue) {
+                $q->whereHas('vendor', function ($q2) use ($searchValue) {
+                    $q2->where('name', 'like', "%$searchValue%");
+                })->orWhereHas('admin', function ($q2) use ($searchValue) {
+                    $q2->where('name', 'like', "%$searchValue%");
                 });
-            }
-
-            $totalRecords = $query->count();
-            $dataPaginated = $query->orderBy('created_at', 'desc')->paginate($perPage, ['*'], 'page', $page);
-
-            // Prepare data for DataTable
-            $data = $query->get()->map(function ($item) {
-                return [
-                    'id' => $item->id,
-                    'vendor_logo' => asset('storage/' . $item->vendor->logo->path),
-                    'vendor' => $item->vendor
-                        ? optional($item->vendor->translations->first())->lang_value ?? $item->vendor->name
-                        : '-',
-                    'status' => $item->status,
-                    'invoice' => $item->invoice_url,
-                    'before_sending_money' => number_format($item->before_sending_money, 2) . " EGP",
-                    'sent_amount' => number_format($item->sent_amount, 2) . " EGP",
-                    'after_sending_amount' => number_format($item->after_sending_amount, 2) . " EGP",
-                    'created_at' => $item->created_at->format('Y-m-d H:i:s'),
-                ];
             });
+        }
 
-            return response()->json([
-                'draw' => $request->input('draw', 1),
-                'recordsTotal' => $totalRecords,
-                'recordsFiltered' => $totalRecords,
-                'data' => $data,
-                'current_page' => $dataPaginated->currentPage(),
-                'last_page' => $dataPaginated->lastPage(),
-                'per_page' => $dataPaginated->perPage(),
-                'total' => $dataPaginated->total(),
-                'from' => $dataPaginated->firstItem(),
-                'to' => $dataPaginated->lastItem()
-            ]);
+        $totalRecords = $query->count();
+        $dataPaginated = $query->orderBy('created_at', 'desc')->paginate($perPage, ['*'], 'page', $page);
+
+        // Prepare data for DataTable
+        $data = $query->get()->map(function ($item) {
+            return [
+                'id' => $item->id,
+                'vendor_logo' => asset('storage/' . $item->vendor->logo->path),
+                'vendor' => $item->vendor
+                    ? optional($item->vendor->translations->first())->lang_value ?? $item->vendor->name
+                    : '-',
+                'status' => $item->status,
+                'invoice' => $item->invoice_url,
+                'before_sending_money' => number_format($item->before_sending_money, 2) . " EGP",
+                'sent_amount' => number_format($item->sent_amount, 2) . " EGP",
+                'after_sending_amount' => number_format($item->after_sending_amount, 2) . " EGP",
+                'created_at' => $item->created_at->format('Y-m-d H:i:s'),
+            ];
+        });
+
+        return response()->json([
+            'draw' => $request->input('draw', 1),
+            'recordsTotal' => $totalRecords,
+            'recordsFiltered' => $totalRecords,
+            'data' => $data,
+            'current_page' => $dataPaginated->currentPage(),
+            'last_page' => $dataPaginated->lastPage(),
+            'per_page' => $dataPaginated->perPage(),
+            'total' => $dataPaginated->total(),
+            'from' => $dataPaginated->firstItem(),
+            'to' => $dataPaginated->lastItem()
+        ]);
         // } catch (\Exception $e) {
         //     return response()->json([
         //         'draw' => $request->input('draw', 1),
@@ -290,20 +293,21 @@ class WithdrawController extends Controller
     public function transactionsRequests($status)
     {
         $languages = $this->languageService->getAll();
-        $vendor = auth()->user()->vendor ;
+        $vendor = auth()->user()->vendor;
         return view('withdraw::all_transactions_requests', compact('languages', 'status', 'vendor'));
     }
 
-    public function changeTransactionRequestsStatus(Request $request){
+    public function changeTransactionRequestsStatus(Request $request)
+    {
         // get request
         $data = $request->all();
         $withdraw = Withdraw::find($request["request_id"]);
 
-        if ( $data["status"] == "accepted" ) {
-            $data["sender_id"] = auth()->user()->id ;
+        if ($data["status"] == "accepted") {
+            $data["sender_id"] = auth()->user()->id;
 
             $withdraw->update($data);
-        }elseif( $data["status"] == "rejected" ){
+        } elseif ($data["status"] == "rejected") {
             $withdraw->update($data);
         }
 

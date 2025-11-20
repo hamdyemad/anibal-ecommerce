@@ -54,7 +54,8 @@
                                                                 class="ap-po-details-content d-flex flex-wrap justify-content-between">
                                                                 <div class="ap-po-details__titlebar">
                                                                     <h1 style="font-size: 20px;"><span
-                                                                            id="total_orders">{{ $general_info["orders_price"] }}</span> EGP</h1>
+                                                                            id="total_orders">{{ $general_info['orders_price'] }}</span>
+                                                                        EGP</h1>
                                                                     <p>Total {{ $vendor_name }}'s Transactions</p>
                                                                 </div>
                                                                 <div class="ap-po-details__icon-area">
@@ -74,15 +75,17 @@
                                                                 class="ap-po-details-content d-flex flex-wrap justify-content-between">
                                                                 <div class="ap-po-details__titlebar">
                                                                     <h1 style="font-size: 20px;"><span
-                                                                            id="bnaia_balance">{{ $general_info["bnaia_balance"] }}</span> EGP</h1>
-                                                                    <p>Bnaia Commission from Transactions <span class="badge text-bg-secondary"
+                                                                            id="bnaia_balance">{{ $general_info['bnaia_balance'] }}</span>
+                                                                        EGP</h1>
+                                                                    <p>Bnaia Commission from Transactions <span
+                                                                            class="badge text-bg-secondary"
                                                                             style="background-color: #0056b7; border-radius: 5px"
                                                                             id="vendor_commission_percentage">(0%)</span>
                                                                     </p>
                                                                 </div>
                                                                 <div class="ap-po-details__icon-area">
-                                                                    <div
-                                                                        class="svg-icon order-bg-opacity-primary color-primary" style="width: 50px; height: 50px;">
+                                                                    <div class="svg-icon order-bg-opacity-primary color-primary"
+                                                                        style="width: 50px; height: 50px;">
                                                                         <i class="uil uil-export"></i>
                                                                     </div>
                                                                 </div>
@@ -98,7 +101,8 @@
                                                                 class="ap-po-details-content d-flex flex-wrap justify-content-between">
                                                                 <div class="ap-po-details__titlebar">
                                                                     <h1 style="font-size: 20px;"><span
-                                                                            id="vendor_balance_money">{{ $general_info["total_vendor_balance"] }}</span> EGP</h1>
+                                                                            id="vendor_balance_money">{{ $general_info['total_vendor_balance'] }}</span>
+                                                                        EGP</h1>
                                                                     <p>Total {{ $vendor_name }}'s Credit</p>
                                                                 </div>
                                                                 <div class="ap-po-details__icon-area">
@@ -131,7 +135,7 @@
                                                                 class="ap-po-details-content d-flex flex-wrap justify-content-between">
                                                                 <div class="ap-po-details__titlebar">
                                                                     <h1 style="font-size: 20px;"><span
-                                                                            id="vendor_balance_after_sent_money">{{ $general_info["total_vendor_balance"] }}</span>
+                                                                            id="vendor_balance_after_sent_money">{{ $general_info['total_vendor_balance'] }}</span>
                                                                         EGP</h1>
                                                                     <p>Total Balance Needed</p>
                                                                 </div>
@@ -152,7 +156,8 @@
                                                                 class="ap-po-details-content d-flex flex-wrap justify-content-between">
                                                                 <div class="ap-po-details__titlebar">
                                                                     <h1 style="font-size: 20px;"><span
-                                                                            id="total_sent_money">{{ $general_info["total_sent_money"] }}</span> EGP</h1>
+                                                                            id="total_sent_money">{{ $general_info['total_sent_money'] }}</span>
+                                                                        EGP</h1>
                                                                     <p>Total Recieved Money</p>
                                                                 </div>
                                                                 <div class="ap-po-details__icon-area">
@@ -173,7 +178,8 @@
                                                                 class="ap-po-details-content d-flex flex-wrap justify-content-between">
                                                                 <div class="ap-po-details__titlebar">
                                                                     <h1 style="font-size: 20px;"><span
-                                                                            id="remaining_after_sent_money">{{ $general_info["remaining"] }}</span> EGP
+                                                                            id="remaining_after_sent_money">{{ $general_info['remaining'] }}</span>
+                                                                        EGP
                                                                     </h1>
                                                                     <p>Total Remaining</p>
                                                                 </div>
@@ -195,14 +201,20 @@
                                 <div class="col-md-12 mb-10">
                                     <div class="form-group">
                                         <label class="mb-3">
-                                            Enter Amount <span class="text-danger">*</span> <span class="badge text-bg-secondary"
+                                            Enter Amount <span class="text-danger">*</span> <span
+                                                class="badge text-bg-secondary"
                                                 style="background-color: #0056b7; border-radius: 5px"><span
-                                                    id="amount_max_which_will_be_sent">{{ $general_info["remaining"] }}</span> <span
-                                                    style="margin: 0px 4px">EGP</span></span>
+                                                    id="amount_max_which_will_be_sent">{{ $general_info['remaining'] }}</span>
+                                                <span style="margin: 0px 4px">EGP</span></span>
+
+                                            <span class="badge text-bg-secondary"
+                                                style="background-color: #fa0000; border-radius: 5px"> <span
+                                                    style="margin: 0px 3px">Waiting approve :</span> <span
+                                                    id="amount_max_which_will_be_sent">{{ $general_info['waiting_approve_requests'] }}</span>
+                                                <span style="margin: 0px 4px">EGP</span></span>
                                         </label>
-                                        <input required type="text" class="form-control"
-                                            placeholder="Example: 4,000.50 EGP" name="sent_amount" id="sent_amount"
-                                            value="{{ old('sent_amount') }}">
+                                        <input type="text" class="form-control" placeholder="Example: 4,000.50"
+                                            name="sent_amount" id="sent_amount" value="{{ old('sent_amount') }}">
                                     </div>
                                 </div>
 
@@ -258,6 +270,19 @@
 
 
     @push('scripts')
+        <script>
+            let maxVal = {{ $final_remaining }};
+
+            $('#sent_amount').on('input', function() {
+                // إزالة أي formatting
+                let val = parseFloat(this.value.replace(/,/g, ''));
+
+                if (!isNaN(val) && val > maxVal) {
+                    alert('Amount exceeds the maximum allowed (' + maxVal + ')');
+                    this.value = maxVal.toLocaleString(); // optional formatting
+                }
+            });
+        </script>
         <script>
             function getVendorBalance(vendor_id) {
                 let vendor_id = $("#vendor_id").value();
