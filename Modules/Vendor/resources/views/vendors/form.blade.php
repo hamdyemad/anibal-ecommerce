@@ -61,7 +61,7 @@
                                                     @if($language->code == 'en')
                                                       {{ trans('vendor::vendor.name') }} ({{ $language->name }})
                                                     @else
-                                                        الاسم باللغة العربية
+                                                        {{ trans('vendor::vendor.name') }} - باللغة العربية
                                                     @endif
                                                     <span class="text-danger">*</span>
                                                 </label>

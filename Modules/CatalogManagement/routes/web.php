@@ -14,10 +14,9 @@ Route::group(
     // Taxes
     Route::get('taxes/datatable', 'TaxController@datatable')->name('taxes.datatable');
     Route::resource('taxes', 'TaxController');
-
-    // Products
     Route::get('products/datatable', 'ProductController@datatable')->name('products.datatable');
     Route::resource('products', 'ProductController');
+
 
     // Variant Configuration Keys
     Route::get('variant-keys/datatable', 'VariantConfigurationKeyController@datatable')->name('variant-keys.datatable');
@@ -29,7 +28,7 @@ Route::group(
     Route::get('variants-configurations/get-parents-by-key', 'VariantsConfigurationController@getParentsByKey')->name('variants-configurations.get-parents-by-key');
     Route::get('variants-configurations-tree', 'VariantsConfigurationController@tree')->name('variants-configurations.tree');
     Route::resource('variants-configurations', 'VariantsConfigurationController');
-    
+
     // API routes for variant selection in product form
     Route::get('api/variant-keys', 'VariantsConfigurationController@getVariantKeys')->name('api.variant-keys');
     Route::get('api/variants-by-key', 'VariantsConfigurationController@getVariantsByKey')->name('api.variants-by-key');

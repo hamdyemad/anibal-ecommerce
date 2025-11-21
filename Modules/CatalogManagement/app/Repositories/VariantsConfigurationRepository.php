@@ -36,7 +36,7 @@ class VariantsConfigurationRepository implements VariantsConfigurationRepository
             'translations',
             'key.translations',
             'parent_data',
-            'children'
+            'children', 'childrenRecursive.translations'
         ])->find($id);
     }
 
@@ -192,5 +192,32 @@ class VariantsConfigurationRepository implements VariantsConfigurationRepository
                 'children_count' => $variant->children->count()
             ];
         })->toArray();
+    }
+
+    /**
+     * Get variants configuration by key ID (only root level - parent_id is null)
+     *
+     * @param int $keyId
+     * @return \Illuminate\Database\Eloquent\Collection
+     */
+    public function getVariantsByKey($keyId)
+    {
+        return VariantsConfiguration::with('translations')
+            ->where('key_id', $keyId)
+            ->whereNull('parent_id')
+            ->get();
+    }
+
+    /**
+     * Get variant children recursively
+     *
+     * @param int $parentId
+     * @return \Illuminate\Database\Eloquent\Collection
+     */
+    public function getVariantChildren($parentId)
+    {
+        return VariantsConfiguration::with('translations')
+            ->where('parent_id', $parentId)
+            ->get();
     }
 }

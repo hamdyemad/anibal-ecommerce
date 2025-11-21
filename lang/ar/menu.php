@@ -36,8 +36,13 @@
         ],
         'withdraw module' => [
             'title' => 'وحدة السحب',
+            'send money' => 'إرسال أموال',
             'send money to vendors' => 'إرسال أموال للموردين',
+            'send money request' => 'طلب إرسال أموال',
             'all transactions' => 'جميع المعاملات',
+            'new transaction requests' => 'طلبات المعاملات الجديدة',
+            'accepted transaction requests' => 'طلبات المعاملات المقبولة',
+            'rejected transaction requests' => 'طلبات المعاملات المرفوضة',
             'vendors accepted requests' => 'طلبات الموردين المقبولة',
             'vendors rejected requests' => 'طلبات الموردين المرفوضة',
             'vendors new requests' => 'طلبات الموردين الجديدة',
@@ -45,9 +50,26 @@
         'products' => [
             'title' => 'المنتجات',
             'all' => 'الكل',
+            'all_products' => 'جميع المنتجات',
             'create' => 'إضافة',
+            'create_bank_product' => 'إنشاء منتج بنك',
+            'bank_products' => 'منتجات البنك',
+            'pending_approval' => 'في انتظار الموافقة',
             'in stock' => 'متوفر',
             'out of stock' => 'غير متوفر',
+            'manage stock & pricing' => 'إدارة المخزون والتسعير',
+        ],
+        'product bank' => [
+            'title' => 'بنك المنتجات',
+            'bank products' => 'منتجات البنك',
+            'vendor product requests' => 'طلبات منتجات البائعين',
+            'vendor products by vendor' => 'منتجات البائعين حسب البائع',
+        ],
+        'vendor products' => [
+            'title' => 'منتجات البائع',
+            'product requests' => 'طلبات المنتجات',
+            'available bank products' => 'منتجات البنك المتاحة',
+            'my products' => 'منتجاتي',
         ],
         'area settings' => [
             'title' => 'إعدادات المنطقة',
@@ -148,6 +170,7 @@
             'reports' => 'التقارير',
             'settings' => 'الإعدادات',
             'business activities' => 'الأنشطة التجارية',
+            'withdraw module' => 'وحدة السحب',
         ],
         'activities' => [
             'title' => 'الأنشطة',

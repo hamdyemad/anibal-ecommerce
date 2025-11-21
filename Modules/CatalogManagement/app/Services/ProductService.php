@@ -15,10 +15,6 @@ class ProductService
         return $this->productInterface->getAllProducts($filters, $perPage);
     }
 
-    public function getQuery(array $filters = [])
-    {
-        return $this->productInterface->getQuery($filters);
-    }
 
     public function getProductById($id)
     {

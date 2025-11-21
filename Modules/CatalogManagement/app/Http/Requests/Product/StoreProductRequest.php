@@ -26,7 +26,7 @@ class StoreProductRequest extends FormRequest
 
         $rules = [
             // Basic Product Information
-            'sku' => 'required|string|unique:products,sku',
+            'sku' => 'required|string|unique:vendor_products,sku',
             'points' => 'required|integer|min:0',
             'is_active' => 'nullable|boolean',
             'is_featured' => 'nullable|boolean',
@@ -38,19 +38,19 @@ class StoreProductRequest extends FormRequest
             'department_id' => 'required|exists:departments,id',
             'category_id' => 'required|exists:categories,id',
             'sub_category_id' => 'nullable|exists:sub_categories,id',
-            'tax_id' => 'nullable|exists:taxes,id',
+            'tax_id' => 'required|exists:taxes,id',
 
             // Vendor validation based on user role
             'vendor_id' => $this->getVendorValidationRule(),
 
             // Images
-            'main_image' => 'required|image|mimes:jpeg,png,jpg,webp|max:5120',
-            'additional_images.*' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
+            'main_image' => 'required|image|max:5120',
+            'additional_images.*' => 'nullable|image|max:5120',
 
             // Translations
             'translations' => 'required|array|min:1',
             'translations.*.title' => 'required|string|max:255',
-            'translations.*.details' => 'required|string',
+            'translations.*.details' => 'nullable|string',
             'translations.*.summary' => 'nullable|string',
             'translations.*.features' => 'nullable|string',
             'translations.*.instructions' => 'nullable|string',
@@ -68,7 +68,7 @@ class StoreProductRequest extends FormRequest
         // Simple product validation
         if ($configurationType === 'simple') {
             $rules = array_merge($rules, [
-                'simple_sku' => 'required|string',
+                'sku' => 'required|string',
                 'price' => 'required|numeric|min:0',
                 'has_discount' => 'nullable|boolean',
                 'price_before_discount' => 'nullable|numeric|min:0',
@@ -83,19 +83,15 @@ class StoreProductRequest extends FormRequest
         if ($configurationType === 'variants') {
             $rules = array_merge($rules, [
                 'variants' => 'required|array|min:1',
-                'variants.*.sku' => 'nullable|string',
+                'variants.*.sku' => 'required|string|unique:vendor_product_variants,sku',
                 'variants.*.price' => 'required|numeric|min:0',
                 'variants.*.has_discount' => 'nullable|boolean',
                 'variants.*.discount_price' => 'nullable|numeric|min:0',
                 'variants.*.discount_end_date' => 'nullable|date|after:today',
-                'variants.*.key_id' => 'nullable|exists:variant_keys,id',
-                'variants.*.variant_id' => 'nullable|exists:variant_values,id',
-                'variants.*.stock' => 'nullable|array',
+                'variants.*.value_id' => 'required|exists:variants_configurations,id',
+                'variants.*.stock' => 'required|array',
                 'variants.*.stock.*.region_id' => 'required_with:variants.*.stock|exists:regions,id',
                 'variants.*.stock.*.quantity' => 'required_with:variants.*.stock|integer|min:0',
-                'variants.*.translations' => 'nullable|array',
-                'variants.*.translations.*.name' => 'nullable|string|max:255',
-                'variants.*.translations.*.description' => 'nullable|string',
             ]);
         }
 
@@ -122,7 +118,7 @@ class StoreProductRequest extends FormRequest
             'main_image' => __('catalogmanagement::product.main_image'),
             'configuration_type' => __('catalogmanagement::product.configuration_type'),
             'price' => __('catalogmanagement::product.price'),
-            'simple_sku' => __('catalogmanagement::product.sku'),
+            'sku' => __('catalogmanagement::product.sku'),
         ];
     }
 

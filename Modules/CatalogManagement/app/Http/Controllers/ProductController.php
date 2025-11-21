@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Log;
 use Exception;
 use Illuminate\Validation\ValidationException;
 use Modules\CatalogManagement\app\Models\Product;
+use Modules\CatalogManagement\app\Models\VendorProduct;
 use App\Services\LanguageService;
 use Modules\AreaSettings\app\Resources\RegionResource;
 use Modules\AreaSettings\app\Services\RegionService;
@@ -25,11 +26,15 @@ use Modules\CatalogManagement\app\Http\Requests\Product\UpdateProductRequest;
 use Modules\Vendor\app\Services\VendorService;
 use App\Models\UserType;
 use Illuminate\Support\Facades\Auth;
+use Modules\CatalogManagement\app\Actions\ProductAction;
+use Modules\CatalogManagement\app\Http\Resources\VariantsConfigurationKeyResource;
+use Modules\CatalogManagement\app\Services\VariantConfigurationKeyService;
 
 class ProductController extends Controller
 {
     public function __construct(
         protected ProductService $productService,
+        protected VariantConfigurationKeyService $variantConfigurationKeyService,
         protected LanguageService $languageService,
         protected BrandService $brandService,
         protected DepartmentService $departmentService,
@@ -38,59 +43,47 @@ class ProductController extends Controller
         protected RegionService $regionService,
         protected TaxService $taxService,
         protected VendorService $vendorService,
+        protected ProductAction $productAction,
     ) {
     }
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        return view('catalogmanagement::product.index');
+        $languages = $this->languageService->getAll();
+        return view('catalogmanagement::product.index', compact('languages'));
     }
 
     /**
-     * Get products data for DataTable
+     * Datatable endpoint for server-side processing
      */
     public function datatable(Request $request)
     {
-        $products = Product::with(['brand', 'category', 'variants'])
-            ->select('products.*');
+        try {
+            // Get datatable data from action
+            $result = $this->productAction->getDataTable($request->all());
+            $dataPaginated = $result['dataPaginated'];
+            return response()->json([
+                'data' => $result['data'],
+                'recordsTotal' => $result['totalRecords'],
+                'recordsFiltered' => $result['filteredRecords'],
+                'current_page' => $dataPaginated->currentPage(),
+                'last_page' => $dataPaginated->lastPage(),
+                'per_page' => $dataPaginated->perPage(),
+                'total' => $dataPaginated->total(),
+                'from' => $dataPaginated->firstItem(),
+                'to' => $dataPaginated->lastItem()
+            ]);
 
-        return datatables($products)
-            ->addColumn('title', function ($product) {
-                return $product->getTranslation('title') ?: 'No Title';
-            })
-            ->addColumn('brand_name', function ($product) {
-                return $product->brand ? $product->brand->getTranslation('name') : 'No Brand';
-            })
-            ->addColumn('category_name', function ($product) {
-                return $product->category ? $product->category->getTranslation('name') : 'No Category';
-            })
-            ->addColumn('variants_count', function ($product) {
-                return $product->variants->count();
-            })
-            ->addColumn('status', function ($product) {
-                return $product->is_active
-                    ? '<span class="badge bg-success">Active</span>'
-                    : '<span class="badge bg-danger">Inactive</span>';
-            })
-            ->addColumn('actions', function ($product) {
-                return '
-                    <div class="btn-group" role="group">
-                        <a href="' . route('admin.products.show', $product) . '" class="btn btn-sm btn-info">
-                            <i class="uil uil-eye"></i>
-                        </a>
-                        <a href="' . route('admin.products.edit', $product) . '" class="btn btn-sm btn-primary">
-                            <i class="uil uil-edit"></i>
-                        </a>
-                        <button type="button" class="btn btn-sm btn-danger delete-product" data-id="' . $product->id . '">
-                            <i class="uil uil-trash-alt"></i>
-                        </button>
-                    </div>
-                ';
-            })
-            ->rawColumns(['status', 'actions'])
-            ->make(true);
+        } catch (\Exception $e) {
+            Log::error('Product Datatable Error: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString()
+            ]);
+            return response()->json([
+                'error' => 'Error loading products: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
@@ -101,18 +94,15 @@ class ProductController extends Controller
         $languages = $this->languageService->getAll();
         $brands = $this->brandService->getAllBrands([], 0);
         $brands = BrandResource::collection($brands)->resolve();
-        $departments = $this->departmentService->getAllDepartments([], 0);
-        $departments = DepartmentResource::collection($departments)->resolve();
         $taxes = $this->taxService->getAllTaxes([], 0);
         $taxes = TaxResource::collection($taxes)->resolve();
         $regions = $this->regionService->getAllRegions([], 0);
         $regions = RegionResource::collection($regions)->resolve();
-
         // Get vendors for admin/super admin, or current vendor for vendor users
         $vendors = [];
         $currentUser = Auth::user();
         $userType = $currentUser->user_type_id;
-        if (in_array($userType, [UserType::SUPER_ADMIN_TYPE, UserType::ADMIN_TYPE])) {
+        if (in_array($userType, UserType::adminIds())) {
             // Admin/Super Admin can select any vendor
             $vendorsData = $this->vendorService->getAllVendors([], 0);
             $vendors = $vendorsData->map(function($vendor) {
@@ -121,7 +111,7 @@ class ProductController extends Controller
                     'name' => $vendor->getTranslation('name', app()->getLocale())
                 ];
             })->toArray();
-        } elseif ($userType === UserType::VENDOR_TYPE) {
+        } elseif (in_array($userType, UserType::vendorIds())) {
             // Vendor can only create products for themselves
             $vendor = $currentUser->vendor;
             if ($vendor) {
@@ -131,7 +121,12 @@ class ProductController extends Controller
                 ]];
             }
         }
-        return view('catalogmanagement::product.form', compact('languages', 'brands', 'departments', 'taxes', 'regions', 'vendors'));
+        // Get variant keys for variant configuration
+        $variantKeys = $this->variantConfigurationKeyService->getAllVariantConfigurationKeys([], 0);
+        $variantKeys = VariantsConfigurationKeyResource::collection(
+            $variantKeys->map(fn ($v) => $v->setAttribute('select2', true))
+        )->resolve();
+        return view('catalogmanagement::product.form', compact('languages', 'brands', 'taxes', 'regions', 'vendors', 'variantKeys'));
     }
 
     /**
@@ -205,8 +200,6 @@ class ProductController extends Controller
         $languages = $this->languageService->getAll();
         $brands = $this->brandService->getAllBrands([], 0);
         $brands = BrandResource::collection($brands)->resolve();
-        $departments = $this->departmentService->getAllDepartments([], 0);
-        $departments = DepartmentResource::collection($departments)->resolve();
         $taxes = $this->taxService->getAllTaxes([], 0);
         $taxes = TaxResource::collection($taxes)->resolve();
         $regions = $this->regionService->getAllRegions([], 0);
@@ -217,35 +210,40 @@ class ProductController extends Controller
         $currentUser = Auth::user();
         $userType = $currentUser->user_type_id;
 
-        if (in_array($userType, [UserType::SUPER_ADMIN_TYPE, UserType::ADMIN_TYPE])) {
+        if (in_array($userType, UserType::adminIds())) {
             // Admin/Super Admin can select any vendor
             $vendorsData = $this->vendorService->getAllVendors([], 0);
             $vendors = $vendorsData->map(function($vendor) {
                 return [
                     'id' => $vendor->id,
-                    'name' => $vendor->getTranslation('name', 'Vendor #' . $vendor->id)
+                    'name' => $vendor->getTranslation('name', app()->getLocale())
                 ];
             })->toArray();
-        } elseif ($userType === UserType::VENDOR_TYPE) {
+        } elseif (in_array($userType, UserType::vendorIds())) {
             // Vendor can only create products for themselves
             $vendor = $currentUser->vendor;
             if ($vendor) {
                 $vendors = [[
                     'id' => $vendor->id,
-                    'name' => $vendor->getTranslation('name', 'Vendor #' . $vendor->id)
+                    'name' => $vendor->getTranslation('name', app()->getLocale())
                 ]];
             }
         }
+        // Get variant keys for variant configuration
+        $variantKeys = $this->variantConfigurationKeyService->getAllVariantConfigurationKeys([], 0);
+        $variantKeys = VariantsConfigurationKeyResource::collection(
+            $variantKeys->map(fn ($v) => $v->setAttribute('select2', true))
+        )->resolve();
 
         $data = [
             'title' => __('catalogmanagement::product.edit_product'),
             'product' => $product,
             'languages' => $languages,
             'brands' => $brands,
-            'departments' => $departments,
             'taxes' => $taxes,
             'regions' => $regions,
-            'vendors' => $vendors
+            'vendors' => $vendors,
+            'variantKeys' => $variantKeys,
         ];
         return view('catalogmanagement::product.form', $data);
     }
@@ -256,8 +254,8 @@ class ProductController extends Controller
     public function update(UpdateProductRequest $request, $id)
     {
         try {
-            $this->productService->updateProduct($id, $request->validated());
-
+            $data = $request->validated();
+            $this->productService->updateProduct($id, $data);
             return response()->json([
                 'success' => true,
                 'message' => __('catalogmanagement::product.product_updated_successfully'),
@@ -309,4 +307,5 @@ class ProductController extends Controller
             ], 500);
         }
     }
+
 }

@@ -1,0 +1,30 @@
+{
+    "name": "nwidart/withdraw",
+    "description": "",
+    "authors": [
+        {
+            "name": "Nicolas Widart",
+            "email": "n.widart@gmail.com"
+        }
+    ],
+    "extra": {
+        "laravel": {
+            "providers": [],
+            "aliases": {
+
+            }
+        }
+    },
+    "autoload": {
+        "psr-4": {
+            "Modules\\Withdraw\\": "app/",
+            "Modules\\Withdraw\\Database\\Factories\\": "database/factories/",
+            "Modules\\Withdraw\\Database\\Seeders\\": "database/seeders/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Modules\\Withdraw\\Tests\\": "tests/"
+        }
+    }
+}

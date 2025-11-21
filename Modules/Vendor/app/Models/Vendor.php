@@ -13,12 +13,27 @@ use App\Models\Traits\HumanDates;
 use Illuminate\Database\Eloquent\Builder;
 use Modules\AreaSettings\app\Models\Country;
 use Modules\CategoryManagment\app\Models\Activity;
+use Modules\Order\app\Models\OrderProduct;
+use Modules\Withdraw\app\Models\Withdraw;
 
 class Vendor extends Model
 {
     use HasFactory, SoftDeletes, Translation, HumanDates, HasSlug;
 
     protected $guarded = [];
+
+    // HasSlug trait configuration
+    protected $slugWithRandomSuffix = true;
+    protected $slugSuffixLength = 6;
+
+
+    public function total_orders(){
+        return $this->hasMany(OrderProduct::class, "vendor_id");
+    }
+
+    public function withdraw(){
+        return $this->hasMany(Withdraw::class, "reciever_id") ;
+    }
 
     /**
      * Get the user that owns the vendor
@@ -91,6 +106,31 @@ class Vendor extends Model
     public function scopeActive(Builder $query)
     {
         return $query->where('active', true);
+    }
+    /**
+     * Get vendor products (bank products added by this vendor)
+     */
+    public function vendorProducts()
+    {
+        return $this->hasMany(\Modules\CatalogManagement\app\Models\VendorProduct::class);
+    }
+
+    /**
+     * Get bank products through vendor_products
+     */
+    public function bankProducts()
+    {
+        return $this->belongsToMany(\Modules\CatalogManagement\app\Models\Product::class, 'vendor_products')
+                    ->withPivot('status', 'rejection_reason')
+                    ->withTimestamps();
+    }
+
+    /**
+     * Get vendor-specific product variants with pricing and stock
+     */
+    public function vendorProductVariants()
+    {
+        return $this->hasMany(\Modules\CatalogManagement\app\Models\VendorProductVariant::class);
     }
 
     public function scopeFilter(Builder $query, $filters)

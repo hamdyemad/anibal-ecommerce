@@ -4,5 +4,7 @@
     "Vendor": true,
     "Brands": true,
     "CatalogManagement": true,
-    "SystemSetting": true
+    "SystemSetting": true,
+    "Order": true,
+    "Withdraw": true
 }

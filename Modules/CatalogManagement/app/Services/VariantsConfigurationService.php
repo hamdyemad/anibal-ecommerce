@@ -71,4 +71,26 @@ class VariantsConfigurationService
     {
         return $this->variantsConfigRepository->getVariantsByKeyForApi($keyId, $parentId);
     }
+
+    /**
+     * Get variants configuration by key ID
+     *
+     * @param int $keyId
+     * @return \Illuminate\Database\Eloquent\Collection
+     */
+    public function getVariantsByKey($keyId)
+    {
+        return $this->variantsConfigRepository->getVariantsByKey($keyId);
+    }
+
+    /**
+     * Get variant children recursively
+     *
+     * @param int $parentId
+     * @return \Illuminate\Database\Eloquent\Collection
+     */
+    public function getVariantChildren($parentId)
+    {
+        return $this->variantsConfigRepository->getVariantChildren($parentId);
+    }
 }

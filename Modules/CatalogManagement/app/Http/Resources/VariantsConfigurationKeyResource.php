@@ -15,6 +15,13 @@ class VariantsConfigurationKeyResource extends JsonResource
     public function toArray(Request $request): array
     {
         $locale = app()->getLocale();
+
+        if ($this->select2) {
+            return [
+                'id' => $this->id,
+                'name' => $this->getTranslation('name', $locale),
+            ];
+        }
         return [
             "id" => $this->id,
             "name" => $this->getTranslation('name', $locale),

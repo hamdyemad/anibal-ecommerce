@@ -2,16 +2,9 @@
 
 namespace Modules\Vendor\app\Repositories;
 
-use App\Models\Attachment;
-use App\Models\Role;
-use App\Models\User;
-use App\Models\Translation;
-use App\Models\UserType;
-use App\Services\RoleService;
 use App\Services\UserService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Modules\Vendor\app\Interfaces\VendorInterface;
@@ -22,7 +15,6 @@ class VendorRepository implements VendorInterface
 
     public function __construct(
         protected UserService $userService,
-        protected RoleService $roleService,
     )
     {
 
@@ -62,14 +54,16 @@ class VendorRepository implements VendorInterface
     public function createVendor(array $data)
     {
         return DB::transaction(function () use ($data) {
-            $role = $this->roleService->getVendorRole();
+            // $role = rand(0, 9999);
             $userData = [
                 'email' => $data['email'],
                 'password' => $data['password'],
                 'active' => $data['active'] ?? false,
             ];
             $user = $this->userService->createVendorAccount($userData);
-            $user->roles()->sync([$role->id]);
+            // if(isset($role)) {
+            //     $user->roles()->sync([$role]);
+            // }
 
             // Create vendor with temporary slug
             $vendor = Vendor::create([
@@ -145,8 +139,8 @@ class VendorRepository implements VendorInterface
                 }
                 // Update user if there's data to update
                 $this->userService->updateVendorAccount($userUpdateData);
-                $role = $this->roleService->getVendorRole();
-                $vendor->user->roles()->sync([$role->id]);
+                // $role = rand(0, 9999);
+                // $vendor->user->roles()->sync([$role]);
             }
 
             // Handle logo upload
@@ -280,9 +274,6 @@ class VendorRepository implements VendorInterface
      */
     protected function storeTranslations(Vendor $vendor, array $data)
     {
-        // Delete existing translations
-        $vendor->translations()->delete();
-
         // Handle translations array from form (translations[language_id][name/description])
         if (!empty($data['translations'])) {
             foreach ($data['translations'] as $languageId => $fields) {
@@ -292,43 +283,59 @@ class VendorRepository implements VendorInterface
                     continue;
                 }
 
-                // Store name translation
+                // Update or create name translation
                 if (!empty($fields['name'])) {
-                    $vendor->translations()->create([
-                        'lang_id' => $language->id,
-                        'lang_key' => 'name',
-                        'lang_value' => $fields['name'],
-                    ]);
+                    $vendor->translations()->updateOrCreate(
+                        [
+                            'lang_id' => $language->id,
+                            'lang_key' => 'name',
+                        ],
+                        [
+                            'lang_value' => $fields['name'],
+                        ]
+                    );
                 }
 
-                // Store description translation
+                // Update or create description translation
                 if (!empty($fields['description'])) {
-                    $vendor->translations()->create([
-                        'lang_id' => $language->id,
-                        'lang_key' => 'description',
-                        'lang_value' => $fields['description'],
-                    ]);
+                    $vendor->translations()->updateOrCreate(
+                        [
+                            'lang_id' => $language->id,
+                            'lang_key' => 'description',
+                        ],
+                        [
+                            'lang_value' => $fields['description'],
+                        ]
+                    );
                 }
 
-                // Store meta_title translation
+                // Update or create meta_title translation
                 if (!empty($fields['meta_title'])) {
-                    $vendor->translations()->create([
-                        'lang_id' => $language->id,
-                        'lang_key' => 'meta_title',
-                        'lang_value' => $fields['meta_title'],
-                    ]);
+                    $vendor->translations()->updateOrCreate(
+                        [
+                            'lang_id' => $language->id,
+                            'lang_key' => 'meta_title',
+                        ],
+                        [
+                            'lang_value' => $fields['meta_title'],
+                        ]
+                    );
                 }
 
-                // Store meta_description translation
+                // Update or create meta_description translation
                 if (!empty($fields['meta_description'])) {
-                    $vendor->translations()->create([
-                        'lang_id' => $language->id,
-                        'lang_key' => 'meta_description',
-                        'lang_value' => $fields['meta_description'],
-                    ]);
+                    $vendor->translations()->updateOrCreate(
+                        [
+                            'lang_id' => $language->id,
+                            'lang_key' => 'meta_description',
+                        ],
+                        [
+                            'lang_value' => $fields['meta_description'],
+                        ]
+                    );
                 }
 
-                // Store meta_keywords translation as JSON
+                // Update or create meta_keywords translation as JSON
                 if (!empty($fields['meta_keywords'])) {
                     // Convert comma-separated string to array and then to JSON
                     $keywords = is_string($fields['meta_keywords'])
@@ -340,11 +347,15 @@ class VendorRepository implements VendorInterface
                         return !empty(trim($keyword));
                     });
 
-                    $vendor->translations()->create([
-                        'lang_id' => $language->id,
-                        'lang_key' => 'meta_keywords',
-                        'lang_value' => json_encode(array_values($keywords)),
-                    ]);
+                    $vendor->translations()->updateOrCreate(
+                        [
+                            'lang_id' => $language->id,
+                            'lang_key' => 'meta_keywords',
+                        ],
+                        [
+                            'lang_value' => json_encode(array_values($keywords)),
+                        ]
+                    );
                 }
             }
         }

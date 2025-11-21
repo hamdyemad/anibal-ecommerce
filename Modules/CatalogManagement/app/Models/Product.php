@@ -3,11 +3,13 @@
 namespace Modules\CatalogManagement\app\Models;
 
 use App\Models\Attachment;
-use App\Models\Traits\HasSlug;
+use App\Models\User;
+use App\Traits\HasSlug;
 use App\Traits\Translation;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Builder;
 use Modules\CategoryManagment\app\Models\Category;
 use Modules\CategoryManagment\app\Models\Department;
 use Modules\CategoryManagment\app\Models\SubCategory;
@@ -20,10 +22,14 @@ class Product extends Model
     protected $guarded = [];
     protected $casts = [
         'is_active' => 'boolean',
-        'is_featured' => 'boolean',
-        'points' => 'integer',
-        'max_per_order' => 'integer',
+        'status' => 'string',
+        'configuration_type' => 'string',
     ];
+
+    /**
+     * The field to generate slug from (for HasSlug trait)
+     */
+    protected $slugFrom = 'title';
 
     /**
      * Get all attachments for the product
@@ -55,6 +61,11 @@ class Product extends Model
     public function variants()
     {
         return $this->hasMany(ProductVariant::class);
+    }
+
+    public function getCurrencyAttribute()
+    {
+        return $this->vendor->country->currency ?? null;
     }
 
     /**
@@ -90,22 +101,39 @@ class Product extends Model
     }
 
     /**
-     * Get the tax
-     */
-    public function tax()
-    {
-        return $this->belongsTo(Tax::class);
-    }
-
-    /**
-     * Get the vendor
+     * Get the vendor (if created by vendor)
      */
     public function vendor()
     {
         return $this->belongsTo(Vendor::class);
     }
 
+    /**
+     * Get the user who created this product
+     */
+    public function createdByUser()
+    {
+        return $this->belongsTo(User::class, 'created_by_user_id');
+    }
 
+
+    /**
+     * Get vendors that have added this product
+     */
+    public function vendorProducts()
+    {
+        return $this->hasMany(VendorProduct::class);
+    }
+
+    /**
+     * Get vendors through vendor_products
+     */
+    public function vendors()
+    {
+        return $this->belongsToMany(Vendor::class, 'vendor_products')
+                    ->withPivot('status', 'rejection_reason')
+                    ->withTimestamps();
+    }
 
     /**
      * Get the route key for the model
@@ -113,6 +141,90 @@ class Product extends Model
     public function getRouteKeyName()
     {
         return 'slug';
+    }
+
+    /**
+     * Get tags as a comma-separated string for a specific language
+     */
+    public function getTagsString($languageCode = 'en')
+    {
+        $language = \App\Models\Language::where('code', $languageCode)->first();
+        if (!$language) {
+            return '';
+        }
+
+        $translation = $this->translations()
+            ->where('lang_id', $language->id)
+            ->where('lang_key', 'tags')
+            ->first();
+
+        return $translation ? $translation->lang_value : '';
+    }
+
+    /**
+     * Get meta keywords as a comma-separated string for a specific language
+     */
+    public function getMetaKeywordsString($languageCode = 'en')
+    {
+        $language = \App\Models\Language::where('code', $languageCode)->first();
+        if (!$language) {
+            return '';
+        }
+
+        $translation = $this->translations()
+            ->where('lang_id', $language->id)
+            ->where('lang_key', 'meta_keywords')
+            ->first();
+
+        return $translation ? $translation->lang_value : '';
+    }
+
+    /**
+     * Scope to filter products based on various criteria
+     */
+    public function scopeFilter(Builder $query, array $filters)
+    {
+        // Search filter
+        if (!empty($filters['search'])) {
+            $search = $filters['search'];
+            $query->where(function($q) use ($search) {
+                $q->whereHas('translations', function($query) use ($search) {
+                    $query->where('lang_value', 'like', "%{$search}%");
+                })
+                ->orWhereHas('brand', function($query) use ($search) {
+                    $query->whereHas('translations', function($subQuery) use ($search) {
+                        $subQuery->where('lang_value', 'like', "%{$search}%");
+                    });
+                })
+                ->orWhereHas('category', function($query) use ($search) {
+                    $query->whereHas('translations', function($subQuery) use ($search) {
+                        $subQuery->where('lang_value', 'like', "%{$search}%");
+                    });
+                });
+            });
+        }
+
+        // Active filter
+        if (isset($filters['is_active']) && $filters['is_active'] !== '') {
+            $query->where('is_active', $filters['is_active']);
+        }
+
+        // Status filter
+        if (!empty($filters['status'])) {
+            $query->where('status', $filters['status']);
+        }
+
+        // Date from filter
+        if (!empty($filters['created_date_from'])) {
+            $query->whereDate('created_at', '>=', $filters['created_date_from']);
+        }
+
+        // Date to filter
+        if (!empty($filters['created_date_to'])) {
+            $query->whereDate('created_at', '<=', $filters['created_date_to']);
+        }
+
+        $query->orderBy('created_at', 'desc');
     }
 
 }

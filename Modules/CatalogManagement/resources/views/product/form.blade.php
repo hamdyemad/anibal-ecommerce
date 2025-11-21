@@ -1,7 +1,7 @@
 @extends('layout.app')
 
 @section('title')
-{{ $title ?? (isset($product) ? 'Edit Product' : 'Create Product') }}
+{{ $title ?? (isset($product) ? __('catalogmanagement::product.edit_product') : __('catalogmanagement::product.create_product')) }}
 @endsection
 
 @push('styles')
@@ -14,8 +14,8 @@
         <div class="col-lg-12">
             <x-breadcrumb :items="[
                 ['title' => trans('dashboard.title'), 'url' => route('admin.dashboard'), 'icon' => 'uil uil-estate'],
-                ['title' => 'Products Management', 'url' => '#'],
-                ['title' => isset($product) ? 'Edit Product' : 'Create Product']
+                ['title' => __('catalogmanagement::product.products_management'), 'url' => route('admin.products.index')],
+                ['title' => isset($product) ? __('catalogmanagement::product.edit_product') : __('catalogmanagement::product.create_product')]
             ]" />
         </div>
     </div>
@@ -24,22 +24,22 @@
         <div class="col-lg-12">
             <div class="card product-form">
                 <div class="card-header">
-                    <h4 class="card-title">{{ isset($product) ? 'Edit Product' : 'Create Product' }}</h4>
+                    <h4 class="card-title">{{ isset($product) ? __('catalogmanagement::product.edit_product') : __('catalogmanagement::product.create_product') }}</h4>
                 </div>
                 <div class="card-body">
                     <!-- Wizard Navigation -->
                     <x-wizard :steps="[
-                        'Information',
-                        'Details',
-                        'Pricing',
-                        'SEO & Images'
+                        __('common.basic_information'),
+                        __('common.details'),
+                        __('common.variant_configurations'),
+                        __('common.seo')
                     ]" :currentStep="1" />
 
                     <!-- Validation Alerts Container -->
                     <div id="validation-alerts-container" class="mb-3"></div>
 
                     <!-- Form -->
-                    <form id="productForm" method="POST" action="{{ isset($product) ? route('admin.products.update', $product->id) : route('admin.products.store') }}" enctype="multipart/form-data" novalidate onkeydown="return event.key != 'Enter';">
+                    <form id="productForm" method="POST" action="{{ isset($product) ? route('admin.products.update', $product->product ? $product->product->id : $product->id) : route('admin.products.store') }}" enctype="multipart/form-data" novalidate onkeydown="return event.key != 'Enter';">
                         @csrf
                         @if(isset($product))
                             @method('PUT')
@@ -52,24 +52,25 @@
                                 <div class="card-body">
                                     <h5 class="mb-4">
                                         <i class="uil uil-info-circle"></i>
-                                        Product Information
+                                        {{ __('catalogmanagement::product.product_details') }}
                                     </h5>
                                     <div class="row">
                                         @foreach($languages as $language)
                                         <div class="col-md-6 mb-3">
                                             <div class="form-group">
-                                                <label for="title_{{ $language->code }}" class="form-label w-100 {{ $language->rtl ? 'text-end' : '' }}">
+                                                <label for="title_{{ $language->code }}" class="form-label w-100 {{ (app()->getLocale() == 'ar') ? 'text-start' : '' }}">
                                                     @if($language->code == 'en')
-                                                        Title ({{ $language->name }})
+                                                        {{ __('catalogmanagement::product.title') }} ({{ $language->name }})
                                                     @else
-                                                         {{ $language->name }} العنوان
+                                                        العنوان باللغة العربية
                                                     @endif
                                                     <span class="text-danger">*</span>
                                                 </label>
                                                 <input type="text" name="translations[{{ $language->id }}][title]" id="title_{{ $language->code }}"
                                                     class="form-control ih-medium ip-gray radius-xs b-light px-15"
                                                     placeholder="{{ $language->code == 'ar' ? 'أدخل عنوان المنتج' : 'Enter product title' }}"
-                                                    {{ $language->rtl ? 'dir=rtl' : '' }}>
+                                                    dir="{{ $language->code == 'ar' ? 'rtl' : 'ltr' }}"
+                                                    value="{{ isset($product) ? ($product->product && method_exists($product->product, 'getTranslation') ? $product->product->getTranslation('title', $language->code) : (method_exists($product, 'getTranslation') ? $product->getTranslation('title', $language->code) : '')) ?? '' : '' }}">
                                                 <div class="error-message text-danger" id="error-translations-{{ $language->id }}-title" style="display: none;"></div>
                                             </div>
                                         </div>
@@ -77,34 +78,34 @@
 
                                         <div class="col-md-6 mb-3">
                                             <div class="form-group">
-                                                <label for="sku" class="form-label">SKU <span class="text-danger">*</span></label>
-                                                <input type="text" name="sku" id="sku" class="form-control ih-medium ip-gray radius-xs b-light px-15" placeholder="Enter SKU">
+                                                <label for="sku" class="form-label">{{ __('catalogmanagement::product.sku') }} <span class="text-danger">*</span></label>
+                                                <input type="text" name="sku" id="sku" class="form-control ih-medium ip-gray radius-xs b-light px-15" placeholder="{{ __('catalogmanagement::product.sku') }}" value="{{ isset($product) ? $product->sku : '' }}">
                                                 <div class="error-message text-danger" id="error-sku" style="display: none;"></div>
                                             </div>
                                         </div>
 
                                         <div class="col-md-6 mb-3">
                                             <div class="form-group">
-                                                <label for="points" class="form-label">Points <span class="text-danger">*</span></label>
-                                                <input type="number" name="points" id="points" class="form-control ih-medium ip-gray radius-xs b-light px-15" min="0" value="0" placeholder="Enter points">
+                                                <label for="points" class="form-label">{{ __('catalogmanagement::product.points') }} <span class="text-danger">*</span></label>
+                                                <input type="number" name="points" id="points" class="form-control ih-medium ip-gray radius-xs b-light px-15" min="0" value="{{ isset($product) ? $product->points : 0 }}" placeholder="Enter points" required>
                                                 <div class="error-message text-danger" id="error-points" style="display: none;"></div>
                                             </div>
                                         </div>
 
                                         <div class="col-md-6 mb-3">
                                             <div class="form-group">
-                                                <label class="form-label d-block">Status</label>
+                                                <label class="form-label d-block">{{ __('catalogmanagement::product.status') }}</label>
                                                 <div class="form-check form-switch form-switch-lg">
-                                                    <input class="form-check-input" type="checkbox" role="switch" id="status" name="status" value="1" checked>
+                                                    <input class="form-check-input" type="checkbox" role="switch" id="status" name="status" value="1" {{ isset($product) && $product->is_active ? 'checked' : '' }}>
                                                 </div>
                                             </div>
                                         </div>
 
                                         <div class="col-md-6 mb-3">
                                             <div class="form-group">
-                                                <label class="form-label d-block">Featured Product</label>
+                                                <label class="form-label d-block">{{ __('catalogmanagement::product.featured') }}</label>
                                                 <div class="form-check form-switch form-switch-lg">
-                                                    <input class="form-check-input" type="checkbox" role="switch" id="featured" name="featured" value="1">
+                                                    <input class="form-check-input" type="checkbox" role="switch" id="featured" name="featured" value="1" {{ isset($product) && $product->is_featured ? 'checked' : '' }}>
                                                 </div>
                                             </div>
                                         </div>
@@ -117,73 +118,69 @@
                                 <div class="card-body">
                                     <h5 class="mb-4">
                                         <i class="uil uil-sitemap"></i>
-                                        Organization
+                                        {{ __('common.organization') }}
                                     </h5>
                                     <div class="row">
-                                        @if(isset($vendors) && count($vendors) > 0)
                                         <div class="col-md-6 mb-3">
                                             <div class="form-group">
-                                                <label for="vendor_id" class="form-label">
-                                                    Vendor
-                                                    @if(auth()->user()->user_type_id == App\Models\UserType::SUPER_ADMIN_TYPE || auth()->user()->user_type_id == App\Models\UserType::ADMIN_TYPE)
-                                                        <span class="text-danger">*</span>
-                                                    @endif
-                                                </label>
-                                                <select name="vendor_id" id="vendor_id" class="form-control select2"
-                                                    @if(auth()->user()->user_type_id == App\Models\UserType::VENDOR_TYPE && count($vendors) == 1) readonly @endif>
-                                                    @if(auth()->user()->user_type_id == App\Models\UserType::SUPER_ADMIN_TYPE || auth()->user()->user_type_id == App\Models\UserType::ADMIN_TYPE)
-                                                        <option value="">Select Vendor</option>
-                                                    @endif
-                                                    @foreach($vendors as $vendor)
-                                                        <option value="{{ $vendor['id'] }}"
-                                                            @if(auth()->user()->user_type_id == App\Models\UserType::VENDOR_TYPE || (isset($product) && $product->vendor_id == $vendor['id'])) selected @endif>
-                                                            {{ $vendor['name'] }}
-                                                        </option>
+                                                <label for="brand_id" class="form-label">{{ __('catalogmanagement::product.brand') }} <span class="text-danger">*</span></label>
+                                                <select name="brand_id" id="brand_id" class="form-control select2">
+                                                    <option value="">{{ __('common.select_option') }}</option>
+                                                    @foreach($brands as $brand)
+                                                        <option value="{{ $brand['id'] }}" {{ isset($product) && $product->product->brand_id == $brand['id'] ? 'selected' : '' }}>{{ $brand['name'] }}</option>
                                                     @endforeach
                                                 </select>
-                                                <div class="error-message text-danger" id="error-vendor_id" style="display: none;"></div>
                                             </div>
                                         </div>
+                                        @if(in_array(auth()->user()->user_type_id, \App\Models\UserType::vendorIds()))
+                                            <!-- Hidden input for vendor users -->
+                                            <input class="form-control" type="hidden" name="vendor_id" id="vendor_id" value="{{ auth()->user()->vendor->id ?? '' }}">
+                                        @else
+                                            <!-- Vendor select for admin users -->
+                                            <div class="col-md-6 mb-3">
+                                                <div class="form-group">
+                                                    <label for="vendor_id" class="form-label">
+                                                        {{ __('catalogmanagement::product.vendor') }}
+                                                        <span class="text-danger">*</span>
+                                                    </label>
+                                                    <select name="vendor_id" id="vendor_id" class="form-control select2">
+                                                        <option value="">{{ __('common.select_option') }}</option>
+                                                        @foreach($vendors as $vendor)
+                                                            <option value="{{ $vendor['id'] }}" {{ isset($product) && $product->vendor_id == $vendor['id'] ? 'selected' : '' }}>
+                                                                {{ $vendor['name'] }}
+                                                            </option>
+                                                        @endforeach
+                                                    </select>
+                                                    <div class="error-message text-danger" id="error-vendor_id" style="display: none;"></div>
+                                                </div>
+                                            </div>
                                         @endif
 
-                                        <div class="col-md-6 mb-3">
-                                            <div class="form-group">
-                                                <label for="brand_id" class="form-label">Brand <span class="text-danger">*</span></label>
-                                                <select name="brand_id" id="brand_id" class="form-control select2">
-                                                    <option value="">Select Brand</option>
-                                                    @foreach($brands as $brand)
-                                                        <option value="{{ $brand['id'] }}">{{ $brand['name'] }}</option>
-                                                    @endforeach
-                                                </select>
-                                            </div>
-                                        </div>
+
 
                                         <div class="col-md-6 mb-3">
                                             <div class="form-group">
-                                                <label for="department_id" class="form-label">Department <span class="text-danger">*</span></label>
+                                                <label for="department_id" class="form-label">{{ __('catalogmanagement::product.department') }} <span class="text-danger">*</span></label>
                                                 <select name="department_id" id="department_id" class="form-control select2">
-                                                    <option value="">Select Department</option>
-                                                    @foreach($departments as $department)
-                                                        <option value="{{ $department['id'] }}">{{ $department['name'] }}</option>
-                                                    @endforeach
+                                                    <option value="">{{ __('common.select_option') }}</option>
                                                 </select>
                                             </div>
                                         </div>
 
                                         <div class="col-md-6 mb-3">
                                             <div class="form-group">
-                                                <label for="category_id" class="form-label">Main Category <span class="text-danger">*</span></label>
+                                                <label for="category_id" class="form-label">{{ __('catalogmanagement::product.category') }} <span class="text-danger">*</span></label>
                                                 <select name="category_id" id="category_id" class="form-control select2">
-                                                    <option value="">Select Category</option>
+                                                    <option value="">{{ __('common.select_option') }}</option>
                                                 </select>
                                             </div>
                                         </div>
 
                                         <div class="col-md-6 mb-3">
                                             <div class="form-group">
-                                                <label for="sub_category_id" class="form-label">Sub Category</label>
+                                                <label for="sub_category_id" class="form-label">{{ __('catalogmanagement::product.sub_category') }}</label>
                                                 <select name="sub_category_id" id="sub_category_id" class="form-control select2">
-                                                    <option value="">Select Sub Category</option>
+                                                    <option value="">{{ __('common.select_option') }}</option>
                                                 </select>
                                             </div>
                                         </div>
@@ -196,16 +193,18 @@
                                 <div class="card-body">
                                     <h5 class="mb-4">
                                         <i class="uil uil-truck"></i>
-                                        Logistics & Taxes
+                                        {{ __('common.logistics') }}
                                     </h5>
                                     <div class="row">
                                         <div class="col-md-6 mb-3">
                                             <div class="form-group">
-                                                <label for="tax_id" class="form-label">Tax</label>
+                                                <label for="tax_id" class="form-label">{{ __('catalogmanagement::product.tax') }}
+                                                    <span class="text-danger">*</span>
+                                                </label>
                                                 <select name="tax_id" id="tax_id" class="form-control select2">
-                                                    <option value="">Select Tax</option>
+                                                    <option value="">{{ __('common.select_option') }}</option>
                                                     @foreach($taxes as $tax)
-                                                        <option value="{{ $tax['id'] }}">{{ $tax['name'] }} ({{ $tax['percentage'] }}%)</option>
+                                                        <option value="{{ $tax['id'] }}" {{ isset($product) && $product->tax_id == $tax['id'] ? 'selected' : '' }}>{{ $tax['name'] }} ({{ $tax['percentage'] }}%)</option>
                                                     @endforeach
                                                 </select>
                                             </div>
@@ -213,8 +212,8 @@
 
                                         <div class="col-md-6 mb-3">
                                             <div class="form-group">
-                                                <label for="max_per_order" class="form-label">Max Per Order <span class="text-danger">*</span></label>
-                                                <input type="number" name="max_per_order" id="max_per_order" class="form-control ih-medium ip-gray radius-xs b-light px-15" min="1" placeholder="Enter max per order">
+                                                <label for="max_per_order" class="form-label">{{ __('catalogmanagement::product.max_per_order') }} <span class="text-danger">*</span></label>
+                                                <input type="number" name="max_per_order" id="max_per_order" class="form-control ih-medium ip-gray radius-xs b-light px-15" min="1" placeholder="Enter max per order" value="{{ isset($product) ? $product->max_per_order : '' }}" required>
                                                 <div class="error-message text-danger" id="error-max_per_order" style="display: none;"></div>
                                             </div>
                                         </div>
@@ -227,7 +226,7 @@
                                 <div class="card-body">
                                     <h5 class="mb-4">
                                         <i class="uil uil-tag-alt"></i>
-                                        Product Tags
+                                        {{ __('common.tags') }}
                                     </h5>
                                     <div class="row">
                                         @foreach($languages as $language)
@@ -235,14 +234,14 @@
                                             <div class="form-group">
                                                 <label for="tags_{{ $language->code }}" class="form-label w-100 {{ $language->rtl ? 'text-end' : '' }}">
                                                     @if($language->code == 'en')
-                                                        Tags ({{ $language->name }})
+                                                        {{ __('common.tags') }} ({{ $language->name }})
                                                     @else
-                                                        الوسوم ({{ $language->name }})
+                                                        الوسوم باللغة العربية
                                                     @endif
                                                 </label>
                                                 <x-tags-input
                                                     name="translations[{{ $language->id }}][tags]"
-                                                    :value="isset($product) ? $product->getTagsString($language->code) : old('translations.'.$language->id.'.tags')"
+                                                    :value="isset($product) ? (isset($product->product) && method_exists($product->product, 'getTagsString') ? $product->product->getTagsString($language->code) : (method_exists($product, 'getTagsString') ? $product->getTagsString($language->code) : '')) : old('translations.'.$language->id.'.tags', '')"
                                                     placeholder="{{ $language->code == 'ar' ? 'اكتب وسم واضغط انتر' : 'Type a tag and press Enter...' }}"
                                                     rtl-placeholder="اكتب وسم واضغط انتر"
                                                     language="{{ $language->code }}"
@@ -262,12 +261,51 @@
 
                         <!-- Step 2: Product Details -->
                         <div class="wizard-step-content" data-step="2" style="display: none;">
+
+                            <!-- Main Product Image -->
+                            <div class="card mb-4">
+                                <div class="card-body">
+                                    <h5 class="mb-4">
+                                        <i class="uil uil-image"></i>
+                                        {{ __('catalogmanagement::product.main_image') }}
+                                    </h5>
+                                    <div class="row">
+                                        <div class="col-md-12 mb-3">
+                                            <x-image-upload
+                                                id="main_image"
+                                                name="main_image"
+                                                label="{{ __('common.product_image') }}"
+                                                :required="true"
+                                                :existingImage="isset($product) && $product->product && $product->product->mainImage ? $product->product->mainImage->path : null"
+                                                placeholder="{{ __('common.click_to_upload') }}"
+                                                recommendedSize="{{ __('common.recommended_logo_size') }}"
+                                                accept="image/jpeg,image/png,image/jpg,image/webp"
+                                                aspectRatio="square"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Additional Images -->
+                            <div class="card mb-4">
+                                <div class="card-body">
+                                    <h5 class="mb-4">
+                                        <i class="uil uil-image"></i>
+                                        {{ __('catalogmanagement::product.additional_images') }}
+                                    </h5>
+                                    <div class="row">
+                                        <div class="col-md-12 mb-3">
+                                            <input type="file" multiple class="form-control" accept="image/*" name="additional_images[]">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                             <!-- Card 1: Main Descriptions -->
                             <div class="card mb-4">
                                 <div class="card-body">
                                     <h5 class="mb-4">
                                         <i class="uil uil-file-alt"></i>
-                                        Main Descriptions
+                                        {{ __('common.description') }}
                                     </h5>
                                     <div class="row">
                                         @foreach($languages as $language)
@@ -275,17 +313,16 @@
                                             <div class="form-group">
                                                 <label for="details_{{ $language->code }}" class="form-label w-100 {{ $language->rtl ? 'text-end' : '' }}">
                                                     @if($language->code == 'en')
-                                                        Details ({{ $language->name }})
+                                                        {{ __('common.details') }} ({{ $language->name }})
                                                     @else
-                                                        التفاصيل ({{ $language->name }})
+                                                        التفاصيل باللغة العربية
                                                     @endif
-                                                    <span class="text-danger">*</span>
                                                 </label>
                                                 <textarea name="translations[{{ $language->id }}][details]" id="details_{{ $language->code }}"
                                                     class="form-control ih-medium ip-gray radius-xs b-light px-15 tinymce-editor"
                                                     rows="6"
                                                     placeholder="{{ $language->code == 'ar' ? 'أدخل تفاصيل المنتج' : 'Enter product details' }}"
-                                                    {{ $language->rtl ? 'dir=rtl' : '' }}></textarea>
+                                                    dir="{{ $language->code == 'ar' ? 'rtl' : 'ltr' }}"></textarea>
                                                 <div class="error-message text-danger" id="error-translations-{{ $language->id }}-details" style="display: none;"></div>
                                             </div>
                                         </div>
@@ -299,7 +336,7 @@
                                 <div class="card-body">
                                     <h5 class="mb-4">
                                         <i class="uil uil-info-circle"></i>
-                                        Additional Information
+                                        {{ __('common.additional_information') }}
                                     </h5>
                                     <div class="row">
                                         @foreach($languages as $language)
@@ -307,16 +344,16 @@
                                             <div class="form-group">
                                                 <label for="summary_{{ $language->code }}" class="form-label w-100 {{ $language->rtl ? 'text-end' : '' }}">
                                                     @if($language->code == 'en')
-                                                        Summary ({{ $language->name }})
+                                                        {{ __('common.summary') }} ({{ $language->name }})
                                                     @else
-                                                        الملخص ({{ $language->name }})
+                                                        الملخص باللغة العربية
                                                     @endif
                                                 </label>
                                                 <textarea name="translations[{{ $language->id }}][summary]" id="summary_{{ $language->code }}"
                                                     class="form-control ih-medium ip-gray radius-xs b-light px-15 tinymce-editor"
                                                     rows="4"
                                                     placeholder="{{ $language->code == 'ar' ? 'أدخل الملخص' : 'Enter summary' }}"
-                                                    {{ $language->rtl ? 'dir=rtl' : '' }}></textarea>
+                                                    dir="{{ $language->code == 'ar' ? 'rtl' : 'ltr' }}"></textarea>
                                                 <div class="error-message text-danger" id="error-translations-{{ $language->id }}-summary" style="display: none;"></div>
                                             </div>
                                         </div>
@@ -327,16 +364,16 @@
                                             <div class="form-group">
                                                 <label for="features_{{ $language->code }}" class="form-label w-100 {{ $language->rtl ? 'text-end' : '' }}">
                                                     @if($language->code == 'en')
-                                                        Features ({{ $language->name }})
+                                                        {{ __('common.features') }} ({{ $language->name }})
                                                     @else
-                                                        المميزات ({{ $language->name }})
+                                                        المميزات باللغة العربية
                                                     @endif
                                                 </label>
                                                 <textarea name="translations[{{ $language->id }}][features]" id="features_{{ $language->code }}"
                                                     class="form-control ih-medium ip-gray radius-xs b-light px-15 tinymce-editor"
                                                     rows="4"
                                                     placeholder="{{ $language->code == 'ar' ? 'أدخل المميزات' : 'Enter features' }}"
-                                                    {{ $language->rtl ? 'dir=rtl' : '' }}></textarea>
+                                                    dir="{{ $language->code == 'ar' ? 'rtl' : 'ltr' }}"></textarea>
                                                 <div class="error-message text-danger" id="error-translations-{{ $language->id }}-features" style="display: none;"></div>
                                             </div>
                                         </div>
@@ -347,16 +384,16 @@
                                             <div class="form-group">
                                                 <label for="instructions_{{ $language->code }}" class="form-label w-100 {{ $language->rtl ? 'text-end' : '' }}">
                                                     @if($language->code == 'en')
-                                                        Instructions ({{ $language->name }})
+                                                        {{ __('common.instructions') }} ({{ $language->name }})
                                                     @else
-                                                        التعليمات ({{ $language->name }})
+                                                        التعليمات باللغة العربية
                                                     @endif
                                                 </label>
                                                 <textarea name="translations[{{ $language->id }}][instructions]" id="instructions_{{ $language->code }}"
                                                     class="form-control ih-medium ip-gray radius-xs b-light px-15 tinymce-editor"
                                                     rows="4"
                                                     placeholder="{{ $language->code == 'ar' ? 'أدخل التعليمات' : 'Enter instructions' }}"
-                                                    {{ $language->rtl ? 'dir=rtl' : '' }}></textarea>
+                                                    dir="{{ $language->code == 'ar' ? 'rtl' : 'ltr' }}"></textarea>
                                                 <div class="error-message text-danger" id="error-translations-{{ $language->id }}-instructions" style="display: none;"></div>
                                             </div>
                                         </div>
@@ -367,16 +404,16 @@
                                             <div class="form-group">
                                                 <label for="extra_description_{{ $language->code }}" class="form-label w-100 {{ $language->rtl ? 'text-end' : '' }}">
                                                     @if($language->code == 'en')
-                                                        Extra Description ({{ $language->name }})
+                                                        {{ __('catalogmanagement::product.extra_description') }} ({{ $language->name }})
                                                     @else
-                                                        وصف إضافي ({{ $language->name }})
+                                                        وصف إضافي باللغة العربية
                                                     @endif
                                                 </label>
                                                 <textarea name="translations[{{ $language->id }}][extra_description]" id="extra_description_{{ $language->code }}"
                                                     class="form-control ih-medium ip-gray radius-xs b-light px-15 tinymce-editor"
                                                     rows="4"
                                                     placeholder="{{ $language->code == 'ar' ? 'أدخل وصف إضافي' : 'Enter extra description' }}"
-                                                    {{ $language->rtl ? 'dir=rtl' : '' }}></textarea>
+                                                    dir="{{ $language->code == 'ar' ? 'rtl' : 'ltr' }}"></textarea>
                                                 <div class="error-message text-danger" id="error-translations-{{ $language->id }}-extra_description" style="display: none;"></div>
                                             </div>
                                         </div>
@@ -390,7 +427,7 @@
                                 <div class="card-body">
                                     <h5 class="mb-4">
                                         <i class="uil uil-play-circle"></i>
-                                        Material & Media
+                                        {{ __('common.media') }}
                                     </h5>
                                     <div class="row">
                                         @foreach($languages as $language)
@@ -398,16 +435,16 @@
                                             <div class="form-group">
                                                 <label for="material_{{ $language->code }}" class="form-label w-100 {{ $language->rtl ? 'text-end' : '' }}">
                                                     @if($language->code == 'en')
-                                                        Material ({{ $language->name }})
+                                                        {{ __('catalogmanagement::product.material') }} ({{ $language->name }})
                                                     @else
-                                                        المواد ({{ $language->name }})
+                                                        المواد باللغة العربية
                                                     @endif
                                                 </label>
                                                 <textarea name="translations[{{ $language->id }}][material]" id="material_{{ $language->code }}"
                                                     class="form-control ih-medium ip-gray radius-xs b-light px-15 tinymce-editor"
                                                     rows="3"
                                                     placeholder="{{ $language->code == 'ar' ? 'أدخل المواد' : 'Enter material' }}"
-                                                    {{ $language->rtl ? 'dir=rtl' : '' }}></textarea>
+                                                    dir="{{ $language->code == 'ar' ? 'rtl' : 'ltr' }}"></textarea>
                                                 <div class="error-message text-danger" id="error-translations-{{ $language->id }}-material" style="display: none;"></div>
                                             </div>
                                         </div>
@@ -415,9 +452,9 @@
 
                                         <div class="col-md-12 mb-3">
                                             <div class="form-group">
-                                                <label for="video_link" class="form-label">Video Link (YouTube, Vimeo, etc.)</label>
-                                                <input type="url" name="video_link" id="video_link" class="form-control ih-medium ip-gray radius-xs b-light px-15" placeholder="https://www.youtube.com/watch?v=...">
-                                                <small class="text-muted">Enter a valid video URL from YouTube, Vimeo, or other platforms</small>
+                                                <label for="video_link" class="form-label">{{ __('catalogmanagement::product.video_link') }}</label>
+                                                <input type="url" name="video_link" id="video_link" value="{{ isset($product) ? $product->video_link : '' }}" class="form-control ih-medium ip-gray radius-xs b-light px-15" placeholder="https://www.youtube.com/watch?v=...">
+                                                <small class="text-muted">{{ __('common.enter_valid_video_url') }}</small>
                                             </div>
                                         </div>
                                     </div>
@@ -425,23 +462,23 @@
                             </div>
                         </div>
 
-                        <!-- Step 3: Pricing & Inventory -->
+                        <!-- Step 3: Variant Configurations -->
                         <div class="wizard-step-content" data-step="3" style="display: none;">
                             <!-- Configuration Type -->
                             <div class="card mb-4">
                                 <div class="card-body">
                                     <h5 class="mb-4">
                                         <i class="uil uil-setting"></i>
-                                        Configuration Type
+                                        {{ __('catalogmanagement::product.configuration_type') }}
                                     </h5>
                                     <div class="row">
                                         <div class="col-md-12 mb-3">
                                             <div class="form-group">
-                                                <label for="configuration_type" class="form-label">Product Type <span class="text-danger">*</span></label>
+                                                <label for="configuration_type" class="form-label">{{ __('common.product_type') }} <span class="text-danger">*</span></label>
                                                 <select name="configuration_type" id="configuration_type" class="form-control select2">
-                                                    <option value="">Choose Configuration</option>
-                                                    <option value="simple">Simple Product (No Variants)</option>
-                                                    <option value="variants">With Variants</option>
+                                                    <option value="">{{ __('common.select_option') }}</option>
+                                                    <option value="simple" {{ isset($product) && ($product->configuration_type ?? $product->product->configuration_type ?? '') == 'simple' ? 'selected' : '' }}>{{ __('common.simple_product') }}</option>
+                                                    <option value="variants" {{ isset($product) && ($product->configuration_type ?? $product->product->configuration_type ?? '') == 'variants' ? 'selected' : '' }}>{{ __('common.with_variants') }}</option>
                                                 </select>
                                                 <div class="error-message text-danger" id="error-configuration_type" style="display: none;"></div>
                                             </div>
@@ -450,104 +487,11 @@
                                 </div>
                             </div>
 
-                            <!-- Simple Product Details (shown when "simple" is selected) -->
+                            <!-- Simple Product Section (shown when "simple" is selected) -->
                             <div id="simple-product-section" style="display: none;">
-                                <!-- Card 1: Product Details -->
-                                <div class="card mb-4">
-                                    <div class="card-body">
-                                        <h5 class="mb-4">
-                                            <i class="uil uil-receipt"></i>
-                                            Product Details
-                                        </h5>
-                                        <div class="row">
-                                            <div class="col-md-6 mb-3">
-                                                <div class="form-group">
-                                                    <label for="simple_sku" class="form-label">SKU <span class="text-danger">*</span></label>
-                                                    <input type="text" name="simple_sku" id="simple_sku" class="form-control ih-medium ip-gray radius-xs b-light px-15" placeholder="Enter SKU">
-                                                </div>
-                                            </div>
-
-                                            <div class="col-md-6 mb-3">
-                                                <div class="form-group">
-                                                    <label for="price" class="form-label">Price <span class="text-danger">*</span></label>
-                                                    <input type="number" name="price" id="price" class="form-control ih-medium ip-gray radius-xs b-light px-15" min="0" step="0.01" placeholder="Enter price">
-                                                </div>
-                                            </div>
-
-                                            <div class="col-md-12 mb-3">
-                                                <div class="form-group">
-                                                    <label for="has_discount" class="form-label d-block">Enable Discount Offer</label>
-                                                    <div class="form-check form-switch form-switch-lg">
-                                                        <input class="form-check-input" type="checkbox" role="switch" id="has_discount" name="has_discount" value="1">
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <!-- Discount Fields (shown when discount is checked) -->
-                                            <div id="discount-fields" style="display: none;" class="col-md-12">
-                                                <div class="row">
-                                                    <div class="col-md-6 mb-3">
-                                                        <div class="form-group">
-                                                            <label for="price_before_discount" class="form-label">Price Before Discount</label>
-                                                            <input type="number" name="price_before_discount" id="price_before_discount" class="form-control ih-medium ip-gray radius-xs b-light px-15" min="0" step="0.01" placeholder="Enter original price">
-                                                        </div>
-                                                    </div>
-
-                                                    <div class="col-md-6 mb-3">
-                                                        <div class="form-group">
-                                                            <label for="offer_end_date" class="form-label">Offer End Date</label>
-                                                            <input type="date" name="offer_end_date" id="offer_end_date" class="form-control ih-medium ip-gray radius-xs b-light px-15">
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <h5 class="mb-0 d-flex justify-content-between align-items-center mb-4">
-                                            <div>
-                                                <i class="uil uil-package"></i>
-                                            Stock per Region
-                                            </div>
-                                            <button type="button" id="add-stock-row" class="btn btn-primary btn-sm">
-                                                <i class="uil uil-plus"></i> Add New Region
-                                            </button>
-                                        </h5>
-
-                                        <!-- Empty state message -->
-                                        <div id="stock-empty-state" class="text-center py-4">
-                                            <i class="uil uil-package text-muted" style="font-size: 48px;"></i>
-                                            <p class="text-muted mb-0">No regions added yet. Click "Add New Region" to start.</p>
-                                        </div>
-
-                                        <!-- Stock table (hidden initially) -->
-                                        <div id="stock-table-container" style="display: none;">
-                                            <div class="userDatatable global-shadow border-light-0 p-30 bg-white radius-xl w-100">
-                                                <div class="table-responsive">
-                                                    <table class="table mb-0 table-bordered table-hover" id="stock-table" style="width:100%">
-                                                        <thead>
-                                                            <tr class="userDatatable-header">
-                                                                <th><span class="userDatatable-title">#</span></th>
-                                                                <th><span class="userDatatable-title">Region</span></th>
-                                                                <th><span class="userDatatable-title">Stock Quantity</span></th>
-                                                                <th><span class="userDatatable-title">Actions</span></th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody id="stock-rows">
-                                                            <!-- Stock rows will be added here -->
-                                                        </tbody>
-                                                        <tfoot>
-                                                            <tr class="table-light">
-                                                                <td colspan="2" class="text-end fw-bold">Total Stock:</td>
-                                                                <td class="fw-bold text-primary">
-                                                                    <span id="total-stock">0</span>
-                                                                </td>
-                                                                <td>-</td>
-                                                            </tr>
-                                                        </tfoot>
-                                                    </table>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
+                                <!-- Simple Product Details Container (will be populated by JavaScript) -->
+                                <div id="simple-product-details-container">
+                                    <!-- Product details and stock management boxes will be inserted here -->
                                 </div>
                             </div>
 
@@ -558,17 +502,17 @@
                                         <h5 class="d-flex justify-content-between align-items-center mb-4">
                                             <div>
                                                 <i class="uil uil-layer-group"></i>
-                                                Product Variants
+                                                {{ __('common.product_variants') }}
                                             </div>
                                             <button type="button" id="add-variant-btn" class="btn btn-primary btn-sm">
-                                                <i class="uil uil-plus"></i> Add Variant
+                                                <i class="uil uil-plus"></i> {{ __('common.add_variant') }}
                                             </button>
                                         </h5>
 
                                         <!-- Empty state message -->
                                         <div id="variants-empty-state" class="text-center py-4">
                                             <i class="uil uil-layer-group text-muted" style="font-size: 48px;"></i>
-                                            <p class="text-muted mb-0">No variants added yet. Click "Add Variant" to start.</p>
+                                            <p class="text-muted mb-0">{{ __('common.no_variants_added') }}</p>
                                         </div>
 
                                         <!-- Variants Container -->
@@ -587,7 +531,7 @@
                                 <div class="card-body">
                                     <h5 class="mb-4">
                                         <i class="uil uil-search"></i>
-                                        SEO Information
+                                        {{ __('common.seo') }}
                                     </h5>
                                     <div class="row">
                                         @foreach($languages as $language)
@@ -595,18 +539,18 @@
                                             <div class="form-group">
                                                 <label for="meta_title_{{ $language->code }}" class="form-label w-100 {{ $language->rtl ? 'text-end' : '' }}">
                                                     @if($language->code == 'en')
-                                                        Meta Title ({{ $language->name }})
+                                                        {{ __('catalogmanagement::product.meta_title') }} ({{ $language->name }})
                                                     @else
-                                                        العنوان الوصفي ({{ $language->name }})
+                                                        العنوان الوصفي باللغة العربية
                                                     @endif
                                                 </label>
                                                 <input type="text" name="translations[{{ $language->id }}][meta_title]" id="meta_title_{{ $language->code }}"
                                                     class="form-control ih-medium ip-gray radius-xs b-light px-15"
                                                     placeholder="{{ $language->code == 'ar' ? 'أدخل العنوان الوصفي' : 'Enter meta title' }}"
                                                     maxlength="60"
-                                                    {{ $language->rtl ? 'dir=rtl' : '' }}>
+                                                    dir="{{ $language->code == 'ar' ? 'rtl' : 'ltr' }}">
                                                 <div class="error-message text-danger" id="error-translations-{{ $language->id }}-meta_title" style="display: none;"></div>
-                                                <small class="text-muted">Recommended: 50-60 characters</small>
+                                                <small class="text-muted">{{ __('common.recommended_50_60_chars') }}</small>
                                             </div>
                                         </div>
                                         @endforeach
@@ -616,9 +560,9 @@
                                             <div class="form-group">
                                                 <label for="meta_description_{{ $language->code }}" class="form-label w-100 {{ $language->rtl ? 'text-end' : '' }}">
                                                     @if($language->code == 'en')
-                                                        Meta Description ({{ $language->name }})
+                                                        {{ __('catalogmanagement::product.meta_description') }} ({{ $language->name }})
                                                     @else
-                                                        الوصف الوصفي ({{ $language->name }})
+                                                        الوصف الوصفي باللغة العربية
                                                     @endif
                                                 </label>
                                                 <textarea name="translations[{{ $language->id }}][meta_description]" id="meta_description_{{ $language->code }}"
@@ -626,9 +570,9 @@
                                                     rows="3"
                                                     placeholder="{{ $language->code == 'ar' ? 'أدخل الوصف الوصفي' : 'Enter meta description' }}"
                                                     maxlength="160"
-                                                    {{ $language->rtl ? 'dir=rtl' : '' }}></textarea>
+                                                    dir="{{ $language->code == 'ar' ? 'rtl' : 'ltr' }}"></textarea>
                                                 <div class="error-message text-danger" id="error-translations-{{ $language->id }}-meta_description" style="display: none;"></div>
-                                                <small class="text-muted">Recommended: 150-160 characters</small>
+                                                <small class="text-muted">{{ __('common.recommended_150_160_chars') }}</small>
                                             </div>
                                         </div>
                                         @endforeach
@@ -638,14 +582,14 @@
                                             <div class="form-group">
                                                 <label for="meta_keywords_{{ $language->code }}" class="form-label w-100 {{ $language->rtl ? 'text-end' : '' }}">
                                                     @if($language->code == 'en')
-                                                        Meta Keywords ({{ $language->name }})
+                                                        {{ __('catalogmanagement::product.meta_keywords') }} ({{ $language->name }})
                                                     @else
-                                                        الكلمات المفتاحية ({{ $language->name }})
+                                                        الكلمات المفتاحية باللغة العربية
                                                     @endif
                                                 </label>
                                                 <x-tags-input
                                                     name="translations[{{ $language->id }}][meta_keywords]"
-                                                    :value="isset($product) ? $product->getMetaKeywordsString($language->code) : old('translations.'.$language->id.'.meta_keywords')"
+                                                    :value="isset($product) ? (isset($product->product) && method_exists($product->product, 'getMetaKeywordsString') ? $product->product->getMetaKeywordsString($language->code) : (method_exists($product, 'getMetaKeywordsString') ? $product->getMetaKeywordsString($language->code) : '')) : old('translations.'.$language->id.'.meta_keywords', '')"
                                                     placeholder="{{ $language->code == 'ar' ? 'اكتب كلمة مفتاحية واضغط انتر' : 'Type a keyword and press Enter...' }}"
                                                     rtl-placeholder="اكتب كلمة مفتاحية واضغط انتر"
                                                     language="{{ $language->code }}"
@@ -661,78 +605,57 @@
                                     </div>
                                 </div>
                             </div>
-
-                            <!-- Main Product Image -->
-                            <div class="card mb-4">
-                                <div class="card-body">
-                                    <h5 class="mb-4">
-                                        <i class="uil uil-image"></i>
-                                        Main Product Image
-                                    </h5>
-                                    <div class="row">
-                                        <div class="col-md-12 mb-3">
-                                            <x-image-upload
-                                                id="main_image"
-                                                name="main_image"
-                                                label="Product Image"
-                                                :required="true"
-                                                :existingImage="isset($product) && $product->main_image ? $product->main_image->path : null"
-                                                placeholder="Click to upload main product image"
-                                                recommendedSize="Recommended size: 800x800px"
-                                                accept="image/jpeg,image/png,image/jpg,image/webp"
-                                                aspectRatio="square"
-                                            />
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Additional Images -->
-                            <div class="card mb-4">
-                                <div class="card-body">
-                                    <h5 class="mb-4 d-flex justify-content-between align-items-center">
-                                        <div>
-                                            <i class="uil uil-images"></i>
-                                            Additional Images
-                                        </div>
-                                        <button type="button" id="add-additional-image-btn" class="btn btn-primary btn-sm">
-                                            <i class="uil uil-plus"></i> Add Image
-                                        </button>
-                                    </h5>
-
-                                    <!-- Empty state message -->
-                                    <div id="additional-images-empty-state" class="text-center py-4">
-                                        <i class="uil uil-images text-muted" style="font-size: 48px;"></i>
-                                        <p class="text-muted mb-0">No additional images added yet. Click "Add Image" to start.</p>
-                                    </div>
-
-                                    <!-- Images Container -->
-                                    <div id="additional-images-container" class="row" style="display: none;">
-                                        <!-- Additional images will be added here dynamically -->
-                                    </div>
-                                </div>
-                            </div>
                         </div>
 
 
                         <!-- Navigation Buttons -->
                         <div class="d-flex justify-content-between wizard-navigation">
                             <button type="button" id="prevBtn" class="btn btn-light btn-squared" style="display: none;">
-                                <i class="uil uil-arrow-left"></i> Previous
+                                <i class="uil uil-arrow-left"></i> {{ __('common.previous') }}
                             </button>
                             <div class="d-flex justify-content-end gap-2 w-100">
                                 <a href="#" class="btn btn-light btn-squared">
-                                    <i class="uil uil-times"></i> Cancel
+                                    <i class="uil uil-times"></i> {{ __('common.cancel') }}
                                 </a>
                                 <button type="button" id="nextBtn" class="btn btn-primary btn-squared">
-                                    Next <i class="uil uil-arrow-right"></i>
+                                    {{ __('common.next') }}
+                                    @if(app()->getLocale() == 'ar')
+                                    <i class="uil uil-arrow-left"></i>
+                                    @else
+                                    <i class="uil uil-arrow-right"></i>
+                                    @endif
                                 </button>
                                 <button type="submit" id="submitBtn" class="btn btn-success btn-squared" style="display: none;">
-                                    <i class="uil uil-check"></i> {{ isset($product) ? 'Update Product' : 'Create Product' }}
+                                    <i class="uil uil-check"></i> {{ isset($product) ? __('catalogmanagement::product.update_product') : __('catalogmanagement::product.create_product') }}
                                 </button>
                             </div>
                         </div>
                     </form>
+
+                    <!-- Delete Image Confirmation Modal -->
+                    <div class="modal fade" id="deleteImageConfirmModal" tabindex="-1" aria-labelledby="deleteImageConfirmLabel" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content">
+                                <div class="modal-header bg-danger text-white">
+                                    <h5 class="modal-title" id="deleteImageConfirmLabel">
+                                        <i class="uil uil-exclamation-triangle me-2"></i>{{ __('common.confirm_deletion') ?? 'Confirm Deletion' }}
+                                    </h5>
+                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <p class="mb-0">{{ __('common.are_you_sure_delete_image') ?? 'Are you sure you want to delete this image? This action cannot be undone.' }}</p>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                        <i class="uil uil-times me-1"></i>{{ __('common.cancel') }}
+                                    </button>
+                                    <button type="button" class="btn btn-danger" id="confirmDeleteImageBtn">
+                                        <i class="uil uil-trash me-1"></i>{{ __('common.delete') }}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -752,6 +675,7 @@
 @push('scripts')
 <!-- Product Form Configuration (Data Only) -->
 <script>
+console.log('🔧 Loading productFormConfig...');
 window.productFormConfig = {
     selectPlaceholder: '{{ trans("catalog::product.select_option") ?? "Select..." }}',
     uploadText: '{{ trans("catalog::product.click_to_upload_image") ?? "Click to upload image" }}',
@@ -761,25 +685,199 @@ window.productFormConfig = {
     productUpdated: '{{ trans("catalog::product.product_updated_successfully") ?? "Product updated successfully!" }}',
     creatingProduct: '{{ trans("catalog::product.creating_product") ?? "Creating product..." }}',
     updatingProduct: '{{ trans("catalog::product.updating_product") ?? "Updating product..." }}',
+    pleaseWait: '{{ trans("catalog::product.please_wait") ?? "Please wait..." }}',
     redirecting: '{{ trans("catalog::product.redirecting") ?? "Redirecting..." }}',
     errorOccurred: '{{ trans("catalog::product.error_occurred") ?? "An error occurred. Please try again." }}',
     validationError: '{{ trans("catalog::product.validation_error") ?? "Validation Error" }}',
     errorLabel: '{{ trans("catalog::product.error") ?? "Error" }}',
+    additionalImage: '{{ __('common.additional_image') }}',
+    recommendedSize: '{{ __('common.recommended_logo_size') }}',
+    clickToUploadImage: '{{ __('common.click_to_upload') }}',
+    change: '{{ __('common.change') }}',
+    remove: '{{ __('common.remove') }}',
     indexRoute: '{{ route("admin.products.index") }}',
     categoriesRoute: '{{ url("/api/categories") }}',
     subCategoriesRoute: '{{ url("/api/sub-categories") }}',
+    departmentsRoute: '{{ url("/api/departments") }}',
+    // Variant translations
+    variantNumber: '{{ __('common.variant_number') }}',
+    productDetails: '{{ __('common.product_details') }}',
+    variantSku: '{{ __('common.variant_sku') }}',
+    sku: '{{ __('catalogmanagement::product.sku') }}',
+    price: '{{ __('common.price') }}',
+    enableDiscountOffer: '{{ __('common.enable_discount_offer') }}',
+    priceBeforeDiscount: '{{ __('common.price_before_discount') }}',
+    offerEndDate: '{{ __('common.offer_end_date') }}',
+    stockPerRegion: '{{ __('common.stock_per_region') }}',
+    region: '{{ __('common.region') }}',
+    stockQuantity: '{{ __('common.stock_quantity') }}',
+    totalStock: '{{ __('common.total_stock') }}',
+    noRegionsAddedYet: '{{ __('common.no_regions_added_yet') }}',
+    variantDetails: '{{ __('common.variant_details') }}',
+    loadingVariantKeys: '{{ __('common.loading_variant_keys') }}',
+    selectVariantKey: '{{ __('common.select_variant_key') }}',
+    selectVariantKeyHelper: '{{ __('common.select_variant_key_helper') }}',
+    selectRootVariants: '{{ __('common.select_root_variants') }}',
+    selectLevel: '{{ __('common.select_level') }}',
+    rootVariantsLabel: '{{ __('common.root_variants_label') }}',
+    selectedColon: '{{ __('common.selected_colon') }}',
+    pleaseSelectVariant: '{{ __('common.please_select_variant') }}',
+    variantSelected: '{{ __('common.variant_selected') ?? 'Variant configuration selected' }}',
+    errorLoadingTree: '{{ __('common.error_loading_tree') ?? 'Error loading variant tree' }}',
+    noVariantKeys: '{{ __('common.no_variant_keys') ?? 'No variant keys available' }}',
+    addNewRegion: '{{ __('common.add_new_region') }}',
+    actionsLabel: '{{ __('common.actions') }}',
     languages: [
-        @foreach($languages as $language)
-        {
-            id: {{ $language->id }},
-            code: '{{ $language->code }}',
-            name: '{{ $language->name }}'
-        }{{ !$loop->last ? ',' : '' }}
-        @endforeach
-    ]
+        @if(isset($languages))
+            @foreach($languages as $language)
+            {
+                id: {{ $language->id ?? 0 }},
+                code: '{{ addslashes($language->code ?? 'en') }}',
+                name: '{{ addslashes($language->name ?? 'Unknown') }}'
+            }{{ !$loop->last ? ',' : '' }}
+            @endforeach
+        @endif
+    ],
+    taxes: [
+        @if(isset($taxes))
+            @foreach($taxes as $tax)
+            {
+                id: {{ $tax['id'] ?? 0 }},
+                name: '{{ addslashes($tax['name'] ?? 'Unknown') }}',
+                percentage: {{ is_numeric($tax['percentage']) ? $tax['percentage'] : 0 }}
+            }{{ !$loop->last ? ',' : '' }}
+            @endforeach
+        @endif
+    ],
+    variantKeys: [
+        @if(isset($variantKeys))
+            @foreach($variantKeys as $variantKey)
+            {
+                id: {{ $variantKey['id'] ?? 0 }},
+                name: '{{ addslashes($variantKey['name'] ?? 'Unknown') }}'
+            }{{ !$loop->last ? ',' : '' }}
+            @endforeach
+        @endif
+    ],
+    regions: [
+        @if(isset($regions))
+            @foreach($regions as $region)
+            {
+                id: {{ $region['id'] ?? 0 }},
+                name: '{{ addslashes($region['name'] ?? 'Unknown') }}'
+            }{{ !$loop->last ? ',' : '' }}
+            @endforeach
+        @endif
+    ],
+    vendorActivitiesMap: {},
+    // Edit mode flag
+    isEditMode: {{ isset($product) ? 'true' : 'false' }},
+    // Debug info
+    debugInfo: {
+        hasProduct: {{ isset($product) ? 'true' : 'false' }},
+        productId: {{ isset($product) ? ($product->id ?? 'null') : 'null' }}
+    },
+    // Preserve selected values for edit mode
+    selectedValues: {
+        @if(isset($product))
+            brand_id: {{ $product->product->brand_id ?? 'null' }},
+            vendor_id: {{ $product->vendor_id ?? 'null' }},
+            department_id: {{ $product->product->department_id ?? 'null' }},
+            category_id: {{ $product->product->category_id ?? 'null' }},
+            sub_category_id: {{ $product->product->sub_category_id ?? 'null' }},
+            tax_id: {{ $product->tax_id ?? 'null' }},
+            configuration_type: '{{ $product->configuration_type ?? $product->product->configuration_type ?? '' }}',
+            hasVariants: {{ isset($product) && $product->variants && $product->variants->count() > 0 ? 'true' : 'false' }},
+            variantsCount: {{ isset($product) && $product->variants ? $product->variants->count() : 0 }},
+            // Product details for simple products
+            @if(isset($product) && ($product->configuration_type ?? $product->product->configuration_type ?? '') == 'simple')
+                productSku: '{{ addslashes($product->variants && $product->variants->first() ? $product->variants->first()->sku : '') }}',
+                productPrice: {{ $product->variants && $product->variants->first() ? $product->variants->first()->price : 0 }},
+                productHasDiscount: {{ $product->variants && $product->variants->first() && $product->variants->first()->has_offer ? 'true' : 'false' }},
+                productPriceBeforeDiscount: {{ $product->variants && $product->variants->first() ? $product->variants->first()->price_before_discount : 0 }},
+                productOfferEndDate: '{{ $product->variants && $product->variants->first() ? $product->variants->first()->offer_end_date : '' }}',
+            @else
+                productSku: '',
+                productPrice: 0,
+                productHasDiscount: false,
+                productPriceBeforeDiscount: 0,
+                productOfferEndDate: '',
+            @endif
+            // Existing variants data
+            @if(isset($product) && $product->variants && $product->variants->count() > 0)
+                existingVariants: [
+                    @foreach($product->variants as $variant)
+                    {
+                        id: {{ $variant->id }},
+                        sku: '{{ addslashes($variant->sku ?? '') }}',
+                        price: {{ $variant->price ?? 0 }},
+                        has_discount: {{ $variant->has_offer ? 'true' : 'false' }},
+                        price_before_discount: {{ $variant->price_before_discount ?? 0 }},
+                        offer_end_date: '{{ $variant->offer_end_date ?? '' }}',
+                        key_id: {{ $variant->key_id ?? 'null' }},
+                        value_id: {{ $variant->value_id ?? 'null' }},
+                        // Add stock data if available
+                        stocks: [
+                            @if($variant->stocks && $variant->stocks->count() > 0)
+                                @foreach($variant->stocks as $stock)
+                                {
+                                    region_id: {{ $stock->region_id ?? 0 }},
+                                    quantity: {{ $stock->quantity ?? 0 }},
+                                    region_name: '{{ addslashes($stock->region && method_exists($stock->region, 'getTranslation') ? $stock->region->getTranslation('name', app()->getLocale()) : ($stock->region->name ?? 'Unknown Region')) }}'
+                                }{{ !$loop->last ? ',' : '' }}
+                                @endforeach
+                            @endif
+                        ]
+                    }{{ !$loop->last ? ',' : '' }}
+                    @endforeach
+                ],
+                // Debug info for variants
+                debugVariants: {
+                    hasProduct: {{ isset($product) ? 'true' : 'false' }},
+                    hasVariants: {{ isset($product) && $product->variants ? 'true' : 'false' }},
+                    variantsCount: {{ isset($product) && $product->variants ? $product->variants->count() : 0 }},
+                    @if(isset($product) && $product->variants && $product->variants->count() > 0)
+                        firstVariantHasStocks: {{ $product->variants->first()->stocks && $product->variants->first()->stocks->count() > 0 ? 'true' : 'false' }},
+                        firstVariantStocksCount: {{ $product->variants->first()->stocks ? $product->variants->first()->stocks->count() : 0 }}
+                    @endif
+                },
+            @else
+                existingVariants: [],
+                debugVariants: {
+                    hasProduct: {{ isset($product) ? 'true' : 'false' }},
+                    hasVariants: false,
+                    variantsCount: 0
+                },
+            @endif
+        @else
+            brand_id: null,
+            vendor_id: null,
+            department_id: null,
+            category_id: null,
+            sub_category_id: null,
+            tax_id: null,
+            configuration_type: null,
+            hasVariants: false,
+            variantsCount: 0,
+            productSku: '',
+            productPrice: 0,
+            productHasDiscount: false,
+            productPriceBeforeDiscount: 0,
+            productOfferEndDate: '',
+            existingVariants: [],
+        @endif
+    }
 };
+console.log('✅ productFormConfig loaded successfully:', window.productFormConfig);
 </script>
 
-<!-- Product Form External JavaScript (All Logic) -->
-@vite(['Modules/CatalogManagement/resources/assets/js/product-form.js'])
+<!-- Product Form Modular JavaScript -->
+@vite([
+    'Modules/CatalogManagement/resources/assets/js/modules/form-init.js',
+    'Modules/CatalogManagement/resources/assets/js/modules/form-edit.js',
+    'Modules/CatalogManagement/resources/assets/js/modules/form-variants.js',
+    'Modules/CatalogManagement/resources/assets/js/modules/form-validation.js',
+    'Modules/CatalogManagement/resources/assets/js/modules/form-wizard.js',
+    'Modules/CatalogManagement/resources/assets/js/product-form-refactored.js'
+])
 @endpush
