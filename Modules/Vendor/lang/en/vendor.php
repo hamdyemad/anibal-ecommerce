@@ -236,4 +236,13 @@ return [
         'footer_message' => 'Thank you for choosing :app_name as your platform to grow your business.',
         'all_rights_reserved' => 'All rights reserved.',
     ],
+
+    // Vendor Request Actions
+    'vendor_requests' => 'Vendor Requests',
+    'approve_success' => 'Vendor request approved successfully',
+    'reject_success' => 'Vendor request rejected successfully',
+    'archive_success' => 'Vendor request archived successfully',
+    'approve_error' => 'Error approving vendor request',
+    'reject_error' => 'Error rejecting vendor request',
+    'archive_error' => 'Error archiving vendor request',
 ];

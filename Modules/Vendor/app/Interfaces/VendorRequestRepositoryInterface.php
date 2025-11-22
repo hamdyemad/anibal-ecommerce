@@ -10,5 +10,5 @@ interface VendorRequestRepositoryInterface
     public function updateVendorRequest(int $id, array $data);
     public function deleteVendorRequest(int $id);
     public function approveVendorRequest(int $id);
-    public function rejectVendorRequest(int $id, string $reason = null);
+    public function rejectVendorRequest(int $id, ?string $reason = null);
 }

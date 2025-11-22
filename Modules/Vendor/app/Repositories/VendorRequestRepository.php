@@ -115,7 +115,7 @@ class VendorRequestRepository implements VendorRequestRepositoryInterface
     /**
      * Reject vendor request
      */
-    public function rejectVendorRequest(int $id, string $reason = null)
+    public function rejectVendorRequest(int $id, ?string $reason = null)
     {
         return DB::transaction(function () use ($id, $reason) {
             $vendorRequest = VendorRequest::findOrFail($id);
@@ -123,7 +123,7 @@ class VendorRequestRepository implements VendorRequestRepositoryInterface
                 'status' => 'rejected',
                 'rejection_reason' => $reason,
             ]);
-            return $vendorRequest;
+            return $vendorRequest;  
         });
     }
 }

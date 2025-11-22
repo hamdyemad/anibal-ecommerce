@@ -73,7 +73,7 @@ class VendorRequestService
     /**
      * Reject vendor request
      */
-    public function rejectVendorRequest(int $id, string $reason = null)
+    public function rejectVendorRequest(int $id, ?string $reason = null)
     {
         return $this->vendorRequestRepository->rejectVendorRequest($id, $reason);
     }

@@ -226,4 +226,13 @@ return [
         'footer_message' => 'شكراً لاختيارك منصة :app_name لتنمية عملك.',
         'all_rights_reserved' => 'جميع الحقوق محفوظة.',
     ],
+
+    // Vendor Request Actions
+    'vendor_requests' => 'طلبات المورد',
+    'approve_success' => 'تم الموافقة على طلب المورد بنجاح',
+    'reject_success' => 'تم رفض طلب المورد بنجاح',
+    'archive_success' => 'تم أرشفة طلب المورد بنجاح',
+    'approve_error' => 'خطأ في الموافقة على طلب المورد',
+    'reject_error' => 'خطأ في رفض طلب المورد',
+    'archive_error' => 'خطأ في أرشفة طلب المورد',
 ];

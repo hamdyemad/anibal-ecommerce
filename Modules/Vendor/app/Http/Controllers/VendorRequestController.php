@@ -82,9 +82,14 @@ class VendorRequestController extends Controller
      */
     public function approve($id)
     {
-        $vendorRequest = $this->vendorRequestService->approveVendorRequest($id);
-
-        return redirect()->back()->with('success', 'Vendor request approved successfully');
+        try {
+            $vendorRequest = $this->vendorRequestService->approveVendorRequest($id);
+            return redirect()->route('admin.vendor-requests.index')
+                ->with('success', __('vendor::vendor.approve_success'));
+        } catch (\Exception $e) {
+            return redirect()->back()
+                ->with('error', __('vendor::vendor.approve_error'));
+        }
     }
 
     /**
@@ -92,13 +97,19 @@ class VendorRequestController extends Controller
      */
     public function reject(Request $request, $id)
     {
-        $request->validate([
-            'rejection_reason' => 'required|string|min:10',
-        ]);
+        try {
+            $validated = $request->validate([
+                'reason' => 'nullable|string|min:3',
+            ]);
 
-        $vendorRequest = $this->vendorRequestService->rejectVendorRequest($id, $request->rejection_reason);
+            $vendorRequest = $this->vendorRequestService->rejectVendorRequest($id, $validated['reason']);
 
-        return redirect()->back()->with('success', 'Vendor request rejected successfully');
+            return redirect()->route('admin.vendor-requests.index')
+                ->with('success', __('vendor::vendor.reject_success'));
+        } catch (\Exception $e) {
+            return redirect()->back()
+                ->with('error', __('vendor::vendor.reject_error'));
+        }
     }
 
     /**
@@ -106,8 +117,14 @@ class VendorRequestController extends Controller
      */
     public function destroy($id)
     {
-        $this->vendorRequestService->deleteVendorRequest($id);
+        try {
+            $this->vendorRequestService->deleteVendorRequest($id);
 
-        return redirect()->back()->with('success', 'Vendor request deleted successfully');
+            return redirect()->route('admin.vendor-requests.index')
+                ->with('success', __('vendor::vendor.archive_success'));
+        } catch (\Exception $e) {
+            return redirect()->back()
+                ->with('error', __('vendor::vendor.archive_error'));
+        }
     }
 }
