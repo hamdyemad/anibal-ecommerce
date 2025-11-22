@@ -8,6 +8,7 @@ use Modules\Customer\app\Models\Customer;
 use Illuminate\Support\Str;
 use Modules\Customer\app\Interfaces\Api\CustomerApiRepositoryInterface;
 use Modules\Customer\app\Events\OtpCreated;
+use Modules\Customer\app\Events\CustomerEmailVerified;
 use App\Exceptions\InvalidPasswordException;
 
 class CustomerAuthService
@@ -30,9 +31,9 @@ class CustomerAuthService
         // Check if customer exists
         $customer = $this->customerRepository->getByEmail($email);
 
-        if (!$customer || $customer->hasVerifiedEmail()) {
-            return false;
-        }
+        // if (!$customer || $customer->hasVerifiedEmail()) {
+        //     return false;
+        // }
 
         event(new OtpCreated($customer, str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT), $cause, $expiresInMinutes));
 
@@ -78,7 +79,10 @@ class CustomerAuthService
 
         $this->customerRepository->verifyEmail($customer);
 
-        $tokens = $this->customerRepository->createTokens($customer, $data["fcmToken"] ?? null, $data["deviceId"] ?? null);
+        // Dispatch event to send welcome notification
+        event(new CustomerEmailVerified($customer));
+
+        $tokens = $this->customerRepository->createTokens($customer, $data["fcm_token"] ?? null, $data["deviceId"] ?? null);
         return [
             "customer" => $customer,
             "tokens" => $tokens
@@ -99,7 +103,7 @@ class CustomerAuthService
         event(new OtpCreated($customer, str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT), "password_reset", $expiresInMinutes));
 
         return true;
-    }   
+    }
 
     /**
      * Verify password reset OTP and generate reset token
@@ -200,7 +204,7 @@ class CustomerAuthService
         }
 
         if (!$customer->status) {
-            return [];  
+            return [];
         }
 
         return [

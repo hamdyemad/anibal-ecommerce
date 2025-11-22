@@ -4,7 +4,9 @@ namespace Modules\Customer\Providers;
 
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
 use Modules\Customer\app\Events\OtpCreated;
+use Modules\Customer\app\Events\CustomerEmailVerified;
 use Modules\Customer\app\Listeners\SendOtpEmail;
+use Modules\Customer\app\Listeners\SendWelcomeNotification;
 
 class EventServiceProvider extends ServiceProvider
 {
@@ -16,6 +18,9 @@ class EventServiceProvider extends ServiceProvider
     protected $listen = [
         OtpCreated::class => [
             SendOtpEmail::class,
+        ],
+        CustomerEmailVerified::class => [
+            SendWelcomeNotification::class,
         ],
     ];
 

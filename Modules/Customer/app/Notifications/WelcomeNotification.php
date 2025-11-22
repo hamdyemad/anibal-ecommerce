@@ -11,7 +11,7 @@ class WelcomeNotification extends Notification
 {
     use Queueable;
 
-    public function __construct(protected Customer $customer = null)
+    public function __construct(protected Customer $customer)
     {}
 
     public function via(object $notifiable): array
@@ -21,15 +21,17 @@ class WelcomeNotification extends Notification
 
     public function toMail(object $notifiable): MailMessage
     {
+        $appName = config('app.name');
+        $locale = $notifiable->lang ?? app()->getLocale();
+
+        // Set the locale for this email
+        app()->setLocale($locale);
+
         return (new MailMessage)
-            ->greeting('Welcome, ' . $notifiable->first_name . '!')
-            ->line('Thank you for registering with us.')
-            ->line('Your account has been successfully created and verified.')
-            ->action('Explore Now', route('home'))
-            ->line('If you have any questions, please contact our support team.')
-            ->salutation('Best regards,')
-            ->markdown('customer::emails.welcome', [
+            ->subject(__('customer.welcome_email.subject', ['app_name' => $appName]))
+            ->view('emails.welcome', [
                 'customer' => $notifiable,
+                'appName' => $appName,
             ]);
     }
 
@@ -37,7 +39,7 @@ class WelcomeNotification extends Notification
     {
         return [
             'customer_id' => $notifiable->id,
-            'message' => 'Welcome to our platform!',
+            'message' => __('customer.welcome_email.thank_you', ['app_name' => config('app.name')]),
         ];
     }
 }

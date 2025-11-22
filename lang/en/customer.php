@@ -50,4 +50,28 @@ return [
         'footer_copyright' => '© :year :app_name. All rights reserved.',
         'footer_note' => 'This is an automated message, please do not reply to this email.',
     ],
+
+    // Welcome Email Translations
+    'welcome_email' => [
+        'subject' => 'Welcome to :app_name!',
+        'greeting' => 'Welcome, :name!',
+        'thank_you' => 'Thank you for joining :app_name',
+        'account_created' => 'Your account has been successfully created and verified.',
+        'ready_to_explore' => 'You\'re all set! You can now log in to your account and start exploring our amazing platform.',
+        'what_next' => 'Here\'s what you can do next:',
+        'browse_products' => 'Browse our wide selection of products',
+        'create_wishlist' => 'Create your personal wishlist',
+        'track_orders' => 'Track your orders in real-time',
+        'manage_profile' => 'Manage your profile and preferences',
+        'need_help' => 'Need help?',
+        'support_team' => 'Our support team is here to assist you 24/7. Feel free to reach out if you have any questions.',
+        'contact_support' => 'Contact Support',
+        'exclusive_offers' => 'Exclusive Offers',
+        'stay_updated' => 'Stay tuned for exclusive offers and updates tailored just for you!',
+        'best_regards' => 'Best regards,',
+        'team' => ':app_name Team',
+        'footer_copyright' => '© :year :app_name. All rights reserved.',
+        'footer_note' => 'This is an automated message, please do not reply to this email.',
+        'follow_us' => 'Follow us on social media for the latest updates',
+    ],
 ];

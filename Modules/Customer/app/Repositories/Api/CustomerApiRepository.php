@@ -10,6 +10,7 @@ use Modules\Customer\app\Models\CustomerPasswordResetToken;
 use Modules\Customer\app\Models\CustomerAddress;
 use Modules\Customer\app\Events\OtpCreated;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\DB;
 use Laravel\Sanctum\PersonalAccessToken;
 use Modules\Customer\Actions\UpdateCustomerInfoAction;
 use Modules\Customer\Actions\UpdateCustomerPasswordAction;
@@ -35,17 +36,21 @@ class CustomerApiRepository implements CustomerApiRepositoryInterface
 
     public function createOtp(string $email, string $otp, string $type, int $expiresInMinutes = 10): CustomerOtp
     {
-        return CustomerOtp::create([
-            'email' => $email,
-            'otp' => $otp,
-            'type' => $type,
-            'expires_at' => now()->addMinutes($expiresInMinutes),
-        ]);
+        return DB::transaction(function () use ($email, $otp, $type, $expiresInMinutes) {
+            return CustomerOtp::create([
+                'email' => $email,
+                'otp' => $otp,
+                'type' => $type,
+                'expires_at' => now()->addMinutes($expiresInMinutes),
+            ]);
+        });
     }
 
     public function verifyEmail(Customer $customer): void
     {
-        $customer->update(['email_verified_at' => now()]);
+        DB::transaction(function () use ($customer) {
+            $customer->update(['email_verified_at' => now()]);
+        });
     }
 
     public function getPasswordResetToken(string $email, string $token): ?CustomerPasswordResetToken
@@ -58,65 +63,71 @@ class CustomerApiRepository implements CustomerApiRepositoryInterface
 
     public function createPasswordResetToken(string $email, string $token): CustomerPasswordResetToken
     {
-        return CustomerPasswordResetToken::updateOrCreate(
-            ['email' => $email],
-            [
-                'token' => $token,
-                'created_at' => now(),
-                'expires_at' => now()->addHours(1),
-            ]
-        );
+        return DB::transaction(function () use ($email, $token) {
+            return CustomerPasswordResetToken::updateOrCreate(
+                ['email' => $email],
+                [
+                    'token' => $token,
+                    'created_at' => now(),
+                    'expires_at' => now()->addHours(1),
+                ]
+            );
+        });
     }
 
     public function deletePasswordResetToken(string $email): void
     {
-        CustomerPasswordResetToken::where('email', $email)->delete();
+        DB::transaction(function () use ($email) {
+            CustomerPasswordResetToken::where('email', $email)->delete();
+        });
     }
 
 
     public function createTokens(Customer $customer, ?string $fcmToken = null, ?string $deviceId = null): array
     {
-        // Generate device ID if not provided
-        $deviceId = $deviceId ?? Str::uuid()->toString();
+        return DB::transaction(function () use ($customer, $fcmToken, $deviceId) {
+            // Generate device ID if not provided
+            $deviceId = $deviceId ?? Str::uuid()->toString();
 
-        // Create access token (7 days)
-        $accessToken = $customer->createToken(
-            'access_token',
-            ['*'],
-            now()->addDays(7)
-        );
-        $accessToken->accessToken->update(['device_id' => $deviceId]);
-
-        // Create refresh token (30 days)
-        $refreshToken = $customer->createToken(
-            'refresh_token',
-            ['*'],
-            now()->addDays(30)
-        );
-        $refreshToken->accessToken->update(['device_id' => $deviceId]);
-
-        // Store FCM token if provided
-        if ($fcmToken) {
-            $customer->fcmTokens()->updateOrCreate(
-                ['fcm_token' => $fcmToken],
-                [
-                    'device_name' => request()->header('User-Agent'),
-                ]
+            // Create access token (7 days)
+            $accessToken = $customer->createToken(
+                'access_token',
+                ['*'],
+                now()->addDays(7)
             );
-        }
+            $accessToken->accessToken->update(['device_id' => $deviceId]);
 
-        return [
-            'access_token' => [
-                'token' => $accessToken->plainTextToken,
-                'expires_at' => $accessToken->accessToken->expires_at,
-            ],
-            'refresh_token' => [
-                'token' => $refreshToken->plainTextToken,
-                'expires_at' => $refreshToken->accessToken->expires_at,
-            ],
-            'fcm_token' => $fcmToken,
-            'device_id' => $deviceId,
-        ];
+            // Create refresh token (30 days)
+            $refreshToken = $customer->createToken(
+                'refresh_token',
+                ['*'],
+                now()->addDays(30)
+            );
+            $refreshToken->accessToken->update(['device_id' => $deviceId]);
+
+            // Store FCM token if provided
+            if ($fcmToken) {
+                $customer->fcmTokens()->updateOrCreate(
+                    ['fcm_token' => $fcmToken],
+                    [
+                        'device_name' => request()->header('User-Agent'),
+                    ]
+                );
+            }
+
+            return [
+                'access_token' => [
+                    'token' => $accessToken->plainTextToken,
+                    'expires_at' => $accessToken->accessToken->expires_at,
+                ],
+                'refresh_token' => [
+                    'token' => $refreshToken->plainTextToken,
+                    'expires_at' => $refreshToken->accessToken->expires_at,
+                ],
+                'fcm_token' => $fcmToken,
+                'device_id' => $deviceId,
+            ];
+        });
     }
 
     public function getByToken(string $token): ?Customer
@@ -141,16 +152,18 @@ class CustomerApiRepository implements CustomerApiRepositoryInterface
 
     public function revokeTokens(Customer $customer, ?string $deviceId = null): void
     {
-        if (!empty($deviceId)) {
-            $customer->tokens()
-                ->whereIn('name', ['access_token', 'refresh_token'])
-                ->where('device_id', $deviceId)
-                ->delete();
-        } else {
-            $customer->tokens()
-                ->whereIn('name', ['access_token', 'refresh_token'])
-                ->delete();
-        }
+        DB::transaction(function () use ($customer, $deviceId) {
+            if (!empty($deviceId)) {
+                $customer->tokens()
+                    ->whereIn('name', ['access_token', 'refresh_token'])
+                    ->where('device_id', $deviceId)
+                    ->delete();
+            } else {
+                $customer->tokens()
+                    ->whereIn('name', ['access_token', 'refresh_token'])
+                    ->delete();
+            }
+        });
     }
 
     public function getProfile(Customer $customer): Customer

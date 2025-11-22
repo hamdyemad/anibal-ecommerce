@@ -11,6 +11,7 @@ use Symfony\Component\HttpKernel\Exception\HttpException;
 use Throwable;
 use App\Traits\Res;
 use App\Exceptions\InvalidPasswordException;
+use Illuminate\Support\Facades\DB;
 
 class Handler extends ExceptionHandler
 {
@@ -35,6 +36,20 @@ class Handler extends ExceptionHandler
         'password',
         'password_confirmation',
     ];
+
+    /**
+     * Safely rollback any active database transaction
+     */
+    private function safeRollback(): void
+    {
+        try {
+            if (DB::transactionLevel() > 0) {
+                DB::rollBack();
+            }
+        } catch (\Exception $e) {
+            // Silently ignore rollback errors
+        }
+    }
 
     /**
      * Render an exception into a response.
@@ -89,6 +104,9 @@ class Handler extends ExceptionHandler
 
         // Handle HTTP exceptions
         if ($e instanceof HttpException) {
+            // Rollback any pending transactions
+            $this->safeRollback();
+
             if ($request->expectsJson()) {
                 $message = $e->getMessage() ?: config('responses.http_error')[app()->getLocale()] ?? 'HTTP error occurred';
                 return $this->sendRes($message, false, [], [], $e->getStatusCode());
@@ -97,6 +115,9 @@ class Handler extends ExceptionHandler
 
         // Handle generic exceptions
         if ($request->expectsJson() && !($e instanceof ValidationException)) {
+            // Rollback any pending transactions
+            $this->safeRollback();
+
             \Illuminate\Support\Facades\Log::error('Unhandled exception: ' . $e->getMessage(), [
                 'class' => get_class($e),
                 'file' => $e->getFile(),
