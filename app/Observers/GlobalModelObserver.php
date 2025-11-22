@@ -92,7 +92,20 @@ class GlobalModelObserver
             return false;
         }
 
+        // Skip if request is from API routes
+        if ($this->isApiRequest()) {
+            return false;
+        }
+
         return true;
+    }
+
+    /**
+     * Check if current request is from API
+     */
+    private function isApiRequest(): bool
+    {
+        return request()->is('api/*');
     }
 
     /**

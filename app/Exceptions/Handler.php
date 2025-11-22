@@ -6,9 +6,11 @@ use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Database\QueryException;
+use Illuminate\Auth\AuthenticationException;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Throwable;
 use App\Traits\Res;
+use App\Exceptions\InvalidPasswordException;
 
 class Handler extends ExceptionHandler
 {
@@ -39,6 +41,14 @@ class Handler extends ExceptionHandler
      */
     public function render($request, Throwable $e)
     {
+        // Handle authentication exceptions
+        if ($e instanceof AuthenticationException) {
+            if ($request->expectsJson()) {
+                $message = $e->getMessage() ?: config('responses.unauthorized')[app()->getLocale()] ?? 'Unauthorized';
+                return $this->sendRes($message, false, [], [], 401);
+            }
+        }
+
         // Handle model not found exceptions
         if ($e instanceof ModelNotFoundException) {
             $message = config('responses.not_found')[app()->getLocale()] ?? 'Resource not found';
@@ -67,6 +77,13 @@ class Handler extends ExceptionHandler
                 $message = config('responses.database_error')[app()->getLocale()] ?? 'Database error occurred';
                 $data = app()->isLocal() ? ['error' => $e->getMessage()] : [];
                 return $this->sendRes($message, false, $data, [], 500);
+            }
+        }
+
+        // Handle invalid password exception
+        if ($e instanceof InvalidPasswordException) {
+            if ($request->expectsJson()) {
+                return $this->sendRes($e->getMessage(), false, [], [], 422);
             }
         }
 

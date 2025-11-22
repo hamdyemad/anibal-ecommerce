@@ -9,6 +9,10 @@
             'all' => 'all',
             'create' => 'create',
         ],
+        'customers' => [
+            'title' => 'customers',
+            'all' => 'all customers',
+        ],
         'become a vendor requests' => [
             'title' => 'become a vendor requests',
             'new' => 'new',

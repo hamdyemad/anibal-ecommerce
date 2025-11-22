@@ -25,6 +25,22 @@ return [
         'en' => 'HTTP error occurred.',
         'ar' => 'حدث خطأ في بروتوكول نقل النصوص الفائق.',
     ],
+    "http_error" => [
+        "en" => "HTTP error occurred.",
+        "ar" => "حدث خطأ في بروتوكول نقل النصوص الفائق."
+    ],
+    "database_error" => [
+        "en" => "Database error occurred.",
+        "ar" => "حدث خطأ في قاعدة البيانات."
+    ],
+    "profile_updated_success" => [
+        "en" => "Profile updated successfully.",
+        "ar" => "تم تحديث الملف الشخصي بنجاح."
+    ],
+    "language_changed" => [
+        "en" => "Language changed successfully.",
+        "ar" => "تم تغيير اللغة بنجاح."
+    ],
     'country' => [
         'en' => 'Invalid country.',
         'ar' => "الدولة غير صالحة",
@@ -41,7 +57,7 @@ return [
         'en' => 'please verified your email',
         'ar' => "من فضلك قم بتفعيل البريد ",
     ],
-    'verification success' => [
+    'verification_success' => [
         'en' => 'Email verified successfully',
         'ar' => "البريد تم تفعيله بنجاح",
     ],
@@ -55,11 +71,53 @@ return [
         'ar' =>
         "خطأ فى رابط التقعيل",
     ],
-    'success OTP' => [
-        'en' =>
-        'The activation code has been sent via email',
-        'ar' =>
-        'تم ارسال كود التفعيل عبر البريد',
+    'success_otp' => [
+        'en' => 'Registration successful. OTP sent to your email',
+        'ar' => 'تم التسجيل بنجاح, رمز التفعيل أرسل الي البرد اﻻلكتروني'
+    ],
+    'opt_sent' => [
+        'en' => 'OTP sent to your email',
+        'ar' => 'تم ارسال رمز التفعيل الي البريد اﻻلكتروني'
+    ],
+    'invalied_or_verified' => [
+        'en' => 'Invalid or already verified email',
+        'ar' => 'البريد غير صالح او مفعل من قبل'
+    ],
+    'invalied_email' => [
+        "en" => "Invalid email",
+        "ar" => "البريد غير صالح"
+    ],
+    'unauthorized' => [
+        "en" => "Unauthorized: Missing authorization token",
+        "ar" => "غير مصرح: رمز التفويض مفقود"
+    ],
+    'invalid_token' => [
+        "en" => "Invalid authorization token",
+        "ar" => "رمز التفويض غير صالح"
+    ],
+    "invalid_deviceId" => [
+        "en" => "Invalid device id",
+        "ar" => "خطأ في الرمز التعريفي للجهاز"
+    ],
+    'expired_token' => [
+        "en" => "Expired authorization token",
+        "ar" => "رمز التفويض منتهي الصلاحية"
+    ],
+    'customer_blocked' => [
+        "en" => "Your account has been blocked",
+        "ar" => "تم حظر حسابك"
+    ],
+    'invalied_reset_token' => [
+        "en" => "Invalid reset token",
+        "ar" => "الرمز غير صالح"
+    ],
+    "password_reset_success" => [
+        "en" => "Password reset successfully",
+        "ar" => "تم تغيير كلمة المرور بنجاح",
+    ],
+    'customer_inactive' => [
+        "en" => "Your account is inactive",
+        "ar" => "حسابك غير نشط"
     ],
     'error OTP' => [
         'en' =>
@@ -93,11 +151,9 @@ return [
         "en" => "Email not sent",
         "ar" => "لم يتم ارسال البريد"
     ],
-    'invalied otp' => [
-        'en' =>
-        'Invalied Otp',
-        'ar' =>
-        "خطأ فى الرمز التاكيدى"
+    'invalied_otp' => [
+        'en' => 'Invalied  or expired OTP',
+        'ar' => "رمز التفعيل غير صالح او منتهي"
     ],
     'expired otp' => [
         'en' =>
@@ -105,7 +161,7 @@ return [
         'ar' =>
         "انتهى الرمز التاكيدى"
     ],
-    'activated otp' => [
+    'activated_otp' => [
         'en' =>
         'The code has been activated successfully',
         'ar' =>
@@ -354,5 +410,17 @@ return [
     "points_redeemed_successfully" => [
         "en" => "Points redeemed successfully",
         "ar" => "تم استبدال النقاط بنجاح"
-    ]
+    ],
+    "refreshed" => [
+        "en" => "Refreshed successfully",
+        "ar" => "تم التحديث بنجاح"
+    ],
+    "profile_retrieved" => [
+        "en" => "Profile Retrieved Successfully",
+        "ar" => "تم استرجاع الملف الشخصي بنجاح"
+    ],
+    "invalid_password" => [
+        "en" => "Current password is incorrect",
+        "ar" => "كلمة المرور القديمة غير صحيحة"
+    ],
 ];

@@ -47,7 +47,6 @@ class Kernel extends HttpKernel
             'throttle:api',
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
             \App\Http\Middleware\SetLanguage::class,
-            \App\Http\Middleware\CheckUserBlocked::class,
         ],
     ];
 
@@ -78,5 +77,6 @@ class Kernel extends HttpKernel
         'setLocaleFromUrl'        => \App\Http\Middleware\SetLocaleFromUrl::class,
         // End Localization
         'lang' => \App\Http\Middleware\Api\LangMiddleware::class,
+        'check.customer.auth' => \Modules\Customer\Http\Middleware\CheckCustomerAuth::class,
     ];
 }

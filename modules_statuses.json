@@ -6,5 +6,6 @@
     "CatalogManagement": true,
     "SystemSetting": true,
     "Order": true,
-    "Withdraw": true
+    "Withdraw": true,
+    "Customer": true
 }
