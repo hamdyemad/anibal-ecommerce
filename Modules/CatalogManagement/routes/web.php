@@ -19,6 +19,7 @@ Route::group(
     Route::get('products/datatable', 'ProductController@datatable')->name('products.datatable');
     Route::get('products/{product}/stock-management', 'ProductController@stockManagement')->name('products.stock-management');
     Route::post('products/{product}/update-stock-pricing', 'ProductController@updateStockPricing')->name('products.update-stock-pricing');
+    Route::post('products/{product}/change-status', 'ProductController@changeStatus')->name('products.change-status');
     Route::resource('products', 'ProductController');
 
 

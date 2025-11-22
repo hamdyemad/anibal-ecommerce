@@ -17,19 +17,13 @@ use Modules\Vendor\app\Models\Vendor;
 
 class Product extends Model
 {
-    use HasFactory, SoftDeletes, HasSlug, Translation;
+    use HasFactory, SoftDeletes, Translation;
 
     protected $guarded = [];
     protected $casts = [
         'is_active' => 'boolean',
-        'status' => 'string',
         'configuration_type' => 'string',
     ];
-
-    /**
-     * The field to generate slug from (for HasSlug trait)
-     */
-    protected $slugFrom = 'title';
 
     /**
      * Get all attachments for the product
@@ -114,6 +108,14 @@ class Product extends Model
     public function vendorProducts()
     {
         return $this->hasMany(VendorProduct::class);
+    }
+
+    /**
+     * Get the first vendor product (for single vendor products)
+     */
+    public function vendorProduct()
+    {
+        return $this->hasOne(VendorProduct::class);
     }
 
     /**
@@ -262,11 +264,6 @@ class Product extends Model
         // Active filter
         if (isset($filters['is_active']) && $filters['is_active'] !== '') {
             $query->where('is_active', $filters['is_active']);
-        }
-
-        // Status filter
-        if (!empty($filters['status'])) {
-            $query->where('status', $filters['status']);
         }
 
         // Date from filter

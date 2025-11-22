@@ -8,11 +8,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Modules\CatalogManagement\app\Interfaces\ProductInterface;
 use Modules\CatalogManagement\app\Models\Product;
-use Modules\CatalogManagement\app\Models\ProductVariant;
-use Modules\CatalogManagement\app\Models\VariantStock;
 use Modules\CatalogManagement\app\Models\VendorProduct;
-use Modules\CatalogManagement\app\Models\VendorProductVariant;
-use Modules\CatalogManagement\app\Models\VendorProductVariantStock;
 use App\Models\UserType;
 use Illuminate\Support\Facades\Auth;
 
@@ -38,33 +34,28 @@ class ProductRepository implements ProductInterface
             'tax',
             'variants',
             'variants.stocks.region.translations',
-            'variants.variantConfiguration',
+            'variants.variantConfiguration.parent_data.parent_data.parent_data', // Load parent hierarchy
+            'variants.variantConfiguration.key', // Load variant key
+            'variants.variantConfiguration.parent_data.key', // Load parent keys
+            'variants.variantConfiguration.parent_data.parent_data.key',
         ])->where('product_id', $id)->firstOrFail();
     }
 
     public function createProduct(array $data)
     {
+
         return DB::transaction(function () use ($data) {
             // Determine vendor_id based on user role
             $vendorId = $this->determineVendorId($data);
 
-            // Determine product type and status based on user role
+            // Get current user
             $currentUser = Auth::user();
-            $userType = $currentUser->user_type_id;
-
-            if (in_array($userType, UserType::vendorIds())) {
-                $isVendorCreated = true;
-            } else {
-                $isVendorCreated = false;
-            }
-            $status = $isVendorCreated ? 'pending' : 'approved';
 
             // Create product with temporary slug
             $product = Product::create([
                 'slug' => Str::random(8), // Temporary slug
                 'is_active' => $data['is_active'] ?? true,
                 'configuration_type' => $data['configuration_type'],
-                'status' => $status,
                 'vendor_id' => $vendorId,
                 'brand_id' => $data['brand_id'] ?? null,
                 'department_id' => $data['department_id'] ?? null,
@@ -72,7 +63,6 @@ class ProductRepository implements ProductInterface
                 'sub_category_id' => $data['sub_category_id'] ?? null,
                 'created_by_user_id' => $currentUser->id,
             ]);
-
             // Store translations
             $this->storeTranslations($product, $data);
 
@@ -94,30 +84,17 @@ class ProductRepository implements ProductInterface
 
     public function updateProduct(int $id, array $data)
     {
+        \Log::info($data);
         return DB::transaction(function () use ($id, $data) {
             $product = Product::findOrFail($id);
 
             // Determine vendor_id based on user role
             $vendorId = $this->determineVendorId($data);
 
-            // Get current user for status determination
-            $currentUser = Auth::user();
-            $userType = $currentUser->user_type_id;
-
-            // Determine if status should change (only if vendor is editing)
-            if (in_array($userType, UserType::vendorIds())) {
-                // Vendor editing: set status to pending for re-approval
-                $status = 'pending';
-            } else {
-                // Admin editing: keep current status or set from data
-                $status = $data['status'] ?? $product->status;
-            }
-
             // Update product
             $product->update([
                 'is_active' => $data['is_active'] ?? true,
                 'configuration_type' => $data['configuration_type'],
-                'status' => $status,
                 'vendor_id' => $vendorId,
                 'brand_id' => $data['brand_id'] ?? null,
                 'department_id' => $data['department_id'] ?? null,
@@ -128,11 +105,8 @@ class ProductRepository implements ProductInterface
             // Update translations
             $this->storeTranslations($product, $data);
 
-            // Regenerate slug after translations are updated
-            // $product->regenerateSlug();
-
             // Handle main image update
-            $this->handleMainImage($product, $data);
+            $this->handleMainImage($product, $data, true);
 
             // Handle additional images
             $this->handleAdditionalImages($product, $data);
@@ -184,6 +158,11 @@ class ProductRepository implements ProductInterface
         $product->translations()->forceDelete();
 
         if (!empty($data['translations'])) {
+            \Log::info('Storing translations for product', [
+                'product_id' => $product->id,
+                'translations_data' => $data['translations']
+            ]);
+
             foreach ($data['translations'] as $languageId => $fields) {
                 $language = \App\Models\Language::find($languageId);
                 if (!$language) {
@@ -197,8 +176,20 @@ class ProductRepository implements ProductInterface
                     'meta_description', 'meta_keywords'
                 ];
 
+                if(isset($fields['title']) && $language->code == 'en') {
+                    $product->update([
+                        'slug' => Str::of($fields['title'])->trim()->slug('-')
+                    ]);
+                }
+
                 foreach ($translationFields as $field) {
                     if (isset($fields[$field])) {
+                        \Log::info('Creating translation', [
+                            'field' => $field,
+                            'language' => $language->code,
+                            'value' => $fields[$field]
+                        ]);
+
                         $product->translations()->create([
                             'lang_id' => $language->id,
                             'lang_key' => $field,
@@ -264,27 +255,42 @@ class ProductRepository implements ProductInterface
         $configurationType = $data['configuration_type'] ?? 'simple';
         $vendorId = $product->vendor_id;
 
+        // Determine status based on user role
+        $currentUser = Auth::user();
+        $userType = $currentUser->user_type_id;
+
         // Get or create VendorProduct (handles both create and update)
         $vendorProduct = VendorProduct::firstOrCreate(
             ['vendor_id' => $vendorId, 'product_id' => $product->id],
             [
                 'tax_id' => $data['tax_id'],
-                'sku' => $data['sku'],
+                'sku' => $data['sku'] ?? null,
                 'points' => $data['points'] ?? 0,
                 'max_per_order' => $data['max_per_order'],
                 'is_active' => $data['is_active'] ?? false,
                 'is_featured' => $data['is_featured'] ?? false,
+                'status' => in_array($userType, UserType::vendorIds()) ? 'pending' : 'approved',
             ]
         );
+
+        // Determine if status should change (only if vendor is editing)
+        if (in_array($userType, UserType::vendorIds())) {
+            // Vendor editing: set status to pending for re-approval
+            $status = 'pending';
+        } else {
+            // Admin editing: keep current status or set from data
+            $status = $data['status'] ?? $vendorProduct->status;
+        }
 
         // Update VendorProduct fields (in case it already existed)
         $vendorProduct->update([
             'tax_id' => $data['tax_id'],
-            'sku' => $data['sku'],
+            'sku' => $data['sku'] ?? null,
             'points' => $data['points'] ?? 0,
             'max_per_order' => $data['max_per_order'],
             'is_active' => $data['is_active'] ?? false,
             'is_featured' => $data['is_featured'] ?? false,
+            'status' => $status,
         ]);
         if ($configurationType === 'simple') {
             // Handle simple product variant (update or create)
@@ -293,7 +299,7 @@ class ProductRepository implements ProductInterface
             if ($existingVariant) {
                 // Update existing variant
                 $existingVariant->update([
-                    'sku' => $data['sku'],
+                    'sku' => $data['sku'] ?? null,
                     'price' => ($data['price'] ?? 0),
                     'has_discount' => $data['has_discount'] ?? false,
                     'price_before_discount' => isset($data['price_before_discount']) ? $data['price_before_discount'] : 0,
@@ -303,7 +309,7 @@ class ProductRepository implements ProductInterface
             } else {
                 // Create new variant
                 $vendorProductVariant = $vendorProduct->variants()->create([
-                    'sku' => $data['sku'],
+                    'sku' => $data['sku'] ?? null,
                     'price' => ($data['price'] ?? 0),
                     'has_discount' => $data['has_discount'] ?? false,
                     'price_before_discount' => isset($data['price_before_discount']) ? $data['price_before_discount'] : 0,
@@ -327,24 +333,19 @@ class ProductRepository implements ProductInterface
 
                     // Find existing variant by configuration ID
                     $existingProductVariant = $product->variants()
-                        ->where('variant_configuration_id', $variantConfigId)
-                        ->first();
+                    ->find($variantData['id']);
 
-                    $existingVendorVariant = $vendorProduct->variants()
-                        ->where('variant_configuration_id', $variantConfigId)
-                        ->first();
-
-                    if ($existingVendorVariant) {
+                    if ($existingProductVariant) {
                         // Update existing vendor variant
-                        $existingVendorVariant->update([
+                        $existingProductVariant->update([
                             'sku' => $variantData['sku'] ?? null,
                             'price' => $variantData['price'] ?? 0,
                             'has_discount' => $variantData['has_discount'] ?? false,
                             'price_before_discount' => $variantData['price_before_discount'] ?? 0,
                             'discount_end_date' => $variantData['discount_end_date'] ?? null,
                         ]);
-                        $vendorProductVariant = $existingVendorVariant;
-                        $incomingVariantIds[] = $existingVendorVariant->id;
+                        $incomingVariantIds[] = $variantData['id'];
+                        $vendorProductVariant = $existingProductVariant;
                     } else {
                         // Create new global variant if it doesn't exist
                         if (!$existingProductVariant) {
@@ -366,7 +367,7 @@ class ProductRepository implements ProductInterface
                     }
 
                     // Sync stocks for this variant
-                    $this->syncVariantStocks($vendorProductVariant, $variantData['stock'] ?? []);
+                    $this->syncVariantStocks($vendorProductVariant, $variantData['stocks'] ?? []);
                 }
 
                 // Delete variants that are no longer in the data (only for updates)
@@ -383,7 +384,6 @@ class ProductRepository implements ProductInterface
     protected function syncVariantStocks($variant, array $stocksData): void
     {
         $incomingStockRegionIds = [];
-
         foreach ($stocksData as $stockData) {
             if (isset($stockData['region_id']) && isset($stockData['quantity'])) {
                 $existingStock = $variant->stocks()

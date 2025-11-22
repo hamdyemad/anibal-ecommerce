@@ -14,6 +14,8 @@ class VendorProductVariant extends Model
     protected $table = 'vendor_product_variants';
     protected $guarded = [];
 
+    protected $with = ['stocks'];
+
     protected $casts = [
         'price' => 'decimal:2',
         'has_discount' => 'boolean',

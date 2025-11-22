@@ -13,6 +13,8 @@ use Modules\CatalogManagement\app\Interfaces\ProductInterface;
 use Modules\CatalogManagement\app\Models\Product;
 use App\Models\UserType;
 use Illuminate\Support\Facades\Auth;
+use Modules\CatalogManagement\app\Models\VendorProduct;
+use Modules\Vendor\app\Models\Vendor;
 
 class ProductAction {
 
@@ -37,7 +39,11 @@ class ProductAction {
             // Get filter parameters
             $filters = [
                 'search' => $data['search'] ?? '',
+                'vendor_id' => $data['vendor_id'] ?? null,
+                'brand_id' => $data['brand_id'] ?? null,
+                'category_id' => $data['category_id'] ?? null,
                 'is_active' => $data['active'] ?? null,
+                'status' => $data['status'] ?? null,
                 'created_date_from' => $data['created_date_from'] ?? '',
                 'created_date_to' => $data['created_date_to'] ?? '',
             ];
@@ -46,24 +52,69 @@ class ProductAction {
             $currentUser = Auth::user();
             $userType = $currentUser ? $currentUser->user_type_id : null;
 
-            // Get total records count - filter by vendor if user is vendor
-            $totalQuery = Product::query();
-            if ($currentUser && in_array($userType, UserType::vendorIds())) {
-                // Vendor users see only their own products
-                $totalQuery->where('created_by_user_id', $currentUser->id);
-            }
-            // Admin users see all products (no filter applied)
-            $totalRecords = $totalQuery->count();
+            // Determine if user is a vendor
+            $isVendor = $currentUser && in_array($userType, UserType::vendorIds());
+            $vendorId = null;
 
-            // Build query with filters
-            $query = Product::with(['brand', 'category', 'variants', 'translations', 'vendor'])->filter($filters);
-
-            // Filter by vendor if user is vendor
-            if ($currentUser && in_array($userType, UserType::vendorIds())) {
-                // Vendor users see only their own products
-                $query->where('created_by_user_id', $currentUser->id);
+            if ($isVendor) {
+                if($currentUser->vendor) {
+                    $vendorId = $currentUser->vendor->id;
+                } else {
+                    $vendorId = $currentUser->vendor_id;
+                }
             }
-            // Admin users see all products (no filter applied)
+
+            $query = VendorProduct::with([
+                'product.brand',
+                'product.category',
+                'product.translations',
+                'vendor'
+            ]);
+
+            if($vendorId) {
+                $query->where('vendor_id', $vendorId);
+                $totalRecords = $query->count();
+            } else {
+                $totalRecords = VendorProduct::count();
+            }
+            // Apply filters on the related product
+            if (!empty($filters['search'])) {
+                $search = $filters['search'];
+                $query->whereHas('product', function($q) use ($search) {
+                    $q->where(function($subQ) use ($search) {
+                        $subQ->whereHas('translations', function($transQ) use ($search) {
+                            $transQ->where('lang_value', 'like', "%{$search}%");
+                        });
+                    });
+                });
+            }
+
+            // Filter by vendor (for admin users)
+            if (!empty($filters['vendor_id'])) {
+                $query->where('vendor_id', $filters['vendor_id']);
+            }
+
+            // Filter by brand
+            if (!empty($filters['brand_id'])) {
+                $query->whereHas('product', function($q) use ($filters) {
+                    $q->where('brand_id', $filters['brand_id']);
+                });
+            }
+
+            // Filter by category
+            if (!empty($filters['category_id'])) {
+                $query->whereHas('product', function($q) use ($filters) {
+                    $q->where('category_id', $filters['category_id']);
+                });
+            }
+
+            if (isset($filters['is_active']) && $filters['is_active'] !== '') {
+                $query->where('is_active', $filters['is_active']);
+            }
+
+            if (!empty($filters['status'])) {
+                $query->where('status', $filters['status']);
+            }
 
             $filteredRecords = $query->count();
 
@@ -75,7 +126,10 @@ class ProductAction {
             // Return raw data - rendering will be handled by DataTables in the view
             $data = [];
             $index = 1;
-            foreach ($products as $product) {
+            foreach ($products as $item) {
+                // $item is VendorProduct, so we need to access the product relationship
+                $product = $item->product;
+
                 // Get product names in EN and AR
                 $nameEn = $product->getTranslation('title', 'en') ?? '-';
                 $nameAr = $product->getTranslation('title', 'ar') ?? '-';
@@ -96,17 +150,18 @@ class ProductAction {
                         'id' => $product->category->id,
                         'name' => truncateString($product->category->name),
                     ] : null,
-                    'active' => $product->is_active,
-                    'created_at' => $product->created_at,
+                    'active' => $item->is_active,
+                    'status' => $item->status,
+                    'created_at' => $item->created_at,
                 ];
 
                 // Add vendor information for admin users
                 if ($currentUser && in_array($userType, UserType::adminIds())) {
-                    if ($product->vendor) {
-                        $vendorName = truncateString($product->vendor->name);
+                    if ($item->vendor) {
+                        $vendorName = truncateString($item->vendor->name);
 
                         $rowData['vendor'] = [
-                            'id' => $product->vendor->id,
+                            'id' => $item->vendor->id,
                             'name' => $vendorName
                         ];
                     } else {

@@ -9,6 +9,7 @@ return [
     'view_product' => 'View Product',
     'edit_product' => 'Edit Product',
     'create_product' => 'Create Product',
+    'update_product' => 'Update Product',
     'add_product' => 'Add Product',
 
     // Fields
@@ -191,6 +192,10 @@ return [
     'price_before_discount' => 'Price Before Discount',
     'offer_end_date' => 'Offer End Date',
     'stock_management' => 'Stock Management',
+    'manage_product_pricing_stock' => 'Manage product pricing and stock information',
+    'update_stock_pricing' => 'Update Stock & Pricing',
+    'updating_stock_pricing' => 'Updating Stock & Pricing',
+    'stock_pricing_updated' => 'Stock & Pricing Updated Successfully',
     'manage_stock_by_region' => 'Manage stock by region',
     'add_stock' => 'Add Stock',
     'quantity' => 'Quantity',
@@ -212,4 +217,52 @@ return [
     'no_regional_stock_data' => 'No regional stock data available for this variant.',
     'no_stock_data' => 'No stock data available.',
     'additional_image' => 'Additional Image',
+
+    // Step 3 - Variant Configuration
+    'select_product_type' => 'Select Product Type',
+    'simple_product' => 'Simple Product',
+    'product_variants' => 'Product Variants',
+    'no_variants_added' => 'No variants added yet',
+    'variant_key' => 'Variant Key',
+    'select_variant_key' => 'Select Variant Key',
+    'variant_selection' => 'Variant Selection',
+    'selected_variant' => 'Selected Variant',
+
+    // Pricing
+    'pricing' => 'Pricing',
+    'discount_end_date' => 'Discount End Date',
+
+    // Stock Management
+    'add_region' => 'Add Region',
+    'select_region' => 'Select Region',
+    'actions' => 'Actions',
+    'cannot_remove_last_stock_row' => 'Cannot remove the last stock row',
+    'total_quantity' => 'Total Quantity',
+
+    // Validation Messages
+    'title_required' => 'Product title is required',
+    'vendor_required' => 'Vendor is required',
+    'brand_required' => 'Brand is required',
+    'department_required' => 'Department is required',
+    'category_required' => 'Category is required',
+    'tax_required' => 'Tax is required',
+    'main_image_required' => 'Main product image is required',
+    'max_per_order_required' => 'Max per order is required and must be at least 1',
+    'price_required' => 'Price is required',
+    'stock_required' => 'At least one stock entry is required',
+    'variants_required' => 'At least one variant is required',
+    'variant_key_required' => 'Variant key is required',
+    'variant_selection_required' => 'Please complete the variant selection',
+    'discount_until' => 'Discount until',
+    'additional_information' => 'Additional Information',
+    'approval_status' => 'Approval Status',
+    'change_status' => 'Change Status',
+    'change_product_status' => 'Change Product Status',
+    'change_status_for' => 'Change status for',
+    'rejection_reason' => 'Rejection Reason',
+    'enter_rejection_reason' => 'Enter rejection reason...',
+    'status_updated_successfully' => 'Product status updated successfully',
+    'please_select_status' => 'Please select a status',
+    'rejection_reason_required' => 'Rejection reason is required when rejecting a product',
+    'select_new_status_for_product' => 'Select the new status for this product',
 ];

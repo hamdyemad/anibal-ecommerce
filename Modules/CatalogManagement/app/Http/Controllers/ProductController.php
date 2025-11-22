@@ -52,7 +52,45 @@ class ProductController extends Controller
     public function index(Request $request)
     {
         $languages = $this->languageService->getAll();
-        return view('catalogmanagement::product.index', compact('languages'));
+
+        // Get filter data for admin users
+        $vendors = [];
+        $brands = [];
+        $categories = [];
+
+        if (auth()->user() && in_array(auth()->user()->user_type_id, \App\Models\UserType::adminIds())) {
+            $vendors = \Modules\Vendor\app\Models\Vendor::select('id')->with('translations')->get()->map(function($vendor) {
+                return [
+                    'id' => $vendor->id,
+                    'name' => $vendor->getTranslation('name', app()->getLocale()) ??
+                             $vendor->getTranslation('name', 'en') ??
+                             $vendor->getTranslation('name', 'ar') ??
+                             'Vendor #' . $vendor->id
+                ];
+            });
+
+            $brands = \Modules\CatalogManagement\app\Models\Brand::select('id')->with('translations')->get()->map(function($brand) {
+                return [
+                    'id' => $brand->id,
+                    'name' => $brand->getTranslation('name', app()->getLocale()) ??
+                             $brand->getTranslation('name', 'en') ??
+                             $brand->getTranslation('name', 'ar') ??
+                             'Brand #' . $brand->id
+                ];
+            });
+
+            $categories = \Modules\CategoryManagment\app\Models\Category::select('id')->with('translations')->get()->map(function($category) {
+                return [
+                    'id' => $category->id,
+                    'name' => $category->getTranslation('name', app()->getLocale()) ??
+                             $category->getTranslation('name', 'en') ??
+                             $category->getTranslation('name', 'ar') ??
+                             'Category #' . $category->id
+                ];
+            });
+        }
+
+        return view('catalogmanagement::product.index', compact('languages', 'vendors', 'brands', 'categories'));
     }
 
     /**
@@ -126,7 +164,7 @@ class ProductController extends Controller
         $variantKeys = VariantsConfigurationKeyResource::collection(
             $variantKeys->map(fn ($v) => $v->setAttribute('select2', true))
         )->resolve();
-        return view('catalogmanagement::product.form', compact('languages', 'brands', 'taxes', 'regions', 'vendors', 'variantKeys'));
+        return view('catalogmanagement::product.create', compact('languages', 'brands', 'taxes', 'regions', 'vendors', 'variantKeys'));
     }
 
     /**
@@ -202,21 +240,48 @@ class ProductController extends Controller
         $brands = BrandResource::collection($brands)->resolve();
         $taxes = $this->taxService->getAllTaxes([], 0);
         $taxes = TaxResource::collection($taxes)->resolve();
+        $regions = $this->regionService->getAllRegions([], 0);
+        $regions = RegionResource::collection($regions)->resolve();
 
-        $vendorsParams = [];
-        if(in_array(auth()->user()->user_type_id, UserType::vendorIds())) {
-            $vendorsParams = ['id' => $product->vendor_id];
-        } else {
-            $vendorsParams = [];
+        // Get vendors for admin/super admin, or current vendor for vendor users
+        $vendors = [];
+        $currentUser = Auth::user();
+        $userType = $currentUser->user_type_id;
+        if (in_array($userType, UserType::adminIds())) {
+            // Admin/Super Admin can select any vendor
+            $vendorsData = $this->vendorService->getAllVendors([], 0);
+            $vendors = $vendorsData->map(function($vendor) {
+                return [
+                    'id' => $vendor->id,
+                    'name' => $vendor->getTranslation('name', app()->getLocale())
+                ];
+            })->toArray();
+        } elseif (in_array($userType, UserType::vendorIds())) {
+            // Vendor can only edit their own products
+            $vendor = $currentUser->vendor;
+            if ($vendor) {
+                $vendors = [[
+                    'id' => $vendor->id,
+                    'name' => $vendor->getTranslation('name', app()->getLocale())
+                ]];
+            }
         }
-        $vendors = $this->vendorService->getAllVendors($vendorsParams, 0);
+
+        // Get variant keys for variant configuration
+        $variantKeys = $this->variantConfigurationKeyService->getAllVariantConfigurationKeys([], 0);
+        $variantKeys = VariantsConfigurationKeyResource::collection(
+            $variantKeys->map(fn ($v) => $v->setAttribute('select2', true))
+        )->resolve();
+
         $data = [
             'title' => __('catalogmanagement::product.edit_product'),
             'product' => $product,
             'languages' => $languages,
             'brands' => $brands,
             'taxes' => $taxes,
+            'regions' => $regions,
             'vendors' => $vendors,
+            'variantKeys' => $variantKeys,
         ];
         return view('catalogmanagement::product.edit', $data);
     }
@@ -250,6 +315,43 @@ class ProductController extends Controller
                 'success' => false,
                 'message' => __('catalogmanagement::product.error_updating_product'),
                 'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Change product status (approve/reject)
+     */
+    public function changeStatus(Request $request, $id)
+    {
+        try {
+            $request->validate([
+                'status' => 'required|in:pending,approved,rejected',
+                'rejection_reason' => 'required_if:status,rejected|nullable|string|max:500'
+            ]);
+
+            $product = Product::findOrFail($id);
+            $vendorProduct = VendorProduct::where('product_id', $product->id)->firstOrFail();
+
+            $vendorProduct->update([
+                'status' => $request->status,
+                'rejection_reason' => $request->status === 'rejected' ? $request->rejection_reason : null
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => __('catalogmanagement::product.status_updated_successfully')
+            ]);
+        } catch (Exception $e) {
+            Log::error('Product status change failed', [
+                'product_id' => $id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => __('common.error_occurred')
             ], 500);
         }
     }

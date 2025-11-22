@@ -9,6 +9,7 @@ return [
     'view_product' => 'عرض المنتج',
     'edit_product' => 'تعديل المنتج',
     'create_product' => 'إنشاء منتج',
+    'update_product' => 'تحديث المنتج',
     'add_product' => 'إضافة منتج',
 
     // Fields
@@ -191,6 +192,10 @@ return [
     'price_before_discount' => 'السعر قبل الخصم',
     'offer_end_date' => 'تاريخ انتهاء العرض',
     'stock_management' => 'إدارة المخزون',
+    'manage_product_pricing_stock' => 'إدارة التسعير والمخزون للمنتج',
+    'update_stock_pricing' => 'تحديث المخزون والتسعير',
+    'updating_stock_pricing' => 'جاري تحديث المخزون والتسعير',
+    'stock_pricing_updated' => 'تم تحديث المخزون والتسعير بنجاح',
     'manage_stock_by_region' => 'إدارة المخزون حسب المنطقة',
     'add_stock' => 'إضافة مخزون',
     'quantity' => 'الكمية',
@@ -212,4 +217,52 @@ return [
     'no_regional_stock_data' => 'لا توجد بيانات مخزون إقليمية متاحة لهذا المتغير.',
     'no_stock_data' => 'لا توجد بيانات مخزون متاحة.',
     'additional_image' => 'صورة إضافية',
+
+    // Step 3 - Variant Configuration
+    'select_product_type' => 'اختر نوع المنتج',
+    'simple_product' => 'منتج بسيط',
+    'product_variants' => 'متغيرات المنتج',
+    'no_variants_added' => 'لم تتم إضافة متغيرات بعد',
+    'variant_key' => 'مفتاح المتغير',
+    'select_variant_key' => 'اختر مفتاح المتغير',
+    'variant_selection' => 'اختيار المتغير',
+    'selected_variant' => 'المتغير المحدد',
+
+    // Pricing
+    'pricing' => 'التسعير',
+    'discount_end_date' => 'تاريخ انتهاء الخصم',
+
+    // Stock Management
+    'add_region' => 'إضافة منطقة',
+    'select_region' => 'اختر المنطقة',
+    'actions' => 'الإجراءات',
+    'cannot_remove_last_stock_row' => 'لا يمكن إزالة آخر صف مخزون',
+    'total_quantity' => 'الكمية الإجمالية',
+
+    // Validation Messages
+    'title_required' => 'عنوان المنتج مطلوب',
+    'vendor_required' => 'البائع مطلوب',
+    'brand_required' => 'العلامة التجارية مطلوبة',
+    'department_required' => 'القسم مطلوب',
+    'category_required' => 'الفئة مطلوبة',
+    'tax_required' => 'الضريبة مطلوبة',
+    'main_image_required' => 'صورة المنتج الرئيسية مطلوبة',
+    'max_per_order_required' => 'الحد الأقصى لكل طلب مطلوب ويجب أن يكون 1 على الأقل',
+    'price_required' => 'السعر مطلوب',
+    'stock_required' => 'مطلوب إدخال مخزون واحد على الأقل',
+    'variants_required' => 'مطلوب متغير واحد على الأقل',
+    'variant_key_required' => 'مفتاح المتغير مطلوب',
+    'variant_selection_required' => 'يرجى إكمال اختيار المتغير',
+    'discount_until' => 'الخصم حتى',
+    'additional_information' => 'معلومات إضافية',
+    'approval_status' => 'حالة الموافقة',
+    'change_status' => 'تغيير الحالة',
+    'change_product_status' => 'تغيير حالة المنتج',
+    'change_status_for' => 'تغيير الحالة لـ',
+    'rejection_reason' => 'سبب الرفض',
+    'enter_rejection_reason' => 'أدخل سبب الرفض...',
+    'status_updated_successfully' => 'تم تحديث حالة المنتج بنجاح',
+    'please_select_status' => 'يرجى اختيار حالة',
+    'rejection_reason_required' => 'سبب الرفض مطلوب عند رفض المنتج',
+    'select_new_status_for_product' => 'اختر الحالة الجديدة لهذا المنتج',
 ];

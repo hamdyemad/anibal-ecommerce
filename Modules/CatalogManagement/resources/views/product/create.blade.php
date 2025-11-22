@@ -94,7 +94,7 @@
                                                 <label class="form-label d-block">{{ __('catalogmanagement::product.status') }}</label>
                                                 <div class="form-check form-switch form-switch-lg">
                                                     <input class="form-check-input" type="checkbox" role="switch" id="is_active" name="is_active" value="1"
-                                                    @if(isset($product) && $product->is_active) checked @endif>
+                                                    @if(isset($product) && ($product->product ? $product->product->is_active : $product->is_active)) checked @endif>
                                                 </div>
                                             </div>
                                         </div>
@@ -103,7 +103,7 @@
                                             <div class="form-group">
                                                 <label class="form-label d-block">{{ __('catalogmanagement::product.featured') }}</label>
                                                 <div class="form-check form-switch form-switch-lg">
-                                                    <input class="form-check-input" type="checkbox" role="switch" id="is_featured" name="is_featured" value="1" @if(isset($product) && $product->is_featured) checked @endif>
+                                                    <input class="form-check-input" type="checkbox" role="switch" id="is_featured" name="is_featured" value="1" @if(isset($product) && ($product->product ? $product->product->is_featured : $product->is_featured)) checked @endif>
                                                 </div>
                                             </div>
                                         </div>
@@ -274,7 +274,7 @@
                                                 id="main_image"
                                                 name="main_image"
                                                 label="{{ __('common.product_image') }}"
-                                                :required="false"
+                                                :required="true"
                                                 :existingImage="isset($product) && $product->product && $product->product->mainImage ? $product->product->mainImage->path : null"
                                                 placeholder="{{ __('common.click_to_upload') }}"
                                                 recommendedSize="{{ __('common.recommended_logo_size') }}"
@@ -438,7 +438,7 @@
                         </div>
 
                         <!-- Step 3: Variant Configurations -->
-                        <div class="wizard-step-content" data-step="3">
+                        <div class="wizard-step-content" data-step="3" style="display: none;">
                             <!-- Configuration Type -->
                             <div class="card mb-4">
                                 <div class="card-body">
@@ -458,184 +458,44 @@
                                                     <div class="error-message text-danger" id="error-configuration_type" style="display: none;"></div>
                                                 </div>
                                             </div>
-                                            @php
-                                            @endphp
-                                            <!-- Variant Information (shown only for variant products) -->
-                                            @if(isset($product) && $product && $product->product->configuration_type === 'variants' && $product->variants->count() > 0)
-                                                @foreach ($product->variants as $variantIndex => $variant)
-                                                    {{-- Hidden Variant Data Inputs --}}
-                                                    <input type="hidden" name="variants[{{ $variantIndex }}][id]" value="{{ $variant->id }}">
-                                                    <input type="hidden" name="variants[{{ $variantIndex }}][variant_id]" value="{{ $variant->id }}">
-                                                    <input type="hidden" name="variants[{{ $variantIndex }}][variant_configuration_id]" value="{{ $variant->variant_configuration_id }}">
-                                                    @if($variant->variantConfiguration)
-                                                        <input type="hidden" name="variants[{{ $variantIndex }}][key_id]" value="{{ $variant->variantConfiguration->key_id ?? '' }}">
-                                                        <input type="hidden" name="variants[{{ $variantIndex }}][variant_id]" value="{{ $variant->variantConfiguration->id }}">
-                                                    @endif
-                                                    {{-- Variant Configuration Header --}}
-                                                    <div class="card">
-                                                        <div class="card-header">
-                                                            <h6 class="mb-0" style="font-weight: 600; font-size: 16px;">
-                                                                <i class="uil uil-layer-group me-2"></i>
-                                                                Variant Configuration:
-                                                                @if($variant->variantConfiguration)
-                                                                    @php
-                                                                        // Build the variant hierarchy by traversing up the parent chain
-                                                                        $hierarchy = [];
-                                                                        $current = $variant->variantConfiguration;
-                                                                        $visited = []; // Prevent infinite loops
-
-                                                                        // Start with the current variant (leaf node)
-                                                                        while($current && !in_array($current->id, $visited)) {
-                                                                            $visited[] = $current->id;
-
-                                                                            // Get the value name (current node)
-                                                                            $valueName = $current->getTranslation('name', app()->getLocale()) ??
-                                                                                        $current->getTranslation('name', 'en') ??
-                                                                                        $current->name ?? 'Value';
-
-                                                                            // If this has a parent, it means this is a value and parent is key
-                                                                            if($current->parent_data) {
-                                                                                $keyName = $current->parent_data->getTranslation('name', app()->getLocale()) ??
-                                                                                          $current->parent_data->getTranslation('name', 'en') ??
-                                                                                          $current->parent_data->name ?? 'Key';
-
-                                                                                // Add to hierarchy (key -> value)
-                                                                                array_unshift($hierarchy, $keyName . ' → ' . $valueName);
-
-                                                                                // Move to parent for next iteration
-                                                                                $current = $current->parent_data;
-                                                                            } else {
-                                                                                // This is a root node (key without parent)
-                                                                                break;
-                                                                            }
-                                                                        }
-
-                                                                        // Join the hierarchy with arrows
-                                                                        $hierarchyString = implode(' → ', $hierarchy);
-                                                                    @endphp
-                                                                    {{ $hierarchyString ?: 'Packaging - 10 kg' }}
-                                                                @else
-                                                                    Packaging - 10 kg
-                                                                @endif
-                                                            </h6>
-                                                        </div>
-                                                        <div class="card-body">
-                                                            {{-- Variant SKU and Price Row --}}
-                                                            <div class="row mb-4">
-                                                                <div class="col-md-6">
-                                                                    <label class="form-label fw-bold">Variant SKU <span class="text-danger">*</span></label>
-                                                                    <input type="text" name="variants[{{ $variantIndex }}][sku]" class="form-control" value="{{ $variant->sku }}" placeholder="Enter SKU">
-                                                                </div>
-                                                                <div class="col-md-6">
-                                                                    <label class="form-label fw-bold">Price <span class="text-danger">*</span></label>
-                                                                    <div class="input-group">
-                                                                        <input type="number" name="variants[{{ $variantIndex }}][price]" class="form-control" value="{{ $variant->price }}" step="0.01" min="0" placeholder="0.00">
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-
-                                                            {{-- Enable Discount Offer --}}
-                                                            <div class="mb-4">
-                                                                <div>
-                                                                    <label class="form-label fw-bold mb-0">Enable Discount Offer</label>
-                                                                    <div class="form-check form-switch form-switch-lg">
-                                                                        {{-- Hidden input to ensure false value is sent when unchecked --}}
-                                                                        <input type="hidden" name="variants[{{ $variantIndex }}][has_discount]" value="0">
-                                                                        <input type="checkbox" name="variants[{{ $variantIndex }}][has_discount]" class="form-check-input" role="switch" id="discount_{{ $variantIndex }}" value="1" {{ $variant->has_discount ? 'checked' : '' }} onchange="toggleDiscountFields({{ $variantIndex }})">
-                                                                        <label class="form-check-label" for="discount_{{ $variantIndex }}"></label>
-                                                                    </div>
-                                                                </div>
-
-                                                                {{-- Discount Fields (shown only when switcher is on) --}}
-                                                                <div id="discount_fields_{{ $variantIndex }}" class="mt-3" style="display: {{ $variant->has_discount ? 'block' : 'none' }};">
-                                                                    <div class="row">
-                                                                        <div class="col-md-6">
-                                                                            <label class="form-label fw-bold">Price Before Discount <span class="text-danger">*</span></label>
-                                                                            <input type="number" name="variants[{{ $variantIndex }}][price_before_discount]" class="form-control discount-field" value="{{ $variant->price_before_discount ?? '' }}" step="0.01" min="0" placeholder="0.00" data-variant-index="{{ $variantIndex }}">
-                                                                        </div>
-                                                                        <div class="col-md-6">
-                                                                            <label class="form-label fw-bold">Discount End Date</label>
-                                                                            <input type="date" name="variants[{{ $variantIndex }}][discount_end_date]" class="form-control discount-field" value="{{ $variant->discount_end_date ? date('Y-m-d', strtotime($variant->discount_end_date)) : '' }}" data-variant-index="{{ $variantIndex }}">
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-
-                                                                {{-- Hidden inputs to ensure discount values are always submitted when has_discount is true --}}
-                                                                <input type="hidden" name="variants[{{ $variantIndex }}][price_before_discount]" value="{{ $variant->price_before_discount ?? '' }}" id="hidden_price_before_discount_{{ $variantIndex }}">
-                                                                <input type="hidden" name="variants[{{ $variantIndex }}][discount_end_date]" value="{{ $variant->discount_end_date ? date('Y-m-d', strtotime($variant->discount_end_date)) : '' }}" id="hidden_discount_end_date_{{ $variantIndex }}">
-                                                            </div>
-
-                                                            {{-- Stock per Region Section --}}
-                                                            <div class="mb-4">
-                                                                <label class="form-label fw-bold">Stock per Region <span class="text-danger">*</span></label>
-
-                                                                <div class="table-responsive">
-                                                                    <table class="table table-bordered">
-                                                                        <thead style="background-color: #f8f9fa;">
-                                                                            <tr class="userDatatable-header">
-                                                                                <th style="width: 40%; font-weight: 600;">Region</th>
-                                                                                <th style="width: 30%; font-weight: 600;">Quantity</th>
-                                                                            </tr>
-                                                                        </thead>
-                                                                        <tbody>
-                                                                            @forelse($variant->stocks ?? [] as $stockIndex => $stock)
-                                                                                {{-- Hidden stock ID for updates --}}
-                                                                                <input type="hidden" name="variants[{{ $variantIndex }}][stocks][{{ $stockIndex }}][id]" value="{{ $stock->id }}">
-                                                                                <input type="hidden" name="variants[{{ $variantIndex }}][stocks][{{ $stockIndex }}][variant_id]" value="{{ $variant->id }}">
-
-                                                                                <tr>
-                                                                                    <td>
-                                                                                        <select name="variants[{{ $variantIndex }}][stocks][{{ $stockIndex }}][region_id]" class="form-control select2" required>
-                                                                                            <option value="">Select Region</option>
-                                                                                            @foreach($regions as $region)
-                                                                                                <option value="{{ $region['id'] }}" {{ $stock->region_id == $region['id'] ? 'selected' : '' }}>{{ $region['name'] }}</option>
-                                                                                            @endforeach
-                                                                                        </select>
-                                                                                    </td>
-                                                                                    <td>
-                                                                                        <input type="number" name="variants[{{ $variantIndex }}][stocks][{{ $stockIndex }}][quantity]" class="form-control" value="{{ $stock->quantity }}" min="0" placeholder="0">
-                                                                                    </td>
-                                                                                </tr>
-                                                                            @empty
-                                                                                {{-- Hidden fields for new stock entry --}}
-                                                                                <input type="hidden" name="variants[{{ $variantIndex }}][stocks][0][variant_id]" value="{{ $variant->id }}">
-
-                                                                                <tr>
-                                                                                    <td>
-                                                                                        <select name="variants[{{ $variantIndex }}][stocks][0][region_id]" class="form-control" required>
-                                                                                            <option value="">Select Region</option>
-                                                                                            @foreach($regions as $region)
-                                                                                                <option value="{{ $region['id'] }}" {{ $region['name'] == 'Maddi' ? 'selected' : '' }}>{{ $region['name'] }}</option>
-                                                                                            @endforeach
-                                                                                        </select>
-                                                                                    </td>
-                                                                                    <td>
-                                                                                        <input type="number" name="variants[{{ $variantIndex }}][stocks][0][quantity]" class="form-control" value="0" min="0" placeholder="0">
-                                                                                    </td>
-                                                                                </tr>
-                                                                            @endforelse
-                                                                        </tbody>
-                                                                    </table>
-                                                                </div>
-
-                                                                {{-- Add Region Button --}}
-                                                                <button type="button" class="btn btn-primary mt-3 add-stock-row" data-variant-index="{{ $variantIndex }}">
-                                                                    <i class="uil uil-plus me-1"></i> Add Region
-                                                                </button>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-
-
-                                                    @if(!$loop->last)
-                                                        <hr class="my-5">
-                                                    @endif
-                                                @endforeach
-                                            @endif
                                         </div>
                                 </div>
                             </div>
 
+                            <!-- Simple Product Section (shown when "simple" is selected) -->
+                            <div id="simple-product-section" style="display: none;">
+                                <div id="simple-product-pricing-stock">
+                                    <!-- Pricing & Stock boxes will be inserted here -->
+                                </div>
+                            </div>
+
+                            <!-- With Variants Section (shown when "variants" is selected) -->
+                            <div id="variants-section" style="display: none;">
+                                <div class="card mb-4">
+                                    <div class="card-body">
+                                        <h5 class="d-flex justify-content-between align-items-center mb-4">
+                                            <div>
+                                                <i class="uil uil-layer-group"></i>
+                                                {{ __('catalogmanagement::product.product_variants') }}
+                                            </div>
+                                            <button type="button" id="add-variant-btn" class="btn btn-primary btn-sm">
+                                                <i class="uil uil-plus"></i> {{ __('catalogmanagement::product.add_variant') }}
+                                            </button>
+                                        </h5>
+
+                                        <!-- Empty state message -->
+                                        <div id="variants-empty-state" class="text-center py-4">
+                                            <i class="uil uil-layer-group text-muted" style="font-size: 48px;"></i>
+                                            <p class="text-muted mb-0">{{ __('catalogmanagement::product.no_variants_added') }}</p>
+                                        </div>
+
+                                        <!-- Variants Container -->
+                                        <div id="variants-container">
+                                            <!-- Variant boxes will be added here dynamically -->
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
                         <!-- Step 4: SEO & Images -->
@@ -647,7 +507,6 @@
                                         <i class="uil uil-search"></i>
                                         {{ __('common.seo') }}
                                     </h5>
-                                    @if(isset($languages) && count($languages) > 0)
                                     <div class="row">
                                         @foreach($languages as $language)
                                         <div class="col-md-6 mb-3">
@@ -659,8 +518,7 @@
                                                     class="form-control ih-medium ip-gray radius-xs b-light px-15"
                                                     placeholder="{{ $language->code == 'ar' ? 'أدخل العنوان الوصفي' : 'Enter meta title' }}"
                                                     maxlength="60"
-                                                    dir="{{ $language->code == 'ar' ? 'rtl' : 'ltr' }}"
-                                                    value="{{ isset($product) ? ($product->product && method_exists($product->product, 'getTranslation') ? $product->product->getTranslation('meta_title', $language->code) : (method_exists($product, 'getTranslation') ? $product->getTranslation('meta_title', $language->code) : '')) ?? '' : '' }}">
+                                                    dir="{{ $language->code == 'ar' ? 'rtl' : 'ltr' }}">
                                                 <div class="error-message text-danger" id="error-translations-{{ $language->id }}-meta_title" style="display: none;"></div>
                                                 <small class="text-muted">{{ __('common.recommended_50_60_chars') }}</small>
                                             </div>
@@ -678,7 +536,7 @@
                                                     rows="3"
                                                     placeholder="{{ $language->code == 'ar' ? 'أدخل الوصف الوصفي' : 'Enter meta description' }}"
                                                     maxlength="160"
-                                                    dir="{{ $language->code == 'ar' ? 'rtl' : 'ltr' }}">{{ isset($product) ? ($product->product && method_exists($product->product, 'getTranslation') ? $product->product->getTranslation('meta_description', $language->code) : (method_exists($product, 'getTranslation') ? $product->getTranslation('meta_description', $language->code) : '')) ?? '' : '' }}</textarea>
+                                                    dir="{{ $language->code == 'ar' ? 'rtl' : 'ltr' }}"></textarea>
                                                 <div class="error-message text-danger" id="error-translations-{{ $language->id }}-meta_description" style="display: none;"></div>
                                                 <small class="text-muted">{{ __('common.recommended_150_160_chars') }}</small>
                                             </div>
@@ -710,13 +568,6 @@
                                         </div>
                                         @endforeach
                                     </div>
-                                    @else
-                                    <div class="alert alert-warning">
-                                        <i class="uil uil-exclamation-triangle me-2"></i>
-                                        <strong>No Languages Available</strong><br>
-                                        Languages are required to display SEO fields. Please ensure languages are configured in the system.
-                                    </div>
-                                    @endif
                                 </div>
                             </div>
                         </div>
@@ -950,7 +801,7 @@
     // Configuration & Global Variables
     // ============================================
     const config = {
-        currentStep: 3,
+        currentStep: 1,
         totalSteps: 4,
         locale: '{{ app()->getLocale() }}',
         apiBaseUrl: '{{ url("/api") }}',
@@ -959,111 +810,20 @@
             selectOption: '{{ __("common.select_option") }}',
             error: '{{ __("common.error") }}',
             success: '{{ __("common.success") }}'
-        },
-        @if(isset($product))
-        selectedValues: {
-            department_id: {{ $product->product->department_id ?? 'null' }},
-            category_id: {{ $product->product->category_id ?? 'null' }},
-            sub_category_id: {{ $product->product->sub_category_id ?? 'null' }},
-            configuration_type: '{{ $product->configuration_type ?? $product->product->configuration_type ?? '' }}',
-            sku: '{{ $product->sku ?? '' }}',
-            @php
-                $configurationType = $product->configuration_type ?? $product->product->configuration_type ?? '';
-                $firstVariant = $product->variants->first();
-            @endphp
-            @if($configurationType === 'simple')
-                {{-- Simple product: use first variant data --}}
-                price: {{ $firstVariant ? $firstVariant->price : 0 }},
-                has_discount: {{ ($firstVariant && $firstVariant->has_discount) ? 'true' : 'false' }},
-                price_before_discount: {{ $firstVariant ? $firstVariant->price_before_discount : 0 }},
-                discount_end_date: '{{ $firstVariant && $firstVariant->discount_end_date ? $firstVariant->discount_end_date->format('Y-m-d') : '' }}',
-                stocks: @json($firstVariant && $firstVariant->stocks ? $firstVariant->stocks : []),
-            @else
-                {{-- Variant product: pass all variants with their data --}}
-                @php
-                    $variantsData = $product->variants->map(function($variant) {
-                        $variantConfig = null;
-                        if ($variant->variantConfiguration) {
-                            // The variant configuration structure:
-                            // - The variantConfiguration IS the selected value
-                            // - The parent_id points to the key (parent configuration)
-                            // - We need to find the root key by traversing up the hierarchy
-
-                            $config = $variant->variantConfiguration;
-                            $keyId = null;
-                            $valueId = $config->id;
-
-                            // Find the root key by traversing up the parent hierarchy
-                            $currentConfig = $config;
-                            while ($currentConfig && $currentConfig->parent_id) {
-                                if ($currentConfig->parent_data) {
-                                    $currentConfig = $currentConfig->parent_data;
-                                } else {
-                                    break;
-                                }
-                            }
-
-                            // The root configuration is the key
-                            if ($currentConfig && !$currentConfig->parent_id) {
-                                $keyId = $currentConfig->id;
-                            }
-
-                            $variantConfig = [
-                                'id' => $config->id,
-                                'variant_key_id' => $keyId,
-                                'variant_value_id' => $valueId,
-                                'parent_id' => $config->parent_id,
-                                'key_name' => $currentConfig
-                                    ? ($currentConfig->getTranslation('name', app()->getLocale()) ?? $currentConfig->name ?? 'Unknown Key')
-                                    : 'Unknown Key',
-                                'value_name' => $config->getTranslation('name', app()->getLocale()) ?? $config->name ?? 'Unknown Value',
-                                'debug_info' => [
-                                    'config_id' => $config->id,
-                                    'parent_id' => $config->parent_id,
-                                    'found_key_id' => $keyId,
-                                    'traversed_to_root' => !is_null($currentConfig)
-                                ]
-                            ];
-                        }
-
-                        return [
-                            'id' => $variant->id,
-                            'variant_configuration_id' => $variant->variant_configuration_id,
-                            'sku' => $variant->sku,
-                            'price' => $variant->price,
-                            'has_discount' => $variant->has_discount,
-                            'price_before_discount' => $variant->price_before_discount,
-                            'discount_end_date' => $variant->discount_end_date ? $variant->discount_end_date->format('Y-m-d') : null,
-                            'stocks' => $variant->stocks->map(function($stock) {
-                                return [
-                                    'id' => $stock->id,
-                                    'region_id' => $stock->region_id,
-                                    'stock' => $stock->stock,
-                                    'quantity' => $stock->stock, // Alias for compatibility
-                                    'region' => $stock->region
-                                ];
-                            }),
-                            'variant_configuration' => $variantConfig
-                        ];
-                    });
-                @endphp
-                variantsData: @json($variantsData),
-            @endif
-            variants: @json($product->variants ?: []),
-            // Debug: Output variant data for inspection
-            debugVariantsData: @json($variantsData ?? [])
         }
-        @endif
     };
 
     // ============================================
     // Step Navigation Functions
     // ============================================
     function showStep(stepNumber) {
+        console.log('📍 Showing step:', stepNumber);
+
         // Sync CKEditor data to textareas before changing steps
         if (typeof CKEDITOR !== 'undefined') {
             for (let instance in CKEDITOR.instances) {
                 CKEDITOR.instances[instance].updateElement();
+                console.log('✅ CKEditor data synced for:', instance);
             }
         }
 
@@ -1080,6 +840,7 @@
 
         // Show current step
         const $currentStep = $(`.wizard-step-content[data-step="${stepNumber}"]`);
+        console.log('Current step element found:', $currentStep.length);
         $currentStep.show().addClass('active');
 
         // Update wizard navigation
@@ -1126,6 +887,7 @@
     }
 
     function validateStep(stepNumber) {
+        console.log('🔍 Validating step:', stepNumber);
         let isValid = true;
         const errors = [];
 
@@ -1207,9 +969,7 @@
                 break;
 
             case 2:
-                // Main image validation (optional in edit mode)
-                @if(!isset($product))
-                // Only required in create mode
+                // Main image validation
                 const mainImageInput = $('#main_image')[0];
                 const hasExistingImage = $('#main_image').data('existing-image');
 
@@ -1229,7 +989,6 @@
                         isValid = false;
                     }
                 }
-                @endif
                 break;
 
             case 3:
@@ -1276,7 +1035,76 @@
                             }
                         }
                     } else if (configurationType === 'variants') {
+                        // Validate at least one variant
+                        const variantCount = $('.variant-box').length;
+                        if (variantCount === 0) {
+                            errors.push('{{ __("catalogmanagement::product.variants_required") }}');
+                            isValid = false;
+                        } else {
+                            // Validate each variant
+                            $('.variant-box').each(function() {
+                                const $variant = $(this);
+                                const variantIndex = $variant.data('variant-index');
 
+                                // Check if variant key is selected
+                                const keySelected = $variant.find('.variant-key-select').val();
+                                if (!keySelected) {
+                                    $variant.find('.variant-key-select').next('.select2').find('.select2-selection').addClass('is-invalid');
+                                    errors.push(`Variant #${variantIndex + 1}: {{ __("catalogmanagement::product.variant_key_required") }}`);
+                                    isValid = false;
+                                }
+
+                                // Check if variant value is selected
+                                const valueId = $variant.find('.selected-variant-id').val();
+                                if (!valueId) {
+                                    errors.push(`Variant #${variantIndex + 1}: {{ __("catalogmanagement::product.variant_selection_required") }}`);
+                                    isValid = false;
+                                }
+
+                                // Check if pricing/stock is filled
+                                const $pricingStock = $(`#variant-${variantIndex}-pricing-stock`);
+                                if ($pricingStock.is(':visible')) {
+                                    const sku = $pricingStock.find('.sku-input').val();
+                                    if (!sku || !sku.trim()) {
+                                        $pricingStock.find('.sku-input').addClass('is-invalid');
+                                        $pricingStock.find('.sku-input').next('.error-message').text('{{ __("catalogmanagement::product.sku_required") }}').show();
+                                        errors.push(`Variant #${variantIndex + 1}: {{ __("catalogmanagement::product.sku_required") }}`);
+                                        isValid = false;
+                                    }
+
+                                    const price = $pricingStock.find('.price-input').val();
+                                    if (!price || parseFloat(price) < 0) {
+                                        $pricingStock.find('.price-input').addClass('is-invalid');
+                                        $pricingStock.find('.price-input').next('.error-message').text('{{ __("catalogmanagement::product.price_required") }}').show();
+                                        errors.push(`Variant #${variantIndex + 1}: {{ __("catalogmanagement::product.price_required") }}`);
+                                        isValid = false;
+                                    }
+
+                                    const stockRows = $pricingStock.find('.stock-row').length;
+                                    if (stockRows === 0) {
+                                        errors.push(`Variant #${variantIndex + 1}: {{ __("catalogmanagement::product.stock_required") }}`);
+                                        isValid = false;
+                                    } else {
+                                        // Validate each stock row
+                                        $pricingStock.find('.stock-row').each(function() {
+                                            const $row = $(this);
+                                            const regionId = $row.find('.region-select').val();
+                                            const quantity = $row.find('.quantity-input').val();
+
+                                            if (!regionId) {
+                                                $row.find('.region-select').next('.select2').find('.select2-selection').addClass('is-invalid');
+                                                isValid = false;
+                                            }
+
+                                            if (!quantity || parseInt(quantity) < 0) {
+                                                $row.find('.quantity-input').addClass('is-invalid');
+                                                isValid = false;
+                                            }
+                                        });
+                                    }
+                                }
+                            });
+                        }
                     }
                 }
                 break;
@@ -1374,12 +1202,6 @@
                     width: '100%',
                     theme: 'bootstrap-5'
                 });
-
-                // Auto-select department if in edit mode
-                if (config.selectedValues && config.selectedValues.department_id) {
-                    console.log('🎯 Auto-selecting department:', config.selectedValues.department_id);
-                    $departmentSelect.val(config.selectedValues.department_id).trigger('change');
-                }
             },
             error: function(xhr, status, error) {
                 console.error('❌ Error loading departments:', error);
@@ -1445,12 +1267,6 @@
                     width: '100%',
                     theme: 'bootstrap-5',
                 });
-
-                // Auto-select category if in edit mode
-                if (config.selectedValues && config.selectedValues.category_id) {
-                    console.log('🎯 Auto-selecting category:', config.selectedValues.category_id);
-                    $categorySelect.val(config.selectedValues.category_id).trigger('change');
-                }
             },
             error: function(xhr, status, error) {
                 console.error('❌ Error loading categories:', error);
@@ -1514,12 +1330,6 @@
                     width: '100%',
                     theme: 'bootstrap-5',
                 });
-
-                // Auto-select sub-category if in edit mode
-                if (config.selectedValues && config.selectedValues.sub_category_id) {
-                    console.log('🎯 Auto-selecting sub-category:', config.selectedValues.sub_category_id);
-                    $subCategorySelect.val(config.selectedValues.sub_category_id).trigger('change');
-                }
             },
             error: function(xhr, status, error) {
                 console.error('❌ Error loading subcategories:', error);
@@ -1544,7 +1354,25 @@
         }
     }
 
-    // Configuration Type Handler removed
+    // ============================================
+    // Configuration Type Handler
+    // ============================================
+    function handleConfigurationTypeChange() {
+        const configurationType = $('#configuration_type').val();
+
+        $('#simple-product-section').hide();
+        $('#variants-section').hide();
+
+        if (configurationType === 'simple') {
+            $('#simple-product-section').show();
+            // Create pricing & stock box for simple product (no prefix for simple products)
+            createPricingStockBox('simple-product-pricing-stock', '');
+        } else if (configurationType === 'variants') {
+            $('#variants-section').show();
+            // Clear simple product pricing/stock
+            $('#simple-product-pricing-stock').empty();
+        }
+    }
 
     // ============================================
     // Pricing & Stock Management Functions
@@ -1884,9 +1712,7 @@
         loadVariantKeys();
 
         // Show first step
-        showStep(config.currentStep);
-
-        // Debug section for variants removed
+        showStep(1);
 
         // Next button click
         $('#nextBtn').on('click', function(e) {
@@ -1927,21 +1753,11 @@
         });
 
         // Auto-load departments on page load if vendor is already selected
-        @if(isset($product))
-        // Edit mode: Load cascading dropdowns with product data
-        const productVendorId = {{ $product->vendor_id ?? 'null' }};
-        if (productVendorId) {
-            console.log('📦 Edit mode: Auto-loading departments for vendor:', productVendorId);
-            loadDepartmentsByVendor(productVendorId);
-        }
-        @else
-        // Create mode: Load departments if vendor is selected
         const initialVendorId = $('#vendor_id').val();
         if (initialVendorId) {
-            console.log('📦 Create mode: Auto-loading departments for vendor:', initialVendorId);
+            console.log('📦 Auto-loading departments for vendor:', initialVendorId);
             loadDepartmentsByVendor(initialVendorId);
         }
-        @endif
 
         // Vendor change event - Load departments based on vendor
         $('#vendor_id').on('change', function() {
@@ -1964,7 +1780,10 @@
             loadSubCategoriesByCategory(categoryId);
         });
 
-        // Configuration type change handler removed - no dynamic sections
+        // Configuration type change
+        $('#configuration_type').on('change', function() {
+            handleConfigurationTypeChange();
+        });
 
         // ============================================
         // Clear validation errors on input change
@@ -2028,6 +1847,13 @@
             if ($(this).val()) {
                 $(this).next('.select2').find('.select2-selection').removeClass('is-invalid');
                 $('#error-tax_id').hide();
+            }
+        });
+
+        $('#configuration_type').on('change', function() {
+            if ($(this).val()) {
+                $(this).removeClass('is-invalid');
+                $('#error-configuration_type').hide();
             }
         });
 
@@ -2095,14 +1921,6 @@
         $('#productForm').on('submit', function(e) {
             e.preventDefault();
             console.log('📝 Form submitted');
-
-            // Sync CKEditor data to textareas before validation/submission
-            if (typeof CKEDITOR !== 'undefined') {
-                for (let instance in CKEDITOR.instances) {
-                    CKEDITOR.instances[instance].updateElement();
-                    console.log('✅ CKEditor data synced for:', instance);
-                }
-            }
 
             // Validate all steps
             let allValid = true;
@@ -2235,59 +2053,158 @@
                 return false;
             }
         });
-    });
 
-    // ============================================
-    // Discount Fields Toggle Function
-    // ============================================
-    window.toggleDiscountFields = function(variantIndex) {
-        const checkbox = document.getElementById('discount_' + variantIndex);
-        const discountFields = document.getElementById('discount_fields_' + variantIndex);
-        const hiddenPriceBefore = document.getElementById('hidden_price_before_discount_' + variantIndex);
-        const hiddenEndDate = document.getElementById('hidden_discount_end_date_' + variantIndex);
+        // ============================================
+        // Pricing & Stock Event Handlers
+        // ============================================
 
-        if (checkbox.checked) {
-            discountFields.style.display = 'block';
-            // Enable hidden fields to submit values
-            if (hiddenPriceBefore) hiddenPriceBefore.disabled = false;
-            if (hiddenEndDate) hiddenEndDate.disabled = false;
-            // Sync values
-            syncDiscountFields(variantIndex);
-        } else {
-            discountFields.style.display = 'none';
-            // Clear and disable hidden fields
-            if (hiddenPriceBefore) {
-                hiddenPriceBefore.value = '';
-                hiddenPriceBefore.disabled = true;
+        // Toggle discount fields
+        $(document).on('change', '.has-discount-switch', function() {
+            const $box = $(this).closest('.pricing-stock-box');
+            const $discountFields = $box.find('.discount-fields');
+
+            if ($(this).is(':checked')) {
+                $discountFields.show();
+                console.log('💰 Discount fields shown');
+            } else {
+                $discountFields.hide();
+                $discountFields.find('input').val('');
+                console.log('💰 Discount fields hidden');
             }
-            if (hiddenEndDate) {
-                hiddenEndDate.value = '';
-                hiddenEndDate.disabled = true;
+        });
+
+        // Add stock row
+        $(document).on('click', '.add-stock-row', function() {
+            const $box = $(this).closest('.pricing-stock-box');
+            const containerId = $box.parent().attr('id');
+
+            // Try to get name prefix from price input
+            const $priceInput = $box.find('.price-input');
+            let namePrefix = '';
+
+            if ($priceInput.length > 0) {
+                const priceName = $priceInput.attr('name');
+                // For variants: variants[0][price] -> variants[0]
+                // For simple: price -> empty string
+                if (priceName && priceName.includes('[price]')) {
+                    namePrefix = priceName.replace('[price]', '');
+                }
             }
-        }
-    };
 
-    // Sync visible discount fields with hidden fields
-    window.syncDiscountFields = function(variantIndex) {
-        const priceBeforeInput = document.querySelector(`input[name="variants[${variantIndex}][price_before_discount]"]:not([type="hidden"])`);
-        const endDateInput = document.querySelector(`input[name="variants[${variantIndex}][discount_end_date]"]:not([type="hidden"])`);
-        const hiddenPriceBefore = document.getElementById('hidden_price_before_discount_' + variantIndex);
-        const hiddenEndDate = document.getElementById('hidden_discount_end_date_' + variantIndex);
+            console.log('Add stock row clicked', {containerId, namePrefix});
+            addStockRow(containerId, namePrefix);
+        });
 
-        if (priceBeforeInput && hiddenPriceBefore) {
-            hiddenPriceBefore.value = priceBeforeInput.value;
-        }
-        if (endDateInput && hiddenEndDate) {
-            hiddenEndDate.value = endDateInput.value;
-        }
-    };
+        // Remove stock row
+        $(document).on('click', '.remove-stock-row', function() {
+            const $row = $(this).closest('tr');
+            const $table = $(this).closest('.stock-table');
 
-    // Add event listeners to sync fields when values change
-    $(document).on('input change', '.discount-field', function() {
-        const variantIndex = $(this).data('variant-index');
-        if (variantIndex !== undefined) {
-            syncDiscountFields(variantIndex);
-        }
+            // Don't allow removing if it's the last row
+            if ($table.find('.stock-row').length > 1) {
+                $row.remove();
+                updateTotalQuantity($table);
+                console.log('🗑️ Stock row removed');
+            } else {
+                alert('{{ __("catalogmanagement::product.cannot_remove_last_stock_row") }}');
+            }
+        });
+
+        // Update total quantity when quantity input changes
+        $(document).on('input change', '.quantity-input', function() {
+            const $table = $(this).closest('.stock-table');
+            updateTotalQuantity($table);
+        });
+
+        // ============================================
+        // Variant Event Handlers
+        // ============================================
+
+        // Add variant button
+        $('#add-variant-btn').on('click', function() {
+            addVariantBox();
+        });
+
+        // Remove variant
+        $(document).on('click', '.remove-variant-btn', function() {
+            const $variantBox = $(this).closest('.variant-box');
+            $variantBox.remove();
+
+            // Show empty state if no variants
+            if ($('#variants-container .variant-box').length === 0) {
+                $('#variants-empty-state').show();
+            }
+
+            console.log('🗑️ Variant removed');
+        });
+
+        // Variant key selection
+        $(document).on('change', '.variant-key-select', function() {
+            const keyId = $(this).val();
+            const variantIndex = $(this).closest('.variant-box').data('variant-index');
+
+            if (keyId) {
+                console.log('🔑 Variant key selected:', keyId, 'for variant:', variantIndex);
+                loadVariantsByKey(variantIndex, keyId);
+            } else {
+                // Clear tree if key is deselected
+                $(`#variant-${variantIndex} .variant-tree-container`).hide();
+                $(`#variant-${variantIndex}-pricing-stock`).hide().empty();
+            }
+        });
+
+        // Variant value selection (tree navigation)
+        $(document).on('change', '.variant-value-select', function() {
+            const $select = $(this);
+            const variantId = $select.val();
+            const variantIndex = $select.data('variant-index');
+            const level = $select.data('level');
+
+            // Get the stored key ID
+            const keyId = $(`#variant-${variantIndex}`).data('current-key-id');
+            const $levelsContainer = $(`#variant-${variantIndex} .variant-tree-levels`);
+
+            // Clear all child levels after the current level
+            $levelsContainer.find('.variant-level').each(function() {
+                if (parseInt($(this).data('level')) > level) {
+                    $(this).remove();
+                }
+            });
+
+            // Hide pricing/stock when changing selection
+            $(`#variant-${variantIndex}-pricing-stock`).hide().empty();
+            $(`#variant-${variantIndex} .selected-variant-path`).hide();
+
+            if (!variantId) {
+                console.log('🗑️ Variant deselected at level:', level);
+                return;
+            }
+
+            // Build selected path
+            const selectedPath = [];
+            $(`#variant-${variantIndex} .variant-value-select`).each(function(index) {
+                if (index <= level && $(this).val()) {
+                    const selectedText = $(this).find('option:selected').text();
+                    selectedPath.push(selectedText);
+                }
+            });
+
+            const $selectedOption = $select.find('option:selected');
+            const hasChildren = $selectedOption.data('has-children');
+
+            console.log('🌳 Variant selected:', variantId, 'Has children:', hasChildren);
+
+            if (hasChildren) {
+                // Load children
+                loadChildVariants(variantIndex, variantId, level, selectedPath, keyId);
+            } else {
+                // This is a leaf node - finalize selection
+                finalizeVariantSelection(variantIndex, variantId, selectedPath);
+            }
+        });
+
+        console.log('✅ Product Form Ready');
+        console.log('📍 API Base URL:', config.apiBaseUrl);
     });
 
 })(jQuery);

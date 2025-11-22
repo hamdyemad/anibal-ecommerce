@@ -48,31 +48,40 @@
             iconLoaderUrl: "{{ asset('assets/js/json/icons.json') }}",
             googleMarkerUrl: "{{ asset('assets/img/markar-icon.png') }}",
             editorIconUrl: "{{ asset('assets/img/ui/icons.svg') }}",
-            mapClockIcon: "{{ asset('assets/img/svg/clock-ticket1.sv') }}g"
+            mapClockIcon: "{{ asset('assets/img/svg/clock-ticket1.svg') }}"
         }
     </script>
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDduF2tLXicDEPDMAtC6-NLOekX0A5vlnY"></script>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
     <script src="{{ asset('assets/js/plugins.min.js') }}"></script>
+    <script src="{{ asset('assets/js/select2.min.js') }}"></script>
 
-    {{-- Add stub functions for missing plugins to prevent console errors --}}
+
+    {{-- Add stub functions AFTER jQuery and Select2 load but BEFORE other scripts --}}
     <script>
         // Prevent errors for optional plugins that script.min.js might try to initialize
-        if (typeof jQuery !== 'undefined') {
-            // Add stub for sortable if not loaded
-            if (!jQuery.fn.sortable) {
-                jQuery.fn.sortable = function() {
+        $(document).ready(function() {
+            // Better stubs that return chainable objects
+            if (!$.fn.sortable) {
+                $.fn.sortable = function() {
+                    console.warn('Sortable not loaded, using stub');
+                    return this; // Return this for chaining
+                };
+            }
+            if (!$.fn.footable) {
+                $.fn.footable = function() {
+                    console.warn('Footable not loaded, using stub');
                     return this;
                 };
             }
-            // Add stub for footable if not loaded
-            if (!jQuery.fn.footable) {
-                jQuery.fn.footable = function() {
+            // Add disableSelection stub for sortable chaining
+            if (!$.fn.disableSelection) {
+                $.fn.disableSelection = function() {
+                    console.warn('disableSelection not loaded, using stub');
                     return this;
                 };
             }
-        }
+        });
     </script>
 
     <script src="{{ asset('assets/js/script.min.js') }}"></script>
@@ -87,40 +96,6 @@
     @vite('resources/js/app.js')
 
     <script>
-        // Wait for everything to load, then dynamically load select2
-        window.addEventListener('load', function() {
-            console.log('Page fully loaded');
-            console.log('jQuery available:', typeof $ !== 'undefined');
-
-            // Dynamically load select2
-            var select2Script = document.createElement('script');
-            select2Script.src = 'https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js';
-            select2Script.onload = function() {
-                console.log('Select2 script loaded');
-                console.log('Select2 loaded:', typeof $.fn.select2 !== 'undefined');
-                console.log('Select2 elements found:', $('.select2').length);
-
-                // Initialize all select2 elements
-                if (typeof $.fn.select2 !== 'undefined') {
-                    $('.select2').each(function() {
-                        $(this).select2({
-                            theme: 'bootstrap-5',
-                            width: '100%',
-                            placeholder: $(this).data('placeholder') || 'Select an option',
-                            allowClear: true
-                        });
-                    });
-                    console.log('Select2 initialized successfully');
-                } else {
-                    console.error('Select2 is not loaded!');
-                }
-            };
-            select2Script.onerror = function() {
-                console.error('Failed to load Select2 script');
-            };
-            document.head.appendChild(select2Script);
-        });
-
         // Configure Toastr options to match login page
         toastr.options = {
             "closeButton": true,
@@ -182,7 +157,10 @@
             toastr.warning("{{ session('warning') }}", 'Warning');
         @endif
 
-
+        $('.select2').select2({
+            theme: 'bootstrap-5',
+            width: '100%',
+        });
     </script>
 
     <!-- CKEditor Initialization -->
@@ -190,28 +168,18 @@
         document.addEventListener('DOMContentLoaded', function() {
             // Wait for CKEditor to be available
             if (typeof CKEDITOR === 'undefined') {
-                console.error('CKEditor is not loaded from CDN');
                 return;
             }
-
-            console.log('CKEditor loaded successfully from CDN');
-
             // Wait a bit more for DOM to be fully ready
             setTimeout(function() {
                 // Initialize CKEditor for ALL textareas
                 const textareas = document.querySelectorAll('textarea');
-                console.log('Found textareas:', textareas.length);
-
                 textareas.forEach(function(textarea, index) {
                     // Skip if no ID or already initialized
                     if (!textarea.id || CKEDITOR.instances[textarea.id]) {
-                        console.log('Skipping textarea:', textarea.id || 'no-id');
                         return;
                     }
-
                     const isRTL = textarea.getAttribute('dir') === 'rtl';
-                    console.log('Initializing CKEditor for:', textarea.id, 'RTL:', isRTL);
-
                     try {
                         CKEDITOR.replace(textarea.id, {
                             language: 'en', // Use English to avoid missing language files
@@ -238,8 +206,6 @@
                             shiftEnterMode: CKEDITOR.ENTER_P,
                             on: {
                                 instanceReady: function(evt) {
-                                    console.log('CKEditor instance ready:', evt.editor
-                                        .name);
                                     // Set RTL direction after editor is ready
                                     if (isRTL) {
                                         evt.editor.document.getBody().setStyle(
@@ -254,8 +220,6 @@
                         console.error('Error initializing CKEditor for', textarea.id, ':', error);
                     }
                 });
-
-                console.log('CKEditor initialization completed');
             }, 500); // Wait 500ms for DOM to be fully ready
         });
     </script>
