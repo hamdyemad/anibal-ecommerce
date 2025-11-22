@@ -48,6 +48,11 @@ class CustomerServiceProvider extends ServiceProvider
             \Modules\Customer\app\Repositories\Api\CustomerApiRepository::class
         );
 
+        $this->app->bind(
+            \Modules\Customer\app\Interfaces\Api\CustomerAddressRepositoryInterface::class,
+            \Modules\Customer\app\Repositories\Api\CustomerAddressRepository::class
+        );
+
         // Register Action bindings (singleton for better performance)
         $this->app->singleton(
             \Modules\Customer\app\Actions\ValidateOtpAction::class,

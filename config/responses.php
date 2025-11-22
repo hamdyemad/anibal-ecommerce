@@ -423,4 +423,24 @@ return [
         "en" => "Current password is incorrect",
         "ar" => "كلمة المرور القديمة غير صحيحة"
     ],
+    "address_created" => [
+        "en" => "Address created successfully",
+        "ar" => "تم إنشاء العنوان بنجاح"
+    ],
+    "address_updated" => [
+        "en" => "Address updated successfully",
+        "ar" => "تم تحديث العنوان بنجاح"
+    ],
+    "addresses_retrieved" => [
+        "en" => "Addresses retrieved successfully",
+        "ar" => "تم استرجاع العناوين بنجاح"
+    ],
+    "address_retrieved" => [
+        "en" => "Address retrieved successfully",
+        "ar" => "تم استرجاع العنوان بنجاح"
+    ],
+    "address_deleted" => [
+        "en" => "Address deleted successfully",
+        "ar" => "تم حذف العنوان بنجاح"
+    ],
 ];

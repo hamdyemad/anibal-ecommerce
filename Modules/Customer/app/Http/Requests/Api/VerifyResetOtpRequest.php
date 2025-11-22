@@ -18,16 +18,4 @@ class VerifyResetOtpRequest extends FormRequest
             'otp' => 'required|string|size:6|regex:/^\d{6}$/',
         ];
     }
-
-    public function messages(): array
-    {
-        return [
-            'email.required' => 'Email is required',
-            'email.email' => 'Email must be valid',
-            'email.exists' => 'Email not found',
-            'otp.required' => 'OTP is required',
-            'otp.size' => 'OTP must be exactly 6 digits',
-            'otp.regex' => 'OTP must contain only numbers',
-        ];
-    }
 }

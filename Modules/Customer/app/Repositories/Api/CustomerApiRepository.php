@@ -7,6 +7,7 @@ use Modules\Customer\app\Interfaces\Api\CustomerApiRepositoryInterface;
 use Modules\Customer\app\Models\Customer;
 use Modules\Customer\app\Models\CustomerOtp;
 use Modules\Customer\app\Models\CustomerPasswordResetToken;
+use Modules\Customer\app\Models\CustomerAddress;
 use Modules\Customer\app\Events\OtpCreated;
 use Illuminate\Support\Str;
 use Laravel\Sanctum\PersonalAccessToken;

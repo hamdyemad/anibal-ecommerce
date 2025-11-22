@@ -8,7 +8,7 @@ use Illuminate\Http\Request;
 use Modules\Customer\app\Http\Requests\Api\UpdateProfileRequest;
 use Modules\Customer\Transformers\CustomerApiResource;
 use Modules\Customer\app\Services\Api\CustomerApiService;
-use Modules\Customer\Http\Requests\ChangeLanguageRequest;
+use Modules\Customer\app\Http\Requests\Api\ChangeLanguageRequest;
 
 class CustomerApiController extends Controller
 {

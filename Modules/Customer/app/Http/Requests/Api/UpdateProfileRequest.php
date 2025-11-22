@@ -28,16 +28,4 @@ class UpdateProfileRequest extends FormRequest
             'new_password' => 'sometimes|string|min:8|confirmed',
         ];
     }
-
-    /**
-     * Get custom messages for validator errors.
-     */
-    public function messages(): array
-    {
-        return [
-            'current_password.required' => 'Current password is required',
-            'new_password.min' => 'New password must be at least 8 characters',
-            'new_password.confirmed' => 'Password confirmation does not match',
-        ];
-    }
 }

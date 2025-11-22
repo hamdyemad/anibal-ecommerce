@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use Modules\Customer\app\Http\Controllers\Api\CustomerApiController;
 use Modules\Customer\app\Http\Controllers\Api\CustomerAuthController;
+use Modules\Customer\app\Http\Controllers\Api\CustomerAddressController;
 
 // Auth routes (no authentication required)
 Route::prefix('auth')->group(function () {
@@ -29,4 +30,12 @@ Route::middleware(['auth:sanctum', 'check.customer.auth'])->prefix('auth')->grou
     Route::get('profile', [CustomerApiController::class, 'profile']);
     Route::post('update-profile', [CustomerApiController::class, 'updateProfile']);
     Route::post('change-language', [CustomerApiController::class, 'changeLanguage']);
+});
+
+// Address routes (authentication required)
+Route::middleware(['auth:sanctum', 'check.customer.auth'])->prefix('addresses')->group(function () {
+    Route::post('', [CustomerAddressController::class, 'store']);
+    Route::get('', [CustomerAddressController::class, 'index']);
+    Route::get('{addressId}', [CustomerAddressController::class, 'show']);
+    Route::post('{addressId}', [CustomerAddressController::class, 'update']);
 });

@@ -18,13 +18,13 @@ class AddressResource extends JsonResource
             "title" => $this->title,
             "address" => $this->address,
             "postal_code" => $this->postal_code,
-            "latitude" => $this->latitude,
-            "longitude" => $this->longitude,
+            // "latitude" => $this->latitude,
+            // "longitude" => $this->longitude,
             "is_primary" => $this->is_primary,
             "country" => CountryResource::make($this->country),
             "city" => $this->city->getTranslation('name', app()->getLocale()),
             "region" => $this->region->getTranslation('name', app()->getLocale()),
-            "subregion" => $this->subregion->getTranslation('name', app()->getLocale()),
+            "subregion" => $this->subregion?->getTranslation('name', app()->getLocale()),
         ];
     }
 }

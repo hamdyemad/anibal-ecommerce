@@ -20,14 +20,4 @@ class LoginRequest extends FormRequest
             'device_id' => 'nullable|string|uuid',
         ];
     }
-
-    public function messages(): array
-    {
-        return [
-            'email.required' => 'Email is required',
-            'email.email' => 'Email must be a valid email address',
-            'email.exists' => 'Email not found',
-            'password.required' => 'Password is required',
-        ];
-    }
 }

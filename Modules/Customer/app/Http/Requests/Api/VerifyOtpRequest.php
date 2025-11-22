@@ -19,16 +19,4 @@ class VerifyOtpRequest extends FormRequest
             'fcm_token' => 'sometimes|string|max:255',
         ];
     }
-
-    public function messages(): array
-    {
-        return [
-            'email.required' => 'Email is required',
-            'email.email' => 'Email must be valid',
-            'email.exists' => 'Email not found',
-            'otp.required' => 'OTP is required',
-            'otp.size' => 'OTP must be exactly 6 digits',
-            'otp.regex' => 'OTP must contain only numbers',
-        ];
-    }
 }

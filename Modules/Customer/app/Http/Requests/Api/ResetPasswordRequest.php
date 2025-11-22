@@ -21,17 +21,4 @@ class ResetPasswordRequest extends FormRequest
             'device_id' => 'nullable|string|uuid',
         ];
     }
-
-    public function messages(): array
-    {
-        return [
-            'email.required' => 'Email is required',
-            'email.email' => 'Email must be valid',
-            'email.exists' => 'Email not found',
-            'reset_token.required' => 'Reset token is required',
-            'new_password.required' => 'Password is required',
-            'new_password.min' => 'Password must be at least 8 characters',
-            'new_password.confirmed' => 'Password confirmation does not match',
-        ];
-    }
 }

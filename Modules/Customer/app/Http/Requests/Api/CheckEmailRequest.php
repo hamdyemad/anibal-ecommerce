@@ -17,13 +17,4 @@ class CheckEmailRequest extends FormRequest
             'email' => 'required|email|exists:customers,email',
         ];
     }
-
-    public function messages(): array
-    {
-        return [
-            'email.required' => 'Email is required',
-            'email.email' => 'Email must be a valid email address',
-            'email.exists' => 'Email not found in our records',
-        ];
-    }
 }
