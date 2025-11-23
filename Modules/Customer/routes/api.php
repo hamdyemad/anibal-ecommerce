@@ -1,0 +1,41 @@
+<?php
+
+use Illuminate\Support\Facades\Route;
+use Modules\Customer\app\Http\Controllers\Api\CustomerApiController;
+use Modules\Customer\app\Http\Controllers\Api\CustomerAuthController;
+use Modules\Customer\app\Http\Controllers\Api\CustomerAddressController;
+
+// Auth routes (no authentication required)
+Route::prefix('auth')->group(function () {
+    // Registration flow
+    Route::post('register', [CustomerAuthController::class, 'register']);
+    Route::post('verify-otp', [CustomerAuthController::class, 'verifyOtp']);
+    Route::post('resend-otp', [CustomerAuthController::class, 'resendOtp']);
+    Route::post('refresh', [CustomerAuthController::class, 'refresh']);
+
+
+    // Login
+    Route::post('login', [CustomerAuthController::class, 'login']);
+
+    // Password reset flow
+    Route::post('request-password-reset', [CustomerAuthController::class, 'requestPasswordReset']);
+    Route::post('verify-reset-otp', [CustomerAuthController::class, 'verifyPasswordResetOtp']);
+    Route::post('reset-password', [CustomerAuthController::class, 'resetPassword']);
+});
+
+// Protected routes (authentication required)
+Route::middleware(['auth:sanctum', 'check.customer.auth'])->prefix('auth')->group(function () {
+    Route::post('logout', [CustomerAuthController::class, 'logout']);
+    Route::post('logout-devices', [CustomerAuthController::class, 'logoutDevices']);
+    Route::get('profile', [CustomerApiController::class, 'profile']);
+    Route::post('update-profile', [CustomerApiController::class, 'updateProfile']);
+    Route::post('change-language', [CustomerApiController::class, 'changeLanguage']);
+});
+
+// Address routes (authentication required)
+Route::middleware(['auth:sanctum', 'check.customer.auth'])->prefix('addresses')->group(function () {
+    Route::post('', [CustomerAddressController::class, 'store']);
+    Route::get('', [CustomerAddressController::class, 'index']);
+    Route::get('{addressId}', [CustomerAddressController::class, 'show']);
+    Route::post('{addressId}', [CustomerAddressController::class, 'update']);
+});

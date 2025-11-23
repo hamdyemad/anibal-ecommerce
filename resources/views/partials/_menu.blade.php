@@ -213,7 +213,7 @@
                                 <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive('admin.category-management.activities.index', $currentRoute) ? 'active' : '' }}"
                                     href="{{ route('admin.category-management.activities.index') }}">
                                     {{ trans('menu.activities.title') }}
-                                    <span class="badge badge-round badge-secondary ms-1">8</span>
+                                    <span class="badge badge-round badge-primary ms-1">8</span>
                                 </a>
                             </li>
                         @endcan
@@ -233,7 +233,7 @@
                                 <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive('admin.category-management.categories.index', $currentRoute) ? 'active' : '' }}"
                                     href="{{ route('admin.category-management.categories.index') }}">
                                     {{ trans('menu.category managment.main category') }}
-                                    <span class="badge badge-round badge-info ms-1">25</span>
+                                    <span class="badge badge-round badge-primary ms-1">25</span>
                                 </a>
                             </li>
                         @endcan
@@ -243,7 +243,7 @@
                                 <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive('admin.category-management.subcategories.index', $currentRoute) ? 'active' : '' }}"
                                     href="{{ route('admin.category-management.subcategories.index') }}">
                                     {{ trans('menu.category managment.sub category') }}
-                                    <span class="badge badge-round badge-success ms-1">45</span>
+                                    <span class="badge badge-round badge-primary ms-1">45</span>
                                 </a>
                             </li>
                         @endcan
@@ -294,14 +294,14 @@
                         <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive('admin.variant-keys.index', $currentRoute) ? 'active' : '' }}"
                             href="{{ route('admin.variant-keys.index') }}">
                             {{ trans('menu.variant configurations.variant config keys') }}
-                            <span class="badge badge-round badge-info ms-1">20</span>
+                            <span class="badge badge-round badge-primary ms-1">20</span>
                         </a>
                     </li>
                     <li>
                         <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive('admin.variants-configurations.index', $currentRoute) ? 'active' : '' }}"
                             href="{{ route('admin.variants-configurations.index') }}">
                             {{ trans('menu.variant configurations.variant config') }}
-                            <span class="badge badge-round badge-success ms-1">10</span>
+                            <span class="badge badge-round badge-primary ms-1">10</span>
                         </a>
                     </li>
                 @endcanany
@@ -328,14 +328,14 @@
                         <a class="d-flex align-items-center justify-content-between fw-bold"
                             href="{{ route('admin.dashboard') }}">
                             {{ trans('menu.product reviews.accepted') }}
-                            <span class="badge badge-round badge-success ms-1">120</span>
+                            <span class="badge badge-round badge-primary ms-1">120</span>
                         </a>
                     </li>
                     <li>
                         <a class="d-flex align-items-center justify-content-between fw-bold"
                             href="{{ route('admin.dashboard') }}">
                             {{ trans('menu.product reviews.rejected') }}
-                            <span class="badge badge-round badge-danger ms-1">30</span>
+                            <span class="badge badge-round badge-primary ms-1">30</span>
                         </a>
                     </li>
                 </ul>
@@ -358,7 +358,7 @@
                                 <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive(['admin.taxes.index', 'admin.taxes.show', 'admin.taxes.edit'], $currentRoute) ? 'active' : '' }}"
                                     href="{{ route('admin.taxes.index') }}">
                                     {{ trans('menu.taxes.all') }}
-                                    <span class="badge badge-round badge-info ms-1">12</span>
+                                    <span class="badge badge-round badge-primary ms-1">12</span>
                                 </a>
                             </li>
                         @endcan
@@ -416,7 +416,7 @@
                             <span class="nav-icon uil uil-ticket"></span>
                             <span class="menu-text">{{ trans('menu.brands.title') }}</span>
                         </span>
-                        <span class="badge badge-round badge-success ms-1">20</span>
+                        <span class="badge badge-round badge-primary  ms-1">20</span>
                     </span>
                 </a>
             </li>
@@ -431,7 +431,7 @@
                                 <span class="nav-icon uil uil-ticket"></span>
                                 <span class="menu-text">{{ trans('menu.promocodes.title') }}</span>
                             </span>
-                            <span class="badge badge-round badge-success ms-1">50</span>
+                            <span class="badge badge-round badge-primary  ms-1">50</span>
                         </span>
                     </a>
                 </li>
@@ -487,7 +487,7 @@
                                 <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive(['admin.vendors.index', 'admin.vendors.show', 'admin.vendors.edit'], $currentRoute) ? 'active' : '' }}"
                                     href="{{ route('admin.vendors.index') }}">
                                     {{ trans('menu.vendors.all') }}
-                                    <span class="badge badge-round badge-success ms-1">50</span>
+                                    <span class="badge badge-round badge-primary  ms-1">50</span>
                                 </a>
                             </li>
                         @endcan
@@ -504,33 +504,53 @@
                 </li>
             @endcanany
 
+            @can('customers.index')
+                <li class="has-child {{ Request::is(LaravelLocalization::getCurrentLocale() . '/admin/customers*') ? 'open' : '' }}">
+                    <a href="#"
+                        class="{{ Request::is(LaravelLocalization::getCurrentLocale() . '/admin/customers*') ? 'active' : '' }}">
+                        <span class="nav-icon uil uil-users"></span>
+                        <span class="menu-text">{{ trans('menu.customers.title') }}</span>
+                        <span class="toggle-icon"></span>
+                    </a>
+                    <ul class="px-0">
+                        <li>
+                            <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive('admin.customers.index', $currentRoute) ? 'active' : '' }}"
+                                href="{{ route('admin.customers.index') }}">
+                                {{ trans('menu.customers.all') }}
+                                <span class="badge badge-round badge-primary ms-1">{{ \Modules\Customer\app\Models\Customer::count() }}</span>
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+            @endcan
+
             @can('vendor_requests.new')
-                <li class="has-child">
-                    <a href="#" class="">
+                <li class="has-child {{ Request::is(LaravelLocalization::getCurrentLocale() . '/admin/vendor-requests*') ? 'open' : '' }}">
+                    <a href="#" class="{{ Request::is(LaravelLocalization::getCurrentLocale() . '/admin/vendor-requests*') ? 'active' : '' }}">
                         <span class="nav-icon uil uil-clipboard-notes"></span>
                         <span class="menu-text">{{ trans('menu.become a vendor requests.title') }}</span>
                         <span class="toggle-icon"></span>
                     </a>
                     <ul class="px-0">
                         <li>
-                            <a class="d-flex align-items-center justify-content-between fw-bold"
-                                href="{{ route('admin.dashboard') }}">
+                            <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive('admin.vendor-requests.index', $currentRoute) && !request()->has('status') ? 'active' : '' }}"
+                                href="{{ route('admin.vendor-requests.index') }}">
                                 {{ trans('menu.become a vendor requests.new') }}
-                                <span class="badge badge-round badge-primary ms-1">50</span>
+                                <span class="badge badge-round badge-primary ms-1">{{ \Modules\Vendor\app\Models\VendorRequest::pending()->count() }}</span>
                             </a>
                         </li>
                         <li>
-                            <a class="d-flex align-items-center justify-content-between fw-bold"
-                                href="{{ route('admin.dashboard') }}">
+                            <a class="d-flex align-items-center justify-content-between fw-bold {{ request()->get('status') === 'approved' ? 'active' : '' }}"
+                                href="{{ route('admin.vendor-requests.index') }}?status=approved">
                                 {{ trans('menu.become a vendor requests.accepted') }}
-                                <span class="badge badge-round badge-success ms-1">50</span>
+                                <span class="badge badge-round badge-primary ms-1">{{ \Modules\Vendor\app\Models\VendorRequest::approved()->count() }}</span>
                             </a>
                         </li>
                         <li>
-                            <a class="d-flex align-items-center justify-content-between fw-bold"
-                                href="{{ route('admin.dashboard') }}">
+                            <a class="d-flex align-items-center justify-content-between fw-bold {{ request()->get('status') === 'rejected' ? 'active' : '' }}"
+                                href="{{ route('admin.vendor-requests.index') }}?status=rejected">
                                 {{ trans('menu.become a vendor requests.rejected') }}
-                                <span class="badge badge-round badge-danger ms-1">50</span>
+                                <span class="badge badge-round badge-primary ms-1">{{ \Modules\Vendor\app\Models\VendorRequest::rejected()->count() }}</span>
                             </a>
                         </li>
                     </ul>
@@ -555,35 +575,35 @@
                     <a class="d-flex align-items-center justify-content-between fw-bold"
                         href="{{ route('admin.dashboard') }}">
                         {{ trans('menu.orders.new') }}
-                        <span class="badge badge-round badge-success ms-1">50</span>
+                        <span class="badge badge-round badge-primary  ms-1">50</span>
                     </a>
                 </li>
                 <li class="l_sidebar">
                     <a class="d-flex align-items-center justify-content-between fw-bold"
                         href="{{ route('admin.dashboard') }}">
                         {{ trans('menu.orders.inprogress') }}
-                        <span class="badge badge-round badge-success ms-1">50</span>
+                        <span class="badge badge-round badge-primary  ms-1">50</span>
                     </a>
                 </li>
                 <li class="l_sidebar">
                     <a class="d-flex align-items-center justify-content-between fw-bold"
                         href="{{ route('admin.dashboard') }}">
                         {{ trans('menu.orders.delivered') }}
-                        <span class="badge badge-round badge-success ms-1">50</span>
+                        <span class="badge badge-round badge-primary  ms-1">50</span>
                     </a>
                 </li>
                 <li class="l_sidebar">
                     <a class="d-flex align-items-center justify-content-between fw-bold"
                         href="{{ route('admin.dashboard') }}">
                         {{ trans('menu.orders.canceled') }}
-                        <span class="badge badge-round badge-success ms-1">50</span>
+                        <span class="badge badge-round badge-primary  ms-1">50</span>
                     </a>
                 </li>
                 <li class="l_sidebar">
                     <a class="d-flex align-items-center justify-content-between fw-bold"
                         href="{{ route('admin.dashboard') }}">
                         {{ trans('menu.orders.refunded') }}
-                        <span class="badge badge-success badge-round ms-1">50</span>
+                        <span class="badge badge-primary  badge-round ms-1">50</span>
                     </a>
                 </li>
             </ul>
@@ -597,7 +617,7 @@
                         <span class="nav-icon uil uil-process"></span>
                         <span class="menu-text">{{ trans('menu.orders.order stages') }}</span>
                     </span>
-                    <span class="badge badge-success badge-round ms-1">500</span>
+                    <span class="badge badge-primary  badge-round ms-1">500</span>
                 </span>
             </a>
         </li>
@@ -611,7 +631,7 @@
                                 <span class="nav-icon uil uil-truck"></span>
                                 <span class="menu-text">{{ trans('menu.orders.shipping methods') }}</span>
                             </span>
-                            <span class="badge badge-round badge-success ms-1">50</span>
+                            <span class="badge badge-round badge-primary  ms-1">50</span>
                         </span>
                     </a>
                 </li>
@@ -635,14 +655,14 @@
                             <a class="d-flex align-items-center justify-content-between fw-bold"
                                 href="{{ route('admin.dashboard') }}">
                                 {{ trans('menu.point managment.title') }}
-                                {{-- <span class="badge badge-round badge-success ms-1">50</span> --}}
+                                {{-- <span class="badge badge-round badge-primary  ms-1">50</span> --}}
                             </a>
                         </li>
                         <li>
                             <a class="d-flex align-items-center justify-content-between fw-bold"
                                 href="{{ route('admin.dashboard') }}">
                                 {{ trans('menu.point managment.users points') }}
-                                {{-- <span class="badge badge-round badge-success ms-1">50</span> --}}
+                                {{-- <span class="badge badge-round badge-primary  ms-1">50</span> --}}
                             </a>
                         </li>
                     </ul>
@@ -662,14 +682,14 @@
                             <a class="d-flex align-items-center justify-content-between fw-bold"
                                 href="{{ route('admin.dashboard') }}">
                                 {{ trans('menu.advertisements.title') }}
-                                <span class="badge badge-round badge-success ms-1">50</span>
+                                <span class="badge badge-round badge-primary  ms-1">50</span>
                             </a>
                         </li>
                         <li>
                             <a class="d-flex align-items-center justify-content-between fw-bold"
                                 href="{{ route('admin.dashboard') }}">
                                 {{ trans('menu.advertisements.positions') }}
-                                <span class="badge badge-round badge-success ms-1">50</span>
+                                <span class="badge badge-round badge-primary  ms-1">50</span>
                             </a>
                         </li>
                     </ul>
@@ -776,7 +796,7 @@
                                 <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive(['admin.area-settings.countries.index', 'admin.area-settings.countries.create', 'admin.area-settings.countries.show', 'admin.area-settings.countries.edit'], $currentRoute) ? 'active' : '' }}"
                                     href="{{ route('admin.area-settings.countries.index') }}">
                                     {{ trans('menu.area settings.country') }}
-                                    <span class="badge badge-round badge-success ms-1">15</span>
+                                    <span class="badge badge-round badge-primary  ms-1">15</span>
                                 </a>
                             </li>
                         @endcan

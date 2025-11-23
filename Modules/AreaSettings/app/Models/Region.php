@@ -71,6 +71,8 @@ class Region extends Model
                 $q->where('id', $filters['city_id']);
             });
         }
+
+        return $query;
     }
     // End Scopes
 }

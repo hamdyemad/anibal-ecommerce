@@ -1,8 +1,9 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use Modules\Vendor\app\Http\Controllers\VendorController;
+use Modules\Vendor\app\Http\Controllers\Api\VendorApiController;
 
-Route::middleware(['auth:sanctum'])->prefix('v1')->group(function () {
-    Route::apiResource('vendors', VendorController::class)->names('vendor');
-});
+Route::apiResource('vendors', VendorApiController::class);
+
+// Vendor request endpoint
+Route::post('vendor-request', [VendorApiController::class, 'vendorRequest']);

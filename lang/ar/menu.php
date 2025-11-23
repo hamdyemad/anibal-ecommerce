@@ -9,6 +9,10 @@
             'all' => 'الكل',
             'create' => 'إضافة',
         ],
+        'customers' => [
+            'title' => 'العملاء',
+            'all' => 'جميع العملاء',
+        ],
         'become a vendor requests' => [
             'title' => 'طلبات أن تصبح مورد',
             'new' => 'جديد',

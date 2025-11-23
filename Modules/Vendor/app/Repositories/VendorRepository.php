@@ -71,7 +71,6 @@ class VendorRepository implements VendorInterface
                 'country_id' => $data['country_id'],
                 'type' => $data['type'],
                 'active' => $data['active'] ?? false,
-                'slug' => 'temp-vendor-' . Str::random(8), // Temporary slug to avoid SQL error
             ]);
             // Handle logo upload
             if (isset($data['logo'])) {
@@ -106,11 +105,6 @@ class VendorRepository implements VendorInterface
 
             // Store translations
             $this->storeTranslations($vendor, $data);
-
-            // Generate proper slug after translations are saved
-            $vendor->refresh(); // Refresh to get the latest translations
-            $newSlug = $vendor->createSlug();
-            $vendor->update(['slug' => $newSlug]);
 
             // Handle documents
             if (!empty($data['documents'])) {
@@ -197,13 +191,6 @@ class VendorRepository implements VendorInterface
 
             // Update translations
             $this->storeTranslations($vendor, $data);
-
-            // Regenerate slug after translations are updated
-            $vendor->refresh(); // Refresh to get the latest translations
-            $newSlug = $vendor->createSlug();
-            if ($newSlug !== $vendor->slug) {
-                $vendor->update(['slug' => $newSlug]);
-            }
 
             // Handle documents
             if (!empty($data['documents'])) {

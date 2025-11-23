@@ -1,0 +1,423 @@
+@extends('layout.app')
+@section('title')
+    Customers | ERAMO Store
+@endsection
+
+@section('content')
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-lg-12">
+                <x-breadcrumb :items="[
+                    [
+                        'title' => trans('dashboard.title'),
+                        'url' => route('admin.dashboard'),
+                        'icon' => 'uil uil-estate',
+                    ],
+                    ['title' => __('customer.customers_management')],
+                ]" />
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="userDatatable global-shadow border-light-0 p-30 bg-white radius-xl w-100 mb-30">
+                    <div class="d-flex justify-content-between align-items-center mb-25">
+                        <h4 class="mb-0 fw-500">{{ __('customer.customers_management') }}</h4>
+                    </div>
+
+                    <!-- Info Alert -->
+                    <div class="alert alert-info glowing-alert" role="alert">
+                        <i class="uil uil-lightbulb-alt me-1"></i>
+                        {{ __('common.live_search_info') }}
+                    </div>
+
+                    {{-- Search & Filters --}}
+                    <div class="mb-25">
+                        <div class="card border-0 shadow-sm">
+                            <div class="card-body">
+                                <div class="row g-3 align-items-end">
+
+                                    {{-- Search --}}
+                                    <div class="col-md-4">
+                                        <div class="form-group">
+                                            <label for="search" class="il-gray fs-14 fw-500 mb-10">
+                                                <i class="uil uil-search me-1"></i> {{ __('common.search') }}
+                                            </label>
+                                            <input type="text"
+                                                class="form-control ih-medium ip-gray radius-xs b-light px-15"
+                                                id="search"
+                                                placeholder="{{ __('customer.search_placeholder') }}"
+                                                autocomplete="off">
+                                        </div>
+                                    </div>
+
+                                    {{-- Status --}}
+                                    <div class="col-md-4">
+                                        <div class="form-group">
+                                            <label for="active" class="il-gray fs-14 fw-500 mb-10">
+                                                <i class="uil uil-check-circle me-1"></i>
+                                                {{ __('customer.status') }}
+                                            </label>
+                                            <select
+                                                class="form-control ih-medium ip-gray radius-xs b-light px-15 form-select"
+                                                id="active">
+                                                <option value="">{{ __('customer.all_status') }}</option>
+                                                <option value="1">{{ __('customer.active') }}</option>
+                                                <option value="0">{{ __('customer.inactive') }}</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    {{-- Email Verified --}}
+                                    <div class="col-md-4">
+                                        <div class="form-group">
+                                            <label for="email_verified" class="il-gray fs-14 fw-500 mb-10">
+                                                <i class="uil uil-envelope-check me-1"></i>
+                                                {{ __('customer.email_verified') }}
+                                            </label>
+                                            <select
+                                                class="form-control ih-medium ip-gray radius-xs b-light px-15 form-select"
+                                                id="email_verified">
+                                                <option value="">{{ __('customer.all') }}</option>
+                                                <option value="1">{{ __('customer.verified') }}</option>
+                                                <option value="0">{{ __('customer.not_verified') }}</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    {{-- Created Date From --}}
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="created_date_from" class="il-gray fs-14 fw-500 mb-10">
+                                                <i class="uil uil-calendar-alt me-1"></i>
+                                                {{ __('common.created_date_from') }}
+                                            </label>
+                                            <input type="date"
+                                                class="form-control ih-medium ip-gray radius-xs b-light px-15"
+                                                id="created_date_from">
+                                        </div>
+                                    </div>
+
+                                    {{-- Created Date To --}}
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="created_date_to" class="il-gray fs-14 fw-500 mb-10">
+                                                <i class="uil uil-calendar-alt me-1"></i>
+                                                {{ __('common.created_date_to') }}
+                                            </label>
+                                            <input type="date"
+                                                class="form-control ih-medium ip-gray radius-xs b-light px-15"
+                                                id="created_date_to">
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-12 d-flex align-items-center gap-2">
+                                        <button type="button" id="exportExcel"
+                                            class="btn btn-primary btn-default btn-squared grow"
+                                            title="{{ __('common.excel') }}">
+                                            <i class="uil uil-file-download-alt me-1"></i> {{ __('common.export_excel') }}
+                                        </button>
+                                        <button type="button" id="resetFilters"
+                                            class="btn btn-warning btn-default btn-squared grow"
+                                            title="{{ __('common.reset') }}">
+                                            <i class="uil uil-redo me-1"></i>
+                                            {{ __('common.reset_filters') }}
+                                        </button>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Entries Per Page --}}
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div class="d-flex align-items-center">
+                            <label class="me-2 mb-0">{{ __('common.show') }}</label>
+                            <select id="entriesSelect" class="form-select form-select-sm" style="width: auto;">
+                                <option value="10">10</option>
+                                <option value="25">25</option>
+                                <option value="50">50</option>
+                                <option value="100">100</option>
+                            </select>
+                            <label class="ms-2 mb-0">{{ __('common.entries') }}</label>
+                        </div>
+                    </div>
+
+                    {{-- DataTable --}}
+                    <div class="table-responsive">
+                        <table id="customersDataTable" class="table mb-0 table-bordered table-hover" style="width:100%">
+                            <thead>
+                                <tr class="userDatatable-header">
+                                    <th class="text-center"><span class="userDatatable-title">#</span></th>
+                                    <th><span class="userDatatable-title">{{ __('customer.full_name') }}</span></th>
+                                    <th><span class="userDatatable-title">{{ __('customer.email') }}</span></th>
+                                    <th><span class="userDatatable-title">{{ __('customer.phone') }}</span></th>
+                                    <th><span class="userDatatable-title">{{ __('customer.status') }}</span></th>
+                                    <th><span class="userDatatable-title">{{ __('customer.email_verified') }}</span></th>
+                                    <th><span class="userDatatable-title">{{ __('customer.created_at') }}</span></th>
+                                    <th><span class="userDatatable-title">{{ __('common.actions') }}</span></th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- Delete Confirmation Modal --}}
+    <x-delete-modal modalId="modal-delete-customer" :title="__('customer.confirm_delete')" :message="__('customer.delete_confirmation')" itemNameId="delete-customer-name"
+        confirmBtnId="confirmDeleteCustomerBtn" :deleteRoute="route('admin.customers.index')" :cancelText="__('customer.cancel')" :deleteText="__('customer.delete_customer')" />
+@endsection
+
+@push('after-body')
+    <x-loading-overlay />
+@endpush
+
+@push('scripts')
+    <script>
+        $(document).ready(function() {
+            console.log('Customers page loaded, initializing DataTable...');
+
+            let per_page = 10;
+            let table = $('#customersDataTable').DataTable({
+                processing: true,
+                serverSide: true,
+                ajax: {
+                    url: '{{ route('admin.customers.datatable') }}',
+                    type: 'GET',
+                    data: function(d) {
+                        d.per_page = d.length;
+                        d.page = (d.start / d.length) + 1;
+                        d.active = $('#active').val();
+                        d.email_verified = $('#email_verified').val();
+                        d.search = $('#search').val();
+                        d.created_date_from = $('#created_date_from').val();
+                        d.created_date_to = $('#created_date_to').val();
+                        if (d.order && d.order.length > 0) {
+                            d.order_column = d.order[0].column;
+                            d.order_dir = d.order[0].dir;
+                        }
+                        console.log('📤 Sending request:', d);
+                        return d;
+                    },
+                    dataSrc: function(json) {
+                        console.log('📦 Data received from server:', json);
+                        json.recordsTotal = json.total || json.recordsTotal || 0;
+                        json.recordsFiltered = json.recordsFiltered || json.total || 0;
+
+                        if (json.error) {
+                            console.error('❌ Server returned error:', json.error);
+                            alert('Error: ' + json.error);
+                            return [];
+                        }
+                        if (!json.data || json.data.length === 0) {
+                            console.warn('⚠️ No data returned from server');
+                        }
+                        return json.data || [];
+                    },
+                    error: function(xhr, error, code) {
+                        console.error('❌ DataTables AJAX Error:', {
+                            xhr: xhr,
+                            error: error,
+                            code: code
+                        });
+                        alert('Error loading data. Status: ' + xhr.status + '. Check console for details.');
+                    }
+                },
+                columns: [
+                    {
+                        data: 'index',
+                        name: 'index',
+                        orderable: false,
+                        searchable: false,
+                        render: function(data, type, row) {
+                            return '<div class="userDatatable-content">' + data + '</div>';
+                        }
+                    },
+                    {
+                        data: 'full_name',
+                        name: 'full_name',
+                        orderable: true,
+                        render: function(data, type, row) {
+                            console.log('Rendering full_name:', data);
+                            return '<div class="userDatatable-content">' + (data || '-') + '</div>';
+                        }
+                    },
+                    {
+                        data: 'email',
+                        name: 'email',
+                        orderable: true,
+                        render: function(data, type, row) {
+                            return '<div class="userDatatable-content">' + (data || '-') + '</div>';
+                        }
+                    },
+                    {
+                        data: 'phone',
+                        name: 'phone',
+                        orderable: true,
+                        render: function(data, type, row) {
+                            return '<div class="userDatatable-content">' + (data || '-') + '</div>';
+                        }
+                    },
+                    {
+                        data: 'status',
+                        name: 'status',
+                        orderable: true,
+                        render: function(data, type, row) {
+                            if (data) {
+                                return '<div class="userDatatable-content"><span class="badge badge-success badge-lg badge-round">{{ __('customer.active') }}</span></div>';
+                            } else {
+                                return '<div class="userDatatable-content"><span class="badge badge-danger badge-lg badge-round">{{ __('customer.inactive') }}</span></div>';
+                            }
+                        }
+                    },
+                    {
+                        data: 'email_verified_at',
+                        name: 'email_verified_at',
+                        orderable: true,
+                        render: function(data, type, row) {
+                            if (data) {
+                                return '<div class="userDatatable-content"><span class="badge badge-success badge-lg badge-round">{{ __('customer.verified') }}</span></div>';
+                            } else {
+                                return '<div class="userDatatable-content"><span class="badge badge-warning badge-lg badge-round">{{ __('customer.pending') }}</span></div>';
+                            }
+                        }
+                    },
+                    {
+                        data: 'created_at',
+                        name: 'created_at',
+                        orderable: true,
+                        render: function(data, type, row) {
+                            const date = new Date(data);
+                            const formatted = date.toLocaleDateString('en-US', {
+                                year: 'numeric',
+                                month: 'short',
+                                day: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                            });
+                            return '<div class="userDatatable-content">' + formatted + '</div>';
+                        }
+                    },
+                    {
+                        data: 'id',
+                        name: 'id',
+                        orderable: false,
+                        searchable: false,
+                        render: function(data, type, row) {
+                            let actions = '<div class="userDatatable-content">';
+                            actions += '<div class="btn-group">';
+                            actions += '<button class="btn btn-outline-primary btn-sm" title="{{ __('common.view') }}">';
+                            actions += '<i class="uil uil-eye"></i>';
+                            actions += '</button>';
+                            actions += '<button class="btn btn-outline-danger btn-sm delete-btn" data-id="' + data + '" title="{{ __('common.delete') }}">';
+                            actions += '<i class="uil uil-trash"></i>';
+                            actions += '</button>';
+                            actions += '</div>';
+                            actions += '</div>';
+                            return actions;
+                        }
+                    }
+                ],
+                pageLength: per_page,
+                lengthMenu: [
+                    [10, 25, 50, 100],
+                    [10, 25, 50, 100]
+                ],
+                order: [
+                    [0, 'desc']
+                ],
+                pagingType: 'full_numbers',
+                dom: '<"row"<"col-sm-12"tr>>' +
+                    '<"row mt-3"<"col-sm-12 col-md-5"i><"col-sm-12 col-md-7"p>>',
+                buttons: [{
+                    extend: 'excel',
+                    exportOptions: {
+                        columns: ':not(:last-child)'
+                    },
+                    title: '{{ __('customer.customers_management') }}'
+                }],
+                searching: false,
+                language: {
+                    lengthMenu: "{{ __('common.show') ?? 'Show' }} _MENU_",
+                    info: "{{ __('common.showing') ?? 'Showing' }} _START_ {{ __('common.to') ?? 'to' }} _END_ {{ __('common.of') ?? 'of' }} _TOTAL_ {{ __('common.entries') ?? 'entries' }}",
+                    infoEmpty: "{{ __('common.showing') ?? 'Showing' }} 0 {{ __('common.to') ?? 'to' }} 0 {{ __('common.of') ?? 'of' }} 0 {{ __('common.entries') ?? 'entries' }}",
+                    infoFiltered: "({{ __('common.filtered_from') ?? 'filtered from' }} _MAX_ {{ __('common.total_entries') ?? 'total entries' }})",
+                    zeroRecords: "{{ __('customer.no_customers_found') ?? 'No customers found' }}",
+                    emptyTable: "{{ __('customer.no_customers_found') ?? 'No customers found' }}",
+                    loadingRecords: "{{ __('common.loading') ?? 'Loading' }}...",
+                    processing: "{{ __('common.processing') ?? 'Processing' }}...",
+                    search: "{{ __('common.search') ?? 'Search' }}:",
+                    paginate: {
+                        first: '{{ __('common.first') ?? 'First' }}',
+                        last: '{{ __('common.last') ?? 'Last' }}',
+                        next: '{{ __('common.next') ?? 'Next' }}',
+                        previous: '{{ __('common.previous') ?? 'Previous' }}'
+                    },
+                    aria: {
+                        sortAscending: ": {{ __('common.sort_ascending') ?? 'activate to sort column ascending' }}",
+                        sortDescending: ": {{ __('common.sort_descending') ?? 'activate to sort column descending' }}"
+                    }
+                }
+            });
+
+            $('#entriesSelect').on('change', function() {
+                table.page.len($(this).val()).draw();
+            });
+
+            $('#search').on('keyup', function() {
+                table.draw();
+            });
+
+            $('#active, #email_verified, #created_date_from, #created_date_to').on('change', function() {
+                table.draw();
+            });
+
+            $('#resetFilters').on('click', function() {
+                $('#search').val('');
+                $('#active').val('');
+                $('#email_verified').val('');
+                $('#created_date_from').val('');
+                $('#created_date_to').val('');
+                table.draw();
+            });
+
+            $('#exportExcel').on('click', function() {
+                alert('{{ __('common.export_excel') }} feature coming soon');
+            });
+
+            $(document).on('click', '.delete-btn', function() {
+                const customerId = $(this).data('id');
+                const customerName = $(this).closest('tr').find('td:nth-child(2)').text();
+                
+                $('#delete-customer-name').text(customerName);
+                $('#confirmDeleteCustomerBtn').data('customer-id', customerId);
+                $('#modal-delete-customer').modal('show');
+            });
+
+            $('#confirmDeleteCustomerBtn').on('click', function() {
+                const customerId = $(this).data('customer-id');
+                
+                $.ajax({
+                    url: '{{route("admin.customers.destroy", "__customerId__")}}'.replace('__customerId__', customerId),
+                    type: 'DELETE',
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
+                    success: function(response) {
+                        $('#modal-delete-customer').modal('hide');
+                        table.draw();
+                        alert('{{ __('customer.customer_deleted') }}');
+                    },
+                    error: function(xhr) {
+                        alert('{{ __('common.error_deleting') }}');
+                    }
+                });
+            });
+        });
+    </script>
+@endpush

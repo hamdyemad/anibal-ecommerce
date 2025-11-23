@@ -6,9 +6,12 @@ use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Database\QueryException;
+use Illuminate\Auth\AuthenticationException;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Throwable;
 use App\Traits\Res;
+use App\Exceptions\InvalidPasswordException;
+use Illuminate\Support\Facades\DB;
 
 class Handler extends ExceptionHandler
 {
@@ -35,10 +38,32 @@ class Handler extends ExceptionHandler
     ];
 
     /**
+     * Safely rollback any active database transaction
+     */
+    private function safeRollback(): void
+    {
+        try {
+            if (DB::transactionLevel() > 0) {
+                DB::rollBack();
+            }
+        } catch (\Exception $e) {
+            // Silently ignore rollback errors
+        }
+    }
+
+    /**
      * Render an exception into a response.
      */
     public function render($request, Throwable $e)
     {
+        // Handle authentication exceptions
+        if ($e instanceof AuthenticationException) {
+            if ($request->expectsJson()) {
+                $message = $e->getMessage() ?: config('responses.unauthorized')[app()->getLocale()] ?? 'Unauthorized';
+                return $this->sendRes($message, false, [], [], 401);
+            }
+        }
+
         // Handle model not found exceptions
         if ($e instanceof ModelNotFoundException) {
             $message = config('responses.not_found')[app()->getLocale()] ?? 'Resource not found';
@@ -70,8 +95,18 @@ class Handler extends ExceptionHandler
             }
         }
 
+        // Handle invalid password exception
+        if ($e instanceof InvalidPasswordException) {
+            if ($request->expectsJson()) {
+                return $this->sendRes($e->getMessage(), false, [], [], 422);
+            }
+        }
+
         // Handle HTTP exceptions
         if ($e instanceof HttpException) {
+            // Rollback any pending transactions
+            $this->safeRollback();
+
             if ($request->expectsJson()) {
                 $message = $e->getMessage() ?: config('responses.http_error')[app()->getLocale()] ?? 'HTTP error occurred';
                 return $this->sendRes($message, false, [], [], $e->getStatusCode());
@@ -80,6 +115,9 @@ class Handler extends ExceptionHandler
 
         // Handle generic exceptions
         if ($request->expectsJson() && !($e instanceof ValidationException)) {
+            // Rollback any pending transactions
+            $this->safeRollback();
+
             \Illuminate\Support\Facades\Log::error('Unhandled exception: ' . $e->getMessage(), [
                 'class' => get_class($e),
                 'file' => $e->getFile(),
