@@ -34,12 +34,12 @@ class CustomerAuthController extends Controller
         $validated = $request->validated();
 
         // Save customer to DB and send OTP
-        $customer = $this->authService->registerCustomer($validated);
+        $result = $this->authService->registerCustomer($validated);
 
         return $this->sendRes(
             config('responses.success_otp')[app()->getLocale()],
             true,
-            [],
+            $result,
             [],
             201
         );
@@ -106,7 +106,7 @@ class CustomerAuthController extends Controller
         return $this->sendRes(
             config('responses.opt_sent')[app()->getLocale()],
             true,
-            [],
+            $result,
             [],
             200
         );
