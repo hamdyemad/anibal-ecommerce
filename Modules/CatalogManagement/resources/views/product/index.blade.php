@@ -136,6 +136,7 @@
                                         </div>
                                     </div>
 
+                                    @if(!isset($statusFilter))
                                     <div class="col-md-3">
                                         <div class="form-group">
                                             <label for="status" class="il-gray fs-14 fw-500 mb-10">
@@ -152,6 +153,7 @@
                                             </select>
                                         </div>
                                     </div>
+                                    @endif
 
                                     <div class="col-md-3">
                                         <div class="form-group">
