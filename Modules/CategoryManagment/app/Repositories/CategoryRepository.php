@@ -14,7 +14,7 @@ class CategoryRepository implements CategoryRepositoryInterface
     public function getAllCategories(array $filters = [], int $perPage = 15)
     {
         $query = Category::with('translations', 'department')->filter($filters);
-        
+
         // Order by latest
         $query->orderBy('created_at', 'desc');
         return ($perPage == 0) ? $query->get() : $query->paginate($perPage);
@@ -145,7 +145,7 @@ class CategoryRepository implements CategoryRepositoryInterface
         // Update translations
         if (isset($data['translations'])) {
             // Delete existing translations
-            $category->translations()->delete();
+            $category->translations()->forceDelete();
 
             // Create new translations
             foreach ($data['translations'] as $langId => $translation) {
