@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\Customer\Http\Controllers;
+namespace Modules\Customer\app\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
@@ -24,16 +24,16 @@ class CustomerController extends Controller
     public function datatable(Request $request)
     {
         $filters = $request->all();
-        
+
         $query = $this->customerRepository->getCustomersQuery($filters);
-        
+
         $total = $query->count();
-        
+
         $perPage = $filters['per_page'] ?? 10;
         $page = $filters['page'] ?? 1;
-        
+
         $customers = $query->paginate($perPage, ['*'], 'page', $page);
-        
+
         $data = $customers->map(function ($customer, $index) use ($page, $perPage) {
             return [
                 'index' => ($page - 1) * $perPage + $index + 1,
@@ -48,7 +48,7 @@ class CustomerController extends Controller
                 'created_at' => $customer->created_at,
             ];
         })->toArray();
-        
+
         return response()->json([
             'draw' => intval($request->get('draw', 1)),
             'recordsTotal' => $total,

@@ -11,11 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // Skip this migration - fixed in 2024_01_01_000004_fix_customer_fcm_tokens_table
-        if (Schema::hasTable('customer_fcm_tokens')) {
-            return;
-        }
+        // Drop the existing table if it exists
+        Schema::dropIfExists('customer_fcm_tokens');
 
+        // Recreate with correct structure
         Schema::create('customer_fcm_tokens', function (Blueprint $table) {
             $table->id();
             $table->foreignId('customer_id')->constrained('customers')->onDelete('cascade');
