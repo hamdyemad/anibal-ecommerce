@@ -23,6 +23,7 @@ use Modules\CategoryManagment\app\Services\CategoryService;
 use Modules\CategoryManagment\app\Services\SubCategoryService;
 use Modules\CatalogManagement\app\Http\Requests\Product\StoreProductRequest;
 use Modules\CatalogManagement\app\Http\Requests\Product\UpdateProductRequest;
+use Modules\CatalogManagement\app\Http\Requests\Product\UpdateStockPricingRequest;
 use Modules\Vendor\app\Services\VendorService;
 use App\Models\UserType;
 use Illuminate\Support\Facades\Auth;
@@ -372,18 +373,42 @@ class ProductController extends Controller
 
     /**
      * Update stock and pricing only
+     * Only validates Step 3: Configuration Type, Pricing, and Stock
      */
-    public function updateStockPricing(Request $request, $id)
+    public function updateStockPricing(UpdateStockPricingRequest $request, $id)
     {
         try {
-            $data = $request->all();
+            // Get validated data (only Step 3 fields)
+            $data = $request->validated();
+
+            Log::info('Stock pricing update started', [
+                'product_id' => $id,
+                'configuration_type' => $data['configuration_type'] ?? null,
+                'has_variants' => isset($data['variants']),
+                'variants_count' => isset($data['variants']) ? count($data['variants']) : 0,
+            ]);
+
             // Update stock and pricing through service layer
             $this->productService->updateStockAndPricing($id, $data);
 
+            Log::info('Stock pricing updated successfully', ['product_id' => $id]);
+
             return response()->json([
                 'success' => true,
-                'message' => __('catalogmanagement::product.pricing_stock_updated_successfully')
+                'message' => __('catalogmanagement::product.stock_pricing_updated'),
+                'redirect' => route('admin.products.index')
             ]);
+        } catch (ValidationException $e) {
+            Log::warning('Stock pricing validation failed', [
+                'product_id' => $id,
+                'errors' => $e->errors()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => __('common.validation_error'),
+                'errors' => $e->errors()
+            ], 422);
         } catch (Exception $e) {
             Log::error('Stock pricing update failed', [
                 'product_id' => $id,

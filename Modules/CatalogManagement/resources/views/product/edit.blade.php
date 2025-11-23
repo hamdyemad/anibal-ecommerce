@@ -84,7 +84,7 @@
                                         <div class="col-md-6 mb-3">
                                             <div class="form-group">
                                                 <label for="points" class="form-label">{{ __('catalogmanagement::product.points') }} <span class="text-danger">*</span></label>
-                                                <input type="number" name="points" id="points" class="form-control ih-medium ip-gray radius-xs b-light px-15" min="0" value="{{ isset($product) ? $product->points : 0 }}" placeholder="Enter points" required>
+                                                <input type="number" name="points" id="points" class="form-control ih-medium ip-gray radius-xs b-light px-15" min="0" value="{{ isset($product) ? $product->points : 0 }}" placeholder="{{ __('catalogmanagement::product.enter_points') }}" required>
                                                 <div class="error-message text-danger" id="error-points" style="display: none;"></div>
                                             </div>
                                         </div>
@@ -477,7 +477,7 @@
                                                         <div class="row mb-4">
                                                             <div class="col-md-6">
                                                                 <label class="form-label fw-bold">Product SKU <span class="text-danger">*</span></label>
-                                                                <input type="text" name="sku" class="form-control" value="{{ $product->sku ?? $firstVariant->sku ?? '' }}" placeholder="Enter SKU">
+                                                                <input type="text" name="sku" class="form-control" value="{{ $product->sku ?? $firstVariant->sku ?? '' }}" placeholder="{{ __('catalogmanagement::product.enter_sku') }}">
                                                             </div>
                                                             <div class="col-md-6">
                                                                 <label class="form-label fw-bold">Price <span class="text-danger">*</span></label>
@@ -516,15 +516,15 @@
 
                                                         {{-- Stock per Region Section --}}
                                                         <div class="mb-4">
-                                                            <label class="form-label fw-bold">Stock per Region <span class="text-danger">*</span></label>
+                                                            <label class="form-label fw-bold">{{ __('catalogmanagement::product.stock_per_region') }} <span class="text-danger">*</span></label>
 
                                                             <div class="table-responsive">
                                                                 <table class="table table-bordered">
-                                                                    <thead style="background-color: #f8f9fa;">
+                                                                    <thead>
                                                                         <tr class="userDatatable-header">
-                                                                            <th style="width: 40%; font-weight: 600;">Region</th>
-                                                                            <th style="width: 30%; font-weight: 600;">Quantity</th>
-                                                                            <th style="width: 15%; text-align: center; font-weight: 600;">Actions</th>
+                                                                            <th style="width: 40%; font-weight: 600;">{{ __('catalogmanagement::product.region') }}</th>
+                                                                            <th style="width: 30%; font-weight: 600;">{{ __('catalogmanagement::product.quantity') }}</th>
+                                                                            <th style="width: 15%; text-align: center; font-weight: 600;">{{ __('catalogmanagement::product.actions') }}</th>
                                                                         </tr>
                                                                     </thead>
                                                                     <tbody id="simple-stock-rows">
@@ -536,7 +536,7 @@
                                                                                 <input type="hidden" name="stocks[{{ $stockIndex }}][variant_id]" value="{{ $firstVariant->id }}">
                                                                                 <td>
                                                                                     <select name="stocks[{{ $stockIndex }}][region_id]" class="form-control select2 region-select" required>
-                                                                                        <option value="">Select Region</option>
+                                                                                        <option value="">{{ __('catalogmanagement::product.select_region') }}</option>
                                                                                         @if(isset($regions))
                                                                                             @foreach($regions as $region)
                                                                                                 <option value="{{ $region['id'] }}" {{ $stock->region_id == $region['id'] ? 'selected' : '' }}>{{ $region['name'] }}</option>
@@ -557,7 +557,7 @@
                                                                             <tr class="stock-row">
                                                                                 <td>
                                                                                     <select name="stocks[0][region_id]" class="form-control region-select" required>
-                                                                                        <option value="">Select Region</option>
+                                                                                        <option value="">{{ __('common.select') }}</option>
                                                                                         @if(isset($regions))
                                                                                             @foreach($regions as $region)
                                                                                                 <option value="{{ $region['id'] }}">{{ $region['name'] }}</option>
@@ -576,35 +576,63 @@
                                                                             </tr>
                                                                         @endforelse
                                                                     </tbody>
+                                                                    <tfoot>
+                                                                        <tr style="background-color: #f8f9fa; font-weight: 600;">
+                                                                            <td class="text-end" style="padding: 12px;">
+                                                                                <strong>{{ __('catalogmanagement::product.total_stock') ?? 'Total Stock' }}:</strong>
+                                                                            </td>
+                                                                            <td style="padding: 12px;">
+                                                                                <span class="badge badge-primary badge-lg total-stock-display">
+                                                                                    {{ $firstVariant->stocks->sum('quantity') ?? 0 }}
+                                                                                </span>
+                                                                                <span class="ms-1">{{ __('common.quantity') }}</span>
+                                                                            </td>
+                                                                            <td></td>
+                                                                        </tr>
+                                                                    </tfoot>
                                                                 </table>
                                                             </div>
 
-                                                            {{-- Add Region Button --}}
+                                                            {{-- {{ __('catalogmanagement::product.add_region') }} Button --}}
                                                             <button type="button" class="btn btn-primary mt-3" id="add-simple-stock-row">
-                                                                <i class="uil uil-plus me-1"></i> Add Region
+                                                                <i class="uil uil-plus me-1"></i> {{ __('catalogmanagement::product.add_region') }}
                                                             </button>
                                                         </div>
                                                     </div>
                                                 </div>
                                             @endif
 
+                                            <!-- Dynamic Simple Product Section (shown when simple is selected from dropdown) -->
+                                            <div id="dynamic-simple-product-section" style="display: none;">
+                                                <div class="card mt-4">
+                                                    <div class="card-header">
+                                                        <h6 class="mb-0" style="font-weight: 600; font-size: 16px;">
+                                                            <i class="uil uil-package me-2"></i>
+                                                            {{ __('catalogmanagement::product.simple_product_configuration') }}
+                                                        </h6>
+                                                    </div>
+                                                    <div class="card-body">
+                                                        <!-- Dynamic Simple Product Pricing & Stock Box -->
+                                                        <div id="dynamic-simple-pricing-stock">
+                                                            <!-- Pricing & Stock box will be inserted here -->
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
                                             <!-- Variant Information (shown only for variant products) -->
+                                            <div class="variant-configuration-section">
                                             @if(isset($product) && $configurationType === 'variants' && $product->variants->count() > 0)
                                                 @foreach ($product->variants as $variantIndex => $variant)
                                                     {{-- Hidden Variant Data Inputs --}}
                                                     <input type="hidden" name="variants[{{ $variantIndex }}][id]" value="{{ $variant->id }}">
-                                                    <input type="hidden" name="variants[{{ $variantIndex }}][variant_id]" value="{{ $variant->id }}">
                                                     <input type="hidden" name="variants[{{ $variantIndex }}][variant_configuration_id]" value="{{ $variant->variant_configuration_id }}">
-                                                    @if($variant->variantConfiguration)
-                                                        <input type="hidden" name="variants[{{ $variantIndex }}][key_id]" value="{{ $variant->variantConfiguration->key_id ?? '' }}">
-                                                        <input type="hidden" name="variants[{{ $variantIndex }}][variant_id]" value="{{ $variant->variantConfiguration->id }}">
-                                                    @endif
 
                                                     <div class="card mt-4" id="variant-{{ $variantIndex }}-section">
                                                         <div class="card-header">
                                                             <h6 class="mb-0" style="font-weight: 600; font-size: 16px;">
                                                                 <i class="uil uil-layer-group me-2"></i>
-                                                                Variant Configuration:
+                                                                {{ __('catalogmanagement::product.variant_configuration') }}:
                                                                 @if($variant->variantConfiguration)
                                                                     @php
                                                                         // Build the variant hierarchy by traversing up the parent chain
@@ -612,7 +640,7 @@
                                                                         $current = $variant->variantConfiguration;
                                                                         $visited = []; // Prevent infinite loops
 
-                                                                        // Start with the current variant (leaf node)
+                                                                        // Start with the current variant (could be leaf or parent node)
                                                                         while($current && !in_array($current->id, $visited)) {
                                                                             $visited[] = $current->id;
 
@@ -633,7 +661,13 @@
                                                                                 // Move to parent for next iteration
                                                                                 $current = $current->parent_data;
                                                                             } else {
-                                                                                // This is a root node (key without parent)
+                                                                                // This is a root node (no parent) - still add it to hierarchy
+                                                                                $keyName = $current->key ?
+                                                                                    ($current->key->getTranslation('name', app()->getLocale()) ??
+                                                                                     $current->key->getTranslation('name', 'en') ??
+                                                                                     $current->key->name ?? 'Key') : 'Key';
+
+                                                                                array_unshift($hierarchy, $keyName . ' → ' . $valueName);
                                                                                 break;
                                                                             }
                                                                         }
@@ -648,14 +682,14 @@
                                                             </h6>
                                                         </div>
                                                         <div class="card-body">
-                                                            {{-- Variant SKU and Price Row --}}
+                                                            {{-- {{ __('catalogmanagement::product.variant_sku') }} and Price Row --}}
                                                             <div class="row mb-4">
                                                                 <div class="col-md-6">
-                                                                    <label class="form-label fw-bold">Variant SKU <span class="text-danger">*</span></label>
-                                                                    <input type="text" name="variants[{{ $variantIndex }}][sku]" class="form-control" value="{{ $variant->sku }}" placeholder="Enter SKU">
+                                                                    <label class="form-label fw-bold">{{ __('catalogmanagement::product.variant_sku') }} <span class="text-danger">*</span></label>
+                                                                    <input type="text" name="variants[{{ $variantIndex }}][sku]" class="form-control" value="{{ $variant->sku }}" placeholder="{{ __('catalogmanagement::product.enter_sku') }}">
                                                                 </div>
                                                                 <div class="col-md-6">
-                                                                    <label class="form-label fw-bold">Price <span class="text-danger">*</span></label>
+                                                                    <label class="form-label fw-bold">{{ __('catalogmanagement::product.price') }} <span class="text-danger">*</span></label>
                                                                     <div class="input-group">
                                                                         <input type="number" name="variants[{{ $variantIndex }}][price]" class="form-control" value="{{ $variant->price }}" step="0.01" min="0" placeholder="0.00">
                                                                     </div>
@@ -665,7 +699,7 @@
                                                             {{-- Enable Discount Offer --}}
                                                             <div class="mb-4">
                                                                 <div>
-                                                                    <label class="form-label fw-bold mb-0">Enable Discount Offer</label>
+                                                                    <label class="form-label fw-bold mb-0">{{ __('catalogmanagement::product.enable_discount_offer') }}</label>
                                                                     <div class="form-check form-switch form-switch-lg">
                                                                         {{-- Hidden input to ensure false value is sent when unchecked --}}
                                                                         <input type="hidden" name="variants[{{ $variantIndex }}][has_discount]" value="0">
@@ -678,11 +712,11 @@
                                                                 <div id="discount_fields_{{ $variantIndex }}" class="mt-3" style="display: {{ $variant->has_discount ? 'block' : 'none' }};">
                                                                     <div class="row">
                                                                         <div class="col-md-6">
-                                                                            <label class="form-label fw-bold">Price Before Discount <span class="text-danger">*</span></label>
+                                                                            <label class="form-label fw-bold">{{ __('catalogmanagement::product.price_before_discount') }} <span class="text-danger">*</span></label>
                                                                             <input type="number" name="variants[{{ $variantIndex }}][price_before_discount]" class="form-control discount-field" value="{{ $variant->price_before_discount ?? '' }}" step="0.01" min="0" placeholder="0.00" data-variant-index="{{ $variantIndex }}">
                                                                         </div>
                                                                         <div class="col-md-6">
-                                                                            <label class="form-label fw-bold">Discount End Date</label>
+                                                                            <label class="form-label fw-bold">{{ __('catalogmanagement::product.discount_end_date') }}</label>
                                                                             <input type="date" name="variants[{{ $variantIndex }}][discount_end_date]" class="form-control discount-field" value="{{ $variant->discount_end_date ? date('Y-m-d', strtotime($variant->discount_end_date)) : '' }}" data-variant-index="{{ $variantIndex }}">
                                                                         </div>
                                                                     </div>
@@ -693,15 +727,15 @@
 
                                                             {{-- Stock per Region Section --}}
                                                             <div class="mb-4">
-                                                                <label class="form-label fw-bold">Stock per Region <span class="text-danger">*</span></label>
+                                                                <label class="form-label fw-bold">{{ __('catalogmanagement::product.stock_per_region') }} <span class="text-danger">*</span></label>
 
                                                                 <div class="table-responsive">
                                                                     <table class="table table-bordered">
-                                                                        <thead style="background-color: #f8f9fa;">
+                                                                        <thead>
                                                                             <tr class="userDatatable-header">
-                                                                                <th style="width: 40%; font-weight: 600;">Region</th>
-                                                                                <th style="width: 30%; font-weight: 600;">Quantity</th>
-                                                                                <th style="width: 15%; text-align: center; font-weight: 600;">Actions</th>
+                                                                                <th style="width: 40%; font-weight: 600;">{{ __('catalogmanagement::product.region') }}</th>
+                                                                                <th style="width: 30%; font-weight: 600;">{{ __('catalogmanagement::product.quantity') }}</th>
+                                                                                <th style="width: 15%; text-align: center; font-weight: 600;">{{ __('catalogmanagement::product.actions') }}</th>
                                                                             </tr>
                                                                         </thead>
                                                                         <tbody id="variant-{{ $variantIndex }}-stock-rows">
@@ -713,7 +747,7 @@
                                                                                 <tr class="stock-row">
                                                                                     <td>
                                                                                         <select name="variants[{{ $variantIndex }}][stocks][{{ $stockIndex }}][region_id]" class="form-control select2 region-select" required>
-                                                                                            <option value="">Select Region</option>
+                                                                                            <option value="">{{ __('catalogmanagement::product.select_region') }}</option>
                                                                                             @if(isset($regions))
                                                                                                 @foreach($regions as $region)
                                                                                                     <option value="{{ $region['id'] }}" {{ $stock->region_id == $region['id'] ? 'selected' : '' }}>{{ $region['name'] }}</option>
@@ -737,7 +771,7 @@
                                                                                 <tr class="stock-row">
                                                                                     <td>
                                                                                         <select name="variants[{{ $variantIndex }}][stocks][0][region_id]" class="form-control region-select" required>
-                                                                                            <option value="">Select Region</option>
+                                                                                            <option value="">{{ __('catalogmanagement::product.select_region') }}</option>
                                                                                             @if(isset($regions))
                                                                                                 @foreach($regions as $region)
                                                                                                     <option value="{{ $region['id'] }}">{{ $region['name'] }}</option>
@@ -756,12 +790,26 @@
                                                                                 </tr>
                                                                             @endforelse
                                                                         </tbody>
+                                                                        <tfoot>
+                                                                            <tr style="background-color: #f8f9fa; font-weight: 600;">
+                                                                                <td colspan="1" class="text-end" style="padding: 12px;">
+                                                                                    <strong>{{ __('catalogmanagement::product.total_stock') ?? 'Total Stock' }}:</strong>
+                                                                                </td>
+                                                                                <td style="padding: 12px;">
+                                                                                    <span class="badge badge-primary badge-lg total-stock-display">
+                                                                                        {{ $variant->stocks->sum('quantity') ?? 0 }}
+                                                                                    </span>
+                                                                                    <span class="ms-1">{{ __('common.quantity') }}</span>
+                                                                                </td>
+                                                                                <td></td>
+                                                                            </tr>
+                                                                        </tfoot>
                                                                     </table>
                                                                 </div>
 
-                                                                {{-- Add Region Button --}}
+                                                                {{-- {{ __('catalogmanagement::product.add_region') }} Button --}}
                                                                 <button type="button" class="btn btn-primary mt-3 add-variant-stock-row" data-variant-index="{{ $variantIndex }}">
-                                                                    <i class="uil uil-plus me-1"></i> Add Region
+                                                                    <i class="uil uil-plus me-1"></i> {{ __('catalogmanagement::product.add_region') }}
                                                                 </button>
                                                             </div>
                                                         </div>
@@ -773,9 +821,8 @@
                                                 @endforeach
                                             @endif
 
-                                            <!-- Add New Variants Section (shown only for variant products) -->
-                                            @if(isset($product) && $configurationType === 'variants')
-                                                <div class="card mt-4">
+                                            <!-- Add New Variants Section (shown/hidden dynamically based on configuration type) -->
+                                                <div class="card mt-4" id="add-new-variants-section" style="display: {{ $configurationType === 'variants' ? 'block' : 'none' }};">
                                                     <div class="card-body">
                                                         <h5 class="d-flex justify-content-between align-items-center mb-4">
                                                             <div>
@@ -809,7 +856,7 @@
                                                                 {{ __('common.variant') }} #__VARIANT_NUMBER__
                                                             </h6>
                                                             <button type="button" class="btn btn-danger btn-sm remove-variant-btn">
-                                                                <i class="uil uil-trash"></i> {{ __('common.remove') }}
+                                                                <i class="uil uil-trash-alt m-0"></i> {{ __('common.remove') }}
                                                             </button>
                                                         </div>
                                                         <div class="card-body">
@@ -817,7 +864,7 @@
                                                             <div class="row mb-3">
                                                                 <div class="col-md-12">
                                                                     <label class="form-label">{{ __('catalogmanagement::product.variant_key') }} <span class="text-danger">*</span></label>
-                                                                    <select name="variants[__VARIANT_INDEX__][variant_key_id]" class="form-control select2 variant-key-select" required>
+                                                                    <select class="form-control select2 variant-key-select" required>
                                                                         <option value="">{{ __('catalogmanagement::product.select_variant_key') }}</option>
                                                                     </select>
                                                                 </div>
@@ -829,7 +876,7 @@
                                                                 <div class="variant-tree-levels">
                                                                     <!-- Dynamic variant levels will be added here -->
                                                                 </div>
-                                                                <input type="hidden" name="variants[__VARIANT_INDEX__][value_id]" class="selected-variant-id">
+                                                                <input type="hidden" name="variants[__VARIANT_INDEX__][variant_configuration_id]" class="selected-variant-id">
                                                                 <div class="alert alert-info mt-2 selected-variant-path" style="display: none;">
                                                                     <strong>{{ __('catalogmanagement::product.selected_variant') }}:</strong> <span class="path-text"></span>
                                                                 </div>
@@ -840,7 +887,7 @@
                                                         </div>
                                                     </div>
                                                 </template>
-                                            @endif
+                                            </div> <!-- End variant-configuration-section -->
                                         </div>
                                 </div>
                             </div>
@@ -973,7 +1020,7 @@
                                         <i class="uil uil-times me-1"></i>{{ __('common.cancel') }}
                                     </button>
                                     <button type="button" class="btn btn-danger" id="confirmDeleteImageBtn">
-                                        <i class="uil uil-trash me-1"></i>{{ __('common.delete') }}
+                                        <i class="uil uil-trash-alt me-1"></i>{{ __('common.delete') }}
                                     </button>
                                 </div>
                             </div>
@@ -1008,7 +1055,7 @@
                                             </div>
                                         </div>
 
-                                        <div class="col-md-6 mb-3">
+                                        <div class="col-md-12 mb-3">
                                             <div class="form-group">
                                                 <label class="form-label d-block">{{ __('catalogmanagement::product.has_discount') }}</label>
                                                 <div class="form-check form-switch form-switch-lg">
@@ -1062,9 +1109,14 @@
                                                 <!-- Stock rows will be added here -->
                                             </tbody>
                                             <tfoot>
-                                                <tr class="table-active">
-                                                    <td class="text-end"><strong>{{ __('catalogmanagement::product.total_quantity') }}</strong></td>
-                                                    <td><strong class="total-quantity-display">0</strong></td>
+                                                <tr style="background-color: #f8f9fa; font-weight: 600;">
+                                                    <td class="text-end" style="padding: 12px;">
+                                                        <strong>{{ __('catalogmanagement::product.total_stock') ?? 'Total Stock' }}:</strong>
+                                                    </td>
+                                                    <td style="padding: 12px;">
+                                                        <span class="badge badge-primary badge-lg total-stock-display">0</span>
+                                                        <span class="ms-1">{{ __('common.quantity') }}</span>
+                                                    </td>
                                                     <td></td>
                                                 </tr>
                                             </tfoot>
@@ -1088,7 +1140,7 @@
                             </td>
                             <td class="text-center">
                                 <button type="button" class="btn btn-danger btn-sm remove-stock-row">
-                                    <i class="uil uil-trash"></i>
+                                    <i class="uil uil-trash-alt m-0"></i>
                                 </button>
                             </td>
                         </tr>
@@ -1103,7 +1155,7 @@
                                     {{ __('common.variant') }} #__VARIANT_NUMBER__
                                 </h6>
                                 <button type="button" class="btn btn-danger btn-sm remove-variant-btn">
-                                    <i class="uil uil-trash"></i> {{ __('common.remove') }}
+                                    <i class="uil uil-trash-alt"></i> {{ __('common.remove') }}
                                 </button>
                             </div>
                             <div class="card-body">
@@ -1111,7 +1163,7 @@
                                 <div class="row mb-3">
                                     <div class="col-md-12">
                                         <label class="form-label">{{ __('catalogmanagement::product.variant_key') }} <span class="text-danger">*</span></label>
-                                        <select name="variants[__VARIANT_INDEX__][variant_key_id]" class="form-control select2 variant-key-select" required>
+                                        <select class="form-control select2 variant-key-select" required>
                                             <option value="">{{ __('catalogmanagement::product.select_variant_key') }}</option>
                                         </select>
                                     </div>
@@ -1123,7 +1175,7 @@
                                     <div class="variant-tree-levels">
                                         <!-- Dynamic variant levels will be added here -->
                                     </div>
-                                    <input type="hidden" name="variants[__VARIANT_INDEX__][value_id]" class="selected-variant-id">
+                                    <input type="hidden" name="variants[__VARIANT_INDEX__][variant_configuration_id]" class="selected-variant-id">
                                     <div class="alert alert-info mt-2 selected-variant-path" style="display: none;">
                                         <strong>{{ __('catalogmanagement::product.selected_variant') }}:</strong> <span class="path-text"></span>
                                     </div>
@@ -1485,7 +1537,75 @@
                             }
                         }
                     } else if (configurationType === 'variants') {
+                        // Validate that at least one variant exists (check both new variant boxes and existing variant sections)
+                        const variantBoxes = $('.variant-box').length;
+                        const existingVariantSections = $('[id$="-section"]').filter(function() {
+                            return $(this).attr('id').match(/^variant-\d+-section$/);
+                        }).length;
+                        const totalVariants = variantBoxes + existingVariantSections;
 
+                        if (totalVariants === 0) {
+                            errors.push('{{ __("catalogmanagement::product.at_least_one_variant_required") ?? "At least one variant is required" }}');
+                            isValid = false;
+                        } else {
+                            // Validate each variant
+                            $('.variant-box').each(function() {
+                                const $variantBox = $(this);
+                                const variantIndex = $variantBox.data('variant-index');
+
+                                // Check if variant configuration is selected
+                                const variantConfigId = $variantBox.find('.selected-variant-id').val();
+                                const variantKeyId = $variantBox.find('.variant-key-select').val();
+
+                                if (!variantConfigId && !variantKeyId) {
+                                    $variantBox.find('.variant-key-select').next('.select2').find('.select2-selection').addClass('is-invalid');
+                                    errors.push(`Variant ${variantIndex + 1}: {{ __("catalogmanagement::product.variant_configuration_required") ?? "Please select a variant configuration" }}`);
+                                    isValid = false;
+                                }
+
+                                // Validate pricing if pricing section is visible
+                                const $pricingSection = $(`#variant-${variantIndex}-pricing-stock`);
+                                if ($pricingSection.is(':visible')) {
+                                    // Validate SKU
+                                    const $skuInput = $pricingSection.find('.variant-sku-input');
+                                    if ($skuInput.length > 0 && !$skuInput.val().trim()) {
+                                        $skuInput.addClass('is-invalid');
+                                        isValid = false;
+                                    }
+
+                                    // Validate price
+                                    const $priceInput = $pricingSection.find('.variant-price-input');
+                                    if ($priceInput.length > 0 && (!$priceInput.val() || parseFloat($priceInput.val()) < 0)) {
+                                        $priceInput.addClass('is-invalid');
+                                        isValid = false;
+                                    }
+
+                                    // Validate at least one stock row
+                                    const stockRows = $pricingSection.find('.stock-row').length;
+                                    if (stockRows === 0) {
+                                        errors.push(`Variant ${variantIndex + 1}: {{ __("catalogmanagement::product.stock_required") ?? "At least one stock entry is required" }}`);
+                                        isValid = false;
+                                    } else {
+                                        // Validate each stock row
+                                        $pricingSection.find('.stock-row').each(function() {
+                                            const $row = $(this);
+                                            const regionId = $row.find('.region-select').val();
+                                            const quantity = $row.find('.quantity-input').val();
+
+                                            if (!regionId) {
+                                                $row.find('.region-select').next('.select2').find('.select2-selection').addClass('is-invalid');
+                                                isValid = false;
+                                            }
+
+                                            if (!quantity || parseInt(quantity) < 0) {
+                                                $row.find('.quantity-input').addClass('is-invalid');
+                                                isValid = false;
+                                            }
+                                        });
+                                    }
+                                }
+                            });
+                        }
                     }
                 }
                 break;
@@ -1796,6 +1916,17 @@
         // For simple products, remove the SKU field from the template (it's in Step 1)
         if (!namePrefix) {
             $(`#${containerId} .variant-sku-field`).remove();
+        }
+
+        // For variants, update the "{{ __('catalogmanagement::product.add_region') }}" button to use the correct class and data attribute
+        if (namePrefix && namePrefix.includes('variants[')) {
+            const variantIndex = namePrefix.match(/variants\[(\d+)\]/)?.[1];
+            if (variantIndex) {
+                $(`#${containerId} .add-stock-row`)
+                    .removeClass('add-stock-row')
+                    .addClass('add-variant-stock-row')
+                    .attr('data-variant-index', variantIndex);
+            }
         }
 
         // Initialize Select2 for region selects
@@ -2231,6 +2362,32 @@
         console.log('🎉 All variant components initialized');
     }
 
+    // ============================================
+    // Stock Total Calculation Function
+    // ============================================
+    // Function to update total stock display for a variant or simple product
+    function updateVariantTotalStock($quantityInput) {
+        // Try to find the parent table first (works for both existing and new variants)
+        const $table = $quantityInput.closest('table');
+        if ($table.length) {
+            const $tbody = $table.find('tbody');
+
+            // Calculate total stock from all quantity inputs in this table
+            let totalStock = 0;
+            $tbody.find('.quantity-input').each(function() {
+                const qty = parseInt($(this).val()) || 0;
+                totalStock += qty;
+            });
+
+            // Update the total stock display
+            const $totalStockDisplay = $table.find('.total-stock-display');
+            if ($totalStockDisplay.length) {
+                $totalStockDisplay.text(totalStock);
+                console.log('📦 Updated total stock:', totalStock);
+            }
+        }
+    }
+
     // Add stock row for simple product
     function addSimpleStockRow() {
         const $tbody = $('#simple-stock-rows');
@@ -2249,7 +2406,7 @@
             <tr class="stock-row">
                 <td>
                     <select name="stocks[${rowCount}][region_id]" class="form-control region-select select2" required>
-                        <option value="">Select Region</option>
+                        <option value="">{{ __('catalogmanagement::product.select_region') }}</option>
                     </select>
                 </td>
                 <td>
@@ -2292,29 +2449,57 @@
 
     // Remove stock row
     function removeStockRow(button) {
-        $(button).closest('tr').remove();
+        const $row = $(button).closest('tr');
+        const $tbody = $row.closest('tbody');
+
+        // Remove the row
+        $row.remove();
         console.log('🗑️ Removed stock row');
+
+        // Update total stock after removing row
+        // Calculate new total from remaining rows
+        let totalStock = 0;
+        $tbody.find('.quantity-input').each(function() {
+            const qty = parseInt($(this).val()) || 0;
+            totalStock += qty;
+        });
+
+        // Find and update the total stock display in the same table
+        const $table = $tbody.closest('table');
+        const $totalStockDisplay = $table.find('.total-stock-display');
+        if ($totalStockDisplay.length) {
+            $totalStockDisplay.text(totalStock);
+            console.log('📦 Updated total stock after removal:', totalStock);
+        }
     }
 
     // Add stock row for variant product
     function addVariantStockRow(variantIndex) {
-        const $tbody = $(`#variant-${variantIndex}-stock-rows`);
+        // Try existing variant structure first, then new variant structure
+        let $tbody = $(`#variant-${variantIndex}-stock-rows`);
+        if ($tbody.length === 0) {
+            $tbody = $(`#variant-${variantIndex}-pricing-stock .stock-rows`);
+        }
+
         const rowCount = $tbody.find('tr').length;
 
-        // Get current vendor_id
-        const vendorId = $('#vendor_id').val();
+        console.log('🔍 Looking for tbody - trying existing variant structure first...');
+        console.log('📊 Found tbody:', $tbody.length > 0 ? 'Yes' : 'No');
+        console.log('📈 Current row count:', rowCount);
 
-        // Refresh regions data for current vendor before adding row
-        if (vendorId) {
-            console.log('🔄 Refreshing regions for vendor:', vendorId);
-            loadRegions(vendorId);
+        if ($tbody.length === 0) {
+            console.error('❌ Stock table body not found for variant:', variantIndex);
+            return;
         }
+
+        // Use existing regions data (already loaded for the vendor)
+        console.log('📋 Using existing regions data:', regionsData.length, 'regions');
 
         const newRow = `
             <tr class="stock-row">
                 <td>
                     <select name="variants[${variantIndex}][stocks][${rowCount}][region_id]" class="form-control select2 region-select" required>
-                        <option value="">Select Region</option>
+                        <option value="">{{ __('catalogmanagement::product.select_region') }}</option>
                     </select>
                 </td>
                 <td>
@@ -2346,10 +2531,16 @@
             $newRegionSelect.select2({
                 theme: 'bootstrap-5',
                 width: '100%',
-                placeholder: 'Select Region'
+                placeholder: '{{ __('catalogmanagement::product.select_region') }}'
             });
 
             console.log('✅ Populated new variant stock row with', regionsData.length, 'vendor-filtered regions and initialized Select2');
+
+            // Update total stock after adding row
+            const $newQuantityInput = $tbody.find('tr:last .quantity-input');
+            if ($newQuantityInput.length) {
+                updateVariantTotalStock($newQuantityInput);
+            }
         }, 200);
 
         console.log(`📦 Added variant ${variantIndex} stock row`);
@@ -2359,70 +2550,58 @@
     // New Variant Creation Functions
     // ============================================
     // Note: variantCounter and variantKeysData are already declared above
-
-    // Add new variant box
-    function addVariantBox() {
-        const template = $('#variant-box-template').html();
-        const html = template
-            .replace(/__VARIANT_INDEX__/g, variantCounter)
-            .replace(/__VARIANT_NUMBER__/g, variantCounter + 1);
-
-        $('#variants-container').append(html);
-        $('#variants-empty-state').hide();
-
-        // Populate variant keys
-        const $keySelect = $(`#variant-${variantCounter} .variant-key-select`);
-        variantKeysData.forEach(function(key) {
-            $keySelect.append(`<option value="${key.id}">${key.name}</option>`);
-        });
-
-        // Initialize Select2
-        setTimeout(function() {
-            $keySelect.select2({
-                theme: 'bootstrap-5',
-                width: '100%',
-            });
-        }, 100);
-
-        variantCounter++;
-        console.log('✅ New variant box added');
-    }
+    // Note: addVariantBox function is defined earlier in the file
 
     // Load variants by key (root level - no parent)
     function loadVariantsByKey(variantIndex, keyId) {
         console.log('🔄 Loading variants for key:', keyId);
 
         $.ajax({
-            url: `/api/variant-configurations/by-key/${keyId}`,
+            url: `/api/variant-configurations/key/${keyId}/tree`,
             method: 'GET',
             success: function(response) {
-                if (response.success && response.data) {
-                    buildVariantTree(variantIndex, response.data, 0);
+                console.log('✅ Variant tree response:', response);
+                if (response && response.children) {
+                    buildVariantTree(variantIndex, response.children, 0, response.children);
                     $(`#variant-${variantIndex} .variant-tree-container`).show();
+                } else {
+                    console.warn('⚠️ No children found in response');
                 }
             },
-            error: function() {
-                console.error('❌ Failed to load variants');
+            error: function(xhr, status, error) {
+                console.error('❌ Failed to load variants:', error);
+                console.error('Response:', xhr.responseText);
             }
         });
     }
 
     // Build variant tree levels
-    function buildVariantTree(variantIndex, variants, level) {
+    function buildVariantTree(variantIndex, variants, level, fullTree = null) {
         const $container = $(`#variant-${variantIndex} .variant-tree-levels`);
+
+        // Store full tree for navigation
+        if (fullTree) {
+            $container.data('fullTree', fullTree);
+        } else {
+            fullTree = $container.data('fullTree') || variants;
+        }
 
         // Clear existing levels from this level onwards
         $container.find(`.variant-level[data-level="${level}"]`).nextAll().remove();
         $container.find(`.variant-level[data-level="${level}"]`).remove();
 
-        if (variants.length === 0) return;
+        if (!variants || variants.length === 0) return;
 
         const levelHtml = `
             <div class="variant-level mb-3" data-level="${level}">
-                <label class="form-label">${variants[0].parent_data ? variants[0].parent_data.name : 'Select Option'}</label>
+                <label class="form-label">Select Option</label>
                 <select class="form-control select2 variant-select" data-level="${level}">
                     <option value="">Select option</option>
-                    ${variants.map(variant => `<option value="${variant.id}" data-has-children="${variant.children_count > 0}">${variant.name}</option>`).join('')}
+                    ${variants.map(variant => {
+                        const hasChildren = variant.children && variant.children.length > 0;
+                        const treeIcon = hasChildren ? '🌳 ' : '';
+                        return `<option value="${variant.id}" data-has-children="${hasChildren}">${treeIcon}${variant.name}</option>`;
+                    }).join('')}
                 </select>
             </div>
         `;
@@ -2439,35 +2618,35 @@
         // Handle selection change
         $newSelect.on('change', function() {
             const selectedId = $(this).val();
-            const hasChildren = $(this).find('option:selected').data('has-children');
+            const selectedVariant = variants.find(v => v.id == selectedId);
 
-            if (selectedId) {
+            // Clear all subsequent levels and hide pricing/stock box
+            $container.find(`.variant-level[data-level="${level + 1}"]`).nextAll().remove();
+            $container.find(`.variant-level[data-level="${level + 1}"]`).remove();
+            $(`#variant-${variantIndex}-pricing-stock`).hide();
+            $(`#variant-${variantIndex} .selected-variant-path`).hide();
+            $(`#variant-${variantIndex} .selected-variant-id`).val('');
+
+            if (selectedId && selectedVariant) {
+                // Check if this variant has children (and they're not empty)
+                const hasChildren = selectedVariant.children &&
+                                  Array.isArray(selectedVariant.children) &&
+                                  selectedVariant.children.length > 0;
+
                 if (hasChildren) {
                     // Load children for next level
-                    loadVariantChildren(variantIndex, selectedId, level + 1);
+                    console.log('📂 Variant has children, loading next level...');
+                    buildVariantTree(variantIndex, selectedVariant.children, level + 1, fullTree);
                 } else {
                     // This is a leaf node - final selection
+                    console.log('✅ Leaf node reached, finalizing selection...');
                     setSelectedVariant(variantIndex, selectedId);
                 }
             }
         });
     }
 
-    // Load variant children
-    function loadVariantChildren(variantIndex, parentId, level) {
-        $.ajax({
-            url: `/api/variant-configurations/${parentId}/children`,
-            method: 'GET',
-            success: function(response) {
-                if (response.success && response.data) {
-                    buildVariantTree(variantIndex, response.data, level);
-                }
-            },
-            error: function() {
-                console.error('❌ Failed to load variant children');
-            }
-        });
-    }
+    // Note: loadVariantChildren function removed - using nested tree structure from single API call
 
     // Set selected variant and create pricing/stock box
     function setSelectedVariant(variantIndex, variantId) {
@@ -2655,7 +2834,7 @@
             toggleSimpleDiscountFields();
         });
 
-        // Variant "Add Region" button handler
+        // Variant "{{ __('catalogmanagement::product.add_region') }}" button handler
         $(document).on('click', '.add-variant-stock-row', function() {
             const variantIndex = $(this).data('variant-index');
             addVariantStockRow(variantIndex);
@@ -2676,15 +2855,103 @@
             const variantIndex = $(this).closest('.variant-box').data('variant-index');
             const keyId = $(this).val();
 
+            // Clear everything when key changes
+            $(`#variant-${variantIndex} .variant-tree-levels`).empty();
+            $(`#variant-${variantIndex} .selected-variant-path`).hide();
+            $(`#variant-${variantIndex} .selected-variant-id`).val('');
+            $(`#variant-${variantIndex}-pricing-stock`).hide();
+
             if (keyId) {
                 loadVariantsByKey(variantIndex, keyId);
             } else {
                 $(`#variant-${variantIndex} .variant-tree-container`).hide();
-                $(`#variant-${variantIndex}-pricing-stock`).hide();
             }
         });
 
-        // Configuration type change handler removed - no dynamic sections
+        // Discount switch handler for new variants (from template)
+        $(document).on('change', '.has-discount-switch', function() {
+            const $switch = $(this);
+            const $container = $switch.closest('.pricing-stock-box');
+            const $discountFields = $container.find('.discount-fields');
+
+            if ($switch.is(':checked')) {
+                $discountFields.show();
+                console.log('✅ Discount enabled for new variant');
+            } else {
+                $discountFields.hide();
+                // Clear discount field values
+                $discountFields.find('input').val('');
+                console.log('❌ Discount disabled for new variant');
+            }
+        });
+
+        // Configuration type change handler - show/hide relevant sections
+        $('#configuration_type').on('change', function() {
+            const selectedType = $(this).val();
+            console.log('🔄 Configuration type changed to:', selectedType);
+
+            // Hide all sections first
+            $('#simple-product-section').hide();
+            $('#dynamic-simple-product-section').hide();
+            $('.variant-configuration-section').hide();
+            $('#add-new-variants-section').hide();
+            $('#variants-container').empty();
+            $('#variants-empty-state').show();
+
+            if (selectedType === 'simple') {
+                // Remove name attribute from variant fields so they won't be submitted
+                $('.variant-configuration-section input, .variant-configuration-section select, .variant-configuration-section textarea').each(function() {
+                    const $field = $(this);
+                    if ($field.attr('name')) {
+                        $field.attr('data-original-name', $field.attr('name'));
+                        $field.removeAttr('name');
+                    }
+                });
+
+                // Show existing simple product section if it exists, otherwise show dynamic section
+                if ($('#simple-product-section').length > 0) {
+                    $('#simple-product-section').show();
+                    // Restore name attributes for simple product fields
+                    $('#simple-product-section input, #simple-product-section select, #simple-product-section textarea').each(function() {
+                        const $field = $(this);
+                        if ($field.attr('data-original-name')) {
+                            $field.attr('name', $field.attr('data-original-name'));
+                        }
+                    });
+                    console.log('✅ Showing existing simple product section');
+                } else {
+                    // Create dynamic simple product pricing/stock box
+                    $('#dynamic-simple-product-section').show();
+                    createPricingStockBox('dynamic-simple-pricing-stock', '', 0);
+                    console.log('✅ Showing dynamic simple product section with new pricing/stock box');
+                }
+            } else if (selectedType === 'variants') {
+                // Restore name attributes for variant fields
+                $('.variant-configuration-section input, .variant-configuration-section select, .variant-configuration-section textarea').each(function() {
+                    const $field = $(this);
+                    if ($field.attr('data-original-name')) {
+                        $field.attr('name', $field.attr('data-original-name'));
+                    }
+                });
+
+                // Remove name attribute from simple product fields so they won't be submitted
+                $('#simple-product-section input, #simple-product-section select, #simple-product-section textarea').each(function() {
+                    const $field = $(this);
+                    if ($field.attr('name')) {
+                        $field.attr('data-original-name', $field.attr('name'));
+                        $field.removeAttr('name');
+                    }
+                });
+
+                // Show variant sections
+                $('.variant-configuration-section').show();
+                $('#add-new-variants-section').show();
+                console.log('✅ Showing variant sections and add new variants section');
+            } else {
+                // No type selected - hide everything
+                console.log('❌ No product type selected - hiding all sections');
+            }
+        });
 
         // ============================================
         // Clear validation errors on input change
@@ -2780,12 +3047,15 @@
             }
         });
 
-        // Clear error on quantity input
+        // Clear error on quantity input and update total stock
         $(document).on('input', '.quantity-input', function() {
             const $input = $(this);
             if ($input.val() && parseInt($input.val()) >= 0) {
                 $input.removeClass('is-invalid');
             }
+
+            // Update total stock for the variant
+            updateVariantTotalStock($input);
         });
 
         // Clear error on region select
@@ -2963,6 +3233,12 @@
     window.toggleDiscountFields = function(variantIndex) {
         const checkbox = document.getElementById('discount_' + variantIndex);
         const discountFields = document.getElementById('discount_fields_' + variantIndex);
+
+        // Check if elements exist (they might not exist for new variants)
+        if (!checkbox || !discountFields) {
+            console.warn('⚠️ Discount elements not found for variant:', variantIndex);
+            return;
+        }
 
         // Get discount fields
         const priceBeforeInput = document.querySelector(`input[name="variants[${variantIndex}][price_before_discount]"]`);

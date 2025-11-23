@@ -753,7 +753,7 @@
                                 <div class="row mb-3">
                                     <div class="col-md-12">
                                         <label class="form-label">{{ __('catalogmanagement::product.variant_key') }} <span class="text-danger">*</span></label>
-                                        <select name="variants[__VARIANT_INDEX__][variant_key_id]" class="form-control select2 variant-key-select" required>
+                                        <select class="form-control select2 variant-key-select" required>
                                             <option value="">{{ __('catalogmanagement::product.select_variant_key') }}</option>
                                         </select>
                                     </div>
@@ -765,7 +765,7 @@
                                     <div class="variant-tree-levels">
                                         <!-- Dynamic variant levels will be added here -->
                                     </div>
-                                    <input type="hidden" name="variants[__VARIANT_INDEX__][value_id]" class="selected-variant-id">
+                                    <input type="hidden" name="variants[__VARIANT_INDEX__][variant_configuration_id]" class="selected-variant-id">
                                     <div class="alert alert-info mt-2 selected-variant-path" style="display: none;">
                                         <strong>{{ __('catalogmanagement::product.selected_variant') }}:</strong> <span class="path-text"></span>
                                     </div>

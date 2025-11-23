@@ -182,6 +182,7 @@ return [
     'sku' => 'SKU',
     'units' => 'units',
     'currency' => 'EGP',
+    'quantity' => 'quantity',
     'offer_valid_until' => 'Offer valid until',
     'no_stock_data' => 'No stock data available',
     'variants_and_stock' => 'Variants & Stock',
