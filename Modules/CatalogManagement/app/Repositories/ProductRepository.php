@@ -4,6 +4,7 @@ namespace Modules\CatalogManagement\app\Repositories;
 
 use App\Models\Attachment;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Modules\CatalogManagement\app\Interfaces\ProductInterface;
@@ -66,9 +67,6 @@ class ProductRepository implements ProductInterface
             // Store translations
             $this->storeTranslations($product, $data);
 
-            // Generate proper slug after translations are saved
-            // $product->regenerateSlug();
-
             // Handle main image
             $this->handleMainImage($product, $data);
 
@@ -84,7 +82,7 @@ class ProductRepository implements ProductInterface
 
     public function updateProduct(int $id, array $data)
     {
-        \Log::info($data);
+        Log::info($data);
         return DB::transaction(function () use ($id, $data) {
             $product = Product::findOrFail($id);
 
@@ -158,7 +156,7 @@ class ProductRepository implements ProductInterface
         $product->translations()->forceDelete();
 
         if (!empty($data['translations'])) {
-            \Log::info('Storing translations for product', [
+            Log::info('Storing translations for product', [
                 'product_id' => $product->id,
                 'translations_data' => $data['translations']
             ]);
@@ -184,7 +182,7 @@ class ProductRepository implements ProductInterface
 
                 foreach ($translationFields as $field) {
                     if (isset($fields[$field])) {
-                        \Log::info('Creating translation', [
+                        Log::info('Creating translation', [
                             'field' => $field,
                             'language' => $language->code,
                             'value' => $fields[$field]
@@ -296,25 +294,23 @@ class ProductRepository implements ProductInterface
             // Handle simple product variant (update or create)
             $existingVariant = $vendorProduct->variants()->first();
 
+            // Prepare variant data with discount logic
+            $hasDiscount = $data['has_discount'] ?? false;
+            $variantData = [
+                'sku' => $data['sku'] ?? null,
+                'price' => ($data['price'] ?? 0),
+                'has_discount' => $hasDiscount,
+                'price_before_discount' => $hasDiscount ? ($data['price_before_discount'] ?? 0) : 0,
+                'discount_end_date' => $hasDiscount ? ($data['discount_end_date'] ?? null) : null,
+            ];
+
             if ($existingVariant) {
                 // Update existing variant
-                $existingVariant->update([
-                    'sku' => $data['sku'] ?? null,
-                    'price' => ($data['price'] ?? 0),
-                    'has_discount' => $data['has_discount'] ?? false,
-                    'price_before_discount' => isset($data['price_before_discount']) ? $data['price_before_discount'] : 0,
-                    'discount_end_date' => $data['discount_end_date'] ?? null,
-                ]);
+                $existingVariant->update($variantData);
                 $vendorProductVariant = $existingVariant;
             } else {
                 // Create new variant
-                $vendorProductVariant = $vendorProduct->variants()->create([
-                    'sku' => $data['sku'] ?? null,
-                    'price' => ($data['price'] ?? 0),
-                    'has_discount' => $data['has_discount'] ?? false,
-                    'price_before_discount' => isset($data['price_before_discount']) ? $data['price_before_discount'] : 0,
-                    'discount_end_date' => $data['discount_end_date'] ?? null,
-                ]);
+                $vendorProductVariant = $vendorProduct->variants()->create($variantData);
             }
 
             // Sync stocks for simple product
@@ -325,25 +321,51 @@ class ProductRepository implements ProductInterface
                 $incomingVariantIds = [];
 
                 foreach ($data['variants'] as $variantData) {
-                    $variantConfigId = $variantData['value_id'] ?? null;
+                    $variantConfigId = $variantData['variant_configuration_id'] ?? $variantData['value_id'] ?? $variantData['variant_id'] ?? $variantData['key_id'] ?? null;
 
-                    if (!$variantConfigId) {
+                    Log::info('Processing variant', [
+                        'variant_data' => $variantData,
+                        'variant_config_id' => $variantConfigId,
+                        'vendor_product_id' => $vendorProduct->id
+                    ]);
+
+                    // Find existing vendor product variant by ID
+                    $existingProductVariant = $vendorProduct->variants()
+                        ->find($variantData['id']);
+
+                    // Skip only if we don't have a configuration ID AND can't find existing variant
+                    if (!$variantConfigId && !$existingProductVariant) {
+                        Log::warning('Skipping variant - no configuration ID and no existing variant found');
                         continue;
                     }
 
-                    // Find existing variant by configuration ID
-                    $existingProductVariant = $product->variants()
-                    ->find($variantData['id']);
+                    Log::info('Variant lookup result', [
+                        'variant_id' => $variantData['id'],
+                        'found' => $existingProductVariant ? 'yes' : 'no',
+                        'existing_variant' => $existingProductVariant ? $existingProductVariant->toArray() : null
+                    ]);
 
                     if ($existingProductVariant) {
-                        // Update existing vendor variant
-                        $existingProductVariant->update([
+                        // Prepare variant data with discount logic
+                        $hasVariantDiscount = $variantData['has_discount'] ?? false;
+                        $updateData = [
                             'sku' => $variantData['sku'] ?? null,
                             'price' => $variantData['price'] ?? 0,
-                            'has_discount' => $variantData['has_discount'] ?? false,
-                            'price_before_discount' => $variantData['price_before_discount'] ?? 0,
-                            'discount_end_date' => $variantData['discount_end_date'] ?? null,
+                            'has_discount' => $hasVariantDiscount,
+                            'price_before_discount' => $hasVariantDiscount ? ($variantData['price_before_discount'] ?? 0) : 0,
+                            'discount_end_date' => $hasVariantDiscount ? ($variantData['discount_end_date'] ?? null) : null,
+                        ];
+
+                        Log::info('Updating variant', [
+                            'variant_id' => $variantData['id'],
+                            'has_discount' => $hasVariantDiscount,
+                            'price_before_discount_input' => $variantData['price_before_discount'] ?? 'not_set',
+                            'price_before_discount_final' => $updateData['price_before_discount'],
+                            'update_data' => $updateData
                         ]);
+
+                        // Update existing vendor variant
+                        $existingProductVariant->update($updateData);
                         $incomingVariantIds[] = $variantData['id'];
                         $vendorProductVariant = $existingProductVariant;
                     } else {
@@ -354,15 +376,19 @@ class ProductRepository implements ProductInterface
                             ]);
                         }
 
-                        // Create new vendor variant
-                        $vendorProductVariant = $vendorProduct->variants()->create([
+                        // Prepare variant data with discount logic for creation
+                        $hasVariantDiscount = $variantData['has_discount'] ?? false;
+                        $createData = [
                             'variant_configuration_id' => $variantConfigId,
                             'sku' => $variantData['sku'] ?? null,
                             'price' => $variantData['price'] ?? 0,
-                            'has_discount' => $variantData['has_discount'] ?? false,
-                            'price_before_discount' => $variantData['price_before_discount'] ?? 0,
-                            'discount_end_date' => $variantData['discount_end_date'] ?? null,
-                        ]);
+                            'has_discount' => $hasVariantDiscount,
+                            'price_before_discount' => $hasVariantDiscount ? ($variantData['price_before_discount'] ?? 0) : 0,
+                            'discount_end_date' => $hasVariantDiscount ? ($variantData['discount_end_date'] ?? null) : null,
+                        ];
+
+                        // Create new vendor variant
+                        $vendorProductVariant = $vendorProduct->variants()->create($createData);
                         $incomingVariantIds[] = $vendorProductVariant->id;
                     }
 

@@ -78,7 +78,7 @@
                                                 {{ __('catalogmanagement::product.vendor') }}
                                             </label>
                                             <select
-                                                class="form-control ih-medium ip-gray radius-xs b-light px-15 form-select"
+                                                class="select2 form-control ih-medium ip-gray radius-xs b-light px-15 form-select"
                                                 id="vendor_filter">
                                                 <option value="">{{ __('common.all') }}</option>
                                                 @foreach($vendors as $vendor)

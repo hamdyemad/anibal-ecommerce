@@ -99,8 +99,6 @@ class ProductController extends Controller
         $brands = BrandResource::collection($brands)->resolve();
         $taxes = $this->taxService->getAllTaxes([], 0);
         $taxes = TaxResource::collection($taxes)->resolve();
-        $regions = $this->regionService->getAllRegions([], 0);
-        $regions = RegionResource::collection($regions)->resolve();
         // Get vendors for admin/super admin, or current vendor for vendor users
         $vendors = [];
         $currentUser = Auth::user();
@@ -129,7 +127,7 @@ class ProductController extends Controller
         $variantKeys = VariantsConfigurationKeyResource::collection(
             $variantKeys->map(fn ($v) => $v->setAttribute('select2', true))
         )->resolve();
-        return view('catalogmanagement::product.create', compact('languages', 'brands', 'taxes', 'regions', 'vendors', 'variantKeys'));
+        return view('catalogmanagement::product.create', compact('languages', 'brands', 'taxes', 'vendors', 'variantKeys'));
     }
 
     /**
@@ -434,7 +432,6 @@ class ProductController extends Controller
     private function getFilteredProducts(Request $request, ?string $statusFilter)
     {
         $languages = $this->languageService->getAll();
-
         // Get filter data for admin users - same logic as index() method
         $vendors = [];
         $brands = [];
