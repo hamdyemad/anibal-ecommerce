@@ -455,7 +455,9 @@
                             <div class="orderDatatable_actions d-inline-flex gap-1">
                                 <a href="${showUrl}" class="view btn btn-primary table_action_father" title="{{ trans('common.view') }}">
                                     <i class="uil uil-eye table_action_icon"></i>
-                                </a>
+                                </a>`;
+
+                            actions += `
                                 <a href="${editUrl}" class="edit btn btn-warning table_action_father" title="{{ trans('common.edit') }}">
                                     <i class="uil uil-edit table_action_icon"></i>
                                 </a>
