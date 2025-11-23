@@ -30,6 +30,7 @@ use Modules\CatalogManagement\app\Actions\ProductAction;
 use Modules\CatalogManagement\app\Http\Resources\VariantsConfigurationKeyResource;
 use Modules\CatalogManagement\app\Models\Brand;
 use Modules\CatalogManagement\app\Services\VariantConfigurationKeyService;
+use Modules\CategoryManagment\app\Http\Resources\CategoryResource;
 use Modules\Vendor\app\Models\Vendor;
 
 class ProductController extends Controller
@@ -448,15 +449,17 @@ class ProductController extends Controller
             });
 
             $brands = $this->brandService->getAllBrands([], 0);
-            return $brands;
-
-            $categories = Category::select('id')->with('translations')->get()->map(function($category) {
+            $brands = BrandResource::collection($brands)->map(function($brand) {
+                return [
+                    'id' => $brand->id,
+                    'name' => $brand->name
+                ];
+            });
+            $categories = $this->categoryService->getAllCategories([], 0);
+            $categories = CategoryResource::collection($categories)->map(function($category) {
                 return [
                     'id' => $category->id,
-                    'name' => $category->getTranslation('name', app()->getLocale()) ??
-                             $category->getTranslation('name', 'en') ??
-                             $category->getTranslation('name', 'ar') ??
-                             'Category #' . $category->id
+                    'name' => $category->name
                 ];
             });
         }
