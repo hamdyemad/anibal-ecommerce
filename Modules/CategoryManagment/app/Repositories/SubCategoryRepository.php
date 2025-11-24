@@ -189,11 +189,16 @@ class SubCategoryRepository implements SubCategoryRepositoryInterface
     public function updateSubCategory(int $id, array $data)
     {
         $subCategory = SubCategory::findOrFail($id);
-
-        $subCategory->update([
-            'category_id' => $data['category_id'],
-            'active' => $data['active'] ?? 1,
-        ]);
+        $updatedData = [];
+        (isset($data['category_id'])) ? $updatedData['category_id'] = $data['category_id'] : null;
+        if(isset($data['active'])) {
+            if($data['active'] == 1) {
+                $updatedData['active'] = 1;
+            } else {
+                $updatedData['active'] = 0;
+            }
+        }
+        $subCategory->update($updatedData);
 
         // Update translations
         if (isset($data['translations'])) {

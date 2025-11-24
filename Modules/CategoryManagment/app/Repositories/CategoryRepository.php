@@ -136,11 +136,16 @@ class CategoryRepository implements CategoryRepositoryInterface
     public function updateCategory(int $id, array $data)
     {
         $category = Category::findOrFail($id);
-
-        $category->update([
-            'department_id' => $data['department_id'],
-            'active' => $data['active'] ?? 1,
-        ]);
+        $updatedData = [];
+        (isset($data['department_id'])) ? $updatedData['department_id'] = $data['department_id'] : null;
+        if(isset($data['active'])) {
+            if($data['active'] == 1) {
+                $updatedData['active'] = 1;
+            } else {
+                $updatedData['active'] = 0;
+            }
+        }
+        $category->update($updatedData);
 
         // Update translations
         if (isset($data['translations'])) {
