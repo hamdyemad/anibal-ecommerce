@@ -20,6 +20,7 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function() {
 
     // Simple test route
     Route::get('withdraw/test-datatable', function() {
+        Withdraw::truncate();
         return response()->json([
             'status' => 'success',
             'message' => 'Test route works',

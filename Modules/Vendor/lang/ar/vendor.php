@@ -241,4 +241,7 @@ return [
     'vendor_not_found' => 'المورد غير موجود',
     'status_changed_successfully' => 'تم تغيير حالة المورد بنجاح',
     'error_changing_status' => 'خطأ في تغيير حالة المورد',
+    'total_vendors_balance' => 'إجمالي أرصدة الموردين',
+    'total_sent_money' => 'إجمالي الأموال المرسلة',
+    'total_remaining' => 'إجمالي المتبقي',
 ];
