@@ -52,6 +52,23 @@ class VendorRequestRepository implements VendorRequestRepositoryInterface
             $query->byEmail($filters['email']);
         }
 
+        // Filter by activity
+        if (!empty($filters['activity_id'])) {
+            $query->whereHas('activities', function ($q) use ($filters) {
+                $q->where('activities.id', $filters['activity_id']);
+            });
+        }
+
+        // Filter by created date from
+        if (!empty($filters['created_date_from'])) {
+            $query->whereDate('created_at', '>=', $filters['created_date_from']);
+        }
+
+        // Filter by created date to
+        if (!empty($filters['created_date_to'])) {
+            $query->whereDate('created_at', '<=', $filters['created_date_to']);
+        }
+
         // Sort by latest
         $query->latest();
 
@@ -123,7 +140,7 @@ class VendorRequestRepository implements VendorRequestRepositoryInterface
                 'status' => 'rejected',
                 'rejection_reason' => $reason,
             ]);
-            return $vendorRequest;  
+            return $vendorRequest;
         });
     }
 }

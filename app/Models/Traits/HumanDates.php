@@ -23,4 +23,12 @@ trait HumanDates
         ->locale(app()->getLocale())
         ->translatedFormat('d M, Y, h:i A');
     }
+
+    public function getEmailVerifiedAtAttribute($value)
+    {
+        return Carbon::parse($value)
+        ->timezone(config('app.timezone'))
+        ->locale(app()->getLocale())
+        ->translatedFormat('d M, Y, h:i A');
+    }
 }

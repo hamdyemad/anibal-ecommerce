@@ -27,6 +27,7 @@ return [
     'phone' => 'الهاتف',
     'status' => 'الحالة',
     'email_verified' => 'تم التحقق من البريد الإلكتروني',
+    'email_verified_at' => 'تاريخ التحقق من البريد الإلكتروني',
     'created_at' => 'تاريخ الإنشاء',
     'action' => 'الإجراء',
 
@@ -63,6 +64,11 @@ return [
     'customer_deleted' => 'تم حذف العميل بنجاح',
     'error_deleting' => 'خطأ في حذف العميل',
     'live_search_info' => 'استخدم المرشحات أعلاه للبحث وتصفية العملاء في الوقت الفعلي.',
+    'customer_not_found' => 'العميل غير موجود',
+    'status_changed_successfully' => 'تم تغيير حالة العميل بنجاح',
+    'error_changing_status' => 'خطأ في تغيير حالة العميل',
+    'verification_changed_successfully' => 'تم تغيير حالة التحقق بنجاح',
+    'error_changing_verification' => 'خطأ في تغيير حالة التحقق',
 
     // Form fields
     'first_name' => 'الاسم الأول',

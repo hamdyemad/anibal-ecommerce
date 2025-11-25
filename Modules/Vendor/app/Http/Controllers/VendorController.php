@@ -217,6 +217,43 @@ class VendorController extends Controller {
     }
 
     /**
+     * Change vendor active status
+     */
+    public function changeStatus(Request $request, $id)
+    {
+        try {
+            $vendor = $this->vendorService->getVendorById($id);
+
+            if (!$vendor) {
+                return response()->json([
+                    'success' => false,
+                    'message' => __('vendor::vendor.vendor_not_found')
+                ], 404);
+            }
+
+            $newStatus = !$vendor->active;
+            $vendor->update(['active' => $newStatus]);
+
+            return response()->json([
+                'success' => true,
+                'message' => __('vendor::vendor.status_changed_successfully'),
+                'new_status' => $newStatus,
+                'status_text' => $newStatus ? __('vendor::vendor.active') : __('vendor::vendor.inactive')
+            ]);
+        } catch (Exception $e) {
+            Log::error('Vendor status change failed', [
+                'vendor_id' => $id,
+                'error' => $e->getMessage()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => __('vendor::vendor.error_changing_status')
+            ], 500);
+        }
+    }
+
+    /**
      * Delete a vendor document
      */
     public function destroyDocument($vendorId, $documentId)

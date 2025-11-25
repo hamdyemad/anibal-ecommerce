@@ -377,6 +377,183 @@ class ProductController extends Controller
     }
 
     /**
+     * Move product to bank (admin only)
+     */
+    public function moveToBank(Request $request, $id)
+    {
+        try {
+            // Check if user is admin
+            $currentUser = Auth::user();
+            if (!in_array($currentUser->user_type_id, UserType::adminIds())) {
+                return response()->json([
+                    'success' => false,
+                    'message' => __('common.unauthorized')
+                ], 403);
+            }
+
+            $product = Product::findOrFail($id);
+
+            // Check if already a bank product
+            if ($product->type === Product::TYPE_BANK) {
+                return response()->json([
+                    'success' => false,
+                    'message' => __('catalogmanagement::product.already_bank_product')
+                ]);
+            }
+
+            // Move to bank
+            $product->type = Product::TYPE_BANK;
+            $product->save();
+
+            Log::info('Product moved to bank', [
+                'product_id' => $id,
+                'moved_by' => auth()->id()
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => __('catalogmanagement::product.moved_to_bank_successfully')
+            ]);
+
+        } catch (Exception $e) {
+            Log::error('Move product to bank failed', [
+                'product_id' => $id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => __('catalogmanagement::product.error_moving_to_bank')
+            ], 500);
+        }
+    }
+
+    /**
+     * Display bank products listing
+     * Bank products are queried from Product table directly (not VendorProduct)
+     */
+    public function bankProducts(Request $request)
+    {
+        $languages = $this->languageService->getAll();
+
+        $brands = $this->brandService->getAllBrands([], 0);
+        $brands = BrandResource::collection($brands)->map(function($brand) {
+            return [
+                'id' => $brand->id,
+                'name' => $brand->name
+            ];
+        });
+
+        $categories = $this->categoryService->getAllCategories([], 0);
+        $categories = CategoryResource::collection($categories)->map(function($category) {
+            return [
+                'id' => $category->id,
+                'name' => $category->name
+            ];
+        });
+
+        return view('catalogmanagement::product.bank', compact('languages', 'brands', 'categories'));
+    }
+
+    /**
+     * Datatable endpoint for bank products
+     * Uses getBankDataTable which queries Product directly (not VendorProduct)
+     * Bank products use Product.is_active for activation status
+     */
+    public function bankDatatable(Request $request)
+    {
+        try {
+            // Get datatable data from bank-specific action (queries Product table directly)
+            $filters = $request->all();
+            $result = $this->productAction->getBankDataTable($filters);
+            $dataPaginated = $result['dataPaginated'];
+            return response()->json([
+                'data' => $result['data'],
+                'recordsTotal' => $result['totalRecords'],
+                'recordsFiltered' => $result['filteredRecords'],
+                'current_page' => $dataPaginated->currentPage(),
+                'last_page' => $dataPaginated->lastPage(),
+                'per_page' => $dataPaginated->perPage(),
+                'total' => $dataPaginated->total(),
+                'from' => $dataPaginated->firstItem(),
+                'to' => $dataPaginated->lastItem()
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Bank Product Datatable Error: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString()
+            ]);
+            return response()->json([
+                'error' => 'Error loading bank products: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Change bank product activation status (updates Product.is_active)
+     */
+    public function changeBankActivation(Request $request, $id)
+    {
+        try {
+            // Check if user is admin
+            $currentUser = Auth::user();
+            if (!in_array($currentUser->user_type_id, UserType::adminIds())) {
+                return response()->json([
+                    'success' => false,
+                    'message' => __('common.unauthorized')
+                ], 403);
+            }
+
+            $request->validate([
+                'status' => 'required|in:1,2'
+            ]);
+
+            $product = Product::findOrFail($id);
+
+            // Convert status: 1 = active (true), 2 = inactive (false)
+            $newStatus = $request->status == 1;
+
+            // Check if status is already set to the requested value
+            if ($product->is_active == $newStatus) {
+                return response()->json([
+                    'success' => false,
+                    'message' => __('catalogmanagement::product.activation_already_set')
+                ]);
+            }
+
+            // Update the activation status on product
+            $product->is_active = $newStatus;
+            $product->save();
+
+            Log::info('Bank product activation status changed', [
+                'product_id' => $id,
+                'new_status' => $newStatus,
+                'changed_by' => auth()->id()
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => __('catalogmanagement::product.activation_changed_successfully'),
+                'new_status' => $newStatus,
+                'status_text' => $newStatus ? __('common.active') : __('common.inactive')
+            ]);
+
+        } catch (Exception $e) {
+            Log::error('Bank product activation status change failed', [
+                'product_id' => $id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => __('catalogmanagement::product.error_changing_activation')
+            ], 500);
+        }
+    }
+
+    /**
      * Remove the specified resource from storage.
      */
     public function destroy($id)
@@ -475,6 +652,88 @@ class ProductController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => __('catalogmanagement::product.error_saving_pricing_stock'),
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Bank Stock Management - Display page to manage vendor product stocks from bank
+     */
+    public function bankStockManagement(Request $request)
+    {
+        $languages = $this->languageService->getAll();
+
+        // Get vendors for selection
+        $vendors = Vendor::with('translations')->get()->map(function($vendor) {
+            return [
+                'id' => $vendor->id,
+                'name' => $vendor->name
+            ];
+        });
+
+        return view('catalogmanagement::product.bank-stock-management', compact(
+            'languages',
+            'vendors'
+        ));
+    }
+
+    /**
+     * Search bank products for Select2 AJAX
+     */
+    public function searchBankProducts(Request $request)
+    {
+        try {
+            $search = $request->get('search', '');
+            $result = $this->productService->searchBankProducts($search);
+
+            return response()->json($result);
+        } catch (Exception $e) {
+            Log::error('Bank product search error: ' . $e->getMessage());
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Get vendor product for a specific product and vendor combination
+     */
+    public function getVendorProduct(Request $request)
+    {
+        try {
+            $productId = (int) $request->get('product_id');
+            $vendorId = (int) $request->get('vendor_id');
+
+            $vendorProduct = $this->productService->getVendorProductByProductAndVendor($productId, $vendorId);
+
+            return response()->json(['vendor_product' => $vendorProduct]);
+        } catch (Exception $e) {
+            Log::error('Get vendor product error: ' . $e->getMessage());
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Save bank product stock for a vendor (create or update VendorProduct)
+     */
+    public function saveBankStock(Request $request)
+    {
+        try {
+            $data = $request->all();
+            $this->productService->saveBankStock($data);
+
+            return response()->json([
+                'success' => true,
+                'message' => __('catalogmanagement::product.bank_stock_saved_successfully')
+            ]);
+
+        } catch (Exception $e) {
+            Log::error('Save bank stock error: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => __('catalogmanagement::product.error_saving_bank_stock'),
                 'error' => $e->getMessage()
             ], 500);
         }

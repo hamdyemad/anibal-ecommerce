@@ -239,10 +239,16 @@ return [
 
     // Vendor Request Actions
     'vendor_requests' => 'Vendor Requests',
+    'vendor_requests_management' => 'Vendor Requests Management',
     'approve_success' => 'Vendor request approved successfully',
     'reject_success' => 'Vendor request rejected successfully',
     'archive_success' => 'Vendor request archived successfully',
     'approve_error' => 'Error approving vendor request',
     'reject_error' => 'Error rejecting vendor request',
     'archive_error' => 'Error archiving vendor request',
+    'activity' => 'Activity',
+    'search_by_email_or_company' => 'Search by email or company name',
+    'vendor_not_found' => 'Vendor not found',
+    'status_changed_successfully' => 'Vendor status changed successfully',
+    'error_changing_status' => 'Error changing vendor status',
 ];

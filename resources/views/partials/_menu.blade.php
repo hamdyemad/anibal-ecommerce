@@ -504,25 +504,6 @@
                 </li>
             @endcanany
 
-            @can('customers.index')
-                <li class="has-child {{ Request::is(LaravelLocalization::getCurrentLocale() . '/admin/customers*') ? 'open' : '' }}">
-                    <a href="#"
-                        class="{{ Request::is(LaravelLocalization::getCurrentLocale() . '/admin/customers*') ? 'active' : '' }}">
-                        <span class="nav-icon uil uil-user-circle"></span>
-                        <span class="menu-text">{{ trans('menu.customers.title') }}</span>
-                        <span class="toggle-icon"></span>
-                    </a>
-                    <ul class="px-0">
-                        <li>
-                            <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive('admin.customers.index', $currentRoute) ? 'active' : '' }}"
-                                href="{{ route('admin.customers.index') }}">
-                                {{ trans('menu.customers.all') }}
-                                <span class="badge badge-round badge-primary ms-1">{{ \Modules\Customer\app\Models\Customer::count() }}</span>
-                            </a>
-                        </li>
-                    </ul>
-                </li>
-            @endcan
 
             @can('vendor_requests.new')
                 <li class="has-child {{ Request::is(LaravelLocalization::getCurrentLocale() . '/admin/vendor-requests*') ? 'open' : '' }}">
@@ -557,6 +538,25 @@
                 </li>
             @endcan
 
+            @can('customers.index')
+                <li class="has-child {{ Request::is(LaravelLocalization::getCurrentLocale() . '/admin/customers*') ? 'open' : '' }}">
+                    <a href="#"
+                        class="{{ Request::is(LaravelLocalization::getCurrentLocale() . '/admin/customers*') ? 'active' : '' }}">
+                        <span class="nav-icon uil uil-user-circle"></span>
+                        <span class="menu-text">{{ trans('menu.customers.title') }}</span>
+                        <span class="toggle-icon"></span>
+                    </a>
+                    <ul class="px-0">
+                        <li>
+                            <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive('admin.customers.index', $currentRoute) ? 'active' : '' }}"
+                                href="{{ route('admin.customers.index') }}">
+                                {{ trans('menu.customers.all') }}
+                                <span class="badge badge-round badge-primary ms-1">{{ \Modules\Customer\app\Models\Customer::count() }}</span>
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+            @endcan
         @endif
 
         <li class="menu-title mt-30">

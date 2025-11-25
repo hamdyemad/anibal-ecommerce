@@ -10,4 +10,9 @@ interface ProductInterface
     public function updateProduct(int $id, array $data);
     public function deleteProduct(int $id);
     public function updateStockAndPricing($id, array $data);
+
+    // Bank Stock Management
+    public function searchBankProducts(string $search = '', int $perPage = 20);
+    public function getVendorProductByProductAndVendor(int $productId, int $vendorId);
+    public function saveBankStock(array $data);
 }

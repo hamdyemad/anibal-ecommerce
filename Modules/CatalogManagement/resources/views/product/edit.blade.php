@@ -1211,7 +1211,7 @@
     // Configuration & Global Variables
     // ============================================
     const config = {
-        currentStep: 3,
+        currentStep: 1,
         totalSteps: 4,
         locale: '{{ app()->getLocale() }}',
         apiBaseUrl: '{{ url("/api") }}',

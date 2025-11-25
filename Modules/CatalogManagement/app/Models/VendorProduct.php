@@ -4,12 +4,13 @@ namespace Modules\CatalogManagement\app\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Traits\HumanDates;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\Vendor\app\Models\Vendor;
 
 class VendorProduct extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory, SoftDeletes, HumanDates;
 
     // Status constants
     const STATUS_PENDING = 'pending';

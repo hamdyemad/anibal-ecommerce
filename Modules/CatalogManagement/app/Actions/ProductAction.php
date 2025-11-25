@@ -46,6 +46,7 @@ class ProductAction {
                 'status' => $data['status'] ?? null,
                 'created_date_from' => $data['created_date_from'] ?? '',
                 'created_date_to' => $data['created_date_to'] ?? '',
+                'type' => $data['type'] ?? null,
             ];
 
             // Get current user and user type
@@ -116,6 +117,13 @@ class ProductAction {
                 $query->where('status', $filters['status']);
             }
 
+            // Filter by product type (product/bank)
+            if (!empty($filters['type'])) {
+                $query->whereHas('product', function($q) use ($filters) {
+                    $q->where('type', $filters['type']);
+                });
+            }
+
             $filteredRecords = $query->count();
 
             // Apply pagination
@@ -150,8 +158,10 @@ class ProductAction {
                         'id' => $product->category->id,
                         'name' => truncateString($product->category->name),
                     ] : null,
+                    // For bank products, use Product.is_active; for regular products, use VendorProduct.is_active
                     'active' => $item->is_active,
                     'status' => $item->status,
+                    'product_type' => $product->type ?? 'product',
                     'created_at' => $item->created_at,
                 ];
 
@@ -192,6 +202,126 @@ class ProductAction {
 
         } catch (\Exception $e) {
             Log::error('Error in ProductAction getDataTable: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString()
+            ]);
+            return [
+                'data' => [],
+                'totalRecords' => 0,
+                'filteredRecords' => 0,
+                'dataPaginated' => new \Illuminate\Pagination\LengthAwarePaginator([], 0, 10)
+            ];
+        }
+    }
+
+    /**
+     * Datatable endpoint for bank products (queries Product directly, not VendorProduct)
+     */
+    public function getBankDataTable($data)
+    {
+        try {
+            // Get pagination parameters
+            $perPage = $data['per_page'] ?? $data['length'] ?? 10;
+            $page = $data['page'] ?? 1;
+
+            // Get filter parameters
+            $filters = [
+                'search' => $data['search'] ?? '',
+                'brand_id' => $data['brand_id'] ?? null,
+                'category_id' => $data['category_id'] ?? null,
+                'is_active' => $data['active'] ?? null,
+                'created_date_from' => $data['created_date_from'] ?? '',
+                'created_date_to' => $data['created_date_to'] ?? '',
+            ];
+
+            // Get languages for translations
+            $languages = $this->languageService->getAll();
+
+            // Build query for bank products (directly from Product table)
+            $query = Product::with(['brand', 'category', 'translations'])
+                ->where('type', Product::TYPE_BANK);
+
+            // Apply search filter
+            if (!empty($filters['search'])) {
+                $searchTerm = $filters['search'];
+                $query->where(function($q) use ($searchTerm) {
+                    $q->whereHas('translations', function($tq) use ($searchTerm) {
+                        $tq->where('lang_key', 'title')
+                           ->where('lang_value', 'like', "%{$searchTerm}%");
+                    })
+                    ->orWhere('sku', 'like', "%{$searchTerm}%");
+                });
+            }
+
+            // Apply brand filter
+            if (!empty($filters['brand_id'])) {
+                $query->where('brand_id', $filters['brand_id']);
+            }
+
+            // Apply category filter
+            if (!empty($filters['category_id'])) {
+                $query->where('category_id', $filters['category_id']);
+            }
+
+            // Apply active filter (Product.is_active)
+            if (!empty($filters['is_active'])) {
+                $isActive = $filters['is_active'] == 1;
+                $query->where('is_active', $isActive);
+            }
+
+            // Apply date filters
+            if (!empty($filters['created_date_from'])) {
+                $query->whereDate('created_at', '>=', $filters['created_date_from']);
+            }
+            if (!empty($filters['created_date_to'])) {
+                $query->whereDate('created_at', '<=', $filters['created_date_to']);
+            }
+
+            // Get total count before pagination
+            $totalRecords = Product::where('type', Product::TYPE_BANK)->count();
+            $filteredRecords = $query->count();
+
+            // Apply pagination
+            $products = $query->orderBy('created_at', 'desc')
+                ->paginate($perPage, ['*'], 'page', $page);
+
+            // Format data for DataTables
+            $formattedData = [];
+            $index = ($page - 1) * $perPage + 1;
+
+            foreach ($products as $product) {
+                // Get product names in EN and AR
+                $nameEn = $product->getTranslation('title', 'en') ?? '-';
+                $nameAr = $product->getTranslation('title', 'ar') ?? '-';
+
+                $formattedData[] = [
+                    'id' => $product->id,
+                    'index' => $index++,
+                    'product_information' => [
+                        'name_en' => truncateString($nameEn),
+                        'name_ar' => truncateString($nameAr),
+                    ],
+                    'brand' => $product->brand ? [
+                        'id' => $product->brand->id,
+                        'name' => truncateString($product->brand->name),
+                    ] : null,
+                    'category' => $product->category ? [
+                        'id' => $product->category->id,
+                        'name' => truncateString($product->category->name),
+                    ] : null,
+                    'active' => $product->is_active, // Product.is_active for bank products
+                    'created_at' => $product->created_at,
+                ];
+            }
+
+            return [
+                'data' => $formattedData,
+                'totalRecords' => $totalRecords,
+                'filteredRecords' => $filteredRecords,
+                'dataPaginated' => $products
+            ];
+
+        } catch (\Exception $e) {
+            Log::error('Error in ProductAction getBankDataTable: ' . $e->getMessage(), [
                 'trace' => $e->getTraceAsString()
             ]);
             return [

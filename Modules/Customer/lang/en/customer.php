@@ -27,6 +27,7 @@ return [
     'phone' => 'Phone',
     'status' => 'Status',
     'email_verified' => 'Email Verified',
+    'email_verified_at' => 'Email Verified At',
     'created_at' => 'Created At',
     'action' => 'Action',
 
@@ -63,6 +64,11 @@ return [
     'customer_deleted' => 'Customer deleted successfully',
     'error_deleting' => 'Error deleting customer',
     'live_search_info' => 'Use the filters above to search and filter customers in real-time.',
+    'customer_not_found' => 'Customer not found',
+    'status_changed_successfully' => 'Customer status changed successfully',
+    'error_changing_status' => 'Error changing customer status',
+    'verification_changed_successfully' => 'Customer verification status changed successfully',
+    'error_changing_verification' => 'Error changing verification status',
 
     // Form fields
     'first_name' => 'First Name',

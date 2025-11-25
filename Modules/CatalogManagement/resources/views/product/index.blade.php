@@ -26,6 +26,34 @@
             </div>
         </div>
 
+        {{-- Bank Products Card (Admin Only) --}}
+        @if(auth()->user() && in_array(auth()->user()->user_type_id, \App\Models\UserType::adminIds()))
+        <div class="row mb-4">
+            <div class="col-lg-12">
+                <a href="{{ route('admin.products.bank') }}" class="text-decoration-none">
+                    <div class="card border-0 shadow-sm bg-gradient-primary text-white" style="background: linear-gradient(135deg, var(--color-primary) 0%, var(--second-primary) 100%);">
+                        <div class="card-body py-3">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div class="d-flex align-items-center">
+                                    <div class="me-3">
+                                        <i class="uil uil-database" style="font-size: 2.5rem; opacity: 0.9;"></i>
+                                    </div>
+                                    <div>
+                                        <h5 class="mb-0 text-white fw-bold">{{ __('catalogmanagement::product.bank_products') }}</h5>
+                                        <small class="text-white-50">{{ __('catalogmanagement::product.bank_products_description') ?? 'Manage shared products available for all vendors' }}</small>
+                                    </div>
+                                </div>
+                                <div>
+                                    <i class="uil uil-arrow-right" style="font-size: 1.5rem;"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </div>
+        @endif
+
         <div class="row">
             <div class="col-lg-12">
                 <div class="userDatatable global-shadow border-0 p-30 bg-white radius-xl w-100 mb-30">
@@ -295,7 +323,6 @@
 
 @push('scripts')
     <script>
-
         $(document).ready(function() {
             const translations = {
                 active: '{{ __('common.active') }}',
@@ -374,6 +401,7 @@
                         data: 'vendor',
                         name: 'vendor',
                         searchable: false,
+                        orderable: false,
                         render: function(data, type, row) {
                             if (!data || !data.name) {
                                 return '<span class="text-muted">—</span>';
@@ -386,6 +414,7 @@
                         data: 'brand',
                         name: 'brand',
                         searchable: false,
+                        orderable: false,
                         render: function(data) {
                             if (!data?.name) return '<span class="text-muted">—</span>';
                             return `<span class="badge badge-info badge-round badge-lg">${$('<div/>').text(data.name).html()}</span>`;
@@ -395,6 +424,7 @@
                         data: 'category',
                         name: 'category',
                         searchable: false,
+                        orderable: false,
                         render: function(data) {
                             if (!data?.name) return '<span class="text-muted">—</span>';
                             return `<span class="badge badge-secondary badge-round badge-lg">${$('<div/>').text(data.name).html()}</span>`;
@@ -403,7 +433,7 @@
                     {
                         data: 'status',
                         name: 'status',
-                        orderable: true,
+                        orderable: false,
                         searchable: false,
                         className: 'text-center',
                         render: function(data, type, row) {
@@ -423,7 +453,7 @@
                     {
                         data: 'active',
                         name: 'active',
-                        orderable: true,
+                        orderable: false,
                         searchable: false,
                         className: 'text-center',
                         render: function(data, type, row) {
@@ -484,7 +514,7 @@
                                     <i class="uil uil-box table_action_icon"></i>
                                 </a>`;
 
-                            // Add approve/reject button for admin users only
+                            // Add approve/reject button and move to bank for admin users only
                             @if(auth()->user() && in_array(auth()->user()->user_type_id, \App\Models\UserType::adminIds()))
                             actions += `
                                 <a href="javascript:void(0);" class="change-status btn btn-success table_action_father"
@@ -495,6 +525,17 @@
                                    title="{{ trans('catalogmanagement::product.change_status') }}">
                                     <i class="uil uil-check-circle table_action_icon"></i>
                                 </a>`;
+
+                            // Add move to bank button (only if not already a bank product)
+                            if (data.product_type !== 'bank') {
+                                actions += `
+                                <a href="javascript:void(0);" class="move-to-bank btn btn-secondary table_action_father"
+                                   data-item-id="${data.id}"
+                                   data-item-name="${data.product_information?.name_en || data.product_information?.name_ar || 'Product'}"
+                                   title="{{ trans('catalogmanagement::product.move_to_bank') }}">
+                                    <i class="uil uil-database table_action_icon"></i>
+                                </a>`;
+                            }
                             @endif
 
                             actions += `
@@ -844,6 +885,126 @@
                     }
                 });
             });
+
+            // Move to bank handler
+            @if(auth()->user() && in_array(auth()->user()->user_type_id, \App\Models\UserType::adminIds()))
+            $(document).on('click', '.move-to-bank', function() {
+                const btn = $(this);
+                const productId = btn.data('item-id');
+                const productName = btn.data('item-name');
+
+                // Show confirmation popup
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        title: '<i class="uil uil-database text-primary"></i> {{ __('catalogmanagement::product.move_to_bank') }}',
+                        html: `<div class="text-center py-3">
+                                   <div class="mb-3">
+                                       <span class="badge bg-primary badge-lg badge-round px-3 py-2 fs-6">${productName}</span>
+                                   </div>
+                                   <p class="mb-2">{{ __('catalogmanagement::product.confirm_move_to_bank') }}</p>
+                                   <p class="text-muted small mb-0">{{ __('catalogmanagement::product.move_to_bank_description') }}</p>
+                               </div>`,
+                        icon: null,
+                        showCancelButton: true,
+                        confirmButtonColor: '#5F63F2',
+                        cancelButtonColor: '#868e96',
+                        confirmButtonText: '<i class="uil uil-check me-1"></i> {{ __('common.confirm') ?? 'Confirm' }}',
+                        cancelButtonText: '<i class="uil uil-times me-1"></i> {{ __('common.cancel') ?? 'Cancel' }}',
+                        customClass: {
+                            popup: 'swal2-lg',
+                            title: 'fs-5 fw-bold',
+                            confirmButton: 'btn btn-success px-4 me-1',
+                            cancelButton: 'btn btn-secondary px-4 me-1'
+                        },
+                        buttonsStyling: false,
+                        showCloseButton: true
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            // Show loading overlay
+                            if (typeof LoadingOverlay !== 'undefined') {
+                                LoadingOverlay.show({
+                                    text: '{{ __('catalogmanagement::product.move_to_bank') }}',
+                                    subtext: '{{ __('common.please_wait') ?? 'Please wait' }}...'
+                                });
+                            }
+
+                            // Make AJAX request
+                            $.ajax({
+                                url: '{{ route('admin.products.move-to-bank', ':id') }}'.replace(':id', productId),
+                                type: 'POST',
+                                data: {
+                                    _token: '{{ csrf_token() }}'
+                                },
+                                success: function(response) {
+                                    // Hide loading overlay
+                                    if (typeof LoadingOverlay !== 'undefined') {
+                                        LoadingOverlay.hide();
+                                    }
+
+                                    if (response.success) {
+                                        Swal.fire({
+                                            icon: 'success',
+                                            title: '{{ __('common.success') ?? 'Success' }}',
+                                            text: response.message,
+                                            timer: 2000,
+                                            showConfirmButton: false
+                                        });
+
+                                        // Reload table to reflect changes
+                                        table.ajax.reload(null, false);
+                                    } else {
+                                        Swal.fire({
+                                            icon: 'error',
+                                            title: '{{ __('common.error') ?? 'Error' }}',
+                                            text: response.message
+                                        });
+                                    }
+                                },
+                                error: function(xhr) {
+                                    // Hide loading overlay
+                                    if (typeof LoadingOverlay !== 'undefined') {
+                                        LoadingOverlay.hide();
+                                    }
+
+                                    let errorMessage = '{{ __('catalogmanagement::product.error_moving_to_bank') }}';
+                                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                                        errorMessage = xhr.responseJSON.message;
+                                    }
+
+                                    Swal.fire({
+                                        icon: 'error',
+                                        title: '{{ __('common.error') ?? 'Error' }}',
+                                        text: errorMessage
+                                    });
+                                }
+                            });
+                        }
+                    });
+                } else {
+                    // Fallback without SweetAlert
+                    if (confirm('{{ __('catalogmanagement::product.confirm_move_to_bank') }}')) {
+                        $.ajax({
+                            url: '{{ route('admin.products.move-to-bank', ':id') }}'.replace(':id', productId),
+                            type: 'POST',
+                            data: {
+                                _token: '{{ csrf_token() }}'
+                            },
+                            success: function(response) {
+                                if (response.success) {
+                                    alert(response.message);
+                                    table.ajax.reload(null, false);
+                                } else {
+                                    alert(response.message);
+                                }
+                            },
+                            error: function(xhr) {
+                                alert('{{ __('catalogmanagement::product.error_moving_to_bank') }}');
+                            }
+                        });
+                    }
+                }
+            });
+            @endif
         });
     </script>
 @endpush

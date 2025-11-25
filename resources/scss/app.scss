@@ -443,3 +443,6 @@ html[dir="rtl"] {
     align-items: center !important;
     display: flex !important;
 }
+.swal2-container {
+    z-index: 999999;
+}

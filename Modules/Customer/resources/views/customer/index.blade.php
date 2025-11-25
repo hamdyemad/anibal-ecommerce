@@ -248,7 +248,7 @@
                     {
                         data: 'full_name',
                         name: 'full_name',
-                        orderable: true,
+                        orderable: false,
                         render: function(data, type, row) {
                             console.log('Rendering full_name:', data);
                             return '<div class="userDatatable-content">' + (data || '-') + '</div>';
@@ -265,7 +265,7 @@
                     {
                         data: 'phone',
                         name: 'phone',
-                        orderable: true,
+                        orderable: false,
                         render: function(data, type, row) {
                             return '<div class="userDatatable-content">' + (data || '-') + '</div>';
                         }
@@ -273,31 +273,35 @@
                     {
                         data: 'status',
                         name: 'status',
-                        orderable: true,
+                        orderable: false,
                         render: function(data, type, row) {
-                            if (data) {
-                                return '<div class="userDatatable-content"><span class="badge badge-success badge-lg badge-round">{{ __('customer::customer.active') }}</span></div>';
-                            } else {
-                                return '<div class="userDatatable-content"><span class="badge badge-danger badge-lg badge-round">{{ __('customer::customer.inactive') }}</span></div>';
-                            }
+                            let checked = data ? 'checked' : '';
+                            return `<div class="userDatatable-content">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input status-switch" type="checkbox"
+                                        data-id="${row.id}" ${checked} style="cursor: pointer; width: 40px; height: 20px;">
+                                </div>
+                            </div>`;
                         }
                     },
                     {
                         data: 'email_verified_at',
                         name: 'email_verified_at',
-                        orderable: true,
+                        orderable: false,
                         render: function(data, type, row) {
-                            if (data) {
-                                return '<div class="userDatatable-content"><span class="badge badge-success badge-lg badge-round">{{ __('customer::customer.verified') }}</span></div>';
-                            } else {
-                                return '<div class="userDatatable-content"><span class="badge badge-warning badge-lg badge-round">{{ __('customer::customer.pending') }}</span></div>';
-                            }
+                            let checked = data ? 'checked' : '';
+                            return `<div class="userDatatable-content">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input verification-switch" type="checkbox"
+                                        data-id="${row.id}" ${checked} style="cursor: pointer; width: 40px; height: 20px;">
+                                </div>
+                            </div>`;
                         }
                     },
                     {
                         data: 'created_at',
                         name: 'created_at',
-                        orderable: true,
+                        orderable: false,
                         render: function(data, type, row) {
                             const date = new Date(data);
                             const formatted = date.toLocaleDateString('en-US', {
@@ -465,6 +469,72 @@
 
             $('#exportExcel').on('click', function() {
                 alert('{{ __('customer::customer.export_excel') }} feature coming soon');
+            });
+
+            // Status switch handler
+            $(document).on('change', '.status-switch', function() {
+                const $switch = $(this);
+                const customerId = $switch.data('id');
+                const originalState = !$switch.is(':checked');
+
+                $.ajax({
+                    url: '{{ route("admin.customers.change-status", "__id__") }}'.replace('__id__', customerId),
+                    type: 'POST',
+                    data: {
+                        _token: '{{ csrf_token() }}'
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            if (typeof toastr !== 'undefined') {
+                                toastr.success(response.message);
+                            }
+                        } else {
+                            $switch.prop('checked', originalState);
+                            if (typeof toastr !== 'undefined') {
+                                toastr.error(response.message);
+                            }
+                        }
+                    },
+                    error: function(xhr) {
+                        $switch.prop('checked', originalState);
+                        if (typeof toastr !== 'undefined') {
+                            toastr.error('{{ __("customer::customer.error_changing_status") }}');
+                        }
+                    }
+                });
+            });
+
+            // Verification switch handler
+            $(document).on('change', '.verification-switch', function() {
+                const $switch = $(this);
+                const customerId = $switch.data('id');
+                const originalState = !$switch.is(':checked');
+
+                $.ajax({
+                    url: '{{ route("admin.customers.change-verification", "__id__") }}'.replace('__id__', customerId),
+                    type: 'POST',
+                    data: {
+                        _token: '{{ csrf_token() }}'
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            if (typeof toastr !== 'undefined') {
+                                toastr.success(response.message);
+                            }
+                        } else {
+                            $switch.prop('checked', originalState);
+                            if (typeof toastr !== 'undefined') {
+                                toastr.error(response.message);
+                            }
+                        }
+                    },
+                    error: function(xhr) {
+                        $switch.prop('checked', originalState);
+                        if (typeof toastr !== 'undefined') {
+                            toastr.error('{{ __("customer::customer.error_changing_verification") }}');
+                        }
+                    }
+                });
             });
         });
     </script>

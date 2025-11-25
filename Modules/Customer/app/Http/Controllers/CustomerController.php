@@ -137,4 +137,69 @@ class CustomerController extends Controller
             return response()->json(['success' => false, 'message' => 'Error: ' . $e->getMessage()], 500);
         }
     }
+
+    /**
+     * Change customer status (active/inactive)
+     */
+    public function changeStatus(Request $request, $id)
+    {
+        try {
+            $customer = $this->customerService->findById([], $id);
+
+            if (!$customer) {
+                return response()->json([
+                    'success' => false,
+                    'message' => __('customer::customer.customer_not_found')
+                ], 404);
+            }
+
+            $newStatus = !$customer->status;
+            $customer->update(['status' => $newStatus]);
+
+            return response()->json([
+                'success' => true,
+                'message' => __('customer::customer.status_changed_successfully'),
+                'new_status' => $newStatus,
+                'status_text' => $newStatus ? __('customer::customer.active') : __('customer::customer.inactive')
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => __('customer::customer.error_changing_status')
+            ], 500);
+        }
+    }
+
+    /**
+     * Change customer email verification status
+     */
+    public function changeVerification(Request $request, $id)
+    {
+        try {
+            $customer = $this->customerService->findById([], $id);
+
+            if (!$customer) {
+                return response()->json([
+                    'success' => false,
+                    'message' => __('customer::customer.customer_not_found')
+                ], 404);
+            }
+
+            $isVerified = !is_null($customer->email_verified_at);
+            $newVerification = $isVerified ? null : now();
+            $customer->update(['email_verified_at' => $newVerification]);
+
+            return response()->json([
+                'success' => true,
+                'message' => __('customer::customer.verification_changed_successfully'),
+                'is_verified' => !$isVerified,
+                'status_text' => !$isVerified ? __('customer::customer.verified') : __('customer::customer.not_verified')
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => __('customer::customer.error_changing_verification')
+            ], 500);
+        }
+    }
 }

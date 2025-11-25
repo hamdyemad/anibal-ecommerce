@@ -13,6 +13,7 @@ Route::group(
 ], function(){
     // Vendors
     Route::get('vendors/datatable', [VendorController::class, 'datatable'])->name('vendors.datatable');
+    Route::post('vendors/{id}/change-status', [VendorController::class, 'changeStatus'])->name('vendors.change-status');
     Route::delete('vendors/{vendor}/documents/{document}', [VendorController::class, 'destroyDocument'])->name('vendors.documents.destroy');
     Route::resource('vendors', VendorController::class);
 

@@ -137,9 +137,9 @@
                                             @if($customer->email_verified_at)
                                             <div class="col-md-12">
                                                 <div class="view-item">
-                                                    <label class="il-gray fs-14 fw-500 mb-10">{{ __('Email Verified At') }}</label>
+                                                    <label class="il-gray fs-14 fw-500 mb-10">{{ __('customer::customer.email_verified_at') }}</label>
                                                     <p class="fs-15 color-dark">
-                                                        {{ \Carbon\Carbon::parse($customer->email_verified_at) }}
+                                                        {{ $customer->email_verified_at }}
                                                     </p>
                                                 </div>
                                             </div>

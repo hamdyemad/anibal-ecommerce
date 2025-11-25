@@ -1,7 +1,7 @@
 @extends('layout.app')
 
 @section('title')
-    Vendor Requests | Bnaia
+    {{ __('vendor::vendor.vendor_requests_management') }}
 @endsection
 
 @section('content')
@@ -14,7 +14,7 @@
                         'url' => route('admin.dashboard'),
                         'icon' => 'uil uil-estate',
                     ],
-                    ['title' => 'Vendor Requests'],
+                    ['title' => __('vendor::vendor.vendor_requests_management')],
                 ]" />
             </div>
         </div>
@@ -24,11 +24,10 @@
 
                 <div class="userDatatable global-shadow border-light-0 p-30 bg-white radius-xl w-100 mb-30">
                     <div class="d-flex justify-content-between align-items-center mb-25">
-                        <h4 class="mb-0 fw-500">Vendor Requests Management</h4>
-                    </div>
-
-                    <div class="alert alert-info glowing-alert" role="alert">
-                        {{ __('common.live_search_info') }}
+                        <h4 class="mb-0 fw-600 text-primary">
+                            <i class="uil uil-clipboard-notes me-2"></i>
+                            {{ __('vendor::vendor.vendor_requests_management') }}
+                        </h4>
                     </div>
 
                     {{-- Search & Filters --}}
@@ -41,11 +40,10 @@
                                         <div class="form-group">
                                             <label for="search" class="il-gray fs-14 fw-500 mb-10">
                                                 <i class="uil uil-search me-1"></i> {{ __('common.search') }}
-                                                <small class="text-muted">({{ __('common.real_time') ?? 'Real-time' }})</small>
                                             </label>
                                             <input type="text"
                                                 class="form-control ih-medium ip-gray radius-xs b-light px-15"
-                                                id="search" placeholder="Search by email or company name"
+                                                id="search" placeholder="{{ __('vendor::vendor.search_by_email_or_company') }}"
                                                 autocomplete="off">
                                         </div>
                                     </div>
@@ -54,25 +52,78 @@
                                         <div class="form-group">
                                             <label for="status" class="il-gray fs-14 fw-500 mb-10">
                                                 <i class="uil uil-check-circle me-1"></i>
-                                                Status
+                                                {{ __('common.status') }}
                                             </label>
                                             <select
-                                                class="form-control ih-medium ip-gray radius-xs b-light px-15 form-select"
+                                                class="select2 form-control ih-medium ip-gray radius-xs b-light px-15 form-select"
                                                 id="status">
-                                                <option value="">All</option>
-                                                <option value="pending">Pending</option>
-                                                <option value="approved">Approved</option>
-                                                <option value="rejected">Rejected</option>
+                                                <option value="">{{ __('common.all') }}</option>
+                                                <option value="pending">{{ __('common.pending') }}</option>
+                                                <option value="approved">{{ __('common.approved') }}</option>
+                                                <option value="rejected">{{ __('common.rejected') }}</option>
                                             </select>
                                         </div>
                                     </div>
 
+                                    <div class="col-md-3">
+                                        <div class="form-group">
+                                            <label for="activity_filter" class="il-gray fs-14 fw-500 mb-10">
+                                                <i class="uil uil-briefcase me-1"></i>
+                                                {{ __('vendor::vendor.activity') }}
+                                            </label>
+                                            <select
+                                                class="select2 form-control ih-medium ip-gray radius-xs b-light px-15 form-select"
+                                                id="activity_filter">
+                                                <option value="">{{ __('common.all') }}</option>
+                                                @foreach($activities as $activity)
+                                                    <option value="{{ $activity['id'] }}">{{ $activity['name'] }}</option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-3">
+                                        <div class="form-group">
+                                            <label for="created_date_from" class="il-gray fs-14 fw-500 mb-10">
+                                                <i class="uil uil-calendar-alt me-1"></i>
+                                                {{ __('common.created_date_from') }}
+                                            </label>
+                                            <input type="date"
+                                                class="form-control ih-medium ip-gray radius-xs b-light px-15"
+                                                id="created_date_from">
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-3">
+                                        <div class="form-group">
+                                            <label for="created_date_to" class="il-gray fs-14 fw-500 mb-10">
+                                                <i class="uil uil-calendar-alt me-1"></i>
+                                                {{ __('common.created_date_to') }}
+                                            </label>
+                                            <input type="date"
+                                                class="form-control ih-medium ip-gray radius-xs b-light px-15"
+                                                id="created_date_to">
+                                        </div>
+                                    </div>
+
                                     <div class="col-md-12 d-flex align-items-center">
+                                        <button type="button" id="searchBtn"
+                                            class="btn btn-success btn-default btn-squared me-1"
+                                            title="{{ __('common.search') }}">
+                                            <i class="uil uil-search me-1"></i>
+                                            {{ __('common.search') }}
+                                        </button>
                                         <button type="button" id="resetFilters"
-                                            class="btn btn-warning btn-default btn-squared"
+                                            class="btn btn-warning btn-default btn-squared me-1"
                                             title="{{ __('common.reset') }}">
                                             <i class="uil uil-redo me-1"></i>
                                             {{ __('common.reset_filters') }}
+                                        </button>
+                                        <button type="button" id="exportExcel"
+                                            class="btn btn-primary btn-default btn-squared"
+                                            title="{{ __('common.excel') }}">
+                                            <i class="uil uil-file-download-alt me-1"></i>
+                                            {{ __('common.export_excel') }}
                                         </button>
                                     </div>
 
@@ -153,14 +204,28 @@
 
             let per_page = 10;
 
-            // Get status from URL parameter
+            // Get filters from URL parameters
             const urlParams = new URLSearchParams(window.location.search);
-            const statusParam = urlParams.get('status');
 
-            // Set status filter if present in URL
-            if (statusParam) {
-                $('#status').val(statusParam);
-                console.log('Setting status filter from URL:', statusParam);
+            // Populate filters from URL parameters on page load
+            if (urlParams.has('search')) $('#search').val(urlParams.get('search'));
+            if (urlParams.has('status')) $('#status').val(urlParams.get('status'));
+            if (urlParams.has('activity_id')) $('#activity_filter').val(urlParams.get('activity_id'));
+            if (urlParams.has('created_date_from')) $('#created_date_from').val(urlParams.get('created_date_from'));
+            if (urlParams.has('created_date_to')) $('#created_date_to').val(urlParams.get('created_date_to'));
+
+            // Function to update URL with current filters
+            function updateUrlWithFilters() {
+                const params = new URLSearchParams();
+
+                if ($('#search').val()) params.set('search', $('#search').val());
+                if ($('#status').val()) params.set('status', $('#status').val());
+                if ($('#activity_filter').val()) params.set('activity_id', $('#activity_filter').val());
+                if ($('#created_date_from').val()) params.set('created_date_from', $('#created_date_from').val());
+                if ($('#created_date_to').val()) params.set('created_date_to', $('#created_date_to').val());
+
+                const newUrl = window.location.pathname + (params.toString() ? '?' + params.toString() : '');
+                window.history.replaceState({}, '', newUrl);
             }
 
             // Server-side processing with pagination
@@ -177,6 +242,9 @@
                         // Add filter parameters
                         d.search = $('#search').val();
                         d.status = $('#status').val();
+                        d.activity_id = $('#activity_filter').val();
+                        d.created_date_from = $('#created_date_from').val();
+                        d.created_date_to = $('#created_date_to').val();
                         // Add sorting parameters
                         if (d.order && d.order.length > 0) {
                             d.orderColumnIndex = d.order[0].column;
@@ -284,7 +352,7 @@
                             if (!row.activities || row.activities.length === 0) {
                                 return '<span class="badge bg-secondary">None</span>';
                             }
-                            return row.activities.map(a => `<span class="badge bg-info">${a.name}</span>`).join(' ');
+                            return row.activities.map(a => `<span class="badge bg-info badge-lg badge-round">${a.name}</span>`).join(' ');
                         }
                     },
 
@@ -300,7 +368,7 @@
                                 'rejected': 'danger'
                             };
                             const color = statusColors[row.status] || 'secondary';
-                            return `<span class="badge bg-${color} text-capitalize">${row.status}</span>`;
+                            return `<span class="badge bg-${color} badge-lg badge-round text-capitalize">${row.status}</span>`;
                         }
                     },
 
@@ -422,16 +490,9 @@
                 }
             });
 
-            // Draw table with status filter if present in URL
-            if (statusParam) {
-                setTimeout(function() {
-                    table.draw();
-                }, 100);
-            }
-
-            // Initialize Select2 on custom entries select
+            // Initialize Select2 on filter dropdowns
             if ($.fn.select2) {
-                $('#entriesSelect').select2({
+                $('#entriesSelect, #status, #activity_filter').select2({
                     theme: 'bootstrap-5',
                     minimumResultsForSearch: Infinity,
                     width: '100%'
@@ -445,24 +506,37 @@
                 table.page.len($(this).val()).draw();
             });
 
-            // Search with debounce
+            // Real-time search with debounce
             let searchTimer;
             $('#search').on('keyup', function() {
                 clearTimeout(searchTimer);
                 searchTimer = setTimeout(function() {
+                    updateUrlWithFilters();
                     table.ajax.reload();
                 }, 500);
             });
 
-            $('#search').on('change', function() {
-                clearTimeout(searchTimer);
+            // Search button click handler
+            $('#searchBtn').on('click', function() {
+                updateUrlWithFilters();
                 table.ajax.reload();
             });
 
-            // Server-side filter event listeners - reload data when filters change
-            $('#status').on('change', function() {
-                console.log('Filter changed:', $(this).attr('id'), '=', $(this).val());
+            // Filter change handlers - real-time filtering
+            $('#status, #activity_filter').on('change', function() {
+                updateUrlWithFilters();
                 table.ajax.reload();
+            });
+
+            // Date filter change handlers
+            $('#created_date_from, #created_date_to').on('change', function() {
+                updateUrlWithFilters();
+                table.ajax.reload();
+            });
+
+            // Export Excel button
+            $('#exportExcel').on('click', function() {
+                alert('{{ __('common.export_excel') }} feature coming soon');
             });
 
             // Reset filters button
@@ -470,8 +544,12 @@
                 console.log('Resetting all filters...');
                 // Clear all filter inputs
                 $('#search').val('');
-                $('#status').val('');
-                // Reload table
+                $('#status').val('').trigger('change');
+                $('#activity_filter').val('').trigger('change');
+                $('#created_date_from').val('');
+                $('#created_date_to').val('');
+                // Update URL and reload table
+                updateUrlWithFilters();
                 table.ajax.reload();
             });
 

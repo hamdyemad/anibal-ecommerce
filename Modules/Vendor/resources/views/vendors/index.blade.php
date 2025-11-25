@@ -36,10 +36,6 @@
                         </div>
                     </div>
 
-                    <div class="alert alert-info glowing-alert" role="alert">
-                        {{ __('common.live_search_info') }}
-                    </div>
-
                     {{-- Search & Filters --}}
                     <div class="mb-25">
                         <div class="card border-0 shadow-sm">
@@ -103,17 +99,23 @@
                                     </div>
 
                                     <div class="col-md-12 d-flex align-items-center">
-                                        <button type="button" id="exportExcel"
-                                            class="btn btn-primary btn-default btn-squared me-1"
-                                            title="{{ __('common.excel') }}">
-                                            <i class="uil uil-file-download-alt me-1"></i>
-                                            {{ __('common.export_excel') }}
+                                        <button type="button" id="searchBtn"
+                                            class="btn btn-success btn-default btn-squared me-1"
+                                            title="{{ __('common.search') }}">
+                                            <i class="uil uil-search me-1"></i>
+                                            {{ __('common.search') }}
                                         </button>
                                         <button type="button" id="resetFilters"
-                                            class="btn btn-warning btn-default btn-squared"
+                                            class="btn btn-warning btn-default btn-squared me-1"
                                             title="{{ __('common.reset') }}">
                                             <i class="uil uil-redo me-1"></i>
                                             {{ __('common.reset_filters') }}
+                                        </button>
+                                        <button type="button" id="exportExcel"
+                                            class="btn btn-primary btn-default btn-squared"
+                                            title="{{ __('common.excel') }}">
+                                            <i class="uil uil-file-download-alt me-1"></i>
+                                            {{ __('common.export_excel') }}
                                         </button>
                                     </div>
 
@@ -146,6 +148,7 @@
                                             class="userDatatable-title">{{ __('vendor::vendor.vendor_information') }}</span>
                                     </th>
                                     <th><span class="userDatatable-title">{{ __('vendor::vendor.commission') }}</span></th>
+                                    <th><span class="userDatatable-title">{{ __('vendor::vendor.active_status') }}</span></th>
                                     <th><span class="userDatatable-title">{{ __('common.actions') }}</span></th>
                                 </tr>
                             </thead>
@@ -172,6 +175,28 @@
             console.log('Vendors page loaded, initializing DataTable...');
 
             let per_page = 10;
+
+            // Get filters from URL parameters
+            const urlParams = new URLSearchParams(window.location.search);
+
+            // Populate filters from URL parameters on page load
+            if (urlParams.has('search')) $('#search').val(urlParams.get('search'));
+            if (urlParams.has('active')) $('#active').val(urlParams.get('active'));
+            if (urlParams.has('created_date_from')) $('#created_date_from').val(urlParams.get('created_date_from'));
+            if (urlParams.has('created_date_to')) $('#created_date_to').val(urlParams.get('created_date_to'));
+
+            // Function to update URL with current filters
+            function updateUrlWithFilters() {
+                const params = new URLSearchParams();
+
+                if ($('#search').val()) params.set('search', $('#search').val());
+                if ($('#active').val()) params.set('active', $('#active').val());
+                if ($('#created_date_from').val()) params.set('created_date_from', $('#created_date_from').val());
+                if ($('#created_date_to').val()) params.set('created_date_to', $('#created_date_to').val());
+
+                const newUrl = window.location.pathname + (params.toString() ? '?' + params.toString() : '');
+                window.history.replaceState({}, '', newUrl);
+            }
 
             // Server-side processing with pagination
             let table = $('#vendorsDataTable').DataTable({
@@ -295,11 +320,25 @@
                     {
                         data: 'commission',
                         name: 'commission',
-                        orderable: true,
                         orderable: false,
                         render: function(data) {
                             return '<div class="userDatatable-content text-center"><span class="badge badge-success badge-round badge-lg">' +
                                 data + '%</span></div>';
+                        }
+                    },
+                    // Active Status column
+                    {
+                        data: 'active',
+                        name: 'active',
+                        orderable: false,
+                        render: function(data, type, row) {
+                            let checked = data ? 'checked' : '';
+                            return `<div class="userDatatable-content">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input status-switch" type="checkbox"
+                                        data-id="${row.id}" ${checked} style="cursor: pointer; width: 40px; height: 20px;">
+                                </div>
+                            </div>`;
                         }
                     },
                     // Actions column
@@ -385,9 +424,9 @@
                 }
             });
 
-            // Initialize Select2 on custom entries select
+            // Initialize Select2 on filter dropdowns
             if ($.fn.select2) {
-                $('#entriesSelect').select2({
+                $('#entriesSelect, #active').select2({
                     theme: 'bootstrap-5',
                     minimumResultsForSearch: Infinity,
                     width: '100%'
@@ -406,23 +445,31 @@
                 table.button('.buttons-excel').trigger();
             });
 
-            // Search with debounce
+            // Real-time search with debounce
             let searchTimer;
             $('#search').on('keyup', function() {
                 clearTimeout(searchTimer);
                 searchTimer = setTimeout(function() {
+                    updateUrlWithFilters();
                     table.ajax.reload();
                 }, 500);
             });
 
-            $('#search').on('change', function() {
-                clearTimeout(searchTimer);
+            // Search button click handler
+            $('#searchBtn').on('click', function() {
+                updateUrlWithFilters();
                 table.ajax.reload();
             });
 
-            // Server-side filter event listeners - reload data when filters change
-            $('#active, #created_date_from, #created_date_to').on('change', function() {
-                console.log('Filter changed:', $(this).attr('id'), '=', $(this).val());
+            // Filter change handlers - real-time filtering
+            $('#active').on('change', function() {
+                updateUrlWithFilters();
+                table.ajax.reload();
+            });
+
+            // Date filter change handlers
+            $('#created_date_from, #created_date_to').on('change', function() {
+                updateUrlWithFilters();
                 table.ajax.reload();
             });
 
@@ -431,10 +478,11 @@
                 console.log('Resetting all filters...');
                 // Clear all filter inputs
                 $('#search').val('');
-                $('#active').val('');
+                $('#active').val('').trigger('change');
                 $('#created_date_from').val('');
                 $('#created_date_to').val('');
-                // Reload table
+                // Update URL and reload table
+                updateUrlWithFilters();
                 table.ajax.reload();
             });
 
@@ -468,6 +516,39 @@
                 const itemName = $(this).data('item-name');
                 $('#delete-vendor-name').text(itemName);
                 $('#confirmDeleteVendorBtn').data('item-id', itemId);
+            });
+
+            // Status switch handler
+            $(document).on('change', '.status-switch', function() {
+                const $switch = $(this);
+                const vendorId = $switch.data('id');
+                const originalState = !$switch.is(':checked');
+
+                $.ajax({
+                    url: '{{ route("admin.vendors.change-status", "__id__") }}'.replace('__id__', vendorId),
+                    type: 'POST',
+                    data: {
+                        _token: '{{ csrf_token() }}'
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            if (typeof toastr !== 'undefined') {
+                                toastr.success(response.message);
+                            }
+                        } else {
+                            $switch.prop('checked', originalState);
+                            if (typeof toastr !== 'undefined') {
+                                toastr.error(response.message);
+                            }
+                        }
+                    },
+                    error: function(xhr) {
+                        $switch.prop('checked', originalState);
+                        if (typeof toastr !== 'undefined') {
+                            toastr.error('{{ __("vendor::vendor.error_changing_status") }}');
+                        }
+                    }
+                });
             });
         });
 

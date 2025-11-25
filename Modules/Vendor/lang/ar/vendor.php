@@ -229,10 +229,16 @@ return [
 
     // Vendor Request Actions
     'vendor_requests' => 'طلبات المورد',
+    'vendor_requests_management' => 'إدارة طلبات الموردين',
     'approve_success' => 'تم الموافقة على طلب المورد بنجاح',
     'reject_success' => 'تم رفض طلب المورد بنجاح',
     'archive_success' => 'تم أرشفة طلب المورد بنجاح',
     'approve_error' => 'خطأ في الموافقة على طلب المورد',
     'reject_error' => 'خطأ في رفض طلب المورد',
     'archive_error' => 'خطأ في أرشفة طلب المورد',
+    'activity' => 'النشاط',
+    'search_by_email_or_company' => 'البحث بالبريد الإلكتروني أو اسم الشركة',
+    'vendor_not_found' => 'المورد غير موجود',
+    'status_changed_successfully' => 'تم تغيير حالة المورد بنجاح',
+    'error_changing_status' => 'خطأ في تغيير حالة المورد',
 ];

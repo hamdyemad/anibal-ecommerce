@@ -94,6 +94,7 @@
     <script src="https://cdn.ckeditor.com/4.22.1/standard/ckeditor.js"></script>
 
     @vite('resources/js/app.js')
+    <script src="{{ asset('assets/js/sweetalert2@11.js') }}"></script>
 
     <script>
         // Configure Toastr options to match login page
@@ -295,6 +296,7 @@
             @endif
         @endif
     </script>
+
 
 </body>
 

@@ -83,16 +83,22 @@
                                         </div>
                                     </div>
 
-                                    <div class="col-md-12 d-flex">
-                                        <button type="button" id="exportExcel"
-                                            class="btn btn-primary btn-default btn-squared me-1"
-                                            title="{{ __('common.excel') }}">
-                                            <i class="uil uil-file-download-alt me-1"></i> {{ __('common.export_excel') }}
+                                    <div class="col-md-12 d-flex align-items-center">
+                                        <button type="button" id="searchBtn"
+                                            class="btn btn-success btn-default btn-squared me-1"
+                                            title="{{ __('common.search') }}">
+                                            <i class="uil uil-search me-1"></i>
+                                            {{ __('common.search') }}
                                         </button>
                                         <button type="button" id="resetFilters"
-                                            class="btn btn-warning btn-default btn-squared"
+                                            class="btn btn-warning btn-default btn-squared me-1"
                                             title="{{ __('common.reset') }}">
                                             <i class="uil uil-redo me-1"></i> {{ __('common.reset_filters') }}
+                                        </button>
+                                        <button type="button" id="exportExcel"
+                                            class="btn btn-primary btn-default btn-squared"
+                                            title="{{ __('common.excel') }}">
+                                            <i class="uil uil-file-download-alt me-1"></i> {{ __('common.export_excel') }}
                                         </button>
                                     </div>
                                 </div>
@@ -157,6 +163,26 @@
 
             let per_page = 10;
 
+            // Get filters from URL parameters
+            const urlParams = new URLSearchParams(window.location.search);
+
+            // Populate filters from URL parameters on page load
+            if (urlParams.has('search')) $('#search').val(urlParams.get('search'));
+            if (urlParams.has('created_date_from')) $('#created_date_from').val(urlParams.get('created_date_from'));
+            if (urlParams.has('created_date_to')) $('#created_date_to').val(urlParams.get('created_date_to'));
+
+            // Function to update URL with current filters
+            function updateUrlWithFilters() {
+                const params = new URLSearchParams();
+
+                if ($('#search').val()) params.set('search', $('#search').val());
+                if ($('#created_date_from').val()) params.set('created_date_from', $('#created_date_from').val());
+                if ($('#created_date_to').val()) params.set('created_date_to', $('#created_date_to').val());
+
+                const newUrl = window.location.pathname + (params.toString() ? '?' + params.toString() : '');
+                window.history.replaceState({}, '', newUrl);
+            }
+
             // Server-side processing with pagination
             let table = $('#rolesDataTable').DataTable({
                 processing: true,
@@ -169,6 +195,7 @@
                         d.per_page = d.length;
                         d.page = (d.start / d.length) + 1;
                         // Add filter parameters
+                        d.search = $('#search').val();
                         d.created_date_from = $('#created_date_from').val();
                         d.created_date_to = $('#created_date_to').val();
                         // Add sorting parameters
@@ -330,7 +357,7 @@
                     },
                     title: '{{ trans('roles.roles_management') }}'
                 }],
-                searching: true, // Enable built-in search
+                searching: false, // Disable built-in search (using custom)
                 language: {
                     lengthMenu: "{{ __('common.show') ?? 'Show' }} _MENU_",
                     info: "{{ __('common.showing') ?? 'Showing' }} _START_ {{ __('common.to') ?? 'to' }} _END_ {{ __('common.of') ?? 'of' }} _TOTAL_ {{ __('common.entries') ?? 'entries' }}",
@@ -375,24 +402,25 @@
                 table.button('.buttons-excel').trigger();
             });
 
-            // Search on cached data with debounce
+            // Real-time search with debounce
             let searchTimer;
             $('#search').on('keyup', function() {
                 clearTimeout(searchTimer);
-                const searchValue = $(this).val();
                 searchTimer = setTimeout(function() {
-                    table.search(searchValue).draw(); // Search on cached data
+                    updateUrlWithFilters();
+                    table.ajax.reload();
                 }, 500);
             });
 
-            $('#search').on('change', function() {
-                clearTimeout(searchTimer);
-                table.search($(this).val()).draw();
+            // Search button click handler
+            $('#searchBtn').on('click', function() {
+                updateUrlWithFilters();
+                table.ajax.reload();
             });
 
-            // Server-side filter event listeners - reload data when filters change
+            // Date filter change handlers
             $('#created_date_from, #created_date_to').on('change', function() {
-                console.log('Filter changed:', $(this).attr('id'), '=', $(this).val());
+                updateUrlWithFilters();
                 table.ajax.reload();
             });
 
@@ -403,8 +431,9 @@
                 $('#search').val('');
                 $('#created_date_from').val('');
                 $('#created_date_to').val('');
-                // Clear search and reload table
-                table.search('').ajax.reload();
+                // Update URL and reload table
+                updateUrlWithFilters();
+                table.ajax.reload();
             });
         });
     </script>

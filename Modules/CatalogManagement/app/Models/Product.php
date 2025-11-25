@@ -4,8 +4,8 @@ namespace Modules\CatalogManagement\app\Models;
 
 use App\Models\Attachment;
 use App\Models\User;
-use App\Traits\HasSlug;
 use App\Traits\Translation;
+use App\Models\Traits\HumanDates;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -17,13 +17,41 @@ use Modules\Vendor\app\Models\Vendor;
 
 class Product extends Model
 {
-    use HasFactory, SoftDeletes, Translation;
+    use HasFactory, SoftDeletes, Translation, HumanDates;
 
     protected $guarded = [];
     protected $casts = [
         'is_active' => 'boolean',
         'configuration_type' => 'string',
     ];
+
+    // Product type constants
+    const TYPE_PRODUCT = 'product';
+    const TYPE_BANK = 'bank';
+
+    /**
+     * Scope to filter only bank products
+     */
+    public function scopeBank(Builder $query)
+    {
+        return $query->where('type', self::TYPE_BANK);
+    }
+
+    /**
+     * Scope to filter only regular products
+     */
+    public function scopeRegular(Builder $query)
+    {
+        return $query->where('type', self::TYPE_PRODUCT);
+    }
+
+    /**
+     * Check if product is a bank product
+     */
+    public function isBankProduct(): bool
+    {
+        return $this->type === self::TYPE_BANK;
+    }
 
     /**
      * Get all attachments for the product
