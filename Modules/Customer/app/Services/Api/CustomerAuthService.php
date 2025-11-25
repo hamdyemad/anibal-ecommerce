@@ -25,6 +25,14 @@ class CustomerAuthService
         return $this->customerRepository->createOtp($email, $otp, $type, $expiresInMinutes, $verificationToken);
     }
 
+    private function fireOtpEvent(Customer $customer, string $cause, int $expiresInMinutes = 10, $token = false)
+    {
+        $otp = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+        $verificationToken = $token ? CustomerOtp::generateVerificationToken() : null;
+
+        event(new OtpCreated($customer, $otp, $cause, $expiresInMinutes, $verificationToken));
+    }
+
     /**
      * Send OTP for email verification
      */
@@ -33,39 +41,27 @@ class CustomerAuthService
         // Check if customer exists
         $customer = $this->customerRepository->getByEmail($email);
 
-        if (!$customer || $customer->hasVerifiedEmail()) {
+        if (!$customer || $customer->getRawOriginal('email_verified_at') != null) {
             return false;
         }
 
-        $otp = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
-        $verificationToken = CustomerOtp::generateVerificationToken();
+        $this->fireOtpEvent($customer, $cause, $expiresInMinutes, true);
 
-        event(new OtpCreated($customer, $otp, $cause, $expiresInMinutes, $verificationToken));
-
-        return [
-            'otp' => $otp,
-            'verification_token' => $verificationToken
-        ];
+        return true;
     }
 
     /**
      * Register customer (save to DB first, then send OTP)
      */
-    public function registerCustomer(array $data): array
+    public function registerCustomer(array $data): bool
     {
         return DB::transaction(function () use ($data) {
             $customer = $this->customerRepository->create($data);
 
             // Send OTP after creating customer
-            $otp = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
-            $verificationToken = CustomerOtp::generateVerificationToken();
+            $this->fireOtpEvent($customer, "email_verification", 10, true);
 
-            event(new OtpCreated($customer, $otp, "email_verification", 10, $verificationToken));
-
-            return [
-                'otp' => $otp,
-                'verification_token' => $verificationToken
-            ];
+            return true;
         });
     }
 
@@ -151,11 +147,9 @@ class CustomerAuthService
             return false;
         }
 
-        $otp = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+        $this->fireOtpEvent($customer, "password_reset", $expiresInMinutes);
 
-        event(new OtpCreated($customer, $otp, "password_reset", $expiresInMinutes));
-
-        return $otp;
+        return true;
     }
 
     /**
@@ -252,15 +246,22 @@ class CustomerAuthService
     {
         $customer = $this->customerRepository->getByEmail($data['email']);
 
-        if (!$customer || !Hash::check($data['password'], $customer->password)) {
-            return [];
+        if (!$customer || !$customer->status || !Hash::check($data['password'], $customer->password)) {
+            return [
+                "status" => "failed"
+            ];
         }
 
-        if (!$customer->status) {
-            return [];
+        if (!$customer->getRawOriginal('email_verified_at')) {
+            $this->fireOtpEvent($customer, "email_verification", 10, true);
+
+            return [
+                "status" => "not_verified_otp_sent"
+            ];
         }
 
         return [
+            "status" => "success",
             "customer" => $customer,
             "tokens" => $this->generateTokens($customer, $data['fcm_token'] ?? null, $data['device_id'] ?? null)
         ];

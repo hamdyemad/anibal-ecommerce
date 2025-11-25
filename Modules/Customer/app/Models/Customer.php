@@ -75,6 +75,11 @@ class Customer extends Authenticatable
         return $query->where('status', true);
     }
 
+    public function scopeVerified($query)
+    {
+        return $query->whereNotNull('email_verified_at');
+    }
+
     public function getFullNameAttribute()
     {
         return $this->first_name . ' ' . $this->last_name;

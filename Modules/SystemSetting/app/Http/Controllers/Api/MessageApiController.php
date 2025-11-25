@@ -27,7 +27,7 @@ class MessageApiController
         $message = $this->messageService->createMessage($request->validated());
 
         return $this->sendRes(
-            __('system-setting::messages.send_success'),
+            config('responses.send_success')[app()->getLocale()],
             true,
             new MessageResource($message),
             [],

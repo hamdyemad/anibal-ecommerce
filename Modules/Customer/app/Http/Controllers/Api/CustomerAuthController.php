@@ -39,7 +39,7 @@ class CustomerAuthController extends Controller
         return $this->sendRes(
             config('responses.success_otp')[app()->getLocale()],
             true,
-            $result,
+            [],
             [],
             201
         );
@@ -136,7 +136,7 @@ class CustomerAuthController extends Controller
         return $this->sendRes(
             config('responses.opt_sent')[app()->getLocale()],
             true,
-            $result,
+            [],
             [],
             200
         );
@@ -150,9 +150,19 @@ class CustomerAuthController extends Controller
         $validated = $request->validated();
 
         $result = $this->authService->login($validated);
-        if(!$result) {
+        if($result["status"] === "failed") {
             return $this->sendRes(
                 config('responses.invalid_credentials')[app()->getLocale()],
+                false,
+                [],
+                [],
+                401
+            );
+        }
+
+        if($result["status"] === "not_verified_otp_sent") {
+            return $this->sendRes(
+                config('responses.not_verified_otp_sent')[app()->getLocale()],
                 false,
                 [],
                 [],
@@ -193,7 +203,7 @@ class CustomerAuthController extends Controller
         return $this->sendRes(
             config('responses.opt_sent')[app()->getLocale()],
             true,
-            ['otp' => $result],
+            [],
             [],
             200
         );

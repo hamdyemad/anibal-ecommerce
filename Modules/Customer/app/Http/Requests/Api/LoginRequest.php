@@ -15,7 +15,7 @@ class LoginRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'email' => ['required', 'email', Rule::exists('customers', 'email')->whereNotNull('email_verified_at')],
+            'email' => ['required', 'email', Rule::exists('customers', 'email')],
             'password' => 'required|string',
             'fcm_token' => 'nullable|string',
             'device_id' => 'nullable|string|uuid',

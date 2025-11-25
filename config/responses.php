@@ -319,6 +319,10 @@ return [
         "en" => "Email Not Verified",
         "ar" => "البريد غير مفعل"
     ],
+    "not_verified_otp_sent" => [
+        "en" => "Email not verified, OTP Sent Successfully",
+        "ar" => "البريد غير مفعل, تم ارسال OTP بنجاح"
+    ],
     "user_not_found" => [
         "en" => "User Not Found",
         "ar" => "المستخدم غير موجود"
@@ -446,5 +450,9 @@ return [
     "email_send_failed" => [
         "en" => "Could not send email. Please try again later.",
         "ar" => "تعذر إرسال البريد الإلكتروني. يرجى المحاولة لاحقاً."
+    ],
+    "send_success" => [
+        "en" => "Message sent successfully",
+        "ar" => "تم ارسال الرسالة بنجاح"
     ],
 ];
