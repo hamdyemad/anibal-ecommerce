@@ -65,7 +65,7 @@
                                                 <div class="d-flex align-items-center justify-content-between p-15 rounded mb-15" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); box-shadow: 0 4px 15px rgba(245, 87, 108, 0.3);">
                                                     <div>
                                                         <p class="mb-0 fs-13 fw-bold" style="color: rgba(255,255,255,0.9);">{{ trans('vendor::vendor.total_sent_money') }}</p>
-                                                        <p class="mb-0 fs-20 fw-bold mt-5" style="color: white;">{{ number_format($vendor->total_sent ?? 0, 2) }} {{ trans('common.egp') }}</p>
+                                                        <p class="mb-0 fs-20 fw-bold mt-5" style="color: white;">{{ number_format($vendor->total_sent_money ?? 0, 2) }} {{ trans('common.egp') }}</p>
                                                     </div>
                                                     <div class="p-12 rounded-circle d-flex align-items-center justify-content-center" style="background-color: rgba(255,255,255,0.2); width: 45px; height: 45px;">
                                                         <i class="uil uil-arrow-up-right fs-20" style="color: white;"></i>
@@ -404,13 +404,13 @@
     <x-image-modal />
 
     {{-- Delete Document Confirmation Modal --}}
-    <x-delete-modal modalId="modal-delete-document" 
-                    :title="__('common.confirm_delete')" 
-                    :message="__('common.delete_confirmation')" 
+    <x-delete-modal modalId="modal-delete-document"
+                    :title="__('common.confirm_delete')"
+                    :message="__('common.delete_confirmation')"
                     itemNameId="delete-document-name"
-                    confirmBtnId="confirmDeleteDocumentBtn" 
-                    :deleteRoute="'#'" 
-                    :cancelText="__('common.cancel')" 
+                    confirmBtnId="confirmDeleteDocumentBtn"
+                    :deleteRoute="'#'"
+                    :cancelText="__('common.cancel')"
                     :deleteText="__('common.delete')" />
 @endsection
 
@@ -427,10 +427,10 @@ $(document).ready(function() {
     $(document).on('click', '.delete-document-btn', function() {
         const documentId = $(this).data('document-id');
         const documentName = $(this).data('document-name');
-        
+
         // Set the document name in the modal
         $('#delete-document-name').text(documentName);
-        
+
         // Store document ID and name in the confirm button
         $('#confirmDeleteDocumentBtn').data('document-id', documentId);
         $('#confirmDeleteDocumentBtn').data('document-name', documentName);
@@ -441,14 +441,14 @@ $(document).ready(function() {
         const documentId = $(this).data('document-id');
         const documentName = $(this).data('document-name');
         const confirmBtn = $(this);
-        
+
         // Debug logging
         console.log('Deleting document:', documentId, documentName);
-        
+
         // Disable button and show loading
         confirmBtn.prop('disabled', true);
         confirmBtn.html('<i class="uil uil-spinner-alt spin me-1"></i>{{ __('common.deleting') }}');
-        
+
         // Send AJAX request
         $.ajax({
             url: `{{ route('admin.vendors.documents.destroy', ['vendor' => $vendor->id, 'document' => '__DOCUMENT_ID__']) }}`.replace('__DOCUMENT_ID__', documentId),
@@ -461,16 +461,16 @@ $(document).ready(function() {
             },
             success: function(response) {
                 console.log('Delete response:', response);
-                
+
                 // Hide the modal
                 $('#modal-delete-document').modal('hide');
-                
+
                 if (response.success) {
                     console.log('Document deleted successfully, removing from DOM');
                     // Find and remove the document row with animation
                     $(`.delete-document-btn[data-document-id="${documentId}"]`).closest('.col-md-6').fadeOut(300, function() {
                         $(this).remove();
-                        
+
                         // Check if no documents left
                         if ($('.delete-document-btn').length === 0) {
                             console.log('No documents left, reloading page');
@@ -480,7 +480,7 @@ $(document).ready(function() {
                 } else {
                     console.error('Delete failed:', response);
                 }
-                
+
                 // Reset button
                 confirmBtn.prop('disabled', false);
                 confirmBtn.html('{{ __('common.delete') }}');
@@ -489,10 +489,10 @@ $(document).ready(function() {
                 console.error('AJAX Error deleting document:', xhr);
                 console.error('Status:', xhr.status);
                 console.error('Response:', xhr.responseText);
-                
+
                 // Hide the modal
                 $('#modal-delete-document').modal('hide');
-                
+
                 // Reset button
                 confirmBtn.prop('disabled', false);
                 confirmBtn.html('{{ __('common.delete') }}');

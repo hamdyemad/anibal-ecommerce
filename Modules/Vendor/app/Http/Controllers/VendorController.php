@@ -29,9 +29,13 @@ class VendorController extends Controller {
     public function index() {
         $languages = $this->languageService->getAll();
 
+        // Get vendor statistics
+        $statistics = \Modules\Vendor\app\Models\Vendor::getVendorsStatistics();
+
         $data = [
             'title' => 'Vendors Management',
-            'languages' => $languages
+            'languages' => $languages,
+            'statistics' => $statistics
         ];
         return view('vendor::vendors.index', $data);
     }

@@ -140,6 +140,80 @@ class Vendor extends Model
     {
         return $this->getTranslation('name', app()->getLocale()) ?? '--';
     }
+        /**
+     * Get meta keywords as array for specific language
+     */
+    public function getMetaKeywordsArray($languageCode = 'en')
+    {
+        $keywordsJson = $this->getTranslation('meta_keywords', $languageCode);
+
+        if (empty($keywordsJson)) {
+            return [];
+        }
+
+        // Try to decode JSON, fallback to comma-separated string for backward compatibility
+        $keywords = json_decode($keywordsJson, true);
+
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            // Fallback: treat as comma-separated string
+            return array_map('trim', explode(',', $keywordsJson));
+        }
+
+        return is_array($keywords) ? $keywords : [];
+    }
+
+    /**
+     * Get meta keywords as comma-separated string for specific language
+     */
+    public function getMetaKeywordsString($languageCode = 'en')
+    {
+        $keywords = $this->getMetaKeywordsArray($languageCode);
+        return implode(', ', $keywords);
+    }
+
+    /**
+     * Calculate total balance from orders
+     */
+    public function getTotalBalanceAttribute()
+    {
+        return $this->total_orders()->sum('price') ?? 0;
+    }
+
+    /**
+     * Calculate total sent money (withdrawals)
+     */
+    public function getTotalSentMoneyAttribute()
+    {
+        return $this->withdraw()->where('status', 'accepted')->sum('sent_amount') ?? 0;
+    }
+
+    /**
+     * Calculate total remaining balance
+     */
+    public function getTotalRemainingAttribute()
+    {
+        return $this->total_balance - $this->total_sent_money;
+    }
+
+    /**
+     * Static method to get all vendors statistics
+     */
+    public static function getVendorsStatistics()
+    {
+        $totalBalance = static::withSum('total_orders', 'price')->get()->sum('total_orders_sum_price') ?? 0;
+        $totalSent = static::withSum(['withdraw' => function($query) {
+            $query->where('status', 'accepted');
+        }], 'sent_amount')->get()->sum('withdraw_sum_sent_amount') ?? 0;
+        $totalRemaining = $totalBalance - $totalSent;
+
+        return [
+            'total_balance' => number_format($totalBalance, 2),
+            'total_sent' => number_format($totalSent, 2),
+            'total_remaining' => number_format($totalRemaining, 2),
+        ];
+    }
+
+    // Scopes
 
     public function scopeFilter(Builder $query, $filters)
     {
@@ -185,34 +259,5 @@ class Vendor extends Model
         return $query;
     }
 
-    /**
-     * Get meta keywords as array for specific language
-     */
-    public function getMetaKeywordsArray($languageCode = 'en')
-    {
-        $keywordsJson = $this->getTranslation('meta_keywords', $languageCode);
 
-        if (empty($keywordsJson)) {
-            return [];
-        }
-
-        // Try to decode JSON, fallback to comma-separated string for backward compatibility
-        $keywords = json_decode($keywordsJson, true);
-
-        if (json_last_error() !== JSON_ERROR_NONE) {
-            // Fallback: treat as comma-separated string
-            return array_map('trim', explode(',', $keywordsJson));
-        }
-
-        return is_array($keywords) ? $keywords : [];
-    }
-
-    /**
-     * Get meta keywords as comma-separated string for specific language
-     */
-    public function getMetaKeywordsString($languageCode = 'en')
-    {
-        $keywords = $this->getMetaKeywordsArray($languageCode);
-        return implode(', ', $keywords);
-    }
 }
