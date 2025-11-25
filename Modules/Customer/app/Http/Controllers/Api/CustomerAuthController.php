@@ -193,7 +193,7 @@ class CustomerAuthController extends Controller
         return $this->sendRes(
             config('responses.opt_sent')[app()->getLocale()],
             true,
-            [],
+            ['otp' => $result],
             [],
             200
         );
