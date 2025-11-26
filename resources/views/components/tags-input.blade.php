@@ -277,6 +277,7 @@
             }
 
             /* RTL Support based on app locale */
+
             html[dir="rtl"] .tags-display {{ $isRtl ? 'dir=rtl' : 'dir=ltr' }} {
                 direction: rtl;
                 justify-content: flex-start;
@@ -291,6 +292,15 @@
                 direction: rtl;
                 text-align: right;
             }
+
+            @if(app()->getLocale() == 'ar' && !$isRtl)
+                html[dir="rtl"] .tags-display {
+                    direction: ltr;
+                }
+                .text-muted {
+                    direction: ltr;
+                }
+            @endif
 
             /* Animation for tag creation */
             @keyframes tagFadeIn {
