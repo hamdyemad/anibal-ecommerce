@@ -13,6 +13,8 @@ h6 {
     color: var(--color-dark)
 }
 
+
+
 .color-primary {
     color: var(--color-primary)
 }
@@ -39027,4 +39029,7 @@ body:after {
         -webkit-transform: rotate(0);
         transform: rotate(0)
     }
+}
+.ap-po-details--3 > div:not(.b-none) {
+    margin: 0px !important;
 }
