@@ -17,12 +17,12 @@ class RegionResource extends JsonResource
         if($request->select2){
             return [
                 'id' => $this->id,
-                'name' => $this->name ?? $this->getTranslation('name', app()->getLocale()),
+                'name' => $this->name,
             ];
         }
         return [
             'id' => $this->id,
-            'name' => $this->name ?? $this->getTranslation('name', app()->getLocale()),
+            'name' => $this->name,
             'slug' => $this->slug,
             'city' => new CityResource($this->whenLoaded('city')),
             'active' => $this->active,

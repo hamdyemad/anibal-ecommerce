@@ -30,11 +30,6 @@ class Country extends Model
         return $this->belongsTo(Currency::class, 'currency_id');
     }
 
-
-    public function getNameAttribute() {
-        return $this->getTranslation('name', app()->getLocale());
-    }
-
     public function scopeActive($query)
     {
         return $query->where('active', true);

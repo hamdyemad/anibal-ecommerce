@@ -32,21 +32,21 @@ class CustomerAddress extends Model
 
     public function country()
     {
-        return $this->belongsTo(Country::class);
+        return $this->belongsTo(Country::class)->withTrashed();
     }
 
     public function city()
     {
-        return $this->belongsTo(City::class);
+        return $this->belongsTo(City::class)->withTrashed();
     }
 
     public function region()
     {
-        return $this->belongsTo(Region::class);
+        return $this->belongsTo(Region::class)->withTrashed();
     }
 
     public function subregion()
     {
-        return $this->belongsTo(Subregion::class);
+        return $this->belongsTo(Subregion::class)->withTrashed();
     }
 }
