@@ -15,12 +15,12 @@ class CategoryApiResource extends JsonResource
      * @return array<string, mixed>
      */
     public function toArray(Request $request): array
-    {        
+    {
         return [
             'id' => $this->id,
             'slug' => $this->slug,
-            'name' => $this->getTranslation('name', app()->getLocale()) ?? '',
-            'description' => $this->getTranslation('description', app()->getLocale()) ?? '',
+            'name' => $this->name,
+            'description' => $this->description,
             'image' => ($this->image) ? Storage::disk('public')->url($this->image) : '',
             'active' => $this->active,
             'department' => new DepartmentApiResource($this->whenLoaded('department')),

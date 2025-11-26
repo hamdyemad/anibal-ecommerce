@@ -44,6 +44,11 @@ class SubCategory extends Model
         return $this->belongsTo(Category::class);
     }
 
+    public function getDescriptionAttribute()
+    {
+        return $this->getTranslation('description', app()->getLocale()) ?? '-';
+    }
+
     public function scopeActive($query)
     {
         return $query->where('active', true);

@@ -55,18 +55,17 @@ class Category extends Model
         return $this->subs()->active();
     }
 
+    public function getDescriptionAttribute()
+    {
+        return $this->getTranslation('description', app()->getLocale()) ?? '-';
+    }
+
     /**
      * Activities relationship
      */
     public function activities()
     {
         return $this->belongsToMany(Activity::class, 'activities_categories', 'category_id', 'activity_id');
-    }
-
-    // Getters
-    public function getNameAttribute()
-    {
-        return $this->getTranslation('name', app()->getLocale()) ?? '-';
     }
 
     // Scopes

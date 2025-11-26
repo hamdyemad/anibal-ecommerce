@@ -60,6 +60,11 @@ class Department extends Model
         return $this->categories()->active();
     }
 
+    public function getDescriptionAttribute()
+    {
+        return $this->getTranslation('description', app()->getLocale()) ?? '-';
+    }
+
     public function scopeFilter(Builder $query, array $filters)
     {
         if (!empty($filters['search'])) {

@@ -35,6 +35,10 @@ class Activity extends Model
         return $this->departments()->active();
     }
 
+    public function getDescriptionAttribute()
+    {
+        return $this->getTranslation('description', app()->getLocale()) ?? '-';
+    }
 
     public function scopeActive($query)
     {
