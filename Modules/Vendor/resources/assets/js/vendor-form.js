@@ -259,39 +259,73 @@ function addDocumentRow() {
  */
 function initializeErrorClearingHandlers() {
     // Handle text inputs, textareas, email inputs, number inputs, and other common input types
-    $(document).on('input keyup', 'input[type="text"], input[type="email"], input[type="number"], input[type="tel"], input[type="url"], input[type="password"], textarea', function() {
+    $(document).on('input keyup focus', 'input[type="text"], input[type="email"], input[type="number"], input[type="tel"], input[type="url"], input[type="password"], textarea', function() {
         clearFieldError($(this));
+        clearValidationAlert();
         // Ensure asterisks remain protected after clearing errors
         protectRequiredAsterisks();
     });
 
     // Handle select dropdowns (including Select2)
-    $(document).on('change', 'select', function() {
+    $(document).on('change focus', 'select', function() {
         clearFieldError($(this));
+        clearValidationAlert();
         protectRequiredAsterisks();
     });
 
     // Handle Select2 specifically
-    $(document).on('select2:select select2:unselect', 'select', function() {
+    $(document).on('select2:select select2:unselect select2:open select2:close', 'select', function() {
         clearFieldError($(this));
+        clearValidationAlert();
+        protectRequiredAsterisks();
+    });
+
+    // Handle specific vendor form dropdowns
+    $(document).on('change select2:select', '#country_id, #type, #activities', function() {
+        const fieldId = $(this).attr('id');
+        console.log('🔧 Clearing error for:', fieldId);
+
+        // Clear field error
+        clearFieldError($(this));
+
+        // Additional aggressive clearing for these specific fields
+        clearDropdownErrors(fieldId);
+
+        clearValidationAlert();
         protectRequiredAsterisks();
     });
 
     // Handle file inputs
-    $(document).on('change', 'input[type="file"]', function() {
+    $(document).on('change focus', 'input[type="file"]', function() {
         clearFieldError($(this));
+        clearValidationAlert();
         // Also clear error from associated image preview container
-        const previewContainer = $(this).siblings('.image-preview-container');
+        const previewContainer = $(this).siblings('.image-preview-container, .logo-preview-container');
         if (previewContainer.length) {
             previewContainer.removeClass('is-invalid border-danger');
         }
+        // Clear error from image upload wrapper
+        $(this).closest('.image-upload-wrapper').find('.error-message').remove();
         protectRequiredAsterisks();
     });
 
     // Handle checkboxes and radio buttons
-    $(document).on('change', 'input[type="checkbox"], input[type="radio"]', function() {
+    $(document).on('change focus', 'input[type="checkbox"], input[type="radio"]', function() {
         clearFieldError($(this));
+        clearValidationAlert();
         protectRequiredAsterisks();
+    });
+
+    // Handle image preview container clicks (for image uploads)
+    $(document).on('click', '.image-preview-container, .logo-preview-container', function() {
+        const wrapper = $(this).closest('.image-upload-wrapper');
+        const fileInput = wrapper.find('input[type="file"]');
+        if (fileInput.length) {
+            clearFieldError(fileInput);
+            clearValidationAlert();
+            $(this).removeClass('is-invalid border-danger');
+            wrapper.find('.error-message').remove();
+        }
     });
 
     console.log('✅ Error clearing handlers initialized');
@@ -349,16 +383,72 @@ function clearFieldError($field) {
 
     // For Select2, also clear error from the Select2 container
     if ($field.hasClass('select2') || $field.data('select2')) {
-        $field.siblings('.select2-container').find('.select2-selection').removeClass('is-invalid border-danger');
+        const select2Container = $field.siblings('.select2-container');
+        select2Container.find('.select2-selection').removeClass('is-invalid border-danger');
+        select2Container.removeClass('is-invalid border-danger');
+        // Also remove error messages after Select2 container
+        select2Container.siblings('.error-message, .invalid-feedback').remove();
+        select2Container.next('.error-message, .invalid-feedback').remove();
+    }
+
+    // Enhanced Select2 error clearing by field ID
+    const fieldId = $field.attr('id');
+    if (fieldId) {
+        $(`#${fieldId}_error, .${fieldId}-error`).remove();
+        $(`.select2-container--bootstrap-5[data-select2-id="${fieldId}"]`).removeClass('is-invalid border-danger');
     }
 
     // Remove error from image preview containers
-    $field.siblings('.image-preview-container').removeClass('is-invalid border-danger');
+    $field.siblings('.image-preview-container, .logo-preview-container').removeClass('is-invalid border-danger');
 
     // Clear from form group (but preserve asterisks in labels)
     $field.closest('.form-group').find('.error-message, .invalid-feedback').remove();
     $field.closest('.form-group').find('.text-danger:not(label .text-danger):not(.form-label .text-danger)').remove();
     $field.closest('.form-group').removeClass('has-error');
+
+    // Clear from image upload wrapper (for image components)
+    $field.closest('.image-upload-wrapper').find('.error-message, .invalid-feedback').remove();
+    $field.closest('.image-upload-wrapper').find('.image-preview-container, .logo-preview-container').removeClass('is-invalid border-danger');
+
+    // Clear from document row (for document uploads)
+    $field.closest('.document-row').find('.error-message, .invalid-feedback').remove();
+}
+
+/**
+ * Clear validation alert at the top of the form
+ */
+function clearValidationAlert() {
+    // Remove validation error alerts
+    $('.validation-errors-alert').remove();
+    $('#step-validation-alert').remove();
+    $('#validation-errors-alert').remove();
+}
+
+/**
+ * Aggressively clear dropdown errors for specific fields
+ */
+function clearDropdownErrors(fieldId) {
+    console.log('🧹 Aggressive clearing for:', fieldId);
+
+    // Remove all possible error elements
+    $(`#${fieldId}`).removeClass('is-invalid border-danger');
+
+    // Clear Select2 containers
+    $(`.select2-container[data-select2-id="${fieldId}"]`).removeClass('is-invalid border-danger');
+    $(`.select2-container[data-select2-id="${fieldId}"] .select2-selection`).removeClass('is-invalid border-danger');
+
+    // Clear error messages by various selectors
+    $(`.error-message:contains("${fieldId}")`).remove();
+    $(`[data-field="${fieldId}"] .error-message`).remove();
+
+    // Clear from form group containing this field
+    $(`#${fieldId}`).closest('.form-group').find('.error-message, .invalid-feedback').remove();
+    $(`#${fieldId}`).closest('.form-group').removeClass('has-error');
+
+    // Clear any error messages that might be after the Select2 container
+    $(`#${fieldId}`).siblings('.select2-container').nextAll('.error-message, .invalid-feedback').remove();
+
+    console.log('✅ Cleared all errors for:', fieldId);
 }
 
 /**
@@ -603,12 +693,15 @@ function displayValidationErrors(errors) {
                       document.documentElement.lang === 'ar' ||
                       $('html').attr('lang') === 'ar';
 
+        const config = window.vendorFormConfig;
+        const pleaseCorrectErrors = config?.errorMessages?.pleaseCorrectErrors || (isRtl ? 'يرجى تصحيح الأخطاء التالية:' : 'Please correct the following errors:');
+
         const alertHtml = `
             <div class="alert alert-danger alert-dismissible fade show validation-errors-alert" role="alert">
                 <div class="d-flex align-items-start">
                     <i class="uil uil-exclamation-triangle me-2" style="font-size: 18px; margin-top: 2px;"></i>
                     <div class="flex-grow-1">
-                        <h6 class="mb-2">${isRtl ? 'يرجى تصحيح الأخطاء التالية:' : 'Please correct the following errors:'}</h6>
+                        <h6 class="mb-2">${pleaseCorrectErrors}</h6>
                         ${errorListHtml}
                     </div>
                 </div>
@@ -736,13 +829,22 @@ function validateCurrentStep(step) {
         // Validate name fields for all languages
         stepElement.find('input[name^="translations"][name$="[name]"]').each(function() {
             if (!$(this).val().trim()) {
-                const label = $(this).closest('.form-group').find('label').text().replace('*', '').trim();
-                const isRtl = document.documentElement.dir === 'rtl' ||
-                              document.documentElement.lang === 'ar' ||
-                              $('html').attr('lang') === 'ar';
-                const message = label.includes('الاسم') || label.includes('بالعربية')
-                    ? `${label} مطلوب`
-                    : `${label} is required`;
+                const fieldName = $(this).attr('name');
+                const config = window.vendorFormConfig;
+                let message;
+
+                // Check if this is Arabic field (language ID 2) or English field (language ID 1)
+                if (fieldName.includes('[2][name]')) {
+                    // Arabic field
+                    message = config?.errorMessages?.vendorNameArRequired || 'اسم التاجر باللغة العربية مطلوب';
+                } else if (fieldName.includes('[1][name]')) {
+                    // English field
+                    message = config?.errorMessages?.vendorNameEnRequired || 'Vendor name in English is required';
+                } else {
+                    // Fallback for other languages
+                    message = config?.errorMessages?.vendorNameRequired || 'Vendor name is required';
+                }
+
                 errors.push({
                     field: $(this).attr('name'),
                     message: message,
@@ -754,12 +856,10 @@ function validateCurrentStep(step) {
         // Validate country
         const country = stepElement.find('#country_id').val();
         if (!country) {
-            const isRtl = document.documentElement.dir === 'rtl' ||
-                          document.documentElement.lang === 'ar' ||
-                          $('html').attr('lang') === 'ar';
+            const config = window.vendorFormConfig;
             errors.push({
                 field: 'country_id',
-                message: isRtl ? 'الدولة مطلوبة' : 'Country is required',
+                message: config?.errorMessages?.countryRequired || 'Country is required',
                 element: stepElement.find('#country_id')
             });
         }
@@ -767,12 +867,10 @@ function validateCurrentStep(step) {
         // Validate commission
         const commission = stepElement.find('#commission').val();
         if (!commission || commission === '') {
-            const isRtl = document.documentElement.dir === 'rtl' ||
-                          document.documentElement.lang === 'ar' ||
-                          $('html').attr('lang') === 'ar';
+            const config = window.vendorFormConfig;
             errors.push({
                 field: 'commission',
-                message: isRtl ? 'العمولة مطلوبة' : 'Commission is required',
+                message: config?.errorMessages?.commissionRequired || 'Commission is required',
                 element: stepElement.find('#commission')
             });
         }
@@ -780,12 +878,10 @@ function validateCurrentStep(step) {
         // Validate vendor type
         const vendorType = stepElement.find('#type').val();
         if (!vendorType) {
-            const isRtl = document.documentElement.dir === 'rtl' ||
-                          document.documentElement.lang === 'ar' ||
-                          $('html').attr('lang') === 'ar';
+            const config = window.vendorFormConfig;
             errors.push({
                 field: 'type',
-                message: isRtl ? 'نوع المورد مطلوب' : 'Vendor type is required',
+                message: config?.errorMessages?.vendorTypeRequired || 'Vendor type is required',
                 element: stepElement.find('#type')
             });
         }
@@ -793,12 +889,10 @@ function validateCurrentStep(step) {
         // Validate activities
         const activities = stepElement.find('#activities').val();
         if (!activities || activities.length === 0) {
-            const isRtl = document.documentElement.dir === 'rtl' ||
-                          document.documentElement.lang === 'ar' ||
-                          $('html').attr('lang') === 'ar';
+            const config = window.vendorFormConfig;
             errors.push({
                 field: 'activity_ids',
-                message: isRtl ? 'يرجى اختيار نشاط واحد على الأقل' : 'Please select at least one activity',
+                message: config?.errorMessages?.activitiesRequired || 'Please select at least one activity',
                 element: stepElement.find('#activities')
             });
         }
@@ -816,12 +910,10 @@ function validateCurrentStep(step) {
             const logoFile = logoInput[0]?.files?.length > 0;
 
             if (!hasExistingLogo && !logoFile) {
-                const isRtl = document.documentElement.dir === 'rtl' ||
-                              document.documentElement.lang === 'ar' ||
-                              $('html').attr('lang') === 'ar';
+                const config = window.vendorFormConfig;
                 errors.push({
                     field: 'logo',
-                    message: isRtl ? 'الشعار مطلوب' : 'Logo is required',
+                    message: config?.errorMessages?.logoRequired || 'Logo is required',
                     element: logoPreviewContainer.length ? logoPreviewContainer : logoInput
                 });
             }
@@ -835,21 +927,17 @@ function validateCurrentStep(step) {
             const bannerFile = bannerInput[0]?.files?.length > 0;
 
             if (!hasExistingBanner && !bannerFile) {
-                const isRtl = document.documentElement.dir === 'rtl' ||
-                              document.documentElement.lang === 'ar' ||
-                              $('html').attr('lang') === 'ar';
+                const config = window.vendorFormConfig;
                 errors.push({
                     field: 'banner',
-                    message: isRtl ? 'البانر مطلوب' : 'Banner is required',
+                    message: config?.errorMessages?.bannerRequired || 'Banner is required',
                     element: bannerInput.length ? bannerInput : stepElement.find('#banner-preview-container')
                 });
             }
         }
     } else if (step === 2) {
         // Step 2: Documents - Required validation (only for new vendors)
-        const isRtl = document.documentElement.dir === 'rtl' ||
-                      document.documentElement.lang === 'ar' ||
-                      $('html').attr('lang') === 'ar';
+        const config = window.vendorFormConfig;
 
         // Check if this is edit mode
         const isEditMode = $('input[name="_method"][value="PUT"]').length > 0 ||
@@ -861,7 +949,7 @@ function validateCurrentStep(step) {
         if (!isEditMode && documentRows.length === 0) {
             errors.push({
                 field: 'documents',
-                message: isRtl ? 'يجب إضافة مستند واحد على الأقل' : 'At least one document is required',
+                message: config?.errorMessages?.documentsRequired || 'At least one document is required',
                 element: stepElement.find('#documentsContainer')
             });
         } else if (documentRows.length > 0) {
@@ -889,7 +977,7 @@ function validateCurrentStep(step) {
                 if (!hasEnglishName) {
                     errors.push({
                         field: `documents[${documentIndex}][translations][1][name]`,
-                        message: isRtl ? 'اسم المستند باللغة الإنجليزية مطلوب' : 'Document name in English is required',
+                        message: config?.errorMessages?.documentNameEnRequired || 'Document name in English is required',
                         element: documentRow.find('input[name*="[1][name]"]')
                     });
                 }
@@ -897,7 +985,7 @@ function validateCurrentStep(step) {
                 if (!hasArabicName) {
                     errors.push({
                         field: `documents[${documentIndex}][translations][2][name]`,
-                        message: isRtl ? 'اسم المستند باللغة العربية مطلوب' : 'Document name in Arabic is required',
+                        message: config?.errorMessages?.documentNameArRequired || 'Document name in Arabic is required',
                         element: documentRow.find('input[name*="[2][name]"]')
                     });
                 }
@@ -910,7 +998,7 @@ function validateCurrentStep(step) {
                 if (!hasFile && !hasExistingFile) {
                     errors.push({
                         field: `documents[${documentIndex}][file]`,
-                        message: isRtl ? 'ملف المستند مطلوب' : 'Document file is required',
+                        message: config?.errorMessages?.documentFileRequired || 'Document file is required',
                         element: fileInput.closest('.image-upload-wrapper').find('.image-preview-container')
                     });
                 }
@@ -918,22 +1006,20 @@ function validateCurrentStep(step) {
         }
     } else if (step === 3) {
         // Step 3: Account Details
-        const isRtl = document.documentElement.dir === 'rtl' ||
-                      document.documentElement.lang === 'ar' ||
-                      $('html').attr('lang') === 'ar';
+        const config = window.vendorFormConfig;
 
         // Validate email
         const email = stepElement.find('#email').val();
         if (!email || email.trim() === '') {
             errors.push({
                 field: 'email',
-                message: isRtl ? 'البريد الإلكتروني مطلوب' : 'Email is required',
+                message: config?.errorMessages?.emailRequired || 'Email is required',
                 element: stepElement.find('#email')
             });
         } else if (!isValidEmail(email)) {
             errors.push({
                 field: 'email',
-                message: isRtl ? 'يرجى إدخال عنوان بريد إلكتروني صالح' : 'Please enter a valid email address',
+                message: config?.errorMessages?.emailInvalid || 'Please enter a valid email address',
                 element: stepElement.find('#email')
             });
         }
@@ -947,7 +1033,7 @@ function validateCurrentStep(step) {
         if (!isEditMode && (!password || password.trim() === '')) {
             errors.push({
                 field: 'password',
-                message: isRtl ? 'كلمة المرور مطلوبة' : 'Password is required',
+                message: config?.errorMessages?.passwordRequired || 'Password is required',
                 element: stepElement.find('#password')
             });
         }

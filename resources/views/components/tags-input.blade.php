@@ -19,6 +19,7 @@
     'value' => '',
     'placeholder' => 'Type and press Enter...',
     'rtlPlaceholder' => 'اكتب واضغط Enter...',
+    'helpText' => null,
     'language' => 'en',
     'allowDuplicates' => true,
     'maxTags' => null,
@@ -43,10 +44,8 @@
         $size !== 'md' ? 'size-' . $size : '',
     ];
 @endphp
-
-<div class="{{ implode(' ', array_filter($containerClasses)) }}" id="{{ $componentId }}_wrapper">
-    <div class="tags-input-container" data-language="{{ $language }}">
-        <div class="tags-display d-none"></div>
+<div class="{{ implode(' ', array_filter($containerClasses)) }}" id="{{ $componentId }}_wrapper" {{ $isRtl ? 'dir=rtl' : 'dir=ltr' }}>
+    <div class="tags-input-container" data-language="{{ $language }}" {{ $isRtl ? 'dir=rtl' : 'dir=ltr' }}>
         <input
             type="text"
             class="tags-input form-control"
@@ -63,6 +62,12 @@
 
         >
     </div>
+
+    @if($helpText)
+        <small class="text-muted w-100 d-block mt-1" {{ $isRtl ? 'dir=rtl style=text-align:right;' : '' }}>{{ $helpText }}</small>
+    @endif
+
+    <div class="tags-display d-none mt-2" {{ $isRtl ? 'dir=rtl' : 'dir=ltr' }}></div>
 
     @error($name)
         <div class="text-danger mt-1">{{ $message }}</div>
@@ -102,6 +107,19 @@
                 min-height: 0;
                 margin-bottom: 0;
                 padding: 0;
+            }
+
+            /* Ensure tags display works for all locales */
+            .tags-input-wrapper .tags-display {
+                display: flex !important;
+                flex-wrap: wrap;
+                gap: 8px;
+                margin-top: 8px;
+                width: 100%;
+            }
+
+            .tags-input-wrapper .tags-display.d-none {
+                display: none !important;
             }
 
             /* Individual Tag Items */

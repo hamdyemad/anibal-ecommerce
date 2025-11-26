@@ -149,6 +149,9 @@
                                             <div class="col-md-6">
                                                 <div class="view-item">
                                                     <label class="il-gray fs-14 fw-500 mb-10">{{ trans('vendor::vendor.country') }}</label>
+                                                    <p class="fs-15 color-dark">
+                                                        {{ $vendor->country->name ?? '--' }}
+                                                    </p>
                                                 </div>
                                             </div>
                                             {{-- Vendor Type --}}
@@ -208,7 +211,43 @@
                                         </div>
                                     </div>
                                 </div>
-
+{{-- Documents Section --}}
+                                @if($vendor->documents && $vendor->documents->count() > 0)
+                                <div class="card card-holder mt-3">
+                                    <div class="card-header">
+                                        <h3>
+                                            <i class="uil uil-file-alt me-1"></i>{{ trans('vendor::vendor.vendor_documents') }}
+                                        </h3>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row">
+                                            @foreach($vendor->documents as $document)
+                                                <div class="col-md-6 mb-3">
+                                                    <div class="view-item docs-box">
+                                                        <label class="il-gray fs-14 fw-500 mb-10">
+                                                            {{ $document->getTranslation('name', app()->getLocale()) ?? trans('vendor::vendor.document') }}
+                                                        </label>
+                                                        <p class="fs-15 color-dark">
+                                                            <div class="d-flex gap-2">
+                                                                <a href="{{ asset('storage/' . $document->path) }}" target="_blank" class="btn btn-sm btn-light">
+                                                                    <i class="uil uil-file-download me-1"></i>{{ trans('common.download') ?? 'Download' }}
+                                                                </a>
+                                                                <button type="button" class="btn btn-sm btn-danger delete-document-btn"
+                                                                        data-bs-toggle="modal"
+                                                                        data-bs-target="#modal-delete-document"
+                                                                        data-document-id="{{ $document->id }}"
+                                                                        data-document-name="{{ $document->getTranslation('name', app()->getLocale()) ?? trans('vendor::vendor.document') }}">
+                                                                    <i class="uil uil-trash-alt me-1"></i>{{ trans('common.delete') ?? 'Delete' }}
+                                                                </button>
+                                                            </div>
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                </div>
+                                @endif
                                 {{-- SEO Information Section --}}
                                 <div class="card card-holder mt-3">
                                     <div class="card-header">
@@ -288,43 +327,7 @@
                                     </div>
                                 </div>
 
-                                {{-- Documents Section --}}
-                                @if($vendor->documents && $vendor->documents->count() > 0)
-                                <div class="card card-holder mt-3">
-                                    <div class="card-header">
-                                        <h3>
-                                            <i class="uil uil-file-alt me-1"></i>{{ trans('vendor::vendor.vendor_documents') }}
-                                        </h3>
-                                    </div>
-                                    <div class="card-body">
-                                        <div class="row">
-                                            @foreach($vendor->documents as $document)
-                                                <div class="col-md-6 mb-3">
-                                                    <div class="view-item docs-box">
-                                                        <label class="il-gray fs-14 fw-500 mb-10">
-                                                            {{ $document->getTranslation('name', app()->getLocale()) ?? trans('vendor::vendor.document') }}
-                                                        </label>
-                                                        <p class="fs-15 color-dark">
-                                                            <div class="d-flex gap-2">
-                                                                <a href="{{ asset('storage/' . $document->path) }}" target="_blank" class="btn btn-sm btn-light">
-                                                                    <i class="uil uil-file-download me-1"></i>{{ trans('common.download') ?? 'Download' }}
-                                                                </a>
-                                                                <button type="button" class="btn btn-sm btn-danger delete-document-btn"
-                                                                        data-bs-toggle="modal"
-                                                                        data-bs-target="#modal-delete-document"
-                                                                        data-document-id="{{ $document->id }}"
-                                                                        data-document-name="{{ $document->getTranslation('name', app()->getLocale()) ?? trans('vendor::vendor.document') }}">
-                                                                    <i class="uil uil-trash-alt me-1"></i>{{ trans('common.delete') ?? 'Delete' }}
-                                                                </button>
-                                                            </div>
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                            @endforeach
-                                        </div>
-                                    </div>
-                                </div>
-                                @endif
+
                                 <div class="card card-holder mt-3">
                                     <div class="card-header">
                                         <h3>

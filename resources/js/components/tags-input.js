@@ -15,7 +15,7 @@ class TagsInput {
             delimiter: options.delimiter || ',',
             ...options
         };
-        
+
         this.tags = [];
         this.init();
     }
@@ -30,19 +30,19 @@ class TagsInput {
     createStructure() {
         const isRtl = this.options.language === 'ar';
         const placeholder = isRtl ? this.options.rtlPlaceholder : this.options.placeholder;
-        
+
         const html = `
             <div class="tags-input-container" data-language="${this.options.language}">
-                <div class="tags-display"></div>
                 <input type="text" class="tags-input" placeholder="${placeholder}" ${isRtl ? 'dir="rtl"' : ''}>
+                <div class="tags-display"></div>
             </div>
         `;
-        
+
         this.container.html(html);
         this.tagsDisplay = this.container.find('.tags-display');
         this.input = this.container.find('.tags-input');
         this.hiddenInput = this.container.find('input[type="hidden"]').first();
-        
+
         // If no hidden input exists, create one
         if (this.hiddenInput.length === 0) {
             this.hiddenInput = $('<input type="hidden">');
@@ -54,7 +54,7 @@ class TagsInput {
         // Handle input events
         this.input.on('keydown', (e) => {
             const value = this.input.val().trim();
-            
+
             // Enter key or comma
             if (e.key === 'Enter' || e.key === this.options.delimiter) {
                 e.preventDefault();
@@ -68,7 +68,7 @@ class TagsInput {
                 this.removeTag(this.tags.length - 1);
             }
         });
-        
+
         // Handle blur event (when user clicks away)
         this.input.on('blur', () => {
             const value = this.input.val().trim();
@@ -89,17 +89,17 @@ class TagsInput {
 
     addTag(tagText) {
         if (!tagText) return;
-        
+
         // Check for duplicates if not allowed
         if (!this.options.allowDuplicates && this.tags.includes(tagText)) {
             return;
         }
-        
+
         // Check max tags limit
         if (this.options.maxTags && this.tags.length >= this.options.maxTags) {
             return;
         }
-        
+
         this.tags.push(tagText);
         this.renderTags();
         this.updateHiddenInput();
@@ -108,29 +108,29 @@ class TagsInput {
 
     addMultipleTags(input) {
         if (!input) return;
-        
+
         // Split by comma and process each tag
         const newTags = input.split(this.options.delimiter)
             .map(tag => tag.trim())
             .filter(tag => tag.length > 0);
-        
+
         let addedCount = 0;
-        
+
         for (const tagText of newTags) {
             // Check max tags limit
             if (this.options.maxTags && this.tags.length >= this.options.maxTags) {
                 break;
             }
-            
+
             // Check for duplicates if not allowed
             if (!this.options.allowDuplicates && this.tags.includes(tagText)) {
                 continue;
             }
-            
+
             this.tags.push(tagText);
             addedCount++;
         }
-        
+
         if (addedCount > 0) {
             this.renderTags();
             this.updateHiddenInput();
@@ -149,23 +149,23 @@ class TagsInput {
 
     renderTags() {
         this.tagsDisplay.empty();
-        
+
         this.tags.forEach((tag, index) => {
             const isRtl = this.options.language === 'ar';
             const tagElement = $(`
-                <div class="tag-item" data-index="${index}">
+                <div class="tag-item" data-index="${index}" ${isRtl ? 'dir="rtl"' : ''}>
                     <span class="tag-text" ${isRtl ? 'dir="rtl"' : ''}>${this.escapeHtml(tag)}</span>
                     <button type="button" class="tag-remove" title="${isRtl ? 'إزالة' : 'Remove'}">×</button>
                 </div>
             `);
-            
+
             // Add click handler for remove button
             tagElement.find('.tag-remove').on('click', (e) => {
                 e.preventDefault();
                 e.stopPropagation();
                 this.removeTag(index);
             });
-            
+
             this.tagsDisplay.append(tagElement);
         });
     }
@@ -219,12 +219,12 @@ $.fn.tagsInput = function(options) {
     return this.each(function() {
         const $this = $(this);
         let instance = $this.data('tagsInput');
-        
+
         if (!instance) {
             instance = new TagsInput(this, options);
             $this.data('tagsInput', instance);
         }
-        
+
         return instance;
     });
 };

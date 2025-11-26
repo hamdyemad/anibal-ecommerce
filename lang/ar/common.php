@@ -103,6 +103,8 @@ return [
     'activity' => 'النشاط',
     'select_activity' => 'اختر النشاط',
     'leave_blank_to_keep_current' => 'اترك فارغًا للاحتفاظ بكلمة المرور الحالية',
+    'change' => 'تغيير',
+    'remove' => 'إزالة',
     'no_image' => 'لا يوجد صورة',
     'no_images' => 'لم يتم رفع صور',
     'current_image' => 'الصورة الحالية',

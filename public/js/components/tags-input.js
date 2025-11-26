@@ -13,30 +13,38 @@ class TagsInput {
             maxTags: options.maxTags || null,
             delimiter: options.delimiter || ','
         };
-        
+
         this.tags = [];
         this.init();
     }
-    
+
     init() {
         this.setupElements();
         this.loadExistingTags();
         this.bindEvents();
     }
-    
+
     setupElements() {
         this.wrapper = $(this.container).closest('.tags-input-wrapper');
         this.input = $(this.container).find('.tags-input');
         this.hiddenInput = $(this.container).find('input[type="hidden"]');
-        this.tagsDisplay = $(this.container).find('.tags-display');
-        
+
+        // Look for tags display in the wrapper first, then in the container
+        this.tagsDisplay = this.wrapper.find('.tags-display');
+
         // Create elements if they don't exist
         if (this.tagsDisplay.length === 0) {
-            this.tagsDisplay = $('<div class="tags-display"></div>');
-            $(this.container).prepend(this.tagsDisplay);
+            const isRtl = this.options.language === 'ar';
+            this.tagsDisplay = $(`<div class="tags-display" ${isRtl ? 'dir="rtl"' : 'dir="ltr"'}></div>`);
+            this.wrapper.append(this.tagsDisplay);
+        }
+
+        // Initialize with d-none class if no tags exist
+        if (this.tags.length === 0) {
+            this.tagsDisplay.addClass('d-none');
         }
     }
-    
+
     loadExistingTags() {
         const existingValue = this.hiddenInput.val();
         if (existingValue && existingValue.trim()) {
@@ -46,12 +54,12 @@ class TagsInput {
             this.renderTags();
         }
     }
-    
+
     bindEvents() {
         // Handle input events
         this.input.on('keydown', (e) => {
             const value = this.input.val().trim();
-            
+
             if (e.key === 'Enter' || e.key === this.options.delimiter) {
                 e.preventDefault();
                 if (value) {
@@ -64,7 +72,7 @@ class TagsInput {
                 this.removeTag(this.tags.length - 1);
             }
         });
-        
+
         // Handle blur event
         this.input.on('blur', () => {
             const value = this.input.val().trim();
@@ -74,46 +82,46 @@ class TagsInput {
             }
         });
     }
-    
+
     addTag(tagText) {
         if (!tagText || tagText.trim() === '') return false;
-        
+
         tagText = tagText.trim();
-        
+
         // Check for duplicates if not allowed
         if (!this.options.allowDuplicates && this.tags.includes(tagText)) {
             return false;
         }
-        
+
         // Check max tags limit
         if (this.options.maxTags && this.tags.length >= this.options.maxTags) {
             return false;
         }
-        
+
         this.tags.push(tagText);
         this.renderTags();
         this.updateHiddenInput();
         return true;
     }
-    
+
     addMultipleTags(input) {
         if (!input) return;
-        
+
         // Split by delimiter and process each tag
         const newTags = input.split(this.options.delimiter)
             .map(tag => tag.trim())
             .filter(tag => tag.length > 0);
-        
+
         let added = 0;
         for (const tagText of newTags) {
             if (this.addTag(tagText)) {
                 added++;
             }
         }
-        
+
         return added;
     }
-    
+
     removeTag(index) {
         if (index >= 0 && index < this.tags.length) {
             this.tags.splice(index, 1);
@@ -123,17 +131,17 @@ class TagsInput {
         }
         return false;
     }
-    
+
     renderTags() {
         this.tagsDisplay.empty();
-        
+
         // Show or hide tags-display based on whether there are tags
         if (this.tags.length > 0) {
             this.tagsDisplay.removeClass('d-none');
         } else {
             this.tagsDisplay.addClass('d-none');
         }
-        
+
         this.tags.forEach((tag, index) => {
             const isRtl = this.options.language === 'ar';
             const tagElement = $(`
@@ -142,45 +150,45 @@ class TagsInput {
                     <button type="button" class="tag-remove" title="Remove tag">×</button>
                 </div>
             `);
-            
+
             // Handle tag removal
             tagElement.find('.tag-remove').on('click', () => {
                 this.removeTag(index);
             });
-            
+
             this.tagsDisplay.append(tagElement);
         });
     }
-    
+
     updateHiddenInput() {
         this.hiddenInput.val(this.tags.join(this.options.delimiter + ' '));
     }
-    
+
     escapeHtml(text) {
         return $('<div>').text(text).html();
     }
-    
+
     // Public methods
     getTags() {
         return [...this.tags];
     }
-    
+
     setTags(tags) {
         this.tags = Array.isArray(tags) ? [...tags] : [];
         this.renderTags();
         this.updateHiddenInput();
     }
-    
+
     clearTags() {
         this.tags = [];
         this.renderTags();
         this.updateHiddenInput();
     }
-    
+
     addTagProgrammatically(tag) {
         return this.addTag(tag);
     }
-    
+
     removeTagProgrammatically(tag) {
         const index = this.tags.indexOf(tag);
         if (index !== -1) {

@@ -55,13 +55,19 @@
                                     <div class="row" style="margin-top: 20px;">
                                         <!-- Name Fields for each language -->
                                         @foreach($languages as $language)
-                                        <div class="col-md-6 mb-3">
+                                        <div class="col-md-6 mb-3 @if(app()->getLocale() == 'ar') {{ $language->code == 'ar' ? 'order-1' : 'order-2' }} @else {{ $language->code == 'en' ? 'order-1' : 'order-2' }} @endif">
                                             <div class="form-group">
-                                                <label for="name_{{ $language->code }}" class="form-label w-100 {{ $language->rtl ? 'text-end' : '' }}">
-                                                    @if($language->code == 'en')
-                                                      {{ trans('vendor::vendor.name') }} ({{ $language->name }})
+                                                <label for="name_{{ $language->code }}" class="form-label w-100"
+                                                    @if($language->code == 'ar' && (app()->getLocale() == 'en' || app()->getLocale() == 'ar'))
+                                                        dir="rtl"
                                                     @else
-                                                        {{ trans('vendor::vendor.name') }} - باللغة العربية
+                                                        dir="ltr"
+                                                    @endif
+                                                    >
+                                                    @if($language->code == 'ar')
+                                                        اسم التاجر
+                                                    @else
+                                                        Vendor Name
                                                     @endif
                                                     <span class="text-danger">*</span>
                                                 </label>
@@ -71,8 +77,12 @@
                                                     id="name_{{ $language->code }}"
                                                     class="form-control ih-medium ip-gray radius-xs b-light px-15"
                                                     value="{{ isset($vendor) ? $vendor->getTranslation('name', $language->code) : old('translations.'.$language->id.'.name') }}"
-                                                    placeholder="@if($language->code == 'ar')أدخل اسم التاجر@else{{ trans('vendor::vendor.enter_vendor_name') }}@endif"
-                                                    {{ $language->rtl ? 'dir=rtl' : '' }}
+                                                    placeholder="{{ $language->code == 'ar' ? 'أدخل اسم التاجر' : 'Vendor Name' }}"
+                                                    @if($language->code == 'ar' && (app()->getLocale() == 'en' || app()->getLocale() == 'ar'))
+                                                        dir="rtl"
+                                                    @else
+                                                        dir="ltr"
+                                                    @endif
                                                 >
                                                 @error('translations.'.$language->id.'.name')
                                                     <div class="text-danger mt-1">{{ $message }}</div>
@@ -85,14 +95,19 @@
                                     <div class="row">
                                         <!-- Description Fields for each language -->
                                         @foreach($languages as $language)
-                                        <div class="col-md-6 mb-3">
+                                        <div class="col-md-6 mb-3 @if(app()->getLocale() == 'ar') {{ $language->code == 'ar' ? 'order-1' : 'order-2' }} @else {{ $language->code == 'en' ? 'order-1' : 'order-2' }} @endif">
                                             <div class="form-group">
-                                                <label for="description_{{ $language->code }}" class="form-label w-100 {{ $language->rtl ? 'text-end' : '' }}">
-
-                                                    @if($language->code == 'en')
-                                                    {{ trans('vendor::vendor.description') }} ({{ $language->name }})
+                                                <label for="description_{{ $language->code }}" class="form-label w-100"
+                                                    @if($language->code == 'ar' && (app()->getLocale() == 'en' || app()->getLocale() == 'ar'))
+                                                        dir="rtl"
                                                     @else
-                                                    الوصف باللغة العربية
+                                                        dir="ltr"
+                                                    @endif
+                                                    >
+                                                    @if($language->code == 'ar')
+                                                        الوصف
+                                                    @else
+                                                        Description
                                                     @endif
                                                 </label>
                                                 <textarea
@@ -100,7 +115,12 @@
                                                     id="description_{{ $language->code }}"
                                                     class="form-control ih-medium ip-gray radius-xs b-light px-15"
                                                     rows="4"
-                                                    {{ $language->rtl ? 'dir=rtl' : '' }}
+                                                    placeholder="{{ $language->code == 'ar' ? 'أدخل وصف التاجر' : 'Enter vendor description' }}"
+                                                    @if($language->code == 'ar' && (app()->getLocale() == 'en' || app()->getLocale() == 'ar'))
+                                                        dir="rtl"
+                                                    @else
+                                                        dir="ltr"
+                                                    @endif
                                                 >{{ isset($vendor) ? $vendor->getTranslation('description', $language->code) : old('translations.'.$language->id.'.description') }}</textarea>
                                                 @error('translations.'.$language->id.'.description')
                                                     <div class="text-danger mt-1">{{ $message }}</div>
@@ -126,7 +146,7 @@
                                             <x-image-upload
                                                 id="logo"
                                                 name="logo"
-                                                label="{{ trans('vendor::vendor.logo') }}"
+                                                label="{{ trans('vendor::vendor.logo') }} ({{ trans('vendor::vendor.logo_recommended_size') }})"
                                                 :required="!isset($vendor)"
                                                 :existingImage="isset($vendor) && $vendor->logo ? $vendor->logo->path : null"
                                                 placeholder="{{ trans('vendor::vendor.click_to_upload_logo') }}"
@@ -141,7 +161,7 @@
                                             <x-image-upload
                                                 id="banner"
                                                 name="banner"
-                                                label="{{ trans('vendor::vendor.banner') }}"
+                                                label="{{ trans('vendor::vendor.banner') }} ({{ trans('vendor::vendor.banner_recommended_size') }})"
                                                 :required="!isset($vendor)"
                                                 :existingImage="isset($vendor) && $vendor->banner ? $vendor->banner->path : null"
                                                 placeholder="{{ trans('vendor::vendor.click_to_upload_banner') }}"
@@ -278,13 +298,19 @@
                                     <div class="row">
                                         <!-- Meta Title Fields for each language -->
                                         @foreach($languages as $language)
-                                        <div class="col-md-6 mb-3">
+                                        <div class="col-md-6 mb-3 @if(app()->getLocale() == 'ar') {{ $language->code == 'ar' ? 'order-1' : 'order-2' }} @else {{ $language->code == 'en' ? 'order-1' : 'order-2' }} @endif">
                                             <div class="form-group">
-                                                <label for="meta_title_{{ $language->code }}" class="form-label w-100 {{ $language->rtl ? 'text-end' : '' }}">
-                                                    @if($language->code == 'en')
-                                                        {{ trans('vendor::vendor.meta_title') }} ({{ $language->name }})
+                                                <label for="meta_title_{{ $language->code }}" class="form-label w-100"
+                                                    @if($language->code == 'ar' && (app()->getLocale() == 'en' || app()->getLocale() == 'ar'))
+                                                        dir="rtl"
                                                     @else
-                                                        عنوان SEO باللغة العربية
+                                                        dir="ltr"
+                                                    @endif
+                                                    >
+                                                    @if($language->code == 'ar')
+                                                        عنوان SEO
+                                                    @else
+                                                        Meta Title SEO
                                                     @endif
                                                 </label>
                                                 <input
@@ -293,8 +319,12 @@
                                                     id="meta_title_{{ $language->code }}"
                                                     class="form-control ih-medium ip-gray radius-xs b-light px-15"
                                                     value="{{ isset($vendor) ? $vendor->getTranslation('meta_title', $language->code) : old('translations.'.$language->id.'.meta_title') }}"
-                                                    placeholder="{{ $language->code == 'ar' ? 'أدخل عنوان SEO' : trans('vendor::vendor.enter_meta_title') }}"
-                                                    {{ $language->rtl ? 'dir=rtl' : '' }}
+                                                    placeholder="{{ $language->code == 'ar' ? 'أدخل عنوان SEO' : 'Meta Title SEO' }}"
+                                                    @if($language->code == 'ar' && (app()->getLocale() == 'en' || app()->getLocale() == 'ar'))
+                                                        dir="rtl"
+                                                    @else
+                                                        dir="ltr"
+                                                    @endif
                                                 >
                                                 @error('translations.'.$language->id.'.meta_title')
                                                     <div class="text-danger mt-1">{{ $message }}</div>
@@ -307,13 +337,19 @@
                                     <div class="row">
                                         <!-- Meta Description Fields for each language -->
                                         @foreach($languages as $language)
-                                        <div class="col-md-6 mb-3">
+                                        <div class="col-md-6 mb-3 @if(app()->getLocale() == 'ar') {{ $language->code == 'ar' ? 'order-1' : 'order-2' }} @else {{ $language->code == 'en' ? 'order-1' : 'order-2' }} @endif">
                                             <div class="form-group">
-                                                <label for="meta_description_{{ $language->code }}" class="form-label w-100 {{ $language->rtl ? 'text-end' : '' }}">
-                                                    @if($language->code == 'en')
-                                                        {{ trans('vendor::vendor.meta_description') }} ({{ $language->name }})
+                                                <label for="meta_description_{{ $language->code }}" class="form-label w-100"
+                                                    @if($language->code == 'ar' && (app()->getLocale() == 'en' || app()->getLocale() == 'ar'))
+                                                        dir="rtl"
                                                     @else
-                                                        وصف SEO باللغة العربية
+                                                        dir="ltr"
+                                                    @endif
+                                                    >
+                                                    @if($language->code == 'ar')
+                                                        وصف SEO
+                                                    @else
+                                                        Meta Description SEO
                                                     @endif
                                                 </label>
                                                 <textarea
@@ -321,7 +357,12 @@
                                                     id="meta_description_{{ $language->code }}"
                                                     class="form-control ih-medium ip-gray radius-xs b-light px-15"
                                                     rows="3"
-                                                    {{ $language->rtl ? 'dir=rtl' : '' }}
+                                                    placeholder="{{ $language->code == 'ar' ? 'أدخل وصف SEO' : 'Enter SEO description' }}"
+                                                    @if($language->code == 'ar' && (app()->getLocale() == 'en' || app()->getLocale() == 'ar'))
+                                                        dir="rtl"
+                                                    @else
+                                                        dir="ltr"
+                                                    @endif
                                                 >{{ isset($vendor) ? $vendor->getTranslation('meta_description', $language->code) : old('translations.'.$language->id.'.meta_description') }}</textarea>
                                                 @error('translations.'.$language->id.'.meta_description')
                                                     <div class="text-danger mt-1">{{ $message }}</div>
@@ -334,27 +375,36 @@
                                     <div class="row">
                                         <!-- Meta Keywords Fields for each language -->
                                         @foreach($languages as $language)
-                                        <div class="col-md-6 mb-3">
+                                        <div class="col-md-6 mb-3 @if(app()->getLocale() == 'ar') {{ $language->code == 'ar' ? 'order-1' : 'order-2' }} @else {{ $language->code == 'en' ? 'order-1' : 'order-2' }} @endif">
                                             <div class="form-group">
-                                                <label for="meta_keywords_{{ $language->code }}" class="form-label w-100 {{ $language->rtl ? 'text-end' : '' }}">
-                                                    @if($language->code == 'en')
-                                                        {{ trans('vendor::vendor.meta_keywords') }} ({{ $language->name }})
+                                                <label for="meta_keywords_{{ $language->code }}" class="form-label w-100"
+                                                    @if($language->code == 'ar')
+                                                        dir="rtl"
                                                     @else
-                                                        كلمات SEO المفتاحية باللغة العربية
+                                                        dir="ltr"
+                                                    @endif
+                                                    >
+                                                    @if($language->code == 'ar')
+                                                        كلمات SEO المفتاحية
+                                                    @else
+                                                        Meta Keywords SEO
                                                     @endif
                                                 </label>
-                                                <x-tags-input
-                                                    name="translations[{{ $language->id }}][meta_keywords]"
-                                                    :value="isset($vendor) ? $vendor->getMetaKeywordsString($language->code) : old('translations.'.$language->id.'.meta_keywords')"
-                                                    placeholder="{{ $language->code == 'ar' ? 'اكتب كلمة مفتاحية واضغط انتر' : 'Type a keyword and press Enter...' }}"
-                                                    rtl-placeholder="اكتب كلمة مفتاحية واضغط انتر"
-                                                    language="{{ $language->code }}"
-                                                    :allow-duplicates="true"
-                                                    theme="primary"
-                                                    size="md"
-                                                    id="meta_keywords_{{ $language->code }}"
-                                                />
-                                                <small class="text-muted w-100 d-block" @if($language->code == 'ar') dir="rtl" style="text-align: right;" @endif>{{ $language->code == 'ar' ? 'اضغط انتر أو فاصلة لإنشاء كلمة مفتاحية' : 'Press Enter or comma to create a keyword' }}</small>
+                                                <div>
+                                                    <x-tags-input
+                                                        name="translations[{{ $language->id }}][meta_keywords]"
+                                                        :value="isset($vendor) ? $vendor->getMetaKeywordsString($language->code) : old('translations.'.$language->id.'.meta_keywords')"
+                                                        placeholder="{{ $language->code == 'ar' ? 'اكتب كلمة مفتاحية واضغط انتر' : 'Type a keyword and press Enter...' }}"
+                                                        rtl-placeholder="اكتب كلمة مفتاحية واضغط انتر"
+                                                        helpText="{{ $language->code == 'ar' ? 'اضغط انتر أو فاصلة لإنشاء كلمة مفتاحية' : 'Press Enter or comma to create a keyword' }}"
+                                                        language="{{ $language->code }}"
+                                                        :allow-duplicates="true"
+                                                        theme="primary"
+                                                        size="md"
+                                                        id="meta_keywords_{{ $language->code }}"
+                                                        dir="{{ $language->code == 'ar' ? 'rtl' : 'ltr' }}"
+                                                    />
+                                                </div>
                                             </div>
                                         </div>
                                         @endforeach
@@ -366,17 +416,29 @@
 
                         <!-- Step 2: Vendor Documents -->
                         <div class="wizard-step-content" data-step="2" style="display: none;">
-                            <h5 class="mb-4" style="background: var(--color-primary); color: white; padding: 16px 20px; border-radius: 8px; display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 0;">
+                            <h5 class="mb-4" style="background: var(--color-primary); color: white; padding: 16px 20px; border-radius: 8px; display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 0;"
+                                @if(app()->getLocale() == 'ar') dir="rtl" @else dir="ltr" @endif>
                                 <div style="display: flex; align-items: center; gap: 12px;">
                                     <i class="uil uil-file-alt" style="font-size: 22px;"></i>
-                                    {{ trans('vendor::vendor.vendor_documents') }}
+                                    @if(app()->getLocale() == 'ar')
+                                        مستندات التاجر
+                                    @else
+                                        Vendor Documents
+                                    @endif
                                 </div>
-                                <button type="button" id="addDocument" class="btn btn-squared" style="background: #ffffff; color: #0056B7; border: none; font-weight: 500;">
-                                    <i class="uil uil-plus"></i> {{ trans('vendor::vendor.add_document') }}
+                                <button type="button" id="addDocument" class="btn btn-squared" style="background: #ffffff; color: #0056B7; border: none; font-weight: 500;"
+                                    @if(app()->getLocale() == 'ar') dir="rtl" @else dir="ltr" @endif>
+                                    <i class="uil uil-plus"></i>
+                                    @if(app()->getLocale() == 'ar')
+                                        إضافة مستند
+                                    @else
+                                        Add Document
+                                    @endif
                                 </button>
                             </h5>
-                            <div id="documentsContainer">
+                            <div id="documentsContainer" @if(app()->getLocale() == 'ar') dir="rtl" @else dir="ltr" @endif>
                                 <!-- Documents will be added here dynamically -->
+                                <!-- Document fields will inherit RTL/LTR direction from this container -->
                             </div>
                         </div>
 
@@ -384,16 +446,26 @@
                         <div class="wizard-step-content" data-step="3" style="display: none;">
                             <div class="card">
                                 <div class="card-body">
-                                    <h5 class="mb-4" style="background: #0056B7; color: white; padding: 16px 20px; border-radius: 8px; display: flex; align-items: center; gap: 12px;">
+                                    <h5 class="mb-4" style="background: #0056B7; color: white; padding: 16px 20px; border-radius: 8px; display: flex; align-items: center; gap: 12px;"
+                                        @if(app()->getLocale() == 'ar') dir="rtl" @else dir="ltr" @endif>
                                         <i class="uil uil-user-circle" style="font-size: 22px;"></i>
-                                        {{ trans('vendor::vendor.vendor_account_details') }}
+                                        @if(app()->getLocale() == 'ar')
+                                            تفاصيل حساب التاجر
+                                        @else
+                                            Vendor Account Details
+                                        @endif
                                     </h5>
                                     <div class="row">
                                         <!-- Email -->
                                         <div class="col-md-12 mb-3">
                                             <div class="form-group">
-                                                <label for="email" class="form-label">
-                                                    {{ trans('vendor::vendor.email') }}
+                                                <label for="email" class="form-label"
+                                                    @if(app()->getLocale() == 'ar') dir="rtl" @else dir="ltr" @endif>
+                                                    @if(app()->getLocale() == 'ar')
+                                                        البريد الإلكتروني
+                                                    @else
+                                                        Email
+                                                    @endif
                                                     <span class="text-danger">*</span>
                                                 </label>
                                                 <input
@@ -401,9 +473,9 @@
                                                     name="email"
                                                     id="email"
                                                     class="form-control ih-medium ip-gray radius-xs b-light px-15"
-                                                    placeholder="{{ trans('vendor::vendor.enter_email') }}"
+                                                    placeholder="{{ app()->getLocale() == 'ar' ? 'أدخل البريد الإلكتروني' : 'Enter email address' }}"
                                                     value="{{ isset($vendor) ? $vendor->user->email ?? '' : old('email') }}"
-                                                    @if(app()->getLocale() == 'ar') dir="rtl" @endif
+                                                    @if(app()->getLocale() == 'ar') dir="rtl" @else dir="ltr" @endif
                                                 >
                                                 @error('email')
                                                     <div class="text-danger mt-1">{{ $message }}</div>
@@ -415,8 +487,13 @@
                                         <!-- Password -->
                                         <div class="col-md-6 mb-3">
                                             <div class="form-group">
-                                                <label for="password" class="form-label">
-                                                    {{ trans('vendor::vendor.password') }}
+                                                <label for="password" class="form-label"
+                                                    @if(app()->getLocale() == 'ar') dir="rtl" @else dir="ltr" @endif>
+                                                    @if(app()->getLocale() == 'ar')
+                                                        كلمة المرور
+                                                    @else
+                                                        Password
+                                                    @endif
                                                     @if(!isset($vendor))
                                                         <span class="text-danger">*</span>
                                                     @endif
@@ -426,13 +503,22 @@
                                                     name="password"
                                                     id="password"
                                                     class="form-control ih-medium ip-gray radius-xs b-light px-15"
-                                                    placeholder="{{ trans('vendor::vendor.enter_password') }}"
+                                                    placeholder="{{ app()->getLocale() == 'ar' ? 'أدخل كلمة المرور' : 'Enter password' }}"
+                                                    @if(app()->getLocale() == 'ar') dir="rtl" @else dir="ltr" @endif
                                                 >
-                                                <small class="text-muted">
+                                                <small class="text-muted" @if(app()->getLocale() == 'ar') dir="rtl" style="text-align: right;" @endif>
                                                     @if(isset($vendor))
-                                                        {{ trans('vendor::vendor.leave_empty_to_keep_current_password') }}
+                                                        @if(app()->getLocale() == 'ar')
+                                                            اتركه فارغاً للاحتفاظ بكلمة المرور الحالية
+                                                        @else
+                                                            Leave empty to keep current password
+                                                        @endif
                                                     @else
-                                                        {{ trans('vendor::vendor.password_min_8') }}
+                                                        @if(app()->getLocale() == 'ar')
+                                                            كلمة المرور يجب أن تكون 8 أحرف على الأقل
+                                                        @else
+                                                            Password must be at least 8 characters
+                                                        @endif
                                                     @endif
                                                 </small>
                                                 @error('password')
@@ -444,8 +530,13 @@
                                         <!-- Confirm Password -->
                                         <div class="col-md-6 mb-3">
                                             <div class="form-group">
-                                                <label for="password_confirmation" class="form-label">
-                                                    {{ trans('vendor::vendor.confirm_password') }}
+                                                <label for="password_confirmation" class="form-label"
+                                                    @if(app()->getLocale() == 'ar') dir="rtl" @else dir="ltr" @endif>
+                                                    @if(app()->getLocale() == 'ar')
+                                                        تأكيد كلمة المرور
+                                                    @else
+                                                        Confirm Password
+                                                    @endif
                                                     @if(!isset($vendor))
                                                         <span class="text-danger">*</span>
                                                     @endif
@@ -455,7 +546,8 @@
                                                     name="password_confirmation"
                                                     id="password_confirmation"
                                                     class="form-control ih-medium ip-gray radius-xs b-light px-15"
-                                                    placeholder="{{ trans('vendor::vendor.confirm_password') }}"
+                                                    placeholder="{{ app()->getLocale() == 'ar' ? 'أعد إدخال كلمة المرور' : 'Confirm password' }}"
+                                                    @if(app()->getLocale() == 'ar') dir="rtl" @else dir="ltr" @endif
                                                 >
                                                 @error('password_confirmation')
                                                     <div class="text-danger mt-1">{{ $message }}</div>
@@ -520,7 +612,7 @@
                         type="text"
                         name="documents[__INDEX__][translations][{{ $language->id }}][name]"
                         class="form-control ih-medium ip-gray radius-xs b-light px-15"
-                        placeholder="{{ trans('vendor::vendor.eg_business_license') }}"
+                        placeholder="{{ $language->code == 'ar' ? 'مثال: رخصة تجارية' : 'e.g., Business License' }}"
                         {{ $language->rtl ? 'dir=rtl' : '' }}
                     >
                 </div>
@@ -582,14 +674,41 @@ window.vendorFormConfig = {
     updatingVendor: '{{ trans("vendor::vendor.updating_vendor") }}',
     redirecting: '{{ trans("vendor::vendor.redirecting") }}',
     errorOccurred: '{{ trans("vendor::vendor.error_occurred") }}',
-    validationError: '{{ trans("vendor::vendor.validation_error") }}',
-    errorLabel: '{{ trans("vendor::vendor.error") }}',
+    validationError: '{{ app()->getLocale() == "ar" ? "يرجى ملء جميع الحقول المطلوبة قبل الانتقال إلى الخطوة التالية." : "Please fill in all required fields before proceeding to the next step." }}',
+    errorLabel: '{{ app()->getLocale() == "ar" ? "خطأ" : "Error" }}',
     indexRoute: '{{ route("admin.vendors.index") }}',
     metaTitle: '{{ trans("vendor::vendor.meta_title") }}',
     metaDescription: '{{ trans("vendor::vendor.meta_description") }}',
     metaKeywords: '{{ trans("vendor::vendor.meta_keywords") }}',
     activeLabel: '{{ trans("vendor::vendor.active") }}',
     inactiveLabel: '{{ trans("vendor::vendor.inactive") }}',
+    // Error Messages Translations
+    errorMessages: {
+        // Step 1 - Vendor Information
+        vendorNameRequired: '{{ app()->getLocale() == "ar" ? "اسم التاجر مطلوب" : "Vendor name is required" }}',
+        vendorNameEnRequired: '{{ app()->getLocale() == "ar" ? "اسم التاجر باللغة الإنجليزية مطلوب" : "Vendor name in English is required" }}',
+        vendorNameArRequired: '{{ app()->getLocale() == "ar" ? "اسم التاجر باللغة العربية مطلوب" : "Vendor name in Arabic is required" }}',
+        countryRequired: '{{ app()->getLocale() == "ar" ? "الدولة مطلوبة" : "Country is required" }}',
+        commissionRequired: '{{ app()->getLocale() == "ar" ? "العمولة مطلوبة" : "Commission is required" }}',
+        vendorTypeRequired: '{{ app()->getLocale() == "ar" ? "نوع المورد مطلوب" : "Vendor type is required" }}',
+        activitiesRequired: '{{ app()->getLocale() == "ar" ? "يرجى اختيار نشاط واحد على الأقل" : "Please select at least one activity" }}',
+        logoRequired: '{{ app()->getLocale() == "ar" ? "الشعار مطلوب" : "Logo is required" }}',
+        bannerRequired: '{{ app()->getLocale() == "ar" ? "البانر مطلوب" : "Banner is required" }}',
+
+        // Step 2 - Documents
+        documentsRequired: '{{ app()->getLocale() == "ar" ? "يجب إضافة مستند واحد على الأقل" : "At least one document is required" }}',
+        documentNameEnRequired: '{{ app()->getLocale() == "ar" ? "اسم المستند باللغة الإنجليزية مطلوب" : "Document name in English is required" }}',
+        documentNameArRequired: '{{ app()->getLocale() == "ar" ? "اسم المستند باللغة العربية مطلوب" : "Document name in Arabic is required" }}',
+        documentFileRequired: '{{ app()->getLocale() == "ar" ? "ملف المستند مطلوب" : "Document file is required" }}',
+
+        // Step 3 - Account Details
+        emailRequired: '{{ app()->getLocale() == "ar" ? "البريد الإلكتروني مطلوب" : "Email is required" }}',
+        emailInvalid: '{{ app()->getLocale() == "ar" ? "يرجى إدخال عنوان بريد إلكتروني صالح" : "Please enter a valid email address" }}',
+        passwordRequired: '{{ app()->getLocale() == "ar" ? "كلمة المرور مطلوبة" : "Password is required" }}',
+
+        // General validation messages
+        pleaseCorrectErrors: '{{ app()->getLocale() == "ar" ? "يرجى تصحيح الأخطاء التالية:" : "Please correct the following errors:" }}'
+    },
     languages: [
         @foreach($languages as $language)
         {

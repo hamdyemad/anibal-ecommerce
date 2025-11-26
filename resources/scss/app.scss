@@ -477,11 +477,93 @@ html[dir="rtl"] {
     }
 }
 
-.select2-selection {
-    height: 48px !important;
-    align-items: center !important;
-    display: flex !important;
+/* Select2 Multiple Selection Fix - Support both default and bootstrap-5 themes */
+.select2-container--default .select2-selection--multiple,
+.select2-container--bootstrap-5 .select2-selection--multiple {
+    min-height: 48px !important;
+    padding: 4px 8px !important;
+
+    .select2-selection__rendered {
+        display: flex !important;
+        flex-wrap: wrap !important;
+        align-items: center !important;
+        gap: 4px !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        width: 100% !important;
+
+        .select2-selection__choice {
+            border-radius: 4px !important;
+            padding: 4px 8px !important;
+            margin: 0 !important;
+            font-size: 13px !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            max-width: calc(100% - 20px) !important;
+
+            .select2-selection__choice__display {
+                padding-right: 4px !important;
+            }
+
+            .select2-selection__choice__remove {
+                margin-left: 4px !important;
+                margin-right: 0 !important;
+                font-weight: bold !important;
+                cursor: pointer !important;
+            }
+        }
+
+        .select2-search--inline {
+            .select2-search__field {
+                border: none !important;
+                outline: none !important;
+                background: transparent !important;
+                margin: 0 !important;
+                padding: 4px !important;
+                min-width: 60px !important;
+                height: auto !important;
+            }
+        }
+    }
+
 }
+
+/* Force override for any Select2 multiple that might have different positioning */
+.select2-container .select2-selection--multiple .select2-selection__rendered {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    align-items: center !important;
+    padding: 0 !important;
+    margin: 0 !important;
+
+    .select2-selection__choice {
+        position: relative !important;
+        float: none !important;
+        margin: 0 !important;
+    }
+}
+
+/* Specific fix for Activities dropdown in vendor form */
+#activities + .select2-container .select2-selection--multiple {
+    min-height: 48px !important;
+
+    .select2-selection__rendered {
+        display: flex !important;
+        flex-wrap: wrap !important;
+        align-items: center !important;
+        padding: 4px 8px !important;
+
+        .select2-selection__choice {
+            border-radius: 4px !important;
+            padding: 4px 8px !important;
+            margin: 2px !important;
+            display: inline-flex !important;
+            align-items: center !important;
+        }
+    }
+}
+
 .swal2-container {
     z-index: 999999;
 }
+

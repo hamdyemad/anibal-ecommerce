@@ -288,10 +288,6 @@ span.text-danger {
 // RTL Support for Arabic
 [dir="rtl"],
 html[lang="ar"] {
-    .form-label {
-        text-align: right;
-    }
-
     .text-end {
         text-align: right !important;
     }
