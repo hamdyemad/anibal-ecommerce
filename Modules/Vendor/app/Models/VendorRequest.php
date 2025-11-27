@@ -2,6 +2,7 @@
 
 namespace Modules\Vendor\app\Models;
 
+use App\Models\Traits\HumanDates;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -9,7 +10,7 @@ use Modules\CategoryManagment\app\Models\Activity;
 
 class VendorRequest extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory, SoftDeletes, HumanDates;
 
     protected $table = 'vendor_requests';
 
