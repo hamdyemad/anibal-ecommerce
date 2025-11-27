@@ -7,5 +7,6 @@
     "SystemSetting": true,
     "Order": true,
     "Withdraw": true,
-    "Customer": true
+    "Customer": true,
+    "Promocodes": true
 }

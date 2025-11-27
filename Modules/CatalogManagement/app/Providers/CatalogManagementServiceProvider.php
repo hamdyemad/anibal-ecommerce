@@ -14,6 +14,8 @@ use Modules\CatalogManagement\app\Interfaces\ProductInterface;
 use Modules\CatalogManagement\app\Repositories\ProductRepository;
 use Modules\CatalogManagement\app\Interfaces\PricingStockRepositoryInterface;
 use Modules\CatalogManagement\app\Repositories\PricingStockRepository;
+use Modules\CatalogManagement\app\Interfaces\PromocodeRepositoryInterface;
+use Modules\CatalogManagement\app\Repositories\PromocodeRepository;
 use Nwidart\Modules\Traits\PathNamespace;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
@@ -66,6 +68,11 @@ class CatalogManagementServiceProvider extends ServiceProvider
         $this->app->bind(
             ProductInterface::class,
             ProductRepository::class
+        );
+
+        $this->app->bind(
+            PromocodeRepositoryInterface::class,
+            PromocodeRepository::class
         );
     }
 

@@ -358,7 +358,7 @@
             </li>
         @endcan
 
-        @if ($user_type == 'super_admin')
+        @if (in_array($user_type_id, \App\Models\UserType::adminIds()))
             @canany(['taxes.view', 'taxes.create'])
                 <li
                     class="has-child {{ isParentMenuOpen(['admin.taxes.index', 'admin.taxes.create', 'admin.taxes.show', 'admin.taxes.edit'], ['admin/taxes*']) ? 'open' : '' }}">
@@ -389,7 +389,7 @@
             @endcanany
         @endif
 
-        @if ($user_type == 'super_admin')
+        @if (in_array($user_type_id, \App\Models\UserType::adminIds()))
 
             @canany(['offers.view', 'offers.create'])
                 <li class="has-child">
@@ -432,22 +432,22 @@
                             <span class="nav-icon uil uil-ticket"></span>
                             <span class="menu-text">{{ trans('menu.brands.title') }}</span>
                         </span>
-                        <span class="badge badge-round badge-primary  ms-1">20</span>
+                        <span class="badge badge-round badge-success  ms-1">{{ \Modules\CatalogManagement\app\Models\Brand::count() }}</span>
                     </span>
                 </a>
             </li>
         @endcan
 
-        @if ($user_type == 'super_admin')
+        @if (in_array($user_type_id, \App\Models\UserType::adminIds()))
             @can('promocodes.view')
                 <li>
-                    <a href="{{ route('admin.dashboard') }}">
+                    <a href="{{ route('admin.promocodes.index') }}" class="{{ isMenuActive(['admin.promocodes.index', 'admin.promocodes.create', 'admin.promocodes.edit', 'admin.promocodes.show'], $currentRoute) ? 'active' : '' }}">
                         <span class="d-flex align-items-center justify-content-between fw-bold w-100">
                             <span class="d-flex align-items-center">
                                 <span class="nav-icon uil uil-ticket"></span>
                                 <span class="menu-text">{{ trans('menu.promocodes.title') }}</span>
                             </span>
-                            <span class="badge badge-round badge-primary  ms-1">50</span>
+                            <span class="badge badge-round badge-success  ms-1">{{ \Modules\CatalogManagement\app\Models\Promocode::count() }}</span>
                         </span>
                     </a>
                 </li>
@@ -487,7 +487,7 @@
             </ul>
         </li>
 
-        @if ($user_type == 'super_admin')
+        @if (in_array($user_type_id, \App\Models\UserType::adminIds()))
             @canany(['vendors.index', 'vendors.create'])
                 <li
                     class="has-child {{ Request::is(LaravelLocalization::getCurrentLocale() . '/admin/vendors*') ? 'open' : '' }}">
@@ -638,7 +638,7 @@
             </a>
         </li>
 
-        @if ($user_type == 'super_admin')
+        @if (in_array($user_type_id, \App\Models\UserType::adminIds()))
             @can('shipping_methods.index')
                 <li>
                     <a href="{{ route('admin.dashboard') }}">
@@ -655,7 +655,7 @@
         @endif
 
 
-        @if ($user_type == 'super_admin')
+        @if (in_array($user_type_id, \App\Models\UserType::adminIds()))
             @can('points.index')
                 <li class="menu-title mt-30">
                     <span>{{ trans('menu.sections.points system') }}</span>

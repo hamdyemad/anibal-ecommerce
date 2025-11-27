@@ -11,6 +11,11 @@ Route::group(
     Route::get('brands/datatable', 'BrandController@datatable')->name('brands.datatable');
     Route::resource('brands', 'BrandController');
 
+    // Promocodes
+    Route::get('promocodes/datatable', 'PromocodeController@datatable')->name('promocodes.datatable');
+    Route::post('promocodes/{promocode}/change-status', 'PromocodeController@changeStatus')->name('promocodes.change-status');
+    Route::resource('promocodes', 'PromocodeController');
+
     // Taxes
     Route::get('taxes/datatable', 'TaxController@datatable')->name('taxes.datatable');
     Route::resource('taxes', 'TaxController');
