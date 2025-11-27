@@ -80,7 +80,7 @@
                                                                     <p style="font-size: 11px !important;">Bnaia Commission from Transactions <span
                                                                             class="badge text-bg-secondary"
                                                                             style="background-color: #0056b7; border-radius: 5px"
-                                                                            id="vendor_commission_percentage">(0%)</span>
+                                                                            id="vendor_commission_percentage">({{ $general_info['vendor_commission'] }}%)</span>
                                                                     </p>
                                                                 </div>
                                                                 {{-- <div class="ap-po-details__icon-area">

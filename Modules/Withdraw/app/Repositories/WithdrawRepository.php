@@ -45,7 +45,7 @@ class WithdrawRepository implements WithdrawRepositoryInterface
 
         $orders = OrderProduct::where("vendor_id", $vendor_id)->get();
 
-        $total_vendor_balance = $orders->sum("price") - ($orders->sum("price") * ($orders->first()->commission / 100));
+        $vendor_order_prices = $orders->sum("price");
 
         $total_sent_money = Withdraw::where(function ($q) use ($vendor) {
             $q->where('reciever_id', $vendor->id);
@@ -59,17 +59,15 @@ class WithdrawRepository implements WithdrawRepositoryInterface
             ->where('status', 'new')
             ->sum('sent_amount');
 
+        $bnaia_balance = $vendor_order_prices - ($vendor_order_prices * $vendor->commission->commission / 100);
         return [
-            "orders_price" => number_format($orders->sum("price"), 3),
-            "vendor_commission" => $orders->first()->commission,
-            "total_vendor_balance" =>  number_format($total_vendor_balance, 3),
-
-
-            "total_sent_money" => number_format($total_sent_money, 3),
-            "remaining" => number_format($total_vendor_balance - $total_sent_money, 3),
-            "bnaia_balance" => number_format($orders->sum("price") * ($orders->first()->commission / 100), 3),
-
-            "waiting_approve_requests" => number_format($waiting_approve_requests, 3)
+            "orders_price" => $vendor_order_prices,
+            "vendor_commission" => $vendor->commission->commission,
+            "bnaia_balance" => $bnaia_balance,
+            "total_vendor_balance" => $vendor_order_prices - $bnaia_balance,
+            "total_sent_money" => $total_sent_money,
+            "remaining" => ($vendor_order_prices - $bnaia_balance) - $total_sent_money,
+            "waiting_approve_requests" => $waiting_approve_requests
         ];
     }
 }

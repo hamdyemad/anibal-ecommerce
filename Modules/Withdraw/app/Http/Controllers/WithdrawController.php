@@ -359,7 +359,6 @@ class WithdrawController extends Controller
 
         $languages = $this->languageService->getAll();
         $general_info = $this->getVendorBalance($vendor->id);
-
         $vendor_name = $vendor->name ?? 'Vendor';
 
         $final_remaining = floatval(str_replace(',', '', $general_info['remaining'])) - floatval(str_replace(',', '', $general_info['waiting_approve_requests']));
