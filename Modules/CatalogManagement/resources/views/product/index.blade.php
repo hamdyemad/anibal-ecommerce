@@ -27,7 +27,7 @@
         </div>
 
         {{-- Bank Products Card (Admin Only) --}}
-        @if(auth()->user() && in_array(auth()->user()->user_type_id, \App\Models\UserType::adminIds()))
+        {{-- @if(auth()->user() && in_array(auth()->user()->user_type_id, \App\Models\UserType::adminIds()))
         <div class="row mb-4">
             <div class="col-lg-12">
                 <a href="{{ route('admin.products.bank') }}" class="text-decoration-none">
@@ -52,7 +52,7 @@
                 </a>
             </div>
         </div>
-        @endif
+        @endif --}}
 
         <div class="row">
             <div class="col-lg-12">
