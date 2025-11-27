@@ -37,18 +37,18 @@
                                         <div class="form-group mb-25">
                                             <label for="translations_{{ $language->id }}_name" class="form-label w-100 @if($language->rtl) text-end @else text-start @endif">
                                                 @if($language->code == 'en')
-                                                {{ __('areasettings::city.name') }} ({{ $language->name }}) 
+                                                {{ __('areasettings::city.name') }} ({{ $language->name }})
                                                 @elseif($language->code == 'ar')
                                                     الاسم بالعربية
                                                 @endif
-                                                
+
                                                 <span class="text-danger">*</span>
                                             </label>
-                                            <input 
-                                                type="text" 
-                                                name="translations[{{ $language->id }}][name]" 
+                                            <input
+                                                type="text"
+                                                name="translations[{{ $language->id }}][name]"
                                                 id="translations_{{ $language->id }}_name"
-                                                class="form-control ih-medium ip-gray radius-xs b-light px-15" 
+                                                class="form-control ih-medium ip-gray radius-xs b-light px-15"
                                                 value="{{ isset($city) ? $city->getTranslation('name', $language->code) : old('translations.'.$language->id.'.name') }}"
                                                 {{ $language->rtl ? 'dir=rtl' : '' }}
                                                 placeholder="{{ $language->code == 'ar' ? 'أدخل اسم المدينة' : 'Enter city name' }}"
@@ -86,10 +86,10 @@
                                         <div class="dm-switch-wrap d-flex align-items-center">
                                             <div class="form-check form-switch form-switch-primary form-switch-md">
                                                 <input type="hidden" name="active" value="0">
-                                                <input type="checkbox" 
-                                                       class="form-check-input" 
-                                                       id="active" 
-                                                       name="active" 
+                                                <input type="checkbox"
+                                                       class="form-check-input"
+                                                       id="active"
+                                                       name="active"
                                                        value="1"
                                                        {{ old('active', isset($city) ? $city->active : 1) == 1 ? 'checked' : '' }}>
                                                 <label class="form-check-label" for="active"></label>
@@ -100,7 +100,32 @@
                                         @enderror
                                     </div>
                                 </div>
-                                
+
+                                {{-- Default City Switcher --}}
+                                <div class="col-md-6">
+                                    <div class="form-group mb-25">
+                                        <label class="il-gray fs-14 fw-500 mb-10 d-block">
+                                            {{ __('areasettings::city.default') }}
+                                        </label>
+                                        <div class="dm-switch-wrap d-flex align-items-center">
+                                            <div class="form-check form-switch form-switch-success form-switch-md">
+                                                <input type="hidden" name="default" value="0">
+                                                <input type="checkbox"
+                                                       class="form-check-input"
+                                                       id="default"
+                                                       name="default"
+                                                       value="1"
+                                                       {{ old('default', isset($city) ? $city->default : 0) == 1 ? 'checked' : '' }}>
+                                                <label class="form-check-label" for="default"></label>
+                                            </div>
+                                            <span class="text-muted fs-12 ms-2">{{ __('areasettings::city.default_city_info') }}</span>
+                                        </div>
+                                        @error('default')
+                                            <div class="text-danger fs-12 mt-1">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+                                </div>
+
                                 <div class="col-12">
                                     <div class="form-group d-flex justify-content-end mt-4">
                                         <a href="{{ route('admin.area-settings.cities.index') }}" class="btn btn-light btn-default btn-squared text-capitalize me-2">
@@ -156,7 +181,7 @@ document.addEventListener('DOMContentLoaded', function() {
             overlay.querySelector('.loading-text').textContent = loadingText;
             overlay.querySelector('.loading-subtext').textContent = loadingSubtext;
         }
-        
+
         // Show loading overlay
         LoadingOverlay.show();
 
@@ -178,7 +203,7 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(response => {
             // Progress to 60%
             LoadingOverlay.animateProgressBar(60, 200);
-            
+
             if (!response.ok) {
                 return response.json().then(data => {
                     throw data;
@@ -199,7 +224,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     successMessage,
                     '{{ trans("loading.redirecting") }}'
                 );
-                
+
                 // Redirect after 1.5 seconds
                 setTimeout(() => {
                     window.location.href = data.redirect || '{{ route("admin.area-settings.cities.index") }}';
@@ -209,40 +234,40 @@ document.addEventListener('DOMContentLoaded', function() {
         .catch(error => {
             // Hide loading overlay
             LoadingOverlay.hide();
-            
+
             // Remove previous validation errors
             document.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
             document.querySelectorAll('.invalid-feedback').forEach(el => el.remove());
-            
+
             // Handle validation errors
             if (error.errors) {
                 Object.keys(error.errors).forEach(key => {
                     const errorMessages = error.errors[key];
-                    
+
                     // Find the input field
                     let input = null;
                     const possibleSelectors = [];
-                    
+
                     // Add original key
                     possibleSelectors.push(`[name="${key}"]`);
-                    
+
                     // If key contains dots (Laravel format: translations.0.name)
                     if (key.includes('.')) {
                         // Convert to bracket notation: translations[0][name]
                         const bracketKey = key.replace(/^([^.]+)\.(\d+)\.([^.]+)$/, '$1[$2][$3]');
                         possibleSelectors.push(`[name="${bracketKey}"]`);
-                        
+
                         // Also try with escaped brackets
                         const escapedBracketKey = bracketKey.replace(/\[/g, '\\\\[').replace(/\]/g, '\\\\]');
                         possibleSelectors.push(`[name="${escapedBracketKey}"]`);
                     }
-                    
+
                     // If key contains brackets, try escaping them
                     if (key.includes('[')) {
                         const escapedKey = key.replace(/\[/g, '\\\\[').replace(/\]/g, '\\\\]');
                         possibleSelectors.push(`[name="${escapedKey}"]`);
                     }
-                    
+
                     // Try each selector until we find the input
                     for (const selector of possibleSelectors) {
                         try {
@@ -252,30 +277,30 @@ document.addEventListener('DOMContentLoaded', function() {
                             // Invalid selector, continue
                         }
                     }
-                    
+
                     // If still not found, try to find by ID pattern (for translation fields)
                     if (!input && key.match(/^translations\.(\d+)\.name$/)) {
                         const languageId = key.match(/^translations\.(\d+)\.name$/)[1];
                         input = document.querySelector(`#name_${languageId}`);
                     }
-                    
+
                     if (input) {
                         // Add is-invalid class
                         input.classList.add('is-invalid');
-                        
+
                         // Remove any existing feedback
                         const existingFeedback = input.parentNode.querySelector('.invalid-feedback');
                         if (existingFeedback) {
                             existingFeedback.remove();
                         }
-                        
+
                         // Create and append error message
                         const feedback = document.createElement('div');
                         feedback.className = 'invalid-feedback d-block';
                         feedback.textContent = errorMessages[0];
                         input.parentNode.appendChild(feedback);
                     }
-                    
+
                     // Also show toastr notification
                     if (typeof toastr !== 'undefined') {
                         toastr.error(errorMessages[0]);
@@ -286,7 +311,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     toastr.error(error.message);
                 }
             }
-            
+
             // Re-enable submit button
             submitBtn.disabled = false;
             submitBtn.innerHTML = originalBtnHtml;

@@ -135,5 +135,11 @@ return [
     'status_changed_successfully' => 'Country status changed successfully',
     'error_changing_status' => 'Error changing country status',
     'status_already_set' => 'Country is already set to this status',
+
+    // Default Country
+    'default' => 'Default',
+    'default_country' => 'Default Country',
+    'set_as_default' => 'Set as Default',
+    'default_country_info' => 'Only one country can be set as default at a time',
 ];
 

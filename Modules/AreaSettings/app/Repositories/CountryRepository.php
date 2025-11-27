@@ -45,11 +45,17 @@ class CountryRepository implements CountryRepositoryInterface
     public function createCountry(array $data)
     {
         return DB::transaction(function () use ($data) {
+            // If this country is being set as default, unset all other defaults
+            if (isset($data['default']) && $data['default'] == 1) {
+                Country::where('default', 1)->update(['default' => 0]);
+            }
+
             $country = Country::create([
                 'code' => $data['code'],
                 'phone_code' => $data['phone_code'] ?? null,
                 'currency_id' => $data['currency_id'],
                 'active' => $data['active'] ?? 0,
+                'default' => $data['default'] ?? 0,
             ]);
 
             // Set translations from nested array
@@ -76,6 +82,12 @@ class CountryRepository implements CountryRepositoryInterface
     {
         return DB::transaction(function () use ($id, $data) {
             $country = Country::findOrFail($id);
+
+            // If this country is being set as default, unset all other defaults
+            if (isset($data['default']) && $data['default'] == 1) {
+                Country::where('id', '!=', $id)->where('default', 1)->update(['default' => 0]);
+            }
+
             $updatedData = [];
             (isset($data['code'])) ? $updatedData['code'] = $data['code'] : null;
             (isset($data['phone_code'])) ? $updatedData['phone_code'] = $data['phone_code'] : null;
@@ -85,6 +97,13 @@ class CountryRepository implements CountryRepositoryInterface
                     $updatedData['active'] = 1;
                 } else {
                     $updatedData['active'] = 0;
+                }
+            }
+            if(isset($data['default'])) {
+                if($data['default'] == 1) {
+                    $updatedData['default'] = 1;
+                } else {
+                    $updatedData['default'] = 0;
                 }
             }
             $country->update($updatedData);

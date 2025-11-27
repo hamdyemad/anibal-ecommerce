@@ -121,9 +121,15 @@ class CityRepository implements CityRepositoryInterface
     public function createCity(array $data)
     {
         return DB::transaction(function () use ($data) {
+            // If this city is being set as default, unset all other defaults
+            if (isset($data['default']) && $data['default'] == 1) {
+                City::where('default', 1)->update(['default' => 0]);
+            }
+
             $city = City::create([
                 'country_id' => $data['country_id'],
                 'active' => $data['active'] ?? 0,
+                'default' => $data['default'] ?? 0,
             ]);
 
             // Set translations from nested array
@@ -150,6 +156,12 @@ class CityRepository implements CityRepositoryInterface
     {
         return DB::transaction(function () use ($id, $data) {
             $city = City::findOrFail($id);
+
+            // If this city is being set as default, unset all other defaults
+            if (isset($data['default']) && $data['default'] == 1) {
+                City::where('id', '!=', $id)->where('default', 1)->update(['default' => 0]);
+            }
+
             $updatedData = [];
             (isset($data['country_id'])) ? $updatedData['country_id'] = $data['country_id'] : null;
             if(isset($data['active'])) {
@@ -157,6 +169,13 @@ class CityRepository implements CityRepositoryInterface
                     $updatedData['active'] = 1;
                 } else {
                     $updatedData['active'] = 0;
+                }
+            }
+            if(isset($data['default'])) {
+                if($data['default'] == 1) {
+                    $updatedData['default'] = 1;
+                } else {
+                    $updatedData['default'] = 0;
                 }
             }
             $city->update($updatedData);

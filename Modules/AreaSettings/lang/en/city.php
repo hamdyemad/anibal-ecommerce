@@ -89,4 +89,10 @@ return [
     'status_changed_successfully' => 'City status changed successfully',
     'error_changing_status' => 'Error changing city status',
     'status_already_set' => 'City is already set to this status',
+
+    // Default City
+    'default' => 'Default',
+    'default_city' => 'Default City',
+    'set_as_default' => 'Set as Default',
+    'default_city_info' => 'Only one city can be set as default at a time',
 ];

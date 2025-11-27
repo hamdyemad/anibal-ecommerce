@@ -138,5 +138,11 @@ return [
     'status_changed_successfully' => 'تم تغيير حالة الدولة بنجاح',
     'error_changing_status' => 'خطأ في تغيير حالة الدولة',
     'status_already_set' => 'الدولة مضبوطة بالفعل على هذه الحالة',
+
+    // Default Country
+    'default' => 'افتراضي',
+    'default_country' => 'الدولة الافتراضية',
+    'set_as_default' => 'تعيين كافتراضي',
+    'default_country_info' => 'يمكن تعيين دولة واحدة فقط كافتراضية في كل مرة',
 ];
 

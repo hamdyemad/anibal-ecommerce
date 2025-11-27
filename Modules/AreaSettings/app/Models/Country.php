@@ -54,6 +54,11 @@ class Country extends Model
             });
         }
 
+        // Default filter
+        if (isset($filters['default']) && $filters['default'] !== '') {
+            $query->where('default', 1);
+        }
+
         // Active filter
         if (isset($filters['active']) && $filters['active'] !== '') {
             $query->where('active', $filters['active']);

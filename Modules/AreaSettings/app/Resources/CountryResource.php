@@ -20,6 +20,7 @@ class CountryResource extends JsonResource
             'name' => $this->getTranslation('name', app()->getLocale()) ?? 'N/A',
             'slug' => $this->slug,
             'code' => $this->code,
+            'default' => $this->default,
             'phone_code' => $this->phone_code,
             'currency' => CurrencyResource::make($this->whenLoaded('currency')),
             'active' => $this->active,

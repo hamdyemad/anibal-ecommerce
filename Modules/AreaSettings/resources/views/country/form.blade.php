@@ -17,7 +17,7 @@
             <div class="col-lg-12">
                 <div class="card border-0 shadow-sm">
                     <div class="card-header bg-white border-bottom py-20">
-                        <h5 class="mb-0 fw-500">
+                        <h5 class="mb-0 fw-500 fw-bold">
                             {{ isset($country) ? __('areasettings::country.edit_country') : __('areasettings::country.create_country') }}
                         </h5>
                     </div>
@@ -76,14 +76,14 @@
                                         @enderror
                                     </div>
                                 </div>
-                                
+
                                 <div class="col-md-6">
                                     <div class="form-group mb-3">
                                         <label for="currency_id" class="form-label">{{ __('areasettings::country.currency') }} <span class="text-danger">*</span></label>
                                         <select class="form-control ih-medium ip-gray radius-xs b-light px-15" id="currency_id" name="currency_id">
                                             <option value="">{{ __('areasettings::country.select_currency') }}</option>
                                             @foreach($currencies as $currency)
-                                                <option value="{{ $currency->id }}" 
+                                                <option value="{{ $currency->id }}"
                                                     {{ old('currency_id', isset($country) ? $country->currency_id : '') == $currency->id ? 'selected' : '' }}>
                                                     {{ $currency->getTranslation('name', app()->getLocale()) }} ({{ $currency->code }})
                                                 </option>
@@ -94,7 +94,7 @@
                                         @enderror
                                     </div>
                                 </div>
-                                
+
                                 {{-- Active Status Switcher --}}
                                 <div class="col-md-6">
                                     <div class="form-group mb-25">
@@ -104,16 +104,41 @@
                                         <div class="dm-switch-wrap d-flex align-items-center">
                                             <div class="form-check form-switch form-switch-primary form-switch-md">
                                                 <input type="hidden" name="active" value="0">
-                                                <input type="checkbox" 
-                                                       class="form-check-input" 
-                                                       id="active" 
-                                                       name="active" 
+                                                <input type="checkbox"
+                                                       class="form-check-input"
+                                                       id="active"
+                                                       name="active"
                                                        value="1"
                                                        {{ old('active', isset($country) ? $country->active : 1) == 1 ? 'checked' : '' }}>
                                                 <label class="form-check-label" for="active"></label>
                                             </div>
                                         </div>
                                         @error('active')
+                                            <div class="text-danger fs-12 mt-1">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+                                </div>
+
+                                {{-- Default Country Switcher --}}
+                                <div class="col-md-6">
+                                    <div class="form-group mb-25">
+                                        <label class="il-gray fs-14 fw-500 mb-10 d-block">
+                                            {{ __('areasettings::country.default') }}
+                                        </label>
+                                        <div class="dm-switch-wrap d-flex align-items-center">
+                                            <div class="form-check form-switch form-switch-success form-switch-md">
+                                                <input type="hidden" name="default" value="0">
+                                                <input type="checkbox"
+                                                       class="form-check-input"
+                                                       id="default"
+                                                       name="default"
+                                                       value="1"
+                                                       {{ old('default', isset($country) ? $country->default : 0) == 1 ? 'checked' : '' }}>
+                                                <label class="form-check-label" for="default"></label>
+                                            </div>
+                                            <span class="text-muted fs-12 ms-2">{{ __('areasettings::country.default_country_info') }}</span>
+                                        </div>
+                                        @error('default')
                                             <div class="text-danger fs-12 mt-1">{{ $message }}</div>
                                         @enderror
                                     </div>
@@ -163,7 +188,7 @@ document.addEventListener('DOMContentLoaded', function() {
             overlay.querySelector('.loading-text').textContent = loadingText;
             overlay.querySelector('.loading-subtext').textContent = loadingSubtext;
         }
-        
+
         // Show loading overlay
         LoadingOverlay.show();
 
@@ -192,7 +217,7 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(response => {
             // Progress to 60%
             LoadingOverlay.animateProgressBar(60, 200);
-            
+
             if (!response.ok) {
                 return response.json().then(data => {
                     throw data;
@@ -213,10 +238,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     successMessage,
                     '{{ trans("loading.redirecting") }}'
                 );
-                
+
                 // Show success alert
                 showAlert('success', data.message || successMessage);
-                
+
                 // Redirect after 1.5 seconds
                 setTimeout(() => {
                     window.location.href = data.redirect || '{{ route("admin.area-settings.countries.index") }}';
@@ -226,36 +251,36 @@ document.addEventListener('DOMContentLoaded', function() {
         .catch(error => {
             // Hide loading overlay and reset progress bar
             LoadingOverlay.hide();
-            
+
             // Handle validation errors
             if (error.errors) {
                 console.log('Validation errors received:', error.errors);
                 Object.keys(error.errors).forEach(key => {
                     console.log('Processing error key:', key);
-                    
+
                     let input = null;
                     const possibleSelectors = [];
-                    
+
                     // Add original key
                     possibleSelectors.push(`[name="${key}"]`);
-                    
+
                     // If key contains dots (Laravel format: translations.0.name)
                     if (key.includes('.')) {
                         // Convert to bracket notation: translations[0][name]
                         const bracketKey = key.replace(/^([^.]+)\.(\d+)\.([^.]+)$/, '$1[$2][$3]');
                         possibleSelectors.push(`[name="${bracketKey}"]`);
-                        
+
                         // Also try with escaped brackets
                         const escapedBracketKey = bracketKey.replace(/\[/g, '\\\\[').replace(/\]/g, '\\\\]');
                         possibleSelectors.push(`[name="${escapedBracketKey}"]`);
                     }
-                    
+
                     // If key contains brackets, try escaping them
                     if (key.includes('[')) {
                         const escapedKey = key.replace(/\[/g, '\\\\[').replace(/\]/g, '\\\\]');
                         possibleSelectors.push(`[name="${escapedKey}"]`);
                     }
-                    
+
                     // Try each selector until we find the input
                     for (const selector of possibleSelectors) {
                         console.log('Trying selector:', selector);
@@ -269,7 +294,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             console.log('Invalid selector:', selector, e.message);
                         }
                     }
-                    
+
                     // If still not found, try to find by ID pattern (for translation fields)
                     if (!input && key.match(/^translations\.(\d+)\.name$/)) {
                         const languageId = key.match(/^translations\.(\d+)\.name$/)[1];
@@ -280,17 +305,17 @@ document.addEventListener('DOMContentLoaded', function() {
                             console.log('Found input with ID selector:', idSelector);
                         }
                     }
-                    
+
                     if (input) {
                         console.log('Found input for key:', key);
                         input.classList.add('is-invalid');
-                        
+
                         // Remove any existing feedback
                         const existingFeedback = input.parentNode.querySelector('.invalid-feedback');
                         if (existingFeedback) {
                             existingFeedback.remove();
                         }
-                        
+
                         const feedback = document.createElement('div');
                         feedback.className = 'invalid-feedback';
                         feedback.textContent = error.errors[key][0];
@@ -304,13 +329,13 @@ document.addEventListener('DOMContentLoaded', function() {
             } else {
                 showAlert('danger', error.message || '{{ __("An error occurred") }}');
             }
-            
+
             // Re-enable submit button
             submitBtn.disabled = false;
             submitBtn.innerHTML = originalBtnHtml;
         });
     });
-    
+
     // Show alert function
     function showAlert(type, message) {
         const alert = document.createElement('div');
@@ -324,7 +349,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Scroll to top to show alert
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
-    
+
     // Auto-format phone code to start with +
     $('#phone_code').on('input', function() {
         let value = $(this).val();
@@ -332,20 +357,20 @@ document.addEventListener('DOMContentLoaded', function() {
             $(this).val('+' + value);
         }
     });
-    
+
     // Auto-format country code to uppercase
     $('#code').on('input', function() {
         $(this).val($(this).val().toUpperCase());
     });
-    
+
 });
 </script>
 @endpush
 
 {{-- Include Loading Overlay Component outside content section --}}
 @push('after-body')
-    <x-loading-overlay 
-        :loadingText="trans('loading.processing')" 
-        :loadingSubtext="trans('loading.please_wait')" 
+    <x-loading-overlay
+        :loadingText="trans('loading.processing')"
+        :loadingSubtext="trans('loading.please_wait')"
     />
 @endpush

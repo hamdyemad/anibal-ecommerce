@@ -89,4 +89,10 @@ return [
     'status_changed_successfully' => 'تم تغيير حالة المدينة بنجاح',
     'error_changing_status' => 'خطأ في تغيير حالة المدينة',
     'status_already_set' => 'المدينة مضبوطة بالفعل على هذه الحالة',
+
+    // Default City
+    'default' => 'افتراضي',
+    'default_city' => 'المدينة الافتراضية',
+    'set_as_default' => 'تعيين كافتراضي',
+    'default_city_info' => 'يمكن تعيين مدينة واحدة فقط كافتراضية في كل مرة',
 ];

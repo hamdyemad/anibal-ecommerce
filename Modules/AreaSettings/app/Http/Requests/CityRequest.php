@@ -29,6 +29,7 @@ class CityRequest extends FormRequest
             'translations' => 'required|array',
             'translations.*.name' => 'required|string|max:255',
             'active' => 'nullable|boolean',
+            'default' => 'nullable|boolean',
         ];
 
         return $rules;
@@ -80,9 +81,10 @@ class CityRequest extends FormRequest
      */
     protected function prepareForValidation(): void
     {
-        // Convert active value to integer (handles hidden input + checkbox pattern)
+        // Convert active and default values to integer (handles hidden input + checkbox pattern)
         $this->merge([
             'active' => (int) $this->input('active', 0),
+            'default' => (int) $this->input('default', 0),
         ]);
     }
 }
