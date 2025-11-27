@@ -100,6 +100,22 @@
                                                     </p>
                                                 </div>
                                             </div>
+                                            <div class="col-md-6">
+                                                <div class="view-item">
+                                                    <label class="il-gray fs-14 fw-500 mb-10">{{ __('areasettings::country.default') }}</label>
+                                                    <p class="fs-15">
+                                                        @if($country->default)
+                                                            <span class="badge badge-success badge-round badge-lg">
+                                                                <i class="uil uil-star me-1"></i>{{ __('areasettings::country.default') }}
+                                                            </span>
+                                                        @else
+                                                            <span class="badge badge-primary badge-round badge-lg">
+                                                                <i class="uil uil-minus me-1"></i>{{ __('common.no') ?? 'No' }}
+                                                            </span>
+                                                        @endif
+                                                    </p>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>

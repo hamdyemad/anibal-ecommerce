@@ -114,7 +114,8 @@ class CityAction
                 (count($languagesArray) + 1) => 'country_id',
                 (count($languagesArray) + 2) => 'id', // regions count (not sortable by query)
                 (count($languagesArray) + 3) => 'active',
-                (count($languagesArray) + 4) => 'created_at',
+                (count($languagesArray) + 4) => 'default',
+                (count($languagesArray) + 5) => 'created_at',
             ];
 
             if (isset($orderColumns[$orderColumnIndex]) && $orderColumns[$orderColumnIndex] !== null) {
@@ -144,6 +145,7 @@ class CityAction
                 ],
                 'regions_count' => $city->regions()->count(),
                 'active' => $city->active ?? true,
+                'default' => $city->default ?? false,
                 'created_at' => $city->created_at,
                 'display_name' => ''
             ];

@@ -156,10 +156,9 @@
                                     <th><span
                                             class="userDatatable-title">{{ __('areasettings::country.country_code') }}</span>
                                     </th>
-                                    <th><span
-                                            class="userDatatable-title">{{ __('areasettings::country.phone_code') }}</span>
-                                    </th>
                                     <th><span class="userDatatable-title">{{ __('areasettings::country.active') }}</span>
+                                    </th>
+                                    <th><span class="userDatatable-title">{{ __('areasettings::country.default') }}</span>
                                     </th>
                                     <th><span
                                             class="userDatatable-title">{{ __('areasettings::country.created_at') }}</span>
@@ -251,7 +250,7 @@
                         data: 'index',
                         name: 'index',
                         orderable: false,
-                        searchable: false,
+                        orderable: false,
                         render: function(data, type, row) {
                             return '<div class="userDatatable-content">' + data + '</div>';
                         }
@@ -271,15 +270,7 @@
                     @endforeach {
                         data: 'code',
                         name: 'code',
-                        orderable: true,
-                        render: function(data, type, row) {
-                            return '<div class="userDatatable-content">' + data + '</div>';
-                        }
-                    },
-                    {
-                        data: 'phone_code',
-                        name: 'phone_code',
-                        orderable: true,
+                        orderable: false,
                         render: function(data, type, row) {
                             return '<div class="userDatatable-content">' + data + '</div>';
                         }
@@ -287,7 +278,7 @@
                     {
                         data: 'active',
                         name: 'active',
-                        orderable: true,
+                        orderable: false,
                         render: function(data, type, row) {
                             @can('area.country.edit')
                             const isChecked = data ? 'checked' : '';
@@ -315,9 +306,29 @@
                         }
                     },
                     {
+                        data: 'default',
+                        name: 'default',
+                        orderable: false,
+                        render: function(data, type, row) {
+                            if (data) {
+                                return `<div class="userDatatable-content">
+                                    <span class="badge badge-success badge-lg badge-round">
+                                        <i class="uil uil-star me-1"></i>{{ __('areasettings::country.default') }}
+                                    </span>
+                                </div>`;
+                            } else {
+                                return `<div class="userDatatable-content">
+                                    <span class="badge badge-primary badge-lg badge-round">
+                                        <i class="uil uil-minus me-1"></i>{{ __('common.no') ?? 'No' }}
+                                    </span>
+                                </div>`;
+                            }
+                        }
+                    },
+                    {
                         data: 'created_at',
                         name: 'created_at',
-                        orderable: true,
+                        orderable: false,
                         render: function(data, type, row) {
                             return '<div class="userDatatable-content">' + data + '</div>';
                         }

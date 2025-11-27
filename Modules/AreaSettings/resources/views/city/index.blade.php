@@ -183,6 +183,7 @@
                                             class="userDatatable-title">{{ __('areasettings::city.regions') ?? 'Regions' }}</span>
                                     </th>
                                     <th><span class="userDatatable-title">{{ __('areasettings::city.status') }}</span></th>
+                                    <th><span class="userDatatable-title">{{ __('areasettings::city.default') }}</span></th>
                                     <th><span class="userDatatable-title">{{ __('areasettings::city.created_at') }}</span>
                                     </th>
                                     <th><span class="userDatatable-title">{{ __('common.actions') }}</span></th>
@@ -346,6 +347,26 @@
                                 </div>`;
                             }
                             @endcan
+                        }
+                    },
+                    {
+                        data: 'default',
+                        name: 'default',
+                        orderable: true,
+                        render: function(data, type, row) {
+                            if (data) {
+                                return `<div class="userDatatable-content">
+                                    <span class="badge badge-success badge-round badge-lg">
+                                        <i class="uil uil-star me-1"></i>{{ __('areasettings::city.default') }}
+                                    </span>
+                                </div>`;
+                            } else {
+                                return `<div class="userDatatable-content">
+                                    <span class="badge badge-primary badge-round badge-lg">
+                                        <i class="uil uil-minus me-1"></i>{{ __('common.no') ?? 'No' }}
+                                    </span>
+                                </div>`;
+                            }
                         }
                     },
                     {

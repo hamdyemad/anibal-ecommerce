@@ -131,8 +131,8 @@ class CountryAction
                 $orderColumns = [
                     0 => null, // index column - not sortable
                     (count($languagesArray) + 1) => 'code',
-                    (count($languagesArray) + 2) => 'phone_code',
-                    (count($languagesArray) + 3) => 'active',
+                    (count($languagesArray) + 2) => 'active',
+                    (count($languagesArray) + 3) => 'default',
                     (count($languagesArray) + 4) => 'created_at',
                 ];
 
@@ -161,6 +161,7 @@ class CountryAction
                 'code' => $country->code,
                 'phone_code' => $country->phone_code,
                 'active' => $country->active ?? true,
+                'default' => $country->default ?? false,
                 'created_at' =>  $country->created_at,
                 'display_name' => ''
             ];
