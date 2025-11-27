@@ -522,6 +522,45 @@ class ProductRepository implements ProductInterface
         $variant->stocks()->whereNotIn('id', $incomingStockRegionIds)->delete();
     }
 
+
+    /**
+     * Save bank product stock for a vendor (create or update VendorProduct)
+     */
+    public function saveBankStock(array $data)
+    {
+        return DB::transaction(function () use ($data) {
+            $productId = $data['product_id'];
+            $vendorId = $data['vendor_id'];
+            $taxId = $data['tax_id'] ?? null;
+
+            $vendorProductData = [
+                'product_id' => $productId,
+                'vendor_id' => $vendorId,
+                'tax_id' => $taxId,
+                'sku' => $data['sku'] ?? null,
+                'points' => $data['points'] ?? 0,
+                'max_per_order' => $data['max_per_order'] ?? 10,
+                'video_link' => $data['video_link'] ?? null,
+                'is_active' => isset($data['is_active']) ? (bool) $data['is_active'] : true,
+                'is_featured' => isset($data['is_featured']) ? (bool) $data['is_featured'] : false,
+            ];
+
+            if(in_array(auth()->user()->user_type_id, UserType::adminIds())) {
+                $vendorProductData['status'] = $data['status'] ?? VendorProduct::STATUS_APPROVED;
+            } else {
+                $vendorProductData['status'] = VendorProduct::STATUS_PENDING;
+            }
+
+            $vendorProduct = VendorProduct::create($vendorProductData);
+
+            $data['configuration_type'] = $vendorProduct->product->configuration_type;
+            // Handle variants or simple product
+            $this->handleProductVariants($vendorProduct, $data);
+
+            return $vendorProduct;
+        });
+    }
+
     /**
      * Determine vendor ID based on user role and form data
      */
@@ -645,156 +684,7 @@ class ProductRepository implements ProductInterface
         ];
     }
 
-    /**
-     * Save bank product stock for a vendor (create or update VendorProduct)
-     */
-    public function saveBankStock(array $data)
-    {
-        return DB::transaction(function () use ($data) {
-            $productId = $data['product_id'];
-            $vendorId = $data['vendor_id'];
-            $vendorProductId = $data['vendor_product_id'] ?? null;
 
-            // Find or create VendorProduct
-            if ($vendorProductId) {
-                // EXISTING vendor product - only update stock data, not general settings
-                $vendorProduct = VendorProduct::findOrFail($vendorProductId);
-                $configurationType = $vendorProduct->configuration_type;
-            } else {
-                // NEW vendor product - create with all general settings
-                $configurationType = $data['configuration_type'];
-                $taxId = $data['tax_id'] ?? null;
-
-                $vendorProductData = [
-                    'product_id' => $productId,
-                    'vendor_id' => $vendorId,
-                    'configuration_type' => $configurationType,
-                    'tax_id' => $taxId,
-                    'sku' => $data['sku'] ?? null,
-                    'points' => $data['points'] ?? 0,
-                    'max_per_order' => $data['max_per_order'] ?? 10,
-                    'video_link' => $data['video_link'] ?? null,
-                    'is_active' => isset($data['is_active']) ? (bool) $data['is_active'] : true,
-                    'is_featured' => isset($data['is_featured']) ? (bool) $data['is_featured'] : false,
-                    'offer_date_view' => isset($data['offer_date_view']) ? (bool) $data['offer_date_view'] : false,
-                    'status' => VendorProduct::STATUS_APPROVED,
-                ];
-
-                $vendorProduct = VendorProduct::create($vendorProductData);
-            }
-
-            // Handle stock data (for both new and existing)
-            if ($configurationType === 'simple') {
-                $this->handleSimpleBankStock($vendorProduct, $data);
-            } else {
-                $this->handleVariantsBankStock($vendorProduct, $data);
-            }
-
-            return $vendorProduct->fresh(['variants.stocks']);
-        });
-    }
-
-    /**
-     * Handle simple product stock for bank
-     */
-    private function handleSimpleBankStock(VendorProduct $vendorProduct, array $data)
-    {
-        $variant = $vendorProduct->variants()->first();
-
-        $variantData = [
-            'sku' => $data['sku'] ?? null,
-            'price' => $data['price'] ?? 0,
-            'has_discount' => isset($data['has_discount']) && $data['has_discount'],
-            'price_before_discount' => $data['price_before_discount'] ?? null,
-            'discount_end_date' => $data['discount_end_date'] ?? null
-        ];
-
-        if (!$variant) {
-            $variant = $vendorProduct->variants()->create($variantData);
-        } else {
-            $variant->update($variantData);
-        }
-
-        // Handle stocks
-        $this->syncBankVariantStocks($variant, $data['stocks'] ?? []);
-    }
-
-    /**
-     * Handle variants stock for bank
-     */
-    private function handleVariantsBankStock(VendorProduct $vendorProduct, array $data)
-    {
-        $variantsData = $data['variants'] ?? [];
-
-        foreach ($variantsData as $variantData) {
-            if (isset($variantData['id']) && $variantData['id']) {
-                // Update existing variant
-                $variant = $vendorProduct->variants()->find($variantData['id']);
-                if ($variant) {
-                    $variant->update([
-                        'sku' => $variantData['sku'] ?? null,
-                        'price' => $variantData['price'] ?? 0,
-                        'has_discount' => isset($variantData['has_discount']) && $variantData['has_discount'],
-                        'price_before_discount' => $variantData['price_before_discount'] ?? null,
-                        'discount_end_date' => $variantData['discount_end_date'] ?? null
-                    ]);
-                }
-            } else {
-                // Create new variant
-                $variant = $vendorProduct->variants()->create([
-                    'variant_configuration_id' => $variantData['variant_configuration_id'] ?? null,
-                    'sku' => $variantData['sku'] ?? null,
-                    'price' => $variantData['price'] ?? 0,
-                    'has_discount' => isset($variantData['has_discount']) && $variantData['has_discount'],
-                    'price_before_discount' => $variantData['price_before_discount'] ?? null,
-                    'discount_end_date' => $variantData['discount_end_date'] ?? null
-                ]);
-            }
-
-            // Handle stocks for this variant
-            if (isset($variantData['stocks'])) {
-                $this->syncBankVariantStocks($variant, $variantData['stocks']);
-            }
-        }
-    }
-
-    /**
-     * Sync stocks for a variant (bank stock management)
-     */
-    private function syncBankVariantStocks($variant, array $stocksData)
-    {
-        $processedStockIds = [];
-
-        foreach ($stocksData as $stockData) {
-            if (!isset($stockData['region_id']) || !$stockData['region_id']) {
-                continue;
-            }
-
-            if (isset($stockData['id']) && $stockData['id']) {
-                // Update existing stock
-                $stock = $variant->stocks()->find($stockData['id']);
-                if ($stock) {
-                    $stock->update([
-                        'region_id' => $stockData['region_id'],
-                        'quantity' => $stockData['quantity'] ?? 0
-                    ]);
-                    $processedStockIds[] = $stock->id;
-                }
-            } else {
-                // Create new stock or update by region
-                $stock = $variant->stocks()->updateOrCreate(
-                    ['region_id' => $stockData['region_id']],
-                    ['quantity' => $stockData['quantity'] ?? 0]
-                );
-                $processedStockIds[] = $stock->id;
-            }
-        }
-
-        // Delete stocks not in the processed list
-        if (!empty($processedStockIds)) {
-            $variant->stocks()->whereNotIn('id', $processedStockIds)->delete();
-        }
-    }
 
     /**
      * Get products that are not in VendorProduct for a specific vendor

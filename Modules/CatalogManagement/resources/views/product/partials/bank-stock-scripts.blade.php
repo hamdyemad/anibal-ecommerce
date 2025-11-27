@@ -248,6 +248,11 @@
     }
 
     function selectProduct(productId) {
+        console.log('🔄 Selecting new product, clearing previous data...');
+
+        // Clear previous product data
+        clearPreviousProductData();
+
         $('.product-card').removeClass('selected');
         $(`.product-card[data-product-id="${productId}"]`).addClass('selected');
 
@@ -262,19 +267,100 @@
             $('#selected-product-summary').show();
 
             console.log('🔍 Selected product configuration type:', product.configuration_type);
+            console.log('📦 Product data:', product);
 
             // Check if product is simple or has variants
             if (product.configuration_type === 'simple') {
                 console.log('📦 Simple product - showing direct stock management');
                 showSimpleProductStockManagement(product);
+            } else if (product.configuration_type === 'variants') {
+                console.log('🎛️ Variant product - showing variant management');
+
+                // Show variant management section
+                $('#step-variant-stock-management').show();
+
+                // Check if product has variants data from search
+                if (product.variants && product.variants.length > 0) {
+                    console.log('✅ Using variants from search data:', product.variants);
+                    displayVariantsFromSearch(product);
+                } else {
+                    console.log('⚠️ No variants in search data, loading from API...');
+                    loadProductVariants(productId);
+                }
             } else {
-                console.log('🎛️ Variant product - loading variants');
+                console.log('⚠️ Unknown configuration type, loading variants from API...');
                 loadProductVariants(productId);
             }
         } else {
             console.error('❌ Product data not found for ID:', productId);
             loadProductVariants(productId); // Fallback to variant loading
         }
+    }
+
+    function clearPreviousProductData() {
+        console.log('🧹 Clearing previous product data...');
+
+        // Clear variants container
+        $('#variants-container').empty();
+
+        // Hide variant management section
+        $('#step-variant-stock-management').hide();
+
+        // Hide product info
+        $('#selected-product-info').hide();
+
+        // Clear product info fields
+        $('#product-image').attr('src', '');
+        $('#product-title').text('');
+        $('#product-brand').text('');
+        $('#product-department').text('');
+        $('#product-category').text('');
+        $('#product-sub-category').text('');
+
+        // Clear validation errors
+        clearValidationErrors();
+
+        // Hide and clear selected product summary
+        $('#selected-product-summary').hide();
+        $('#selected-product-name').text('');
+
+        // Hide no variants state
+        $('#no-variants-state').hide();
+
+        // Hide variants loading state
+        $('#variants-loading').hide();
+
+        // Reset stock row counter
+        stockRowCounter = 0;
+
+        // Clear any Select2 instances to prevent memory leaks
+        $('.tax-select').each(function() {
+            if ($(this).hasClass('select2-hidden-accessible')) {
+                try {
+                    $(this).select2('destroy');
+                } catch (e) {
+                    console.warn('Could not destroy tax select2:', e);
+                }
+            }
+        });
+
+        $('.region-select').each(function() {
+            if ($(this).hasClass('select2-hidden-accessible')) {
+                try {
+                    $(this).select2('destroy');
+                } catch (e) {
+                    console.warn('Could not destroy region select2:', e);
+                }
+            }
+        });
+
+        // Clear any form data
+        $('#vendor-product-form').trigger('reset');
+
+        // Clear hidden inputs
+        $('#selected_product_id').val('');
+
+        console.log('✅ Previous product data cleared successfully');
     }
 
     // Step 3: Variant Management
@@ -309,44 +395,24 @@
     }
 
     function showSimpleProductStockManagement(product) {
+        console.log('producttttttttttttttttttttttttttttttt', product);
         console.log('📦 Setting up simple product stock management for:', product.name);
 
         $('#step-variant-stock-management').show();
         $('#variants-loading').hide();
 
+        // Show product info card and populate it
+        $('#selected-product-info').show();
+        populateProductInfo(product);
+
         // Create simple product stock form
         const simpleProductHtml = `
             <div class="simple-product-stock">
                 <div class="card">
-                    <div class="card-header">
-                        <h5 class="mb-0">
-                            <i class="uil uil-package me-2"></i>
-                            ${translations.stock_management}
-                        </h5>
-                    </div>
                     <div class="card-body">
                         <div class="row">
-                            <!-- Product Info -->
-                            <div class="col-md-4">
-                                <div class="product-info-section">
-                                    <img src="${product.image || '/images/default-product.png'}"
-                                         alt="${product.name}"
-                                         class="img-fluid rounded mb-3"
-                                         style="max-height: 200px; object-fit: cover;">
-                                    <h6>${product.name}</h6>
-                                    <p class="text-muted mb-1">
-                                        <i class="uil uil-tag-alt me-1"></i>
-                                        Brand: ${product.brand || 'N/A'}
-                                    </p>
-                                    <p class="text-muted mb-1">
-                                        <i class="uil uil-layer-group me-1"></i>
-                                        Category: ${product.category || 'N/A'}
-                                    </p>
-                                </div>
-                            </div>
-
                             <!-- Stock Management Form -->
-                            <div class="col-md-8">
+                            <div class="col-md-12">
                                 <form id="simple-product-form">
                                     <input type="hidden" name="product_id" value="${product.id}">
                                     <input type="hidden" name="vendor_id" value="${selectedVendorId}">
@@ -362,10 +428,17 @@
                                             <input type="number" class="form-control ih-medium ip-gray radius-xs b-light px-15" name="price"
                                                    placeholder="0.00" step="0.01" min="0" required>
                                         </div>
+                                        <div class="col-md-12 mb-3">
+                                            <label class="form-label">Tax</label>
+                                            <select class="form-select tax-select" name="tax_id">
+                                                <option value="">Select Tax</option>
+                                                <!-- Tax options will be populated -->
+                                            </select>
+                                        </div>
                                     </div>
 
                                     <div class="row">
-                                        <div class="col-md-6 mb-3">
+                                        <div class="col-md-12 mb-3">
                                             <div class="form-group">
                                                 <div class="d-flex justify-content-between align-items-center mb-3">
                                                     <label class="form-label text-dark fw-medium mb-0">${translations.has_discount}</label>
@@ -376,25 +449,22 @@
                                                         <label class="form-check-label" for="hasDiscountSimple"></label>
                                                     </div>
                                                 </div>
-                                                <div class="discount-fields" id="simpleDiscountFields" style="display: none;">
-                                                    <div class="mb-3">
-                                                        <label class="form-label">${translations.price_before_discount}</label>
-                                                        <input type="number" class="form-control ih-medium ip-gray radius-xs b-light px-15" name="price_before_discount"
-                                                               placeholder="0.00" step="0.01" min="0">
-                                                    </div>
-                                                    <div class="mb-3">
-                                                        <label class="form-label">${translations.discount_end_date}</label>
-                                                        <input type="datetime-local" class="form-control ih-medium ip-gray radius-xs b-light px-15" name="discount_end_date">
-                                                    </div>
-                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row discount-fields" id="simpleDiscountFields" style="display: none;">
+                                        <div class="col-md-6 mb-3">
+                                            <div class="mb-3">
+                                                <label class="form-label">${translations.price_before_discount}</label>
+                                                <input type="number" class="form-control ih-medium ip-gray radius-xs b-light px-15" name="price_before_discount"
+                                                        placeholder="0.00" step="0.01" min="0">
                                             </div>
                                         </div>
                                         <div class="col-md-6 mb-3">
-                                            <label class="form-label">Tax</label>
-                                            <select class="form-select" name="tax_id">
-                                                <option value="">Select Tax</option>
-                                                <!-- Tax options will be populated -->
-                                            </select>
+                                            <div class="mb-3">
+                                                <label class="form-label">${translations.discount_end_date}</label>
+                                                <input type="date" class="form-control ih-medium ip-gray radius-xs b-light px-15" name="discount_end_date">
+                                            </div>
                                         </div>
                                     </div>
 
@@ -445,9 +515,190 @@
     }
 
     function populateProductInfo(product) {
+        console.log('🏷️ Product info data:', product);
+
         $('#product-image').attr('src', product.image || '/images/default-product.png');
-        $('#product-title').text(product.name);
-        $('#product-category').text(product.category || 'No Category');
+        $('#product-title').text(product.name || 'Product Name');
+        $('#product-brand').text(product.brand || '-');
+
+        // Try different possible field names for department
+        const department = product.department;
+        $('#product-department').text(department);
+        console.log('🏢 Department:', department);
+
+        $('#product-category').text(product.category || '-');
+
+        // Try different possible field names for sub-category
+        const subCategory = product.sub_category || product.subCategory || product.subcategory ||
+                           product.sub_category_name || product.subCategoryName || '-';
+        $('#product-sub-category').text(subCategory);
+        console.log('📂 Sub-category:', subCategory);
+    }
+
+    function displayVariantsFromSearch(product) {
+        console.log('🎨 Displaying variants from search data:', product.variants);
+
+        // Hide loading
+        $('#variants-loading').hide();
+
+        // Show product info
+        $('#selected-product-info').show();
+        populateProductInfo(product);
+
+        let html = '<div class="variants-management">';
+
+        product.variants.forEach(function(variant, index) {
+            // Build variant tree name
+            let variantTreeName = buildVariantTreeName(variant.variant_tree);
+
+            // Create variant box with tree name
+            html += createVariantBoxWithTree(variant, variantTreeName, index);
+        });
+
+        html += '</div>';
+
+        $('#variants-container').html(html);
+
+        // Populate region and tax options
+        populateRegionOptions();
+        populateAllTaxOptions();
+
+        // Initialize Select2 for region and tax selects
+        setTimeout(() => {
+            $('.region-select').select2({
+                theme: 'bootstrap-5',
+                width: '100%',
+                placeholder: 'Select Region'
+            });
+            $('.tax-select').select2({
+                theme: 'bootstrap-5',
+                width: '100%',
+                placeholder: 'Select Tax'
+            });
+        }, 500);
+
+        // Add initial stock row for each variant
+        product.variants.forEach(function(variant, index) {
+            addVariantStockRow(index);
+        });
+
+        console.log('✅ Variants from search displayed successfully');
+    }
+
+    function buildVariantTreeName(variantTree) {
+        if (!variantTree) return 'Unknown Variant';
+
+        let names = [];
+        let current = variantTree;
+
+        // Build path from root to current (traverse parents first)
+        while (current) {
+            names.unshift(current.name); // Add to beginning
+            current = current.parent;
+        }
+
+        return names.join(' > ');
+    }
+
+    function createVariantBoxWithTree(variant, variantTreeName, index) {
+        const keyName = variant.key?.name || 'Variant';
+
+        return `
+            <div class="variant-management-box mb-4" data-variant-index="${index}">
+                <div class="card">
+                    <div class="card-header bg-light">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h6 class="mb-0">
+                                <i class="uil uil-sitemap me-2"></i>
+                                ${variantTreeName}
+                            </h6>
+                            <div class="variant-info">
+                                <span class="badge bg-primary">ID: ${variant.id}</span>
+                                <span class="badge bg-info ms-1">${keyName}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <form class="variant-form" data-variant-id="${variant.id}">
+                            <input type="hidden" name="variants[${index}][id]" value="${variant.id}">
+                            <input type="hidden" name="variants[${index}][variant_configuration_id]" value="${variant.variant_configuration_id || ''}">
+                            <input type="hidden" name="product_id" value="${selectedProduct}">
+                            <input type="hidden" name="vendor_id" value="${selectedVendorId}">
+
+                            <!-- Pricing Section -->
+                            <div class="pricing-section mb-4">
+                                <h6 class="section-title">
+                                    <i class="uil uil-money-bill me-2"></i>
+                                    ${translations.pricing_and_details}
+                                </h6>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">${translations.vendor_sku} <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control ih-medium ip-gray radius-xs b-light px-15" name="variants[${index}][sku]"
+                                               placeholder="${translations.enter_variant_sku}" value="" required>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">${translations.price} <span class="text-danger">*</span></label>
+                                        <input type="number" class="form-control ih-medium ip-gray radius-xs b-light px-15" name="variants[${index}][price]"
+                                               placeholder="0.00" step="0.01" min="0" value="" required>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Tax <span class="text-danger">*</span></label>
+                                        <select class="form-select tax-select" name="variants[${index}][tax_id]" required>
+                                            <option value="">Select Tax</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <div class="form-group">
+                                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                                <label class="form-label text-dark fw-medium mb-0">${translations.has_discount}</label>
+                                                <div class="form-check form-switch form-switch-lg">
+                                                    <input class="form-check-input discount-switch" type="checkbox"
+                                                           id="hasDiscount${index}" name="variants[${index}][has_discount]"
+                                                           onchange="toggleDiscountFields(${index})">
+                                                    <label class="form-check-label" for="hasDiscount${index}"></label>
+                                                </div>
+                                            </div>
+                                            <div class="discount-fields" id="discountFields${index}" style="display: none;">
+                                                <div class="mb-3">
+                                                    <label class="form-label">${translations.price_before_discount}</label>
+                                                    <input type="number" class="form-control ih-medium ip-gray radius-xs b-light px-15" name="variants[${index}][price_before_discount]"
+                                                           placeholder="0.00" step="0.01" min="0">
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label class="form-label">${translations.discount_end_date}</label>
+                                                    <input type="datetime-local" class="form-control ih-medium ip-gray radius-xs b-light px-15" name="variants[${index}][discount_end_date]">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Stock Management Section -->
+                            <div class="stock-section">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <h6 class="section-title mb-0">
+                                        <i class="uil uil-package me-2"></i>
+                                        ${translations.stock_management}
+                                    </h6>
+                                    <button type="button" class="btn btn-outline-primary btn-sm"
+                                            onclick="addVariantStockRow(${index})">
+                                        <i class="uil uil-plus me-1"></i>
+                                        ${translations.add_stock_entry}
+                                    </button>
+                                </div>
+                                <div class="variant-stock-rows" id="variant-stock-rows-${index}">
+                                    <!-- Stock rows will be added here -->
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        `;
     }
 
     function displayVariants(variants) {
@@ -530,8 +781,8 @@
                                                placeholder="0.00" step="0.01" min="0" value="${variant.price || ''}" required>
                                     </div>
                                     <div class="col-md-6 mb-3">
-                                        <label class="form-label">Tax</label>
-                                        <select class="form-select tax-select" name="variants[${index}][tax_id]">
+                                        <label class="form-label">Tax <span class="text-danger">*</span></label>
+                                        <select class="form-select tax-select" name="variants[${index}][tax_id]" required>
                                             <option value="">Select Tax</option>
                                         </select>
                                     </div>
@@ -658,8 +909,26 @@
         });
 
         // Save button
-        $('#save-variant-stocks').on('click', function() {
-            saveVariantStocks();
+        $('#save-form').on('click', function() {
+            saveForm();
+        });
+
+        // Clear validation errors on input
+        $(document).on('input change', '.is-invalid', function() {
+            $(this).removeClass('is-invalid');
+            // Try to find the error message container and remove/hide it
+            const $container = $(this).closest('.form-group, .col-md-3, .col-md-4, .col-md-5, .col-md-6');
+            if ($container.length > 0) {
+                 $container.find('.invalid-feedback').remove();
+            } else {
+                $(this).siblings('.invalid-feedback').remove();
+                $(this).parent().find('.invalid-feedback').remove();
+            }
+
+            // Also clear the global validation alert if there are no more invalid fields
+            if ($('.is-invalid').length === 0) {
+                $('#validation-alert').remove();
+            }
         });
     }
 
@@ -686,24 +955,299 @@
         });
     }
 
-    function saveVariantStocks() {
-        const formData = $('#vendor-product-form').serialize();
+    function validateRequiredFields() {
+        console.log('🔍 Validating required fields...');
+
+        let isValid = true;
+        let errors = [];
+
+        // Validate each variant
+        $('.variant-management-box').each(function(index) {
+            const variantName = $(this).find('h6').text() || `Variant ${index + 1}`;
+
+            // Check SKU
+            const sku = $(this).find('input[name*="[sku]"]').val();
+            if (!sku || sku.trim() === '') {
+                errors.push(`${variantName}: SKU is required`);
+                isValid = false;
+            }
+
+            // Check Price
+            const price = $(this).find('input[name*="[price]"]').val();
+            if (!price || parseFloat(price) <= 0) {
+                errors.push(`${variantName}: Price must be greater than 0`);
+                isValid = false;
+            }
+
+            // Check Tax
+            const tax = $(this).find('select[name*="[tax_id]"]').val();
+            if (!tax || tax === '') {
+                errors.push(`${variantName}: Tax selection is required`);
+                isValid = false;
+            }
+
+            // Check Stock Management (at least one stock entry with region and quantity)
+            const stockRows = $(this).find('.variant-stock-row');
+            let hasValidStock = false;
+
+            stockRows.each(function() {
+                const region = $(this).find('select[name*="[region_id]"]').val();
+                const quantity = $(this).find('input[name*="[quantity]"]').val();
+
+                if (region && quantity && parseInt(quantity) >= 0) {
+                    hasValidStock = true;
+                }
+            });
+
+            if (!hasValidStock) {
+                errors.push(`${variantName}: At least one stock entry with region and quantity is required`);
+                isValid = false;
+            }
+        });
+
+        // Show validation errors
+        if (!isValid) {
+            const errorMessage = errors.join('<br>');
+            showBootstrapAlert('danger', `Please fix the following errors:<br>${errorMessage}`);
+            console.error('❌ Validation failed:', errors);
+        } else {
+            console.log('✅ All required fields validated successfully');
+        }
+
+        return isValid;
+    }
+
+    function saveForm() {
+        console.log('💾 Saving form...');
+
+        // Validate required fields first
+        if (!validateRequiredFields()) {
+            return false;
+        }
+
+        // Get the form
+        const form = $('#vendor-product-form');
+        const formData = new FormData(form[0]);
+
+        // Add CSRF token
+        formData.append('_token', '{{ csrf_token() }}');
+
+        // Log form data for debugging
+        console.log('📋 Form data:', Object.fromEntries(formData));
+
+        // Show loading state
+        const saveButton = $('#save-form');
+        const originalText = saveButton.html();
+        saveButton.prop('disabled', true);
+        saveButton.html('<i class="spinner-border spinner-border-sm me-1"></i> {{ __("common.saving") ?? "Saving..." }}');
 
         $.ajax({
             url: config.routes.saveStock,
             type: 'POST',
             data: formData,
+            processData: false,
+            contentType: false,
             success: function(response) {
+                console.log('✅ Save response:', response);
+
                 if (response.success) {
-                    toastr.success(response.message || 'Stocks saved successfully');
+                    // Clear validation errors on success
+                    clearValidationErrors();
+                    showBootstrapAlert('success', response.message || 'Stocks saved successfully!');
+
+                    // Optionally reload the product data
+                    // loadProductVariants(selectedProduct);
                 } else {
-                    toastr.error(response.message || 'Error saving stocks');
+                    showBootstrapAlert('danger', response.message || 'Error saving stocks');
                 }
             },
-            error: function() {
-                toastr.error('Error saving stocks');
+            error: function(xhr, status, error) {
+                console.error('❌ Save error:', {
+                    status: xhr.status,
+                    error: error,
+                    response: xhr.responseText
+                });
+
+                // Clear previous validation errors
+                clearValidationErrors();
+
+                if (xhr.status === 422 && xhr.responseJSON && xhr.responseJSON.errors) {
+                    // Handle validation errors
+                    displayValidationErrors(xhr.responseJSON.errors);
+                } else {
+                    // Handle other errors
+                    let errorMessage = 'Error saving stocks';
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        errorMessage = xhr.responseJSON.message;
+                    }
+                    showBootstrapAlert('danger', errorMessage);
+                }
+            },
+            complete: function() {
+                // Restore button state
+                saveButton.prop('disabled', false);
+                saveButton.html(originalText);
             }
         });
+    }
+
+    // Validation Error Handling Functions
+    function displayValidationErrors(errors) {
+        console.log('🚨 Displaying validation errors:', errors);
+
+        // Create validation alert
+        const errorMessages = [];
+
+        // Process each error field
+        Object.keys(errors).forEach(field => {
+            const fieldErrors = errors[field];
+
+            // Add field errors to alert message
+            fieldErrors.forEach(error => {
+                errorMessages.push(`• ${error}`);
+            });
+
+            // Add is-invalid class and error message to specific fields
+            highlightFieldError(field, fieldErrors[0]);
+        });
+
+        // Show validation alert under "Manage Variants Stock" title
+        showValidationAlert(errorMessages);
+    }
+
+    function highlightFieldError(field, errorMessage) {
+        console.log(`🔴 Highlighting field error: ${field} - ${errorMessage}`);
+
+        let $input = null;
+        let $container = null;
+
+        // Handle different field types
+        if (field === 'sku') {
+            $input = $('input[name="sku"]');
+        } else if (field === 'price') {
+            $input = $('input[name="price"]');
+        } else if (field === 'tax_id') {
+            $input = $('select[name="tax_id"]');
+        } else if (field === 'has_discount') {
+            $input = $('input[name="has_discount"]');
+        } else if (field === 'price_before_discount') {
+            $input = $('input[name="price_before_discount"]');
+        } else if (field === 'discount_end_date') {
+            $input = $('input[name="discount_end_date"]');
+        } else if (field.startsWith('stocks.')) {
+            // Handle stock field errors (e.g., stocks.0.region_id, stocks.0.quantity)
+            const matches = field.match(/stocks\.(\d+)\.(.+)/);
+            if (matches) {
+                const stockIndex = matches[1];
+                const stockField = matches[2];
+
+                if (stockField === 'region_id') {
+                    $input = $(`select[name="stocks[${stockIndex}][region_id]"]`);
+                } else if (stockField === 'quantity') {
+                    $input = $(`input[name="stocks[${stockIndex}][quantity]"]`);
+                }
+            }
+        } else if (field.startsWith('variants.')) {
+            // Handle variant field errors (e.g., variants.0.sku, variants.0.stocks.0.region_id)
+            const matches = field.match(/variants\.(\d+)\.(.+)/);
+            if (matches) {
+                const variantIndex = matches[1];
+                const variantField = matches[2];
+
+                if (variantField === 'sku') {
+                    $input = $(`input[name="variants[${variantIndex}][sku]"]`);
+                } else if (variantField === 'price') {
+                    $input = $(`input[name="variants[${variantIndex}][price]"]`);
+                } else if (variantField === 'tax_id') {
+                    $input = $(`select[name="variants[${variantIndex}][tax_id]"]`);
+                } else if (variantField === 'has_discount') {
+                    $input = $(`input[name="variants[${variantIndex}][has_discount]"]`);
+                } else if (variantField === 'price_before_discount') {
+                    $input = $(`input[name="variants[${variantIndex}][price_before_discount]"]`);
+                } else if (variantField === 'discount_end_date') {
+                    $input = $(`input[name="variants[${variantIndex}][discount_end_date]"]`);
+                } else if (variantField.startsWith('stocks.')) {
+                    const stockMatches = variantField.match(/stocks\.(\d+)\.(.+)/);
+                    if (stockMatches) {
+                        const stockIndex = stockMatches[1];
+                        const stockField = stockMatches[2];
+
+                        if (stockField === 'region_id') {
+                            $input = $(`select[name="variants[${variantIndex}][stocks][${stockIndex}][region_id]"]`);
+                        } else if (stockField === 'quantity') {
+                            $input = $(`input[name="variants[${variantIndex}][stocks][${stockIndex}][quantity]"]`);
+                        }
+                    }
+                }
+            }
+        }
+
+        if ($input && $input.length > 0) {
+            // Add is-invalid class
+            $input.addClass('is-invalid');
+
+            // Find or create error message container
+            $container = $input.closest('.form-group, .col-md-3, .col-md-4, .col-md-5, .col-md-6');
+            if ($container.length === 0) {
+                $container = $input.parent();
+            }
+
+            // Remove existing error message
+            $container.find('.invalid-feedback').remove();
+
+            // Add error message
+            $container.append(`<div class="invalid-feedback d-block">${errorMessage}</div>`);
+
+            console.log(`✅ Added error to field: ${field}`);
+        } else {
+            console.warn(`⚠️ Could not find input for field: ${field}`);
+        }
+    }
+
+    function showValidationAlert(errorMessages) {
+        // Remove existing validation alert from anywhere
+        $('#validation-alert').remove();
+
+        const alertHtml = `
+            <div id="validation-alert" class="alert d-block alert-danger alert-dismissible fade show mb-4" role="alert">
+                <h6 class="alert-heading mb-2">
+                    <i class="uil uil-exclamation-triangle me-2"></i>
+                    Please fix the following validation errors:
+                </h6>
+                <div class="mb-0">
+                    ${errorMessages.join('<br>')}
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        `;
+
+        // Insert alert at the top of the stock management section (works for both simple and variant products)
+        const $stockManagement = $('#step-variant-stock-management');
+        if ($stockManagement.length > 0) {
+            // Insert at the very beginning of the stock management section
+            $stockManagement.prepend(alertHtml);
+        } else {
+            // Fallback: insert at the top of variants container
+            $('#variants-container').prepend(alertHtml);
+        }
+
+        // Scroll to the alert
+        $('html, body').animate({
+            scrollTop: $('#validation-alert').offset().top - 100
+        }, 500);
+    }
+
+    function clearValidationErrors() {
+        console.log('🧹 Clearing validation errors');
+
+        // Remove is-invalid classes
+        $('.is-invalid').removeClass('is-invalid');
+
+        // Remove error messages
+        $('.invalid-feedback').remove();
+
+        // Remove validation alert
+        $('#validation-alert').remove();
     }
 
     // Load regions
@@ -1248,7 +1792,7 @@
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <h6 class="mb-0">{{ __('catalogmanagement::product.variant') }} #${variantIndex}</h6>
                     <button type="button" class="btn btn-outline-danger btn-sm remove-variant-btn" data-product-index="${productIndex}" data-variant-index="${variantIndex}">
-                        <i class="uil uil-trash-alt"></i>
+                        <i class="uil uil-trash-alt m-0"></i>
                     </button>
                 </div>
 
@@ -2155,99 +2699,55 @@
         console.log('✅ Pricing and stock form loaded for variant:', variantIndex);
     }
 
-    // Bootstrap Alert Modal Function
-    function showBootstrapAlert(title, message, type = 'info') {
-        // Remove existing alert modal if any
-        $('#bootstrap-alert-modal').remove();
+    // Simple Alert Function (fallback for when Bootstrap modal is not available)
+    function showBootstrapAlert(type, message) {
+        console.log(`🔔 Alert [${type}]:`, message);
 
-        // Determine icon and color based on type
-        let icon = 'uil-info-circle';
-        let headerClass = 'bg-primary';
-        let buttonClass = 'btn-primary';
-
-        switch(type) {
-            case 'danger':
-            case 'error':
-                icon = 'uil-exclamation-triangle';
-                headerClass = 'bg-danger';
-                buttonClass = 'btn-danger';
-                break;
-            case 'warning':
-                icon = 'uil-exclamation-triangle';
-                headerClass = 'bg-warning';
-                buttonClass = 'btn-warning';
-                break;
-            case 'success':
-                icon = 'uil-check-circle';
-                headerClass = 'bg-success';
-                buttonClass = 'btn-success';
-                break;
+        // Try to use toastr if available
+        if (typeof toastr !== 'undefined') {
+            switch(type) {
+                case 'success':
+                    toastr.success(message);
+                    break;
+                case 'danger':
+                case 'error':
+                    toastr.error(message);
+                    break;
+                case 'warning':
+                    toastr.warning(message);
+                    break;
+                default:
+                    toastr.info(message);
+            }
+            return;
         }
 
-        // Format message for HTML (convert \n to <br>)
-        const formattedMessage = message.replace(/\n/g, '<br>');
-
-        // Create modal HTML
-        const modalHtml = `
-            <div class="modal fade" id="bootstrap-alert-modal" tabindex="-1" aria-labelledby="alertModalLabel" aria-hidden="true">
-                <div class="modal-dialog modal-dialog-centered">
-                    <div class="modal-content">
-                        <div class="modal-header ${headerClass} text-white">
-                            <h5 class="modal-title" id="alertModalLabel">
-                                <i class="uil ${icon} me-2"></i>${title}
-                            </h5>
-                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body">
-                            <div class="text-start">
-                                ${formattedMessage}
-                            </div>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn ${buttonClass}" data-bs-dismiss="modal">
-                                {{ __('common.ok') }}
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `;
-
-        // Add modal to body and show
-        $('body').append(modalHtml);
-        $('#bootstrap-alert-modal').modal('show');
-
-        // Remove modal from DOM after it's hidden
-        $('#bootstrap-alert-modal').on('hidden.bs.modal', function() {
-            $(this).remove();
-        });
+        // Fallback to browser alert
+        const cleanMessage = message.replace(/<br>/g, '\n').replace(/<[^>]*>/g, '');
+        alert(cleanMessage);
     }
 
     // Variant Product Stock Management Helper Functions
     function addVariantStockRow(variantIndex) {
         const stockRowHtml = `
             <div class="variant-stock-row mb-3 p-3 border rounded">
-                <div class="row">
-                    <div class="col-md-4">
+                <div class="row align-items-end">
+                    <div class="col-md-5">
                         <label class="form-label">${translations.region}</label>
                         <select class="form-select region-select" name="variants[${variantIndex}][stocks][${stockRowCounter}][region_id]" required>
                             <option value="">${translations.select_region}</option>
                         </select>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-5">
                         <label class="form-label">${translations.quantity}</label>
                         <input type="number" class="form-control ih-medium ip-gray radius-xs b-light px-15" name="variants[${variantIndex}][stocks][${stockRowCounter}][quantity]"
                                placeholder="0" min="0" required>
                     </div>
-                    <div class="col-md-3">
-                        <label class="form-label">${translations.alert_quantity}</label>
-                        <input type="number" class="form-control ih-medium ip-gray radius-xs b-light px-15" name="variants[${variantIndex}][stocks][${stockRowCounter}][alert_quantity]"
-                               placeholder="0" min="0">
-                    </div>
-                    <div class="col-md-2 d-flex align-items-end">
-                        <button type="button" class="btn btn-outline-danger btn-sm"
-                                onclick="removeVariantStockRow(this)">
-                            <i class="uil uil-trash-alt"></i>
+                    <div class="col-md-2">
+                        <label class="form-label"></label>
+                        <button type="button" class="btn btn-outline-danger btn-sm w-100 remove-stock-btn" style="display: none;"
+                                onclick="removeVariantStockRow(this, ${variantIndex})">
+                            <i class="uil uil-trash-alt m-0"></i>
                         </button>
                     </div>
                 </div>
@@ -2269,19 +2769,48 @@
         }, 100);
 
         stockRowCounter++;
+
+        // Update remove button visibility
+        updateRemoveButtonsVisibility(variantIndex);
     }
 
-    function removeVariantStockRow(button) {
-        $(button).closest('.variant-stock-row').remove();
+    function removeVariantStockRow(button, variantIndex) {
+        const container = $(`#variant-stock-rows-${variantIndex}`);
+        const rowCount = container.find('.variant-stock-row').length;
+
+        // Only remove if more than 1 row exists
+        if (rowCount > 1) {
+            $(button).closest('.variant-stock-row').remove();
+            updateRemoveButtonsVisibility(variantIndex);
+        }
+    }
+
+    function updateRemoveButtonsVisibility(variantIndex) {
+        const container = $(`#variant-stock-rows-${variantIndex}`);
+        const rows = container.find('.variant-stock-row');
+        const rowCount = rows.length;
+
+        // Show remove buttons only if there are 2 or more rows
+        if (rowCount >= 2) {
+            rows.find('.remove-stock-btn').show();
+        } else {
+            rows.find('.remove-stock-btn').hide();
+        }
     }
 
     function populateAllTaxOptions() {
+        console.log('🔄 Fetching taxes from API:', config.routes.taxesApi);
+
         // Fetch taxes from the backend
         $.ajax({
             url: config.routes.taxesApi,
             type: 'GET',
             success: function(response) {
+                console.log('📥 Tax API response:', response);
                 const taxes = response.data || response.taxes || response;
+
+                console.log('📋 Processing taxes:', taxes);
+                console.log('🎯 Found .tax-select elements:', $('.tax-select').length);
 
                 $('.tax-select').each(function() {
                     const taxSelect = $(this);
@@ -2289,15 +2818,22 @@
 
                     if (taxes && taxes.length > 0) {
                         taxes.forEach(tax => {
-                            taxSelect.append(`<option value="${tax.id}">${tax.name} (${tax.rate}%)</option>`);
+                            console.log('➕ Adding tax option:', tax);
+                            taxSelect.append(`<option value="${tax.id}">${tax.name}</option>`);
                         });
+                    } else {
+                        console.warn('⚠️ No taxes found in response');
                     }
                 });
 
-                console.log('✅ Tax options populated:', taxes.length);
+                console.log('✅ Tax options populated successfully. Total taxes:', taxes.length);
             },
             error: function(xhr, status, error) {
-                console.error('❌ Error fetching taxes:', error);
+                console.error('❌ Error fetching taxes:', {
+                    status: status,
+                    error: error,
+                    response: xhr.responseText
+                });
                 // Fallback to blade data if available
                 populateTaxesFromBladeData();
             }
@@ -2314,7 +2850,9 @@
 
             if (taxes && taxes.length > 0) {
                 taxes.forEach(tax => {
-                    taxSelect.append(`<option value="${tax.id}">${tax.name} ${tax.rate ? '(' + tax.rate + '%)' : ''}</option>`);
+                    const taxName = tax.name || 'Tax';
+                    const taxRate = tax.tax_rate || tax.rate || 0;
+                    taxSelect.append(`<option value="${tax.id}">${taxName} (${taxRate}%)</option>`);
                 });
             }
         });
@@ -2388,28 +2926,23 @@
     function addSimpleStockRow() {
         const stockRowHtml = `
             <div class="stock-row mb-3 p-3 border rounded">
-                <div class="row">
-                    <div class="col-md-4">
+                <div class="row align-items-end">
+                    <div class="col-md-5">
                         <label class="form-label">${translations.region}</label>
                         <select class="form-select region-select" name="stocks[${stockRowCounter}][region_id]" required>
                             <option value="">${translations.select_region}</option>
                             <!-- Region options will be populated -->
                         </select>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-5">
                         <label class="form-label">${translations.quantity}</label>
                         <input type="number" class="form-control ih-medium ip-gray radius-xs b-light px-15" name="stocks[${stockRowCounter}][quantity]"
                                placeholder="0" min="0" required>
                     </div>
-                    <div class="col-md-3">
-                        <label class="form-label">${translations.alert_quantity}</label>
-                        <input type="number" class="form-control ih-medium ip-gray radius-xs b-light px-15" name="stocks[${stockRowCounter}][alert_quantity]"
-                               placeholder="0" min="0">
-                    </div>
-                    <div class="col-md-2 d-flex align-items-end">
-                        <button type="button" class="btn btn-outline-danger btn-sm"
-                                onclick="removeSimpleStockRow(this)">
-                            <i class="uil uil-trash-alt"></i>
+                    <div class="col-md-2">
+                        <button type="button" class="btn btn-outline-danger btn-sm w-100 remove-simple-stock-btn"
+                                onclick="removeSimpleStockRow(this)" style="display: none;">
+                            <i class="uil uil-trash-alt m-0"></i>
                         </button>
                     </div>
                 </div>
@@ -2430,11 +2963,33 @@
             });
         }, 100);
 
+        // Update remove button visibility
+        updateSimpleStockRemoveButtons();
+
         stockRowCounter++;
     }
 
     function removeSimpleStockRow(button) {
-        $(button).closest('.stock-row').remove();
+        const rowCount = $('#simple-stock-rows .stock-row').length;
+
+        // Only remove if more than 1 row exists
+        if (rowCount > 1) {
+            $(button).closest('.stock-row').remove();
+            updateSimpleStockRemoveButtons();
+        }
+    }
+
+    function updateSimpleStockRemoveButtons() {
+        const container = $('#simple-stock-rows');
+        const rows = container.find('.stock-row');
+        const rowCount = rows.length;
+
+        // Show remove buttons only if there are 2 or more rows
+        if (rowCount >= 2) {
+            rows.find('.remove-simple-stock-btn').show();
+        } else {
+            rows.find('.remove-simple-stock-btn').hide();
+        }
     }
 
     function populateTaxOptions() {

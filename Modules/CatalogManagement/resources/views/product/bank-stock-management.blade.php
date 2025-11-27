@@ -95,6 +95,54 @@
         font-size: 0.875rem;
         color: #6c757d;
     }
+
+    /* Variant Management Boxes */
+    .variant-management-box {
+        margin-bottom: 24px;
+    }
+    .variant-management-box .card {
+        border: 2px solid #e0e0e0;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    .variant-management-box .card-header {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border-bottom: 2px solid #dee2e6;
+        padding: 16px 20px;
+    }
+    .variant-management-box .card-header h6 {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #2c3e50;
+    }
+    .variant-management-box .section-title {
+        font-size: 1rem;
+        font-weight: 600;
+        color: #495057;
+        margin-bottom: 16px;
+        padding-bottom: 8px;
+        border-bottom: 2px solid #e9ecef;
+    }
+    .variant-management-box .pricing-section {
+        background-color: #f8f9fa;
+        padding: 20px;
+        border-radius: 8px;
+        border: 1px solid #dee2e6;
+    }
+    .variant-management-box .stock-section {
+        background-color: #fff;
+        padding: 20px;
+        border-radius: 8px;
+        border: 1px solid #dee2e6;
+    }
+    .variant-stock-row {
+        background-color: #f8f9fa;
+        border: 1px solid #dee2e6;
+        transition: all 0.3s ease;
+    }
+    .variant-stock-row:hover {
+        background-color: #e9ecef;
+        border-color: var(--color-primary);
+    }
 </style>
 @endpush
 
@@ -200,27 +248,8 @@
                                     <input type="hidden" id="selected_product_id" name="product_id">
                                     <input type="hidden" name="configuration_type" value="variants">
 
-                                    <!-- Selected Product Info -->
-                                    <div class="card mb-4" id="selected-product-info" style="display: none;">
-                                        <div class="card-body">
-                                            <div class="d-flex align-items-center">
-                                                <img id="product-image" src="" alt="Product" class="product-image me-3" style="width: 80px; height: 80px; object-fit: cover; border-radius: 8px;">
-                                                <div>
-                                                    <h6 id="product-title" class="mb-1"></h6>
-                                                    <p id="product-category" class="text-muted mb-0"></p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-
                                     <!-- Existing Variants Section -->
                                     <div class="card" id="variants-management-section">
-                                        <div class="card-header">
-                                            <h5 class="mb-0">
-                                                <i class="uil uil-layer-group me-2"></i>
-                                                {{ __('catalogmanagement::product.product_variants_stock') }}
-                                            </h5>
-                                        </div>
                                         <div class="card-body">
                                             <!-- Loading state -->
                                             <div id="variants-loading" class="text-center py-4" style="display: none;">
@@ -245,9 +274,9 @@
 
                                     <!-- Save Button -->
                                     <div class="d-flex justify-content-end mt-4">
-                                        <button type="button" id="save-variant-stocks" class="btn btn-success">
+                                        <button type="button" id="save-form" class="btn btn-success">
                                             <i class="uil uil-check me-1"></i>
-                                            {{ __('catalogmanagement::product.save_variant_stocks') }}
+                                            {{ __('common.save') }}
                                         </button>
                                     </div>
 

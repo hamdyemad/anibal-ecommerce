@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Modules\CatalogManagement\app\Services\BankService;
 use Modules\CatalogManagement\app\Http\Resources\BankProductResource;
+use Modules\CatalogManagement\app\Http\Requests\SaveBankStockRequest;
 use App\Services\LanguageService;
 use Modules\Vendor\app\Services\VendorService;
 use Modules\CatalogManagement\app\Services\TaxService;
@@ -146,7 +147,6 @@ class BankController extends Controller
                     return [
                         'id' => $tax->id,
                         'name' => $tax->name,
-                        'rate' => $tax->rate ?? 0
                     ];
                 })
             ]);
@@ -163,19 +163,26 @@ class BankController extends Controller
     /**
      * Save bank product stock
      */
-    public function saveStock(Request $request)
+    public function saveStock(SaveBankStockRequest $request)
     {
         try {
-            $data = $request->all();
+            $data = $request->validated();
+
+            // Log the incoming data for debugging
+            Log::info('Bank stock save request:', $data);
+
             $result = $this->bankService->saveBankStock($data);
 
             return response()->json([
                 'success' => true,
-                'message' => 'Stock saved successfully',
+                'message' => 'Stock saved successfully!',
                 'data' => $result
             ]);
         } catch (Exception $e) {
-            Log::error('Save bank stock error: ' . $e->getMessage());
+            Log::error('Save bank stock error: ' . $e->getMessage(), [
+                'data' => $request->all(),
+                'trace' => $e->getTraceAsString()
+            ]);
             return response()->json([
                 'success' => false,
                 'message' => 'Error saving stock: ' . $e->getMessage()
