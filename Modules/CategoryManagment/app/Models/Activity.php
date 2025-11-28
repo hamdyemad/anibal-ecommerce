@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Builder;
+use Modules\Vendor\app\Models\Vendor;
 
 class Activity extends Model
 {
@@ -33,6 +34,11 @@ class Activity extends Model
     public function activeDepartments()
     {
         return $this->departments()->active();
+    }
+
+    public function vendors()
+    {
+        return $this->belongsToMany(Vendor::class, 'vendors_activities', 'activity_id', 'vendor_id');
     }
 
     public function getDescriptionAttribute()

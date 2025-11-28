@@ -84,16 +84,12 @@ class Department extends BaseModel
         return $this->categories()->active();
     }
 
-    /**
-     * Override scopeByVendor for Department
-     * Department filters by vendor through activities → vendors relationship
-     */
     public function scopeByVendor(Builder $query, $vendorIdentifier)
     {
         return $query->whereHas('activities', function($q) use ($vendorIdentifier) {
             $q->whereHas('vendors', function($subQ) use ($vendorIdentifier) {
-                $subQ->where('id', $vendorIdentifier)
-                    ->orWhere('slug', $vendorIdentifier);
+                $subQ->where('vendors.id', $vendorIdentifier)
+                    ->orWhere('vendors.slug', $vendorIdentifier);
             });
         });
     }
@@ -122,4 +118,17 @@ class Department extends BaseModel
         });
     }
 
+
+    public function scopeFilter(Builder $query, array $filters)
+    {
+        // Call parent filter scope from HasFilterScopes trait
+        parent::scopeFilter($query, $filters);
+
+
+        if (!empty($filters['vendor_id'])) {
+            $query->byVendor($filters['vendor_id']);
+        }
+
+        return $query;
+    }
 }

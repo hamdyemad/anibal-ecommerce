@@ -13,7 +13,17 @@ class ProductQueryAction
     {
         $query = VendorProduct::query()
             ->active()
-            ->with(['product', 'brand', 'department', 'category', 'subCategory', 'variants', 'attachments']);
+            ->status(VendorProduct::STATUS_APPROVED)
+            ->with([
+                'product' => function ($q) {
+                    $q->with(['brand', 'department', 'category', 'subCategory', 'variants', 'attachments']);
+                },
+                'vendor',
+                'tax',
+                'variants' => function ($q) {
+                    $q->with(['variantConfiguration', 'stocks.region']);
+                }
+            ]);
 
         if (!empty($filters)) {
             $query->filter($filters);

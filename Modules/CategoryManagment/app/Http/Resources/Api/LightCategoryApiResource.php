@@ -6,7 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\Storage;
 
-class CategoryApiResource extends JsonResource
+class LightCategoryApiResource extends JsonResource
 {
 
     /**
@@ -20,12 +20,7 @@ class CategoryApiResource extends JsonResource
             'id' => $this->id,
             'slug' => $this->slug,
             'name' => $this->name,
-            'description' => $this->description,
             'image' => $this->image,
-            'active' => $this->active,
-            'department' => new DepartmentApiResource($this->whenLoaded('department')),
-            'created_at' => $this->created_at,
-            'updated_at' => $this->updated_at,
         ];
     }
 }

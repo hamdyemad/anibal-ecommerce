@@ -4,6 +4,7 @@ namespace Modules\CatalogManagement\app\Models;
 
 use App\Models\BaseModel;
 use App\Models\Attachment;
+use App\Traits\HasSlug;
 use App\Models\User;
 use App\Traits\Translation;
 use App\Models\Traits\HumanDates;
@@ -18,7 +19,7 @@ use Modules\Vendor\app\Models\Vendor;
 
 class Product extends BaseModel
 {
-    use HasFactory, SoftDeletes, Translation, HumanDates;
+    use HasFactory, SoftDeletes, Translation, HumanDates, HasSlug;
 
     protected $guarded = [];
     protected $casts = [

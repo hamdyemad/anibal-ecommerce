@@ -4,14 +4,11 @@ namespace Modules\Vendor\app\Http\Resources\Api;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
-use Modules\CategoryManagment\app\Http\Resources\Api\ActivityApiResource;
 
-class VendorApiResource extends JsonResource
+class LightVendorResource extends JsonResource
 {
     /**
      * Transform the resource into an array.
-     *
-     * @return array<string, mixed>
      */
     public function toArray(Request $request): array
     {
@@ -19,19 +16,10 @@ class VendorApiResource extends JsonResource
             'id' => $this->id,
             'slug' => $this->slug,
             'name' => $this->name,
-            'description' => $this->description,
-            'country_id' => $this->country_id,
-            'country_name' => $this->whenLoaded('country', $this->country?->name),
-            'type' => $this->type,
-            'activities' => ActivityApiResource::collection($this->whenLoaded('activeActivities')),
             'logo' => $this->formatImage($this->logo),
-            'banner' => $this->formatImage($this->banner),
             'active' => (bool) $this->active,
-            'created_at' => $this->created_at,
-            'updated_at' => $this->updated_at,
         ];
     }
-
 
     /**
      * Format image path to full URL

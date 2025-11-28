@@ -21,7 +21,7 @@ class SubCategoryApiResource extends JsonResource
             'slug' => $this->slug,
             'name' => $this->name,
             'description' => $this->description,
-            'image' => ($this->image) ? Storage::disk('public')->url($this->image) : '',
+            'image' => $this->image,
             'active' => $this->active,
             'category' => new CategoryApiResource($this->whenLoaded('category')),
             'created_at' => $this->created_at,

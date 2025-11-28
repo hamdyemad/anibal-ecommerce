@@ -189,4 +189,8 @@ return [
     'no_stock_data' => 'لا توجد بيانات مخزون',
     'variants_and_stock' => 'المتغيرات والمخزون',
     'footer_copyright' => '© :year | تم التطوير بواسطة <a href="https://www.e-ramo.net/ar">إي-رامو للحلول الرقمية</a>',
+    'error_loading_departments' => 'خطأ في تحميل الأقسام',
+    'error_loading_categories' => 'خطأ في تحميل الفئات',
+    'error_loading_sub_categories' => 'خطأ في تحميل الفئات الفرعية',
+    'error_loading_brands' => 'خطأ في تحميل العلامات التجارية',
 ];

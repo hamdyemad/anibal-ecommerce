@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Auth;
 use Modules\CatalogManagement\app\DTOs\ProductFilterDTO;
 use Modules\CatalogManagement\app\Services\Api\ProductApiService;
 use Modules\CatalogManagement\app\Http\Resources\Api\ProductResource;
+use Modules\CatalogManagement\app\Http\Resources\Api\VendorProductResource;
 use Modules\CatalogManagement\app\Http\Requests\Api\ProductReviewRequest;
 
 class ProductApiController extends Controller
@@ -37,12 +38,12 @@ class ProductApiController extends Controller
             );
         }
 
-        $products = $this->productService->getAllProducts($dto);
+        $vendorProducts = $this->productService->getAllProducts($dto);
 
         return $this->sendRes(
             config('responses.success')[app()->getLocale()],
             true,
-            ProductResource::collection($products),
+            VendorProductResource::collection($vendorProducts),
             [],
             200
         );

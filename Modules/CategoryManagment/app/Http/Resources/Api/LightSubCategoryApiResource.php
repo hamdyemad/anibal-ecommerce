@@ -6,9 +6,8 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\Storage;
 
-class CategoryApiResource extends JsonResource
+class LightSubCategoryApiResource extends JsonResource
 {
-
     /**
      * Transform the resource into an array.
      *
@@ -16,16 +15,12 @@ class CategoryApiResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+
         return [
             'id' => $this->id,
             'slug' => $this->slug,
             'name' => $this->name,
-            'description' => $this->description,
             'image' => $this->image,
-            'active' => $this->active,
-            'department' => new DepartmentApiResource($this->whenLoaded('department')),
-            'created_at' => $this->created_at,
-            'updated_at' => $this->updated_at,
         ];
     }
 }

@@ -122,6 +122,11 @@ class VendorProduct extends BaseModel
         return $query->where('is_active', true);
     }
 
+    public function scopeStatus(Builder $query, $status)
+    {
+        return $query->where('status', $status);
+    }
+
     /**
      * Scope: Override filter to add price range and featured filters
      */

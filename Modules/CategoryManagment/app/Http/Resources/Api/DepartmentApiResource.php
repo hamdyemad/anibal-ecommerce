@@ -20,12 +20,13 @@ class DepartmentApiResource extends JsonResource
             return [
                 'id' => $this->id,
                 'name' => $this->name, // select2 expects "id" + "text"
+                'slug' => $this->slug,
             ];
         }
         return [
             'id' => $this->id,
             'slug' => $this->slug,
-            'image' => ($this->image) ? Storage::disk('public')->url($this->image) : '',
+            'image' => $this->image,
             'name' => $this->name,
             'description' => $this->description,
             'active' => $this->active,

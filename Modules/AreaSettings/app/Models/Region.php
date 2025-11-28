@@ -34,7 +34,13 @@ class Region extends BaseModel
     }
     // End Geters
 
-    // Start Scopes
+    public function scopeByVendor(Builder $query, $vendorIdentifier)
+    {
+        return $query->whereHas('city.country.vendors', function($q) use ($vendorIdentifier) {
+            $q->where('vendors.id', $vendorIdentifier)
+                ->orWhere('vendors.slug', $vendorIdentifier);
+        });
+    }
 
     /**
      * Override filter scope to add region-specific filters
@@ -52,9 +58,7 @@ class Region extends BaseModel
 
         // Filter by vendor (through city.country.vendors)
         if (!empty($filters['vendor_id'])) {
-            $query->whereHas('city.country.vendors', function($q) use ($filters) {
-                $q->where('id', $filters['vendor_id']);
-            });
+            $query->byVendor($filters['vendor_id']);
         }
 
         return $query;
