@@ -9,6 +9,10 @@ use Modules\CatalogManagement\app\Models\Tax;
 use Modules\CatalogManagement\app\Models\ProductVariant;
 use Modules\CatalogManagement\app\Models\VariantsConfiguration;
 use Modules\CatalogManagement\app\Models\VariantConfigurationKey;
+use Modules\CatalogManagement\app\Models\VendorProduct;
+use Modules\CatalogManagement\app\Models\VendorProductVariant;
+use Modules\CatalogManagement\app\Models\VendorProductVariantStock;
+use Modules\AreaSettings\app\Models\Region;
 use Modules\CategoryManagment\app\Models\Department;
 use Modules\CategoryManagment\app\Models\Category;
 use Modules\CategoryManagment\app\Models\SubCategory;
@@ -56,6 +60,9 @@ class ProductSeeder extends Seeder
 
             // Create Products with all relationships
             $this->seedProducts($departments, $categories, $subCategories, $brands, $taxes, $variantKeys);
+
+            // Seed vendor products and variants for existing products
+            $this->seedVendorProductsForExistingProducts($taxes, $variantKeys);
 
             $this->command->info('Product seeding completed successfully!');
         });
@@ -550,6 +557,13 @@ class ProductSeeder extends Seeder
         // Get first vendor for vendor_id
         $vendor = \Modules\Vendor\app\Models\Vendor::first();
 
+        // Get first region for stock
+        $region = Region::first();
+        if (!$region) {
+            $this->command->error('No region found. Please create a region first.');
+            return;
+        }
+
         $products = [
             // Electronics - Smartphones
             [
@@ -740,6 +754,8 @@ class ProductSeeder extends Seeder
 
         $createdProducts = 0;
         $skippedProducts = 0;
+        $colors = ['Red', 'Blue', 'Green', 'Black'];
+        $colorValues = ['red', 'blue', 'green', 'black'];
 
         foreach ($products as $productData) {
             // Use firstOrCreate to prevent duplicates
@@ -750,10 +766,10 @@ class ProductSeeder extends Seeder
                     'department_id' => $productData['department_id'],
                     'category_id' => $productData['category_id'],
                     'sub_category_id' => $productData['sub_category_id'],
-                    'vendor_id' => $vendor?->id,
                     'created_by_user_id' => $user->id,
                     'is_active' => $productData['is_active'],
-                    'configuration_type' => 'simple',
+                    'configuration_type' => 'with_variants',
+                    'status' => 'approved',
                 ]
             );
 
@@ -772,6 +788,74 @@ class ProductSeeder extends Seeder
                     'lang_value' => $productData['title_ar'],
                 ]);
 
+                // Create product variants (4 colors)
+                $productVariants = [];
+                foreach ($colors as $index => $color) {
+                    $variant = ProductVariant::create([
+                        'product_id' => $product->id,
+                        'variant_configuration_id' => $variantKeys[0]->id, // Color variant
+                    ]);
+
+                    // Add color translation
+                    $variant->translations()->create([
+                        'lang_id' => $englishLangId,
+                        'lang_key' => 'color',
+                        'lang_value' => $color,
+                    ]);
+
+                    $variant->translations()->create([
+                        'lang_id' => $arabicLangId,
+                        'lang_key' => 'color',
+                        'lang_value' => $this->getArabicColor($color),
+                    ]);
+
+                    $productVariants[] = $variant;
+                }
+
+                // Create vendor product (link product to vendor)
+                if ($vendor) {
+                    $vendorProduct = VendorProduct::firstOrCreate(
+                        ['vendor_id' => $vendor->id, 'product_id' => $product->id],
+                        [
+                            'tax_id' => $taxes[0]->id,
+                            'sku' => $product->slug . '-vendor-sku',
+                            'points' => rand(10, 100),
+                            'max_per_order' => 10,
+                            'is_active' => true,
+                            'is_featured' => rand(0, 1) ? true : false,
+                            'status' => 'approved',
+                        ]
+                    );
+
+                    // Create vendor product variants with pricing and stock
+                    foreach ($productVariants as $variant) {
+                        $vendorProductVariant = VendorProductVariant::firstOrCreate(
+                            [
+                                'vendor_product_id' => $vendorProduct->id,
+                                'variant_configuration_id' => $variantKeys[0]->id,
+                            ],
+                            [
+                                'sku' => $product->slug . '-' . $colorValues[array_search($variant, $productVariants)] . '-vendor',
+                                'price' => rand(10000, 13000) / 100, // $100-$130
+                                'has_offer' => rand(0, 1) ? true : false,
+                                'price_before_discount' => rand(8000, 12000) / 100,
+                                'offer_end_date' => rand(0, 1) ? now()->addDays(30) : null,
+                            ]
+                        );
+
+                        // Create stock for this variant in the region
+                        VendorProductVariantStock::firstOrCreate(
+                            [
+                                'vendor_product_variant_id' => $vendorProductVariant->id,
+                                'region_id' => $region->id,
+                            ],
+                            [
+                                'quantity' => rand(10, 100),
+                            ]
+                        );
+                    }
+                }
+
                 $createdProducts++;
                 $this->command->info('Created product: ' . $productData['title_en']);
             } else {
@@ -782,5 +866,105 @@ class ProductSeeder extends Seeder
 
         $this->command->info('Created ' . $createdProducts . ' new products');
         $this->command->info('Skipped ' . $skippedProducts . ' duplicate products');
+    }
+
+    /**
+     * Seed vendor products and variants for existing products
+     */
+    private function seedVendorProductsForExistingProducts($taxes, $variantKeys)
+    {
+        // Get first vendor
+        $vendor = \Modules\Vendor\app\Models\Vendor::first();
+        if (!$vendor) {
+            $this->command->error('No vendor found. Please create a vendor first.');
+            return;
+        }
+
+        // Get first region for stock
+        $region = Region::first();
+        if (!$region) {
+            $this->command->error('No region found. Please create a region first.');
+            return;
+        }
+
+        $colors = ['Red', 'Blue', 'Green', 'Black'];
+        $colorValues = ['red', 'blue', 'green', 'black'];
+
+        // Get all products that don't have vendor products yet
+        $products = Product::doesntHave('vendorProducts')->get();
+
+        $createdVendorProducts = 0;
+        $createdVariants = 0;
+        $createdStocks = 0;
+
+        foreach ($products as $product) {
+            // Create vendor product
+            $vendorProduct = VendorProduct::firstOrCreate(
+                ['vendor_id' => $vendor->id, 'product_id' => $product->id],
+                [
+                    'tax_id' => $taxes[0]->id,
+                    'sku' => $product->slug . '-vendor-sku',
+                    'points' => rand(10, 100),
+                    'max_per_order' => 10,
+                    'is_active' => true,
+                    'is_featured' => rand(0, 1) ? true : false,
+                    'status' => 'approved',
+                ]
+            );
+
+            if ($vendorProduct->wasRecentlyCreated) {
+                $createdVendorProducts++;
+                $this->command->info('Created vendor product for: ' . $product->title);
+
+                // Create 4 vendor product variants (one for each color)
+                for ($i = 0; $i < 4; $i++) {
+                    $price = rand(10000, 13000) / 100; // $100-$130
+                    $vendorProductVariant = VendorProductVariant::create([
+                        'vendor_product_id' => $vendorProduct->id,
+                        'variant_configuration_id' => null, // No specific variant configuration
+                        'sku' => $product->slug . '-' . $colorValues[$i] . '-vendor',
+                        'price' => $price,
+                        'price_before_discount' => $price,
+                    ]);
+
+                    if ($vendorProductVariant->wasRecentlyCreated) {
+                        $createdVariants++;
+
+                        // Create stock for this variant in the region
+                        $stock = VendorProductVariantStock::firstOrCreate(
+                            [
+                                'vendor_product_variant_id' => $vendorProductVariant->id,
+                                'region_id' => $region->id,
+                            ],
+                            [
+                                'quantity' => rand(10, 100),
+                            ]
+                        );
+
+                        if ($stock->wasRecentlyCreated) {
+                            $createdStocks++;
+                        }
+                    }
+                }
+            }
+        }
+
+        $this->command->info('Created ' . $createdVendorProducts . ' vendor products');
+        $this->command->info('Created ' . $createdVariants . ' vendor product variants');
+        $this->command->info('Created ' . $createdStocks . ' vendor product variant stocks');
+    }
+
+    /**
+     * Get Arabic color name
+     */
+    private function getArabicColor(string $color): string
+    {
+        $colors = [
+            'Red' => 'أحمر',
+            'Blue' => 'أزرق',
+            'Green' => 'أخضر',
+            'Black' => 'أسود',
+        ];
+        return $colors[$color] ?? $color;
     }
 }

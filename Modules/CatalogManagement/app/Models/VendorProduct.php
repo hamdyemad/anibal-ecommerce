@@ -6,7 +6,6 @@ use App\Models\BaseModel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Traits\HumanDates;
-use App\Traits\HasSlug;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\Vendor\app\Models\Vendor;
 use Illuminate\Database\Eloquent\Builder;
@@ -14,7 +13,7 @@ use Illuminate\Database\Eloquent\Builder;
 
 class VendorProduct extends BaseModel
 {
-    use HasFactory, SoftDeletes, HumanDates, HasSlug;
+    use HasFactory, SoftDeletes, HumanDates;
 
     // Status constants
     const STATUS_PENDING = 'pending';
