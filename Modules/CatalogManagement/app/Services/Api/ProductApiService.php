@@ -42,12 +42,9 @@ class ProductApiService
     /**
      * Store product review
      */
-    public function storeProductReview(string $productId, array $data)
+    public function findProduct(string $productId)
     {
-        $data['product_id'] = $productId;
-        $data['customer_id'] = Auth::id();
-
-        return $this->repository->storeProductReview($data);
+        return $this->repository->findProduct($productId);
     }
 
     /**

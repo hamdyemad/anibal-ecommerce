@@ -171,6 +171,11 @@ return [
     'created_date_to_invalid' => 'created_date_to must be a valid date (YYYY-MM-DD)',
     'activity_ids_invalid' => 'activity_ids must be an array',
     'char_invalid' => 'char must be a valid character',
+    'min_star_range' => 'min_star must be between 1 and 5',
+    'max_star_range' => 'max_star must be between 1 and 5',
+    'min_star_max_star' => 'min_star cannot be greater than max_star',
+    'status_invalid' => 'status must be one of: pending, approved, rejected',
+    'vendor_product_id_not_exist' => 'vendor_product_id does not exist',
 
     /*
     |--------------------------------------------------------------------------

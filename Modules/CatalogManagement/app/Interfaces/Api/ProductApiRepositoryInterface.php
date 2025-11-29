@@ -8,10 +8,9 @@ interface ProductApiRepositoryInterface
 {
     public function getAllProducts(ProductFilterDTO $filters);
     public function getProductByIdOrSlug(string $identifier, string $vendorId);
-    public function storeProductReview(array $data);
+    public function findProduct(string $id);
     public function getPriceByFilters(array $filters);
     public function getTagsByFilters(array $filters);
-    public function getInputsByFilters(array $filters);
     public function getTreesByFilters(array $filters);
     public function incrementProductViews(string $productId);
 

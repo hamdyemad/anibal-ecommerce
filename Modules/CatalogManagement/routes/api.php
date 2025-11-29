@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use Modules\CatalogManagement\app\Http\Controllers\Api\BrandApiController;
 use Modules\CatalogManagement\app\Http\Controllers\VariantsConfigurationController;
 use Modules\CatalogManagement\app\Http\Controllers\Api\ProductApiController;
+use Modules\CatalogManagement\app\Http\Controllers\Api\ReviewApiController;
 
 // Variant Configuration API Routes (for product form)
 Route::prefix('variant-configurations')->group(function () {
@@ -37,7 +38,11 @@ Route::prefix('products')->group(function () {
     // Route::get('/filters/bundle-category/{id}', [ProductApiController::class, 'filtersByBundleCategory']);
 
 
+    Route::get('/{vendorProductId}/reviews', [ReviewApiController::class, 'getByVendorProduct']);
+});
 
-    // Reviews (authenticated)
-    // Route::post('/{id}/reviews', [ProductApiController::class, 'storeReview'])->middleware('auth:sanctum'); // Need Review Model
+// Review Routes (authenticated)
+Route::middleware('auth:sanctum')->group(function () {
+    Route::post('/products/{vendorProductId}/reviews', [ReviewApiController::class, 'store']);
+    Route::get('/reviews/my-reviews', [ReviewApiController::class, 'getCustomerReviews']);
 });

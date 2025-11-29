@@ -290,34 +290,6 @@ class ProductApiController extends Controller
     }
 
     /**
-     * Store product review
-     * POST /api/products/{id}/reviews
-     */
-    public function storeReview(ProductReviewRequest $request, string $productId)
-    {
-        if (!Auth::check()) {
-            return $this->sendRes(
-                config('responses.unauthorized')[app()->getLocale()],
-                false,
-                [],
-                [],
-                401
-            );
-        }
-
-        $validated = $request->validated();
-        $review = $this->productService->storeProductReview($productId, $validated);
-
-        return $this->sendRes(
-            config('responses.review_sent_successfully')[app()->getLocale()],
-            true,
-            [],
-            [],
-            201
-        );
-    }
-
-    /**
      * Get filters (categories, brands, variants, etc.)
      * GET /api/products/filters
      */

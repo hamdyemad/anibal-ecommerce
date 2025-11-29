@@ -72,11 +72,9 @@ class ProductApiRepository implements ProductApiRepositoryInterface
     /**
      * Store product review
      */
-    public function storeProductReview(array $data)
+    public function findProduct(string $id)
     {
-        // TODO: Implement product review storage
-        // This should create a review record for the product
-        return null;
+        return $this->query->handle([])->where('id', $id)->first();
     }
 
     /**
@@ -130,16 +128,6 @@ class ProductApiRepository implements ProductApiRepositoryInterface
         }
 
         return array_unique(array_filter($tags));
-    }
-
-    /**
-     * Get inputs from filtered products
-     */
-    public function getInputsByFilters(array $filters)
-    {
-        // This would depend on your input structure
-        // For now, returning empty array
-        return [];
     }
 
     /**
