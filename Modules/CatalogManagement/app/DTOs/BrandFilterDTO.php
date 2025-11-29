@@ -3,7 +3,9 @@
 namespace Modules\CatalogManagement\app\DTOs;
 
 use App\DTOs\FilterDTO;
+use Modules\CategoryManagment\app\Models\Category;
 use Modules\CategoryManagment\app\Models\Department;
+use Modules\CategoryManagment\app\Models\SubCategory;
 use Modules\Vendor\app\Models\Vendor;
 
 class BrandFilterDTO extends FilterDTO
@@ -13,6 +15,8 @@ class BrandFilterDTO extends FilterDTO
     public function __construct(
         public ?string $search = null,
         public ?string $department_id = null,
+        public ?string $category_id = null,
+        public ?string $sub_category_id = null,
         public ?string $vendor_id = null,
         public ?string $sort_by = null,
         public ?string $sort_type = null,
@@ -29,6 +33,8 @@ class BrandFilterDTO extends FilterDTO
         return new self(
             search: $request->input('search'),
             department_id: $request->input('department_id'),
+            category_id: $request->input('category_id'),
+            sub_category_id: $request->input('sub_category_id'),
             vendor_id: $request->input('vendor_id'),
             sort_by: $request->input('sort_by'),
             sort_type: $request->input('sort_type'),
@@ -43,6 +49,8 @@ class BrandFilterDTO extends FilterDTO
         return array_filter([
             'search' => $this->search,
             'department_id' => $this->department_id,
+            'category_id' => $this->category_id,
+            'sub_category_id' => $this->sub_category_id,
             'vendor_id' => $this->vendor_id,
             'sort_by' => $this->sort_by,
             'sort_type' => $this->sort_type,
@@ -66,6 +74,14 @@ class BrandFilterDTO extends FilterDTO
 
         if ($this->department_id && !$this->departmentExists($this->department_id)) {
             $this->errors['department_id'][] = __('validation.department_id_not_exist');
+        }
+
+        if ($this->category_id && !$this->categoryExists($this->category_id)) {
+            $this->errors['category_id'][] = __('validation.category_id_not_exist');
+        }
+
+        if ($this->sub_category_id && !$this->subCategoryExists($this->sub_category_id)) {
+            $this->errors['sub_category_id'][] = __('validation.sub_category_id_not_exist');
         }
 
         if ($this->vendor_id && !$this->vendorExists($this->vendor_id)) {
@@ -92,5 +108,15 @@ class BrandFilterDTO extends FilterDTO
     private function vendorExists(string $vendorId): bool
     {
         return Vendor::where('id', $vendorId)->orWhere('slug', $vendorId)->exists();
+    }
+
+    private function categoryExists(string $categoryId): bool
+    {
+        return Category::where('id', $categoryId)->orWhere('slug', $categoryId)->exists();
+    }
+
+    private function subCategoryExists(string $subCategoryId): bool
+    {
+        return SubCategory::where('id', $subCategoryId)->orWhere('slug', $subCategoryId)->exists();
     }
 }

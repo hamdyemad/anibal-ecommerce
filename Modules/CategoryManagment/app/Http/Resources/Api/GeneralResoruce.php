@@ -31,6 +31,6 @@ class GeneralResoruce extends JsonResource
             return null;
         }
 
-        return url(asset('storage/' . $imagePath->path));
+        return url(asset('storage/' . $imagePath));
     }
 }

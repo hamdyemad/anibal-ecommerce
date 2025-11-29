@@ -4,6 +4,7 @@ namespace Modules\CatalogManagement\app\Services\Api;
 
 use Modules\CatalogManagement\app\Interfaces\Api\ProductApiRepositoryInterface;
 use Illuminate\Support\Facades\Auth;
+use Modules\CatalogManagement\app\DTOs\BrandFilterDTO;
 use Modules\CatalogManagement\app\DTOs\ProductFilterDTO;
 use Modules\CategoryManagment\app\Services\Api\CategoryApiService;
 
@@ -11,7 +12,8 @@ class ProductApiService
 {
     public function __construct(
         protected ProductApiRepositoryInterface $repository,
-        protected CategoryApiService $CategoryService
+        protected CategoryApiService $CategoryService,
+        protected BrandApiService $BrandService
     ) {}
 
     /**
@@ -53,10 +55,12 @@ class ProductApiService
      */
     public function getFilters(array $filters)
     {
+        $brandDto = new BrandFilterDTO(department_id: $filters['department_id'] ?? null, category_id: $filters['category_id'] ?? null, sub_category_id: $filters['sub_category_id'] ?? null);
+
         return [
             'category_info' => $this->CategoryService->getCategoriesByIds($filters),
             'categories' => $this->CategoryService->getCategoriesByFilters($filters),
-            // 'brands' => $this->repository->getBrandsByFilters($filters),
+            'brands' => $this->BrandService->getAllBrands($brandDto),
             // 'price_range' => $this->repository->getPriceByFilters($filters),
             // 'tags' => $this->repository->getTagsByFilters($filters),
             // 'inputs' => $this->repository->getInputsByFilters($filters),

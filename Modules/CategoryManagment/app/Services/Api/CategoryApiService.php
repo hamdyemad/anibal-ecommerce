@@ -45,8 +45,7 @@ class CategoryApiService
 
         // If main_category_id is provided, return sub-categories
         if (!empty($filters['main_category_id'])) {
-            $dto = new CategoryFilterDTO(main_category_id: $filters['main_category_id']);
-            return $this->SubCategoryRepository->getSubCategoriesByCategory($dto);
+            return $this->SubCategoryRepository->getSubCategoriesByCategory($filters['main_category_id']);
         }
 
         // If sub_category_id is provided, return the sub-category itself
@@ -75,7 +74,7 @@ class CategoryApiService
 
         if (!empty($filters['sub_category_id'])) {
             $dto = new CategoryFilterDTO();
-            return $this->SubCategoryRepository->getSubCategoryById($dto, $filters['sub_category_id']);
+            return $this->SubCategoryRepository->find($dto, $filters['sub_category_id']);
         }
 
         if (!empty($filters['department_id'])) {

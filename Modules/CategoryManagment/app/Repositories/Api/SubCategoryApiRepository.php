@@ -38,7 +38,7 @@ class SubCategoryApiRepository implements SubCategoryApiRepositoryInterface
     public function getSubCategoriesByCategory($categoryId)
     {
         return $this->query->handle([])
-            ->byMain($categoryId)
+            ->byCategory($categoryId)
             ->with('category')
             ->get();
     }

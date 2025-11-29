@@ -103,35 +103,6 @@ class ProductApiRepository implements ProductApiRepositoryInterface
     //     ];
     // }
 
-    /**
-     * Get brands based on filters
-     */
-    public function getBrandsByFilters(array $filters)
-    {
-        if (!empty($filters['brand_id'])) {
-            return collect();
-        }
-
-        $query = Brand::query()
-            ->whereHas('products', function ($q) use ($filters) {
-                $q->where('is_active', true);
-
-                // Apply category filters
-                if (!empty($filters['department_id'])) {
-                    $q->where('department_id', $filters['department_id']);
-                }
-
-                if (!empty($filters['category_id'])) {
-                    $q->where('category_id', $filters['category_id']);
-                }
-
-                if (!empty($filters['sub_category_id'])) {
-                    $q->where('sub_category_id', $filters['sub_category_id']);
-                }
-            });
-
-        return $query->get();
-    }
 
     /**
      * Get price range from filtered products

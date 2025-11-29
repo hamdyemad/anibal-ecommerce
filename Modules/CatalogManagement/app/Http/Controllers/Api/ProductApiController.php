@@ -330,6 +330,7 @@ class ProductApiController extends Controller
             [
                 'category_info' => empty($filterData['category_info']) ? [] : GeneralResoruce::make($filterData['category_info']),
                 'categories' => GeneralResoruce::collection($filterData['categories']),
+                'brands' => GeneralResoruce::collection($filterData['brands']),
             ],
             [],
             200

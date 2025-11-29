@@ -9,7 +9,6 @@ interface ProductApiRepositoryInterface
     public function getAllProducts(ProductFilterDTO $filters);
     public function getProductByIdOrSlug(string $identifier, string $vendorId);
     public function storeProductReview(array $data);
-    public function getBrandsByFilters(array $filters);
     public function getPriceByFilters(array $filters);
     public function getTagsByFilters(array $filters);
     public function getInputsByFilters(array $filters);

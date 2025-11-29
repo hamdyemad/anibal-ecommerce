@@ -41,6 +41,12 @@ class Brand extends BaseModel
         return $this->morphOne(Attachment::class, 'attachable')->where('type', 'cover');
     }
 
+    public function getImageAttribute()
+    {
+        $imageAttachment = $this->logo;
+        return $imageAttachment ? $imageAttachment->path : null;
+    }
+
     public function products()
     {
         return $this->hasMany(Product::class);
@@ -61,6 +67,24 @@ class Brand extends BaseModel
         return $query->whereHas('products', function ($query) use ($departmentIdentifier) {
             $query->whereHas('department', function ($query) use ($departmentIdentifier) {
                 $query->where('departments.id', $departmentIdentifier)->orWhere('departments.slug', $departmentIdentifier);
+            });
+        });
+    }
+
+    public function scopeByCategory($query, $categoryIdentifier)
+    {
+        return $query->whereHas('products', function ($query) use ($categoryIdentifier) {
+            $query->whereHas('category', function ($query) use ($categoryIdentifier) {
+                $query->where('categories.id', $categoryIdentifier)->orWhere('categories.slug', $categoryIdentifier);
+            });
+        });
+    }
+
+    public function scopeBySubCategory($query, $subCategoryIdentifier)
+    {
+        return $query->whereHas('products', function ($query) use ($subCategoryIdentifier) {
+            $query->whereHas('subCategory', function ($query) use ($subCategoryIdentifier) {
+                $query->where('sub_categories.id', $subCategoryIdentifier)->orWhere('sub_categories.slug', $subCategoryIdentifier);
             });
         });
     }

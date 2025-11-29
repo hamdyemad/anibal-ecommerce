@@ -21,6 +21,7 @@ use Modules\CatalogManagement\app\Actions\ProductQueryAction;
 use App\Actions\IsPaginatedAction;
 use Modules\CatalogManagement\app\Interfaces\Api\BrandApiRepositoryInterface;
 use Modules\CatalogManagement\app\Repositories\Api\BrandApiRepository;
+use Modules\CatalogManagement\app\Services\Api\BrandApiService;
 use Modules\CategoryManagment\app\Services\Api\CategoryApiService;
 use Nwidart\Modules\Traits\PathNamespace;
 use RecursiveDirectoryIterator;
@@ -101,7 +102,8 @@ class CatalogManagementServiceProvider extends ServiceProvider
             function ($app) {
                 return new ProductApiService(
                     $app->make(ProductApiRepositoryInterface::class),
-                    $app->make(CategoryApiService::class)
+                    $app->make(CategoryApiService::class),
+                    $app->make(BrandApiService::class),
                 );
             }
         );
