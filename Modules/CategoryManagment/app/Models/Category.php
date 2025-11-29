@@ -38,6 +38,11 @@ class Category extends BaseModel
         return $imageAttachment ? $imageAttachment->path : null;
     }
 
+    public function getTypeAttribute()
+    {
+        return 'category';
+    }
+
     /**
      * Department relationship
      */

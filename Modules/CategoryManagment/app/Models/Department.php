@@ -68,6 +68,11 @@ class Department extends BaseModel
         return $this->getTranslation('description', app()->getLocale()) ?? '-';
     }
 
+    public function getTypeAttribute()
+    {
+        return 'department';
+    }
+
     /**
      * Get active activities
      */

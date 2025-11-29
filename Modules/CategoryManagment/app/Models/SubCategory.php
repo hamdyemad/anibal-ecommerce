@@ -36,6 +36,11 @@ class SubCategory extends BaseModel
         return $imageAttachment ? $imageAttachment->path : null;
     }
 
+    public function getTypeAttribute()
+    {
+        return 'sub_category';
+    }
+
     /**
      * Category relationship
      */

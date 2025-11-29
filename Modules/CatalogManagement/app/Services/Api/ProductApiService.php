@@ -5,11 +5,13 @@ namespace Modules\CatalogManagement\app\Services\Api;
 use Modules\CatalogManagement\app\Interfaces\Api\ProductApiRepositoryInterface;
 use Illuminate\Support\Facades\Auth;
 use Modules\CatalogManagement\app\DTOs\ProductFilterDTO;
+use Modules\CategoryManagment\app\Services\Api\CategoryApiService;
 
 class ProductApiService
 {
     public function __construct(
-        protected ProductApiRepositoryInterface $repository
+        protected ProductApiRepositoryInterface $repository,
+        protected CategoryApiService $CategoryService
     ) {}
 
     /**
@@ -36,30 +38,6 @@ class ProductApiService
     }
 
     /**
-     * Get hot deals
-     */
-    public function getHotDeals(ProductFilterDTO $filters)
-    {
-        return $this->repository->getHotDeals($filters);
-    }
-
-    /**
-     * Get top products
-     */
-    public function getTopProducts(ProductFilterDTO $filters)
-    {
-        return $this->repository->getTopProducts($filters);
-    }
-    
-    /**
-     * Get product variants keys
-     */
-    public function getProductVariantsKeys(string $productId)
-    {
-        return $this->repository->getProductVariantsKeys($productId);
-    }
-
-    /**
      * Store product review
      */
     public function storeProductReview(string $productId, array $data)
@@ -75,7 +53,15 @@ class ProductApiService
      */
     public function getFilters(array $filters)
     {
-        return $this->repository->getFilters($filters);
+        return [
+            'category_info' => $this->CategoryService->getCategoriesByIds($filters),
+            'categories' => $this->CategoryService->getCategoriesByFilters($filters),
+            // 'brands' => $this->repository->getBrandsByFilters($filters),
+            // 'price_range' => $this->repository->getPriceByFilters($filters),
+            // 'tags' => $this->repository->getTagsByFilters($filters),
+            // 'inputs' => $this->repository->getInputsByFilters($filters),
+            // 'variants' => $this->repository->getTreesByFilters($filters),
+        ];
     }
 
     /**
@@ -95,46 +81,6 @@ class ProductApiService
     // {
     //     return $this->repository->getFiltersByBundleCategory($filters);
     // }
-
-    /**
-     * Get categories based on filters
-     */
-    public function getCategoriesByFilters(array $filters)
-    {
-        return $this->repository->getCategoriesByFilters($filters);
-    }
-
-    /**
-     * Get brands based on filters
-     */
-    public function getBrandsByFilters(array $filters)
-    {
-        return $this->repository->getBrandsByFilters($filters);
-    }
-
-    /**
-     * Get price range from filtered products
-     */
-    public function getPriceByFilters(array $filters)
-    {
-        return $this->repository->getPriceByFilters($filters);
-    }
-
-    /**
-     * Get tags from filtered products
-     */
-    public function getTagsByFilters(array $filters)
-    {
-        return $this->repository->getTagsByFilters($filters);
-    }
-
-    /**
-     * Get inputs from filtered products
-     */
-    public function getInputsByFilters(array $filters)
-    {
-        return $this->repository->getInputsByFilters($filters);
-    }
 
     /**
      * Get variant trees from filtered products

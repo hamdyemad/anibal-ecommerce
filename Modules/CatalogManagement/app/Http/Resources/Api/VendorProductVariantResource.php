@@ -28,7 +28,7 @@ class VendorProductVariantResource extends JsonResource
             'cart_id' => $this->cart_id,
             'countDeliveredProduct' => $this->countDeliveredProduct,
             'countOfAvailable' => $this->countOfAvailable,
-            'end_at' => $this->discount_end_date,
+            'end_at' => $this->discount_end_at,
             'countDown' => $this->discount_end_date ? OfferExpireDateResource::make($this->getRawOriginal('discount_end_date')) : null,
         ];
     }

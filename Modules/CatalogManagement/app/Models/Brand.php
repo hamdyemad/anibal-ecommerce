@@ -3,14 +3,14 @@
 namespace Modules\CatalogManagement\app\Models;
 
 use App\Models\Attachment;
+use App\Models\BaseModel;
 use App\Models\Traits\HumanDates;
 use App\Traits\HasSlug;
 use App\Traits\Translation;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class Brand extends Model
+class Brand extends BaseModel
 {
     use HasFactory, Translation, SoftDeletes, HumanDates, HasSlug;
 
@@ -39,6 +39,30 @@ class Brand extends Model
     public function cover()
     {
         return $this->morphOne(Attachment::class, 'attachable')->where('type', 'cover');
+    }
+
+    public function products()
+    {
+        return $this->hasMany(Product::class);
+    }
+
+    public function getTypeAttribute()
+    {
+        return 'brand';
+    }
+
+    public function scopeActive($query)
+    {
+        return $query->where('active', true);
+    }
+
+    public function scopeByDepartment($query, $departmentIdentifier)
+    {
+        return $query->whereHas('products', function ($query) use ($departmentIdentifier) {
+            $query->whereHas('department', function ($query) use ($departmentIdentifier) {
+                $query->where('departments.id', $departmentIdentifier)->orWhere('departments.slug', $departmentIdentifier);
+            });
+        });
     }
 
 }

@@ -2,7 +2,8 @@
 
 namespace Modules\CategoryManagment\app\DTOs;
 use App\DTOs\FilterDTO;
-
+use Modules\CategoryManagment\app\Models\Category;
+use Modules\CategoryManagment\app\Models\Department;
 
 class CategoryFilterDTO extends FilterDTO
 {
@@ -13,8 +14,9 @@ class CategoryFilterDTO extends FilterDTO
         public ?string $created_date_from = null,
         public ?string $created_date_to = null,
         public ?string $department_id = null,
+        public ?string $main_category_id = null,
         public ?int $per_page = null,
-        public bool $paginated = false,
+        public ?string $paginated = null,
     ) {}
 
     /**
@@ -27,8 +29,9 @@ class CategoryFilterDTO extends FilterDTO
             created_date_from: $request->input('created_date_from'),
             created_date_to: $request->input('created_date_to'),
             department_id: $request->input('department_id'),
+            main_category_id: $request->input('main_category_id'),
             per_page: $request->integer('per_page', 15),
-            paginated: $request->boolean('paginated', false)
+            paginated: $request->input('paginated', null)
         );
     }
 
@@ -39,6 +42,7 @@ class CategoryFilterDTO extends FilterDTO
             'created_date_from' => $this->created_date_from,
             'created_date_to' => $this->created_date_to,
             'department_id' => $this->department_id,
+            'main_category_id' => $this->main_category_id,
             'per_page' => $this->per_page,
             'paginated' => $this->paginated,
         ], fn($value) => $value !== null);
@@ -56,6 +60,14 @@ class CategoryFilterDTO extends FilterDTO
             $this->errors['created_date_to'][] = __('validation.created_date_to_invalid');
         }
 
+        if ($this->department_id && !$this->departmentExists($this->department_id)) {
+            $this->errors['department_id'][] = __('validation.department_id_not_exist');
+        }
+
+        if ($this->main_category_id && !$this->categoryExists($this->main_category_id)) {
+            $this->errors['main_category_id'][] = __('validation.category_id_not_exist');
+        }
+
         return count($this->errors) === 0;
     }
 
@@ -67,5 +79,15 @@ class CategoryFilterDTO extends FilterDTO
     private function isValidDate(string $date): bool
     {
         return strtotime($date) !== false;
+    }
+
+    private function departmentExists(string $departmentId): bool
+    {
+        return Department::where('id', $departmentId)->orWhere('slug', $departmentId)->exists();
+    }
+
+    private function categoryExists(string $categoryId): bool
+    {
+       return Category::where('id', $categoryId)->orWhere('slug', $categoryId)->exists();
     }
 }

@@ -17,7 +17,7 @@ class DepartmentFilterDTO extends FilterDTO
         public ?string $vendor_id = null,
         public ?string $brand_id = null,
         public ?int $per_page = null,
-        public bool $paginated = false,
+        public ?string $paginated = null,
     ) {}
 
     /**
@@ -33,7 +33,7 @@ class DepartmentFilterDTO extends FilterDTO
             vendor_id: $request->input('vendor_id'),
             brand_id: $request->input('brand_id'),
             per_page: $request->integer('per_page', 15),
-            paginated: $request->boolean('paginated', false)
+            paginated: $request->input('paginated', null)
         );
     }
 

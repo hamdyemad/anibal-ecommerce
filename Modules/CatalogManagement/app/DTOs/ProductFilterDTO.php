@@ -35,7 +35,7 @@ class ProductFilterDTO extends FilterDTO
         public ?string $region_id = null,
         public ?string $subregion_id = null,
         public ?int $per_page = null,
-        public bool $paginated = false,
+        public ?string $paginated = null,
         public ?int $limit = null,
     ) {}
 
@@ -62,7 +62,7 @@ class ProductFilterDTO extends FilterDTO
             region_id: $request->input('region_id', null),
             subregion_id: $request->input('subregion_id', null),
             per_page: $request->integer('per_page', 15),
-            paginated: $request->boolean('paginated', false),
+            paginated: $request->input('paginated', null),
             limit: $request->integer('limit', null)
         );
     }
@@ -87,6 +87,7 @@ class ProductFilterDTO extends FilterDTO
             'region_id' => $this->region_id,
             'subregion_id' => $this->subregion_id,
             'limit' => $this->limit,
+            'paginated' => $this->paginated,
         ], fn($value) => $value !== null);
     }
 

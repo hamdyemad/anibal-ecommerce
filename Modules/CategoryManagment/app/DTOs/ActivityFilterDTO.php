@@ -12,7 +12,7 @@ class ActivityFilterDTO extends FilterDTO
         public ?string $created_date_from = null,
         public ?string $created_date_to = null,
         public ?int $per_page = null,
-        public bool $paginated = false,
+        public ?string $paginated = null,
     ) {}
 
     /**
@@ -25,7 +25,7 @@ class ActivityFilterDTO extends FilterDTO
             created_date_from: $request->input('created_date_from'),
             created_date_to: $request->input('created_date_to'),
             per_page: $request->integer('per_page', 15),
-            paginated: $request->boolean('paginated', false)
+            paginated: $request->input('paginated', null)
         );
     }
 

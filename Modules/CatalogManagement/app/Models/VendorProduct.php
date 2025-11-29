@@ -73,6 +73,12 @@ class VendorProduct extends BaseModel
         return $this->hasMany(VendorProductVariant::class);
     }
 
+    public function highestDiscountVariant()
+    {
+        return $this->hasOne(VendorProductVariant::class)
+            ->orderBy('price', 'desc');
+    }
+
     /**
      * Apply custom search logic for Product
      * Searches by title, brand, and category in addition to translations

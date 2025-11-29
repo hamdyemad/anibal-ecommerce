@@ -31,7 +31,7 @@ class VendorProductVariant extends Model
      */
     public function getHasDiscountAttribute()
     {
-        return $this->attributes['has_discount'] ?? $this->attributes['has_discount'] ?? false;
+        return $this->attributes['has_discount'] ?? false;
     }
 
     /**

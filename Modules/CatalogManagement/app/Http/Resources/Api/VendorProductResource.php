@@ -55,7 +55,9 @@ class VendorProductResource extends JsonResource
             'vendor' => LightVendorResource::make($this->whenLoaded('vendor')),
             'brand' => LightBrandApiResource::make($this->product->brand),
             'tax' => TaxResource::make($this->tax),
-            'variants' => VendorProductVariantResource::collection($this->variants),
+            'variants' => $this->relationLoaded('highestDiscountVariant')
+                ? VendorProductVariantResource::collection(collect([$this->highestDiscountVariant])->filter())
+                : VendorProductVariantResource::collection($this->whenLoaded('variants')),
             'department' => LightDepartmentApiResource::make($this->product->department),
             'category' => LightCategoryApiResource::make($this->product->category),
             'sub_category' => LightSubCategoryApiResource::make($this->product->subCategory),

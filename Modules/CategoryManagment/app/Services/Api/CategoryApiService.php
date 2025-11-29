@@ -10,19 +10,11 @@ use Modules\CategoryManagment\app\Interfaces\Api\SubCategoryApiRepositoryInterfa
 
 class CategoryApiService
 {
-    protected $CategoryRepository;
-    protected $DepartmentRepository;
-    protected $SubCategoryRepository;
-
     public function __construct(
-        CategoryApiRepositoryInterface $CategoryRepository,
-        DepartmentApiRepositoryInterface $DepartmentRepository,
-        SubCategoryApiRepositoryInterface $SubCategoryRepository
-    ) {
-        $this->CategoryRepository = $CategoryRepository;
-        $this->DepartmentRepository = $DepartmentRepository;
-        $this->SubCategoryRepository = $SubCategoryRepository;
-    }
+        protected CategoryApiRepositoryInterface $CategoryRepository,
+        protected DepartmentApiRepositoryInterface $DepartmentRepository,
+        protected SubCategoryApiRepositoryInterface $SubCategoryRepository,
+    ) {}
 
     /**
      * Get all categories with filters and pagination
@@ -47,27 +39,57 @@ class CategoryApiService
     {
         // If department_id is provided, return main categories for that department
         if (!empty($filters['department_id'])) {
-            return $this->CategoryRepository->getCategoriesByDepartment($filters['department_id']);
+            $dto = new CategoryFilterDTO(department_id: $filters['department_id']);
+            return $this->CategoryRepository->getAllCategories($dto);
         }
 
         // If main_category_id is provided, return sub-categories
         if (!empty($filters['main_category_id'])) {
-            return $this->SubCategoryRepository->getSubCategoriesByCategory($filters['main_category_id']);
+            $dto = new CategoryFilterDTO(main_category_id: $filters['main_category_id']);
+            return $this->SubCategoryRepository->getSubCategoriesByCategory($dto);
         }
 
         // If sub_category_id is provided, return the sub-category itself
         if (!empty($filters['sub_category_id'])) {
-            return $this->SubCategoryRepository->getSubCategoryById($filters['sub_category_id']);
+            return collect();
         }
 
         // If brand_id only, return all departments that have products from this brand
         if (!empty($filters['brand_id'])) {
             $dto = new DepartmentFilterDTO(brand_id: $filters['brand_id']);
-            return $this->DepartmentRepository->getDepartmentsByBrand($filters['brand_id']);
+            return $this->DepartmentRepository->getDepartmentsByBrand($dto);
         }
 
         // Return all active departments
-        $dto = new DepartmentFilterDTO(active: true);
+        $dto = new DepartmentFilterDTO();
         return $this->DepartmentRepository->getAllDepartments($dto);
+    }
+
+
+    public function getCategoriesByIds(array $filters)
+    {
+        if (!empty($filters['main_category_id'])) {
+            $dto = new CategoryFilterDTO();
+            return $this->CategoryRepository->find($dto, $filters['main_category_id']);
+        }
+
+        if (!empty($filters['sub_category_id'])) {
+            $dto = new CategoryFilterDTO();
+            return $this->SubCategoryRepository->getSubCategoryById($dto, $filters['sub_category_id']);
+        }
+
+        if (!empty($filters['department_id'])) {
+            $dto = new DepartmentFilterDTO();
+            return $this->DepartmentRepository->find($dto, $filters['department_id']);
+        }
+
+        // If brand_id only, return all departments that have products from this brand
+        if (!empty($filters['brand_id'])) {
+            // $dto = new DepartmentFilterDTO(brand_id: $filters['brand_id']);
+            // return $this->DepartmentRepository->getDepartmentsByBrand($dto);
+            return [];
+        }
+
+        return [];
     }
 }

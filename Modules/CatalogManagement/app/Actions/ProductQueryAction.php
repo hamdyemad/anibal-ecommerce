@@ -20,9 +20,6 @@ class ProductQueryAction
                 },
                 'vendor',
                 'tax',
-                'variants' => function ($q) {
-                    $q->with(['variantConfiguration']);
-                }
             ]);
 
         if (!empty($filters)) {
@@ -54,7 +51,23 @@ class ProductQueryAction
                 ->select('products.*')->distinct('products.id');
                 break;
             case 'price':
-                $query->orderByRaw("(SELECT MIN(price) FROM variants_configurations WHERE product_id = products.id) {$sortType}");
+                $query->with(['variants' => function ($q) {
+                    $q->where('has_discount', true)->whereNotNull('discount_end_date')
+                      ->where('discount_end_date', '>', now());
+                }])
+                ->orderByRaw("(
+                    SELECT COALESCE(MIN(price), 0)
+                    FROM vendor_product_variants
+                    WHERE vendor_product_id = vendor_products.id
+                    AND discount_end_date IS NOT NULL
+                    AND discount_end_date > NOW() AND has_discount = true
+                ) {$sortType}")
+                ->orderByRaw("(
+                    SELECT COALESCE(MIN(price), 0)
+                    FROM vendor_product_variants
+                    WHERE vendor_product_id = vendor_products.id
+                    AND has_discount = true
+                ) {$sortType}");
                 break;
             case 'rating':
                 $query->withAvg('reviews', 'rating')

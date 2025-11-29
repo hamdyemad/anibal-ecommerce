@@ -12,14 +12,12 @@ use Modules\CatalogManagement\app\Models\VariantConfigurationKey;
 use Modules\CatalogManagement\app\Models\VariantsConfiguration;
 use Illuminate\Support\Facades\Auth;
 use Modules\CatalogManagement\app\DTOs\ProductFilterDTO;
-use Modules\CategoryManagment\app\Services\Api\CategoryApiService;
 
 class ProductApiRepository implements ProductApiRepositoryInterface
 {
     public function __construct(
         private ProductQueryAction $query,
-        private IsPaginatedAction $paginated,
-        private CategoryApiService $categoryService
+        private IsPaginatedAction $paginated
     ) {}
 
     /**
@@ -29,6 +27,7 @@ class ProductApiRepository implements ProductApiRepositoryInterface
     {
         $filters = $dto->toArray();
         $query = $this->query->handle($filters);
+        $query->with('highestDiscountVariant');
         $result = $this->paginated->handle($query, $dto->paginated, $dto->per_page);
         return $result;
     }
@@ -53,6 +52,9 @@ class ProductApiRepository implements ProductApiRepositoryInterface
                 'product' => function ($q) {
                     $q->with(['department', 'category', 'subCategory']);
                 },
+                'variants' => function ($q) {
+                    $q->with(['variantConfiguration']);
+                }
             ])
             ->first();
     }
@@ -68,43 +70,6 @@ class ProductApiRepository implements ProductApiRepositoryInterface
     }
 
     /**
-     * Get hot deals
-     */
-    public function getHotDeals(ProductFilterDTO $filters)
-    {
-        $limit = $filters['limit'] ?? 3;
-        $filters['has_discount'] = true;
-        $query = $this->query->handle($filters);
-        return $query->limit($limit)->get();
-    }
-
-    /**
-     * Get top products
-     */
-    public function getTopProducts(ProductFilterDTO $filters)
-    {
-        $limit = $filters['limit'] ?? 3;
-        $filters['sort_by'] = 'sales';
-        $query = $this->query->handle($filters);
-        return $query->limit($limit)->get();
-    }
-
-    /**
-     * Get product variants keys
-     */
-    public function getProductVariantsKeys(string $productId)
-    {
-        return Product::query()
-            ->where('id', $productId)
-            ->with([
-                'variants.configuration.key',
-                'variants.configuration.parentData.key',
-                'variants.configuration.parentData.parentData.key',
-            ])
-            ->first();
-    }
-
-    /**
      * Store product review
      */
     public function storeProductReview(array $data)
@@ -112,21 +77,6 @@ class ProductApiRepository implements ProductApiRepositoryInterface
         // TODO: Implement product review storage
         // This should create a review record for the product
         return null;
-    }
-
-    /**
-     * Get filters (categories, brands, variants, etc.)
-     */
-    public function getFilters(array $filters)
-    {
-        return [
-            'categories' => $this->getCategoriesByFilters($filters),
-            'brands' => $this->getBrandsByFilters($filters),
-            'price_range' => $this->getPriceByFilters($filters),
-            'tags' => $this->getTagsByFilters($filters),
-            'inputs' => $this->getInputsByFilters($filters),
-            'variants' => $this->getTreesByFilters($filters),
-        ];
     }
 
     /**
@@ -152,14 +102,6 @@ class ProductApiRepository implements ProductApiRepositoryInterface
     //         'variants' => $this->getTreesByFilters($filters),
     //     ];
     // }
-
-    /**
-     * Get categories based on filters
-     */
-    public function getCategoriesByFilters(array $filters)
-    {
-        return $this->categoryService->getCategoriesByFilters($filters);
-    }
 
     /**
      * Get brands based on filters
