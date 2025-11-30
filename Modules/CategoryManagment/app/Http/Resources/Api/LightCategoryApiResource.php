@@ -20,7 +20,7 @@ class LightCategoryApiResource extends JsonResource
             'id' => $this->id,
             'slug' => $this->slug,
             'name' => $this->name,
-            'image' => $this->image,
+            'image' => formatImage($this->image),
         ];
     }
 }

@@ -18,19 +18,7 @@ class LightBrandApiResource extends JsonResource
             'id' => $this->id,
             'name' => $this->name,
             'slug' => $this->slug,
-            'logo' => $this->formatImage($this->logo),
+            'logo' => formatImage($this->logo),
         ];
-    }
-
-    /**
-     * Format image path to full URL
-     */
-    private function formatImage($imagePath): ?string
-    {
-        if (!$imagePath) {
-            return null;
-        }
-
-        return url(asset('storage/' . $imagePath->path));
     }
 }

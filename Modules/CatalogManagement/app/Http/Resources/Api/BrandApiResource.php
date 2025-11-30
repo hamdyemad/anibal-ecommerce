@@ -18,8 +18,8 @@ class BrandApiResource extends JsonResource
             'id' => $this->id,
             'name' => $this->name,
             'slug' => $this->slug,
-            'logo' => $this->formatImage($this->logo),
-            'cover' => $this->formatImage($this->cover),
+            'logo' => formatImage($this->logo),
+            'cover' => formatImage($this->cover),
             'description' => $this->description,
             'is_active' => $this->is_active,
             'facebook' => $this->facebook_url,
@@ -28,17 +28,5 @@ class BrandApiResource extends JsonResource
             'linkedin' => $this->linkedin_url,
             'pinterest' => $this->pinterest_url
         ];
-    }
-
-    /**
-     * Format image path to full URL
-     */
-    private function formatImage($imagePath): ?string
-    {
-        if (!$imagePath) {
-            return null;
-        }
-
-        return url(asset('storage/' . $imagePath->path));
     }
 }

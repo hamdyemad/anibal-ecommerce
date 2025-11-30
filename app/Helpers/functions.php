@@ -936,3 +936,13 @@ function truncateString($string, $length = 15, $append = '...')
     }
     return $string;
 }
+
+function formatImage($imagePath): ?string
+{
+    if (!$imagePath) {
+        return null;
+    }
+
+    return url(asset('storage/' . $imagePath->path));
+}
+

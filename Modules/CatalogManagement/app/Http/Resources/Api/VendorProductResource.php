@@ -30,7 +30,7 @@ class VendorProductResource extends JsonResource
             'limitation' => $this->max_per_order,
             'is_active' => $this->is_active,
             'is_featured' => $this->is_featured,
-            'image' => $this->formatImage($this->product->mainImage),
+            'image' => formatImage($this->product->mainImage),
             'name' => $this->product->title,
             'details' => $this->product->details,
             'summary' => $this->product->summary,
@@ -64,17 +64,5 @@ class VendorProductResource extends JsonResource
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];
-    }
-
-    /**
-     * Format image path to full URL
-     */
-    private function formatImage($imagePath): ?string
-    {
-        if (!$imagePath) {
-            return null;
-        }
-
-        return url(asset('storage/' . $imagePath->path));
     }
 }

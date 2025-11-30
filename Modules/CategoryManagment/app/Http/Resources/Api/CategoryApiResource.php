@@ -21,23 +21,11 @@ class CategoryApiResource extends JsonResource
             'slug' => $this->slug,
             'name' => $this->name,
             'description' => $this->description,
-            'image' => $this->formatImage($this->image),
+            'image' => formatImage($this->image),
             'active' => $this->active,
             'department' => new DepartmentApiResource($this->whenLoaded('department')),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];
-    }
-
-    /**
-     * Format image path to full URL
-     */
-    private function formatImage($imagePath): ?string
-    {
-        if (!$imagePath) {
-            return null;
-        }
-
-        return url(asset('storage/' . $imagePath));
     }
 }

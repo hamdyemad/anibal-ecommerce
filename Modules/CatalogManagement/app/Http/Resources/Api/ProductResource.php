@@ -20,7 +20,7 @@ class ProductResource extends JsonResource
         return [
             'id' => $this->id,
             'show_end_offer_at_section' => true,
-            'image' => $this->mainImage->path,
+            'image' => formatImage($this->mainImage),
             'name' => $this->title,
             'slug' => $this->slug,
             'points' => $this->points ?? 0,

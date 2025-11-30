@@ -18,7 +18,7 @@ class LightDepartmentApiResource extends JsonResource
         return [
             'id' => $this->id,
             'slug' => $this->slug,
-            'image' => $this->image,
+            'image' => formatImage($this->image),
             'name' => $this->name,
         ];
     }
