@@ -81,9 +81,8 @@ class ProductRepository implements ProductInterface
             // Get current user
             $currentUser = Auth::user();
 
-            // Create product with temporary slug
+            // Create product
             $product = Product::create([
-                'slug' => Str::random(8), // Temporary slug
                 'is_active' => $data['is_active'] ?? true,
                 'configuration_type' => $data['configuration_type'],
                 'vendor_id' => $vendorId,
@@ -242,12 +241,6 @@ class ProductRepository implements ProductInterface
                     'meta_description', 'meta_keywords'
                 ];
 
-                if(isset($fields['title']) && $language->code == 'en') {
-                    $product->update([
-                        'slug' => Str::of($fields['title'])->trim()->slug('-')
-                    ]);
-                }
-
                 foreach ($translationFields as $field) {
                     if (isset($fields[$field])) {
                         Log::info('Creating translation', [
@@ -340,7 +333,7 @@ class ProductRepository implements ProductInterface
             $variantData = [
                 'sku' => $vendorProduct->sku,
                 'price' => ($data['price'] ?? 0),
-                'has_discount' => $hasDiscount,
+                // 'has_discount' => $hasDiscount,
                 'price_before_discount' => $hasDiscount ? ($data['price_before_discount'] ?? 0) : 0,
                 'discount_end_date' => $hasDiscount ? ($data['discount_end_date'] ?? null) : null,
                 'variant_configuration_id' => null, // Simple products don't have variant configuration

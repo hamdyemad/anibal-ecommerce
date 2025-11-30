@@ -2,15 +2,15 @@
 
 namespace Modules\AreaSettings\app\Models;
 
+use App\Models\BaseModel;
 use App\Models\Traits\HumanDates;
 use App\Traits\HasSlug;
 use App\Traits\Translation;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Builder;
 
 
-class City extends Model
+class City extends BaseModel
 {
     use Translation, SoftDeletes, HumanDates, HasSlug;
 
@@ -25,10 +25,7 @@ class City extends Model
         return $this->belongsTo(Country::class, 'country_id');
     }
 
-    public function scopeActive($query)
-    {
-        return $query->where('active', true);
-    }
+
 
     public function scopeFilter(Builder $query, array $filters) {
         // Search filter
@@ -61,10 +58,9 @@ class City extends Model
             $query->whereDate('created_at', '<=', $filters['created_date_to']);
         }
 
+        // Filter by country
         if (!empty($filters['country_id'])) {
-            $query->whereHas('country', function($q) use ($filters) {
-                $q->where('id', $filters['country_id']);
-            });
+            $query->byCountry($filters['country_id']);
         }
 
         return $query;

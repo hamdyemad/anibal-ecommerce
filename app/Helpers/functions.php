@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Attachment;
 use App\Models\Language;
 use App\Models\Permession;
 use App\Models\Role;
@@ -936,3 +937,17 @@ function truncateString($string, $length = 15, $append = '...')
     }
     return $string;
 }
+
+function formatImage($imagePath): ?string
+{
+    if (!$imagePath) {
+        return null;
+    }
+
+    if ($imagePath instanceof Attachment) {
+        return url(asset('storage/' . $imagePath->path));
+    }
+
+    return url(asset('storage/' . $imagePath));
+}
+

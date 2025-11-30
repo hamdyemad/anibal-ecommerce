@@ -2,15 +2,16 @@
 
 namespace Modules\Customer\app\Models;
 
+use App\Models\BaseModel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Builder;
 use Modules\AreaSettings\app\Models\City;
 use Modules\AreaSettings\app\Models\Country;
 use Modules\AreaSettings\app\Models\Region;
 use Modules\AreaSettings\app\Models\Subregion;
 
-class CustomerAddress extends Model
+class CustomerAddress extends BaseModel
 {
     use HasFactory, SoftDeletes;
 
@@ -32,21 +33,118 @@ class CustomerAddress extends Model
 
     public function country()
     {
-        return $this->belongsTo(Country::class);
+        return $this->belongsTo(Country::class)->withTrashed();
     }
 
     public function city()
     {
-        return $this->belongsTo(City::class);
+        return $this->belongsTo(City::class)->withTrashed();
     }
 
     public function region()
     {
-        return $this->belongsTo(Region::class);
+        return $this->belongsTo(Region::class)->withTrashed();
     }
 
     public function subregion()
     {
-        return $this->belongsTo(Subregion::class);
+        return $this->belongsTo(Subregion::class)->withTrashed();
+    }
+
+    // Scopes
+
+    /**
+     * Apply custom search logic for CustomerAddress
+     * Searches in title, address, and location names
+     */
+    protected function applyCustomSearch(Builder $query, string $search): Builder
+    {
+        return $query->where(function ($q) use ($search) {
+            $q->where('title', 'like', "%{$search}%")
+                ->orWhere('address', 'like', "%{$search}%")
+                ->orWhereHas('country', function ($subQ) use ($search) {
+                    $subQ->whereHas('translations', function ($subSubQ) use ($search) {
+                        $subSubQ->where('lang_value', 'like', "%{$search}%");
+                    });
+                })
+                ->orWhereHas('city', function ($subQ) use ($search) {
+                    $subQ->whereHas('translations', function ($subSubQ) use ($search) {
+                        $subSubQ->where('lang_value', 'like', "%{$search}%");
+                    });
+                })
+                ->orWhereHas('region', function ($subQ) use ($search) {
+                    $subQ->whereHas('translations', function ($subSubQ) use ($search) {
+                        $subSubQ->where('lang_value', 'like', "%{$search}%");
+                    });
+                })
+                ->orWhereHas('subregion', function ($subQ) use ($search) {
+                    $subQ->whereHas('translations', function ($subSubQ) use ($search) {
+                        $subSubQ->where('lang_value', 'like', "%{$search}%");
+                    });
+                });
+        });
+    }
+
+    /**
+     * Filter scope for address queries
+     * Handles search and address-specific filters
+     */
+    public function scopeFilter(Builder $query, array $filters)
+    {
+        if (!empty($filters['search'])) {
+            $this->applyCustomSearch($query, $filters['search']);
+        }
+
+        // Filter by country (by ID or slug)
+        if (!empty($filters['country_id'])) {
+            $query->where(function ($q) use ($filters) {
+                $q->where('country_id', $filters['country_id'])
+                    ->orWhereHas('country', function ($subQ) use ($filters) {
+                        $subQ->where('slug', $filters['country_id']);
+                    });
+            });
+        }
+
+        // Filter by city (by ID or slug)
+        if (!empty($filters['city_id'])) {
+            $query->where(function ($q) use ($filters) {
+                $q->where('city_id', $filters['city_id'])
+                    ->orWhereHas('city', function ($subQ) use ($filters) {
+                        $subQ->where('slug', $filters['city_id']);
+                    });
+            });
+        }
+
+        // Filter by region (by ID or slug)
+        if (!empty($filters['region_id'])) {
+            $query->where(function ($q) use ($filters) {
+                $q->where('region_id', $filters['region_id'])
+                    ->orWhereHas('region', function ($subQ) use ($filters) {
+                        $subQ->where('slug', $filters['region_id']);
+                    });
+            });
+        }
+
+        // Filter by subregion (by ID or slug)
+        if (!empty($filters['subregion_id'])) {
+            $query->where(function ($q) use ($filters) {
+                $q->where('subregion_id', $filters['subregion_id'])
+                    ->orWhereHas('subregion', function ($subQ) use ($filters) {
+                        $subQ->where('slug', $filters['subregion_id']);
+                    });
+            });
+        }
+
+        // Filter by primary status
+        if (isset($filters['is_primary']) && $filters['is_primary'] !== null) {
+            $query->where('is_primary', $filters['is_primary']);
+        }
+
+        // Filter by customer
+        if (!empty($filters['customer_id'])) {
+            $query->where('customer_id', $filters['customer_id']);
+        }
+
+        return $query;
     }
 }

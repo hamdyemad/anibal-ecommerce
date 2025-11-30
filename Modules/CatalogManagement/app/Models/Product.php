@@ -2,28 +2,32 @@
 
 namespace Modules\CatalogManagement\app\Models;
 
+use App\Models\BaseModel;
 use App\Models\Attachment;
+use App\Traits\HasSlug;
 use App\Models\User;
 use App\Traits\Translation;
 use App\Models\Traits\HumanDates;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Builder;
+use Modules\CatalogManagement\app\Http\Requests\Api\ProductReviewRequest;
 use Modules\CategoryManagment\app\Models\Category;
 use Modules\CategoryManagment\app\Models\Department;
 use Modules\CategoryManagment\app\Models\SubCategory;
 use Modules\Vendor\app\Models\Vendor;
 
-class Product extends Model
+class Product extends BaseModel
 {
-    use HasFactory, SoftDeletes, Translation, HumanDates;
+    use HasFactory, SoftDeletes, Translation, HumanDates, HasSlug;
 
     protected $guarded = [];
     protected $casts = [
         'is_active' => 'boolean',
         'configuration_type' => 'string',
     ];
+
+    protected $slugFrom = 'title';
 
     // Product type constants
     const TYPE_PRODUCT = 'product';
@@ -234,6 +238,25 @@ class Product extends Model
         return $this->belongsToMany(Vendor::class, 'vendor_products')
                     ->withPivot('status', 'rejection_reason')
                     ->withTimestamps();
+    }
+
+    // public function reviews()
+    // {
+    //     return $this->hasMany(ProductReview::class);
+    // }
+
+    // public function approvedReviews()
+    // {
+    //     return $this->reviews()->where('is_approved', true);
+    // }
+
+
+    public function getTagsArrayAttribute()
+    {
+        if($this->tags){
+            return explode(',', $this->getTranslation('tags', app()->getLocale()));
+        }
+        return [];
     }
 
     /**

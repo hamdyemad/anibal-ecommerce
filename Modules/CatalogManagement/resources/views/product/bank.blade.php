@@ -162,7 +162,7 @@
                                     <th><span class="userDatatable-title">{{ __('common.activation') }}</span></th>
                                     @endif
                                     <th><span class="userDatatable-title">{{ __('common.created_at') }}</span></th>
-                                    @if(in_array(auth()->user()->user_type_id, \App\Models\UserType::adminIds()))
+                                    @if(in_array(auth()->user()->user_type_id, \App\Models\UserType::adminIds()) || in_array(auth()->user()->user_type_id, \App\Models\UserType::vendorIds()))
                                     <th><span class="userDatatable-title">{{ __('common.actions') }}</span></th>
                                     @endif
                                 </tr>
@@ -190,6 +190,9 @@
 
             // Check if user is admin
             const isAdmin = {{ in_array(auth()->user()->user_type_id, \App\Models\UserType::adminIds()) ? 'true' : 'false' }};
+
+            // Check if user is vendor
+            const isVendor = {{ in_array(auth()->user()->user_type_id, \App\Models\UserType::vendorIds()) ? 'true' : 'false' }};
 
             let table = $('#bankProductsDataTable').DataTable({
                 processing: true,
@@ -312,8 +315,8 @@
                         }
                     });
 
-                    // Add actions column only for admin users
-                    if (isAdmin) {
+                    // Add actions column for admin and vendor users
+                    if (isAdmin || isVendor) {
                         columns.push({
                             data: null,
                             orderable: false,
@@ -323,15 +326,20 @@
                                 const bankViewUrl = "{{ route('admin.products.bank.view', ':id') }}".replace(':id', data.id);
                                 const editUrl = "{{ route('admin.products.edit', ':id') }}".replace(':id', data.id);
 
-                                return `
-                                <div class="orderDatatable_actions d-inline-flex gap-1">
+                                let actionsHtml = `<div class="orderDatatable_actions d-inline-flex gap-1">
                                     <a href="${bankViewUrl}" class="view btn btn-info table_action_father" title="{{ trans('catalogmanagement::product.view_bank_product') }}">
                                         <i class="uil uil-eye table_action_icon"></i>
-                                    </a>
-                                    <a href="${editUrl}" class="edit btn btn-warning table_action_father" title="{{ trans('common.edit') }}">
+                                    </a>`;
+
+                                // Only admins can edit bank products
+                                if (isAdmin) {
+                                    actionsHtml += `<a href="${editUrl}" class="edit btn btn-warning table_action_father" title="{{ trans('common.edit') }}">
                                         <i class="uil uil-edit table_action_icon"></i>
-                                    </a>
-                                </div>`;
+                                    </a>`;
+                                }
+
+                                actionsHtml += `</div>`;
+                                return actionsHtml;
                             }
                         });
                     }

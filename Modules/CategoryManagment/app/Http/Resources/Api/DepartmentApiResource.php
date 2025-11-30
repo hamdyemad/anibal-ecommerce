@@ -15,19 +15,20 @@ class DepartmentApiResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        
+
         if ($request->get('select2')) {
             return [
                 'id' => $this->id,
-                'name' => $this->getTranslation('name', app()->getLocale()) ?? '', // select2 expects "id" + "text"
+                'name' => $this->name, // select2 expects "id" + "text"
+                'slug' => $this->slug,
             ];
         }
         return [
             'id' => $this->id,
             'slug' => $this->slug,
-            'image' => ($this->image) ? Storage::disk('public')->url($this->image) : '',
-            'name' => $this->getTranslation('name', app()->getLocale()) ?? '',
-            'description' => $this->getTranslation('description', app()->getLocale()) ?? '',
+            'image' => formatImage($this->image),
+            'name' => $this->name,
+            'description' => $this->description,
             'active' => $this->active,
             'activities' => ActivityApiResource::collection($this->whenLoaded('activeActivities')),
             'created_at' => $this->created_at,

@@ -2,16 +2,16 @@
 
 namespace Modules\AreaSettings\app\Models;
 
+use App\Models\BaseModel;
 use App\Models\Traits\HumanDates;
 use App\Traits\HasSlug;
 use App\Traits\Translation;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\SystemSetting\app\Models\Currency;
 use Modules\Vendor\app\Models\Vendor;
 
-class Country extends Model
+class Country extends BaseModel
 {
     use Translation, SoftDeletes, HumanDates, HasSlug;
 
@@ -30,12 +30,11 @@ class Country extends Model
         return $this->belongsTo(Currency::class, 'currency_id');
     }
 
-
-    public function getNameAttribute() {
-        return $this->getTranslation('name', app()->getLocale());
-    }
-
-    public function scopeActive($query)
+    /**
+     * Apply custom search logic for Country
+     * Searches by code and phone_code in addition to translations
+     */
+    protected function applyCustomSearch(Builder $query, string $search): Builder
     {
         return $query->where('active', true);
     }
@@ -74,7 +73,6 @@ class Country extends Model
             $query->whereDate('created_at', '<=', $filters['created_date_to']);
         }
         $query->orderBy('created_at', 'desc');
-
         return $query;
     }
 }

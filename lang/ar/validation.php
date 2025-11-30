@@ -151,6 +151,36 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Custom Product Filter Validations
+    |--------------------------------------------------------------------------
+    */
+    'min_price_positive' => 'يجب أن يكون السعر الأدنى رقماً موجباً',
+    'max_price_positive' => 'يجب أن يكون السعر الأقصى رقماً موجباً',
+    'min_price_max_price' => 'لا يمكن أن يكون السعر الأدنى أكبر من أو يساوي السعر الأقصى',
+    'sort_by_invalid' => 'يجب أن يكون sort_by أحد الخيارات التالية: created_at, name, price, rating, views, sales',
+    'sort_type_invalid' => 'يجب أن يكون sort_type إما asc أو desc',
+    'country_id_not_exist' => 'الدولة غير موجودة',
+    'city_id_not_exist' => 'المدينة غير موجودة',
+    'region_id_not_exist' => 'المنطقة غير موجودة',
+    'subregion_id_not_exist' => 'المنطقة الفرعية غير موجودة',
+    'char_invalid' => 'char يجب أن يكون حرفًا صحيحًا',
+
+    /*
+    |--------------------------------------------------------------------------
+    | Custom Category Filter Validations
+    |--------------------------------------------------------------------------
+    */
+    'created_date_from_invalid' => 'يجب أن يكون created_date_from تاريخاً صحيحاً (YYYY-MM-DD)',
+    'created_date_to_invalid' => 'يجب أن يكون created_date_to تاريخاً صحيحاً (YYYY-MM-DD)',
+    'activity_ids_invalid' => 'يجب أن يكون activity_ids مصفوفة',
+    'min_star_range' => 'يجب أن يكون الحد الأدنى للنجوم بين 1 و 5',
+    'max_star_range' => 'يجب أن يكون الحد الأقصى للنجوم بين 1 و 5',
+    'min_star_max_star' => 'لا يمكن أن يكون الحد الأدنى للنجوم أكبر من الحد الأقصى',
+    'status_invalid' => 'يجب أن تكون الحالة أحد الخيارات التالية: pending, approved, rejected',
+    'vendor_product_id_not_exist' => 'معرف المنتج غير موجود',
+
+    /*
+    |--------------------------------------------------------------------------
     | Custom Validation Attributes
     |--------------------------------------------------------------------------
     |

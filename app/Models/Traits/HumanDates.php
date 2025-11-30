@@ -31,4 +31,12 @@ trait HumanDates
         ->locale(app()->getLocale())
         ->translatedFormat('d M, Y, h:i A');
     }
+
+    public function getDiscountEndAtAttribute()
+    {
+        return Carbon::parse($this->attributes['discount_end_date'])
+        ->timezone(config('app.timezone'))
+        ->locale(app()->getLocale())
+        ->translatedFormat('d M, Y, h:i A');
+    }
 }

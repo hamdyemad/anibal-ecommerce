@@ -2,15 +2,15 @@
 
 namespace Modules\AreaSettings\app\Models;
 
+use App\Models\BaseModel;
 use App\Models\Traits\HumanDates;
 use App\Traits\HasSlug;
 use App\Traits\Translation;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
 
-class Region extends Model
+class Region extends BaseModel
 {
     use Translation, SoftDeletes, HumanDates, HasSlug;
 
@@ -34,50 +34,32 @@ class Region extends Model
     }
     // End Geters
 
-    // Start Scopes
-    public function scopeActive($query)
+    public function scopeByVendor(Builder $query, $vendorIdentifier)
     {
-        return $query->where('active', true);
+        return $query->whereHas('city.country.vendors', function($q) use ($vendorIdentifier) {
+            $q->where('vendors.id', $vendorIdentifier)
+                ->orWhere('vendors.slug', $vendorIdentifier);
+        });
     }
 
-    public function scopeFilter(Builder $query, array $filters) {
-        // Search filter
-        if (!empty($filters['search'])) {
-            $search = $filters['search'];
-            $query->where(function($q) use ($search) {
-                $q->whereHas('translations', function($query) use ($search) {
-                    $query->where('lang_value', 'like', "%{$search}%");
-                });
-            });
-        }
+    /**
+     * Override filter scope to add region-specific filters
+     * Calls parent filter from HasFilterScopes trait and adds custom filters
+     */
+    public function scopeFilter(Builder $query, array $filters)
+    {
+        // Call parent filter scope from HasFilterScopes trait
+        parent::scopeFilter($query, $filters);
 
-        // Active filter
-        if (isset($filters['active']) && $filters['active'] !== '') {
-            $query->where('active', $filters['active']);
-        }
-
-        // Date from filter
-        if (!empty($filters['created_date_from'])) {
-            $query->whereDate('created_at', '>=', $filters['created_date_from']);
-        }
-
-        // Date to filter
-        if (!empty($filters['created_date_to'])) {
-            $query->whereDate('created_at', '<=', $filters['created_date_to']);
-        }
-
+        // Filter by city
         if (!empty($filters['city_id'])) {
-            $query->whereHas('city', function($q) use ($filters) {
-                $q->where('id', $filters['city_id']);
-            });
+            $query->where('city_id', $filters['city_id']);
         }
 
+        // Filter by vendor (through city.country.vendors)
         if (!empty($filters['vendor_id'])) {
-            $query->whereHas('city.country.vendors', function($q) use ($filters) {
-                $q->where('id', $filters['vendor_id']);
-            });
+            $query->byVendor($filters['vendor_id']);
         }
-
 
         return $query;
     }

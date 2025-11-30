@@ -187,4 +187,8 @@ return [
     'no_stock_data' => 'No stock data available',
     'variants_and_stock' => 'Variants & Stock',
     'footer_copyright' => '© :year | Developed By <a href="https://www.e-ramo.net/en">e-RAMO For Digital Solutions</a>',
+    'error_loading_departments' => 'Error loading departments',
+    'error_loading_categories' => 'Error loading categories',
+    'error_loading_sub_categories' => 'Error loading sub categories',
+    'error_loading_brands' => 'Error loading brands',
 ];

@@ -12,6 +12,9 @@ trait Translation
       return $this->morphMany(TranslationModel::class, 'translatable')->withTrashed();
   }
 
+  public function getNameAttribute() {
+    return $this->getTranslation('name', app()->getLocale());
+  }
 
   public function getTranslation(string $key, string $locale = 'en')
   {

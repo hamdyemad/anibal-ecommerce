@@ -16,6 +16,18 @@ use Modules\CatalogManagement\app\Interfaces\PricingStockRepositoryInterface;
 use Modules\CatalogManagement\app\Repositories\PricingStockRepository;
 use Modules\CatalogManagement\app\Interfaces\PromocodeRepositoryInterface;
 use Modules\CatalogManagement\app\Repositories\PromocodeRepository;
+use Modules\CatalogManagement\app\Interfaces\Api\ProductApiRepositoryInterface;
+use Modules\CatalogManagement\app\Repositories\Api\ProductApiRepository;
+use Modules\CatalogManagement\app\Services\Api\ProductApiService;
+use Modules\CatalogManagement\app\Actions\ProductQueryAction;
+use App\Actions\IsPaginatedAction;
+use Modules\CatalogManagement\app\Interfaces\Api\BrandApiRepositoryInterface;
+use Modules\CatalogManagement\app\Repositories\Api\BrandApiRepository;
+use Modules\CatalogManagement\app\Services\Api\BrandApiService;
+use Modules\CatalogManagement\app\Interfaces\Api\ReviewRepositoryInterface;
+use Modules\CatalogManagement\app\Repositories\Api\ReviewRepository;
+use Modules\CatalogManagement\app\Services\Api\ReviewService;
+use Modules\CategoryManagment\app\Services\Api\CategoryApiService;
 use Nwidart\Modules\Traits\PathNamespace;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
@@ -73,6 +85,44 @@ class CatalogManagementServiceProvider extends ServiceProvider
         $this->app->bind(
             PromocodeRepositoryInterface::class,
             PromocodeRepository::class
+        );
+
+        $this->app->bind(
+            BrandApiRepositoryInterface::class,
+            BrandApiRepository::class
+        );
+
+        $this->app->bind(
+            ReviewRepositoryInterface::class,
+            ReviewRepository::class
+        );
+
+        $this->app->singleton(ReviewService::class);
+
+        // Register API repository and service bindings
+        $this->app->singleton(ProductQueryAction::class);
+
+        $this->app->singleton(IsPaginatedAction::class);
+
+        $this->app->bind(
+            ProductApiRepositoryInterface::class,
+            function ($app) {
+                return new ProductApiRepository(
+                    $app->make(ProductQueryAction::class),
+                    $app->make(IsPaginatedAction::class),
+                );
+            }
+        );
+
+        $this->app->singleton(
+            ProductApiService::class,
+            function ($app) {
+                return new ProductApiService(
+                    $app->make(ProductApiRepositoryInterface::class),
+                    $app->make(CategoryApiService::class),
+                    $app->make(BrandApiService::class),
+                );
+            }
         );
     }
 

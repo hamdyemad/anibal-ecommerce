@@ -15,15 +15,9 @@ class ActivityApiResource extends JsonResource
     public function toArray(Request $request): array
     {
         // Use fallback logic for activity name
-        $activityName = $this->getTranslation('name', app()->getLocale()) 
-            ?: $this->getTranslation('name', 'en') 
-            ?: $this->getTranslation('name', 'ar')
-            ?: 'Activity #' . $this->id;
+        $activityName = $this->name ?: 'Activity #' . $this->id;
 
-        $activityDescription = $this->getTranslation('description', app()->getLocale()) 
-            ?: $this->getTranslation('description', 'en') 
-            ?: $this->getTranslation('description', 'ar')
-            ?: '';
+        $activityDescription = $this->description ?: '';
 
         return [
             'id' => $this->id,
