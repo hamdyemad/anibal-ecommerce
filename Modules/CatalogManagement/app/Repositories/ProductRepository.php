@@ -99,7 +99,6 @@ class ProductRepository implements ProductInterface
                 [
                     'tax_id' => $data['tax_id'],
                     'sku' => $data['sku'] ?? null,
-                    'points' => $data['points'] ?? 0,
                     'max_per_order' => $data['max_per_order'],
                     'is_active' => $data['is_active'] ?? false,
                     'is_featured' => $data['is_featured'] ?? false,
@@ -152,7 +151,6 @@ class ProductRepository implements ProductInterface
                 [
                     'tax_id' => $data['tax_id'],
                     'sku' => $data['sku'] ?? null,
-                    'points' => $data['points'] ?? 0,
                     'max_per_order' => $data['max_per_order'],
                     'is_active' => $data['is_active'] ?? false,
                     'is_featured' => $data['is_featured'] ?? false,

@@ -99,11 +99,11 @@
                     </div>
                     <div id="simple_discount_fields" class="mt-3" style="display: none;">
                         <div class="row">
-                            <div class="col-md-6">
+                            <div class="col-md-12">
                                 <label class="form-label fw-bold">{{ __('catalogmanagement::product.price_before_discount') }}</label>
                                 <input type="number" name="price_before_discount" class="form-control ih-medium ip-gray radius-xs b-light px-15" step="0.01" min="0">
                             </div>
-                            <div class="col-md-6">
+                            <div class="col-md-12">
                                 <label class="form-label fw-bold">{{ __('catalogmanagement::product.discount_end_date') }}</label>
                                 <input type="date" name="discount_end_date" class="form-control ih-medium ip-gray radius-xs b-light px-15">
                             </div>
@@ -215,11 +215,11 @@
                     </div>
                     <div class="variant-discount-fields mt-3" style="display: none;">
                         <div class="row">
-                            <div class="col-md-6">
+                            <div class="col-md-12">
                                 <label class="form-label">{{ __('catalogmanagement::product.price_before_discount') }}</label>
                                 <input type="number" name="variants[__VARIANT_INDEX__][price_before_discount]" class="form-control ih-medium ip-gray radius-xs b-light px-15" step="0.01" min="0">
                             </div>
-                            <div class="col-md-6">
+                            <div class="col-md-12">
                                 <label class="form-label">{{ __('catalogmanagement::product.discount_end_date') }}</label>
                                 <input type="date" name="variants[__VARIANT_INDEX__][discount_end_date]" class="form-control ih-medium ip-gray radius-xs b-light px-15">
                             </div>

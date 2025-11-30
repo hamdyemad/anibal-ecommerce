@@ -41,6 +41,10 @@ Route::group(
             Route::post('save-stock', 'BankController@saveStock')->name('products.bank.save-stock');
         });
 
+        // Stock Setup routes
+        Route::get('stock-setup', 'StockSetupController@index')->name('products.stock-setup');
+        Route::post('stock-setup/save', 'StockSetupController@save')->name('products.stock-setup.save');
+
         // Product routes with {product} parameter
         Route::get('{product}/stock-management', 'ProductController@stockManagement')->name('products.stock-management');
         Route::post('{product}/update-stock-pricing', 'ProductController@updateStockPricing')->name('products.update-stock-pricing');

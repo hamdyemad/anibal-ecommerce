@@ -27,7 +27,6 @@ class StoreProductRequest extends FormRequest
         $rules = [
             // Basic Product Information
             'sku' => 'required|string|max:255',
-            'points' => 'required|integer|min:0',
             'is_active' => 'nullable|boolean',
             'is_featured' => 'nullable|boolean',
             'max_per_order' => 'required|integer|min:1',

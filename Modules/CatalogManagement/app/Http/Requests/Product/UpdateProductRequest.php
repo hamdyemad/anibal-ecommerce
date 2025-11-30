@@ -30,7 +30,6 @@ class UpdateProductRequest extends FormRequest
         $rules = [
             // Basic Product Information
             'sku' => 'nullable|string',
-            'points' => 'nullable|integer|min:0',
             'is_active' => 'nullable|boolean',
             'is_featured' => 'nullable|boolean',
             'max_per_order' => 'nullable|integer|min:1',

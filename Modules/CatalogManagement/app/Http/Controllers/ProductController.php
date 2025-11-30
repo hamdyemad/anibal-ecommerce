@@ -646,6 +646,10 @@ class ProductController extends Controller
         $regions = $this->regionService->getAllRegions([], 0);
         $regions = RegionResource::collection($regions)->resolve();
 
+        // Get taxes for the global vendor product section
+        $taxes = $this->taxService->getAllTaxes([], 0);
+        $taxes = TaxResource::collection($taxes)->resolve();
+
         // Get variant configuration keys for the variant section
         $variantKeys = $this->variantConfigurationKeyService->getAllVariantConfigurationKeys([], 0);
         $variantKeys = VariantsConfigurationKeyResource::collection(
@@ -656,6 +660,7 @@ class ProductController extends Controller
             'product',
             'languages',
             'regions',
+            'taxes',
             'variantKeys'
         ));
     }

@@ -475,16 +475,6 @@
                                     </div>
                                     <div class="card-body">
                                         <div class="row">
-                                            {{-- Points --}}
-                                            <div class="col-md-4 mb-3">
-                                                <div class="p-3 border rounded" style="background: #fff3cd;">
-                                                    <small class="text-muted d-block mb-1">{{ __('catalogmanagement::product.points') }}</small>
-                                                    <div class="fw-bold text-warning" style="font-size: 18px;">
-                                                        <i class="uil uil-star me-1"></i>{{ $product->points ?? 0 }}
-                                                    </div>
-                                                </div>
-                                            </div>
-
                                             {{-- Max Per Order --}}
                                             <div class="col-md-4 mb-3">
                                                 <div class="p-3 border rounded" style="background: #e7f3ff;">

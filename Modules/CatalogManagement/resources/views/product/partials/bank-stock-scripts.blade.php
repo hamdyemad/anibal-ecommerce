@@ -428,17 +428,10 @@
                                             <input type="number" class="form-control ih-medium ip-gray radius-xs b-light px-15" name="price"
                                                    placeholder="0.00" step="0.01" min="0" required>
                                         </div>
-                                        <div class="col-md-12 mb-3">
-                                            <label class="form-label">Tax</label>
-                                            <select class="form-select tax-select" name="tax_id">
-                                                <option value="">Select Tax</option>
-                                                <!-- Tax options will be populated -->
-                                            </select>
-                                        </div>
                                     </div>
 
                                     <div class="row">
-                                        <div class="col-md-12 mb-3">
+                                        <div class="col-md-6 mb-3">
                                             <div class="form-group">
                                                 <div class="d-flex justify-content-between align-items-center mb-3">
                                                     <label class="form-label text-dark fw-medium mb-0">${translations.has_discount}</label>
@@ -606,16 +599,12 @@
         return `
             <div class="variant-management-box mb-4" data-variant-index="${index}">
                 <div class="card">
-                    <div class="card-header bg-light">
+                    <div class="card-header">
                         <div class="d-flex justify-content-between align-items-center">
                             <h6 class="mb-0">
-                                <i class="uil uil-sitemap me-2"></i>
-                                ${variantTreeName}
+                                <i class="uil uil-tag-alt me-2"></i>
+                                <strong>${keyName}:</strong> ${variantTreeName}
                             </h6>
-                            <div class="variant-info">
-                                <span class="badge bg-primary">ID: ${variant.id}</span>
-                                <span class="badge bg-info ms-1">${keyName}</span>
-                            </div>
                         </div>
                     </div>
                     <div class="card-body">
@@ -642,12 +631,6 @@
                                         <input type="number" class="form-control ih-medium ip-gray radius-xs b-light px-15" name="variants[${index}][price]"
                                                placeholder="0.00" step="0.01" min="0" value="" required>
                                     </div>
-                                    <div class="col-md-6 mb-3">
-                                        <label class="form-label">Tax <span class="text-danger">*</span></label>
-                                        <select class="form-select tax-select" name="variants[${index}][tax_id]" required>
-                                            <option value="">Select Tax</option>
-                                        </select>
-                                    </div>
                                 </div>
                                 <div class="row">
                                     <div class="col-md-6 mb-3">
@@ -669,7 +652,7 @@
                                                 </div>
                                                 <div class="mb-3">
                                                     <label class="form-label">${translations.discount_end_date}</label>
-                                                    <input type="datetime-local" class="form-control ih-medium ip-gray radius-xs b-light px-15" name="variants[${index}][discount_end_date]">
+                                                    <input type="date" class="form-control ih-medium ip-gray radius-xs b-light px-15" name="variants[${index}][discount_end_date]">
                                                 </div>
                                             </div>
                                         </div>
@@ -741,19 +724,18 @@
     }
 
     function createVariantManagementBox(variant, index) {
+        const keyName = variant.key?.name || 'Variant';
+        const variantName = variant.name || `Variant ${variant.id}`;
+
         return `
             <div class="variant-management-box mb-4" data-variant-index="${index}">
                 <div class="card">
-                    <div class="card-header bg-light">
+                    <div class="card-header">
                         <div class="d-flex justify-content-between align-items-center">
                             <h6 class="mb-0">
-                                <i class="uil uil-cube me-2"></i>
-                                ${variant.name || `Variant ${variant.id}`}
+                                <i class="uil uil-tag-alt me-2"></i>
+                                ${variant.key ? `<strong>${keyName}:</strong> ${variantName}` : variantName}
                             </h6>
-                            <div class="variant-info">
-                                <span class="badge bg-primary">ID: ${variant.id}</span>
-                                ${variant.key ? `<span class="badge bg-info ms-1">${variant.key.name}</span>` : ''}
-                            </div>
                         </div>
                     </div>
                     <div class="card-body">
@@ -780,12 +762,6 @@
                                         <input type="number" class="form-control ih-medium ip-gray radius-xs b-light px-15" name="variants[${index}][price]"
                                                placeholder="0.00" step="0.01" min="0" value="${variant.price || ''}" required>
                                     </div>
-                                    <div class="col-md-6 mb-3">
-                                        <label class="form-label">Tax <span class="text-danger">*</span></label>
-                                        <select class="form-select tax-select" name="variants[${index}][tax_id]" required>
-                                            <option value="">Select Tax</option>
-                                        </select>
-                                    </div>
                                 </div>
                                 <div class="row">
                                     <div class="col-md-6 mb-3">
@@ -807,7 +783,7 @@
                                                 </div>
                                                 <div class="mb-3">
                                                     <label class="form-label">${translations.discount_end_date}</label>
-                                                    <input type="datetime-local" class="form-control ih-medium ip-gray radius-xs b-light px-15" name="variants[${index}][discount_end_date]">
+                                                    <input type="date" class="form-control ih-medium ip-gray radius-xs b-light px-15" name="variants[${index}][discount_end_date]">
                                                 </div>
                                             </div>
                                         </div>
@@ -913,21 +889,15 @@
             saveForm();
         });
 
-        // Clear validation errors on input
-        $(document).on('input change', '.is-invalid', function() {
-            $(this).removeClass('is-invalid');
-            // Try to find the error message container and remove/hide it
-            const $container = $(this).closest('.form-group, .col-md-3, .col-md-4, .col-md-5, .col-md-6');
-            if ($container.length > 0) {
-                 $container.find('.invalid-feedback').remove();
-            } else {
-                $(this).siblings('.invalid-feedback').remove();
-                $(this).parent().find('.invalid-feedback').remove();
-            }
+        // Clear validation errors on focus/input for any form field
+        $(document).on('focus input change', 'input, select, textarea', function() {
+            clearFieldError($(this));
+        });
 
-            // Also clear the global validation alert if there are no more invalid fields
-            if ($('.is-invalid').length === 0) {
-                $('#validation-alert').remove();
+        // Also clear on blur for select elements (for better UX)
+        $(document).on('blur', 'select', function() {
+            if ($(this).val()) {
+                clearFieldError($(this));
             }
         });
     }
@@ -1095,7 +1065,7 @@
     function displayValidationErrors(errors) {
         console.log('🚨 Displaying validation errors:', errors);
 
-        // Create validation alert
+        // Create validation alert with all error messages
         const errorMessages = [];
 
         // Process each error field
@@ -1111,7 +1081,7 @@
             highlightFieldError(field, fieldErrors[0]);
         });
 
-        // Show validation alert under "Manage Variants Stock" title
+        // Show BOTH: validation alert at top AND individual field errors
         showValidationAlert(errorMessages);
     }
 
@@ -1120,6 +1090,8 @@
 
         let $input = null;
         let $container = null;
+
+        // First, try to find the input using multiple strategies
 
         // Handle different field types
         if (field === 'sku') {
@@ -1158,8 +1130,6 @@
                     $input = $(`input[name="variants[${variantIndex}][sku]"]`);
                 } else if (variantField === 'price') {
                     $input = $(`input[name="variants[${variantIndex}][price]"]`);
-                } else if (variantField === 'tax_id') {
-                    $input = $(`select[name="variants[${variantIndex}][tax_id]"]`);
                 } else if (variantField === 'has_discount') {
                     $input = $(`input[name="variants[${variantIndex}][has_discount]"]`);
                 } else if (variantField === 'price_before_discount') {
@@ -1176,29 +1146,59 @@
                             $input = $(`select[name="variants[${variantIndex}][stocks][${stockIndex}][region_id]"]`);
                         } else if (stockField === 'quantity') {
                             $input = $(`input[name="variants[${variantIndex}][stocks][${stockIndex}][quantity]"]`);
+                        } else if (stockField === 'alert_quantity') {
+                            $input = $(`input[name="variants[${variantIndex}][stocks][${stockIndex}][alert_quantity]"]`);
                         }
                     }
                 }
             }
+        } else {
+            // Generic field selector for any other fields
+            $input = $(`input[name="${field}"], select[name="${field}"], textarea[name="${field}"]`);
+            if ($input.length === 0) {
+                // Try with array notation
+                $input = $(`input[name="${field}[]"], select[name="${field}[]"], textarea[name="${field}[]"]`);
+            }
+            if ($input.length === 0) {
+                // Try to find by partial name match (for complex field names)
+                $input = $(`input[name*="${field}"], select[name*="${field}"], textarea[name*="${field}"]`);
+            }
         }
+
+        console.log(`🔍 Field: ${field}, Found input:`, $input.length > 0 ? $input.attr('name') : 'NOT FOUND');
 
         if ($input && $input.length > 0) {
             // Add is-invalid class
             $input.addClass('is-invalid');
 
-            // Find or create error message container
-            $container = $input.closest('.form-group, .col-md-3, .col-md-4, .col-md-5, .col-md-6');
-            if ($container.length === 0) {
-                $container = $input.parent();
+            // Find the best container for the error message
+            $container = $input.parent();
+
+            // Handle different input wrapper types
+            if ($container.hasClass('input-group') || $container.hasClass('form-control-wrapper') || $container.hasClass('select2-selection')) {
+                $container = $container.parent();
             }
 
-            // Remove existing error message
+            // For Select2 elements, find the Select2 container
+            if ($input.hasClass('select2-hidden-accessible')) {
+                const select2Container = $input.next('.select2-container');
+                if (select2Container.length > 0) {
+                    $container = select2Container.parent();
+                }
+            }
+
+            // Remove existing error message for this field
             $container.find('.invalid-feedback').remove();
+            $input.siblings('.invalid-feedback').remove();
 
-            // Add error message
-            $container.append(`<div class="invalid-feedback d-block">${errorMessage}</div>`);
+            // Add error message directly after the input/container with better styling
+            const errorHtml = `<div class="invalid-feedback d-block mt-1" style="color: #dc3545; font-size: 0.875rem;">
+                <i class="uil uil-exclamation-triangle me-1"></i>${errorMessage}
+            </div>`;
 
-            console.log(`✅ Added error to field: ${field}`);
+            $container.append(errorHtml);
+
+            console.log(`✅ Added error to field: ${field} (${$input.attr('name') || $input.attr('id')})`);
         } else {
             console.warn(`⚠️ Could not find input for field: ${field}`);
         }
@@ -1214,8 +1214,11 @@
                     <i class="uil uil-exclamation-triangle me-2"></i>
                     Please fix the following validation errors:
                 </h6>
-                <div class="mb-0">
+                <div class="mb-2">
                     ${errorMessages.join('<br>')}
+                </div>
+                <div class="mb-0">
+                    <small class="text-muted"><i class="uil uil-info-circle me-1"></i>Fields with errors are highlighted in red with specific error messages below each field.</small>
                 </div>
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
@@ -1248,6 +1251,42 @@
 
         // Remove validation alert
         $('#validation-alert').remove();
+
+        // Remove stock management alert
+        $('#stock-management-alert').remove();
+    }
+
+    // Clear error for a specific field
+    function clearFieldError($field) {
+        if (!$field || $field.length === 0) return;
+
+        // Remove is-invalid class from the field
+        $field.removeClass('is-invalid');
+
+        // Find and remove the error message
+        const $container = $field.parent();
+
+        // Remove error message from immediate parent
+        $container.find('.invalid-feedback').remove();
+
+        // Also check siblings (in case error is placed differently)
+        $field.siblings('.invalid-feedback').remove();
+
+        // If input is in a wrapper, check parent's parent too
+        if ($container.hasClass('input-group') || $container.hasClass('form-control-wrapper')) {
+            $container.parent().find('.invalid-feedback').remove();
+        }
+
+        console.log('🧹 Cleared error for field:', $field.attr('name') || $field.attr('id') || 'unknown');
+
+        // If no more invalid fields exist, remove the validation alert
+        setTimeout(function() {
+            if ($('.is-invalid').length === 0) {
+                $('#validation-alert').fadeOut(300, function() {
+                    $(this).remove();
+                });
+            }
+        }, 100);
     }
 
     // Load regions
@@ -1669,14 +1708,14 @@
 
                     <div class="discount-fields" id="discount_fields_${index}" style="display: none;">
                         <div class="row">
-                            <div class="col-md-6">
+                            <div class="col-md-12">
                                 <div class="form-group mb-3">
                                     <label>${translations.price_before_discount}</label>
                                     <input type="number" name="price_before_discount" class="form-control ih-medium ip-gray radius-xs b-light px-15" step="0.01" min="0" placeholder="0.00">
                                     <div class="invalid-feedback"></div>
                                 </div>
                             </div>
-                            <div class="col-md-6">
+                            <div class="col-md-12">
                                 <div class="form-group mb-3">
                                     <label>${translations.discount_end_date}</label>
                                     <input type="date" name="offer_end_date" class="form-control ih-medium ip-gray radius-xs b-light px-15">
@@ -1843,12 +1882,12 @@
                 <!-- Discount Fields -->
                 <div class="discount-fields" id="variant_discount_fields_${productIndex}_${variantIndex}" style="display: none;">
                     <div class="row mb-3">
-                        <div class="col-md-6">
+                        <div class="col-md-12">
                             <label class="form-label">{{ __('catalogmanagement::product.price_before_discount') }}</label>
                             <input type="number" name="products[${productIndex}][variants][${variantIndex}][price_before_discount]"
                                    class="form-control ih-medium ip-gray radius-xs b-light px-15" step="0.01" min="0" placeholder="0.00">
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-md-12">
                             <label class="form-label">{{ __('catalogmanagement::product.discount_end_date') }}</label>
                             <input type="date" name="products[${productIndex}][variants][${variantIndex}][discount_end_date]"
                                    class="form-control ih-medium ip-gray radius-xs b-light px-15">
@@ -2102,12 +2141,7 @@
             }
 
             // Show Bootstrap modal alert with detailed errors
-            showBootstrapAlert('{{ __("common.error") }}', errorMessage, 'danger');
-
-            // Also show toastr if available
-            if (typeof toastr !== 'undefined') {
-                toastr.error('{{ __("catalogmanagement::product.please_fill_required_fields") }}');
-            }
+            showBootstrapAlert('danger', errorMessage);
 
             // Scroll to first error field
             const firstErrorField = $('.is-invalid').first();
@@ -2126,21 +2160,13 @@
     function saveVendorProducts() {
         // Check if products are selected
         if (!selectedProductsData || selectedProductsData.length === 0) {
-            if (typeof toastr !== 'undefined') {
-                toastr.error('{{ __("catalogmanagement::product.please_select_products_first") }}');
-            } else {
-                showBootstrapAlert('{{ __("common.error") }}', '{{ __("catalogmanagement::product.please_select_products_first") }}', 'warning');
-            }
+            showBootstrapAlert('warning', '{{ __("catalogmanagement::product.please_select_products_first") }}');
             return;
         }
 
         // Check if vendor is selected
         if (!selectedVendorId) {
-            if (typeof toastr !== 'undefined') {
-                toastr.error('{{ __("catalogmanagement::product.please_select_vendor_first") }}');
-            } else {
-                showBootstrapAlert('{{ __("common.error") }}', '{{ __("catalogmanagement::product.please_select_vendor_first") }}', 'warning');
-            }
+            showBootstrapAlert('warning', '{{ __("catalogmanagement::product.please_select_vendor_first") }}');
             return;
         }
 
@@ -2311,11 +2337,7 @@
                 // Restore save button
                 $saveBtn.prop('disabled', false).html(originalBtnText);
 
-                if (typeof toastr !== 'undefined') {
-                    toastr.error(errorMessage);
-                } else {
-                    showBootstrapAlert('{{ __("common.error") }}', errorMessage, 'danger');
-                }
+                showBootstrapAlert('danger', errorMessage);
             }
         });
     }
@@ -2647,11 +2669,11 @@
                     <!-- Discount Fields -->
                     <div class="discount-fields" id="variant_discount_fields_${variantIndex}" style="display: none;">
                         <div class="row mb-3">
-                            <div class="col-md-6">
+                            <div class="col-md-12">
                                 <label class="form-label">${translations.price_before_discount}</label>
                                 <input type="number" name="variants[${variantIndex}][price_before_discount]" class="form-control ih-medium ip-gray radius-xs b-light px-15" step="0.01" min="0" placeholder="0.00">
                             </div>
-                            <div class="col-md-6">
+                            <div class="col-md-12">
                                 <label class="form-label">${translations.discount_end_date}</label>
                                 <input type="date" name="variants[${variantIndex}][offer_end_date]" class="form-control ih-medium ip-gray radius-xs b-light px-15">
                             </div>
@@ -2699,32 +2721,63 @@
         console.log('✅ Pricing and stock form loaded for variant:', variantIndex);
     }
 
-    // Simple Alert Function (fallback for when Bootstrap modal is not available)
+    // Inline Alert Function - shows alerts at the top of stock management section
     function showBootstrapAlert(type, message) {
         console.log(`🔔 Alert [${type}]:`, message);
 
-        // Try to use toastr if available
-        if (typeof toastr !== 'undefined') {
-            switch(type) {
-                case 'success':
-                    toastr.success(message);
-                    break;
-                case 'danger':
-                case 'error':
-                    toastr.error(message);
-                    break;
-                case 'warning':
-                    toastr.warning(message);
-                    break;
-                default:
-                    toastr.info(message);
-            }
-            return;
+        // Remove existing alerts
+        $('#stock-management-alert').remove();
+
+        // Create alert HTML
+        let alertClass = 'alert-info';
+        let iconClass = 'uil-info-circle';
+
+        switch(type) {
+            case 'success':
+                alertClass = 'alert-success';
+                iconClass = 'uil-check-circle';
+                break;
+            case 'danger':
+            case 'error':
+                alertClass = 'alert-danger';
+                iconClass = 'uil-exclamation-triangle';
+                break;
+            case 'warning':
+                alertClass = 'alert-warning';
+                iconClass = 'uil-exclamation-triangle';
+                break;
         }
 
-        // Fallback to browser alert
-        const cleanMessage = message.replace(/<br>/g, '\n').replace(/<[^>]*>/g, '');
-        alert(cleanMessage);
+        const alertHtml = `
+            <div id="stock-management-alert" class="alert ${alertClass} alert-dismissible fade show mb-4" role="alert">
+                <i class="uil ${iconClass} me-2"></i>
+                <span>${message}</span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        `;
+
+        // Insert alert at the top of the stock management section
+        const $stockManagement = $('#step-variant-stock-management');
+        if ($stockManagement.length > 0) {
+            $stockManagement.prepend(alertHtml);
+        } else {
+            // Fallback: insert at the top of variants container
+            $('#variants-container').prepend(alertHtml);
+        }
+
+        // Auto-hide success alerts after 5 seconds
+        if (type === 'success') {
+            setTimeout(function() {
+                $('#stock-management-alert').fadeOut(500, function() {
+                    $(this).remove();
+                });
+            }, 5000);
+        }
+
+        // Scroll to the alert
+        $('html, body').animate({
+            scrollTop: $('#stock-management-alert').offset().top - 100
+        }, 500);
     }
 
     // Variant Product Stock Management Helper Functions
@@ -3062,6 +3115,22 @@
         }
     }
 
+    // Test function to verify validation error display
+    function testValidationErrors() {
+        console.log('🧪 Testing validation error display...');
+
+        const testErrors = {
+            'variants.0.sku': ['The SKU field is required'],
+            'variants.0.price': ['The price must be greater than 0'],
+            'variants.0.stocks.0.region_id': ['Please select a region'],
+            'variants.0.stocks.0.quantity': ['The quantity must be at least 1']
+        };
+
+        displayValidationErrors(testErrors);
+
+        console.log('✅ Test validation errors displayed. Check the form for red borders and error messages under inputs.');
+    }
+
     // Make functions globally accessible
     window.toggleDiscountFields = toggleDiscountFields;
     window.toggleSimpleDiscountFields = toggleSimpleDiscountFields;
@@ -3070,6 +3139,7 @@
     window.addSimpleStockRow = addSimpleStockRow;
     window.removeSimpleStockRow = removeSimpleStockRow;
     window.cancelStockManagement = cancelStockManagement;
+    window.testValidationErrors = testValidationErrors;
 
 })(jQuery);
 </script>

@@ -326,7 +326,7 @@
                                 const bankViewUrl = "{{ route('admin.products.bank.view', ':id') }}".replace(':id', data.id);
                                 const editUrl = "{{ route('admin.products.edit', ':id') }}".replace(':id', data.id);
 
-                                let actionsHtml = `<div class="orderDatatable_actions d-inline-flex gap-1">
+                                let actionsHtml = `<div class="orderDatatable_actions d-inline-flex gap-1 justify-content-center">
                                     <a href="${bankViewUrl}" class="view btn btn-info table_action_father" title="{{ trans('catalogmanagement::product.view_bank_product') }}">
                                         <i class="uil uil-eye table_action_icon"></i>
                                     </a>`;
