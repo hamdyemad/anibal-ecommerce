@@ -170,7 +170,7 @@ class VendorProductVariant extends Model
      */
     public function getDiscountAttribute()
     {
-        if ($this->has_discount && $this->price_before_discount && $this->price) {
+        if (($this->has_discount && $this->price_before_discount && $this->price) && $this->price_before_discount != 0) {
             $discount = (($this->price_before_discount - $this->price) / $this->price_before_discount) * 100;
             return round($discount, 2);
         }
