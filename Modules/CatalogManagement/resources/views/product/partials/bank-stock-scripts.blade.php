@@ -665,12 +665,18 @@
                                     ${translations.pricing_and_details}
                                 </h6>
                                 <div class="row">
-                                    <div class="col-md-6 mb-3">
+                                    <div class="col-md-4 mb-3">
                                         <label class="form-label">${translations.vendor_sku} <span class="text-danger">*</span></label>
                                         <input type="text" class="form-control ih-medium ip-gray radius-xs b-light px-15" name="variants[${index}][sku]"
                                                placeholder="${translations.enter_variant_sku}" value="" required>
                                     </div>
-                                    <div class="col-md-6 mb-3">
+                                    <div class="col-md-4 mb-3">
+                                        <label class="form-label">${translations.tax}</label>
+                                        <select class="form-control select2 tax-select" name="variants[${index}][tax_id]">
+                                            <option value="">${translations.select_tax}</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4 mb-3">
                                         <label class="form-label">${translations.price} <span class="text-danger">*</span></label>
                                         <input type="number" class="form-control ih-medium ip-gray radius-xs b-light px-15" name="variants[${index}][price]"
                                                placeholder="0.00" step="0.01" min="0" value="" required>
@@ -796,12 +802,18 @@
                                     ${translations.pricing_and_details}
                                 </h6>
                                 <div class="row">
-                                    <div class="col-md-6 mb-3">
+                                    <div class="col-md-4 mb-3">
                                         <label class="form-label">${translations.vendor_sku} <span class="text-danger">*</span></label>
                                         <input type="text" class="form-control ih-medium ip-gray radius-xs b-light px-15" name="variants[${index}][sku]"
                                                placeholder="${translations.enter_variant_sku}" value="${variant.sku || ''}" required>
                                     </div>
-                                    <div class="col-md-6 mb-3">
+                                    <div class="col-md-4 mb-3">
+                                        <label class="form-label">${translations.tax}</label>
+                                        <select class="form-control select2 tax-select" name="variants[${index}][tax_id]">
+                                            <option value="">${translations.select_tax}</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4 mb-3">
                                         <label class="form-label">${translations.price} <span class="text-danger">*</span></label>
                                         <input type="number" class="form-control ih-medium ip-gray radius-xs b-light px-15" name="variants[${index}][price]"
                                                placeholder="0.00" step="0.01" min="0" value="${variant.price || ''}" required>

@@ -13,6 +13,7 @@ use Modules\CatalogManagement\app\Models\VendorProduct;
 use App\Models\UserType;
 use Illuminate\Support\Facades\Auth;
 use Modules\CatalogManagement\app\Http\Resources\BankProductResource;
+use Modules\CatalogManagement\app\Models\Tax;
 
 class ProductRepository implements ProductInterface
 {
@@ -444,8 +445,11 @@ class ProductRepository implements ProductInterface
                         $incomingVariantIds[] = $variantData['id'];
                         $vendorProductVariant = $existingProductVariant;
                     } else {
-                        // Create new global variant if it doesn't exist
-                        if (!$existingProductVariant) {
+                        // Create new global variant if it doesn't exist (for regular product creation/update)
+                        // Skip this only for bank imports where global variants should already exist
+                        $isBankImport = isset($data['is_bank_import']) && $data['is_bank_import'];
+
+                        if (!$existingProductVariant && !$isBankImport) {
                             $vendorProduct->product->variants()->create([
                                 'variant_configuration_id' => $variantConfigId,
                             ]);
@@ -535,11 +539,28 @@ class ProductRepository implements ProductInterface
             $vendorId = $data['vendor_id'];
             $taxId = $data['tax_id'] ?? null;
 
+            // If no SKU provided, generate one since it's required in database
+            $sku = $data['sku'] ?? null;
+            if (empty($sku)) {
+                $sku = 'VP-' . $productId . '-' . $vendorId . '-' . time();
+            }
+
+            // If no tax_id provided, get the first available tax as default
+            if (!$taxId) {
+                $defaultTax = Tax::first();
+                $taxId = $defaultTax ? $defaultTax->id : null;
+
+                // If still no tax available, throw an error since tax_id is required in database
+                if (!$taxId) {
+                    throw new \Exception('No tax found in the system. Please create at least one tax before adding products to bank.');
+                }
+            }
+
             $vendorProductData = [
                 'product_id' => $productId,
                 'vendor_id' => $vendorId,
                 'tax_id' => $taxId,
-                'sku' => $data['sku'] ?? null,
+                'sku' => $sku,
                 'max_per_order' => $data['max_per_order'] ?? 10,
                 'video_link' => $data['video_link'] ?? null,
                 'is_active' => isset($data['is_active']) ? (bool) $data['is_active'] : true,
@@ -555,6 +576,7 @@ class ProductRepository implements ProductInterface
             $vendorProduct = VendorProduct::create($vendorProductData);
 
             $data['configuration_type'] = $vendorProduct->product->configuration_type;
+            $data['is_bank_import'] = true; // Flag to indicate this is a bank import operation
             // Handle variants or simple product
             $this->handleProductVariants($vendorProduct, $data);
 
