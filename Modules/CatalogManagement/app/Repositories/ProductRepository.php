@@ -770,11 +770,11 @@ class ProductRepository implements ProductInterface
     /**
      * Change vendor product status (approve/reject) with optional bank product assignment
      */
-    public function changeVendorProductStatus(int $productId, array $data)
+    public function changeVendorProductStatus(int $vendorProductId, array $data)
     {
-        return DB::transaction(function () use ($productId, $data) {
-            $product = Product::findOrFail($productId);
-            $vendorProduct = VendorProduct::where('product_id', $product->id)->firstOrFail();
+        return DB::transaction(function () use ($vendorProductId, $data) {
+            // $product = Product::findOrFail($productId);
+            $vendorProduct = VendorProduct::findOrFail($vendorProductId);
 
             // Handle bank product assignment on approval
             if ($data['status'] == 'approved' && isset($data['bank_product_id'])) {
@@ -810,8 +810,8 @@ class ProductRepository implements ProductInterface
                 $vendorProduct->delete();
 
                 // Optionally delete the original product if it's not a bank product
-                if ($product->type !== Product::TYPE_BANK) {
-                    $product->delete();
+                if ($vendorProduct->product->type !== Product::TYPE_BANK) {
+                    $vendorProduct->product->delete();
                 }
 
                 // Create a new vendor product linking to the bank product
@@ -832,7 +832,7 @@ class ProductRepository implements ProductInterface
 
             // Normal status update without bank product assignment
             if ($data['status'] == 'approved') {
-                $product->update([
+                $vendorProduct->product->update([
                     'type' => Product::TYPE_BANK
                 ]);
             }
@@ -849,11 +849,10 @@ class ProductRepository implements ProductInterface
     /**
      * Change product activation status (active/inactive)
      */
-    public function changeProductActivation(int $productId, bool $isActive)
+    public function changeProductActivation(int $vendorProductId, bool $isActive)
     {
-        return DB::transaction(function () use ($productId, $isActive) {
-            $product = Product::findOrFail($productId);
-            $vendorProduct = VendorProduct::where('product_id', $product->id)->firstOrFail();
+        return DB::transaction(function () use ($vendorProductId, $isActive) {
+            $vendorProduct = VendorProduct::findOrFail($vendorProductId);
 
             // Check if status is already set to the requested value
             if ($vendorProduct->is_active === $isActive) {

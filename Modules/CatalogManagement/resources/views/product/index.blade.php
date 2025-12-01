@@ -534,7 +534,7 @@
                                     <input class="form-check-input activation-switcher"
                                            type="checkbox"
                                            id="${switchId}"
-                                           data-product-id="${row.id}"
+                                           data-product-id="${row.vendor_product_id}"
                                            data-product-name="${$('<div>').text(productName).html()}"
                                            ${isChecked}
                                            style="cursor: pointer;">
@@ -579,11 +579,11 @@
 
                             // Add approve/reject button and move to bank for admin users only
                             @if(auth()->user() && in_array(auth()->user()->user_type_id, \App\Models\UserType::adminIds()))
-                                if(data.product_type == 'product') {
+                                if(data.status == 'pending') {
                                     actions += `
                                         <a href="javascript:void(0);" class="change-status btn btn-success table_action_father"
                                         data-bs-toggle="modal" data-bs-target="#modal-change-status"
-                                        data-item-id="${data.id}"
+                                        data-item-id="${data.vendor_product_id}"
                                         data-item-status="${data.status || ''}"
                                         data-item-name="${data.product_information?.name_en || 'Product'}"
                                         data-item-type="${data.product_type || ''}"
