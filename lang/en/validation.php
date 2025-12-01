@@ -176,6 +176,9 @@ return [
     'min_star_max_star' => 'min_star cannot be greater than max_star',
     'status_invalid' => 'status must be one of: pending, approved, rejected',
     'vendor_product_id_not_exist' => 'vendor_product_id does not exist',
+    'rate_invalid' => 'rate must be between 1 and 5',
+    'has_discount_invalid' => 'has_discount must be a boolean',
+    'featured_invalid' => 'featured must be a boolean',
 
     /*
     |--------------------------------------------------------------------------
