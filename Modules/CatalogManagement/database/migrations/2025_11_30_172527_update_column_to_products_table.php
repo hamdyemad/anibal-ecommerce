@@ -19,8 +19,19 @@ return new class extends Migration
             AND sub_category_id NOT IN (SELECT id FROM categories)
         ');
 
-        // Drop foreign key if it exists using raw SQL
-        DB::statement('ALTER TABLE products DROP FOREIGN KEY IF EXISTS products_sub_category_id_foreign');
+        // Check if foreign key exists and drop it
+        $foreignKeyExists = DB::select("
+            SELECT CONSTRAINT_NAME
+            FROM information_schema.TABLE_CONSTRAINTS
+            WHERE TABLE_SCHEMA = DATABASE()
+            AND TABLE_NAME = 'products'
+            AND CONSTRAINT_NAME = 'products_sub_category_id_foreign'
+            AND CONSTRAINT_TYPE = 'FOREIGN KEY'
+        ");
+
+        if (!empty($foreignKeyExists)) {
+            DB::statement('ALTER TABLE products DROP FOREIGN KEY products_sub_category_id_foreign');
+        }
 
         Schema::table('products', function (Blueprint $table) {
             $table->unsignedBigInteger('sub_category_id')->nullable()->change();
