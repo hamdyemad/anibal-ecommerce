@@ -129,15 +129,15 @@ class AutoProductSeeder extends Seeder
     {
         $productName = $this->generateProductName();
 
-        // Get a random category and optionally a subcategory
+        // Get a random category
         $category = $categories->random();
 
         // Get a random subcategory that belongs to this category (if any exist)
         $subCategoryId = null;
         if ($subCategories->isNotEmpty()) {
-            $potentialSubCategory = $subCategories->where('category_id', $category->id)->random();
-            if ($potentialSubCategory) {
-                $subCategoryId = $potentialSubCategory->id;
+            $categorySubCategories = $subCategories->where('category_id', $category->id);
+            if ($categorySubCategories->isNotEmpty()) {
+                $subCategoryId = $categorySubCategories->random()->id;
             }
         }
 
@@ -402,15 +402,15 @@ class AutoProductSeeder extends Seeder
     {
         $productName = $this->generateProductName();
 
-        // Get a random category and optionally a subcategory
+        // Get a random category
         $category = $categories->random();
 
         // Get a random subcategory that belongs to this category (if any exist)
         $subCategoryId = null;
         if ($subCategories->isNotEmpty()) {
-            $potentialSubCategory = $subCategories->where('category_id', $category->id)->random();
-            if ($potentialSubCategory) {
-                $subCategoryId = $potentialSubCategory->id;
+            $categorySubCategories = $subCategories->where('category_id', $category->id);
+            if ($categorySubCategories->isNotEmpty()) {
+                $subCategoryId = $categorySubCategories->random()->id;
             }
         }
 
