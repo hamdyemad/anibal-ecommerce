@@ -106,6 +106,11 @@
             'all' => 'all',
             'create' => 'create',
         ],
+        'bundles' => [
+            'title' => 'Bundles',
+            'bundle_categories' => 'Bundle Categories',
+            'all_bundles' => 'All Bundles',
+        ],
         'offers' => [
             'title' => 'offers',
             'all' => 'all',

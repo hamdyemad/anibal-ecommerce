@@ -95,8 +95,13 @@
         ],
         'taxes' => [
             'title' => 'الضرائب',
-            'all' => 'الكل',
-            'create' => 'إضافة',
+            'all' => 'جميع الضرائب',
+            'create' => 'إنشاء ضريبة',
+        ],
+        'bundles' => [
+            'title' => 'الحزم',
+            'bundle_categories' => 'فئات الحزم',
+            'all_bundles' => 'جميع الحزم',
         ],
         'offers' => [
             'title' => 'العروض',

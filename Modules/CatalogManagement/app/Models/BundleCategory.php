@@ -1,0 +1,79 @@
+<?php
+
+namespace Modules\CatalogManagement\app\Models;
+
+use App\Models\BaseModel;
+use App\Models\Attachment;
+use App\Models\Traits\HumanDates;
+use App\Traits\HasSlug;
+use App\Traits\Translation;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Builder;
+
+class BundleCategory extends BaseModel
+{
+    use HasFactory, SoftDeletes, Translation, HumanDates, HasSlug;
+
+    protected $guarded = [];
+
+    /**
+     * Attachments relationship
+     */
+    public function attachments()
+    {
+        return $this->morphMany(Attachment::class, 'attachable');
+    }
+
+    /**
+     * Get bundle category image
+     */
+    public function getImageAttribute()
+    {
+        $imageAttachment = $this->attachments()->where('type', 'image')->first();
+        return $imageAttachment ? $imageAttachment->path : null;
+    }
+
+    /**
+     * Get type attribute
+     */
+    public function getTypeAttribute()
+    {
+        return 'bundle_category';
+    }
+
+    /**
+     * Scope for active bundle categories
+     */
+    public function scopeActive(Builder $query)
+    {
+        return $query->where('active', 1);
+    }
+
+    /**
+     * Get SEO title with fallback to translated name
+     */
+    public function getSeoTitle($locale = null)
+    {
+        $locale = $locale ?? app()->getLocale();
+        return $this->getTranslation('seo_title', $locale) ?? $this->getTranslation('name', $locale);
+    }
+
+    /**
+     * Get SEO description
+     */
+    public function getSeoDescription($locale = null)
+    {
+        $locale = $locale ?? app()->getLocale();
+        return $this->getTranslation('seo_description', $locale);
+    }
+
+    /**
+     * Get SEO keywords
+     */
+    public function getSeoKeywords($locale = null)
+    {
+        $locale = $locale ?? app()->getLocale();
+        return $this->getTranslation('seo_keywords', $locale);
+    }
+}

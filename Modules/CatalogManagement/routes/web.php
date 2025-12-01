@@ -76,6 +76,25 @@ Route::group(
     });
     Route::resource('variants-configurations', 'VariantsConfigurationController');
 
+    // Bundle Categories
+    Route::get('bundle-categories/datatable', 'BundleCategoryController@datatable')->name('bundle-categories.datatable');
+    Route::post('bundle-categories/{bundleCategory}/toggle-status', 'BundleCategoryController@toggleStatus')->name('bundle-categories.toggle-status');
+    Route::resource('bundle-categories', 'BundleCategoryController');
+
+    // Bundles (placeholder routes for future implementation)
+    Route::get('bundles', function() {
+        return 'comming soon...';
+    })->name('bundles.index');
+    Route::get('bundles/create', function() {
+        return 'comming soon...';
+    })->name('bundles.create');
+    Route::get('bundles/{id}', function($id) {
+        return 'comming soon...';
+    })->name('bundles.show');
+    Route::get('bundles/{id}/edit', function($id) {
+        return 'comming soon...';
+    })->name('bundles.edit');
+
     // API routes for variant selection in product form
     Route::get('api/variant-keys', 'VariantsConfigurationController@getVariantKeys')->name('api.variant-keys');
     Route::get('api/variants-by-key', 'VariantsConfigurationController@getVariantsByKey')->name('api.variants-by-key');
