@@ -265,44 +265,72 @@ class AutoProductSeeder extends Seeder
      */
     private function setupVariantConfigurations($languages)
     {
-        // Create Color key if not exists
-        $colorKey = VariantConfigurationKey::firstOrCreate(['id' => 1]);
+        // Get all existing variant configuration keys
+        $variantKeys = VariantConfigurationKey::all();
 
-        // Add color key translations
-        foreach ($languages as $langCode => $language) {
-            if (!$colorKey->translations()->where('lang_id', $language->id)->where('lang_key', 'name')->exists()) {
-                $colorKey->translations()->create([
-                    'lang_id' => $language->id,
-                    'lang_key' => 'name',
-                    'lang_value' => $langCode === 'en' ? 'Color' : 'اللون',
-                ]);
-            }
+        // If no keys exist, create default Color and Size keys
+        if ($variantKeys->isEmpty()) {
+            $this->createDefaultVariantKeys($languages);
+            $variantKeys = VariantConfigurationKey::all();
         }
 
-        // Create Size key if not exists
-        $sizeKey = VariantConfigurationKey::firstOrCreate(['id' => 2]);
+        // Loop through each variant key and setup its configurations
+        foreach ($variantKeys as $key) {
+            $keyName = $key->getTranslation('name', 'en');
 
-        // Add size key translations
-        foreach ($languages as $langCode => $language) {
-            if (!$sizeKey->translations()->where('lang_id', $language->id)->where('lang_key', 'name')->exists()) {
-                $sizeKey->translations()->create([
-                    'lang_id' => $language->id,
-                    'lang_key' => 'name',
-                    'lang_value' => $langCode === 'en' ? 'Size' : 'الحجم',
-                ]);
+            // Get existing configurations for this key
+            $existingConfigs = VariantsConfiguration::where('key_id', $key->id)->get();
+
+            echo "✓ Found variant key: {$keyName} with {$existingConfigs->count()} configurations\n";
+
+            // Setup configurations based on key type
+            if (strtolower($keyName) === 'color') {
+                $this->setupColorConfigurations($key, $languages, $existingConfigs);
+            } elseif (strtolower($keyName) === 'size') {
+                $this->setupSizeConfigurations($key, $languages, $existingConfigs);
             }
         }
+    }
 
-        // Create color configurations if not exist
+    /**
+     * Create default variant keys if none exist
+     */
+    private function createDefaultVariantKeys($languages)
+    {
+        // Create Color key
+        $colorKey = VariantConfigurationKey::create(['id' => 1]);
+        foreach ($languages as $langCode => $language) {
+            $colorKey->translations()->create([
+                'lang_id' => $language->id,
+                'lang_key' => 'name',
+                'lang_value' => $langCode === 'en' ? 'Color' : 'اللون',
+            ]);
+        }
+
+        // Create Size key
+        $sizeKey = VariantConfigurationKey::create(['id' => 2]);
+        foreach ($languages as $langCode => $language) {
+            $sizeKey->translations()->create([
+                'lang_id' => $language->id,
+                'lang_key' => 'name',
+                'lang_value' => $langCode === 'en' ? 'Size' : 'الحجم',
+            ]);
+        }
+    }
+
+    /**
+     * Setup color configurations for a key
+     */
+    private function setupColorConfigurations($key, $languages, $existingConfigs)
+    {
         foreach ($this->colors as $color) {
-            $existingConfig = VariantsConfiguration::where('key_id', $colorKey->id)
-                ->whereHas('translations', function($q) use ($color) {
-                    $q->where('lang_key', 'name')->where('lang_value', $color);
-                })->first();
+            $existingConfig = $existingConfigs->filter(function($config) use ($color) {
+                return $config->getTranslation('name', 'en') === $color;
+            })->first();
 
             if (!$existingConfig) {
                 $config = VariantsConfiguration::create([
-                    'key_id' => $colorKey->id,
+                    'key_id' => $key->id,
                     'parent_id' => null,
                 ]);
 
@@ -315,18 +343,23 @@ class AutoProductSeeder extends Seeder
                 }
             }
         }
+    }
 
-        // Create size configurations if not exist
+    /**
+     * Setup size configurations for a key
+     */
+    private function setupSizeConfigurations($key, $languages, $existingConfigs)
+    {
         $allSizes = array_merge($this->sizes, $this->numericalSizes);
+
         foreach ($allSizes as $size) {
-            $existingConfig = VariantsConfiguration::where('key_id', $sizeKey->id)
-                ->whereHas('translations', function($q) use ($size) {
-                    $q->where('lang_key', 'name')->where('lang_value', $size);
-                })->first();
+            $existingConfig = $existingConfigs->filter(function($config) use ($size) {
+                return $config->getTranslation('name', 'en') === $size;
+            })->first();
 
             if (!$existingConfig) {
                 $config = VariantsConfiguration::create([
-                    'key_id' => $sizeKey->id,
+                    'key_id' => $key->id,
                     'parent_id' => null,
                 ]);
 
@@ -340,7 +373,7 @@ class AutoProductSeeder extends Seeder
             }
         }
 
-        echo "✓ Setup variant configurations (colors and sizes)\n";
+        echo "✓ Setup variant configurations completed\n";
     }
 
     /**
