@@ -129,19 +129,16 @@ class AutoProductSeeder extends Seeder
     {
         $productName = $this->generateProductName();
 
-        // Get a random category and optionally a subcategory from categories table
+        // Get a random category and optionally a subcategory
         $category = $categories->random();
 
-        // Try to find a valid subcategory that exists in the categories table
+        // Get a random subcategory that belongs to this category (if any exist)
         $subCategoryId = null;
-        $potentialSubCategory = Category::where('parent_id', $category->id)
-            ->where('active', true)
-            ->inRandomOrder()
-            ->first();
-
-        // Double-check the subcategory exists before using it
-        if ($potentialSubCategory && Category::where('id', $potentialSubCategory->id)->exists()) {
-            $subCategoryId = $potentialSubCategory->id;
+        if ($subCategories->isNotEmpty()) {
+            $potentialSubCategory = $subCategories->where('category_id', $category->id)->random();
+            if ($potentialSubCategory) {
+                $subCategoryId = $potentialSubCategory->id;
+            }
         }
 
         // Create base product
@@ -405,19 +402,16 @@ class AutoProductSeeder extends Seeder
     {
         $productName = $this->generateProductName();
 
-        // Get a random category and optionally a subcategory from categories table
+        // Get a random category and optionally a subcategory
         $category = $categories->random();
 
-        // Try to find a valid subcategory that exists in the categories table
+        // Get a random subcategory that belongs to this category (if any exist)
         $subCategoryId = null;
-        $potentialSubCategory = Category::where('parent_id', $category->id)
-            ->where('active', true)
-            ->inRandomOrder()
-            ->first();
-
-        // Double-check the subcategory exists before using it
-        if ($potentialSubCategory && Category::where('id', $potentialSubCategory->id)->exists()) {
-            $subCategoryId = $potentialSubCategory->id;
+        if ($subCategories->isNotEmpty()) {
+            $potentialSubCategory = $subCategories->where('category_id', $category->id)->random();
+            if ($potentialSubCategory) {
+                $subCategoryId = $potentialSubCategory->id;
+            }
         }
 
         // Create base product
