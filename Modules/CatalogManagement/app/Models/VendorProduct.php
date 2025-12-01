@@ -198,7 +198,23 @@ class VendorProduct extends BaseModel
      */
     public function scopeFilter(Builder $query, array $filters)
     {
-        // Call parent filter scope from trait
+        // Handle search through product relationship instead of direct translations
+        if (!empty($filters['search'])) {
+            $search = $filters['search'];
+            $query->whereHas('product', function ($q) use ($search) {
+                $q->where(function ($query) use ($search) {
+                    $query->where('sku', 'like', "%{$search}%")
+                          ->orWhereHas('translations', function ($q) use ($search) {
+                              $q->where('lang_key', 'name')
+                                ->where('lang_value', 'like', "%{$search}%");
+                          });
+                });
+            });
+            // Remove search from filters to prevent parent from processing it
+            unset($filters['search']);
+        }
+
+        // Call parent filter scope from trait (without search)
         parent::scopeFilter($query, $filters);
 
         // Price range filter

@@ -111,6 +111,7 @@
             'bundle_categories' => 'Bundle Categories',
             'all_bundles' => 'All Bundles',
         ],
+        'occasions' => 'Occasions',
         'offers' => [
             'title' => 'offers',
             'all' => 'all',

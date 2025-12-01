@@ -103,6 +103,7 @@
             'bundle_categories' => 'فئات الحزم',
             'all_bundles' => 'جميع الحزم',
         ],
+        'occasions' => 'المناسبات',
         'offers' => [
             'title' => 'العروض',
             'all' => 'الكل',

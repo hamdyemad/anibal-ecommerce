@@ -24,6 +24,7 @@ return [
     'upload' => 'Upload',
     'submit' => 'Submit',
     'reset' => 'Reset',
+    'clear_all' => 'Clear All',
     'close' => 'Close',
     'confirm' => 'Confirm',
     'yes' => 'Yes',

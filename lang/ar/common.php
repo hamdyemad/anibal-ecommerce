@@ -24,6 +24,7 @@ return [
     'upload' => 'رفع',
     'submit' => 'إرسال',
     'reset' => 'إعادة تعيين',
+    'clear_all' => 'مسح الكل',
     'close' => 'إغلاق',
     'confirm' => 'تأكيد',
     'yes' => 'نعم',

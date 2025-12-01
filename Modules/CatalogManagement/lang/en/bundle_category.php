@@ -18,7 +18,7 @@ return [
     'enter_bundle_category_name' => 'Enter bundle category name',
     'image' => 'Image',
     'click_to_upload_image' => 'Click to upload image',
-    'recommended_size' => 'Recommended size: 400x400px',
+    'recommended_size' => 'Recommended size: 320x320px',
     'activation' => 'Activation',
     'no_image' => 'No image uploaded',
 

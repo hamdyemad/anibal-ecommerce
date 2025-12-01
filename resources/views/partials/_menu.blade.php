@@ -372,6 +372,22 @@
             </li>
         @endif
 
+        {{-- Occasions Menu --}}
+        @if(in_array($user_type_id, \App\Models\UserType::adminIds()))
+            <li class="{{ isMenuActive(['admin.occasions.index', 'admin.occasions.create', 'admin.occasions.show', 'admin.occasions.edit'], $currentRoute) ? 'active' : '' }}">
+                <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive(['admin.occasions.index', 'admin.occasions.create', 'admin.occasions.show', 'admin.occasions.edit'], $currentRoute) ? 'active' : '' }}"
+                    href="{{ route('admin.occasions.index') }}">
+                    <span class="d-flex align-items-center">
+                        <span class="nav-icon uil uil-calendar-alt"></span>
+                        <span class="menu-text">{{ trans('menu.occasions') }}</span>
+                    </span>
+                    <span class="badge badge-round badge-success ms-1">
+                        {{ \Modules\CatalogManagement\app\Models\Occasion::count() }}
+                    </span>
+                </a>
+            </li>
+        @endif
+
         @can('reviews.view')
             <li class="has-child">
                 <a href="#" class="">
@@ -434,40 +450,6 @@
                     </ul>
                 </li>
             @endcanany
-        @endif
-
-        @if (in_array($user_type_id, \App\Models\UserType::adminIds()))
-
-            @canany(['offers.view', 'offers.create'])
-                <li class="has-child">
-                    <a href="#" class="">
-                        <span class="nav-icon uil uil-gift"></span>
-                        <span class="menu-text">{{ trans('menu.offers.title') }}</span>
-                        <span class="toggle-icon"></span>
-                    </a>
-                    <ul class="px-0">
-                        @can('offers.index')
-                            <li>
-                                <a class="d-flex align-items-center justify-content-between fw-bold"
-                                    href="{{ route('admin.dashboard') }}">
-                                    {{ trans('menu.offers.all') }}
-                                    <span class="badge badge-round badge-warning ms-1">8</span>
-                                </a>
-                            </li>
-                        @endcan
-
-                        @can('offers.create')
-                            <li>
-                                <a class="d-flex align-items-center justify-content-between fw-bold"
-                                    href="{{ route('admin.dashboard') }}">
-                                    {{ trans('menu.offers.create') }}
-                                </a>
-                            </li>
-                        @endcan
-                    </ul>
-                </li>
-            @endcanany
-
         @endif
 
         @can('brands.index')

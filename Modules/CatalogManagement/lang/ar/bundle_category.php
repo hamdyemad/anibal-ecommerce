@@ -18,7 +18,7 @@ return [
     'enter_bundle_category_name' => 'أدخل اسم فئة الحزمة',
     'image' => 'الصورة',
     'click_to_upload_image' => 'انقر لرفع الصورة',
-    'recommended_size' => 'الحجم المقترح: 400x400 بكسل',
+    'recommended_size' => 'الحجم المقترح: 320x320 بكسل',
     'activation' => 'التفعيل',
     'no_image' => 'لم يتم رفع صورة',
 

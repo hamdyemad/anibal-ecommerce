@@ -42,6 +42,11 @@ Route::group(
 
     });
 
+    // Occasions
+    Route::get('occasions/datatable', 'OccasionController@datatable')->name('occasions.datatable');
+    Route::post('occasions/{id}/toggle-status', 'OccasionController@toggleStatus')->name('occasions.toggle-status');
+    Route::resource('occasions', 'OccasionController');
+
 
 
     Route::group(['prefix' => 'products'], function() {
