@@ -91,17 +91,22 @@ class VendorProduct extends BaseModel
     }
 
     /**
-     * Apply custom search logic for Product
-     * Searches by title, brand, and category in addition to translations
+     * Apply custom search logic for VendorProduct
+     * Searches through product relationships (brand, category, product name)
      */
     protected function applyCustomSearch(Builder $query, string $search): Builder
     {
-        return $query->orWhereHas('brand', function($subQ) use ($search) {
+        return $query->orWhereHas('product', function($subQ) use ($search) {
                 $subQ->whereHas('translations', function($subSubQ) use ($search) {
                     $subSubQ->where('lang_value', 'like', "%{$search}%");
                 });
             })
-            ->orWhereHas('category', function($subQ) use ($search) {
+            ->orWhereHas('product.brand', function($subQ) use ($search) {
+                $subQ->whereHas('translations', function($subSubQ) use ($search) {
+                    $subSubQ->where('lang_value', 'like', "%{$search}%");
+                });
+            })
+            ->orWhereHas('product.category', function($subQ) use ($search) {
                 $subQ->whereHas('translations', function($subSubQ) use ($search) {
                     $subSubQ->where('lang_value', 'like', "%{$search}%");
                 });
@@ -195,11 +200,32 @@ class VendorProduct extends BaseModel
 
     /**
      * Scope: Override filter to add price range and featured filters
+     * VendorProduct doesn't have translations, so we skip the default search
      */
     public function scopeFilter(Builder $query, array $filters)
     {
-        // Call parent filter scope from trait
-        parent::scopeFilter($query, $filters);
+        // Handle search filter (VendorProduct doesn't have translations)
+        if (!empty($filters['search'])) {
+            $search = $filters['search'];
+            $query->where(function($q) use ($search) {
+                // Apply custom search logic from child model
+                $this->applyCustomSearch($q, $search);
+            });
+        }
+
+        // Handle other global filters (skip translation search)
+        if (!empty($filters['active'])) {
+            $query->where('is_active', $filters['active']);
+        }
+
+        // Date range filters
+        if (!empty($filters['created_date_from'])) {
+            $query->whereDate('created_at', '>=', $filters['created_date_from']);
+        }
+
+        if (!empty($filters['created_date_to'])) {
+            $query->whereDate('created_at', '<=', $filters['created_date_to']);
+        }
 
         // Price range filter
         if (!empty($filters['min_price']) || !empty($filters['max_price'])) {
