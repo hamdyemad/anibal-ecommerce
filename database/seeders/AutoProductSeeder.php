@@ -131,7 +131,18 @@ class AutoProductSeeder extends Seeder
 
         // Get a random category and optionally a subcategory from categories table
         $category = $categories->random();
-        $subCategory = Category::where('parent_id', $category->id)->where('active', true)->inRandomOrder()->first();
+
+        // Try to find a valid subcategory that exists in the categories table
+        $subCategoryId = null;
+        $potentialSubCategory = Category::where('parent_id', $category->id)
+            ->where('active', true)
+            ->inRandomOrder()
+            ->first();
+
+        // Double-check the subcategory exists before using it
+        if ($potentialSubCategory && Category::where('id', $potentialSubCategory->id)->exists()) {
+            $subCategoryId = $potentialSubCategory->id;
+        }
 
         // Create base product
         $product = Product::create([
@@ -142,7 +153,7 @@ class AutoProductSeeder extends Seeder
             'brand_id' => $brands->random()->id,
             'department_id' => $departments->random()->id,
             'category_id' => $category->id,
-            'sub_category_id' => $subCategory ? $subCategory->id : null,
+            'sub_category_id' => $subCategoryId,
             'vendor_id' => $vendor->id,
             'created_by_user_id' => $vendor->user_id,
         ]);
@@ -396,7 +407,18 @@ class AutoProductSeeder extends Seeder
 
         // Get a random category and optionally a subcategory from categories table
         $category = $categories->random();
-        $subCategory = Category::where('parent_id', $category->id)->where('active', true)->inRandomOrder()->first();
+
+        // Try to find a valid subcategory that exists in the categories table
+        $subCategoryId = null;
+        $potentialSubCategory = Category::where('parent_id', $category->id)
+            ->where('active', true)
+            ->inRandomOrder()
+            ->first();
+
+        // Double-check the subcategory exists before using it
+        if ($potentialSubCategory && Category::where('id', $potentialSubCategory->id)->exists()) {
+            $subCategoryId = $potentialSubCategory->id;
+        }
 
         // Create base product
         $product = Product::create([
@@ -407,7 +429,7 @@ class AutoProductSeeder extends Seeder
             'brand_id' => $brands->random()->id,
             'department_id' => $departments->random()->id,
             'category_id' => $category->id,
-            'sub_category_id' => $subCategory ? $subCategory->id : null,
+            'sub_category_id' => $subCategoryId,
             'vendor_id' => $vendor->id,
             'created_by_user_id' => $vendor->user_id,
         ]);
