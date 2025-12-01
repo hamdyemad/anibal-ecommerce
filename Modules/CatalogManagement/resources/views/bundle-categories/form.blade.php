@@ -22,7 +22,7 @@
                     </div>
                     <div class="card-body">
                         <!-- Alert Container -->
-                        <div id="alertContainer mb-2"></div>
+                        <div id="alertContainer" class="mb-2"></div>
 
                         <form id="bundleCategoryForm"
                               action="{{ isset($bundleCategory) ? route('admin.bundle-categories.update', $bundleCategory->id) : route('admin.bundle-categories.store') }}"
@@ -47,15 +47,23 @@
                             <div class="row">
                                 {{-- Bundle Category Image --}}
                                 <div class="col-md-6 mb-25">
-                                    <x-image-upload
-                                        id="bundle_category_image"
-                                        name="image"
-                                        :label="trans('catalogmanagement::bundle_category.image')"
-                                        :placeholder="trans('catalogmanagement::bundle_category.click_to_upload_image')"
-                                        :recommendedSize="trans('catalogmanagement::bundle_category.recommended_size')"
-                                        :existingImage="isset($bundleCategory) && $bundleCategory->image ? $bundleCategory->image : null"
-                                        aspectRatio="square"
-                                    />
+                                    <div class="form-group">
+                                        <label class="il-gray fs-14 fw-500 mb-10 d-block">
+                                            {{ trans('catalogmanagement::bundle_category.image') }}
+                                            <span class="text-danger">*</span>
+                                        </label>
+                                        <x-image-upload
+                                            id="bundle_category_image"
+                                            name="image"
+                                            :placeholder="trans('catalogmanagement::bundle_category.click_to_upload_image')"
+                                            :recommendedSize="trans('catalogmanagement::bundle_category.recommended_size')"
+                                            :existingImage="isset($bundleCategory) && $bundleCategory->image ? $bundleCategory->image : null"
+                                            aspectRatio="square"
+                                        />
+                                        @error('image')
+                                            <div class="invalid-feedback d-block" style="display: block !important;">{{ $message }}</div>
+                                        @enderror
+                                    </div>
                                 </div>
                                 {{-- Activation Switcher --}}
                                 <div class="col-md-6 mb-25">
@@ -252,14 +260,59 @@
                     // Handle validation errors
                     if (error.errors) {
                         Object.keys(error.errors).forEach(field => {
-                            const input = document.querySelector(`[name="${field}"]`);
+                            // Convert Laravel dot notation to HTML bracket notation
+                            // "translations.1.name" -> "translations[1][name]"
+                            let fieldName = field.replace(/\.(\d+)\./g, '[$1][').replace(/\.(\w+)$/, '[$1]');
+                            if (fieldName.includes('[') && !fieldName.endsWith(']')) {
+                                fieldName += ']';
+                            }
+
+                            // Try multiple selectors to find the input
+                            let input = document.querySelector(`[name="${fieldName}"]`) ||
+                                       document.querySelector(`[name="${field}"]`) ||
+                                       document.querySelector(`input[name*="${field.split('.').pop()}"]`) ||
+                                       document.querySelector(`textarea[name*="${field.split('.').pop()}"]`);
+
                             if (input) {
                                 input.classList.add('is-invalid');
+
+                                // Add invalid border to image upload container if it's an image field
+                                if (field === 'image') {
+                                    const imageContainer = input.closest('.dm-uploader');
+                                    if (imageContainer) {
+                                        imageContainer.style.border = '1px solid #dc3545';
+                                        imageContainer.style.borderRadius = '4px';
+                                    }
+                                }
+
+                                // Remove any existing error message for this field
+                                const existingError = input.parentNode.querySelector('.invalid-feedback');
+                                if (existingError) {
+                                    existingError.remove();
+                                }
+
+                                // Get language information from the input's data-lang attribute or label
+                                let languageName = '';
+                                const langCode = input.getAttribute('data-lang');
+                                if (langCode) {
+                                    // Get language name from the label
+                                    const label = input.parentNode.querySelector('label');
+                                    if (label) {
+                                        const labelText = label.textContent;
+                                        const match = labelText.match(/\(([^)]+)\)/);
+                                        if (match) {
+                                            languageName = ` (${match[1]})`;
+                                        }
+                                    }
+                                }
+
                                 const feedback = document.createElement('div');
                                 feedback.className = 'invalid-feedback d-block';
                                 feedback.style.display = 'block !important';
-                                feedback.textContent = error.errors[field][0];
+                                feedback.textContent = error.errors[field][0] + languageName;
                                 input.parentNode.appendChild(feedback);
+                            } else {
+                                console.log('Input not found for field:', field, 'Tried:', fieldName);
                             }
                         });
                     }
@@ -272,6 +325,12 @@
                         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                     `;
                     alertContainer.appendChild(alert);
+
+                    // Scroll to top to show errors
+                    window.scrollTo({
+                        top: 0,
+                        behavior: 'smooth'
+                    });
 
                     // Re-enable submit button
                     submitBtn.disabled = false;

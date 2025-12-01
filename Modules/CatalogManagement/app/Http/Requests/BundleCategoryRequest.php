@@ -25,7 +25,7 @@ class BundleCategoryRequest extends FormRequest
         return [
             // Basic fields
             'active' => 'boolean',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
+            'image' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
 
             // Translation fields
             'translations' => 'required|array',
@@ -41,22 +41,39 @@ class BundleCategoryRequest extends FormRequest
      */
     public function messages(): array
     {
-        return [
+        $messages = [
             'translations.required' => trans('catalogmanagement::bundle_category.translations_required'),
-            'translations.*.name.required' => trans('catalogmanagement::bundle_category.name_required'),
-            'translations.*.name.string' => trans('catalogmanagement::bundle_category.name_must_be_string'),
-            'translations.*.name.max' => trans('catalogmanagement::bundle_category.name_max_length'),
-            'translations.*.seo_title.string' => trans('catalogmanagement::bundle_category.seo_title_must_be_string'),
-            'translations.*.seo_title.max' => trans('catalogmanagement::bundle_category.seo_title_max_length'),
-            'translations.*.seo_description.string' => trans('catalogmanagement::bundle_category.seo_description_must_be_string'),
-            'translations.*.seo_description.max' => trans('catalogmanagement::bundle_category.seo_description_max_length'),
-            'translations.*.seo_keywords.string' => trans('catalogmanagement::bundle_category.seo_keywords_must_be_string'),
-            'translations.*.seo_keywords.max' => trans('catalogmanagement::bundle_category.seo_keywords_max_length'),
             'image.image' => trans('catalogmanagement::bundle_category.image_must_be_image'),
             'image.mimes' => trans('catalogmanagement::bundle_category.image_invalid_format'),
             'image.max' => trans('catalogmanagement::bundle_category.image_max_size'),
             'active.boolean' => trans('catalogmanagement::bundle_category.active_must_be_boolean'),
         ];
+
+        // Get all languages to create language-specific error messages
+        $languages = \App\Models\Language::all();
+
+        foreach ($languages as $language) {
+            $locale = $language->code;
+
+            // Name field messages
+            $messages["translations.{$language->id}.name.required"] = trans('catalogmanagement::bundle_category.name_required', [], $locale);
+            $messages["translations.{$language->id}.name.string"] = trans('catalogmanagement::bundle_category.name_must_be_string', [], $locale);
+            $messages["translations.{$language->id}.name.max"] = trans('catalogmanagement::bundle_category.name_max_length', [], $locale);
+
+            // SEO Title messages
+            $messages["translations.{$language->id}.seo_title.string"] = trans('catalogmanagement::bundle_category.seo_title_must_be_string', [], $locale);
+            $messages["translations.{$language->id}.seo_title.max"] = trans('catalogmanagement::bundle_category.seo_title_max_length', [], $locale);
+
+            // SEO Description messages
+            $messages["translations.{$language->id}.seo_description.string"] = trans('catalogmanagement::bundle_category.seo_description_must_be_string', [], $locale);
+            $messages["translations.{$language->id}.seo_description.max"] = trans('catalogmanagement::bundle_category.seo_description_max_length', [], $locale);
+
+            // SEO Keywords messages
+            $messages["translations.{$language->id}.seo_keywords.string"] = trans('catalogmanagement::bundle_category.seo_keywords_must_be_string', [], $locale);
+            $messages["translations.{$language->id}.seo_keywords.max"] = trans('catalogmanagement::bundle_category.seo_keywords_max_length', [], $locale);
+        }
+
+        return $messages;
     }
 
     /**
