@@ -114,7 +114,11 @@ class Handler extends ExceptionHandler
         ]);
 
         $message = config('responses.database_error')[app()->getLocale()] ?? 'Database error occurred';
-        $data = app()->isLocal() ? ['error' => $e->getMessage()] : [];
+        // Always include the actual error message for debugging (even in production)
+        $data = [
+            'error' => $e->getMessage(),
+            'query' => $e->getSql(),
+        ];
         return $this->sendRes($message, false, $data, [], 500);
     }
 
