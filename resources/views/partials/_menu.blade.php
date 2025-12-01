@@ -674,18 +674,19 @@
             </ul>
         </li>
 
+        {{-- @can('order-stages.index')
         <li>
-            <a href="{{ route('admin.dashboard') }}"
+            <a href="{{ route('admin.order-stages.index') }}"
                 class="{{ isMenuActive('admin.order-stages.index', $currentRoute) ? 'active' : '' }}">
                 <span class="d-flex align-items-center justify-content-between fw-bold w-100">
                     <span class="d-flex align-items-center">
                         <span class="nav-icon uil uil-process"></span>
                         <span class="menu-text">{{ trans('menu.orders.order stages') }}</span>
                     </span>
-                    <span class="badge badge-primary  badge-round ms-1">500</span>
                 </span>
             </a>
         </li>
+        @endcan --}}
 
         @if (in_array($user_type_id, \App\Models\UserType::adminIds()))
             @can('shipping_methods.index')

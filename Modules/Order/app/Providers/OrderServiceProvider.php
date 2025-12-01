@@ -6,6 +6,8 @@ use App\Providers\EventServiceProvider;
 use App\Providers\RouteServiceProvider;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\ServiceProvider;
+use Modules\Order\app\Interfaces\OrderStageRepositoryInterface;
+use Modules\Order\app\Repositories\OrderStageRepository;
 use Nwidart\Modules\Traits\PathNamespace;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
@@ -40,10 +42,10 @@ class OrderServiceProvider extends ServiceProvider
         $this->app->register(RouteServiceProvider::class);
 
         // Register repository bindings
-        // $this->app->bind(
-        //     BrandRepositoryInterface::class,
-        //     BrandRepository::class
-        // );
+        $this->app->bind(
+            OrderStageRepositoryInterface::class,
+            OrderStageRepository::class
+        );
     }
 
     /**
