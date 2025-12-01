@@ -30,11 +30,9 @@ class DatabaseSeeder extends Seeder
         // $this->call(RoleSeeder::class);
 
         // Orders Seeder to implement withdraw cycle
-        $this->call(OrderDatabaseSeeder::class);
+        // $this->call(OrderDatabaseSeeder::class);
 
         // $this->call(ActivitySeeder::class);
-
-
 
 
     }
