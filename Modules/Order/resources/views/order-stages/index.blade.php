@@ -274,26 +274,30 @@
                         orderable: false,
                         searchable: false,
                         render: function(data, type, row) {
+                            let showUrl = "{{ route('admin.order-stages.show', ':id') }}".replace(':id', row.id);
+                            let editUrl = "{{ route('admin.order-stages.edit', ':id') }}".replace(':id', row.id);
                             return `
                                 <div class="orderDatatable_actions d-inline-flex gap-1 justify-content-center">
-                                    <a href="{{ url('admin/order-stages') }}/${row.id}"
+                                    <a href="${showUrl}"
                                     class="view btn btn-primary table_action_father"
                                     title="{{ trans('order::order_stage.view_order_stage') }}">
                                         <i class="uil uil-eye table_action_icon"></i>
                                     </a>
                                     ${!row.is_system ? `
-                                    <a href="{{ url('admin/order-stages') }}/${row.id}/edit"
+                                    <a href="${editUrl}"
                                     class="edit btn btn-warning table_action_father"
                                     title="{{ trans('order::order_stage.edit_order_stage') }}">
                                         <i class="uil uil-edit table_action_icon"></i>
                                     </a>
+
                                     <a href="javascript:void(0);"
                                     class="remove delete-order-stage btn btn-danger table_action_father"
                                     data-bs-toggle="modal"
                                     data-bs-target="#modal-delete-order-stage"
-                                    data-item-id="${row.id}"
-                                    data-item-name="${row.translations && row.translations.en ? row.translations.en.name : 'Order Stage'}"
-                                    title="{{ trans('order::order_stage.delete_order_stage') }}">
+                                    data-id="${row.id}"
+                                    data-name="${row.translations && row.translations.en ? row.translations.en.name : 'Order Stage'}"
+                                    data-url="{{ route('admin.order-stages.index') }}/${row.id}"
+                                    title="{{ __('order::order_stage.delete_order_stage') }}">
                                         <i class="uil uil-trash-alt table_action_icon"></i>
                                     </a>
                                     ` : ''}
@@ -419,7 +423,7 @@
     <script>
         // Configure delete functionality
         window.deleteConfig = {
-            url: '{{ url("admin/order-stages") }}',
+            url: '{{ route("admin.order-stages.index") }}',
             token: '{{ csrf_token() }}'
         };
     </script>

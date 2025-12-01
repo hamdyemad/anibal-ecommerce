@@ -3,6 +3,7 @@
 namespace Modules\CatalogManagement\app\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Models\UserType;
 use Illuminate\Http\Request;
 use Modules\CatalogManagement\app\Actions\PromocodeAction;
 use Modules\CatalogManagement\app\Services\PromocodeService;
@@ -13,7 +14,8 @@ class PromocodeController extends Controller
     public function __construct(
         protected PromocodeService $promocodeService,
         protected PromocodeAction $promocodeAction
-    ) {}
+    ) {
+    }
 
     public function index()
     {

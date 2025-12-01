@@ -81,6 +81,7 @@ class ProductAction {
                     $q->whereHas('translations', function($query) use ($search) {
                         $query->where('lang_value', 'like', "%{$search}%");
                     })
+                    ->orWhere('sku', 'like', "%{$search}%")
                     ->orWhereHas('brand', function($query) use ($search) {
                         $query->whereHas('translations', function($subQuery) use ($search) {
                             $subQuery->where('lang_value', 'like', "%{$search}%");

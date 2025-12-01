@@ -7,18 +7,41 @@ Route::group(
     'prefix' => 'admin',
     'as' => 'admin.'
 ], function(){
-    // Brands
-    Route::get('brands/datatable', 'BrandController@datatable')->name('brands.datatable');
-    Route::resource('brands', 'BrandController');
 
-    // Promocodes
-    Route::get('promocodes/datatable', 'PromocodeController@datatable')->name('promocodes.datatable');
-    Route::post('promocodes/{promocode}/change-status', 'PromocodeController@changeStatus')->name('promocodes.change-status');
-    Route::resource('promocodes', 'PromocodeController');
+    Route::group(['middleware' => 'adminGuard'], function() {
+        // Brands
+        Route::get('brands/datatable', 'BrandController@datatable')->name('brands.datatable');
+        Route::resource('brands', 'BrandController');
 
-    // Taxes
-    Route::get('taxes/datatable', 'TaxController@datatable')->name('taxes.datatable');
-    Route::resource('taxes', 'TaxController');
+        // Promocodes
+        Route::get('promocodes/datatable', 'PromocodeController@datatable')->name('promocodes.datatable');
+        Route::post('promocodes/{promocode}/change-status', 'PromocodeController@changeStatus')->name('promocodes.change-status');
+        Route::resource('promocodes', 'PromocodeController');
+
+        // Taxes
+        Route::get('taxes/datatable', 'TaxController@datatable')->name('taxes.datatable');
+        Route::resource('taxes', 'TaxController');
+
+        // Variant Configuration Keys
+        Route::get('variant-keys/datatable', 'VariantConfigurationKeyController@datatable')->name('variant-keys.datatable');
+        Route::get('variant-keys-tree', 'VariantConfigurationKeyController@tree')->name('variant-keys.tree');
+        Route::resource('variant-keys', 'VariantConfigurationKeyController');
+
+        // Variants Configurations
+        Route::group(['prefix' => 'variants-configurations'], function() {
+            Route::get('datatable', 'VariantsConfigurationController@datatable')->name('variants-configurations.datatable');
+            Route::get('get-parents-by-key', 'VariantsConfigurationController@getParentsByKey')->name('variants-configurations.get-parents-by-key');
+            Route::get('tree', 'VariantsConfigurationController@tree')->name('variants-configurations.tree');
+        });
+        Route::resource('variants-configurations', 'VariantsConfigurationController');
+
+        // Bundle Categories
+        Route::get('bundle-categories/datatable', 'BundleCategoryController@datatable')->name('bundle-categories.datatable');
+        Route::post('bundle-categories/{id}/toggle-status', 'BundleCategoryController@toggleStatus')->name('bundle-categories.toggle-status');
+        Route::resource('bundle-categories', 'BundleCategoryController');
+
+    });
+
 
 
     Route::group(['prefix' => 'products'], function() {
@@ -63,23 +86,10 @@ Route::group(
     Route::resource('products', 'ProductController');
 
 
-    // Variant Configuration Keys
-    Route::get('variant-keys/datatable', 'VariantConfigurationKeyController@datatable')->name('variant-keys.datatable');
-    Route::get('variant-keys-tree', 'VariantConfigurationKeyController@tree')->name('variant-keys.tree');
-    Route::resource('variant-keys', 'VariantConfigurationKeyController');
 
-    Route::group(['prefix' => 'variants-configurations'], function() {
-        // Variants Configurations
-        Route::get('datatable', 'VariantsConfigurationController@datatable')->name('variants-configurations.datatable');
-        Route::get('get-parents-by-key', 'VariantsConfigurationController@getParentsByKey')->name('variants-configurations.get-parents-by-key');
-        Route::get('tree', 'VariantsConfigurationController@tree')->name('variants-configurations.tree');
-    });
-    Route::resource('variants-configurations', 'VariantsConfigurationController');
 
-    // Bundle Categories
-    Route::get('bundle-categories/datatable', 'BundleCategoryController@datatable')->name('bundle-categories.datatable');
-    Route::post('bundle-categories/{id}/toggle-status', 'BundleCategoryController@toggleStatus')->name('bundle-categories.toggle-status');
-    Route::resource('bundle-categories', 'BundleCategoryController');
+
+
 
     // Bundles (placeholder routes for future implementation)
     Route::get('bundles', function() {
