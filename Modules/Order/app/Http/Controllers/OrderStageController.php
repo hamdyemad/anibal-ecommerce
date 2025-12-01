@@ -32,54 +32,79 @@ class OrderStageController extends Controller
      */
     public function datatable(Request $request)
     {
-        $filters = [
-            'search' => $request->input('search.value'),
-            'active' => $request->input('active'),
-            'created_date_from' => $request->input('created_from'),
-            'created_date_to' => $request->input('created_until'),
-        ];
+        try {
+            // Get pagination parameters from DataTables
+            $perPage = isset($request->per_page) && $request->per_page > 0 ? (int)$request->per_page : 10;
+            $start = isset($request->start) && $request->start >= 0 ? (int)$request->start : 0;
+            // Calculate page number from start offset
+            $page = $perPage > 0 ? floor($start / $perPage) + 1 : 1;
 
-        $query = $this->orderStageService->getOrderStagesQuery($filters);
+            // Get filter parameters
+            $filters = [
+                'search' => $request->search ?? null,
+                'active' => $request->active ?? null,
+                'created_date_from' => $request->created_date_from ?? null,
+                'created_date_to' => $request->created_date_to ?? null,
+            ];
 
-        $totalRecords = $query->count();
-        $filteredRecords = $query->count();
+            // Get languages
+            $languages = \App\Models\Language::all();
 
-        // Pagination
-        $perPage = $request->input('length', 10);
-        $page = $request->input('start', 0) / $perPage;
+            // Get total and filtered counts
+            $totalRecords = $this->orderStageService->getOrderStagesQuery([])->count();
+            $filteredRecords = $this->orderStageService->getOrderStagesQuery($filters)->count();
 
-        $orderStages = $query->skip($page * $perPage)->take($perPage)->get();
+            // Get order stages with pagination
+            $orderStagesQuery = $this->orderStageService->getOrderStagesQuery($filters);
+            $orderStages = $orderStagesQuery->paginate($perPage, ['*'], 'page', $page);
 
-        $data = $orderStages->map(function ($orderStage) {
-            $translations = [];
-            foreach ($orderStage->translations as $translation) {
-                $lang = \App\Models\Language::find($translation->lang_id);
-                if ($lang) {
-                    if (!isset($translations[$lang->code])) {
-                        $translations[$lang->code] = [];
-                    }
-                    $translations[$lang->code][$translation->lang_key] = $translation->lang_value;
+            // Return raw data - rendering will be handled by DataTables in the view
+            $data = [];
+            $index = $start + 1; // Start index from the correct offset
+            foreach ($orderStages as $orderStage) {
+                $rowData = [
+                    'index' => $index++,
+                    'id' => $orderStage->id,
+                    'slug' => $orderStage->slug,
+                    'color' => $orderStage->color,
+                    'active' => $orderStage->active,
+                    'is_system' => $orderStage->is_system,
+                    'sort_order' => $orderStage->sort_order,
+                    'created_at' => $orderStage->created_at,
+                    'translations' => [],
+                ];
+
+                // Add translations for each language
+                foreach ($languages as $language) {
+                    $translation = $orderStage->translations->where('lang_id', $language->id)
+                        ->where('lang_key', 'name')
+                        ->first();
+                    $rowData['translations'][$language->code] = [
+                        'name' => $translation ? $translation->lang_value : '-',
+                    ];
                 }
+
+                $data[] = $rowData;
             }
 
-            return [
-                'id' => $orderStage->id,
-                'slug' => $orderStage->slug,
-                'color' => $orderStage->color,
-                'active' => $orderStage->active,
-                'is_system' => $orderStage->is_system,
-                'sort_order' => $orderStage->sort_order,
-                'created_at' => $orderStage->created_at->format('Y-m-d H:i:s'),
-                'translations' => $translations,
-            ];
-        });
+            return response()->json([
+                'draw' => intval($request->input('draw', 1)), // Required for DataTables pagination
+                'data' => $data,
+                'recordsTotal' => $totalRecords,
+                'recordsFiltered' => $filteredRecords,
+                'current_page' => $orderStages->currentPage(),
+                'last_page' => $orderStages->lastPage(),
+                'per_page' => $orderStages->perPage(),
+                'total' => $orderStages->total(),
+                'from' => $orderStages->firstItem(),
+                'to' => $orderStages->lastItem()
+            ]);
 
-        return response()->json([
-            'draw' => $request->input('draw'),
-            'recordsTotal' => $totalRecords,
-            'recordsFiltered' => $filteredRecords,
-            'data' => $data,
-        ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Error loading order stages: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
@@ -97,10 +122,28 @@ class OrderStageController extends Controller
     public function store(OrderStageRequest $request)
     {
         try {
-            $this->orderStageService->createOrderStage($request->all());
+            $orderStage = $this->orderStageService->createOrderStage($request->all());
+
+            // Handle AJAX requests
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => __('order::order_stage.order_stage_created'),
+                    'data' => $orderStage
+                ]);
+            }
+
             return redirect()->route('admin.order-stages.index')
                 ->with('success', __('order::order_stage.order_stage_created'));
         } catch (\Exception $e) {
+            // Handle AJAX requests
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => __('order::order_stage.error_creating_order_stage') . ': ' . $e->getMessage()
+                ], 422);
+            }
+
             return redirect()->back()
                 ->withInput()
                 ->with('error', __('order::order_stage.error_creating_order_stage') . ': ' . $e->getMessage());
@@ -133,10 +176,28 @@ class OrderStageController extends Controller
     public function update(OrderStageRequest $request, $id)
     {
         try {
-            $this->orderStageService->updateOrderStage($id, $request->all());
+            $orderStage = $this->orderStageService->updateOrderStage($id, $request->all());
+
+            // Handle AJAX requests
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => __('order::order_stage.order_stage_updated'),
+                    'data' => $orderStage
+                ]);
+            }
+
             return redirect()->route('admin.order-stages.index')
                 ->with('success', __('order::order_stage.order_stage_updated'));
         } catch (\Exception $e) {
+            // Handle AJAX requests
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => __('order::order_stage.error_updating_order_stage') . ': ' . $e->getMessage()
+                ], 422);
+            }
+
             return redirect()->back()
                 ->withInput()
                 ->with('error', __('order::order_stage.error_updating_order_stage') . ': ' . $e->getMessage());

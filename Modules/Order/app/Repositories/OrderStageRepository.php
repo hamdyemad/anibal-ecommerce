@@ -16,7 +16,7 @@ class OrderStageRepository implements OrderStageRepositoryInterface
      */
     public function getOrderStagesQuery(array $filters = [], $orderBy = null, $orderDirection = 'desc')
     {
-        $query = OrderStage::with(['translations'])->filter($filters);
+        $query = OrderStage::with(['translations'])->filter($filters)->orderBydesc('created_at');
         return $query;
     }
 
@@ -35,7 +35,7 @@ class OrderStageRepository implements OrderStageRepositoryInterface
     {
         return DB::transaction(function () use ($data) {
             $orderStage = OrderStage::create([
-                'slug' => $data['slug'] ?? null,
+                'slug' => rand(1, 1000),
                 'color' => $data['color'] ?? '#3498db',
                 'active' => $data['active'] ?? 1,
                 'is_system' => $data['is_system'] ?? 0,

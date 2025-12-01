@@ -14,6 +14,7 @@ use App\Http\Controllers\AreaSettings\RegionController;
 use App\Http\Controllers\AreaSettings\SubRegionController;
 use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\ActivityController;
+use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
 
 /*
 |--------------------------------------------------------------------------
@@ -41,7 +42,7 @@ Route::group(
         Route::prefix('admin-management')->name('admin-management.')->group(function() {
             Route::get('/roles/datatable', [RoleController::class, 'datatable'])->name('roles.data');
             Route::resource('roles', RoleController::class);
-            
+
             Route::get('/admins/datatable', [AdminController::class, 'datatable'])->name('admins.datatable');
             Route::resource('admins', AdminController::class);
         });

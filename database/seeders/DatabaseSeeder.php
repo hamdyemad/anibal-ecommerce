@@ -4,7 +4,6 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
-use Modules\Order\database\seeders\OrderDatabaseSeeder;
 
 class DatabaseSeeder extends Seeder
 {
@@ -36,6 +35,9 @@ class DatabaseSeeder extends Seeder
 
         // Auto-generate products for all vendors (40 products each)
         // $this->call(AutoProductSeeder::class);
+
+        $this->call(OrderStageSeeder::class);
+
 
     }
 }

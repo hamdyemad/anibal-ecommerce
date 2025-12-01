@@ -674,7 +674,7 @@
             </ul>
         </li>
 
-        {{-- @can('order-stages.index')
+        @can('order-stages.index')
         <li>
             <a href="{{ route('admin.order-stages.index') }}"
                 class="{{ isMenuActive('admin.order-stages.index', $currentRoute) ? 'active' : '' }}">
@@ -684,9 +684,10 @@
                         <span class="menu-text">{{ trans('menu.orders.order stages') }}</span>
                     </span>
                 </span>
+                <span class="badge badge-success  badge-round ms-1">{{ \Modules\Order\app\Models\OrderStage::count() }}</span>
             </a>
         </li>
-        @endcan --}}
+        @endcan
 
         @if (in_array($user_type_id, \App\Models\UserType::adminIds()))
             @can('shipping_methods.index')

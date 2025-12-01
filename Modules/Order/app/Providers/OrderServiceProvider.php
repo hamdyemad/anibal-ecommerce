@@ -2,8 +2,6 @@
 
 namespace Modules\Order\app\Providers;
 
-use App\Providers\EventServiceProvider;
-use App\Providers\RouteServiceProvider;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\ServiceProvider;
 use Modules\Order\app\Interfaces\OrderStageRepositoryInterface;
@@ -38,8 +36,7 @@ class OrderServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        $this->app->register(EventServiceProvider::class);
-        $this->app->register(RouteServiceProvider::class);
+        $this->app->register(\Modules\Order\app\Providers\RouteServiceProvider::class);
 
         // Register repository bindings
         $this->app->bind(

@@ -53,7 +53,7 @@
                                             <span class="text-danger">*</span>
                                         </label>
                                         <input type="color"
-                                               class="form-control form-control-color @error('color') is-invalid @enderror"
+                                               class="form-control ih-medium ip-gray radius-xs b-light px-15"
                                                id="color"
                                                name="color"
                                                value="{{ old('color', $orderStage->color ?? '#3498db') }}"
@@ -72,7 +72,7 @@
                                             {{ trans('order::order_stage.sort_order') }}
                                         </label>
                                         <input type="number"
-                                               class="form-control @error('sort_order') is-invalid @enderror"
+                                               class="form-control ih-medium ip-gray radius-xs b-light px-15"
                                                id="sort_order"
                                                name="sort_order"
                                                value="{{ old('sort_order', $orderStage->sort_order ?? 0) }}"
@@ -142,11 +142,8 @@
         </div>
     </div>
 
-    <!-- Loading Overlay Component -->
-    <x-loading-overlay
-        loadingText="{{ isset($orderStage) ? trans('main.updating') : trans('main.creating') }}"
-        loadingSubtext="{{ trans('main.please_wait') }}"
-    />
+
+
 
     @push('scripts')
     <script>
@@ -159,20 +156,23 @@
                 if (typeof LoadingOverlay !== 'undefined') {
                     LoadingOverlay.show({
                         text: '{{ isset($orderStage) ? trans('main.updating') : trans('main.creating') }}',
-                        subtext: '{{ trans('main.please_wait') }}'
+                        subtext: '{{ trans('main.please wait') }}'
                     });
                 }
 
                 const formData = new FormData(this);
                 const url = $(this).attr('action');
-                const method = $(this).find('input[name="_method"]').val() || 'POST';
 
+                // Always use POST for AJAX requests, Laravel will handle method spoofing via _method field
                 $.ajax({
                     url: url,
-                    type: method,
+                    type: 'POST',
                     data: formData,
                     processData: false,
                     contentType: false,
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
                     success: function(response) {
                         if (response.success) {
                             if (typeof LoadingOverlay !== 'undefined') {
@@ -228,3 +228,11 @@
     </script>
     @endpush
 @endsection
+
+{{-- Include Loading Overlay Component outside content section --}}
+@push('after-body')
+    <x-loading-overlay
+        :loadingText="isset($orderStage) ? trans('main.updating') : trans('main.creating')"
+        :loadingSubtext="trans('main.please wait')"
+    />
+@endpush
