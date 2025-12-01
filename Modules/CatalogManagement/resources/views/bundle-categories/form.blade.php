@@ -48,10 +48,6 @@
                                 {{-- Bundle Category Image --}}
                                 <div class="col-md-6 mb-25">
                                     <div class="form-group">
-                                        <label class="il-gray fs-14 fw-500 mb-10 d-block">
-                                            {{ trans('catalogmanagement::bundle_category.image') }}
-                                            <span class="text-danger">*</span>
-                                        </label>
                                         <x-image-upload
                                             id="bundle_category_image"
                                             name="image"
@@ -59,6 +55,7 @@
                                             :recommendedSize="trans('catalogmanagement::bundle_category.recommended_size')"
                                             :existingImage="isset($bundleCategory) && $bundleCategory->image ? $bundleCategory->image : null"
                                             aspectRatio="square"
+                                            required=true
                                         />
                                         @error('image')
                                             <div class="invalid-feedback d-block" style="display: block !important;">{{ $message }}</div>

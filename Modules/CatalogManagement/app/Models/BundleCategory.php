@@ -25,6 +25,12 @@ class BundleCategory extends BaseModel
         return $this->morphMany(Attachment::class, 'attachable');
     }
 
+
+    public function getTitleAttribute()
+    {
+        return $this->getTranslation('title', app()->getLocale());
+    }
+
     /**
      * Get bundle category image
      */

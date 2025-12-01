@@ -4,6 +4,7 @@ namespace Modules\CatalogManagement\app\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 use Modules\CatalogManagement\app\Actions\BundleCategoryAction;
 use Modules\CatalogManagement\app\Services\BundleCategoryService;
 use Modules\CatalogManagement\app\Interfaces\BundleCategoryRepositoryInterface;
@@ -27,7 +28,6 @@ class BundleCategoryController extends Controller
     public function index()
     {
         $languages = $this->languageService->getAll();
-
         $data = [
             'languages' => $languages,
         ];
@@ -213,7 +213,7 @@ class BundleCategoryController extends Controller
             if ($validator->fails()) {
                 return response()->json([
                     'success' => false,
-                    'message' => __('catalogmanagement::bundle_category.invalid_status')
+                    'message' => trans('catalogmanagement::bundle_category.invalid_status')
                 ], 422);
             }
 
@@ -224,7 +224,7 @@ class BundleCategoryController extends Controller
             if ($bundleCategory->active == $newStatus) {
                 return response()->json([
                     'success' => false,
-                    'message' => __('catalogmanagement::bundle_category.status_already_set')
+                    'message' => trans('catalogmanagement::bundle_category.status_already_set')
                 ], 422);
             }
 
@@ -234,26 +234,26 @@ class BundleCategoryController extends Controller
             if ($request->ajax() || $request->wantsJson()) {
                 return response()->json([
                     'success' => true,
-                    'message' => __('catalogmanagement::bundle_category.status_changed_successfully'),
+                    'message' => trans('catalogmanagement::bundle_category.status_changed_successfully'),
                     'new_status' => $newStatus,
                     'redirect' => route('admin.bundle-categories.index')
                 ]);
             }
 
             return redirect()->route('admin.bundle-categories.index')
-                ->with('success', __('catalogmanagement::bundle_category.status_changed_successfully'));
+                ->with('success', trans('catalogmanagement::bundle_category.status_changed_successfully'));
 
         } catch (\Exception $e) {
             // Check if request is AJAX
             if ($request->ajax() || $request->wantsJson()) {
                 return response()->json([
                     'success' => false,
-                    'message' => __('catalogmanagement::bundle_category.error_changing_status') . ': ' . $e->getMessage()
+                    'message' => trans('catalogmanagement::bundle_category.error_changing_status') . ': ' . $e->getMessage()
                 ], 422);
             }
 
             return redirect()->back()
-                ->with('error', __('catalogmanagement::bundle_category.error_changing_status') . ': ' . $e->getMessage());
+                ->with('error', trans('catalogmanagement::bundle_category.error_changing_status') . ': ' . $e->getMessage());
         }
     }
 

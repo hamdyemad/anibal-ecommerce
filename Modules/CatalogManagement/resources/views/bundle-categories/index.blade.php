@@ -246,7 +246,7 @@
                         data: 'created_at',
                         name: 'created_at',
                         render: function(data) {
-                            return new Date(data).toLocaleDateString();
+                            return data;
                         }
                     },
                     {

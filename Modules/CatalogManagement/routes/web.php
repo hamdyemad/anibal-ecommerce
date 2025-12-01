@@ -78,7 +78,7 @@ Route::group(
 
     // Bundle Categories
     Route::get('bundle-categories/datatable', 'BundleCategoryController@datatable')->name('bundle-categories.datatable');
-    Route::post('bundle-categories/{bundleCategory}/toggle-status', 'BundleCategoryController@toggleStatus')->name('bundle-categories.toggle-status');
+    Route::post('bundle-categories/{id}/toggle-status', 'BundleCategoryController@toggleStatus')->name('bundle-categories.toggle-status');
     Route::resource('bundle-categories', 'BundleCategoryController');
 
     // Bundles (placeholder routes for future implementation)

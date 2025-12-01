@@ -20,12 +20,16 @@ class BundleCategoryRequest extends FormRequest
      */
     public function rules(): array
     {
-        $bundleCategoryId = $this->route('bundle_category') ? $this->route('bundle_category')->id : null;
+        // Get the bundle category ID from route parameter (for update) or use null (for create)
+        $bundleCategoryId = $this->route('bundle_category') ?? $this->route('id');
+
+        // Image is required only when creating, nullable when updating
+        $imageRule = $bundleCategoryId ? 'nullable' : 'required';
 
         return [
             // Basic fields
             'active' => 'boolean',
-            'image' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
+            'image' => $imageRule . '|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
 
             // Translation fields
             'translations' => 'required|array',
