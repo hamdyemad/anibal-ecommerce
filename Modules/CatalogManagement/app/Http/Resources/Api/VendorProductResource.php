@@ -4,6 +4,7 @@ namespace Modules\CatalogManagement\app\Http\Resources\Api;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Modules\CategoryManagment\app\Http\Resources\Api\GeneralResoruce;
 use Modules\CategoryManagment\app\Http\Resources\Api\LightCategoryApiResource;
 use Modules\CategoryManagment\app\Http\Resources\Api\LightDepartmentApiResource;
 use Modules\CategoryManagment\app\Http\Resources\Api\LightSubCategoryApiResource;
@@ -25,13 +26,12 @@ class VendorProductResource extends JsonResource
             'vendor_id' => $this->vendor_id,
             'product_id' => $this->product_id,
             'slug' => $this->product->slug,
-
+            'points' => $this->points ?? 0,
             'sku' => $this->sku,
             'star' => $this->average_rating ?? 0,
             'num_of_user_review' => $this->reviews_count ?? 0,
             'limitation' => $this->max_per_order,
-            'is_active' => $this->is_active,
-            'is_featured' => $this->is_featured,
+            'status' => $this->is_featured ? __('catalogmanagement::product.featured') : __('catalogmanagement::product.active'),
             'image' => formatImage($this->product->mainImage),
             'name' => $this->product->title,
             'details' => $this->product->details,
@@ -54,7 +54,7 @@ class VendorProductResource extends JsonResource
             'meta_description' => $this->product->meta_description,
             'meta_keywords' => $this->product->meta_keywords ?? [],
             'vendor' => LightVendorResource::make($this->whenLoaded('vendor')),
-            'brand' => LightBrandApiResource::make($this->product->brand),
+            'brand' => GeneralResoruce::make($this->product->brand),
             'tax' => TaxResource::make($this->tax),
             'variants' => VendorProductVariantResource::collection($this->whenLoaded('variants')),
             'department' => LightDepartmentApiResource::make($this->product->department),

@@ -164,12 +164,14 @@ return [
     'region_id_not_exist' => 'المنطقة غير موجودة',
     'subregion_id_not_exist' => 'المنطقة الفرعية غير موجودة',
     'char_invalid' => 'char يجب أن يكون حرفًا صحيحًا',
-
-    /*
-    |--------------------------------------------------------------------------
-    | Custom Category Filter Validations
-    |--------------------------------------------------------------------------
-    */
+    'department_id_not_exist' => 'department_id غير موجود',
+    'category_id_not_exist' => 'category_id غير موجود',
+    'sub_category_id_not_exist' => 'sub_category_id غير موجود',
+    'brand_id_not_exist' => 'brand_id غير موجود',
+    'vendor_id_not_exist' => 'vendor_id غير موجود',
+    'rate_invalid' => 'rate يجب أن يكون بين 1 و 5',
+    'has_discount_invalid' => 'has_discount يجب أن يكون boolean',
+    'featured_invalid' => 'featured يجب أن يكون boolean',
     'created_date_from_invalid' => 'يجب أن يكون created_date_from تاريخاً صحيحاً (YYYY-MM-DD)',
     'created_date_to_invalid' => 'يجب أن يكون created_date_to تاريخاً صحيحاً (YYYY-MM-DD)',
     'activity_ids_invalid' => 'يجب أن يكون activity_ids مصفوفة',

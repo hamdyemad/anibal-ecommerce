@@ -37,6 +37,7 @@ class ProductFilterDTO extends FilterDTO
         public ?int $per_page = null,
         public ?string $paginated = null,
         public ?int $limit = null,
+        public ?int $rate = null,
     ) {}
 
     /**
@@ -63,7 +64,8 @@ class ProductFilterDTO extends FilterDTO
             subregion_id: $request->input('subregion_id', null),
             per_page: $request->integer('per_page', 15),
             paginated: $request->input('paginated', null),
-            limit: $request->integer('limit', null)
+            limit: $request->integer('limit', null),
+            rate: $request->integer('rate', null)
         );
     }
 
@@ -86,6 +88,7 @@ class ProductFilterDTO extends FilterDTO
             'city_id' => $this->city_id,
             'region_id' => $this->region_id,
             'subregion_id' => $this->subregion_id,
+            'rate' => $this->rate,
             'limit' => $this->limit,
             'paginated' => $this->paginated,
         ], fn($value) => $value !== null);
@@ -153,6 +156,10 @@ class ProductFilterDTO extends FilterDTO
 
         if ($this->has_discount && !in_array($this->has_discount, [true, false])) {
             $this->errors['has_discount'][] = __('validation.has_discount_invalid');
+        }
+
+        if ($this->rate && !in_array($this->rate, [1, 2, 3, 4, 5])) {
+            $this->errors['rate'][] = __('validation.rate_invalid');
         }
 
         return count($this->errors) === 0;

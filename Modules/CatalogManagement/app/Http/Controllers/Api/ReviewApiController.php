@@ -21,7 +21,7 @@ class ReviewApiController extends Controller
     /**
      * Store a new review (authenticated customers only)
      */
-    public function store(StoreReviewRequest $request, $reviewableId, $reviewableType)
+    public function store(StoreReviewRequest $request, $reviewableType, $reviewableId)
     {
         $data = $request->validated();
         if($reviewableType != 'products' && $reviewableType != 'vendors')

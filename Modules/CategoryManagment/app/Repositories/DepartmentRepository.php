@@ -115,6 +115,15 @@ class DepartmentRepository implements DepartmentRepositoryInterface
             ]);
         }
 
+        // Handle icon upload
+        if (isset($data['icon'])) {
+            $path = $data['icon']->store("departments/$department->id", 'public');
+            $department->attachments()->create([
+                'path' => $path,
+                'type' => 'icon'
+            ]);
+        }
+
         return $department;
     }
 
@@ -146,6 +155,24 @@ class DepartmentRepository implements DepartmentRepositoryInterface
             $department->attachments()->create([
                 'path' => $path,
                 'type' => 'image'
+            ]);
+        }
+
+        // Handle icon upload
+        if (isset($data['icon']) && $data['icon']) {
+            // Delete old icon if exists
+            $oldIcon = $department->attachments()->where('type', 'icon')->first();
+            if ($oldIcon) {
+                if(Storage::disk('public')->exists($oldIcon->path)) {
+                    Storage::disk('public')->delete($oldIcon->path);
+                }
+                $oldIcon->delete();
+            }
+            // Store new icon
+            $path = $data['icon']->store("departments/{$department->id}", 'public');
+            $department->attachments()->create([
+                'path' => $path,
+                'type' => 'icon'
             ]);
         }
 
@@ -187,8 +214,12 @@ class DepartmentRepository implements DepartmentRepositoryInterface
     {
         $department = Department::findOrFail($id);
         $oldImage = $department->attachments()->where('type', 'image')->first();
+        $oldIcon = $department->attachments()->where('type', 'icon')->first();
         if ($oldImage) {
             $oldImage->delete();
+        }
+        if ($oldIcon) {
+            $oldIcon->delete();
         }
         $department->translations()->delete();
         $department->delete();
