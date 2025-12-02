@@ -6,6 +6,9 @@ use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\ServiceProvider;
 use Modules\Order\app\Interfaces\OrderStageRepositoryInterface;
 use Modules\Order\app\Repositories\OrderStageRepository;
+use Modules\Order\app\Interfaces\Api\WishlistRepositoryInterface;
+use Modules\Order\app\Repositories\Api\WishlistRepository;
+use Modules\Order\app\Actions\WishlistQueryAction;
 use Nwidart\Modules\Traits\PathNamespace;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
@@ -43,6 +46,15 @@ class OrderServiceProvider extends ServiceProvider
             OrderStageRepositoryInterface::class,
             OrderStageRepository::class
         );
+
+        // Register wishlist repository bindings
+        $this->app->bind(
+            WishlistRepositoryInterface::class,
+            WishlistRepository::class
+        );
+
+        // Register wishlist query action
+        $this->app->singleton(WishlistQueryAction::class);
     }
 
     /**

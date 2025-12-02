@@ -46,7 +46,7 @@ class VendorProductResource extends JsonResource
             'views' => $this->views,
             'stock' => $this->total_stock ?? 0,
 
-            'is_fav' => false,
+            'is_fav' => $this->is_fav,
             'size_color_type' => $this->product->configuration_type,
             'tags' => $this->product->tags_array,
             'currency' => CurrencyResource::make($this->product->currency),

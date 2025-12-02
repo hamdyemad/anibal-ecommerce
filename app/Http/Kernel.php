@@ -69,7 +69,7 @@ class Kernel extends HttpKernel
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
 
         'adminGuard' => \App\Http\Middleware\AdminGuardMiddleware::class,
-
+        'auth.optional' => \App\Http\Middleware\OptionalAuthenticate::class,
 
         // Start Localization
         'localize'                => \Mcamara\LaravelLocalization\Middleware\LaravelLocalizationRoutes::class,

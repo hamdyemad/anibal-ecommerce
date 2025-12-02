@@ -10,7 +10,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\Vendor\app\Models\Vendor;
 use Illuminate\Database\Eloquent\Builder;
 use Modules\CatalogManagement\Models\Review;
-
+use Modules\Order\app\Models\Wishlist;
+use Illuminate\Support\Facades\Auth;
 
 class VendorProduct extends BaseModel
 {
@@ -30,7 +31,7 @@ class VendorProduct extends BaseModel
         'is_featured' => 'boolean',
     ];
 
-    protected $appends = ['reviews_count', 'average_rating'];
+    protected $appends = ['reviews_count', 'average_rating', 'is_fav'];
 
     /**
      * Get all available status values
@@ -82,6 +83,11 @@ class VendorProduct extends BaseModel
     public function reviews()
     {
         return $this->morphMany(Review::class, 'reviewable');
+    }
+
+    public function wishlist()
+    {
+        return $this->hasMany(Wishlist::class);
     }
 
     public function highestDiscountVariant()
@@ -265,5 +271,17 @@ class VendorProduct extends BaseModel
     public function getAverageRatingAttribute()
     {
         return intval($this->reviews()->avg('star') ?? 0);
+    }
+
+    public function getIsFavAttribute()
+    {
+        // For guests, always return false
+        if (!auth()->check()) {
+            return false;
+        }
+
+        $user = auth()->user();
+
+        return $this->wishlist->where('customer_id', $user->id)->isNotEmpty();
     }
 }

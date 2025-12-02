@@ -15,29 +15,19 @@ Route::prefix('variant-configurations')->group(function () {
 Route::apiResource('brands', BrandApiController::class);
 
 
-Route::prefix('products')->group(function () {
-    Route::get('/', [ProductApiController::class, 'index']); // Done
-    Route::get('/featured', [ProductApiController::class, 'featured']); // Done
-    Route::get('/best-selling', [ProductApiController::class, 'bestSelling']); // Done
-    Route::get('/latest', [ProductApiController::class, 'latest']); // Done
-    Route::get('/special-offers', [ProductApiController::class, 'specialOffers']); // Done
-    Route::get('/{departmentId}/department', [ProductApiController::class, 'getByDepartment']); // Done
-    Route::get('/top', [ProductApiController::class, 'top']); // Done
-    Route::get('specific-product/{id}/{vendorId}', [ProductApiController::class, 'show']); // Done
-    Route::get('/hot-deals', [ProductApiController::class, 'hotDeals']); // Done
-
-
-    // Filters
+// Product Routes - Optional Authentication (handles both guests and authenticated users)
+Route::prefix('products')->middleware('auth.optional:sanctum')->group(function () {
+    Route::get('/', [ProductApiController::class, 'index']);
+    Route::get('/featured', [ProductApiController::class, 'featured']);
+    Route::get('/best-selling', [ProductApiController::class, 'bestSelling']);
+    Route::get('/latest', [ProductApiController::class, 'latest']);
+    Route::get('/special-offers', [ProductApiController::class, 'specialOffers']);
+    Route::get('/{departmentId}/department', [ProductApiController::class, 'getByDepartment']);
+    Route::get('/top', [ProductApiController::class, 'top']);
+    Route::get('specific-product/{id}/{vendorId}', [ProductApiController::class, 'show']);
+    Route::get('/hot-deals', [ProductApiController::class, 'hotDeals']);
     Route::get('/filters', [ProductApiController::class, 'filters']);
-
-    // Variants
     Route::get('/variants', [ProductApiController::class, 'variants']);
-    // TODO: Uncomment when Occasion model is created
-    // Route::get('/filters/occasion/{id}', [ProductApiController::class, 'filtersByOccasion']);
-    // TODO: Uncomment when BundleCategory model is created
-    // Route::get('/filters/bundle-category/{id}', [ProductApiController::class, 'filtersByBundleCategory']);
-
-
 });
 
 Route::get('{reviewableType}/{reviewableId}/reviews', [ReviewApiController::class, 'getByReviewable']);
