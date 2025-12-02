@@ -145,6 +145,8 @@
         ],
         'orders' => [
             'title' => 'orders',
+            'all' => 'all orders',
+            'create' => 'create order',
             'new' => 'new',
             'inprogress' => 'inprogress',
             'delivered' => 'delivered',
