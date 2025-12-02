@@ -89,4 +89,14 @@ return [
 
     'seo_keywords_must_be_string' => 'يجب أن تكون كلمات SEO المفتاحية نصاً',
     'seo_keywords_max_length' => 'يجب ألا تتجاوز كلمات SEO المفتاحية 500 حرفاً',
+
+    // Variants validation
+    'variants_required' => 'يجب تحديد متغير منتج واحد على الأقل',
+    'variants_must_be_array' => 'يجب أن تكون المتغيرات مصفوفة',
+    'variant_id_required' => 'معرف المتغير مطلوب',
+    'variant_id_invalid' => 'المتغير المحدد غير صحيح',
+    'special_price_must_be_number' => 'السعر الخاص يجب أن يكون رقماً صحيحاً',
+
+    // Additional translations for form
+    'must_be_greater_than_zero' => 'يجب أن يكون أكبر من 0',
 ];

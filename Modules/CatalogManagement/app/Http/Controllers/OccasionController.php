@@ -42,10 +42,12 @@ class OccasionController extends Controller
         try {
             // Get filters from request
             $filters = [
-                'search' => $request->get('search')['value'] ?? null,
+                'search' => $request->get('search')['value'] ?? $request->get('search'),
                 'active' => $request->get('active'),
                 'created_from' => $request->get('created_from'),
                 'created_until' => $request->get('created_until'),
+                'start_date' => $request->get('start_date'),
+                'end_date' => $request->get('end_date'),
             ];
 
             // Get occasions query with filters
@@ -53,9 +55,10 @@ class OccasionController extends Controller
 
             return DataTables::of($query)
                 ->addColumn('name', function ($occasion) {
+                    $languages = \App\Models\Language::all();
                     $translations = [];
-                    foreach ($occasion->translations as $translation) {
-                        $translations[$translation->locale] = $translation->name;
+                    foreach ($languages as $language) {
+                        $translations[$language->code] = $occasion->getTranslation('name', $language->code) ?? '-';
                     }
                     return $translations;
                 })
@@ -63,13 +66,20 @@ class OccasionController extends Controller
                     return $occasion->vendor ? $occasion->vendor->name : '-';
                 })
                 ->addColumn('image', function ($occasion) {
-                    return $occasion->image ? asset('storage/' . $occasion->image) : null;
+                    $imageAttachment = $occasion->attachments()->where('type', 'image')->first();
+                    return $imageAttachment ? asset('storage/' . $imageAttachment->path) : null;
+                })
+                ->addColumn('start_date', function ($occasion) {
+                    return $occasion->start_date ? $occasion->start_date : '-';
+                })
+                ->addColumn('end_date', function ($occasion) {
+                    return $occasion->end_date ? $occasion->end_date : '-';
                 })
                 ->addColumn('is_active', function ($occasion) {
                     return $occasion->is_active;
                 })
                 ->addColumn('created_at', function ($occasion) {
-                    return $occasion->created_at_human;
+                    return $occasion->created_at;
                 })
                 ->rawColumns(['name'])
                 ->make(true);
@@ -111,7 +121,8 @@ class OccasionController extends Controller
                 return response()->json([
                     'success' => true,
                     'message' => trans('catalogmanagement::occasion.occasion_created'),
-                    'data' => $occasion
+                    'data' => $occasion,
+                    'redirect' => route('admin.occasions.index')
                 ]);
             }
 
@@ -180,7 +191,8 @@ class OccasionController extends Controller
                 return response()->json([
                     'success' => true,
                     'message' => trans('catalogmanagement::occasion.occasion_updated'),
-                    'data' => $occasion
+                    'data' => $occasion,
+                    'redirect' => route('admin.occasions.index')
                 ]);
             }
 

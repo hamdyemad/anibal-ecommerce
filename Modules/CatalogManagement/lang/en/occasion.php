@@ -89,4 +89,14 @@ return [
 
     'seo_keywords_must_be_string' => 'SEO keywords must be a string',
     'seo_keywords_max_length' => 'SEO keywords must not exceed 500 characters',
+
+    // Variants validation
+    'variants_required' => 'At least one product variant is required',
+    'variants_must_be_array' => 'Variants must be an array',
+    'variant_id_required' => 'Variant ID is required',
+    'variant_id_invalid' => 'Selected variant is invalid',
+    'special_price_must_be_number' => 'Special price must be a valid number',
+
+    // Additional translations for form
+    'must_be_greater_than_zero' => 'must be greater than 0',
 ];

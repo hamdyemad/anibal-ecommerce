@@ -34,9 +34,9 @@ class OccasionRequest extends FormRequest
             'start_date' => 'nullable|date',
             'end_date' => 'nullable|date|after_or_equal:start_date',
 
-            'variants' => ['required', 'array'],
-            'variants.*.vendor_product_variant_id' => ['required', 'exists:vendor_product_variants,id'],
-            'variants.*.special_price' => ['required'],
+            'variants' => 'required|array',
+            'variants.*.vendor_product_variant_id' => 'required|exists:vendor_product_variants,id',
+            'variants.*.special_price' => 'nullable|numeric',
 
             // Translation fields
             'translations' => 'required|array',
@@ -60,6 +60,13 @@ class OccasionRequest extends FormRequest
             'start_date.date' => trans('catalogmanagement::occasion.start_date_must_be_date'),
             'end_date.date' => trans('catalogmanagement::occasion.end_date_must_be_date'),
             'end_date.after_or_equal' => trans('catalogmanagement::occasion.end_date_after_start'),
+
+            // Variants messages
+            'variants.required' => trans('catalogmanagement::occasion.variants_required'),
+            'variants.array' => trans('catalogmanagement::occasion.variants_must_be_array'),
+            'variants.*.vendor_product_variant_id.required' => trans('catalogmanagement::occasion.variant_id_required'),
+            'variants.*.vendor_product_variant_id.exists' => trans('catalogmanagement::occasion.variant_id_invalid'),
+            'variants.*.special_price.numeric' => trans('catalogmanagement::occasion.special_price_must_be_number'),
         ];
 
         // Get all languages to create language-specific error messages

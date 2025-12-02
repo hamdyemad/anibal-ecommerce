@@ -98,7 +98,33 @@
                                         </div>
                                     </div>
 
-                                    <div class="col-md-12 d-flex align-items-center">
+                                    {{-- Start Date --}}
+                                    <div class="col-md-3">
+                                        <div class="form-group">
+                                            <label for="start_date_filter" class="il-gray fs-14 fw-500 mb-10">
+                                                <i class="uil uil-calendar-alt me-1"></i>
+                                                {{ trans('catalogmanagement::occasion.start_date') }}
+                                            </label>
+                                            <input type="date"
+                                                class="form-control ih-medium ip-gray radius-xs b-light px-15"
+                                                id="start_date_filter">
+                                        </div>
+                                    </div>
+
+                                    {{-- End Date --}}
+                                    <div class="col-md-3">
+                                        <div class="form-group">
+                                            <label for="end_date_filter" class="il-gray fs-14 fw-500 mb-10">
+                                                <i class="uil uil-calendar-alt me-1"></i>
+                                                {{ trans('catalogmanagement::occasion.end_date') }}
+                                            </label>
+                                            <input type="date"
+                                                class="form-control ih-medium ip-gray radius-xs b-light px-15"
+                                                id="end_date_filter">
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-12 d-flex align-items-center mt-3">
                                         <button type="button" id="searchBtn"
                                             class="btn btn-success btn-default btn-squared me-1"
                                             title="{{ __('common.search') }}">
@@ -182,6 +208,8 @@
             if (urlParams.has('active')) $('#active').val(urlParams.get('active'));
             if (urlParams.has('created_from')) $('#created_from_filter').val(urlParams.get('created_from'));
             if (urlParams.has('created_until')) $('#created_until_filter').val(urlParams.get('created_until'));
+            if (urlParams.has('start_date')) $('#start_date_filter').val(urlParams.get('start_date'));
+            if (urlParams.has('end_date')) $('#end_date_filter').val(urlParams.get('end_date'));
 
             // Server-side processing with pagination
             let table = $('#occasionsDataTable').DataTable({
@@ -197,6 +225,8 @@
                         d.active = $('#active').val();
                         d.created_from = $('#created_from_filter').val();
                         d.created_until = $('#created_until_filter').val();
+                        d.start_date = $('#start_date_filter').val();
+                        d.end_date = $('#end_date_filter').val();
                         return d;
                     }
                 },
@@ -212,18 +242,22 @@
                     },
                     @foreach($languages as $language)
                     {
-                        data: 'name.{{ $language->code }}',
+                        data: function(row) {
+                            if (row.name && typeof row.name === 'object') {
+                                return row.name['{{ $language->code }}'] || '-';
+                            }
+                            return '-';
+                        },
                         name: 'translations.name',
                         orderable: false,
-                        render: function(data, type, row) {
-                            return data || '-';
-                        }
+                        searchable: true
                     },
                     @endforeach
                     {
                         data: 'vendor',
                         name: 'vendor.name',
                         orderable: false,
+                        searchable: false,
                         render: function(data, type, row) {
                             return data || '-';
                         }
@@ -243,6 +277,8 @@
                     {
                         data: 'start_date',
                         name: 'start_date',
+                        orderable: false,
+                        searchable: false,
                         render: function(data) {
                             return data || '-';
                         }
@@ -250,6 +286,8 @@
                     {
                         data: 'end_date',
                         name: 'end_date',
+                        orderable: false,
+                        searchable: false,
                         render: function(data) {
                             return data || '-';
                         }
@@ -260,20 +298,25 @@
                         orderable: false,
                         searchable: false,
                         render: function(data, type, row) {
-                            let checked = data ? 'checked' : '';
-                            return `
-                                <div class="custom-control custom-switch switch-primary switch-md">
-                                    <input type="checkbox" class="custom-control-input status-switcher"
-                                        id="switch-${row.id}"
-                                        data-id="${row.id}"
-                                        ${checked}>
-                                    <label class="custom-control-label" for="switch-${row.id}"></label>
+                            const isChecked = data ? 'checked' : '';
+                            const switchId = 'status-switch-' + row.id;
+                            return `<div class="userDatatable-content">
+                                <div class="form-switch">
+                                    <input class="form-check-input status-switcher"
+                                           type="checkbox"
+                                           id="${switchId}"
+                                           data-id="${row.id}"
+                                           ${isChecked}
+                                           style="cursor: pointer;">
+                                    <label class="form-check-label" for="${switchId}"></label>
                                 </div>
-                            `;
+                            </div>`;
                         }
                     },
                     {
                         data: 'created_at',
+                        orderable: false,
+                        searchable: false,
                         name: 'created_at',
                         render: function(data) {
                             return data || '-';
@@ -351,7 +394,11 @@
                 $('#active').val('');
                 $('#created_from_filter').val('');
                 $('#created_until_filter').val('');
+                $('#start_date_filter').val('');
+                $('#end_date_filter').val('');
                 table.ajax.reload();
+                // Clear URL params
+                window.history.replaceState({}, '', window.location.pathname);
             });
 
             // Entries per page
@@ -360,10 +407,54 @@
                 table.page.len(per_page).draw();
             });
 
-            // Enter key to search
+            // Function to update URL params
+            function updateUrlParams() {
+                const params = new URLSearchParams();
+
+                if ($('#search').val()) params.set('search', $('#search').val());
+                if ($('#active').val()) params.set('active', $('#active').val());
+                if ($('#created_from_filter').val()) params.set('created_from', $('#created_from_filter').val());
+                if ($('#created_until_filter').val()) params.set('created_until', $('#created_until_filter').val());
+                if ($('#start_date_filter').val()) params.set('start_date', $('#start_date_filter').val());
+                if ($('#end_date_filter').val()) params.set('end_date', $('#end_date_filter').val());
+
+                const newUrl = params.toString()
+                    ? `${window.location.pathname}?${params.toString()}`
+                    : window.location.pathname;
+
+                window.history.replaceState({}, '', newUrl);
+            }
+
+            // Live search with debounce for all filters
+            let searchTimer;
+
+            // Text search - live search on keyup
+            $('#search').on('keyup', function(e) {
+                clearTimeout(searchTimer);
+                searchTimer = setTimeout(function() {
+                    table.ajax.reload();
+                    updateUrlParams();
+                }, 500);
+            });
+
+            // Select filters - live search on change
+            $('#active').on('change', function() {
+                table.ajax.reload();
+                updateUrlParams();
+            });
+
+            // Date filters - live search on change
+            $('#created_from_filter, #created_until_filter, #start_date_filter, #end_date_filter').on('change', function() {
+                table.ajax.reload();
+                updateUrlParams();
+            });
+
+            // Enter key to search immediately
             $('#search').on('keypress', function(e) {
                 if (e.which === 13) {
+                    clearTimeout(searchTimer);
                     table.ajax.reload();
+                    updateUrlParams();
                 }
             });
 

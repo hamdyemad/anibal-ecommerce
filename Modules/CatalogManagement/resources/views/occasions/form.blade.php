@@ -329,28 +329,59 @@
                             @if(isset($occasion))
                                 @method('PUT')
                             @endif
+                            {{-- Occasion Name Fields --}}
+                            <x-multilingual-input
+                                name="name"
+                                label="Name"
+                                labelAr="الاسم"
+                                placeholder="Enter occasion name"
+                                placeholderAr="أدخل اسم المناسبة"
+                                :languages="$languages"
+                                :model="$occasion ?? null"
+                                :required="true"
+                            />
 
-                            {{-- Vendor Selection --}}
+                            {{-- Occasion Title Fields --}}
+                            <x-multilingual-input
+                                name="title"
+                                label="Title"
+                                labelAr="العنوان"
+                                placeholder="Enter occasion title"
+                                placeholderAr="أدخل عنوان المناسبة"
+                                :languages="$languages"
+                                :model="$occasion ?? null"
+                            />
+
+                            {{-- Occasion Sub Title Fields --}}
+                            <x-multilingual-input
+                                name="sub_title"
+                                label="Sub Title"
+                                labelAr="العنوان الفرعي"
+                                placeholder="Enter occasion sub title"
+                                placeholderAr="أدخل العنوان الفرعي للمناسبة"
+                                :languages="$languages"
+                                :model="$occasion ?? null"
+                            />
+
                             <div class="row">
+                                {{-- Occasion Image --}}
                                 <div class="col-md-6 mb-25">
                                     <div class="form-group">
-                                        <label for="vendor_id" class="il-gray fs-14 fw-500 mb-10">
-                                            {{ trans('catalogmanagement::occasion.vendor') }} <span class="text-danger">*</span>
-                                        </label>
-                                        <select name="vendor_id" id="vendor_id" class="form-control select2" required>
-                                            <option value="">{{ trans('common.select') }}</option>
-                                            @foreach($vendors as $vendor)
-                                                <option value="{{ $vendor->id }}" {{ old('vendor_id', $occasion->vendor_id ?? '') == $vendor->id ? 'selected' : '' }}>
-                                                    {{ $vendor->name }}
-                                                </option>
-                                            @endforeach
-                                        </select>
-                                        @error('vendor_id')
-                                            <div class="invalid-feedback d-block">{{ $message }}</div>
+                                        <x-image-upload
+                                            id="occasion_image"
+                                            name="image"
+                                            :placeholder="trans('catalogmanagement::occasion.image')"
+                                            recommendedSize="Recommended size: 1538×402px"
+                                            :existingImage="isset($occasion) && $occasion->image ? asset('storage/' . $occasion->image) : null"
+                                            aspectRatio="16:9"
+                                            :required="true"
+                                        />
+                                        @error('image')
+                                            <div class="invalid-feedback d-block" style="display: block !important;">{{ $message }}</div>
                                         @enderror
                                     </div>
                                 </div>
-                                                                {{-- Activation Switcher --}}
+                                {{-- Activation Switcher --}}
                                 <div class="col-md-6 mb-25">
                                     <div class="form-group">
                                         <label class="il-gray fs-14 fw-500 mb-10 d-block">
@@ -373,9 +404,65 @@
                                     </div>
                                 </div>
                             </div>
+                            {{-- Date Fields --}}
+                            <div class="row">
+                                <div class="col-md-6 mb-25">
+                                    <div class="form-group">
+                                        <label for="start_date" class="il-gray fs-14 fw-500 mb-10">
+                                            {{ trans('catalogmanagement::occasion.start_date') }}
+                                        </label>
+                                        <input type="date"
+                                               class="form-control ih-medium ip-gray radius-xs b-light px-15"
+                                               id="start_date"
+                                               name="start_date"
+                                               value="{{ old('start_date', isset($occasion) ? $occasion->start_date?->format('Y-m-d') : '') }}">
+                                        @error('start_date')
+                                            <div class="invalid-feedback d-block">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6 mb-25">
+                                    <div class="form-group">
+                                        <label for="end_date" class="il-gray fs-14 fw-500 mb-10">
+                                            {{ trans('catalogmanagement::occasion.end_date') }}
+                                        </label>
+                                        <input type="date"
+                                               class="form-control ih-medium ip-gray radius-xs b-light px-15"
+                                               id="end_date"
+                                               name="end_date"
+                                               value="{{ old('end_date', isset($occasion) ? $occasion->end_date?->format('Y-m-d') : '') }}">
+                                        @error('end_date')
+                                            <div class="invalid-feedback d-block">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+                                </div>
+                            </div>
+                            {{-- Vendor Selection --}}
+                            <div class="row">
+                                <div class="col-md-12 mb-25">
+                                    <div class="form-group">
+                                        <label for="vendor_id" class="il-gray fs-14 fw-500 mb-10">
+                                            {{ trans('catalogmanagement::occasion.vendor') }} <span class="text-danger">*</span>
+                                        </label>
+                                        <select name="vendor_id" id="vendor_id" class="form-control select2">
+                                            <option value="">{{ trans('common.select') }}</option>
+                                            @foreach($vendors as $vendor)
+                                                <option value="{{ $vendor->id }}" {{ old('vendor_id', $occasion->vendor_id ?? '') == $vendor->id ? 'selected' : '' }}>
+                                                    {{ $vendor->name }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                        @error('vendor_id')
+                                            <div class="invalid-feedback d-block">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+                                </div>
+
+                            </div>
 
                             {{-- Product Variants Section --}}
-                            <div class="row mt-30" id="variantsSection" style="display: none;">
+                            <div class="row" id="variantsSection" style="display: none;">
                                 <div class="col-12">
                                     <h6 class="mb-20 fw-500">{{ trans('catalogmanagement::occasion.product_variants') }}</h6>
                                 </div>
@@ -454,96 +541,8 @@
                                 </div>
                             </div>
 
-                            {{-- Occasion Name Fields --}}
-                            <x-multilingual-input
-                                name="name"
-                                label="Name"
-                                labelAr="الاسم"
-                                placeholder="Enter occasion name"
-                                placeholderAr="أدخل اسم المناسبة"
-                                :required="true"
-                                :languages="$languages"
-                                :model="$occasion ?? null"
-                            />
-
-                            {{-- Occasion Title Fields --}}
-                            <x-multilingual-input
-                                name="title"
-                                label="Title"
-                                labelAr="العنوان"
-                                placeholder="Enter occasion title"
-                                placeholderAr="أدخل عنوان المناسبة"
-                                :languages="$languages"
-                                :model="$occasion ?? null"
-                            />
-
-                            {{-- Occasion Sub Title Fields --}}
-                            <x-multilingual-input
-                                name="sub_title"
-                                label="Sub Title"
-                                labelAr="العنوان الفرعي"
-                                placeholder="Enter occasion sub title"
-                                placeholderAr="أدخل العنوان الفرعي للمناسبة"
-                                :languages="$languages"
-                                :model="$occasion ?? null"
-                            />
-
-                            <div class="row">
-                                {{-- Occasion Image --}}
-                                <div class="col-md-6 mb-25">
-                                    <div class="form-group">
-                                        <x-image-upload
-                                            id="occasion_image"
-                                            name="image"
-                                            :placeholder="trans('catalogmanagement::occasion.image')"
-                                            recommendedSize="Recommended size: 1538×402px"
-                                            :existingImage="isset($occasion) && $occasion->image ? asset('storage/' . $occasion->image) : null"
-                                            aspectRatio="16:9"
-                                            :required="!isset($occasion)"
-                                        />
-                                        @error('image')
-                                            <div class="invalid-feedback d-block" style="display: block !important;">{{ $message }}</div>
-                                        @enderror
-                                    </div>
-                                </div>
 
 
-                            </div>
-
-                            {{-- Date Fields --}}
-                            <div class="row">
-                                <div class="col-md-6 mb-25">
-                                    <div class="form-group">
-                                        <label for="start_date" class="il-gray fs-14 fw-500 mb-10">
-                                            {{ trans('catalogmanagement::occasion.start_date') }}
-                                        </label>
-                                        <input type="date"
-                                               class="form-control ih-medium ip-gray radius-xs b-light px-15"
-                                               id="start_date"
-                                               name="start_date"
-                                               value="{{ old('start_date', isset($occasion) ? $occasion->start_date?->format('Y-m-d') : '') }}">
-                                        @error('start_date')
-                                            <div class="invalid-feedback d-block">{{ $message }}</div>
-                                        @enderror
-                                    </div>
-                                </div>
-
-                                <div class="col-md-6 mb-25">
-                                    <div class="form-group">
-                                        <label for="end_date" class="il-gray fs-14 fw-500 mb-10">
-                                            {{ trans('catalogmanagement::occasion.end_date') }}
-                                        </label>
-                                        <input type="date"
-                                               class="form-control ih-medium ip-gray radius-xs b-light px-15"
-                                               id="end_date"
-                                               name="end_date"
-                                               value="{{ old('end_date', isset($occasion) ? $occasion->end_date?->format('Y-m-d') : '') }}">
-                                        @error('end_date')
-                                            <div class="invalid-feedback d-block">{{ $message }}</div>
-                                        @enderror
-                                    </div>
-                                </div>
-                            </div>
 
                             {{-- SEO Information Section --}}
                             <div class="card">
@@ -733,10 +732,10 @@
                                         <img src="${productImage}" alt="${productName}" class="product-image me-3" style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px;">
                                         <div class="flex-grow-1">
                                             <h6 class="mb-1">${productName}</h6>
-                                            ${variantName ? `<div class="text-primary small mb-1"><i class="uil uil-tag-alt me-1"></i>${variantName}</div>` : ''}
+                                            ${variantName ? `<div class="text-primary small mb-1"><i class="uil uil-tag-alt me-1"></i>{{ __('catalogmanagement::occasion.variant_name') }}: ${variantName}</div>` : ''}
                                             <div class="d-flex flex-wrap gap-2 align-items-center">
-                                                <span class="badge badge-primary badge-round badge-lg"><i class="uil uil-box me-1"></i>SKU: ${variantSku}</span>
-                                                <span class="badge ${stock > 0 ? 'badge-success' : 'badge-danger'} badge-round badge-lg"><i class="uil uil-package me-1 text-white"></i>Stock: ${stock}</span>
+                                                <span class="badge badge-primary badge-round badge-lg"><i class="uil uil-box me-1"></i>{{ __('catalogmanagement::occasion.sku') }}: ${variantSku}</span>
+                                                <span class="badge ${stock > 0 ? 'badge-success' : 'badge-danger'} badge-round badge-lg"><i class="uil uil-package me-1 text-white"></i>{{ __('common.stock') }}: ${stock}</span>
                                                 ${priceBeforeDiscount ?
                                                     `<span class="badge badge-warning text-white badge-round badge-lg"><del>${priceBeforeDiscount}</del> → ${price} {{ __('common.egp') }}</span>` :
                                                     `<span class="badge badge-info text-white badge-round badge-lg">${price} {{ __('common.egp') }}</span>`
@@ -762,7 +761,7 @@
                                     <img src="${productImage}" alt="${productName}" class="product-image me-3" style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px;">
                                     <div class="flex-grow-1">
                                         <h6 class="mb-1">${productName}</h6>
-                                        <small class="text-muted">SKU: ${sku}</small>
+                                        <small class="text-muted">{{ __('catalogmanagement::occasion.sku') }}: ${sku}</small>
                                     </div>
                                     <div class="ms-2">
                                         ${isSelected ? '<i class="select-icon fas fa-check-circle text-success fa-lg"></i>' : '<i class="select-icon far fa-circle text-muted fa-lg"></i>'}
@@ -822,15 +821,15 @@
                                              class="rounded-3 me-3" style="width: 50px; height: 50px; object-fit: cover;">
                                         <div class="flex-grow-1">
                                             <h6 class="mb-1 fw-semibold">${variant.productName}</h6>
-                                            ${variant.variantName ? `<div class="text-primary small mb-1"><i class="uil uil-tag-alt me-1"></i>${variant.variantName}</div>` : ''}
+                                            ${variant.variantName ? `<div class="text-primary small mb-1"><i class="uil uil-tag-alt me-1"></i>{{ __('catalogmanagement::occasion.variant_name') }}: ${variant.variantName}</div>` : ''}
                                             <div class="d-flex flex-wrap gap-1 align-items-center">
-                                                <span class="badge badge-soft-primary badge-lg badge-round"><i class="uil uil-box me-1"></i>${variant.sku}</span>
+                                                <span class="badge badge-soft-primary badge-lg badge-round"><i class="uil uil-box me-1"></i>{{ __('catalogmanagement::occasion.sku') }}: ${variant.sku}</span>
                                                 <span class="badge ${variant.stock > 0 ? 'badge-soft-success' : 'badge-soft-danger'} badge-lg badge-round">
-                                                    <i class="uil uil-package me-1 text-white"></i>${variant.stock}
+                                                    <i class="uil uil-package me-1 text-muted"></i>{{ __('common.stock') }}: ${variant.stock}
                                                 </span>
                                                 ${variant.priceBeforeDiscount ?
-                                                    `<span class="badge badge-soft-warning badge-lg badge-round"><del class="me-1">${variant.priceBeforeDiscount}</del>${variant.price} EGP</span>` :
-                                                    `<span class="badge badge-soft-info badge-lg badge-round">${variant.price} EGP</span>`
+                                                    `<span class="badge badge-soft-warning badge-lg badge-round"><del class="me-1">${variant.priceBeforeDiscount}</del>${variant.price} {{ __('common.egp') }}</span>` :
+                                                    `<span class="badge badge-soft-info badge-lg badge-round">${variant.price} {{ __('common.egp') }}</span>`
                                                 }
                                             </div>
                                             <div class="mt-2 d-flex align-items-center gap-2">
@@ -845,8 +844,7 @@
                                                            placeholder="${variant.price}"
                                                            value="${variant.specialPrice || ''}"
                                                            step="0.01"
-                                                           min="0"
-                                                           required>
+                                                           min="0">
                                                     <span class="input-group-text">EGP</span>
                                                 </div>
                                             </div>
@@ -1016,54 +1014,6 @@
             occasionForm.addEventListener('submit', function(e) {
                 e.preventDefault();
 
-                // Validate variants before submission
-                if (selectedProducts.length === 0) {
-                    const alert = document.createElement('div');
-                    alert.className = 'alert alert-warning alert-dismissible fade show';
-                    alert.innerHTML = `
-                        <div class="d-flex align-items-center">
-                            <i class="uil uil-exclamation-triangle me-2"></i>
-                            <strong>{{ __('catalogmanagement::occasion.product_variants') }} {{ __('common.required') }}</strong>
-                        </div>
-                        <p class="mb-0 mt-1">{{ __('catalogmanagement::occasion.search_products_help') }}</p>
-                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                    `;
-                    alertContainer.innerHTML = '';
-                    alertContainer.appendChild(alert);
-
-                    // Scroll to variants section
-                    document.getElementById('variantsSection').scrollIntoView({ behavior: 'smooth' });
-                    return;
-                }
-
-                // Validate special prices
-                const specialPriceInputs = document.querySelectorAll('input[name*="[special_price]"]');
-                let hasEmptyPrices = false;
-                specialPriceInputs.forEach(input => {
-                    if (!input.value || parseFloat(input.value) <= 0) {
-                        input.classList.add('is-invalid');
-                        hasEmptyPrices = true;
-                    } else {
-                        input.classList.remove('is-invalid');
-                    }
-                });
-
-                if (hasEmptyPrices) {
-                    const alert = document.createElement('div');
-                    alert.className = 'alert alert-danger alert-dismissible fade show';
-                    alert.innerHTML = `
-                        <div class="d-flex align-items-center">
-                            <i class="uil uil-exclamation-triangle me-2"></i>
-                            <strong>{{ __('catalogmanagement::occasion.custom_price') }} {{ __('common.required') }}</strong>
-                        </div>
-                        <p class="mb-0 mt-1">{{ __('catalogmanagement::occasion.custom_price') }} must be greater than 0</p>
-                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                    `;
-                    alertContainer.innerHTML = '';
-                    alertContainer.appendChild(alert);
-                    return;
-                }
-
                 // Disable submit button and show loading state
                 submitBtn.disabled = true;
                 const btnIcon = submitBtn.querySelector('i');
@@ -1202,13 +1152,35 @@
                         });
                     }
 
-                    // Show error message
+                    // Show error message with all validation errors
                     const alert = document.createElement('div');
-                    alert.className = 'alert alert-danger alert-dismissible fade show';
-                    alert.innerHTML = `
-                        ${error.message || 'An error occurred'}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    alert.className = 'alert alert-danger alert-dismissible fade show d-block';
+
+                    let errorHtml = `
+                        <div class="d-flex align-items-center mb-2">
+                            <i class="uil uil-exclamation-triangle me-2"></i>
+                            <strong>${error.message || 'Validation Error'}</strong>
+                        </div>
                     `;
+
+                    // Add all validation errors as a list
+                    if (error.errors && Object.keys(error.errors).length > 0) {
+                        errorHtml += '<ul class="mb-0 mt-2">';
+                        Object.keys(error.errors).forEach(field => {
+                            const fieldErrors = error.errors[field];
+                            if (Array.isArray(fieldErrors)) {
+                                fieldErrors.forEach(msg => {
+                                    errorHtml += `<li>${msg}</li>`;
+                                });
+                            } else {
+                                errorHtml += `<li>${fieldErrors}</li>`;
+                            }
+                        });
+                        errorHtml += '</ul>';
+                    }
+
+                    errorHtml += '<button type="button" class="btn-close" data-bs-dismiss="alert"></button>';
+                    alert.innerHTML = errorHtml;
                     alertContainer.appendChild(alert);
 
                     // Scroll to top to show errors

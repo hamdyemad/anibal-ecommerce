@@ -6,6 +6,8 @@ use Modules\CatalogManagement\app\Interfaces\OccasionRepositoryInterface;
 use Modules\CatalogManagement\app\Models\Occasion;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class OccasionRepository implements OccasionRepositoryInterface
 {
@@ -38,17 +40,26 @@ class OccasionRepository implements OccasionRepositoryInterface
     {
         return DB::transaction(function () use ($data) {
             $occasion = Occasion::create([
+                'slug' => uniqid(),
                 'vendor_id' => $data['vendor_id'],
                 'start_date' => $data['start_date'] ?? null,
                 'end_date' => $data['end_date'] ?? null,
                 'is_active' => $data['is_active'] ?? true,
             ]);
 
+            // Handle image upload via attachments
+            if (isset($data['image']) && $data['image'] instanceof \Illuminate\Http\UploadedFile) {
+                $image = $data['image'];
+                $filePath = $image->store("{$data['vendor_id']}/occasions", 'public');
+
+                $occasion->attachments()->create([
+                    'type' => 'image',
+                    'path' => $filePath
+                ]);
+            }
+
             // Store translations
             $this->storeTranslations($occasion, $data);
-
-            // Store SEO data
-            $this->storeSeo($occasion, $data);
 
             // Store occasion products (variants)
             $this->storeOccasionProducts($occasion, $data);
@@ -65,18 +76,32 @@ class OccasionRepository implements OccasionRepositoryInterface
         return DB::transaction(function () use ($id, $data) {
             $occasion = $this->getOccasionById($id);
 
-            $occasion->update([
+            $updateData = [
                 'vendor_id' => $data['vendor_id'] ?? $occasion->vendor_id,
                 'start_date' => $data['start_date'] ?? $occasion->start_date,
                 'end_date' => $data['end_date'] ?? $occasion->end_date,
                 'is_active' => $data['is_active'] ?? $occasion->is_active,
-            ]);
+            ];
+
+            $occasion->update($updateData);
+
+            // Handle image upload via attachments - only if a new file is provided
+            if (isset($data['image']) && $data['image'] instanceof \Illuminate\Http\UploadedFile) {
+                // Delete old image attachment if exists
+                $occasion->attachments()->where('type', 'image')->delete();
+
+                // Store new image
+                $image = $data['image'];
+                $filePath = $image->store("{$occasion->vendor_id}/occasions", 'public');
+
+                $occasion->attachments()->create([
+                    'path' => $filePath,
+                    'type' => 'image'
+                ]);
+            }
 
             // Store translations (this will handle updates)
             $this->storeTranslations($occasion, $data);
-
-            // Store SEO data
-            $this->storeSeo($occasion, $data);
 
             // Store occasion products (variants)
             $this->storeOccasionProducts($occasion, $data);
@@ -117,6 +142,9 @@ class OccasionRepository implements OccasionRepositoryInterface
      */
     protected function storeTranslations(Occasion $occasion, array $data): void
     {
+        // Force delete existing translations (including soft deleted ones)
+        $occasion->translations()->forceDelete();
+
         if (!isset($data['translations']) || !is_array($data['translations'])) {
             return;
         }
@@ -128,70 +156,30 @@ class OccasionRepository implements OccasionRepositoryInterface
             $translationData = $data['translations'][$language->id] ?? [];
 
             if (!empty($translationData['name'])) {
-                // Use the Translation trait's storeTranslation method
-                $occasion->storeTranslation([
-                    'lang_id' => $language->id,
-                    'lang_key' => 'name',
-                    'lang_value' => $translationData['name'],
-                ]);
-
-                if (!empty($translationData['title'])) {
-                    $occasion->storeTranslation([
-                        'lang_id' => $language->id,
-                        'lang_key' => 'title',
-                        'lang_value' => $translationData['title'],
+                // Generate slug from name
+                if(Occasion::where('slug', Str::slug($translationData['name']))->where('id', '!=', $occasion->id)->exists()) {
+                    $model = Occasion::where('slug', Str::slug($translationData['name']))->where('id', '!=', $occasion->id)->first();
+                    $occasion->update([
+                        'slug' => $model->slug . '-' . uniqid()
+                    ]);
+                } else {
+                    $occasion->update([
+                        'slug' => Str::slug($translationData['name'])
                     ]);
                 }
 
-                if (!empty($translationData['sub_title'])) {
-                    $occasion->storeTranslation([
-                        'lang_id' => $language->id,
-                        'lang_key' => 'sub_title',
-                        'lang_value' => $translationData['sub_title'],
-                    ]);
+                // Store translation fields
+                $translationFields = ['name', 'title', 'sub_title', 'seo_title', 'seo_description', 'seo_keywords'];
+
+                foreach ($translationFields as $field) {
+                    if (isset($translationData[$field]) && !empty($translationData[$field])) {
+                        $occasion->translations()->create([
+                            'lang_id' => $language->id,
+                            'lang_key' => $field,
+                            'lang_value' => $translationData[$field],
+                        ]);
+                    }
                 }
-            }
-        }
-    }
-
-    /**
-     * Store SEO data for occasion
-     */
-    protected function storeSeo(Occasion $occasion, array $data): void
-    {
-        if (!isset($data['seo']) || !is_array($data['seo'])) {
-            return;
-        }
-
-        // Get all languages
-        $languages = \App\Models\Language::all();
-
-        foreach ($languages as $language) {
-            $seoData = $data['seo'][$language->id] ?? [];
-
-            // Store SEO fields using Translation trait
-            if (!empty($seoData['title'])) {
-                $occasion->storeTranslation([
-                    'lang_id' => $language->id,
-                    'lang_key' => 'seo_title',
-                    'lang_value' => $seoData['title'],
-                ]);
-            }
-
-            if (!empty($seoData['description'])) {
-                $occasion->storeTranslation([
-                    'lang_id' => $language->id,
-                    'lang_key' => 'seo_description',
-                    'lang_value' => $seoData['description'],
-                ]);
-            }
-
-            if (!empty($seoData['keywords'])) {
-                $occasion->storeTranslation([
-                    'lang_id' => $language->id,
-                    'lang_key' => 'seo_keywords',
-                    'lang_value' => $seoData['keywords'],
-                ]);
             }
         }
     }
