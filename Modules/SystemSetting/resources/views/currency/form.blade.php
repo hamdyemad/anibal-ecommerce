@@ -40,7 +40,7 @@
                             </div>
                         @endif
 
-                        <form id="currencyForm" method="POST" action="{{ isset($currency) ? route('admin.system-settings.currencies.update', $currency->id) : route('admin.system-settings.currencies.store') }}">
+                        <form id="currencyForm" method="POST" action="{{ isset($currency) ? route('admin.system-settings.currencies.update', $currency->id) : route('admin.system-settings.currencies.store') }}" enctype="multipart/form-data">
                             @csrf
                             @if(isset($currency))
                                 @method('PUT')
@@ -96,7 +96,43 @@
                                         @enderror
                                     </div>
                                 </div>
+                                {{-- Currency Image --}}
+                                <div class="col-md-12 mb-25" id="imageUploadSection">
+                                    <x-image-upload
+                                        id="image"
+                                        name="image"
+                                        :label="trans('systemsetting::currency.currency_image')"
+                                        :placeholder="trans('common.click_to_upload')"
+                                        :recommendedSize="trans('common.recommended_logo_size')"
+                                        aspectRatio="logo"
+                                        :existingImage="isset($currency) && $currency->image ? $currency->image : null"
+                                    />
+                                </div>
 
+                                {{-- Use Image Switcher --}}
+                                <div class="col-md-6">
+                                    <div class="form-group mb-25">
+                                        <label class="il-gray fs-14 fw-500 mb-10 d-block">
+                                            {{ __('systemsetting::currency.use_image') }}
+                                        </label>
+                                        <div class="dm-switch-wrap d-flex align-items-center">
+                                            <div class="form-check form-switch form-switch-primary form-switch-md">
+                                                <input type="hidden" name="use_image" value="0">
+                                                <input type="checkbox"
+                                                       class="form-check-input"
+                                                       id="use_image"
+                                                       name="use_image"
+                                                       value="1"
+                                                       {{ old('use_image', isset($currency) ? $currency->use_image : 0) == 1 ? 'checked' : '' }}>
+                                                <label class="form-check-label" for="use_image"></label>
+                                            </div>
+                                            <span class="ms-2 text-muted small">{{ __('systemsetting::currency.use_image_hint') }}</span>
+                                        </div>
+                                        @error('use_image')
+                                            <div class="text-danger fs-12 mt-1">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+                                </div>
                                 {{-- Active Status Switcher --}}
                                 <div class="col-md-6">
                                     <div class="form-group mb-25">
@@ -121,7 +157,7 @@
                                     </div>
                                 </div>
 
-                                <div class="col-md-6">
+                                <div class="col-md-12">
                                     <div class="form-group mt-4 d-flex align-items-center justify-content-end">
                                         <a href="{{ route('admin.system-settings.currencies.index') }}" class="btn btn-light btn-default btn-squared text-capitalize">
                                             <i class="uil uil-arrow-left"></i> {{ __('systemsetting::currency.back_to_list') }}

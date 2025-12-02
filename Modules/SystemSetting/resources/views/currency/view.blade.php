@@ -79,6 +79,39 @@
                                                 </div>
                                             </div>
 
+                                            {{-- Use Image Status --}}
+                                            <div class="col-md-6">
+                                                <div class="view-item">
+                                                    <label class="il-gray fs-14 fw-500 mb-10">{{ __('systemsetting::currency.use_image') }}</label>
+                                                    <p class="fs-15">
+                                                        @if($currency->use_image)
+                                                            <span class="badge badge-success badge-round badge-lg">
+                                                                <i class="uil uil-check me-1"></i>{{ __('common.enabled') }}
+                                                            </span>
+                                                        @else
+                                                            <span class="badge badge-secondary badge-round badge-lg">
+                                                                <i class="uil uil-times me-1"></i>{{ __('common.disabled') }}
+                                                            </span>
+                                                        @endif
+                                                    </p>
+                                                </div>
+                                            </div>
+
+                                            {{-- Currency Image --}}
+                                            @if($currency->attachments && $currency->attachments->where('type', 'image')->first())
+                                                <div class="col-md-6">
+                                                    <div class="view-item">
+                                                        <label class="il-gray fs-14 fw-500 mb-10">{{ __('systemsetting::currency.currency_image') }}</label>
+                                                        <p class="fs-15 color-dark">
+                                                            <img src="{{ asset('storage/' . $currency->attachments->where('type', 'image')->first()->path) }}"
+                                                                 alt="Currency Image"
+                                                                 class="img-thumbnail"
+                                                                 style="max-height: 120px; max-width: 200px;">
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            @endif
+
                                             {{-- Activation Status --}}
                                             <div class="col-md-6">
                                                 <div class="view-item">

@@ -13,7 +13,7 @@ class CurrencyController extends Controller
 {
 
     public function __construct(
-        protected CurrencyService $currencyService, 
+        protected CurrencyService $currencyService,
         protected LanguageService $languageService,
         protected CurrencyAction $currencyAction
     )
@@ -69,7 +69,7 @@ class CurrencyController extends Controller
 
         try {
             $this->currencyService->createCurrency($validated);
-            
+
             if ($request->ajax() || $request->wantsJson()) {
                 return response()->json([
                     'success' => true,
@@ -77,7 +77,7 @@ class CurrencyController extends Controller
                     'redirect' => route('admin.system-settings.currencies.index')
                 ]);
             }
-            
+
             return redirect()->route('admin.system-settings.currencies.index')
                 ->with('success', __('systemsetting::currency.created_successfully'));
         } catch (\Exception $e) {
@@ -87,7 +87,7 @@ class CurrencyController extends Controller
                     'message' => __('systemsetting::currency.error_creating') . ': ' . $e->getMessage()
                 ], 422);
             }
-            
+
             return redirect()->back()
                 ->withInput()
                 ->with('error', __('systemsetting::currency.error_creating') . ': ' . $e->getMessage());
@@ -143,7 +143,7 @@ class CurrencyController extends Controller
 
         try {
             $this->currencyService->updateCurrency($id, $validated);
-            
+
             if ($request->ajax() || $request->wantsJson()) {
                 return response()->json([
                     'success' => true,
@@ -151,7 +151,7 @@ class CurrencyController extends Controller
                     'redirect' => route('admin.system-settings.currencies.index')
                 ]);
             }
-            
+
             return redirect()->route('admin.system-settings.currencies.index')
                 ->with('success', __('systemsetting::currency.updated_successfully'));
         } catch (\Exception $e) {
@@ -161,7 +161,7 @@ class CurrencyController extends Controller
                     'message' => __('systemsetting::currency.error_updating') . ': ' . $e->getMessage()
                 ], 422);
             }
-            
+
             return redirect()->back()
                 ->withInput()
                 ->with('error', __('systemsetting::currency.error_updating') . ': ' . $e->getMessage());
@@ -175,7 +175,7 @@ class CurrencyController extends Controller
     {
         try {
             $this->currencyService->deleteCurrency($id);
-            
+
             if ($request->ajax() || $request->wantsJson()) {
                 return response()->json([
                     'success' => true,
@@ -183,7 +183,7 @@ class CurrencyController extends Controller
                     'redirect' => route('admin.system-settings.currencies.index')
                 ]);
             }
-            
+
             return redirect()->route('admin.system-settings.currencies.index')
                 ->with('success', __('systemsetting::currency.deleted_successfully'));
         } catch (\Exception $e) {
@@ -193,7 +193,7 @@ class CurrencyController extends Controller
                     'message' => __('systemsetting::currency.error_deleting') . ': ' . $e->getMessage()
                 ], 422);
             }
-            
+
             return redirect()->route('admin.system-settings.currencies.index')
                 ->with('error', __('systemsetting::currency.error_deleting') . ': ' . $e->getMessage());
         }

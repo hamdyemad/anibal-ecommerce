@@ -11,13 +11,17 @@ return [
     'delete_currency' => 'حذف العملة',
     'currency_details' => 'تفاصيل العملة',
     'no_currencies_found' => 'لم يتم العثور على عملات',
-    
+
     // Fields
     'name' => 'الاسم',
     'name_english' => 'الاسم (الإنجليزية)',
     'name_arabic' => 'الاسم (العربية)',
     'currency_code' => 'رمز العملة',
     'currency_symbol' => 'رمز العملة',
+    'use_image' => 'استخدام صورة',
+    'use_image_hint' => 'عرض صورة بدلاً من الرمز',
+    'currency_image' => 'صورة العملة',
+    'remove_image' => 'إزالة الصورة',
     'active' => 'نشط',
     'inactive' => 'غير نشط',
     'status' => 'الحالة',
@@ -25,10 +29,10 @@ return [
     'created_at' => 'تاريخ الإنشاء',
     'updated_at' => 'تاريخ التحديث',
     'dates' => 'التواريخ',
-    
+
     // Placeholders
     'search_placeholder' => 'البحث بالاسم أو الرمز...',
-    
+
     // Messages
     'created_successfully' => 'تم إنشاء العملة بنجاح',
     'updated_successfully' => 'تم تحديث العملة بنجاح',
@@ -37,18 +41,18 @@ return [
     'error_updating' => 'خطأ في تحديث العملة',
     'error_deleting' => 'خطأ في حذف العملة',
     'not_found' => 'العملة غير موجودة',
-    
+
     // Actions
     'back_to_list' => 'العودة للقائمة',
     'confirm_delete' => 'تأكيد الحذف',
     'delete_confirmation' => 'هل أنت متأكد من رغبتك في حذف هذه العملة؟',
     'cancel' => 'إلغاء',
-    
+
     // Additional
     'basic_information' => 'المعلومات الأساسية',
     'translations' => 'الترجمات',
     'validation_errors' => 'أخطاء التحقق',
-    
+
     // Validation Messages
     'validation' => [
         'code_required' => 'رمز العملة مطلوب',

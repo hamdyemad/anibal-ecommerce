@@ -34,6 +34,9 @@ class CurrencyRequest extends FormRequest
             'symbol' => 'required|string|max:10',
             'translations' => 'required|array',
             'translations.*.name' => 'required|string|max:255',
+            'use_image' => 'nullable|boolean',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'remove_image' => 'nullable|boolean',
             'active' => 'nullable|boolean',
         ];
 
@@ -96,6 +99,7 @@ class CurrencyRequest extends FormRequest
         // Convert active value to integer
         $this->merge([
             'active' => (int) $this->input('active', 0),
+            'use_image' => (int) $this->input('use_image', 0),
         ]);
     }
 }
