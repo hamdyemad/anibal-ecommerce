@@ -9,6 +9,7 @@ use Modules\CategoryManagment\app\Http\Resources\Api\LightDepartmentApiResource;
 use Modules\CategoryManagment\app\Http\Resources\Api\LightSubCategoryApiResource;
 use Modules\SystemSetting\app\Resources\CurrencyResource;
 use Modules\Vendor\app\Http\Resources\Api\LightVendorResource;
+use Modules\CatalogManagement\app\Http\Resources\Api\VendorProductVariantResource;
 
 class VendorProductResource extends JsonResource
 {
@@ -47,7 +48,7 @@ class VendorProductResource extends JsonResource
             'stock' => $this->total_stock ?? 0,
 
             'is_fav' => false,
-            'size_color_type' => $this->product->configuration_type,
+            'configuration_type' => $this->product->configuration_type,
             'tags' => $this->product->tags_array,
             'currency' => CurrencyResource::make($this->product->currency),
             'meta_description' => $this->product->meta_description,
@@ -55,9 +56,7 @@ class VendorProductResource extends JsonResource
             'vendor' => LightVendorResource::make($this->whenLoaded('vendor')),
             'brand' => LightBrandApiResource::make($this->product->brand),
             'tax' => TaxResource::make($this->tax),
-            'variants' => $this->relationLoaded('highestDiscountVariant')
-                ? VendorProductVariantResource::collection(collect([$this->highestDiscountVariant])->filter())
-                : VendorProductVariantResource::collection($this->whenLoaded('variants')),
+            'variants' => VendorProductVariantResource::collection($this->whenLoaded('variants')),
             'department' => LightDepartmentApiResource::make($this->product->department),
             'category' => LightCategoryApiResource::make($this->product->category),
             'sub_category' => LightSubCategoryApiResource::make($this->product->subCategory),

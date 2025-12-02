@@ -34,6 +34,10 @@ class OccasionRequest extends FormRequest
             'start_date' => 'nullable|date',
             'end_date' => 'nullable|date|after_or_equal:start_date',
 
+            'variants' => ['required', 'array'],
+            'variants.*.vendor_product_variant_id' => ['required', 'exists:vendor_product_variants,id'],
+            'variants.*.special_price' => ['required'],
+
             // Translation fields
             'translations' => 'required|array',
             'translations.*.name' => 'required|string|max:255',

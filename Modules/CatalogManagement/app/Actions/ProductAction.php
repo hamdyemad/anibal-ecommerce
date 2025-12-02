@@ -92,6 +92,8 @@ class ProductAction {
                             $subQuery->where('lang_value', 'like', "%{$search}%");
                         });
                     });
+                })->orWhereHas('variants', function ($q) use ($search) {
+                    $q->where('sku', 'like', "%{$search}%");
                 });
             }
 

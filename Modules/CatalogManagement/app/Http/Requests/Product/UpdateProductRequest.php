@@ -59,8 +59,8 @@ class UpdateProductRequest extends FormRequest
             'translations.*.extra_description' => 'nullable|string',
             'translations.*.material' => 'nullable|string',
             'translations.*.tags' => 'nullable|string',
-            'translations.*.meta_title' => 'nullable|string|max:60',
-            'translations.*.meta_description' => 'nullable|string|max:160',
+            'translations.*.meta_title' => 'nullable|string',
+            'translations.*.meta_description' => 'nullable|string',
             'translations.*.meta_keywords' => 'nullable|string',
 
             // Configuration Type

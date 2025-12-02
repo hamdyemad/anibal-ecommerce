@@ -23,7 +23,12 @@ class OccasionRepository implements OccasionRepositoryInterface
      */
     public function getOccasionById($id)
     {
-        return Occasion::with(['translations', 'vendor', 'occasionProducts'])->findOrFail($id);
+        return Occasion::with([
+            'translations',
+            'vendor',
+            'occasionProducts.vendorProductVariant.vendorProduct.product.mainImage',
+            'occasionProducts.vendorProductVariant.vendorProduct.product.translations'
+        ])->findOrFail($id);
     }
 
     /**
@@ -44,6 +49,9 @@ class OccasionRepository implements OccasionRepositoryInterface
 
             // Store SEO data
             $this->storeSeo($occasion, $data);
+
+            // Store occasion products (variants)
+            $this->storeOccasionProducts($occasion, $data);
 
             return $occasion;
         });
@@ -69,6 +77,9 @@ class OccasionRepository implements OccasionRepositoryInterface
 
             // Store SEO data
             $this->storeSeo($occasion, $data);
+
+            // Store occasion products (variants)
+            $this->storeOccasionProducts($occasion, $data);
 
             return $occasion->fresh();
         });
@@ -180,6 +191,31 @@ class OccasionRepository implements OccasionRepositoryInterface
                     'lang_id' => $language->id,
                     'lang_key' => 'seo_keywords',
                     'lang_value' => $seoData['keywords'],
+                ]);
+            }
+        }
+    }
+
+    /**
+     * Store occasion products (variants with special prices)
+     */
+    protected function storeOccasionProducts(Occasion $occasion, array $data): void
+    {
+        if (!isset($data['variants']) || !is_array($data['variants'])) {
+            return;
+        }
+
+        // Delete existing occasion products
+        $occasion->occasionProducts()->delete();
+
+        // Store new occasion products
+        $position = 0;
+        foreach ($data['variants'] as $variant) {
+            if (!empty($variant['vendor_product_variant_id'])) {
+                $occasion->occasionProducts()->create([
+                    'vendor_product_variant_id' => $variant['vendor_product_variant_id'],
+                    'special_price' => $variant['special_price'] ?? null,
+                    'position' => $position++,
                 ]);
             }
         }

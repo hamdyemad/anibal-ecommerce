@@ -107,10 +107,7 @@ class VendorProductVariant extends Model
      */
     public function getVariantNameAttribute()
     {
-        if ($this->variantConfiguration) {
-            return $this->{"variant_path_" . app()->getLocale()};
-        }
-        return '';
+        return $this->variantConfiguration->name;
     }
 
     /**

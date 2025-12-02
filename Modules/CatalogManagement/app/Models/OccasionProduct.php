@@ -2,19 +2,23 @@
 
 namespace Modules\CatalogManagement\app\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 
 class OccasionProduct extends Model
 {
     use HasFactory;
 
+    protected $table = 'occasion_products';
     protected $guarded = [];
 
-    public $timestamps = true;
+    protected $casts = [
+        'special_price' => 'decimal:2',
+        'position' => 'integer',
+    ];
 
     /**
-     * Occasion relationship
+     * Get the occasion that owns this product
      */
     public function occasion()
     {
@@ -22,15 +26,7 @@ class OccasionProduct extends Model
     }
 
     /**
-     * Product relationship
-     */
-    public function vendorProduct()
-    {
-        return $this->belongsTo(VendorProduct::class);
-    }
-
-    /**
-     * Vendor product variant relationship
+     * Get the vendor product variant
      */
     public function vendorProductVariant()
     {

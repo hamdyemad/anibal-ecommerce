@@ -29,7 +29,7 @@
                     </h4>
                 </div>
                 <div class="card-body">
-                    <form id="productForm" method="POST" action="{{ route('admin.products.update-stock-pricing', $product->product->id) }}">
+                    <form id="productForm" method="POST" action="{{ route('admin.products.update-stock-pricing', $product->id) }}">
                         @csrf
                                                     <!-- Configuration Type -->
                             <div class="card mb-4">

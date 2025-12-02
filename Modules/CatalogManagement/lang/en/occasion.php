@@ -42,6 +42,7 @@ return [
     'product_already_added' => 'This product is already added',
     'selected_products' => 'Selected Products',
     'products_selected' => 'products selected',
+    'custom_price' => 'Custom Price',
 
     // SEO Fields
     'seo_information' => 'SEO Information',

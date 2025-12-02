@@ -42,6 +42,7 @@ return [
     'product_already_added' => 'هذا المنتج مضاف بالفعل',
     'selected_products' => 'المنتجات المختارة',
     'products_selected' => 'منتج مختار',
+    'custom_price' => 'سعر مخصص',
 
     // SEO Fields
     'seo_information' => 'معلومات SEO',

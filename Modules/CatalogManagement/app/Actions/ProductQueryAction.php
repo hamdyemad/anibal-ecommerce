@@ -16,8 +16,9 @@ class ProductQueryAction
             ->status(VendorProduct::STATUS_APPROVED)
             ->with([
                 'product' => function ($q) {
-                    $q->with(['brand', 'variants', 'attachments', 'translations']);
+                    $q->with(['brand', 'attachments', 'translations']);
                 },
+                'variants',
                 'vendor',
                 'tax',
             ]);

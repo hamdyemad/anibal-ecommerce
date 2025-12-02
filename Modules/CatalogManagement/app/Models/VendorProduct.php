@@ -204,11 +204,15 @@ class VendorProduct extends BaseModel
             $query->whereHas('product', function ($q) use ($search) {
                 $q->where(function ($query) use ($search) {
                     $query->where('sku', 'like', "%{$search}%")
-                          ->orWhereHas('translations', function ($q) use ($search) {
-                              $q->where('lang_key', 'name')
-                                ->where('lang_value', 'like', "%{$search}%");
-                          });
+                        ->orWhereHas('translations', function ($q) use ($search) {
+                            $q->where('lang_key', 'title')
+                            ->where('lang_value', 'like', "%{$search}%");
+                        })
+                        ->orWhere('slug', 'like', "%{$search}%");
                 });
+            })
+            ->orWhereHas('variants', function ($q) use ($search) {
+                $q->where('sku', 'like', "%{$search}%");
             });
             // Remove search from filters to prevent parent from processing it
             unset($filters['search']);
