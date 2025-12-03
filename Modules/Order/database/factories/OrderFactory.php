@@ -12,6 +12,7 @@ class OrderFactory extends Factory
     public function definition(): array
     {
         return [
+            'country_id' => current_country()->id,
             'order_number' => 'ORD-' . $this->faker->unique()->numerify('########'),
             'created_at' => now(),
             'updated_at' => now(),

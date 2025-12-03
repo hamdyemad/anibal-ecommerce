@@ -1000,3 +1000,16 @@ function currency(): string
     }
 }
 
+function current_country()
+{
+    try {
+        $countryCode = session('country_code') ?? 'eg';
+        $country = \Modules\AreaSettings\app\Models\Country::where('code', $countryCode)->first();
+        if ($country) {
+            return $country;
+        }
+        return '';
+    } catch (\Exception $e) {
+        return ''; // Fallback in case of error
+    }
+}
