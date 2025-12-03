@@ -38,6 +38,7 @@ class CountryGlobalObserver
         $this->storeCountry($model);
     }
 
+
     /**
      * Store country_id for the model from session country_code
      */
