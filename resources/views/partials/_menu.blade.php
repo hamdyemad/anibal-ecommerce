@@ -610,49 +610,41 @@
             <span>{{ trans('menu.sections.order and fulfillment') }}</span>
         </li>
         <li
-            class="has-child {{ isParentMenuOpen(['admin.orders.new', 'admin.orders.inprogress', 'admin.orders.delivered', 'admin.orders.canceled', 'admin.orders.refunded'], ['admin/orders*']) ? 'open' : '' }}">
+            class="has-child {{ isParentMenuOpen(['admin.orders.index', 'admin.orders.create'], ['admin/orders*']) ? 'open' : '' }}">
             <a href="#"
-                class="{{ isParentMenuOpen(['admin.orders.new', 'admin.orders.inprogress', 'admin.orders.delivered', 'admin.orders.canceled', 'admin.orders.refunded'], ['admin/orders*']) ? 'active' : '' }}">
+                class="{{ isParentMenuOpen(['admin.orders.index', 'admin.orders.create'], ['admin/orders*']) ? 'active' : '' }}">
                 <span class="nav-icon uil uil-shopping-cart"></span>
                 <span class="menu-text">{{ trans('menu.orders.title') }}</span>
                 <span class="toggle-icon"></span>
             </a>
             <ul class="px-0">
                 <li class="l_sidebar">
-                    <a class="d-flex align-items-center justify-content-between fw-bold"
-                        href="{{ route('admin.dashboard') }}">
-                        {{ trans('menu.orders.new') }}
-                        <span class="badge badge-round badge-primary  ms-1">50</span>
+                    <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive('admin.orders.index', $currentRoute) && !request()->has('stage') ? 'active' : '' }}"
+                        href="{{ route('admin.orders.index') }}">
+                        {{ trans('menu.orders.all') }}
+                        <span class="badge badge-round badge-primary ms-1">{{ \Modules\Order\app\Models\Order::count() }}</span>
                     </a>
                 </li>
                 <li class="l_sidebar">
-                    <a class="d-flex align-items-center justify-content-between fw-bold"
-                        href="{{ route('admin.dashboard') }}">
-                        {{ trans('menu.orders.inprogress') }}
-                        <span class="badge badge-round badge-primary  ms-1">50</span>
+                    <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive('admin.orders.create', $currentRoute) ? 'active' : '' }}"
+                        href="{{ route('admin.orders.create') }}">
+                        {{ trans('menu.orders.create') }}
                     </a>
                 </li>
-                <li class="l_sidebar">
-                    <a class="d-flex align-items-center justify-content-between fw-bold"
-                        href="{{ route('admin.dashboard') }}">
-                        {{ trans('menu.orders.delivered') }}
-                        <span class="badge badge-round badge-primary  ms-1">50</span>
-                    </a>
-                </li>
-                <li class="l_sidebar">
-                    <a class="d-flex align-items-center justify-content-between fw-bold"
-                        href="{{ route('admin.dashboard') }}">
-                        {{ trans('menu.orders.canceled') }}
-                        <span class="badge badge-round badge-primary  ms-1">50</span>
-                    </a>
-                </li>
-                <li class="l_sidebar">
-                    <a class="d-flex align-items-center justify-content-between fw-bold"
-                        href="{{ route('admin.dashboard') }}">
-                        {{ trans('menu.orders.refunded') }}
-                        <span class="badge badge-primary  badge-round ms-1">50</span>
-                    </a>
-                </li>
+
+                {{-- Order Stages --}}
+                @php
+                    $orderStages = \Modules\Order\app\Models\OrderStage::all();
+                @endphp
+                @foreach($orderStages as $stage)
+                    <li class="l_sidebar">
+                        <a class="d-flex align-items-center justify-content-between fw-bold {{ request()->get('stage') == $stage->id ? 'active' : '' }}"
+                            href="{{ route('admin.orders.index', ['stage' => $stage->id]) }}">
+                            {{ $stage->translations->where('lang_key', 'name')->first()?->lang_value ?? $stage->slug }}
+                            <span class="badge badge-round badge-info ms-1">{{ \Modules\Order\app\Models\Order::where('stage_id', $stage->id)->count() }}</span>
+                        </a>
+                    </li>
+                @endforeach
             </ul>
         </li>
 
