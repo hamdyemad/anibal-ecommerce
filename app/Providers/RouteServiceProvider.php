@@ -59,15 +59,9 @@ class RouteServiceProvider extends ServiceProvider
 
 
         $this->configureRateLimiting();
-        // Set URL defaults to automatically inject country code
-        $this->app->booted(function () {
-            $this->app['router']->matched(function () {
-                $this->setUrlDefaults();
-            });
-        });
 
         $this->routes(function () {
-
+            // API routes MUST be registered first and without any localization or URL defaults
             Route::middleware('api')
                 ->namespace($this->namespace)
                 ->prefix('api')
@@ -75,17 +69,32 @@ class RouteServiceProvider extends ServiceProvider
                     require base_path('routes/api.php');
                 });
 
+            // Web routes with localization
             Route::middleware('web')
                 ->namespace($this->namespace)
                 ->group(function() {
                     require base_path('routes/web.php');
                 });
 
+            // Admin routes with authentication and localization
             Route::middleware(['web', 'auth'])
                 ->namespace($this->namespace)
                 ->group(function() {
                     require base_path('routes/admin.php');
                 });
+        });
+
+        // Set URL defaults only for web routes (not API) after all routes are registered
+        $this->app->booted(function () {
+            $this->app['router']->matched(function ($event) {
+                $route = $event->route;
+                if (!$route) return;
+
+                // Only set URL defaults for web routes, not API routes
+                if (!$route->getPrefix() || !str_starts_with($route->getPrefix(), 'api')) {
+                    $this->setUrlDefaults();
+                }
+            });
         });
     }
 
@@ -104,6 +113,7 @@ class RouteServiceProvider extends ServiceProvider
     /**
      * Set URL defaults for locale and country code
      * This ensures route() helper automatically includes these parameters
+     * Only applies to web routes, not API routes
      *
      * @return void
      */

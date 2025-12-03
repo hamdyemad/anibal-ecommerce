@@ -1,6 +1,7 @@
 <?php
 
 namespace Modules\CatalogManagement\app\Models;
+use App\Models\Traits\CountryCheckIdTrait;
 
 use App\Models\Traits\HumanDates;
 use Illuminate\Database\Eloquent\Model;
@@ -8,7 +9,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Promocode extends Model
 {
-    use HasFactory, HumanDates;
+    use HasFactory, HumanDates, CountryCheckIdTrait;
 
     protected $guarded = [];
 

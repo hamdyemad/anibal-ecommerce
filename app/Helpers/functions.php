@@ -979,3 +979,24 @@ function getCountryCode(): string
     return session('country_code') ?? 'eg';
 }
 
+/**
+ * Get currency symbol for the current country
+ *
+ * @return string
+ */
+function currency(): string
+{
+    try {
+        $countryCode = session('country_code') ?? 'eg';
+        $country = \Modules\AreaSettings\app\Models\Country::where('code', $countryCode)->first();
+
+        if ($country && $country->currency) {
+            return $country->currency->symbol;
+        }
+
+        return 'EGP'; // Default fallback
+    } catch (\Exception $e) {
+        return 'EGP'; // Fallback in case of error
+    }
+}
+

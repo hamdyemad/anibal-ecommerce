@@ -4,8 +4,10 @@
     // So locale is segment(1) and country is segment(2)
     $currentCountryCode = strtoupper(request()->segment(2) ?? session('country_code', 'EG'));
     $currentCountry = $countries->firstWhere('code', $currentCountryCode) ?? $countries->first();
+
 @endphp
 
+@if(in_array(auth()->user()->user_type_id, \App\Models\UserType::adminIds()))
 <li class="nav-flag-select nav-country-select">
     <div class="dropdown-custom">
         <a href="javascript:;" class="nav-item-toggle" title="{{ __('dashboard.select_country') }}">
@@ -118,3 +120,4 @@
         margin-left: 0;
     }
 </style>
+@endif

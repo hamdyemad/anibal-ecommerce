@@ -6,6 +6,7 @@ use App\Models\BaseModel;
 use App\Models\Attachment;
 use App\Models\Traits\HumanDates;
 use App\Traits\HasSlug;
+use App\Models\Traits\CountryCheckIdTrait;
 use App\Traits\Translation;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -13,7 +14,7 @@ use Illuminate\Database\Eloquent\Builder;
 
 class BundleCategory extends BaseModel
 {
-    use HasFactory, SoftDeletes, Translation, HumanDates, HasSlug;
+    use HasFactory, SoftDeletes, Translation, HumanDates, HasSlug, CountryCheckIdTrait;
 
     protected $guarded = [];
 

@@ -20,6 +20,7 @@ return [
     'active' => 'Active',
     'inactive' => 'Inactive',
     'select_activities' => 'Select Activities',
+    'commission' => 'Commission (%)',
     'image' => 'Department Image',
     'icon' => 'Department Icon',
     'click_to_upload_image' => 'Click to upload department image',
@@ -91,4 +92,9 @@ return [
     'status_changed_successfully' => 'Department status changed successfully',
     'error_changing_status' => 'Error changing department status',
     'status_already_set' => 'Department is already set to this status',
+
+    // Validation Messages for Request
+    'at_least_one_translation_required' => 'At least one translation is required.',
+    'name_required' => 'The department name is required.',
+    'name_max_255' => 'The department name may not be greater than 255 characters.',
 ];

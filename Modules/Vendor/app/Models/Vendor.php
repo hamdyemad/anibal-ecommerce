@@ -4,6 +4,8 @@ namespace Modules\Vendor\app\Models;
 
 use App\Models\BaseModel;
 use App\Traits\Translation;
+use App\Models\Traits\CountryCheckIdTrait;
+
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Models\User;
@@ -12,14 +14,14 @@ use App\Traits\HasSlug;
 use App\Models\Traits\HumanDates;
 use Illuminate\Database\Eloquent\Builder;
 use Modules\AreaSettings\app\Models\Country;
-use Modules\CatalogManagement\Models\Review;
+use Modules\CatalogManagement\app\Models\Review;
 use Modules\CategoryManagment\app\Models\Activity;
 use Modules\Order\app\Models\OrderProduct;
 use Modules\Withdraw\app\Models\Withdraw;
 
 class Vendor extends BaseModel
 {
-    use HasFactory, SoftDeletes, Translation, HumanDates, HasSlug;
+    use HasFactory, SoftDeletes, Translation, HumanDates, HasSlug, CountryCheckIdTrait;
 
     protected $guarded = [];
 
@@ -101,14 +103,6 @@ class Vendor extends BaseModel
     public function reviews()
     {
         return $this->morphMany(Review::class, 'reviewable');
-    }
-
-    /**
-     * Get the vendor's commission
-     */
-    public function commission()
-    {
-        return $this->hasOne(VendorCommission::class);
     }
 
     public function scopeActive(Builder $query)

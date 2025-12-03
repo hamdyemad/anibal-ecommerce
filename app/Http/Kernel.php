@@ -23,7 +23,6 @@ class Kernel extends HttpKernel
         \App\Http\Middleware\TrimStrings::class,
         \Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull::class,
         // \App\Http\Middleware\SetCountryCodeInUrl::class,
-        \App\Http\Middleware\AutoCountryAndLocaleRedirect::class,
 
     ];
 
@@ -43,6 +42,8 @@ class Kernel extends HttpKernel
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
             \App\Http\Middleware\SetLanguage::class,
             \App\Http\Middleware\CheckUserBlocked::class,
+            \App\Http\Middleware\AutoCountryAndLocaleRedirect::class,
+            \App\Http\Middleware\SetVendorCountrySession::class,
         ],
 
         'api' => [

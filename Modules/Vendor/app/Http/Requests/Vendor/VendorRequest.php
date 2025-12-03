@@ -23,31 +23,31 @@ class VendorRequest extends FormRequest
     {
         $vendor = $this->resolveVendor();
         $isUpdate = !is_null($vendor);
-        
+
         // Logo validation: required on create, optional on update if logo exists
         $logoRule = 'required|image|mimes:jpeg,png,jpg,gif|max:2048';
         if ($isUpdate && $vendor->logo) {
             $logoRule = 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048';
         }
-        
+
         // Banner validation: required on create, optional on update if banner exists
         $bannerRule = 'required|image|mimes:jpeg,png,jpg,gif|max:4096';
         if ($isUpdate && $vendor->banner) {
             $bannerRule = 'nullable|image|mimes:jpeg,png,jpg,gif|max:4096';
         }
-        
+
         // Email validation: unique except for current vendor's user
         $emailRule = 'required|email|max:255|unique:users,email';
         if ($isUpdate && $vendor->user) {
             $emailRule = 'required|email|max:255|unique:users,email,' . $vendor->user->id;
         }
-        
+
         // Password validation: required on create, optional on update
         $passwordRule = 'required|string|min:8|confirmed';
         if ($isUpdate) {
             $passwordRule = 'nullable|string|min:8|confirmed';
         }
-        
+
         return [
             // Vendor Information - Translations (using language IDs)
             'translations' => 'required|array|min:1',
@@ -56,32 +56,25 @@ class VendorRequest extends FormRequest
             'translations.*.meta_title' => 'nullable|string|max:255',
             'translations.*.meta_description' => 'nullable|string|max:500',
             'translations.*.meta_keywords' => 'nullable|string|max:500',
-            
+
             // Files
             'logo' => $logoRule,
             'banner' => $bannerRule,
-            
+
             // Relations
-            'country_id' => 'required|exists:countries,id',
             'activity_ids' => 'required|array|min:1',
             'activity_ids.*' => 'required|exists:activities,id',
-            
+
             // Status
             'active' => 'nullable|boolean',
-            
-            // Vendor Type
-            'type' => 'required|in:product,booking,product_booking',
-            
-            // Commission
-            'commission' => 'required|numeric|min:0|max:100',
-            
+
             // Documents (using language IDs) - Required for vendor creation, optional for update
             'documents' => $isUpdate ? 'nullable|array' : 'required|array|min:1',
             'documents.*.translations' => 'required_with:documents|array',
             'documents.*.translations.1.name' => 'required_with:documents|string|max:255', // English (ID: 1)
             'documents.*.translations.2.name' => 'required_with:documents|string|max:255', // Arabic (ID: 2)
             'documents.*.file' => $isUpdate ? 'nullable|file|mimes:pdf,doc,docx,jpg,jpeg,png|max:5120' : 'required|file|mimes:pdf,doc,docx,jpg,jpeg,png|max:5120',
-            
+
             // Account
             'email' => $emailRule,
             'password' => $passwordRule,
@@ -113,7 +106,6 @@ class VendorRequest extends FormRequest
             'translations.*.description' => __('vendor::vendor.description'),
             'logo' => __('vendor::vendor.logo'),
             'banner' => __('vendor::vendor.banner'),
-            'country_id' => __('vendor::vendor.country'),
             'activity_id' => __('common.activity'),
             'meta_title' => __('vendor::vendor.meta_title'),
             'meta_description' => __('vendor::vendor.meta_description'),
@@ -132,8 +124,6 @@ class VendorRequest extends FormRequest
     {
         $messages = [
             'translations.required' => __('vendor::vendor.at_least_one_translation_required'),
-            'country_id.required' => __('vendor::vendor.please_select_country'),
-            'country_id.exists' => __('vendor::vendor.selected_country_invalid'),
             'activity_ids.required' => __('vendor::vendor.please_select_activity'),
             'activity_ids.min' => __('vendor::vendor.please_select_at_least_one_activity'),
             'activity_ids.*.exists' => __('vendor::vendor.selected_activity_invalid'),
@@ -164,13 +154,13 @@ class VendorRequest extends FormRequest
         // Add custom messages for vendor name translations with language names
         $languages = Language::all();
         foreach ($languages as $language) {
-            $messages["translations.{$language->id}.name.required"] = 
+            $messages["translations.{$language->id}.name.required"] =
                 __('vendor::vendor.name_required_for_language', ['language' => $language->name]);
         }
 
         // Add custom messages for document translations with language names
         foreach ($languages as $language) {
-            $messages["documents.*.translations.{$language->id}.name.required_with"] = 
+            $messages["documents.*.translations.{$language->id}.name.required_with"] =
                 __('vendor::vendor.document_name_required_for_language', ['language' => $language->name]);
         }
 

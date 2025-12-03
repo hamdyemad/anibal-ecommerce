@@ -47,7 +47,7 @@ class DepartmentAction {
 
             // Determine sort column
             $orderBy = null;
-            
+
             Log::info('Department Action - Sorting Debug', [
                 'orderColumnIndex' => $orderColumnIndex,
                 'orderDirection' => $orderDirection,
@@ -62,7 +62,7 @@ class DepartmentAction {
                     (count($languages) + 3) => 'Actions'
                 ]
             ]);
-            
+
             if ($orderColumnIndex == 0) {
                 $orderBy = 'id';
                 Log::info('Department Action - Sorting by ID');
@@ -92,7 +92,7 @@ class DepartmentAction {
                 $orderBy = 'created_at';
                 Log::info('Department Action - Sorting by Created At');
             }
-            
+
             Log::info('Department Action - Final Sort Config', ['orderBy' => $orderBy]);
 
             // Get departments with pagination and sorting
@@ -106,6 +106,7 @@ class DepartmentAction {
                     'id' => $index + 1,
                     'department_id' => $department->id,
                     'image' => $department->image,
+                    'commission' => $department->commission,
                     'translations' => [],
                     'active' => $department->active,
                     'created_at' => $department->created_at,

@@ -3,6 +3,7 @@
 namespace Modules\CategoryManagment\app\Models;
 
 use App\Models\Traits\HumanDates;
+use App\Models\Traits\CountryCheckIdTrait;
 use App\Traits\HasSlug;
 use App\Traits\Translation;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -13,7 +14,7 @@ use Modules\Vendor\app\Models\Vendor;
 
 class Activity extends Model
 {
-    use HasFactory, Translation, SoftDeletes, HumanDates, HasSlug;
+    use HasFactory, Translation, SoftDeletes, HumanDates, HasSlug, CountryCheckIdTrait;
 
     protected $table = 'activities';
     protected $guarded = [];

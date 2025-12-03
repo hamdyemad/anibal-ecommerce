@@ -29,7 +29,7 @@
                     <div class="overview-content w-100">
                         <div class="ap-po-details-content h-100">
                             <div class="ap-po-details__titlebar">
-                                <h1 class="ap-po-details__title">{{ $statistics['total_balance'] }} {{ __('common.currency') }}</h1>
+                                <h1 class="ap-po-details__title">{{ $statistics['total_balance'] }} {{ currency() }}</h1>
                                 <p class="ap-po-details__text text-nowrap">{{ __('vendor::vendor.total_vendors_balance') }}</p>
                             </div>
                             <div class="ap-po-details__icon-area">
@@ -46,7 +46,7 @@
                     <div class="overview-content w-100">
                         <div class="ap-po-details-content h-100">
                             <div class="ap-po-details__titlebar">
-                                <h1 class="ap-po-details__title">{{ $statistics['total_sent'] }} {{ __('common.currency') }}</h1>
+                                <h1 class="ap-po-details__title">{{ $statistics['total_sent'] }} {{ currency() }}</h1>
                                 <p class="ap-po-details__text text-nowrap">{{ __('vendor::vendor.total_sent_money') }}</p>
                             </div>
                             <div class="ap-po-details__icon-area">
@@ -63,7 +63,7 @@
                     <div class="overview-content w-100">
                         <div class="ap-po-details-content h-100">
                             <div class="ap-po-details__titlebar">
-                                <h1 class="ap-po-details__title">{{ $statistics['total_remaining'] }} {{ __('common.currency') }}</h1>
+                                <h1 class="ap-po-details__title">{{ $statistics['total_remaining'] }} {{ currency() }}</h1>
                                 <p class="ap-po-details__text text-nowrap">{{ __('vendor::vendor.total_remaining') }}</p>
                             </div>
                             <div class="ap-po-details__icon-area">
@@ -202,7 +202,6 @@
                                     <th><span
                                             class="userDatatable-title">{{ __('vendor::vendor.vendor_information') }}</span>
                                     </th>
-                                    <th><span class="userDatatable-title">{{ __('vendor::vendor.commission') }}</span></th>
                                     <th><span class="userDatatable-title">{{ __('vendor::vendor.active_status') }}</span></th>
                                     <th><span class="userDatatable-title">{{ __('common.actions') }}</span></th>
                                 </tr>
@@ -368,16 +367,6 @@
                         }
                     },
 
-                    // Commission column
-                    {
-                        data: 'commission',
-                        name: 'commission',
-                        orderable: false,
-                        render: function(data) {
-                            return '<div class="userDatatable-content text-center"><span class="badge badge-success badge-round badge-lg">' +
-                                data + '%</span></div>';
-                        }
-                    },
                     // Active Status column
                     {
                         data: 'active',
@@ -400,10 +389,12 @@
                         orderable: false,
                         searchable: false,
                         render: function(data, type, row) {
+                            let viewUrl = "{{ route('admin.vendors.show', ':id') }}".replace(':id', row.id);
+                            let editUrl = "{{ route('admin.vendors.edit', ':id') }}".replace(':id', row.id);
                             return `
                             <div class="orderDatatable_actions d-inline-flex gap-1">
                                 @can('vendors.show')
-                                <a href="{{ url('admin/vendors') }}/${row.id}"
+                                <a href="${viewUrl}"
                                 class="view btn btn-primary table_action_father"
                                 title="{{ trans('common.view') }}">
                                     <i class="uil uil-eye table_action_icon"></i>
@@ -411,7 +402,7 @@
                                 @endcan
 
                                 @can('vendors.edit')
-                                <a href="{{ url('admin/vendors') }}/${row.id}/edit"
+                                <a href="${editUrl}"
                                 class="edit btn btn-warning table_action_father"
                                 title="{{ trans('common.edit') }}">
                                     <i class="uil uil-edit table_action_icon"></i>

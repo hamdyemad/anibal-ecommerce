@@ -373,7 +373,7 @@
                             <i class="uil uil-receipt text-warning me-2" style="font-size: 18px;"></i>
                             <span class="fw-500">{{ trans('order::order.subtotal') }}</span>
                         </div>
-                        <span class="fw-500" id="subtotal">0.00 {{ __('common.currency') }}</span>
+                        <span class="fw-500" id="subtotal">0.00 {{ currency() }}</span>
                     </div>
 
                     {{-- Shipping Cost --}}
@@ -382,7 +382,7 @@
                             <i class="uil uil-truck text-info me-2" style="font-size: 18px;"></i>
                             <span class="fw-500">{{ trans('order::order.shipping') }}</span>
                         </div>
-                        <span class="fw-500" id="shippingDisplay">0.00 {{ __('common.currency') }}</span>
+                        <span class="fw-500" id="shippingDisplay">0.00 {{ currency() }}</span>
                     </div>
 
                     {{-- Additional Fees Section --}}
@@ -397,7 +397,7 @@
                             </button>
                         </div>
                         <div id="feesContainer"></div>
-                        <span class="fw-500" id="totalFeesDisplay">0.00 {{ __('common.currency') }}</span>
+                        <span class="fw-500" id="totalFeesDisplay">0.00 {{ currency() }}</span>
                     </div>
 
                     {{-- Total Tax --}}
@@ -406,7 +406,7 @@
                             <i class="uil uil-chart-pie text-info me-2" style="font-size: 18px;"></i>
                             <span class="fw-500">{{ trans('order::order.tax') }}</span>
                         </div>
-                        <span class="fw-500" id="totalTax">0.00 {{ __('common.currency') }}</span>
+                        <span class="fw-500" id="totalTax">0.00 {{ currency() }}</span>
                     </div>
 
                     {{-- Additional Discounts Section --}}
@@ -421,7 +421,7 @@
                             </button>
                         </div>
                         <div id="discountsContainer"></div>
-                        <span class="fw-500" id="totalDiscountsDisplay">0.00 {{ __('common.currency') }}</span>
+                        <span class="fw-500" id="totalDiscountsDisplay">0.00 {{ currency() }}</span>
                     </div>
 
                     {{-- Grand Total --}}
@@ -430,7 +430,7 @@
                             <i class="uil uil-receipt text-primary me-2" style="font-size: 18px;"></i>
                             <span class="fw-500 fs-16">{{ trans('order::order.total') }}</span>
                         </div>
-                        <span class="fw-bold fs-16 text-primary" id="grandTotal">0.00 {{ __('common.currency') }}</span>
+                        <span class="fw-bold fs-16 text-primary" id="grandTotal">0.00 {{ currency() }}</span>
                     </div>
 
                     {{-- Hidden inputs for fees and discounts --}}
@@ -544,7 +544,7 @@
                                              style="cursor: pointer;">
                                             <div class="d-flex justify-content-between">
                                                 <span class="fw-500">${productName}</span>
-                                                <span class="text-muted">${price.toFixed(2)} {{ __('common.currency') }}</span>
+                                                <span class="text-muted">${price.toFixed(2)} {{ currency() }}</span>
                                             </div>
                                             <small class="text-muted">${variantName} (SKU: ${variantSku})</small>
                                         </div>
@@ -880,9 +880,9 @@
                         const row = `
                         <tr>
                             <td>${product.name}</td>
-                            <td class="text-center">${product.price.toFixed(2)} {{ __('common.currency') }}</td>
+                            <td class="text-center">${product.price.toFixed(2)} {{ currency() }}</td>
                             <td class="text-center">${product.quantity}</td>
-                            <td class="text-center">${product.total.toFixed(2)} {{ __('common.currency') }}</td>
+                            <td class="text-center">${product.total.toFixed(2)} {{ currency() }}</td>
                             <td class="text-center">
                                 <button type="button" class="btn btn-sm btn-danger remove-product" data-product-id="${product.id}">
                                     <i class="uil uil-trash"></i>
@@ -922,11 +922,11 @@
                     const tax = 0; // Will be calculated based on products
                     const grandTotal = subtotal + shipping + totalFees + tax - totalDiscounts;
 
-                    $('#subtotal').text(subtotal.toFixed(2) + ' {{ __('common.currency') }}');
-                    $('#shippingDisplay').text(shipping.toFixed(2) + ' {{ __('common.currency') }}');
-                    $('#totalFeesDisplay').text(totalFees.toFixed(2) + ' {{ __('common.currency') }}');
-                    $('#totalDiscountsDisplay').text(totalDiscounts.toFixed(2) + ' {{ __('common.currency') }}');
-                    $('#grandTotal').text(grandTotal.toFixed(2) + ' {{ __('common.currency') }}');
+                    $('#subtotal').text(subtotal.toFixed(2) + ' {{ currency() }}');
+                    $('#shippingDisplay').text(shipping.toFixed(2) + ' {{ currency() }}');
+                    $('#totalFeesDisplay').text(totalFees.toFixed(2) + ' {{ currency() }}');
+                    $('#totalDiscountsDisplay').text(totalDiscounts.toFixed(2) + ' {{ currency() }}');
+                    $('#grandTotal').text(grandTotal.toFixed(2) + ' {{ currency() }}');
 
                     // Update hidden inputs
                     fees = [];

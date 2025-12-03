@@ -1,7 +1,7 @@
 @extends('layout.app')
 
 @section('title')
-Departments | Bnaia
+    {{ trans('categorymanagment::department.departments_management') }}
 @endsection
 @section('content')
     <div class="container-fluid">
@@ -53,7 +53,7 @@ Departments | Bnaia
                                                 autocomplete="off">
                                         </div>
                                     </div>
-                                    <div class="col-md-3">
+                                    <div class="col-md-2">
                                         <div class="form-group">
                                             <label for="active"
                                                 class="il-gray fs-14 fw-500 mb-10">{{ trans('categorymanagment::department.activation') }}</label>
@@ -135,6 +135,10 @@ Departments | Bnaia
                                     @endforeach
                                     <th>
                                         <span
+                                            class="userDatatable-title">{{ trans('categorymanagment::department.commission') }}</span>
+                                    </th>
+                                    <th>
+                                        <span
                                             class="userDatatable-title">{{ trans('categorymanagment::department.activation') }}</span>
                                     </th>
                                     <th>
@@ -187,6 +191,8 @@ Departments | Bnaia
 
                         // Add filter parameters
                         d.active = $('#active').val();
+                        d.commission_from = $('#commission_from').val();
+                        d.commission_to = $('#commission_to').val();
                         d.created_date_from = $('#created_date_from').val();
                         d.created_date_to = $('#created_date_to').val();
 
@@ -199,6 +205,8 @@ Departments | Bnaia
                         console.log('📤 Sending to server:', {
                             search: d.search,
                             active: d.active,
+                            commission_from: d.commission_from,
+                            commission_to: d.commission_to,
                             created_date_from: d.created_date_from,
                             created_date_to: d.created_date_to,
                             orderColumnIndex: d.orderColumnIndex,
@@ -256,6 +264,14 @@ Departments | Bnaia
                             }
                         },
                     @endforeach
+                    // Commission column
+                    {
+                        data: 'commission',
+                        name: 'commission',
+                        render: function(data) {
+                            return data ? parseFloat(data).toFixed(2) + '%' : '0.00%';
+                        }
+                    },
                     // Active Status column
                     {
                         data: 'active',
@@ -308,11 +324,13 @@ Departments | Bnaia
                         orderable: false,
                         searchable: false,
                         render: function(data, type, row) {
+                            let viewUrl = "{{ route('admin.category-management.departments.show', ':id') }}".replace(':id', row.department_id);
+                            let editUrl = "{{ route('admin.category-management.departments.edit', ':id') }}".replace(':id', row.department_id);
                             return `
                             <ul class="mb-0 d-flex flex-wrap justify-content-start">
                                 @can('departments.view')
                                 <li>
-                                    <a href="{{ url('admin/category-management/departments') }}/${row.department_id}"
+                                    <a href="${viewUrl}"
                                     class="btn btn-primary table_action_father me-1"
                                     title="{{ trans('common.view') }}">
                                         <i class="uil uil-eye table_action_icon"></i>
@@ -321,7 +339,7 @@ Departments | Bnaia
                                 @endcan
                                 @can('departments.edit')
                                 <li>
-                                    <a href="{{ url('admin/category-management/departments') }}/${row.department_id}/edit"
+                                    <a href="${editUrl}"
                                     class="btn btn-warning table_action_father me-1"
                                     title="{{ trans('common.edit') }}">
                                         <i class="uil uil-edit table_action_icon"></i>
@@ -487,7 +505,7 @@ Departments | Bnaia
             );
 
             // Server-side filter event listeners - reload data when filters change
-            $('#active, #created_date_from, #created_date_to').on('change', function() {
+            $('#active, #commission_from, #commission_to, #created_date_from, #created_date_to').on('change', function() {
                 console.log('Filter changed:', $(this).attr('id'), '=', $(this).val());
                 table.ajax.reload();
             });
@@ -498,6 +516,8 @@ Departments | Bnaia
                 // Clear all filter inputs
                 $('#search').val('');
                 $('#active').val('');
+                $('#commission_from').val('');
+                $('#commission_to').val('');
                 $('#created_date_from').val('');
                 $('#created_date_to').val('');
                 // Reload table with cleared filters

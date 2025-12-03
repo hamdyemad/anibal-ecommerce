@@ -20,6 +20,7 @@ return [
     'active' => 'نشط',
     'inactive' => 'غير نشط',
     'select_activities' => 'اختر الأنشطة',
+    'commission' => 'العمولة (%)',
     'image' => 'صورة القسم',
     'icon' => 'ايقونة القسم',
     'click_to_upload_image' => 'انقر لتحميل صورة القسم',
@@ -91,4 +92,9 @@ return [
     'status_changed_successfully' => 'تم تغيير حالة القسم بنجاح',
     'error_changing_status' => 'خطأ في تغيير حالة القسم',
     'status_already_set' => 'القسم مضبوط بالفعل على هذه الحالة',
+
+    // Validation Messages for Request
+    'at_least_one_translation_required' => 'يجب توفير ترجمة واحدة على الأقل.',
+    'name_required' => 'اسم القسم مطلوب.',
+    'name_max_255' => 'اسم القسم قد لا يتجاوز 255 حرفاً.',
 ];

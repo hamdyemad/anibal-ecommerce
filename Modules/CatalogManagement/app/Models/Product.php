@@ -7,6 +7,8 @@ use App\Models\Attachment;
 use App\Traits\HasSlug;
 use App\Models\User;
 use App\Traits\Translation;
+use App\Models\Traits\CountryCheckIdTrait;
+
 use App\Models\Traits\HumanDates;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -19,7 +21,7 @@ use Modules\Vendor\app\Models\Vendor;
 
 class Product extends BaseModel
 {
-    use HasFactory, SoftDeletes, Translation, HumanDates;
+    use HasFactory, SoftDeletes, Translation, HumanDates, CountryCheckIdTrait;
 
     protected $guarded = [];
     protected $casts = [

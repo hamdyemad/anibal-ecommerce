@@ -6,6 +6,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\LanguageController;
 use App\Http\Controllers\PaginationController;
 use App\Http\Controllers\ProfileController;
+use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
 
 /*
 |--------------------------------------------------------------------------
@@ -34,10 +35,18 @@ Route::group(['prefix' => '/', 'middleware' => 'guest'], function() {
     });
 });
 
-Route::post('/logout',[AuthController::class,'logout'])->name('logout')->middleware('auth');
-
-// Profile Routes
-Route::middleware('auth')->group(function() {
+// Localized routes with language and country code
+Route::group([
+    'prefix' => LaravelLocalization::setLocale() . '/{countryCode}',
+    'middleware' => [
+        'localeSessionRedirect',
+        'localizationRedirect',
+        'localeViewPath',
+        'setLocaleFromUrl',
+        'auth'
+    ],
+], function() {
+    Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
     Route::get('/profile', [ProfileController::class, 'index'])->name('profile.index');
     Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::put('/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.password.update');

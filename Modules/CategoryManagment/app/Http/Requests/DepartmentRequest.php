@@ -25,6 +25,7 @@ class DepartmentRequest extends FormRequest
             'translations' => 'required|array',
             'translations.*.name' => 'required|string|max:255',
             'translations.*.description' => 'nullable|string',
+            'commission' => ['nullable', 'numeric', 'min:0'],
             'activities' => ['required', 'array'],
             'activities.*' => ['required', 'exists:activities,id'],
             'active' => 'nullable|boolean',
@@ -43,9 +44,9 @@ class DepartmentRequest extends FormRequest
     public function attributes(): array
     {
         return [
-            'translations.*.name' => 'department name',
-            'translations.*.description' => 'department description',
-            'active' => 'status',
+            'translations.*.name' => __('categorymanagement::department.name'),
+            'translations.*.description' => __('categorymanagement::department.description'),
+            'active' => __('common.status'),
         ];
     }
 
@@ -57,9 +58,9 @@ class DepartmentRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'translations.required' => 'At least one translation is required.',
-            'translations.*.name.required' => 'The department name is required.',
-            'translations.*.name.max' => 'The department name may not be greater than 255 characters.',
+            'translations.required' => __('categorymanagement::department.at_least_one_translation_required'),
+            'translations.*.name.required' => __('categorymanagement::department.name_required'),
+            'translations.*.name.max' => __('categorymanagement::department.name_max_255'),
         ];
     }
 }

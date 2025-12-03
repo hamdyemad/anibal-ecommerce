@@ -3,6 +3,8 @@
 namespace Modules\CatalogManagement\app\Models;
 
 use App\Models\Traits\HumanDates;
+use App\Models\Traits\CountryCheckIdTrait;
+
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -10,7 +12,7 @@ use Modules\Vendor\app\Models\Vendor;
 
 class VendorProductVariant extends Model
 {
-    use HasFactory, SoftDeletes, HumanDates;
+    use HasFactory, SoftDeletes, HumanDates, CountryCheckIdTrait;
 
     protected $table = 'vendor_product_variants';
     protected $guarded = [];

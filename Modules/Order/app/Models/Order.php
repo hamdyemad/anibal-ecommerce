@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Modules\Order\database\factories\OrderFactory;
+use App\Models\Traits\CountryCheckIdTrait;
+
 use Modules\Customer\app\Models\Customer;
 use Modules\AreaSettings\app\Models\Country;
 use Modules\AreaSettings\app\Models\City;
@@ -14,7 +16,7 @@ use Modules\AreaSettings\app\Models\Region;
 
 class Order extends Model
 {
-    use HasFactory;
+    use HasFactory, CountryCheckIdTrait;
 
     public static function newFactory()
     {

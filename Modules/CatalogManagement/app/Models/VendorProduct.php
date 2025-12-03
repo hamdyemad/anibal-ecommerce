@@ -6,6 +6,7 @@ use App\Models\BaseModel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Traits\HumanDates;
+use App\Models\Traits\CountryCheckIdTrait;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\Vendor\app\Models\Vendor;
 use Illuminate\Database\Eloquent\Builder;
@@ -15,7 +16,7 @@ use Illuminate\Support\Facades\Auth;
 
 class VendorProduct extends BaseModel
 {
-    use HasFactory, SoftDeletes, HumanDates;
+    use HasFactory, SoftDeletes, HumanDates, CountryCheckIdTrait;
 
     // Status constants
     const STATUS_PENDING = 'pending';

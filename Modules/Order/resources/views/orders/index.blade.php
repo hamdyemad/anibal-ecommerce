@@ -45,7 +45,7 @@
                     <div class="overview-content w-100">
                         <div class="ap-po-details-content h-100">
                             <div class="ap-po-details__titlebar">
-                                <h1 class="ap-po-details__title" id="totalProductPrice">0.00 {{ __('common.currency') }}</h1>
+                                <h1 class="ap-po-details__title" id="totalProductPrice">0.00 {{ currency() }}</h1>
                                 <p class="ap-po-details__text text-nowrap">{{ trans('order::order.total_product_price') }}</p>
                             </div>
                             <div class="ap-po-details__icon-area">
@@ -62,7 +62,7 @@
                     <div class="overview-content w-100">
                         <div class="ap-po-details-content h-100">
                             <div class="ap-po-details__titlebar">
-                                <h1 class="ap-po-details__title" id="totalIncome">0.00 {{ __('common.currency') }}</h1>
+                                <h1 class="ap-po-details__title" id="totalIncome">0.00 {{ currency() }}</h1>
                                 <p class="ap-po-details__text text-nowrap">{{ trans('order::order.income') }}</p>
                             </div>
                             <div class="ap-po-details__icon-area">
@@ -458,8 +458,8 @@
 
                                 // Update card displays
                                 $('#totalOrdersCount').text(totalOrders);
-                                $('#totalProductPrice').text(totalProductPrice.toFixed(2) + ' {{ __('common.currency') }}');
-                                $('#totalIncome').text(totalIncome.toFixed(2) + ' {{ __('common.currency') }}');
+                                $('#totalProductPrice').text(totalProductPrice.toFixed(2) + ' {{ currency() }}');
+                                $('#totalIncome').text(totalIncome.toFixed(2) + ' {{ currency() }}');
                             }
                         }
                     });

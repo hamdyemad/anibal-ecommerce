@@ -6,13 +6,15 @@ use App\Models\Attachment;
 use App\Models\BaseModel;
 use App\Models\Traits\HumanDates;
 use App\Traits\HasSlug;
+use App\Models\Traits\CountryCheckIdTrait;
+
 use App\Traits\Translation;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Brand extends BaseModel
 {
-    use HasFactory, Translation, SoftDeletes, HumanDates, HasSlug;
+    use HasFactory, Translation, SoftDeletes, HumanDates, HasSlug, CountryCheckIdTrait;
 
     protected $table = 'brands';
     protected $guarded = [];

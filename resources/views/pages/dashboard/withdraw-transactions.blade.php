@@ -46,7 +46,7 @@
                     <div class="overview-content w-100">
                         <div class="ap-po-details-content d-flex flex-wrap justify-content-between">
                             <div class="ap-po-details__titlebar">
-                                <h1>{{ number_format($totalNeeded, 2) }} {{ __('common.egp') }}</h1>
+                                <h1>{{ number_format($totalNeeded, 2) }} {{ currency() }}</h1>
                                 <p>{{ trans('dashboard.Total Needed From Bnaia To Vendors') }}</p>
                             </div>
                             <div class="ap-po-details__icon-area">
@@ -63,7 +63,7 @@
                     <div class="overview-content w-100">
                         <div class="ap-po-details-content d-flex flex-wrap justify-content-between" style="flex-direction: row;">
                             <div class="ap-po-details__titlebar" style="order: 1;">
-                                <h1>{{ number_format($totalSentMoney, 2) }} {{ __('common.egp') }}</h1>
+                                <h1>{{ number_format($totalSentMoney, 2) }} {{ currency() }}</h1>
                                 @if (in_array($user_type_id, \App\Models\UserType::adminIds()))
                                 <p>{{ trans('dashboard.Total Sent Money To Vendors') }}</p>
                                 @else
@@ -84,7 +84,7 @@
                     <div class="overview-content w-100">
                         <div class="ap-po-details-content d-flex flex-wrap justify-content-between">
                             <div class="ap-po-details__titlebar">
-                                <h1>{{ number_format($totalRemaining, 2) }} {{ __('common.egp') }}</h1>
+                                <h1>{{ number_format($totalRemaining, 2) }} {{ currency() }}</h1>
                                 @if (in_array($user_type_id, \App\Models\UserType::adminIds()))
                                     <p>{{ trans('dashboard.Total Vendor\'s Remaining') }}</p>
                                 @else

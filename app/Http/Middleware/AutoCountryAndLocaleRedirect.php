@@ -31,10 +31,13 @@ class AutoCountryAndLocaleRedirect
             if ($user->user_type_id == 1 || $user->user_type_id == 2) {
                 $countryCode = session('country_code') ?? 'eg';
             }
-            // For vendor users (type 3 = VENDOR), use their vendor's country
-            elseif ($user->user_type_id == 3) {
+            // For vendor users (type 3 = VENDOR or type 4 = VENDOR_USER), use their vendor's country
+            elseif ($user->user_type_id == 3 || $user->user_type_id == 4) {
                 if ($user->vendor && $user->vendor->country) {
                     $countryCode = strtolower($user->vendor->country->code);
+                } else {
+                    // Fallback to session country if vendor doesn't have a country
+                    $countryCode = strtolower(session('country_code', 'eg'));
                 }
             }
 
