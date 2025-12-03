@@ -30,6 +30,11 @@ class Country extends BaseModel
         return $this->belongsTo(Currency::class, 'currency_id');
     }
 
+
+    public function scopeDefault($query) {
+        return $query->where('default', 1);
+    }
+
     /**
      * Apply custom search logic for Country
      * Searches by code and phone_code in addition to translations

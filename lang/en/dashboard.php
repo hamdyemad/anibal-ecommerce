@@ -128,4 +128,8 @@ return [
     'employee' => 'Employee',
     'activity' => 'Activity',
     'activity_date' => 'Activity Date',
+
+    // Country Selector
+    'select_country' => 'Select Country',
+    'current_country' => 'Current Country',
 ];

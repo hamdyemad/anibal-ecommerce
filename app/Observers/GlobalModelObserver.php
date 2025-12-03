@@ -3,7 +3,10 @@
 namespace App\Observers;
 
 use App\Models\ActivityLog;
+use App\Models\ModelCountry;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Log;
+use Modules\AreaSettings\app\Models\Country;
 
 class GlobalModelObserver
 {
@@ -12,6 +15,7 @@ class GlobalModelObserver
      */
     private array $excludedModels = [
         ActivityLog::class,
+        ModelCountry::class,
         'App\Models\PersonalAccessToken',
         'App\Models\PasswordReset',
         'App\Models\FailedJob',
@@ -115,7 +119,7 @@ class GlobalModelObserver
     {
         $changes = $model->getChanges();
         $original = $model->getOriginal();
-        
+
         return array_intersect_key($original, $changes);
     }
 
@@ -129,7 +133,7 @@ class GlobalModelObserver
     ): void {
         $modelName = class_basename($model);
         $identifier = $model->id;
-        
+
         // Map actions to translation keys
         $descriptionKeys = [
             'created' => 'activity_log.created_model',

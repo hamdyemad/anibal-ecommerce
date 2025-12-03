@@ -8,6 +8,7 @@ use App\Traits\Translation;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Modules\AreaSettings\app\Models\Country;
 
 class Currency extends Model
 {
@@ -27,6 +28,14 @@ class Currency extends Model
     public function attachments()
     {
         return $this->morphMany(Attachment::class, 'attachable');
+    }
+
+    /**
+     * Get all countries using this currency
+     */
+    public function countries()
+    {
+        return $this->hasMany(Country::class, 'currency_id');
     }
 
     /**

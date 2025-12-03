@@ -51,6 +51,7 @@ return [
     'city_created' => 'تم إنشاء المدينة بنجاح',
     'city_updated' => 'تم تحديث المدينة بنجاح',
     'city_deleted' => 'تم حذف المدينة بنجاح',
+    'cannot_delete_city_with_regions' => 'لا يمكن حذف هذه المدينة. يتم استخدامها حالياً في :count مناطق.',
     'error_creating_city' => 'خطأ في إنشاء المدينة',
     'error_updating_city' => 'خطأ في تحديث المدينة',
     'error_deleting_city' => 'خطأ في حذف المدينة',

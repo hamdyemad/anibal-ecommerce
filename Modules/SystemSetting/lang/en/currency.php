@@ -41,6 +41,7 @@ return [
     'error_updating' => 'Error updating currency',
     'error_deleting' => 'Error deleting currency',
     'not_found' => 'Currency not found',
+    'cannot_delete_currency_with_countries' => 'Cannot delete this currency. It is currently used by :count countries.',
 
     // Actions
     'back_to_list' => 'Back to List',

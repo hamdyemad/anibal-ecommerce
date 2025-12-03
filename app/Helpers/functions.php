@@ -951,3 +951,31 @@ function formatImage($imagePath): ?string
     return url(asset('storage/' . $imagePath));
 }
 
+/**
+ * Generate route URL with country code prefix
+ *
+ * @param string $name
+ * @param array $parameters
+ * @param bool $absolute
+ * @return string
+ */
+function routeWithCountryCode($name, $parameters = [], $absolute = true): string
+{
+    $countryCode = strtolower(session('country_code') ?? 'us');
+
+    // Add country code as first parameter
+    $parameters = array_merge(['countryCode' => $countryCode], $parameters);
+
+    return route($name, $parameters, $absolute);
+}
+
+/**
+ * Get current country code from session or default
+ *
+ * @return string
+ */
+function getCountryCode(): string
+{
+    return session('country_code') ?? 'eg';
+}
+

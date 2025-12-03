@@ -7,6 +7,9 @@ use Illuminate\Foundation\Support\Providers\RouteServiceProvider as ServiceProvi
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\URL;
+use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
+use Modules\AreaSettings\app\Models\Country;
 
 class RouteServiceProvider extends ServiceProvider
 {
@@ -17,7 +20,7 @@ class RouteServiceProvider extends ServiceProvider
      *
      * @var string
      */
-    public const HOME = '/admin';
+    public const HOME = '/admin/dashboard';
 
     /**
      * The controller namespace for the application.
@@ -35,7 +38,33 @@ class RouteServiceProvider extends ServiceProvider
      */
     public function boot()
     {
+        // Global handler for all routes
+        Route::matched(function ($event) {
+            $route = $event->route;
+            if (!$route) return;
+
+            $params = $route->parameters();
+
+            // Only if there are at least 2 parameters
+            if (count($params) >= 2) {
+                $keys = array_keys($params);
+
+                $firstKey = $keys[0];   // 'countryCode'
+                $secondKey = $keys[1];  // 'activity'
+
+                // Replace first parameter value with the second
+                $route->setParameter($firstKey, $params[$secondKey]);
+            }
+        });
+
+
         $this->configureRateLimiting();
+        // Set URL defaults to automatically inject country code
+        $this->app->booted(function () {
+            $this->app['router']->matched(function () {
+                $this->setUrlDefaults();
+            });
+        });
 
         $this->routes(function () {
 
@@ -70,5 +99,39 @@ class RouteServiceProvider extends ServiceProvider
         RateLimiter::for('api', function (Request $request) {
             return Limit::perMinute(60)->by($request->user()?->id ?: $request->ip());
         });
+    }
+
+    /**
+     * Set URL defaults for locale and country code
+     * This ensures route() helper automatically includes these parameters
+     *
+     * @return void
+     */
+    protected function setUrlDefaults()
+    {
+        try {
+            // Get country code from URL segment or session
+            $countryCode = request()->segment(2) ?? session('country_code', 'sa');
+
+            // Validate if it's a real country code
+            if ($countryCode) {
+                $country = Country::where('code', strtoupper($countryCode))->first();
+                if (!$country) {
+                    $countryCode = session('country_code', 'sa');
+                }
+            }
+
+            // Set URL defaults so route() automatically includes country code
+            // This makes route('name', $id) work as route('name', ['countryCode' => $country, 'activity' => $id])
+            URL::defaults([
+                'countryCode' => strtolower($countryCode),
+            ]);
+
+        } catch (\Exception $e) {
+            // Fallback
+            URL::defaults([
+                'countryCode' => 'sa',
+            ]);
+        }
     }
 }

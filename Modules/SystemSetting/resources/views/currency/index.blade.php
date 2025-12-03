@@ -287,10 +287,13 @@
                         orderable: false,
                         searchable: false,
                         render: function(data, type, row) {
+                            let viewUrl = "{{ route('admin.system-settings.currencies.show', ':id') }}".replace(':id', row.id);
+                            let editUrl = "{{ route('admin.system-settings.currencies.edit', ':id') }}".replace(':id', row.id);
+                            let deleteUrl = "{{ route('admin.system-settings.currencies.destroy', ':id') }}".replace(':id', row.id);
                             return `
                                 <div class="orderDatatable_actions d-inline-flex gap-1">
                                     @can('system.currency.show')
-                                    <a href="{{ url('admin/system-settings/currencies') }}/${row.id}"
+                                    <a href="${viewUrl}"
                                     class="view btn btn-primary table_action_father"
                                     title="{{ trans('common.view') }}">
                                         <i class="uil uil-eye table_action_icon"></i>
@@ -298,7 +301,7 @@
                                     @endcan
 
                                     @can('system.currency.edit')
-                                    <a href="{{ url('admin/system-settings/currencies') }}/${row.id}/edit"
+                                    <a href="${editUrl}"
                                     class="edit btn btn-warning table_action_father"
                                     title="{{ trans('common.edit') }}">
                                         <i class="uil uil-edit table_action_icon"></i>

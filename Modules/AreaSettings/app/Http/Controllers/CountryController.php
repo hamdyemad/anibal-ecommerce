@@ -199,16 +199,19 @@ class CountryController extends Controller
             return redirect()->route('admin.area-settings.countries.index')
                 ->with('success', __('Country deleted successfully'));
         } catch (\Exception $e) {
+            // Get the error message
+            $errorMessage = $e->getMessage();
+
             // Check if request is AJAX
             if ($request->ajax() || $request->wantsJson()) {
                 return response()->json([
                     'success' => false,
-                    'message' => __('Error deleting country: ') . $e->getMessage()
+                    'message' => $errorMessage
                 ], 422);
             }
 
             return redirect()->route('admin.area-settings.countries.index')
-                ->with('error', __('Error deleting country: ') . $e->getMessage());
+                ->with('error', $errorMessage);
         }
     }
 

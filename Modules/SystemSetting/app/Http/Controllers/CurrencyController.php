@@ -174,7 +174,7 @@ class CurrencyController extends Controller
     public function destroy(Request $request, string $id)
     {
         try {
-            $this->currencyService->deleteCurrency($id);
+            $this->currencyService->deleteCurrency((int) $id);
 
             if ($request->ajax() || $request->wantsJson()) {
                 return response()->json([
@@ -187,15 +187,24 @@ class CurrencyController extends Controller
             return redirect()->route('admin.system-settings.currencies.index')
                 ->with('success', __('systemsetting::currency.deleted_successfully'));
         } catch (\Exception $e) {
+            // Log the error for debugging
+            \Log::error('Currency deletion error: ' . $e->getMessage(), [
+                'currency_id' => $id,
+                'user_id' => auth()->id(),
+            ]);
+
+            // Get the error message
+            $errorMessage = $e->getMessage();
+
             if ($request->ajax() || $request->wantsJson()) {
                 return response()->json([
                     'success' => false,
-                    'message' => __('systemsetting::currency.error_deleting') . ': ' . $e->getMessage()
+                    'message' => $errorMessage
                 ], 422);
             }
 
             return redirect()->route('admin.system-settings.currencies.index')
-                ->with('error', __('systemsetting::currency.error_deleting') . ': ' . $e->getMessage());
+                ->with('error', $errorMessage);
         }
     }
 }

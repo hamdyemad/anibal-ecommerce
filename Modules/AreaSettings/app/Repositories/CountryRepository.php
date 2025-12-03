@@ -5,6 +5,7 @@ namespace Modules\AreaSettings\app\Repositories;
 use Modules\AreaSettings\app\Interfaces\CountryRepositoryInterface;
 use Modules\AreaSettings\app\Models\Country;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class CountryRepository implements CountryRepositoryInterface
 {
@@ -138,6 +139,34 @@ class CountryRepository implements CountryRepositoryInterface
     public function deleteCountry(int $id)
     {
         $country = Country::findOrFail($id);
+
+        // Check if this is the last country - cannot delete
+        $totalCountriesCount = Country::count();
+        if ($totalCountriesCount <= 1) {
+            throw new \Exception(
+                __('areasettings::country.cannot_delete_last_country')
+            );
+        }
+
+        // Check if country has cities
+        $citiesCount = $country->cities()->count();
+        if ($citiesCount > 0) {
+            throw new \Exception(
+                __('areasettings::country.cannot_delete_country_with_cities', [
+                    'count' => $citiesCount
+                ])
+            );
+        }
+
+        // If this country is the default, transfer default to another country
+        if ($country->default) {
+            $newDefaultCountry = Country::where('id', '!=', $id)->first();
+            if ($newDefaultCountry) {
+                $newDefaultCountry->default = 1;
+                $newDefaultCountry->save();
+            }
+        }
+
         $country->translations()->delete();
         return $country->delete();
     }

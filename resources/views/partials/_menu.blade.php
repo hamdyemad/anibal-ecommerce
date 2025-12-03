@@ -845,7 +845,7 @@
                                 <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive(['admin.area-settings.countries.index', 'admin.area-settings.countries.create', 'admin.area-settings.countries.show', 'admin.area-settings.countries.edit'], $currentRoute) ? 'active' : '' }}"
                                     href="{{ route('admin.area-settings.countries.index') }}">
                                     {{ trans('menu.area settings.country') }}
-                                    <span class="badge badge-round badge-primary  ms-1">15</span>
+                                    <span class="badge badge-round badge-primary  ms-1">{{ \Modules\AreaSettings\app\Models\Country::count() }}</span>
                                 </a>
                             </li>
                         @endcan
@@ -855,7 +855,7 @@
                                 <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive(['admin.area-settings.cities.index', 'admin.area-settings.cities.create', 'admin.area-settings.cities.show', 'admin.area-settings.cities.edit'], $currentRoute) ? 'active' : '' }}"
                                     href="{{ route('admin.area-settings.cities.index') }}">
                                     {{ trans('menu.area settings.city') }}
-                                    <span class="badge badge-round badge-info ms-1">120</span>
+                                    <span class="badge badge-round badge-info ms-1">{{ \Modules\AreaSettings\app\Models\City::count() }}</span>
                                 </a>
                             </li>
                         @endcan
@@ -865,7 +865,7 @@
                                 <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive(['admin.area-settings.regions.index', 'admin.area-settings.regions.create', 'admin.area-settings.regions.show', 'admin.area-settings.regions.edit'], $currentRoute) ? 'active' : '' }}"
                                     href="{{ route('admin.area-settings.regions.index') }}">
                                     {{ trans('menu.area settings.region') }}
-                                    <span class="badge badge-round badge-warning ms-1">45</span>
+                                    <span class="badge badge-round badge-warning ms-1">{{ \Modules\AreaSettings\app\Models\Region::count() }}</span>
                                 </a>
                             </li>
                         @endcan
@@ -875,7 +875,7 @@
                                 <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive(['admin.area-settings.subregions.index', 'admin.area-settings.subregions.create', 'admin.area-settings.subregions.show', 'admin.area-settings.subregions.edit'], $currentRoute) ? 'active' : '' }}"
                                     href="{{ route('admin.area-settings.subregions.index') }}">
                                     {{ trans('menu.area settings.subregion') }}
-                                    <span class="badge badge-round badge-secondary ms-1">80</span>
+                                    <span class="badge badge-round badge-secondary ms-1">{{ \Modules\AreaSettings\app\Models\SubRegion::count() }}</span>
                                 </a>
                             </li>
                         @endcan

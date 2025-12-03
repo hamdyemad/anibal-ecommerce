@@ -18,6 +18,7 @@ use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Cache;
 use App\Observers\GlobalModelObserver;
 use App\Models\ActivityLog;
+use App\Observers\CountryGlobalObserver;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -54,6 +55,10 @@ class AppServiceProvider extends ServiceProvider
 
         // Register observers for all models
         $this->registerModelObservers();
+    
+
+
+
     }
 
     /**
@@ -62,11 +67,13 @@ class AppServiceProvider extends ServiceProvider
     private function registerModelObservers(): void
     {
         $models = $this->getCachedModels();
-        
+
         foreach ($models as $model) {
             if (!in_array($model, $this->excludedModels) && class_exists($model)) {
                 try {
                     $model::observe(GlobalModelObserver::class);
+                    $model::observe(CountryGlobalObserver::class);
+
                 } catch (\Exception $e) {
                     // Log the error but don't stop the application
                     \Log::warning("Could not observe model: {$model}. Error: " . $e->getMessage());
@@ -87,7 +94,7 @@ class AppServiceProvider extends ServiceProvider
                 return $this->getAllModels();
             });
         }
-        
+
         return $this->getAllModels();
     }
 
@@ -97,24 +104,24 @@ class AppServiceProvider extends ServiceProvider
     private function getAllModels(): array
     {
         $models = [];
-        
+
         // Get models from app/Models directory
         $models = array_merge($models, $this->getModelsFromDirectory(app_path('Models'), 'App\\Models'));
-        
+
         // Get models from Modules (for modular Laravel apps)
         if (File::exists(base_path('Modules'))) {
             $modules = File::directories(base_path('Modules'));
-            
+
             foreach ($modules as $module) {
                 $moduleName = basename($module);
-                
+
                 // Check multiple possible paths for models
                 $possiblePaths = [
                     $module . '/app/Models',
                     $module . '/Models',
                     $module . '/Entities',
                 ];
-                
+
                 foreach ($possiblePaths as $modelsPath) {
                     if (File::exists($modelsPath)) {
                         $namespace = $this->getNamespaceForPath($modelsPath, $moduleName);
@@ -126,7 +133,7 @@ class AppServiceProvider extends ServiceProvider
                 }
             }
         }
-        
+
         return array_unique($models);
     }
 
@@ -136,7 +143,7 @@ class AppServiceProvider extends ServiceProvider
     private function getNamespaceForPath(string $path, string $moduleName): string
     {
         $baseNamespace = "Modules\\{$moduleName}\\";
-        
+
         if (str_contains($path, '/app/Models')) {
             return $baseNamespace . 'app\\Models';
         } elseif (str_contains($path, '/Models')) {
@@ -152,25 +159,25 @@ class AppServiceProvider extends ServiceProvider
     private function getModelsFromDirectory(string $path, string $namespace): array
     {
         $models = [];
-        
+
         if (!File::exists($path)) {
             return $models;
         }
-        
+
         $files = File::allFiles($path);
-        
+
         foreach ($files as $file) {
             $relativePath = str_replace($path, '', $file->getRealPath());
             $relativePath = str_replace('.php', '', $relativePath);
             $relativePath = str_replace('/', '\\', $relativePath);
             $relativePath = ltrim($relativePath, '\\');
-            
+
             $class = $namespace . '\\' . $relativePath;
-            
+
             try {
                 if (class_exists($class)) {
                     $reflection = new \ReflectionClass($class);
-                    
+
                     // Only include classes that extend Eloquent Model and are not abstract
                     if (
                         $reflection->isSubclassOf(\Illuminate\Database\Eloquent\Model::class) &&
@@ -184,7 +191,7 @@ class AppServiceProvider extends ServiceProvider
                 continue;
             }
         }
-        
+
         return $models;
     }
 }

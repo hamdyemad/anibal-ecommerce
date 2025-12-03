@@ -41,6 +41,7 @@ return [
     'error_updating' => 'خطأ في تحديث العملة',
     'error_deleting' => 'خطأ في حذف العملة',
     'not_found' => 'العملة غير موجودة',
+    'cannot_delete_currency_with_countries' => 'لا يمكن حذف هذه العملة. يتم استخدامها حالياً في :count دول.',
 
     // Actions
     'back_to_list' => 'العودة للقائمة',

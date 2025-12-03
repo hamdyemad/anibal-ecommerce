@@ -66,6 +66,9 @@ return [
     'error_deleting_country' => 'Error deleting country',
     'country_not_found' => 'Country not found',
     'no_countries_found' => 'No countries found',
+    'cannot_delete_country_with_cities' => 'Cannot delete this country. It is currently used by :count cities.',
+    'cannot_delete_last_country' => 'Cannot delete the last country. At least one country must remain in the system.',
+    'default_transferred' => 'Default country status has been transferred to :country.',
 
     // Delete Modal
     'confirm_delete' => 'Confirm Delete',

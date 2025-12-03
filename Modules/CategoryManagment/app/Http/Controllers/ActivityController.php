@@ -153,8 +153,15 @@ class ActivityController extends Controller
      */
     public function show(string $id)
     {
+        $activity = $this->activityService->getActivityById($id);
+
+        // Check if activity exists
+        if (!$activity) {
+            return redirect()->route('admin.category-management.activities.index')
+                ->with('error', __('Activity not found'));
+        }
+
         try {
-            $activity = $this->activityService->getActivityById($id);
             $languages = $this->languageService->getAll();
             return view('categorymanagment::activity.view', compact('activity', 'languages'));
         } catch (\Exception $e) {

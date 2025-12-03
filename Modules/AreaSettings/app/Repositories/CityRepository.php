@@ -210,6 +210,17 @@ class CityRepository implements CityRepositoryInterface
     public function deleteCity(int $id)
     {
         $city = City::findOrFail($id);
+
+        // Check if city has regions
+        $regionsCount = $city->regions()->count();
+        if ($regionsCount > 0) {
+            throw new \Exception(
+                __('areasettings::city.cannot_delete_city_with_regions', [
+                    'count' => $regionsCount
+                ])
+            );
+        }
+
         $city->translations()->delete();
         return $city->delete();
     }

@@ -26,15 +26,18 @@ use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
 | contains the "web" middleware group. Now create something great!
 |
 */
-
-
+// Global route group with country code and language prefix
 Route::group(
 [
-	'prefix' => LaravelLocalization::setLocale(),
-	'middleware' => [ 'localeSessionRedirect', 'localizationRedirect', 'localeViewPath', 'setLocaleFromUrl' ]
+    'prefix' => LaravelLocalization::setLocale() . '/{countryCode}',
+    'middleware' => [
+        'localeSessionRedirect',
+        'localizationRedirect',
+        'localeViewPath',
+        'setLocaleFromUrl'
+    ],
 ], function(){
 
-    Route::redirect('/admin', 'admin/dashboard');
     Route::group(['prefix' => 'admin', 'as' => 'admin.'], function() {
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
@@ -46,7 +49,6 @@ Route::group(
             Route::get('/admins/datatable', [AdminController::class, 'datatable'])->name('admins.datatable');
             Route::resource('admins', AdminController::class);
         });
-
 
     });
 });

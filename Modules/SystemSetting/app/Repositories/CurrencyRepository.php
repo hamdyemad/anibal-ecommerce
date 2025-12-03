@@ -128,6 +128,17 @@ class CurrencyRepository implements CurrencyRepositoryInterface
     public function deleteCurrency(int $id)
     {
         $currency = Currency::findOrFail($id);
+
+        // Check if currency is used by any countries
+        $countriesCount = $currency->countries()->count();
+        if ($countriesCount > 0) {
+            throw new \Exception(
+                __('systemsetting::currency.cannot_delete_currency_with_countries', [
+                    'count' => $countriesCount
+                ])
+            );
+        }
+
         $this->removeImage($currency);
         $currency->translations()->delete();
         return $currency->delete();

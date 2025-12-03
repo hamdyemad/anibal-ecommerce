@@ -51,6 +51,8 @@ return [
     'region_created' => 'Region created successfully',
     'region_updated' => 'Region updated successfully',
     'region_deleted' => 'Region deleted successfully',
+    'cannot_delete_region_with_subregions' => 'Cannot delete this region. It is currently used by :count sub-regions.',
+    'cannot_delete_region_with_vendors' => 'Cannot delete this region. It is currently assigned to :count vendors.',
     'error_creating_region' => 'Error creating region',
     'error_updating_region' => 'Error updating region',
     'error_deleting_region' => 'Error deleting region',

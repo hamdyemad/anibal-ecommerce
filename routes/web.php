@@ -44,6 +44,28 @@ Route::middleware('auth')->group(function() {
 });
 
 Route::get('/lang/{lang}',[ LanguageController::class,'switchLang'])->name('switch_lang');
+
+// Country Switch Route
+Route::get('/switch-country/{countryCode}', function($countryCode) {
+    $country = \Modules\AreaSettings\app\Models\Country::where('code', strtoupper($countryCode))->first();
+    if ($country) {
+        session()->put('country_code', $country->code);
+    }
+
+    // Get current URL and replace country code
+    $previousUrl = url()->previous();
+    $parsedUrl = parse_url($previousUrl);
+    $path = $parsedUrl['path'] ?? '';
+    $segments = explode('/', trim($path, '/'));
+
+    // Replace the first segment (country code) with new country code
+    if (count($segments) >= 1) {
+        $segments[0] = strtolower($countryCode);
+    }
+
+    $newPath = '/' . implode('/', $segments);
+    return redirect($newPath);
+})->name('switch_country');
 // Route::get('/pagination-per-page/{per_page}',[ PaginationController::class,'set_pagination_per_page'])->name('pagination_per_page');
 
 
