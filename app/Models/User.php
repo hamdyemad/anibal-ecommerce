@@ -23,7 +23,7 @@ class User extends Authenticatable
      *
      * @var array
      */
-    protected $with = ['roles'];
+    protected $with = ['roles', 'user_type', 'vendorByUser', 'vendorById'];
 
     /**
      * The attributes that are mass assignable.
@@ -107,7 +107,21 @@ class User extends Authenticatable
 
     public function getVendorAttribute()
     {
-        return $this->vendorByUser ?: $this->vendorById;
+        // Check if relationships are already loaded to prevent lazy loading
+        if ($this->relationLoaded('vendorByUser')) {
+            $vendor = $this->getRelationValue('vendorByUser');
+            if ($vendor) {
+                return $vendor;
+            }
+        }
+
+        if ($this->relationLoaded('vendorById')) {
+            return $this->getRelationValue('vendorById');
+        }
+
+        // If neither relationship is loaded, return null to prevent lazy loading
+        // This prevents N+1 queries and infinite loops
+        return null;
     }
 
 

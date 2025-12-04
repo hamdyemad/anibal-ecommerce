@@ -15,9 +15,15 @@ class AutoCountryAndLocaleRedirect
 
         // Set default country code in session if not already set
         if (!session()->has('country_code')) {
-            $country = Country::default()->first() ?? Country::first();
-            if ($country) {
-                session()->put('country_code', $country->code);
+            try {
+                $country = Country::default()->first() ?? Country::first();
+                if ($country) {
+                    session()->put('country_code', $country->code);
+                } else {
+                    session()->put('country_code', 'eg'); // Fallback default
+                }
+            } catch (\Exception $e) {
+                session()->put('country_code', 'eg'); // Fallback on error
             }
         }
 
@@ -61,7 +67,11 @@ class AutoCountryAndLocaleRedirect
             // Check if first segment is a valid locale
             if (in_array($firstSegment, $supportedLanguages)) {
                 // Check if second segment is a valid country code
-                $country = Country::where('code', $secondSegment)->first();
+                try {
+                    $country = Country::where('code', $secondSegment)->first();
+                } catch (\Exception $e) {
+                    $country = null;
+                }
                 if ($country) {
                     // For vendor users: enforce their vendor's country
                     if (auth()->check()) {
@@ -89,9 +99,13 @@ class AutoCountryAndLocaleRedirect
                 // First segment is locale but second is NOT a country code
                 // Need to inject country code after locale
                 // e.g., /en/admin/... → /en/eg/admin/...
-                $defaultCountry = Country::where('code', session('country_code'))->first()
-                    ?? Country::default()->first()
-                    ?? Country::first();
+                try {
+                    $defaultCountry = Country::where('code', session('country_code'))->first()
+                        ?? Country::default()->first()
+                        ?? Country::first();
+                } catch (\Exception $e) {
+                    $defaultCountry = null;
+                }
 
                 if ($defaultCountry) {
                     // Remove locale from segments and rebuild
@@ -113,9 +127,13 @@ class AutoCountryAndLocaleRedirect
         if (count($segments) >= 1) {
             $firstSegment = strtolower($segments[0]);
             if (in_array($firstSegment, $supportedLanguages)) {
-                $defaultCountry = Country::where('code', session('country_code'))->first()
-                    ?? Country::default()->first()
-                    ?? Country::first();
+                try {
+                    $defaultCountry = Country::where('code', session('country_code'))->first()
+                        ?? Country::default()->first()
+                        ?? Country::first();
+                } catch (\Exception $e) {
+                    $defaultCountry = null;
+                }
 
                 if ($defaultCountry) {
                     array_shift($segments); // Remove locale
@@ -133,7 +151,18 @@ class AutoCountryAndLocaleRedirect
         }
 
         // Get default country and locale
-        $country = Country::default()->first() ?? Country::first();
+        try {
+            $country = Country::default()->first() ?? Country::first();
+        } catch (\Exception $e) {
+            $country = null;
+        }
+
+        if (!$country) {
+            // Fallback if no country found
+            session()->put('country_code', 'eg');
+            return $next($request);
+        }
+
         $locale = LaravelLocalization::getCurrentLocale() ?? 'en';
 
         // Redirect to /locale/countryCode/path

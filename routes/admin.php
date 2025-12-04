@@ -34,7 +34,8 @@ Route::group(
         'localeSessionRedirect',
         'localizationRedirect',
         'localeViewPath',
-        'setLocaleFromUrl'
+        'setLocaleFromUrl',
+        'auth',
     ],
 ], function(){
 

@@ -1,9 +1,20 @@
 @php
-    $countries = \Modules\AreaSettings\app\Models\Country::where('active', 1)->get();
-    // URL structure: /locale/countryCode/... (e.g., /en/eg/admin/dashboard)
-    // So locale is segment(1) and country is segment(2)
-    $currentCountryCode = strtoupper(request()->segment(2) ?? session('country_code', 'EG'));
-    $currentCountry = $countries->firstWhere('code', $currentCountryCode) ?? $countries->first();
+    $countries = collect();
+    $currentCountryCode = 'EG';
+    $currentCountry = null;
+
+    try {
+        $countries = \Modules\AreaSettings\app\Models\Country::where('active', 1)->get();
+        // URL structure: /locale/countryCode/... (e.g., /en/eg/admin/dashboard)
+        // So locale is segment(1) and country is segment(2)
+        $currentCountryCode = strtoupper(request()->segment(2) ?? session('country_code', 'EG'));
+        $currentCountry = $countries->firstWhere('code', $currentCountryCode) ?? $countries->first();
+    } catch (\Exception $e) {
+        // Silently fail - use defaults
+        $countries = collect();
+        $currentCountryCode = 'EG';
+        $currentCountry = null;
+    }
 
 @endphp
 

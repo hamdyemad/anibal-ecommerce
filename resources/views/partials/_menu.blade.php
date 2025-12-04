@@ -1,9 +1,10 @@
 @php
-    $user_type_id = auth()->user()->user_type_id;
-    $user_type = auth()->user()->user_type->name;
-    $vendor = auth()->user()->vendor;
+    $user = auth()->user();
+    $user_type_id = $user->user_type_id ?? null;
+    $user_type = $user->user_type->name ?? 'Unknown';
+    $vendor = $user->vendor ?? null;
     $currentLocale = LaravelLocalization::getCurrentLocale();
-    $currentRoute = Request::route()->getName();
+    $currentRoute = Request::route() ? Request::route()->getName() : null;
     $currentUrl = Request::url();
 
     // Helper function to check if menu item is active
@@ -45,24 +46,33 @@
     $new_transactions = 0;
     $accepted_transactions = 0;
     $rejected_transactions = 0;
+    $all_transactions = 0;
 
-    if ($vendor) {
-        $new_transactions = Modules\Withdraw\app\Models\Withdraw::where('reciever_id', $vendor->id)
-            ->where('status', 'new')
-            ->count();
-        $accepted_transactions = Modules\Withdraw\app\Models\Withdraw::where('reciever_id', $vendor->id)
-            ->where('status', 'accepted')
-            ->count();
-        $rejected_transactions = Modules\Withdraw\app\Models\Withdraw::where('reciever_id', $vendor->id)
-            ->where('status', 'rejected')
-            ->count();
-    } else {
-        $new_transactions = Modules\Withdraw\app\Models\Withdraw::where('status', 'new')->count();
-        $accepted_transactions = Modules\Withdraw\app\Models\Withdraw::where('status', 'accepted')->count();
-        $rejected_transactions = Modules\Withdraw\app\Models\Withdraw::where('status', 'rejected')->count();
+    try {
+        if ($vendor) {
+            $new_transactions = Modules\Withdraw\app\Models\Withdraw::where('reciever_id', $vendor->id)
+                ->where('status', 'new')
+                ->count();
+            $accepted_transactions = Modules\Withdraw\app\Models\Withdraw::where('reciever_id', $vendor->id)
+                ->where('status', 'accepted')
+                ->count();
+            $rejected_transactions = Modules\Withdraw\app\Models\Withdraw::where('reciever_id', $vendor->id)
+                ->where('status', 'rejected')
+                ->count();
+        } else {
+            $new_transactions = Modules\Withdraw\app\Models\Withdraw::where('status', 'new')->count();
+            $accepted_transactions = Modules\Withdraw\app\Models\Withdraw::where('status', 'accepted')->count();
+            $rejected_transactions = Modules\Withdraw\app\Models\Withdraw::where('status', 'rejected')->count();
+        }
+
+        $all_transactions = Modules\Withdraw\app\Models\Withdraw::count();
+    } catch (\Exception $e) {
+        // Silently fail - keep all at 0
+        $new_transactions = 0;
+        $accepted_transactions = 0;
+        $rejected_transactions = 0;
+        $all_transactions = 0;
     }
-
-    $all_transactions = Modules\Withdraw\app\Models\Withdraw::count();
 @endphp
 <div class="sidebar__menu-group">
     <ul class="sidebar_nav">

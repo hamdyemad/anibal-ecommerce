@@ -15,11 +15,11 @@ use Illuminate\Support\Facades\Mail;
 class UserAction {
 
     use Res, LogsActivity;
-    
+
     public function login($request) {
         $remember = $request->filled('remember');
-        $user = User::where('email', $request->email)->first();
-        
+        $user = User::with(['vendorByUser', 'vendorById', 'user_type'])->where('email', $request->email)->first();
+
         if($user) {
             // Check if user account is inactive
             if(!$user->active()) {
@@ -33,7 +33,7 @@ class UserAction {
                 );
                 return $this->sendData(__('auth.account_not_activated'), false);
             }
-            
+
             // Check if user account is blocked
             if(!$user->blocked()) {
                 $this->logActivityForUser(
@@ -47,7 +47,7 @@ class UserAction {
                 return $this->sendData(__('auth.account_blocked'), false);
             }
         }
-        
+
         if(Auth::attempt(['email'=>$request->email,'password'=>$request->password], $remember)){
             // Log successful login
             $this->logActivity(
@@ -57,7 +57,7 @@ class UserAction {
                     model: $user,
                     properties: ['email' => $user->email]
             );
-            
+
             return $this->sendData('',true);
         }else{
             // Log failed login attempt - invalid credentials
@@ -71,7 +71,7 @@ class UserAction {
                     properties: ['email' => $user->email]
                 );
             }
-            
+
             return $this->sendData(__('auth.invalid_credentials'), false);
         }
     }
@@ -88,7 +88,7 @@ class UserAction {
             $user->reset_code_timestamp = Carbon::now()->addMinutes(15);
             $user->save();
             Mail::to("$user->email")->send(new ResetPasswordMail($data));
-            
+
             // Log password reset request
             $this->logActivityForUser(
                 user: $user,
@@ -115,7 +115,7 @@ class UserAction {
         if (!$user) {
             return $this->sendData(__('auth.Email Not Exists'),false);
         }
-        
+
         if (!Hash::check($request->reset_code, $user->reset_code)) {
             $this->logActivityForUser(
                 user: $user,
@@ -127,7 +127,7 @@ class UserAction {
             );
             return $this->sendData(__('auth.The provided reset code is invalid.'),false);
         }
-        
+
         if (Carbon::now()->gt($user->reset_code_timestamp)) {
             $this->logActivityForUser(
                 user: $user,
@@ -139,7 +139,7 @@ class UserAction {
             );
             return $this->sendData(__('auth.reset code is ignored please reset again'),false);
         }
-        
+
         $user->update([
             'password' => Hash::make($request->password),
             'reset_code' => null,
@@ -168,7 +168,7 @@ class UserAction {
             model: Auth::user(),
             properties: ['email' => Auth::user()->email]
         );
-        
+
         Auth::logout();
         return $this->sendData(__('auth.logout success'),true);
     }
