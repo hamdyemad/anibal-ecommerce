@@ -15,7 +15,7 @@ class VariantConfigurationKeyController extends Controller
 {
 
     public function __construct(
-        protected VariantConfigurationKeyService $variantKeyService, 
+        protected VariantConfigurationKeyService $variantKeyService,
         protected LanguageService $languageService,
         protected VariantConfigurationKeyAction $variantKeyAction
     ) {
@@ -46,13 +46,13 @@ class VariantConfigurationKeyController extends Controller
 
         try {
             $response = $this->variantKeyAction->getDataTable($data);
-            
+
             Log::info('VariantConfigurationKey Datatable Response', [
                 'data_count' => count($response['data']),
                 'totalRecords' => $response['totalRecords'],
                 'filteredRecords' => $response['filteredRecords']
             ]);
-            
+
             return response()->json([
                 'draw' => $data['draw'],
                 'data' => $response['data'],
@@ -69,7 +69,7 @@ class VariantConfigurationKeyController extends Controller
             Log::error('VariantConfigurationKey Datatable Error: ' . $e->getMessage(), [
                 'trace' => $e->getTraceAsString()
             ]);
-            
+
             return response()->json([
                 'draw' => $data['draw'],
                 'data' => [],
@@ -109,7 +109,7 @@ class VariantConfigurationKeyController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
+    public function create($lang, $countryCode)
     {
         $languages = $this->languageService->getAll();
         $variantKeys = $this->variantKeyService->getAllVariantConfigurationKeys([], 0);
@@ -120,12 +120,12 @@ class VariantConfigurationKeyController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(VariantConfigurationKeyRequest $request)
+    public function store($lang, $countryCode, VariantConfigurationKeyRequest $request)
     {
         $validated = $request->validated();
 
         try {
-            $variantKey = $this->variantKeyService->createVariantConfigurationKey($validated);   
+            $variantKey = $this->variantKeyService->createVariantConfigurationKey($validated);
             // Check if request is AJAX
             if ($request->ajax() || $request->wantsJson()) {
                 return response()->json([
@@ -134,7 +134,7 @@ class VariantConfigurationKeyController extends Controller
                     'redirect' => route('admin.variant-keys.index')
                 ]);
             }
-            
+
             return redirect()->route('admin.variant-keys.index')
                 ->with('success', __('variantkey.created_successfully'));
         } catch (\Exception $e) {
@@ -145,7 +145,7 @@ class VariantConfigurationKeyController extends Controller
                     'message' => __('variantkey.error_creating') . ': ' . $e->getMessage()
                 ], 422);
             }
-            
+
             return redirect()->back()
                 ->withInput()
                 ->with('error', __('variantkey.error_creating') . ': ' . $e->getMessage());
@@ -155,7 +155,7 @@ class VariantConfigurationKeyController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show($lang, $countryCode, string $id)
     {
         try {
             $variantKey = $this->variantKeyService->getVariantConfigurationKeyById($id);
@@ -170,7 +170,7 @@ class VariantConfigurationKeyController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(string $id)
+    public function edit($lang, $countryCode, string $id)
     {
         try {
             $languages = $this->languageService->getAll();
@@ -187,7 +187,7 @@ class VariantConfigurationKeyController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(VariantConfigurationKeyRequest $request, string $id)
+    public function update($lang, $countryCode, VariantConfigurationKeyRequest $request, string $id)
     {
         $validated = $request->validated();
 
@@ -201,7 +201,7 @@ class VariantConfigurationKeyController extends Controller
                     'redirect' => route('admin.variant-keys.index')
                 ]);
             }
-            
+
             return redirect()->route('admin.variant-keys.index')
                 ->with('success', __('variantkey.updated_successfully'));
         } catch (\Exception $e) {
@@ -212,7 +212,7 @@ class VariantConfigurationKeyController extends Controller
                     'message' => __('variantkey.error_updating') . ': ' . $e->getMessage()
                 ], 422);
             }
-            
+
             return redirect()->back()
                 ->withInput()
                 ->with('error', __('variantkey.error_updating') . ': ' . $e->getMessage());
@@ -222,7 +222,7 @@ class VariantConfigurationKeyController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Request $request, string $id)
+    public function destroy($lang, $countryCode, Request $request, string $id)
     {
         try {
             $this->variantKeyService->deleteVariantConfigurationKey($id);
@@ -234,7 +234,7 @@ class VariantConfigurationKeyController extends Controller
                     'redirect' => route('admin.variant-keys.index')
                 ]);
             }
-            
+
             return redirect()->route('admin.variant-keys.index')
                 ->with('success', __('variantkey.deleted_successfully'));
         } catch (\Exception $e) {
@@ -245,7 +245,7 @@ class VariantConfigurationKeyController extends Controller
                     'message' => __('variantkey.error_deleting') . ': ' . $e->getMessage()
                 ], 422);
             }
-            
+
             return redirect()->route('admin.variant-keys.index')
                 ->with('error', __('variantkey.error_deleting') . ': ' . $e->getMessage());
         }

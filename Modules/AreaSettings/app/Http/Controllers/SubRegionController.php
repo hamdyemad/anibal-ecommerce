@@ -56,7 +56,7 @@ class SubRegionController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function create(Request $request)
+    public function create($lang, $countryCode, Request $request)
     {
         try {
             $languages = $this->languageService->getAll();
@@ -73,7 +73,7 @@ class SubRegionController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(SubRegionRequest $request)
+    public function store($lang, $countryCode, SubRegionRequest $request)
     {
         $validated = $request->validated();
 
@@ -109,7 +109,7 @@ class SubRegionController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show($lang, $countryCode, string $id)
     {
         try {
             $subregion = $this->subregionService->getSubRegionById($id);
@@ -124,7 +124,7 @@ class SubRegionController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(string $id)
+    public function edit($lang, $countryCode, string $id)
     {
         try {
             $languages = $this->languageService->getAll();
@@ -140,7 +140,7 @@ class SubRegionController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(SubRegionRequest $request, string $id)
+    public function update($lang, $countryCode, SubRegionRequest $request, string $id)
     {
         $validated = $request->validated();
 
@@ -176,7 +176,7 @@ class SubRegionController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Request $request, string $id)
+    public function destroy($lang, $countryCode, Request $request, string $id)
     {
         try {
             $this->subregionService->deleteSubRegion($id);
@@ -209,7 +209,7 @@ class SubRegionController extends Controller
     /**
      * Change the status of the specified subregion.
      */
-    public function changeStatus(Request $request, string $id)
+    public function changeStatus($lang, $countryCode, Request $request, string $id)
     {
         // Validate the request
         $request->validate([

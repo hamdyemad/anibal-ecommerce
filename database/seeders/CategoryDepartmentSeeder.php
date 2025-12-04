@@ -189,14 +189,19 @@ class CategoryDepartmentSeeder extends Seeder
             return;
         }
 
+        // Get country_id from current country_code in session
+        $countryCode = session('country_code', 'EG');
+        $country = Country::where('code', strtoupper($countryCode))->first();
+        $countryId = $country ? $country->id : null;
+
         // Create Activities and Departments
-        $this->createActivitiesAndDepartments($languages);
+        $this->createActivitiesAndDepartments($languages, $countryId);
 
         // Create Categories and SubCategories
-        $this->createCategoriesAndSubCategories($languages);
+        $this->createCategoriesAndSubCategories($languages, $countryId);
 
         // Create Brands
-        $this->createBrands($languages);
+        $this->createBrands($languages, $countryId);
 
         // Create Regions if not exist
         $this->createRegions($languages);
@@ -207,7 +212,7 @@ class CategoryDepartmentSeeder extends Seeder
     /**
      * Create Activities and Departments
      */
-    private function createActivitiesAndDepartments($languages)
+    private function createActivitiesAndDepartments($languages, $countryId = null)
     {
         echo "\n📁 Creating Activities and Departments...\n";
 
@@ -221,6 +226,7 @@ class CategoryDepartmentSeeder extends Seeder
                 $activity = Activity::create([
                     'slug' => Str::slug($activityNameEn),
                     'active' => true,
+                    'country_id' => $countryId,
                 ]);
 
                 foreach ($languages as $langCode => $language) {
@@ -243,6 +249,7 @@ class CategoryDepartmentSeeder extends Seeder
                     $department = Department::create([
                         'slug' => Str::slug($deptData['en']),
                         'active' => true,
+                        'country_id' => $countryId,
                     ]);
 
                     foreach ($languages as $langCode => $language) {
@@ -264,7 +271,7 @@ class CategoryDepartmentSeeder extends Seeder
     /**
      * Create Categories and SubCategories
      */
-    private function createCategoriesAndSubCategories($languages)
+    private function createCategoriesAndSubCategories($languages, $countryId = null)
     {
         echo "\n📂 Creating Categories and SubCategories...\n";
 
@@ -291,6 +298,7 @@ class CategoryDepartmentSeeder extends Seeder
                         'slug' => Str::slug($catData['en']),
                         'department_id' => $department->id,
                         'active' => true,
+                        'country_id' => $countryId,
                     ]);
 
                     foreach ($languages as $langCode => $language) {
@@ -315,6 +323,7 @@ class CategoryDepartmentSeeder extends Seeder
                                 'slug' => Str::slug($subData['en']),
                                 'category_id' => $category->id,
                                 'active' => true,
+                                'country_id' => $countryId,
                             ]);
 
                             foreach ($languages as $langCode => $language) {
@@ -335,30 +344,51 @@ class CategoryDepartmentSeeder extends Seeder
     /**
      * Create Brands
      */
-    private function createBrands($languages)
+    private function createBrands($languages, $countryId = null)
     {
         echo "\n🏷️ Creating Brands...\n";
 
-        foreach ($this->brandsData as $brandData) {
-            $brand = Brand::whereHas('translations', function($q) use ($brandData) {
-                $q->where('lang_key', 'name')->where('lang_value', $brandData['en']);
-            })->first();
+        try {
+            foreach ($this->brandsData as $brandData) {
+                $slug = Str::slug($brandData['en']);
 
-            if (!$brand) {
-                $brand = Brand::create([
-                    'slug' => Str::slug($brandData['en']),
-                    'active' => true,
-                ]);
+                // Check if brand exists globally (slug is unique across all countries)
+                $brand = Brand::where('slug', $slug)->first();
 
-                foreach ($languages as $langCode => $language) {
-                    $brand->translations()->create([
-                        'lang_id' => $language->id,
-                        'lang_key' => 'name',
-                        'lang_value' => $langCode === 'en' ? $brandData['en'] : $brandData['ar'],
-                    ]);
+                if ($brand) {
+                    echo "  ⏭️ Skipped brand: {$brandData['en']} (already exists)\n";
+                    continue;
                 }
-                echo "  ✓ Created brand: {$brandData['en']}\n";
+
+                // Generate unique slug if needed
+                $counter = 1;
+                $originalSlug = $slug;
+                while (Brand::where('slug', $slug)->exists()) {
+                    $slug = $originalSlug . '-' . $counter;
+                    $counter++;
+                }
+
+                try {
+                    $brand = Brand::create([
+                        'slug' => $slug,
+                        'active' => true,
+                        'country_id' => $countryId,
+                    ]);
+
+                    foreach ($languages as $langCode => $language) {
+                        $brand->translations()->create([
+                            'lang_id' => $language->id,
+                            'lang_key' => 'name',
+                            'lang_value' => $langCode === 'en' ? $brandData['en'] : $brandData['ar'],
+                        ]);
+                    }
+                    echo "  ✓ Created brand: {$brandData['en']}\n";
+                } catch (\Exception $e) {
+                    echo "  ⏭️ Skipped brand: {$brandData['en']} (error: {$e->getMessage()})\n";
+                }
             }
+        } catch (\Exception $e) {
+            echo "  ❌ Error in brand creation: {$e->getMessage()}\n";
         }
     }
 

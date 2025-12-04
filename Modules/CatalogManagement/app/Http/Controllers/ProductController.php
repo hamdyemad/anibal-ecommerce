@@ -99,7 +99,7 @@ class ProductController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
+    public function create($lang, $countryCode)
     {
         $languages = $this->languageService->getAll();
         $brands = $this->brandService->getAllBrands([], 0);
@@ -140,7 +140,7 @@ class ProductController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreProductRequest $request)
+    public function store($lang, $countryCode, StoreProductRequest $request)
     {
         try {
             $data = $request->validated();
@@ -187,7 +187,7 @@ class ProductController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show($id)
+    public function show($lang, $countryCode, $id)
     {
         $product = $this->productService->getProductById($id);
         if(in_array(auth()->user()->user_type_id, UserType::vendorIds())) {
@@ -208,7 +208,7 @@ class ProductController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit($id)
+    public function edit($lang, $countryCode, $id)
     {
         $product = $this->productService->getProductById($id);
         if(in_array(auth()->user()->user_type_id, UserType::vendorIds())) {
@@ -271,7 +271,7 @@ class ProductController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateProductRequest $request, $id)
+    public function update($lang, $countryCode, UpdateProductRequest $request, $id)
     {
         try {
             $data = $request->validated();
@@ -304,7 +304,7 @@ class ProductController extends Controller
     /**
      * Change product status (approve/reject)
      */
-    public function changeStatus(Request $request, $id)
+    public function changeStatus($lang, $countryCode, Request $request, $id)
     {
         try {
             $request->validate([
@@ -340,7 +340,7 @@ class ProductController extends Controller
     /**
      * Change product activation status (active/inactive)
      */
-    public function changeActivation(Request $request, $id)
+    public function changeActivation($lang, $countryCode, Request $request, $id)
     {
         try {
             $request->validate([
@@ -437,7 +437,7 @@ class ProductController extends Controller
     /**
      * Change bank product activation status (updates Product.is_active)
      */
-    public function changeBankActivation(Request $request, $id)
+    public function changeBankActivation($lang, $countryCode, Request $request, $id)
     {
         try {
             // Check if user is admin
@@ -542,7 +542,7 @@ class ProductController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy($id)
+    public function destroy($lang, $countryCode, $id)
     {
         try {
             $this->productService->deleteProduct($id);

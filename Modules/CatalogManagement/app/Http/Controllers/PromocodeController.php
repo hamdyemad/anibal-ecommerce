@@ -44,7 +44,7 @@ class PromocodeController extends Controller
         ]);
     }
 
-    public function create()
+    public function create($lang, $countryCode)
     {
         $data = [
             'title' => __('catalogmanagement::promocodes.create_promocode'),
@@ -52,7 +52,7 @@ class PromocodeController extends Controller
         return view('catalogmanagement::promocodes.form', $data);
     }
 
-    public function store(PromocodeRequest $request)
+    public function store($lang, $countryCode, PromocodeRequest $request)
     {
         $validated = $request->validated();
         $validated['is_active'] = $request->has('is_active') ? 1 : 0;
@@ -71,7 +71,7 @@ class PromocodeController extends Controller
             ->with('success', __('catalogmanagement::promocodes.messages.created_successfully'));
     }
 
-    public function edit($id)
+    public function edit($lang, $countryCode, $id)
     {
         $promocode = $this->promocodeService->getPromocodeById($id);
         $data = [
@@ -81,7 +81,7 @@ class PromocodeController extends Controller
         return view('catalogmanagement::promocodes.form', $data);
     }
 
-    public function update(PromocodeRequest $request, $id)
+    public function update($lang, $countryCode, PromocodeRequest $request, $id)
     {
         $validated = $request->validated();
         $validated['is_active'] = $request->has('is_active') ? 1 : 0;
@@ -100,7 +100,7 @@ class PromocodeController extends Controller
             ->with('success', __('catalogmanagement::promocodes.messages.updated_successfully'));
     }
 
-    public function destroy(Request $request, $id)
+    public function destroy($lang, $countryCode, Request $request, $id)
     {
         $this->promocodeService->deletePromocode($id);
 
@@ -116,7 +116,7 @@ class PromocodeController extends Controller
             ->with('success', __('catalogmanagement::promocodes.messages.deleted_successfully'));
     }
 
-    public function changeStatus(Request $request, $id)
+    public function changeStatus($lang, $countryCode, Request $request, $id)
     {
         $request->validate(['status' => 'required|boolean']);
 

@@ -96,7 +96,7 @@ class DepartmentController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
+    public function create($lang, $countryCode)
     {
         try {
             $languages = $this->languageService->getAll();
@@ -112,7 +112,7 @@ class DepartmentController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(DepartmentRequest $request)
+    public function store($lang, $countryCode, DepartmentRequest $request)
     {
         $validated = $request->validated();
 
@@ -149,7 +149,7 @@ class DepartmentController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show($lang, $countryCode, string $id)
     {
         try {
             $languages = $this->languageService->getAll();
@@ -164,7 +164,7 @@ class DepartmentController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(string $id)
+    public function edit($lang, $countryCode, string $id)
     {
         try {
             $languages = $this->languageService->getAll();
@@ -181,7 +181,7 @@ class DepartmentController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(DepartmentRequest $request, string $id)
+    public function update($lang, $countryCode, DepartmentRequest $request, string $id)
     {
         $validated = $request->validated();
 
@@ -216,7 +216,7 @@ class DepartmentController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy($lang, $countryCode, string $id)
     {
         try {
             $this->departmentService->deleteDepartment($id);
@@ -273,7 +273,7 @@ class DepartmentController extends Controller
     /**
      * Change the status of the specified department.
      */
-    public function changeStatus(Request $request, string $id)
+    public function changeStatus($lang, $countryCode, Request $request, string $id)
     {
         try {
             $request->validate([

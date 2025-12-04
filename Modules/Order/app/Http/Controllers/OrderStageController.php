@@ -110,7 +110,7 @@ class OrderStageController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
+    public function create($lang, $countryCode)
     {
         $languages = Language::all();
         return view('order::order-stages.form', compact('languages'));
@@ -119,7 +119,7 @@ class OrderStageController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(OrderStageRequest $request)
+    public function store($lang, $countryCode, OrderStageRequest $request)
     {
         try {
             $orderStage = $this->orderStageService->createOrderStage($request->all());
@@ -153,7 +153,7 @@ class OrderStageController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show($id)
+    public function show($lang, $countryCode, $id)
     {
         $orderStage = $this->orderStageService->getOrderStageById($id);
         $languages = Language::all();
@@ -163,7 +163,7 @@ class OrderStageController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit($id)
+    public function edit($lang, $countryCode, $id)
     {
         $orderStage = $this->orderStageService->getOrderStageById($id);
         $languages = Language::all();
@@ -173,7 +173,7 @@ class OrderStageController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(OrderStageRequest $request, $id)
+    public function update($lang, $countryCode, $id, OrderStageRequest $request)
     {
         try {
             $orderStage = $this->orderStageService->updateOrderStage($id, $request->all());
@@ -207,7 +207,7 @@ class OrderStageController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy($id)
+    public function destroy($lang, $countryCode, $id)
     {
         try {
             $this->orderStageService->deleteOrderStage($id);
@@ -226,7 +226,7 @@ class OrderStageController extends Controller
     /**
      * Toggle order stage status
      */
-    public function toggleStatus(Request $request, $id)
+    public function toggleStatus($lang, $countryCode, $id, Request $request)
     {
         try {
             $validator = Validator::make($request->all(), [

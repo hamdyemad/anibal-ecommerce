@@ -38,19 +38,40 @@ class TaxSeeder extends Seeder
         $skipped = 0;
 
         foreach ($this->taxesData as $taxData) {
-            // Check if tax with this rate already exists
-            $existingTax = Tax::where('rate', $taxData['rate'])->first();
+            // Check if tax with this rate already exists (primary check)
+            $existingTax = Tax::where('tax_rate', $taxData['rate'])->first();
 
             if ($existingTax) {
-                echo "  ⏭️ Skipped: {$taxData['en']} (already exists)\n";
+                echo "  ⏭️ Skipped: {$taxData['en']} (already exists with rate {$taxData['rate']}%)\n";
                 $skipped++;
                 continue;
             }
 
-            $tax = Tax::create([
-                'rate' => $taxData['rate'],
-                'active' => true,
-            ]);
+            // Generate unique slug (globally unique)
+            $slug = \Illuminate\Support\Str::slug($taxData['en']);
+            $counter = 1;
+            $originalSlug = $slug;
+
+            // Keep incrementing counter until we find a unique slug
+            while (Tax::where('slug', $slug)->exists()) {
+                $slug = $originalSlug . '-' . $counter;
+                $counter++;
+            }
+
+            try {
+                $tax = Tax::create([
+                    'slug' => $slug,
+                    'tax_rate' => $taxData['rate'],
+                    'active' => true,
+                ]);
+
+                echo "  ✓ Created: {$taxData['en']} ({$taxData['rate']}%)\n";
+                $created++;
+            } catch (\Exception $e) {
+                echo "  ⏭️ Skipped: {$taxData['en']} (already exists)\n";
+                $skipped++;
+                continue;
+            }
 
             foreach ($languages as $langCode => $language) {
                 $tax->translations()->create([

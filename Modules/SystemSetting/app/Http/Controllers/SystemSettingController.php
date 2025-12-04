@@ -18,7 +18,7 @@ class SystemSettingController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
+    public function create($lang, $countryCode)
     {
         return view('systemsetting::create');
     }
@@ -26,12 +26,12 @@ class SystemSettingController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request) {}
+    public function store($lang, $countryCode, Request $request) {}
 
     /**
      * Show the specified resource.
      */
-    public function show($id)
+    public function show($lang, $countryCode, $id)
     {
         return view('systemsetting::show');
     }
@@ -39,7 +39,7 @@ class SystemSettingController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit($id)
+    public function edit($lang, $countryCode, $id)
     {
         return view('systemsetting::edit');
     }
@@ -47,10 +47,10 @@ class SystemSettingController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, $id) {}
+    public function update($lang, $countryCode, Request $request, $id) {}
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy($id) {}
+    public function destroy($lang, $countryCode, $id) {}
 }

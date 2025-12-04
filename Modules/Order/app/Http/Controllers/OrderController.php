@@ -115,7 +115,7 @@ class OrderController extends Controller
     /**
      * Show create order form
      */
-    public function create()
+    public function create($lang, $countryCode)
     {
         return view('order::orders.create');
     }
@@ -123,7 +123,7 @@ class OrderController extends Controller
     /**
      * Store a newly created order
      */
-    public function store(CreateOrderRequest $request)
+    public function store($lang, $countryCode, CreateOrderRequest $request)
     {
         // Implementation here
     }
@@ -131,7 +131,7 @@ class OrderController extends Controller
     /**
      * Display the specified order
      */
-    public function show($id)
+    public function show($lang, $countryCode, $id)
     {
         // Implementation here
     }
@@ -139,7 +139,7 @@ class OrderController extends Controller
     /**
      * Show the form for editing the specified order
      */
-    public function edit($id)
+    public function edit($lang, $countryCode, $id)
     {
         // Implementation here
     }
@@ -147,7 +147,7 @@ class OrderController extends Controller
     /**
      * Update the specified order
      */
-    public function update($id, UpdateOrderRequest $request)
+    public function update($lang, $countryCode, $id, UpdateOrderRequest $request)
     {
         // Implementation here
     }
@@ -155,7 +155,7 @@ class OrderController extends Controller
     /**
      * Delete the specified order
      */
-    public function destroy($id)
+    public function destroy($lang, $countryCode, $id)
     {
         // Implementation here
     }
@@ -187,7 +187,7 @@ class OrderController extends Controller
     /**
      * Change order stage
      */
-    public function changeStage($id, Request $request)
+    public function changeStage($lang, $countryCode, $id, Request $request)
     {
         try {
             $request->validate([

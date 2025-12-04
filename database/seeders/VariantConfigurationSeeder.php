@@ -6,6 +6,7 @@ use Illuminate\Database\Seeder;
 use App\Models\Language;
 use Modules\CatalogManagement\app\Models\VariantConfigurationKey;
 use Modules\CatalogManagement\app\Models\VariantsConfiguration;
+use Modules\AreaSettings\app\Models\Country;
 
 class VariantConfigurationSeeder extends Seeder
 {
@@ -132,19 +133,33 @@ class VariantConfigurationSeeder extends Seeder
             return;
         }
 
+        // Get country from session or use first country
+        $countryCode = session('country_code', 'EG');
+        $country = \Modules\AreaSettings\app\Models\Country::where('code', strtoupper($countryCode))->first();
+        $countryId = $country ? $country->id : null;
+
+        if (!$countryId) {
+            echo "❌ Error: No country found for code: {$countryCode}\n";
+            return;
+        }
+
+        echo "✓ Using country: {$country->code} (ID: {$countryId})\n";
+
         $keysCreated = 0;
         $valuesCreated = 0;
 
         foreach ($this->variantKeysData as $keyNameEn => $keyData) {
-            // Check if key already exists
-            $existingKey = VariantConfigurationKey::whereHas('translations', function($q) use ($keyNameEn) {
-                $q->where('lang_key', 'name')->where('lang_value', $keyNameEn);
-            })->first();
+            // Check if key already exists for this country
+            $existingKey = VariantConfigurationKey::where('country_id', $countryId)
+                ->whereHas('translations', function($q) use ($keyNameEn) {
+                    $q->where('lang_key', 'name')->where('lang_value', $keyNameEn);
+                })->first();
 
             if (!$existingKey) {
                 // Create the variant key
                 $variantKey = VariantConfigurationKey::create([
                     'parent_key_id' => null,
+                    'country_id' => $countryId,
                 ]);
 
                 foreach ($languages as $langCode => $language) {

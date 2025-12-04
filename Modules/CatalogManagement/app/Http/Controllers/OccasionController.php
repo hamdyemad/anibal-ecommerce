@@ -110,7 +110,7 @@ class OccasionController extends Controller
     /**
      * Store a newly created occasion
      */
-    public function store(OccasionRequest $request)
+    public function store($lang, $countryCode, OccasionRequest $request)
     {
         try {
             $validated = $request->validated();
@@ -146,7 +146,7 @@ class OccasionController extends Controller
     /**
      * Display the specified occasion
      */
-    public function show($id)
+    public function show($lang, $countryCode, $id)
     {
         $occasion = $this->occasionService->getOccasionById($id);
         $languages = $this->languageService->getAll();
@@ -162,7 +162,7 @@ class OccasionController extends Controller
     /**
      * Show the form for editing the specified occasion
      */
-    public function edit($id)
+    public function edit($lang, $countryCode, $id)
     {
         $occasion = $this->occasionService->getOccasionById($id);
         $languages = $this->languageService->getAll();
@@ -180,7 +180,7 @@ class OccasionController extends Controller
     /**
      * Update the specified occasion
      */
-    public function update(OccasionRequest $request, $id)
+    public function update($lang, $countryCode, OccasionRequest $request, $id)
     {
         try {
             $validated = $request->validated();
@@ -216,7 +216,7 @@ class OccasionController extends Controller
     /**
      * Remove the specified occasion
      */
-    public function destroy(Request $request, $id)
+    public function destroy($lang, $countryCode, Request $request, $id)
     {
         try {
             $this->occasionService->deleteOccasion($id);

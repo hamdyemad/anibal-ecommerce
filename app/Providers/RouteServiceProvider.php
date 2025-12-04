@@ -20,7 +20,7 @@ class RouteServiceProvider extends ServiceProvider
      *
      * @var string
      */
-    public const HOME = '/admin/dashboard';
+    public const HOME = "en/eg/admin/dashboard";
 
     /**
      * The controller namespace for the application.
@@ -57,15 +57,11 @@ class RouteServiceProvider extends ServiceProvider
             'localeViewPath')
                 ->as('admin.')
                 ->prefix('{lang}/{countryCode}/admin')
+                ->where(['lang' => '[a-z]{2}', 'countryCode' => '[a-z]{2}'])
                 ->group(function() {
                     require base_path('routes/admin.php');
                 });
         });
-
-        // Set URL defaults after routes are registered
-        // $this->app->booted(function () {
-        //     $this->setUrlDefaults();
-        // });
     }
 
     /**

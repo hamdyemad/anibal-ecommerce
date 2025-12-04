@@ -69,7 +69,7 @@ class BundleCategoryController extends Controller
     /**
      * Show the form for creating a new bundle category
      */
-    public function create()
+    public function create($lang, $countryCode)
     {
         $languages = $this->languageService->getAll();
 
@@ -83,7 +83,7 @@ class BundleCategoryController extends Controller
     /**
      * Store a newly created bundle category
      */
-    public function store(BundleCategoryRequest $request)
+    public function store($lang, $countryCode, BundleCategoryRequest $request)
     {
         try {
             $validated = $request->validated();
@@ -117,7 +117,7 @@ class BundleCategoryController extends Controller
     /**
      * Display the specified bundle category
      */
-    public function show($id)
+    public function show($lang, $countryCode, $id)
     {
         $bundleCategory = $this->bundleCategoryRepository->getBundleCategoryById($id);
         $languages = $this->languageService->getAll();
@@ -133,7 +133,7 @@ class BundleCategoryController extends Controller
     /**
      * Show the form for editing the specified bundle category
      */
-    public function edit($id)
+    public function edit($lang, $countryCode, $id)
     {
         $bundleCategory = $this->bundleCategoryRepository->getBundleCategoryById($id);
         $languages = $this->languageService->getAll();
@@ -149,7 +149,7 @@ class BundleCategoryController extends Controller
     /**
      * Update the specified bundle category
      */
-    public function update(BundleCategoryRequest $request, $id)
+    public function update($lang, $countryCode, BundleCategoryRequest $request, $id)
     {
         try {
             $validated = $request->validated();
@@ -183,7 +183,7 @@ class BundleCategoryController extends Controller
     /**
      * Remove the specified bundle category
      */
-    public function destroy(Request $request, $id)
+    public function destroy($lang, $countryCode, Request $request, $id)
     {
         try {
             $this->bundleCategoryService->deleteBundleCategory($id);

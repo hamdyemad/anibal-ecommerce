@@ -59,12 +59,12 @@ class CustomerController extends Controller
         ]);
     }
 
-    public function create()
+    public function create($lang, $countryCode)
     {
         return view('customer::customer.form');
     }
 
-    public function store(CustomerRequest $request)
+    public function store($lang, $countryCode, CustomerRequest $request)
     {
         $customer = $this->customerService->createCustomer($request->validated());
 
@@ -80,7 +80,7 @@ class CustomerController extends Controller
             ->with('success', __('customer::customer.customer_saved'));
     }
 
-    public function show($id)
+    public function show($lang, $countryCode, $id)
     {
         $customer = $this->customerService->findById([], $id);
 
@@ -91,7 +91,7 @@ class CustomerController extends Controller
         return view('customer::customer.show', compact('customer'));
     }
 
-    public function edit($id)
+    public function edit($lang, $countryCode, $id)
     {
         $customer = $this->customerService->findById([],$id);
 
@@ -102,7 +102,7 @@ class CustomerController extends Controller
         return view('customer::customer.form', compact('customer'));
     }
 
-    public function update(CustomerRequest $request, $id)
+    public function update($lang, $countryCode, CustomerRequest $request, $id)
     {
         $customer = $this->customerService->findById([], $id);
 
@@ -124,7 +124,7 @@ class CustomerController extends Controller
             ->with('success', __('customer::customer.customer_updated'));
     }
 
-    public function destroy($id)
+    public function destroy($lang, $countryCode, $id)
     {
         try {
             $this->customerService->deleteCustomer($id);
@@ -141,7 +141,7 @@ class CustomerController extends Controller
     /**
      * Change customer status (active/inactive)
      */
-    public function changeStatus(Request $request, $id)
+    public function changeStatus($lang, $countryCode, Request $request, $id)
     {
         try {
             $customer = $this->customerService->findById([], $id);
@@ -173,7 +173,7 @@ class CustomerController extends Controller
     /**
      * Change customer email verification status
      */
-    public function changeVerification(Request $request, $id)
+    public function changeVerification($lang, $countryCode, Request $request, $id)
     {
         try {
             $customer = $this->customerService->findById([], $id);

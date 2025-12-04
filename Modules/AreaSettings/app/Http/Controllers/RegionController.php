@@ -71,7 +71,7 @@ class RegionController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function create(Request $request)
+    public function create($lang, $countryCode, Request $request)
     {
         $cities = CityResource::collection($this->cityService->getActiveCities())->resolve();
         try {
@@ -88,7 +88,7 @@ class RegionController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(RegionRequest $request)
+    public function store($lang, $countryCode, RegionRequest $request)
     {
         $validated = $request->validated();
 
@@ -124,7 +124,7 @@ class RegionController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show($lang, $countryCode, string $id)
     {
         try {
             $region = $this->regionService->getRegionById($id);
@@ -139,7 +139,7 @@ class RegionController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(string $id)
+    public function edit($lang, $countryCode, string $id)
     {
         try {
             $languages = $this->languageService->getAll();
@@ -155,7 +155,7 @@ class RegionController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(RegionRequest $request, string $id)
+    public function update($lang, $countryCode, RegionRequest $request, string $id)
     {
         $validated = $request->validated();
 
@@ -191,7 +191,7 @@ class RegionController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Request $request, string $id)
+    public function destroy($lang, $countryCode, Request $request, string $id)
     {
         try {
             $this->regionService->deleteRegion($id);
@@ -224,7 +224,7 @@ class RegionController extends Controller
     /**
      * Change the status of the specified region.
      */
-    public function changeStatus(Request $request, string $id)
+    public function changeStatus($lang, $countryCode, Request $request, string $id)
     {
         // Validate the request
         $request->validate([

@@ -16,7 +16,7 @@ class BrandController extends Controller
 {
 
     public function __construct(
-        protected BrandService $brandService, 
+        protected BrandService $brandService,
         protected LanguageService $languageService,
         protected BrandAction $brandAction
     ) {
@@ -34,7 +34,7 @@ class BrandController extends Controller
         } else {
             $searchValue = $search;
         }
-        
+
         $data = [
             'page' => $request->get('page', 1),
             'draw' => $request->get('draw', 1),
@@ -50,13 +50,13 @@ class BrandController extends Controller
 
         try {
             $response = $this->brandAction->getDataTable($data);
-            
+
             Log::info('Brand Datatable Response', [
                 'data_count' => count($response['data']),
                 'totalRecords' => $response['totalRecords'],
                 'filteredRecords' => $response['filteredRecords']
             ]);
-            
+
             return response()->json([
                 'draw' => $data['draw'],
                 'data' => $response['data'],
@@ -73,7 +73,7 @@ class BrandController extends Controller
             Log::error('Brand Datatable Error: ' . $e->getMessage(), [
                 'trace' => $e->getTraceAsString()
             ]);
-            
+
             return response()->json([
                 'draw' => $data['draw'],
                 'data' => [],
@@ -105,7 +105,7 @@ class BrandController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
+    public function create($lang, $countryCode)
     {
         $languages = $this->languageService->getAll();
         return view('catalogmanagement::brand.form', compact('languages'));
@@ -114,12 +114,12 @@ class BrandController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(BrandRequest $request)
+    public function store($lang, $countryCode, BrandRequest $request)
     {
         $validated = $request->validated();
 
         try {
-            $brand = $this->brandService->createBrand($validated);   
+            $brand = $this->brandService->createBrand($validated);
             // Check if request is AJAX
             if ($request->ajax() || $request->wantsJson()) {
                 return response()->json([
@@ -128,7 +128,7 @@ class BrandController extends Controller
                     'redirect' => route('admin.brands.index')
                 ]);
             }
-            
+
             return redirect()->route('admin.brands.index')
                 ->with('success', __('brand.created_successfully'));
         } catch (\Exception $e) {
@@ -139,7 +139,7 @@ class BrandController extends Controller
                     'message' => __('brand.error_creating') . ': ' . $e->getMessage()
                 ], 422);
             }
-            
+
             return redirect()->back()
                 ->withInput()
                 ->with('error', __('brand.error_creating') . ': ' . $e->getMessage());
@@ -149,7 +149,7 @@ class BrandController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show($lang, $countryCode, string $id)
     {
         try {
             $brand = $this->brandService->getBrandById($id);
@@ -164,7 +164,7 @@ class BrandController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(string $id)
+    public function edit($lang, $countryCode, string $id)
     {
         try {
             $languages = $this->languageService->getAll();
@@ -179,7 +179,7 @@ class BrandController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(BrandRequest $request, string $id)
+    public function update($lang, $countryCode, BrandRequest $request, string $id)
     {
         $validated = $request->validated();
 
@@ -193,7 +193,7 @@ class BrandController extends Controller
                     'redirect' => route('admin.brands.index')
                 ]);
             }
-            
+
             return redirect()->route('admin.brands.index')
                 ->with('success', __('brand.updated_successfully'));
         } catch (\Exception $e) {
@@ -204,7 +204,7 @@ class BrandController extends Controller
                     'message' => __('brand.error_updating') . ': ' . $e->getMessage()
                 ], 422);
             }
-            
+
             return redirect()->back()
                 ->withInput()
                 ->with('error', __('brand.error_updating') . ': ' . $e->getMessage());
@@ -214,7 +214,7 @@ class BrandController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Request $request, string $id)
+    public function destroy($lang, $countryCode, Request $request, string $id)
     {
         try {
             $this->brandService->deleteBrand($id);
@@ -226,7 +226,7 @@ class BrandController extends Controller
                     'redirect' => route('admin.brands.index')
                 ]);
             }
-            
+
             return redirect()->route('admin.brands.index')
                 ->with('success', __('brand.deleted_successfully'));
         } catch (\Exception $e) {
@@ -237,7 +237,7 @@ class BrandController extends Controller
                     'message' => __('brand.error_deleting') . ': ' . $e->getMessage()
                 ], 422);
             }
-            
+
             return redirect()->route('admin.brands.index')
                 ->with('error', __('brand.error_deleting') . ': ' . $e->getMessage());
         }
