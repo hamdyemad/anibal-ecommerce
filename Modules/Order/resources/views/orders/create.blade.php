@@ -329,6 +329,7 @@
                                             <th>{{ trans('order::order.product_name') }}</th>
                                             <th class="text-center">{{ trans('order::order.price') }}</th>
                                             <th class="text-center">{{ trans('order::order.items_count') }}</th>
+                                            <th class="text-center">{{ trans('order::order.tax') }}</th>
                                             <th class="text-center">{{ trans('order::order.total') }}</th>
                                             <th class="text-center">{{ __('common.actions') }}</th>
                                         </tr>
@@ -1276,8 +1277,11 @@
 
                         const productTotal = productPrice * quantity;
 
+                        // Create unique ID for this product (same logic as when adding)
+                        const uniqueProductId = productId + (variantId ? '_' + variantId : '');
+
                         // Check if product already exists
-                        const existingProduct = products.find(p => p.id == productId);
+                        const existingProduct = products.find(p => p.id == uniqueProductId);
                         if (existingProduct) {
                             const newQuantity = existingProduct.quantity + quantity;
 
@@ -1301,7 +1305,8 @@
                                 id: productId + (variantId ? '_' + variantId : ''), // Unique ID for UI
                                 name: productName,
                                 price: productPrice,
-                                total: productTotal
+                                total: productTotal,
+                                taxRate: taxRate
                             });
                         }
 
@@ -1335,11 +1340,14 @@
                         tbody.empty();
 
                         products.forEach(product => {
+                            const taxRate = product.taxRate || 0;
+                            const taxAmount = (product.total * taxRate) / 100;
                             const row = `
                         <tr>
                             <td>${product.name}</td>
                             <td class="text-center">${product.price.toFixed(2)} {{ __('common.currency') }}</td>
                             <td class="text-center">${product.quantity}</td>
+                            <td class="text-center">${taxRate > 0 ? taxRate.toFixed(2) + '%' : '-'}</td>
                             <td class="text-center">${product.total.toFixed(2)} {{ __('common.currency') }}</td>
                             <td class="text-center">
                                 <button type="button" class="btn btn-sm btn-danger remove-product" data-product-id="${product.id}">

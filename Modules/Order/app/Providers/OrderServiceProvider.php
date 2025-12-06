@@ -8,6 +8,8 @@ use Modules\Order\app\Interfaces\OrderStageRepositoryInterface;
 use Modules\Order\app\Repositories\OrderStageRepository;
 use Modules\Order\app\Interfaces\Api\WishlistRepositoryInterface;
 use Modules\Order\app\Repositories\Api\WishlistRepository;
+use Modules\Order\app\Interfaces\Api\OrderStageApiRepositoryInterface;
+use Modules\Order\app\Repositories\Api\OrderStageApiRepository;
 use Modules\Order\app\Actions\WishlistQueryAction;
 use Modules\Order\app\Interfaces\OrderRepositoryInterface;
 use Modules\Order\app\Repositories\OrderRepository;
@@ -58,6 +60,12 @@ class OrderServiceProvider extends ServiceProvider
         $this->app->bind(
             WishlistRepositoryInterface::class,
             WishlistRepository::class
+        );
+
+        // Register order stage API repository bindings
+        $this->app->bind(
+            OrderStageApiRepositoryInterface::class,
+            OrderStageApiRepository::class
         );
 
         // Register wishlist query action

@@ -74,6 +74,7 @@ class OrderController extends Controller
                 $rowData = [
                     'index' => $index++,
                     'id' => $order->id,
+                    'order_number' => $order->order_number,
                     'customer_name' => $order->customer_name,
                     'customer_email' => $order->customer_email,
                     'total_price' => $order->total_price,
@@ -153,7 +154,17 @@ class OrderController extends Controller
      */
     public function show($id)
     {
-        // Implementation here
+        try {
+            $order = $this->orderService->getOrderById($id);
+
+            if (!$order) {
+                return abort(404, trans('order::order.order_not_found'));
+            }
+
+            return view('order::orders.show', compact('order'));
+        } catch (\Exception $e) {
+            return abort(500, trans('order::order.error_loading_order'));
+        }
     }
 
     /**

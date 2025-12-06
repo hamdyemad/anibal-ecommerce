@@ -56,6 +56,8 @@ return [
     'error_creating_order' => 'Error creating order',
     'error_updating_order' => 'Error updating order',
     'error_deleting_order' => 'Error deleting order',
+    'order_not_found' => 'Order not found',
+    'error_loading_order' => 'Error loading order',
 
     // Validation Messages
     'order_id_required' => 'Order ID is required',
@@ -101,7 +103,22 @@ return [
     'shipping' => 'Shipping',
     'tax' => 'Tax',
     'discount' => 'Discount',
+    'discounts' => 'Discounts',
+    'fees' => 'Fees',
+    'fee' => 'Fee',
     'total' => 'Total',
+    'products' => 'Products',
+    'fees_and_discounts' => 'Fees & Discounts',
+    'location' => 'Location',
+    'commission' => 'Commission',
+    'type' => 'Type',
+    'reason' => 'Reason',
+    'amount' => 'Amount',
+    'invoice' => 'Invoice',
+    'reg_number' => 'Reg. Number',
+    'product' => 'Product',
+    'price_per_unit' => 'Price Per Unit',
+    'actions' => 'Actions',
 
     // Promo Code
     'promo_code' => 'Promo Code',

@@ -56,6 +56,8 @@ return [
     'error_creating_order' => 'خطأ في إنشاء الطلب',
     'error_updating_order' => 'خطأ في تحديث الطلب',
     'error_deleting_order' => 'خطأ في حذف الطلب',
+    'order_not_found' => 'الطلب غير موجود',
+    'error_loading_order' => 'خطأ في تحميل الطلب',
 
     // Validation Messages
     'order_id_required' => 'رقم الطلب مطلوب',
@@ -101,7 +103,22 @@ return [
     'shipping' => 'الشحن',
     'tax' => 'الضريبة',
     'discount' => 'الخصم',
+    'discounts' => 'الخصومات',
+    'fees' => 'الرسوم',
+    'fee' => 'رسم',
     'total' => 'الإجمالي',
+    'products' => 'المنتجات',
+    'fees_and_discounts' => 'الرسوم والخصومات',
+    'location' => 'الموقع',
+    'commission' => 'العمولة',
+    'type' => 'النوع',
+    'reason' => 'السبب',
+    'amount' => 'المبلغ',
+    'invoice' => 'الفاتورة',
+    'reg_number' => 'رقم التسجيل',
+    'product' => 'المنتج',
+    'price_per_unit' => 'السعر لكل وحدة',
+    'actions' => 'الإجراءات',
 
     // Promo Code
     'promo_code' => 'كود الخصم',
