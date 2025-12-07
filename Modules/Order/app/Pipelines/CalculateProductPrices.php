@@ -65,13 +65,20 @@ class CalculateProductPrices
             $taxRate = (float) ($vendorProduct['tax']['tax_rate'] ?? 0);
             $taxNameEn = $vendorProduct['tax']['name_en'] ?? $vendorProduct['tax']['name'] ?? '';
             $taxNameAr = $vendorProduct['tax']['name_ar'] ?? $vendorProduct['tax']['name'] ?? '';
-            $commission = (float) ($vendorProduct['product']['department']['commission'] ?? 0);
             $limitation = (int) ($vendorProduct['max_per_order'] ?? 0);
+
+            // Calculate total commission from all vendor activities
+            $totalCommissionRate = 0;
+            if (isset($vendorProduct['vendor']['activities']) && is_array($vendorProduct['vendor']['activities'])) {
+                foreach ($vendorProduct['vendor']['activities'] as $activity) {
+                    $totalCommissionRate += (float) ($activity['commission'] ?? 0);
+                }
+            }
 
             // Calculate totals
             $productTotal = $price * $quantity;
             $tax = ($productTotal * $taxRate) / 100;
-            $commissionAmount = ($productTotal * $commission) / 100;
+            $commissionAmount = ($productTotal * $totalCommissionRate) / 100;
             
             // Log::info('productTotal: '. $productId .' |' . $productTotal . '|');
             // Log::info('productTax: '. $productId .' |' . $tax . '|');
