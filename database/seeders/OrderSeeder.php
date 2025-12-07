@@ -27,7 +27,7 @@ class OrderSeeder extends Seeder
         // Get required data
         $customers = Customer::all();
         $stages = OrderStage::all();
-        $vendorProducts = VendorProduct::with('product.department.activities')->limit(20)->get();
+        $vendorProducts = VendorProduct::with('product.department.activities', 'variants')->limit(20)->get();
         $countries = Country::where('active', true)->limit(5)->get();
 
         if ($customers->isEmpty()) {
@@ -102,25 +102,32 @@ class OrderSeeder extends Seeder
                 // Add order products
                 $selectedProducts = $vendorProducts->random(min($itemsCount, $vendorProducts->count()));
 
-                $commission = 0;
                 foreach ($selectedProducts as $vendorProduct) {
-
-                    $activies = $vendorProduct->product->department->activities;
-                    foreach($activies as $activity) {
-                        $commission+= $activity->commission;
+                    // Calculate commission from activities
+                    $commission = 0;
+                    $activities = $vendorProduct->product->department->activities;
+                    foreach($activities as $activity) {
+                        $commission += $activity->commission;
                     }
 
                     $tax_rate = $vendorProduct->tax->tax_rate;
                     $quantity = rand(1, 3);
                     $price = rand(100, 5000);
                     $productTotal = $price * $quantity;
-                    $tax = round($productTotal * $tax_rate, 2); // 5% tax
+                    $tax = round($productTotal * ($tax_rate / 100), 2);
+
+                    // Get variant if product has variants
+                    $variant = null;
+                    if ($vendorProduct->variants && $vendorProduct->variants->count() > 0) {
+                        // Randomly select a variant from available variants
+                        $variant = $vendorProduct->variants->random();
+                    }
 
                     OrderProduct::create([
                         'order_id' => $order->id,
                         'vendor_id' => $vendorProduct->vendor_id,
                         'vendor_product_id' => $vendorProduct->id,
-                        'vendor_product_variant_id' => $vendorProduct->variants()->first()?->id,
+                        'vendor_product_variant_id' => $variant?->id,
                         'price' => $price,
                         'quantity' => $quantity,
                         'commission' => $commission,

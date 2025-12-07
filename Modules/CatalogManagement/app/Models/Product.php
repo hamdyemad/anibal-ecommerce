@@ -19,6 +19,7 @@ use Modules\CategoryManagment\app\Models\Category;
 use Modules\CategoryManagment\app\Models\Department;
 use Modules\CategoryManagment\app\Models\SubCategory;
 use Modules\Vendor\app\Models\Vendor;
+use Modules\AreaSettings\app\Models\Country;
 
 class Product extends BaseModel
 {
@@ -204,6 +205,13 @@ class Product extends BaseModel
         return $this->belongsTo(User::class, 'created_by_user_id');
     }
 
+    /**
+     * Get the country
+     */
+    public function country()
+    {
+        return $this->belongsTo(Country::class);
+    }
 
     /**
      * Get vendors that have added this product

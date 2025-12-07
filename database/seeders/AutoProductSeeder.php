@@ -209,6 +209,41 @@ class AutoProductSeeder extends Seeder
                     'lang_key' => 'features',
                     'lang_value' => $langCode === 'en' ? $this->generateFeatures() : $this->generateFeaturesAr(),
                 ],
+                [
+                    'lang_id' => $language->id,
+                    'lang_key' => 'instructions',
+                    'lang_value' => $langCode === 'en' ? $this->generateInstructions() : $this->generateInstructionsAr(),
+                ],
+                [
+                    'lang_id' => $language->id,
+                    'lang_key' => 'extra_description',
+                    'lang_value' => $langCode === 'en' ? $this->faker->paragraphs(2, true) : $this->fakerAr->paragraphs(2, true),
+                ],
+                [
+                    'lang_id' => $language->id,
+                    'lang_key' => 'material',
+                    'lang_value' => $langCode === 'en' ? $this->faker->randomElement(['Cotton', 'Polyester', 'Leather', 'Plastic', 'Metal', 'Wood', 'Glass', 'Ceramic', 'Rubber', 'Silk']) : $this->fakerAr->randomElement(['قطن', 'بوليستر', 'جلد', 'بلاستيك', 'معادن', 'خشب', 'زجاج', 'سيراميك', 'مطاط', 'حرير']),
+                ],
+                [
+                    'lang_id' => $language->id,
+                    'lang_key' => 'video_link',
+                    'lang_value' => 'https://www.youtube.com/watch?v=' . $this->faker->bothify('??????????'),
+                ],
+                [
+                    'lang_id' => $language->id,
+                    'lang_key' => 'meta_title',
+                    'lang_value' => $langCode === 'en' ? $productName . ' - Premium Quality' : $this->fakerAr->words(4, true),
+                ],
+                [
+                    'lang_id' => $language->id,
+                    'lang_key' => 'meta_description',
+                    'lang_value' => $langCode === 'en' ? $this->faker->sentence(20) : $this->fakerAr->sentence(20),
+                ],
+                [
+                    'lang_id' => $language->id,
+                    'lang_key' => 'meta_keywords',
+                    'lang_value' => json_encode($langCode === 'en' ? $this->faker->words(5) : $this->fakerAr->words(5)),
+                ],
             ]);
         }
 
@@ -305,6 +340,51 @@ class AutoProductSeeder extends Seeder
                     'lang_id' => $language->id,
                     'lang_key' => 'details',
                     'lang_value' => $langCode === 'en' ? $this->faker->paragraphs(3, true) : $this->fakerAr->paragraphs(3, true),
+                ],
+                [
+                    'lang_id' => $language->id,
+                    'lang_key' => 'summary',
+                    'lang_value' => $langCode === 'en' ? $this->faker->sentence(15) : $this->fakerAr->sentence(15),
+                ],
+                [
+                    'lang_id' => $language->id,
+                    'lang_key' => 'features',
+                    'lang_value' => $langCode === 'en' ? $this->generateFeatures() : $this->generateFeaturesAr(),
+                ],
+                [
+                    'lang_id' => $language->id,
+                    'lang_key' => 'instructions',
+                    'lang_value' => $langCode === 'en' ? $this->generateInstructions() : $this->generateInstructionsAr(),
+                ],
+                [
+                    'lang_id' => $language->id,
+                    'lang_key' => 'extra_description',
+                    'lang_value' => $langCode === 'en' ? $this->faker->paragraphs(2, true) : $this->fakerAr->paragraphs(2, true),
+                ],
+                [
+                    'lang_id' => $language->id,
+                    'lang_key' => 'material',
+                    'lang_value' => $langCode === 'en' ? $this->faker->randomElement(['Cotton', 'Polyester', 'Leather', 'Plastic', 'Metal', 'Wood', 'Glass', 'Ceramic', 'Rubber', 'Silk']) : $this->fakerAr->randomElement(['قطن', 'بوليستر', 'جلد', 'بلاستيك', 'معادن', 'خشب', 'زجاج', 'سيراميك', 'مطاط', 'حرير']),
+                ],
+                [
+                    'lang_id' => $language->id,
+                    'lang_key' => 'video_link',
+                    'lang_value' => 'https://www.youtube.com/watch?v=' . $this->faker->bothify('??????????'),
+                ],
+                [
+                    'lang_id' => $language->id,
+                    'lang_key' => 'meta_title',
+                    'lang_value' => $langCode === 'en' ? $productName . ' - Premium Quality' : $this->fakerAr->words(4, true),
+                ],
+                [
+                    'lang_id' => $language->id,
+                    'lang_key' => 'meta_description',
+                    'lang_value' => $langCode === 'en' ? $this->faker->sentence(20) : $this->fakerAr->sentence(20),
+                ],
+                [
+                    'lang_id' => $language->id,
+                    'lang_key' => 'meta_keywords',
+                    'lang_value' => json_encode($langCode === 'en' ? $this->faker->words(5) : $this->fakerAr->words(5)),
                 ],
             ]);
         }
@@ -409,5 +489,25 @@ class AutoProductSeeder extends Seeder
             $features[] = "• " . $this->fakerAr->sentence($this->faker->numberBetween(4, 8));
         }
         return implode("\n", $features);
+    }
+
+    private function generateInstructions(): string
+    {
+        $instructions = [];
+        $steps = $this->faker->numberBetween(3, 6);
+        for ($i = 1; $i <= $steps; $i++) {
+            $instructions[] = "Step $i: " . $this->faker->sentence($this->faker->numberBetween(5, 10));
+        }
+        return implode("\n", $instructions);
+    }
+
+    private function generateInstructionsAr(): string
+    {
+        $instructions = [];
+        $steps = $this->faker->numberBetween(3, 6);
+        for ($i = 1; $i <= $steps; $i++) {
+            $instructions[] = "الخطوة $i: " . $this->fakerAr->sentence($this->faker->numberBetween(5, 10));
+        }
+        return implode("\n", $instructions);
     }
 }

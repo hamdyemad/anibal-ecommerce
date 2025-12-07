@@ -22,9 +22,12 @@ class DepartmentAction {
     public function getDataTable($data)
     {
         try {
-            // Get pagination parameters
-            $perPage = $data['per_page'] ?? $data['length'] ?? 10;
-            $page = $data['page'] ?? 1;
+            // Get pagination parameters from DataTables
+            $perPage = isset($data['length']) && $data['length'] > 0 ? (int)$data['length'] : 10;
+            $start = isset($data['start']) && $data['start'] >= 0 ? (int)$data['start'] : 0;
+            // Calculate page number from start offset
+            $page = $perPage > 0 ? floor($start / $perPage) + 1 : 1;
+
 
             // Get sorting parameters
             $orderColumnIndex = $data['orderColumnIndex'] ?? 0;
@@ -101,9 +104,11 @@ class DepartmentAction {
 
             // Return raw data - rendering will be handled by DataTables in the view
             $data = [];
+            $startIndex = ($page - 1) * $perPage + 1; // Calculate starting index for current page
+
             foreach ($departments as $index => $department) {
                 $rowData = [
-                    'id' => $index + 1,
+                    'id' => $startIndex + $index,
                     'department_id' => $department->id,
                     'image' => $department->image,
                     'commission' => $department->commission,

@@ -171,6 +171,18 @@ class VendorProduct extends BaseModel
     }
 
     /**
+     * Scope: Filter by country (through product relationship)
+     */
+    public function scopeByCountry(Builder $query, $countryIdentifier)
+    {
+        return $query->whereHas('product', function($subQ) use ($countryIdentifier) {
+            $subQ->whereHas('country', function($subSubQ) use ($countryIdentifier) {
+                $subSubQ->where('id', $countryIdentifier)->orWhere('slug', $countryIdentifier);
+            });
+        });
+    }
+
+    /**
      * Scope: Filter featured products
      */
     public function scopeFeatured(Builder $query)

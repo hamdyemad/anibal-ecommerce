@@ -97,6 +97,11 @@ return [
     'delivered' => 'Delivered',
     'cancelled' => 'Cancelled',
 
+    // Order Information
+    'order_information' => 'Order Information',
+    'variant' => 'Variant',
+    'no_variant' => 'No Variant',
+
     // Order Summary
     'order_summary' => 'Order Summary',
     'subtotal' => 'Subtotal',

@@ -21,7 +21,9 @@
 
                 <div class="userDatatable global-shadow border-light-0 p-30 bg-white radius-xl w-100 mb-30">
                     <div class="d-flex justify-content-between align-items-center mb-25">
-                        <h4 class="mb-0 fw-500">{{ __('activity.activities_management') }}</h4>
+                        <div class="d-flex align-items-center gap-2">
+                            <h4 class="mb-0 fw-500">{{ __('activity.activities_management') }}</h4>
+                        </div>
                         @can('activities.create')
                             <div class="d-flex gap-2">
                                 <a href="{{ route('admin.category-management.activities.create') }}"
@@ -31,7 +33,7 @@
                             </div>
                         @endcan
                     </div>
-                    <div class="alert alert-info  glowing-alert" role="alert">
+                    <div class="alert alert-info glowing-alert" role="alert">
                         {{ __('common.live_search_info') }}
                     </div>
                     {{-- Search and Filter --}}
@@ -593,6 +595,12 @@
                         switcher.prop('disabled', false);
                     }
                 });
+            });
+
+            // Update counter badge when table loads or reloads
+            table.on('draw.dt', function() {
+                const totalRecords = table.page.info().recordsTotal;
+                $('#activitiesCounter').text(totalRecords);
             });
 
             // Delete functionality is now handled by the delete-with-loading component

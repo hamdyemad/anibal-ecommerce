@@ -75,11 +75,6 @@ Route::get('seeder', function () {
                 'description' => 'Creates variant keys (Color, Size, Material) and their values',
             ],
             [
-                'class' => ActivitySeeder::class,
-                'name' => 'Activity Seeder',
-                'description' => 'Creates activities with country_id and translations',
-            ],
-            [
                 'class' => CategoryDepartmentSeeder::class,
                 'name' => 'Category & Department Seeder',
                 'description' => 'Creates activities, departments, categories, subcategories, brands, and regions',

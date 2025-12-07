@@ -30,7 +30,15 @@ class OrderController extends Controller
     public function index()
     {
         $languages = Language::all();
-        return view('order::orders.index', compact('languages'));
+
+        $total_price = Order::latest()->sum('total_price');
+        $orders_count = Order::latest()->count();
+        $data = [
+            'languages' => $languages,
+            'orders_count' => $orders_count,
+            'total_price' => $total_price,
+        ];
+        return view('order::orders.index', $data);
     }
 
     /**
@@ -78,11 +86,12 @@ class OrderController extends Controller
                     'order_number' => $order->order_number,
                     'customer_name' => $order->customer_name,
                     'customer_email' => $order->customer_email,
-                    'total_price' => $order->total_price,
-                    'total_product_price' => $order->total_product_price,
+                    'customer_phone' => $order->customer_phone ?? '-',
+                    'total_price' => $order->total_price . ' ' . currency(),
+                    'total_product_price' => $order->total_product_price . ' ' . currency(),
                     'items_count' => $itemsCount,
                     'stage' => $order->stage,
-                    'created_at' => $order->created_at ? $order->created_at->format('Y-m-d H:i') : '-',
+                    'created_at' => $order->created_at,
                 ];
 
                 $data[] = $rowData;
@@ -158,7 +167,6 @@ class OrderController extends Controller
     {
         try {
             $order = $this->orderService->getOrderById($id);
-
             if (!$order) {
                 return abort(404, trans('order::order.order_not_found'));
             }

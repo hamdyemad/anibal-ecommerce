@@ -232,6 +232,7 @@ class CategoryDepartmentSeeder extends Seeder
                     'slug' => Str::slug($activityNameEn),
                     'active' => true,
                     'country_id' => $countryId,
+                    'commission' => 15,
                 ]);
 
                 foreach ($languages as $langCode => $language) {
