@@ -447,4 +447,9 @@ return [
     'vendor_product_restored_successfully' => 'تم استعادة منتج التاجر بنجاح',
     'error_trashing_vendor_product' => 'خطأ في حذف منتج التاجر',
     'error_restoring_vendor_product' => 'خطأ في استعادة منتج التاجر',
+
+    // Configuration Filter
+    'configuration' => 'الإعدادات',
+    'simple_product' => 'منتج بسيط',
+    'variant_product' => 'منتج متعدد المتغيرات',
 ];

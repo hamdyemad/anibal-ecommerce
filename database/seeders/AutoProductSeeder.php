@@ -74,9 +74,6 @@ class AutoProductSeeder extends Seeder
         $vendors = Vendor::where('active', 1)->where('country_id', $countryId)->get();
         $languages = Language::whereIn('code', ['en', 'ar'])->get()->keyBy('code');
         $brands = Brand::where('active', 1)->where('country_id', $countryId)->get();
-        $departments = Department::where('active', 1)->where('country_id', $countryId)->get();
-        $categories = Category::where('active', 1)->where('country_id', $countryId)->get();
-        $subCategories = SubCategory::where('active', 1)->where('country_id', $countryId)->get();
         $taxes = Tax::where('active', 1)->where('country_id', $countryId)->get();
 
         // Get regions through cities for this country
@@ -99,8 +96,8 @@ class AutoProductSeeder extends Seeder
             return;
         }
 
-        if ($brands->isEmpty() || $departments->isEmpty() || $categories->isEmpty()) {
-            echo "❌ Error: Missing required data (brands, departments, or categories) for country {$countryCode}\n";
+        if ($brands->isEmpty()) {
+            echo "❌ Error: Missing brands for country {$countryCode}\n";
             return;
         }
 
@@ -110,7 +107,7 @@ class AutoProductSeeder extends Seeder
         }
 
         echo "✓ Found {$vendors->count()} active vendors\n";
-        echo "✓ Found {$brands->count()} brands, {$departments->count()} departments, {$categories->count()} categories\n";
+        echo "✓ Found {$brands->count()} brands\n";
         echo "✓ Found {$regions->count()} regions\n";
         echo "✓ Found {$variantKeys->count()} variant keys\n";
 
@@ -119,14 +116,46 @@ class AutoProductSeeder extends Seeder
         foreach ($vendors as $vendor) {
             echo "📦 Creating products for vendor: {$vendor->getTranslation('name', 'en')}\n";
 
+            // Get departments, categories, and sub-categories related to this vendor's activities
+            $vendorDepartments = Department::where('active', 1)
+                ->where('country_id', $countryId)
+                ->whereHas('activities', function($q) use ($vendor) {
+                    $q->whereHas('vendors', function($vq) use ($vendor) {
+                        $vq->where('vendor_id', $vendor->id);
+                    });
+                })
+                ->get();
+
+            if ($vendorDepartments->isEmpty()) {
+                echo "  ⚠️  No departments found for vendor activities. Skipping...\n";
+                continue;
+            }
+
+            // Get categories related to vendor's departments
+            $vendorCategories = Category::where('active', 1)
+                ->where('country_id', $countryId)
+                ->whereIn('department_id', $vendorDepartments->pluck('id'))
+                ->get();
+
+            // Get sub-categories related to vendor's categories
+            $vendorSubCategories = SubCategory::where('active', 1)
+                ->where('country_id', $countryId)
+                ->whereIn('category_id', $vendorCategories->pluck('id'))
+                ->get();
+
+            if ($vendorCategories->isEmpty()) {
+                echo "  ⚠️  No categories found for vendor departments. Skipping...\n";
+                continue;
+            }
+
             for ($i = 1; $i <= 40; $i++) {
                 try {
                     // 60% simple, 40% variant
                     $isVariant = $this->faker->boolean(40);
                     if ($isVariant && !$variantKeys->isEmpty()) {
-                        $this->createVariantProduct($vendor, $languages, $brands, $departments, $categories, $subCategories, $taxes, $regions, $variantKeys, $countryId);
+                        $this->createVariantProduct($vendor, $languages, $brands, $vendorDepartments, $vendorCategories, $vendorSubCategories, $taxes, $regions, $variantKeys, $countryId);
                     } else {
-                        $this->createSimpleProduct($vendor, $languages, $brands, $departments, $categories, $subCategories, $taxes, $regions, $countryId);
+                        $this->createSimpleProduct($vendor, $languages, $brands, $vendorDepartments, $vendorCategories, $vendorSubCategories, $taxes, $regions, $countryId);
                     }
                     $totalProducts++;
                 } catch (\Exception $e) {

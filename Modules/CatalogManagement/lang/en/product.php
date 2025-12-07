@@ -453,4 +453,9 @@ return [
     'vendor_product_restored_successfully' => 'Vendor product restored successfully',
     'error_trashing_vendor_product' => 'Error trashing vendor product',
     'error_restoring_vendor_product' => 'Error restoring vendor product',
+
+    // Configuration Filter
+    'configuration' => 'Configuration',
+    'simple_product' => 'Simple Product',
+    'variant_product' => 'Variant Product',
 ];

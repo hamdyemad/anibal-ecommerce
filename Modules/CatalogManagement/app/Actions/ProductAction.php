@@ -45,6 +45,7 @@ class ProductAction {
                 'brand_id' => $data['brand_id'] ?? null,
                 'category_id' => $data['category_id'] ?? null,
                 'product_type' => $data['product_type'] ?? null,
+                'configuration' => $data['configuration'] ?? null,
                 'is_active' => $data['active'] ?? null,
                 'status' => $data['status'] ?? null,
                 'created_date_from' => $data['created_date_from'] ?? '',
@@ -119,6 +120,12 @@ class ProductAction {
                 });
             }
 
+            if (!empty($filters['configuration'])) {
+                $query->whereHas('product', function($q) use ($filters) {
+                    $q->where('configuration_type', $filters['configuration']);
+                });
+            }
+
             if (isset($filters['is_active']) && $filters['is_active'] !== '') {
                 $query->where('is_active', (bool)$filters['is_active']);
             }
@@ -181,6 +188,7 @@ class ProductAction {
                     'active' => $item->is_active,
                     'status' => $item->status,
                     'product_type' => $product->type,
+                    'configuration_type' => $product->configuration_type,
                     'created_at' => $item->created_at,
                 ];
 
@@ -332,6 +340,8 @@ class ProductAction {
                         'name' => truncateString($product->category->name),
                     ] : null,
                     'active' => $product->is_active, // Product.is_active for bank products
+                    'product_type' => $product->type,
+                    'configuration_type' => $product->configuration_type,
                     'created_at' => $product->created_at,
                 ];
             }

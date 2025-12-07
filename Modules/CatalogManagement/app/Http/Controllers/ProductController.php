@@ -500,7 +500,7 @@ class ProductController extends Controller
     /**
      * Display bank product details (main product data only)
      */
-    public function bankView($id)
+    public function bankView($lang, $countryCode, $id)
     {
         try {
             // Get the bank product directly from Product model (not VendorProduct)
@@ -569,7 +569,7 @@ class ProductController extends Controller
     /**
      * Show stock and pricing management page
      */
-    public function stockManagement($id)
+    public function stockManagement($lang, $countryCode, $id)
     {
         $product = $this->productService->getProductById($id);
         $languages = $this->languageService->getAll();
@@ -599,7 +599,7 @@ class ProductController extends Controller
      * Update stock and pricing only
      * Only validates Step 3: Configuration Type, Pricing, and Stock
      */
-    public function updateStockPricing(UpdateStockPricingRequest $request, $id)
+    public function updateStockPricing(UpdateStockPricingRequest $request, $lang, $countryCode, $id)
     {
         try {
             // Get validated data (only Step 3 fields)
@@ -719,7 +719,7 @@ class ProductController extends Controller
     /**
      * Trash vendor product (soft delete)
      */
-    public function trashVendorProduct($id)
+    public function trashVendorProduct($lang, $countryCode, $id)
     {
         try {
             // Check if user is admin
@@ -761,7 +761,7 @@ class ProductController extends Controller
     /**
      * Restore vendor product
      */
-    public function restoreVendorProduct($id)
+    public function restoreVendorProduct($lang, $countryCode, $id)
     {
         try {
             // Check if user is admin
