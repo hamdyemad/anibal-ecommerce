@@ -13,6 +13,7 @@ use App\Models\Attachment;
 use App\Models\Traits\HumanDates;
 use Illuminate\Database\Eloquent\Builder;
 use Modules\AreaSettings\app\Models\Country;
+use app\Models\Language;
 use Modules\CatalogManagement\app\Models\Review;
 use Modules\CategoryManagment\app\Models\Activity;
 use Modules\Order\app\Models\OrderProduct;
@@ -20,7 +21,7 @@ use Modules\Withdraw\app\Models\Withdraw;
 
 class Vendor extends BaseModel
 {
-    use HasFactory, SoftDeletes, Translation, HumanDates, CountryCheckIdTrait;
+    use HasFactory, SoftDeletes, Translation, HumanDates;
 
     protected $guarded = [];
 
@@ -316,6 +317,10 @@ class Vendor extends BaseModel
         // Filter by department
         if (!empty($filters['department_id'])) {
             $query->byDepartment($filters['department_id']);
+        }
+
+        if (!empty($filters['created_at'])) {
+            $query->where('created_at', $filters['created_at']);
         }
 
         return $query;
