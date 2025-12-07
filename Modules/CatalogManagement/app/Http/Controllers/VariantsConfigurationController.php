@@ -115,7 +115,7 @@ class VariantsConfigurationController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
+    public function create($lang, $countryCode)
     {
         $languages = $this->languageService->getAll();
         $variantKeys = VariantConfigurationKey::with('translations')->get();
@@ -127,7 +127,7 @@ class VariantsConfigurationController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(VariantsConfigurationRequest $request)
+    public function store($lang, $countryCode, VariantsConfigurationRequest $request)
     {
         $validated = $request->validated();
         \Log::info('VariantsConfiguration Store Request', [
@@ -165,7 +165,7 @@ class VariantsConfigurationController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Request $request, string $id)
+    public function show($lang, $countryCode, Request $request, string $id)
     {
         $variantsConfig = $this->variantsConfigService->findById($id);
         // For API requests, load children recursively
@@ -245,7 +245,7 @@ class VariantsConfigurationController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(string $id)
+    public function edit($lang, $countryCode, string $id)
     {
         $variantsConfig = $this->variantsConfigService->findById($id);
         $languages = $this->languageService->getAll();
@@ -264,7 +264,7 @@ class VariantsConfigurationController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(VariantsConfigurationRequest $request, string $id)
+    public function update($lang, $countryCode, VariantsConfigurationRequest $request, string $id)
     {
         try {
             $validated = $request->validated();
@@ -296,7 +296,7 @@ class VariantsConfigurationController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy($lang, $countryCode, Request $request, string $id)
     {
         try {
             $result = $this->variantsConfigService->delete($id);

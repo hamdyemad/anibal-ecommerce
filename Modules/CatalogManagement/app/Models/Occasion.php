@@ -7,13 +7,14 @@ use App\Models\BaseModel;
 use App\Models\Traits\HumanDates;
 use App\Traits\HasSlug;
 use App\Traits\Translation;
+use App\Models\Traits\CountryCheckIdTrait;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\Vendor\app\Models\Vendor;
 
 class Occasion extends BaseModel
 {
-    use HasFactory, Translation, SoftDeletes, HumanDates;
+    use HasFactory, Translation, SoftDeletes, HumanDates, CountryCheckIdTrait;
 
     protected $table = 'occasions';
     protected $guarded = [];

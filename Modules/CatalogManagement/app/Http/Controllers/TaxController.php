@@ -14,7 +14,7 @@ class TaxController extends Controller
 {
 
     public function __construct(
-        protected TaxService $taxService, 
+        protected TaxService $taxService,
         protected LanguageService $languageService,
         protected TaxAction $taxAction
     ) {
@@ -32,7 +32,7 @@ class TaxController extends Controller
         } else {
             $searchValue = $search;
         }
-        
+
         $data = [
             'page' => $request->get('page', 1),
             'draw' => $request->get('draw', 1),
@@ -48,13 +48,13 @@ class TaxController extends Controller
 
         try {
             $response = $this->taxAction->getDataTable($data);
-            
+
             Log::info('Tax Datatable Response', [
                 'data_count' => count($response['data']),
                 'totalRecords' => $response['totalRecords'],
                 'filteredRecords' => $response['filteredRecords']
             ]);
-            
+
             return response()->json([
                 'draw' => $data['draw'],
                 'data' => $response['data'],
@@ -71,7 +71,7 @@ class TaxController extends Controller
             Log::error('Tax Datatable Error: ' . $e->getMessage(), [
                 'trace' => $e->getTraceAsString()
             ]);
-            
+
             return response()->json([
                 'draw' => $data['draw'],
                 'data' => [],
@@ -103,7 +103,7 @@ class TaxController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
+    public function create($lang, $countryCode)
     {
         $languages = $this->languageService->getAll();
         return view('catalogmanagement::tax.form', compact('languages'));
@@ -112,12 +112,12 @@ class TaxController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(TaxRequest $request)
+    public function store($lang, $countryCode, TaxRequest $request)
     {
         $validated = $request->validated();
 
         try {
-            $tax = $this->taxService->createTax($validated);   
+            $tax = $this->taxService->createTax($validated);
             // Check if request is AJAX
             if ($request->ajax() || $request->wantsJson()) {
                 return response()->json([
@@ -126,7 +126,7 @@ class TaxController extends Controller
                     'redirect' => route('admin.taxes.index')
                 ]);
             }
-            
+
             return redirect()->route('admin.taxes.index')
                 ->with('success', __('Tax created successfully'));
         } catch (\Exception $e) {
@@ -137,7 +137,7 @@ class TaxController extends Controller
                     'message' => __('Error creating tax') . ': ' . $e->getMessage()
                 ], 422);
             }
-            
+
             return redirect()->back()
                 ->withInput()
                 ->with('error', __('Error creating tax') . ': ' . $e->getMessage());
@@ -147,7 +147,7 @@ class TaxController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show($lang, $countryCode, string $id)
     {
         try {
             $tax = $this->taxService->getTaxById($id);
@@ -162,7 +162,7 @@ class TaxController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(string $id)
+    public function edit($lang, $countryCode, string $id)
     {
         try {
             $languages = $this->languageService->getAll();
@@ -177,7 +177,7 @@ class TaxController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(TaxRequest $request, string $id)
+    public function update($lang, $countryCode, TaxRequest $request, string $id)
     {
         $validated = $request->validated();
 
@@ -191,7 +191,7 @@ class TaxController extends Controller
                     'redirect' => route('admin.taxes.index')
                 ]);
             }
-            
+
             return redirect()->route('admin.taxes.index')
                 ->with('success', __('Tax updated successfully'));
         } catch (\Exception $e) {
@@ -202,7 +202,7 @@ class TaxController extends Controller
                     'message' => __('Error updating tax') . ': ' . $e->getMessage()
                 ], 422);
             }
-            
+
             return redirect()->back()
                 ->withInput()
                 ->with('error', __('Error updating tax') . ': ' . $e->getMessage());
@@ -212,7 +212,7 @@ class TaxController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Request $request, string $id)
+    public function destroy($lang, $countryCode, Request $request, string $id)
     {
         try {
             $this->taxService->deleteTax($id);
@@ -224,7 +224,7 @@ class TaxController extends Controller
                     'redirect' => route('admin.taxes.index')
                 ]);
             }
-            
+
             return redirect()->route('admin.taxes.index')
                 ->with('success', __('Tax deleted successfully'));
         } catch (\Exception $e) {
@@ -235,7 +235,7 @@ class TaxController extends Controller
                     'message' => __('Error deleting tax') . ': ' . $e->getMessage()
                 ], 422);
             }
-            
+
             return redirect()->route('admin.taxes.index')
                 ->with('error', __('Error deleting tax') . ': ' . $e->getMessage());
         }

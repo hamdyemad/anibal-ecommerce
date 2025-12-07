@@ -7,6 +7,7 @@ use App\Models\Attachment;
 use App\Models\Traits\HumanDates;
 use App\Traits\HasSlug;
 use App\Traits\Translation;
+use App\Models\Traits\CountryCheckIdTrait;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\CategoryManagment\app\Models\DepartmentTranslation;
@@ -16,7 +17,7 @@ use Modules\CatalogManagement\app\Models\Product;
 
 class Category extends BaseModel
 {
-    use HasFactory, SoftDeletes, Translation, HumanDates, HasSlug;
+    use HasFactory, SoftDeletes, Translation, HumanDates, HasSlug, CountryCheckIdTrait;
 
     protected $guarded = [];
 

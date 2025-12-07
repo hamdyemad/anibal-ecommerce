@@ -205,6 +205,27 @@ class RegionRepository implements RegionRepositoryInterface
     public function deleteRegion(int $id)
     {
         $region = Region::findOrFail($id);
+
+        // Check if region has sub-regions
+        $subRegionsCount = $region->subRegions()->count();
+        if ($subRegionsCount > 0) {
+            throw new \Exception(
+                __('areasettings::region.cannot_delete_region_with_subregions', [
+                    'count' => $subRegionsCount
+                ])
+            );
+        }
+
+        // Check if region is assigned to vendors
+        $vendorsCount = $region->selected_vendors()->count();
+        if ($vendorsCount > 0) {
+            throw new \Exception(
+                __('areasettings::region.cannot_delete_region_with_vendors', [
+                    'count' => $vendorsCount
+                ])
+            );
+        }
+
         $region->translations()->delete();
         return $region->delete();
     }

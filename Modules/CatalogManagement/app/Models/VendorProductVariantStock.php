@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\AreaSettings\app\Models\Region;
 
+
 class VendorProductVariantStock extends Model
 {
     use HasFactory, SoftDeletes;

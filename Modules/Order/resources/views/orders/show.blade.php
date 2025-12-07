@@ -23,38 +23,106 @@
                 <div id="printableArea" class="bg-white p-40 radius-xl">
                     <!-- Order Info & Customer Details with QR Code -->
                     <div class="row mb-40">
-                        <div class="col-md-6">
-                            <div class="mb-20">
-                                <p class="mb-5"><span class="text-primary fw-bold">{{ trans('order::order.order_id') }}:</span> <span class="text-primary fw-bold">{{ $order->order_number }}</span></p>
-                                <p class="mb-5"><span class="text-primary fw-bold">{{ trans('order::order.created_at') }}:</span> {{ $order->created_at->format('d M, Y, H:i A') }}</p>
-                                <p class="mb-5"><span class="text-primary fw-bold">{{ trans('order::order.stage') }}:</span> <span class="badge" style="background: {{ $order->stage?->color ?? '#6c757d' }}; color: white">{{ $order->stage?->name ?? 'N/A' }}</span></p>
-                                <p class="mb-0"><span class="text-primary fw-bold">{{ trans('order::order.order_from') }}:</span> 
-                                    @if($order->order_from === 'web')
-                                        {{ trans('order::order.web') }}
-                                    @elseif($order->order_from === 'ios')
-                                        {{ trans('order::order.ios') }}
-                                    @elseif($order->order_from === 'android')
-                                        {{ trans('order::order.android') }}
-                                    @else
-                                        {{ $order->order_from }}
-                                    @endif
-                                </p>
+                        <!-- Order Details Card -->
+                        <div class="col-lg-6 mb-3">
+                            <div class="card border-0 shadow-sm h-100">
+                                <div class="card-body">
+                                    <h6 class="card-title fw-bold mb-20 d-flex align-items-center">
+                                        <i class="uil uil-receipt me-2" style="color: #5f63f2; font-size: 20px;"></i>
+                                        {{ trans('order::order.order_information') }}
+                                    </h6>
+                                    <div class="order-details">
+                                        <div class="detail-row mb-15">
+                                            <span class="detail-label">{{ trans('order::order.order_id') }}:</span>
+                                            <span class="detail-value fw-bold text-primary">{{ $order->order_number }}</span>
+                                        </div>
+                                        <div class="detail-row mb-15">
+                                            <span class="detail-label">{{ trans('order::order.created_at') }}:</span>
+                                            <span class="detail-value">{{ $order->created_at }}</span>
+                                        </div>
+                                        <div class="detail-row mb-15 justify-content-start">
+                                            <span class="detail-label">{{ trans('order::order.stage') }}:</span>
+                                            <span class="badge badge-lg badge-round" style="background: {{ $order->stage?->color ?? '#6c757d' }}; color: white">{{ $order->stage?->name ?? 'N/A' }}</span>
+                                        </div>
+                                        <div class="detail-row">
+                                            <span class="detail-label">{{ trans('order::order.order_from') }}:</span>
+                                            <span class="detail-value">
+                                                @if($order->order_from === 'web')
+                                                    <span class="badge badge-lg badge-round bg-info"><i class="uil uil-globe me-1"></i>{{ trans('order::order.web') }}</span>
+                                                @elseif($order->order_from === 'ios')
+                                                    <span class="badge badge-lg badge-round bg-dark"><i class="uil uil-apple me-1"></i>{{ trans('order::order.ios') }}</span>
+                                                @elseif($order->order_from === 'android')
+                                                    <span class="badge badge-lg badge-round bg-success"><i class="uil uil-android me-1"></i>{{ trans('order::order.android') }}</span>
+                                                @else
+                                                    <span class="badge badge-lg badge-round bg-secondary">{{ $order->order_from }}</span>
+                                                @endif
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                        <div class="{{ app()->getLocale() === 'en' ? 'col-md-3' : 'col-md-6' }} {{ app()->getLocale() === 'en' ? '' : 'text-end' }}">
-                            <p class="mb-5"><span class="fw-bold">{{ trans('order::order.customer_name') }}:</span> {{ $order->customer_name }}</p>
-                            <p class="mb-5"><span class="fw-bold">{{ trans('order::order.customer_phone') }}:</span> {{ $order->customer_phone }}</p>
-                            <p class="mb-5"><span class="fw-bold">{{ trans('order::order.customer_email') }}:</span> {{ $order->customer_email }}</p>
-                            <p class="mb-0"><span class="fw-bold">{{ trans('order::order.customer_address') }}:</span> {{ $order->customer_address }}</p>
-                        </div>
-                        <div class="col-md-3 text-end">
-                            <div class="d-flex justify-content-end">
-                                <div style="width: 120px; height: 120px; background: #f5f5f5; display: flex; align-items: center; justify-content: center; border-radius: 8px;">
-                                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=120x120&data={{ urlencode('https://bnaia.com/ar/profile/info') }}" alt="QR Code" style="width: 100%; height: 100%; border-radius: 8px;">
+
+                        <!-- Customer Details Card -->
+                        <div class="col-lg-6 mb-3">
+                            <div class="card border-0 shadow-sm h-100">
+                                <div class="card-body">
+                                    <h6 class="card-title fw-bold mb-20 d-flex align-items-center">
+                                        <i class="uil uil-user me-2" style="color: #5f63f2; font-size: 20px;"></i>
+                                        {{ trans('order::order.customer_information') }}
+                                    </h6>
+                                    <div class="customer-details">
+                                        <div class="detail-row mb-15">
+                                            <span class="detail-label"><i class="uil uil-user-circle me-1"></i>{{ trans('order::order.customer_name') }}:</span>
+                                            <span class="detail-value fw-bold">{{ $order->customer_name }}</span>
+                                        </div>
+                                        <div class="detail-row mb-15">
+                                            <span class="detail-label"><i class="uil uil-envelope me-1"></i>{{ trans('order::order.customer_email') }}:</span>
+                                            <span class="detail-value"><a href="mailto:{{ $order->customer_email }}">{{ $order->customer_email }}</a></span>
+                                        </div>
+                                        <div class="detail-row mb-15">
+                                            <span class="detail-label"><i class="uil uil-phone me-1"></i>{{ trans('order::order.customer_phone') }}:</span>
+                                            <span class="detail-value"><a href="tel:{{ $order->customer_phone }}">{{ $order->customer_phone }}</a></span>
+                                        </div>
+                                        <div class="detail-row">
+                                            <span class="detail-label"><i class="uil uil-map-pin me-1"></i>{{ trans('order::order.customer_address') }}:</span>
+                                            <span class="detail-value">{{ $order->customer_address }}</span>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
+
+                    <style>
+                        .detail-row {
+                            display: flex;
+                            justify-content: space-between;
+                            align-items: flex-start;
+                            padding: 10px 0;
+                            border-bottom: 1px solid #f0f0f0;
+                        }
+                        .detail-row:last-child {
+                            border-bottom: none;
+                        }
+                        .detail-label {
+                            font-weight: 600;
+                            color: #666;
+                            min-width: 150px;
+                        }
+                        .detail-value {
+                            color: #333;
+                            text-align: right;
+                            flex: 1;
+                        }
+                        .detail-value a {
+                            color: #5f63f2;
+                            text-decoration: none;
+                        }
+                        .detail-value a:hover {
+                            text-decoration: underline;
+                        }
+                    </style>
 
                     <!-- Products Table -->
                     <div class="mb-40">
@@ -74,13 +142,20 @@
                                         <tr>
                                             <td class="fw-bold">{{ $key + 1 }}</td>
                                             <td>
-                                                <p class="mb-5 fw-bold">{{ $product->getTranslation('name', app()->getLocale()) ?? 'N/A' }}</p>
-                                                <small class="text-muted">SKU: {{ $product->vendorProduct?->sku ?? 'N/A' }}</small>
-                                                @if($product->taxes->count() > 0)
-                                                    <br>
-                                                    @foreach($product->taxes as $tax)
-                                                        <small class="text-muted">{{ $tax->getTranslation('tax_title', app()->getLocale()) ?? 'N/A' }}: {{ $tax->percentage }}%</small><br>
-                                                    @endforeach
+                                                <p class="fw-bold mb-2">{{ $product->vendorProduct->product->name ?? 'N/A' }}</p>
+                                                <small class="text-muted d-block mb-1">SKU: {{ $product->vendorProduct?->sku ?? 'N/A' }}</small>
+                                                @if($product->vendorProductVariant)
+                                                    <small class="text-muted d-block mb-1">
+                                                        <i class="uil uil-tag me-1"></i>
+                                                        <strong>{{ trans('order::order.variant') }}:</strong>
+                                                        @if($product->vendorProductVariant->variantKey && $product->vendorProductVariant->variantValue)
+                                                            {{ $product->vendorProductVariant->variantKey->getTranslation('name', app()->getLocale()) ?? $product->vendorProductVariant->variantKey->name ?? 'N/A' }}
+                                                            -
+                                                            {{ $product->vendorProductVariant->variantValue->getTranslation('name', app()->getLocale()) ?? $product->vendorProductVariant->variantValue->name ?? 'N/A' }}
+                                                        @else
+                                                            {{ trans('order::order.no_variant') }}
+                                                        @endif
+                                                    </small>
                                                 @endif
                                             </td>
                                             <td class="text-end">{{ number_format($product->price, 2) }} {{ __('common.currency') }}</td>
@@ -116,9 +191,9 @@
                                             <tr>
                                                 <td>
                                                     @if($extra->type === 'fee')
-                                                        <span class="badge bg-danger">{{ trans('order::order.fee') }}</span>
+                                                        <span class="badge badge-lg badge-round bg-danger">{{ trans('order::order.fee') }}</span>
                                                     @else
-                                                        <span class="badge bg-success">{{ trans('order::order.discount') }}</span>
+                                                        <span class="badge badge-lg badge-round bg-success">{{ trans('order::order.discount') }}</span>
                                                     @endif
                                                 </td>
                                                 <td>{{ $extra->reason }}</td>
@@ -135,50 +210,87 @@
 
                     <!-- Summary Section -->
                     <div class="row mb-40">
-                        <div class="col-md-6">
-                            @if($order->country || $order->city || $order->region)
-                                <div class="p-20 radius-md">
-                                    <h6 class="fw-bold mb-15">{{ trans('order::order.location') }}</h6>
-                                    <p class="mb-5"><span class="fw-bold">{{ trans('order::order.country') }}:</span> {{ $order->country?->name ?? 'N/A' }}</p>
-                                    <p class="mb-5"><span class="fw-bold">{{ trans('order::order.city') }}:</span> {{ $order->city?->name ?? 'N/A' }}</p>
-                                    <p class="mb-0"><span class="fw-bold">{{ trans('order::order.region') }}:</span> {{ $order->region?->name ?? 'N/A' }}</p>
-                                </div>
-                            @endif
-                        </div>
-                        <div class="col-md-6">
-                            <div class="bg-primary text-white p-20 radius-md">
-                                <div class="d-flex justify-content-between mb-10">
-                                    <span>{{ trans('order::order.subtotal') }} :</span>
-                                    <span class="fw-bold">{{ number_format($order->total_product_price, 2) }} {{ __('common.currency') }}</span>
-                                </div>
-                                @if($order->total_discounts > 0)
-                                    <div class="d-flex justify-content-between mb-10">
-                                        <span>{{ trans('order::order.discounts') }} :</span>
-                                        <span class="fw-bold">{{ number_format($order->total_discounts, 2) }} {{ __('common.currency') }}</span>
+                        <!-- Location Card -->
+                        @if($order->country || $order->city || $order->region)
+                            <div class="col-md-6 mb-3">
+                                <div class="card border-0 shadow-sm h-100">
+                                    <div class="card-body">
+                                        <h6 class="card-title fw-bold mb-20 d-flex align-items-center">
+                                            <i class="uil uil-map-pin me-2" style="color: #5f63f2; font-size: 20px;"></i>
+                                            {{ trans('order::order.location') }}
+                                        </h6>
+                                        <div class="location-details">
+                                            <div class="detail-row mb-15">
+                                                <span class="detail-label">{{ trans('order::order.country') }}:</span>
+                                                <span class="detail-value">{{ $order->country?->name ?? 'N/A' }}</span>
+                                            </div>
+                                            <div class="detail-row mb-15">
+                                                <span class="detail-label">{{ trans('order::order.city') }}:</span>
+                                                <span class="detail-value">{{ $order->city?->name ?? 'N/A' }}</span>
+                                            </div>
+                                            <div class="detail-row">
+                                                <span class="detail-label">{{ trans('order::order.region') }}:</span>
+                                                <span class="detail-value">{{ $order->region?->name ?? 'N/A' }}</span>
+                                            </div>
+                                        </div>
                                     </div>
-                                @endif
-                                @if($order->total_fees > 0)
-                                    <div class="d-flex justify-content-between mb-10">
-                                        <span>{{ trans('order::order.fees') }} :</span>
-                                        <span class="fw-bold">+{{ number_format($order->total_fees, 2) }} {{ __('common.currency') }}</span>
+                                </div>
+                            </div>
+                        @endif
+
+                        <!-- Order Summary Card -->
+                        <div class="col-md-6 mb-3">
+                            <div class="card border-0 shadow-sm h-100" style="background: linear-gradient(135deg, #5f63f2 0%, #8e92f7 100%); color: white;">
+                                <div class="card-body">
+                                    <h6 class="card-title fw-bold mb-20 d-flex align-items-center text-white">
+                                        <i class="uil uil-receipt me-2" style="font-size: 20px;"></i>
+                                        {{ trans('order::order.order_summary') }}
+                                    </h6>
+                                    <div class="summary-details">
+                                        <div class="summary-row mb-12">
+                                            <span class="fw-bold">{{ trans('order::order.subtotal') }}</span>
+                                            <span class="fw-bold">{{ number_format($order->total_product_price, 2) }} {{ __('common.currency') }}</span>
+                                        </div>
+                                        @if($order->total_discounts > 0)
+                                            <div class="summary-row mb-12">
+                                                <span class="fw-bold">{{ trans('order::order.discounts') }}</span>
+                                                <span class="fw-bold">-{{ number_format($order->total_discounts, 2) }} {{ __('common.currency') }}</span>
+                                            </div>
+                                        @endif
+                                        @if($order->total_fees > 0)
+                                            <div class="summary-row mb-12">
+                                                <span class="fw-bold">{{ trans('order::order.fees') }}</span>
+                                                <span class="fw-bold">+{{ number_format($order->total_fees, 2) }} {{ __('common.currency') }}</span>
+                                            </div>
+                                        @endif
+                                        <div class="summary-row mb-12">
+                                            <span class="fw-bold">{{ trans('order::order.shipping') }}</span>
+                                            <span class="fw-bold">+{{ number_format($order->shipping, 2) }} {{ __('common.currency') }}</span>
+                                        </div>
+                                        <div class="summary-row mb-12">
+                                            <span class="fw-bold">{{ trans('order::order.tax') }}</span>
+                                            <span class="fw-bold">+{{ number_format($order->total_tax, 2) }} {{ __('common.currency') }}</span>
+                                        </div>
+                                        <hr style="border-color: rgba(255,255,255,0.3); margin: 15px 0;">
+                                        <div class="summary-row" style="font-size: 18px;">
+                                            <span class="fw-bold">{{ trans('order::order.total') }}</span>
+                                            <span class="fw-bold">{{ number_format($order->total_price, 2) }} {{ __('common.currency') }}</span>
+                                        </div>
                                     </div>
-                                @endif
-                                <div class="d-flex justify-content-between mb-10">
-                                    <span>{{ trans('order::order.shipping') }} :</span>
-                                    <span class="fw-bold">+{{ number_format($order->shipping, 2) }} {{ __('common.currency') }}</span>
-                                </div>
-                                <div class="d-flex justify-content-between mb-10">
-                                    <span>{{ trans('order::order.tax') }} :</span>
-                                    <span class="fw-bold">+{{ number_format($order->total_tax, 2) }} {{ __('common.currency') }}</span>
-                                </div>
-                                <hr class="bg-white my-10">
-                                <div class="d-flex justify-content-between">
-                                    <span class="fw-bold fs-16">{{ trans('order::order.total') }} :</span>
-                                    <span class="fw-bold fs-16">{{ number_format($order->total_price, 2) }} {{ __('common.currency') }}</span>
                                 </div>
                             </div>
                         </div>
                     </div>
+
+                    <style>
+                        .summary-row {
+                            display: flex;
+                            justify-content: space-between;
+                            align-items: center;
+                            padding: 8px 0;
+                            font-size: 14px;
+                        }
+                    </style>
                 </div>
 
                 <!-- Action Buttons Section (Not Printable) -->
@@ -207,138 +319,6 @@
     <!-- Include Change Stage Modal Component -->
     <x-order::change-stage-modal :order-id="$order->id" :current-stage-id="$order->stage_id" />
 
-    {{-- <style>
-        .no-print {
-            print-color-adjust: exact;
-            -webkit-print-color-adjust: exact;
-        }
-
-        @media print {
-            /* Hide sidebar and header */
-            .sidebar,
-            .header,
-            .navbar,
-            .no-print,
-            .breadcrumb {
-                display: none !important;
-            }
-
-            /* Show only printable area */
-            body {
-                margin: 0;
-                padding: 0;
-                background: white;
-                font-size: 12px;
-            }
-
-            .container-fluid {
-                margin: 0;
-                padding: 20px;
-                max-width: 100%;
-            }
-
-            #printableArea {
-                padding: 20px !important;
-                background: white !important;
-                box-shadow: none !important;
-                border: none !important;
-            }
-
-            /* Header styling */
-            .row.mb-40 {
-                page-break-inside: avoid;
-                margin-bottom: 20px;
-                border-bottom: 2px solid #003d82;
-                padding-bottom: 15px;
-            }
-
-            /* Table styling for print */
-            .table {
-                width: 100%;
-                border-collapse: collapse;
-                margin-bottom: 20px;
-                page-break-inside: avoid;
-            }
-
-            .table thead {
-                background-color: #003d82 !important;
-                color: white !important;
-                page-break-inside: avoid;
-            }
-
-            .table th {
-                padding: 10px !important;
-                border: 1px solid #ddd !important;
-                font-weight: bold !important;
-                color: white !important;
-            }
-
-            .table td {
-                padding: 8px !important;
-                border: 1px solid #ddd !important;
-            }
-
-            .table tbody tr {
-                page-break-inside: avoid;
-            }
-
-            .table tbody tr:nth-child(even) {
-                background-color: #f9f9f9 !important;
-            }
-
-            /* Summary section */
-            .bg-primary {
-                background-color: #003d82 !important;
-                color: white !important;
-            }
-
-            /* Badge styling */
-            .badge {
-                padding: 4px 8px !important;
-                font-size: 11px !important;
-            }
-
-            /* Text utilities */
-            .text-end {
-                text-align: right;
-            }
-
-            .text-center {
-                text-align: center;
-            }
-
-            .fw-bold {
-                font-weight: bold;
-            }
-
-            /* Prevent page breaks in important sections */
-            .userDatatable {
-                box-shadow: none !important;
-                border: none !important;
-                page-break-inside: avoid;
-            }
-
-            .row {
-                page-break-inside: avoid;
-            }
-
-            hr {
-                border: 1px solid #ddd;
-                page-break-inside: avoid;
-            }
-
-            /* QR Code styling */
-            .col-md-3 {
-                page-break-inside: avoid;
-            }
-
-            /* Ensure proper margins */
-            @page {
-                margin: 10mm;
-            }
-        }
-    </style> --}}
-
     <style>
     .no-print {
         print-color-adjust: exact;
@@ -359,6 +339,11 @@
             display: none !important;
         }
 
+        .badge {
+            background-color: white !important;
+            color: black !important;
+        }
+
         /* Reset body and container */
         body * {
             visibility: hidden;
@@ -373,12 +358,12 @@
             margin: 0 !important;
             padding: 0 !important;
             background: white !important;
-            font-size: 12pt;
+            font-size: 11pt;
         }
 
         .container-fluid {
             margin: 0 !important;
-            padding: 15mm !important;
+            padding: 10mm !important;
             max-width: 100% !important;
             width: 100% !important;
         }
@@ -388,19 +373,42 @@
             left: 0;
             top: 0;
             width: 100%;
-            padding: 20px !important;
+            padding: 15px !important;
             background: white !important;
             box-shadow: none !important;
             border: none !important;
             margin: 0 !important;
         }
 
+        /* Card styling for print */
+        .card {
+            border: 1pt solid #ddd !important;
+            box-shadow: none !important;
+            page-break-inside: avoid;
+            margin-bottom: 8pt !important;
+        }
+
+        .card-body {
+            padding: 8pt !important;
+        }
+
+        .card-title {
+            font-size: 10pt !important;
+            margin-bottom: 8pt !important;
+            border-bottom: 1pt solid #ddd !important;
+            padding-bottom: 6pt !important;
+        }
+
+        /* Hide icons in print */
+        .uil {
+            display: none !important;
+        }
+
         /* Header section - Order Info & Customer Details */
         .row.mb-40 {
             page-break-inside: avoid;
-            margin-bottom: 15pt !important;
-            border-bottom: 2pt solid #003d82 !important;
-            padding-bottom: 10pt !important;
+            margin-bottom: 10pt !important;
+            padding-bottom: 0 !important;
             display: block !important;
         }
 
@@ -410,26 +418,41 @@
             page-break-inside: avoid;
         }
 
+        .col-lg-6,
         .col-md-6,
         .col-md-3 {
             width: 100% !important;
             float: none !important;
-            display: inline-block !important;
-            vertical-align: top;
+            display: block !important;
+            margin-bottom: 10pt !important;
         }
 
-        .col-md-6 {
-            width: 45% !important;
+        /* Detail rows styling */
+        .detail-row {
+            display: flex !important;
+            justify-content: space-between !important;
+            padding: 4pt 0 !important;
+            border-bottom: none !important;
+            font-size: 9pt !important;
+            margin-bottom: 3pt !important;
         }
 
-        .col-md-3 {
-            width: 20% !important;
+        .detail-label {
+            font-weight: 600 !important;
+            color: #333 !important;
+            min-width: 100pt !important;
+        }
+
+        .detail-value {
+            color: #333 !important;
+            text-align: right !important;
+            flex: 1;
         }
 
         /* Text styling */
         p {
-            margin-bottom: 5pt !important;
-            line-height: 1.4 !important;
+            margin-bottom: 4pt !important;
+            line-height: 1.3 !important;
         }
 
         .text-primary {
@@ -440,22 +463,28 @@
             font-weight: bold !important;
         }
 
-        /* QR Code container */
+        /* Text alignment */
         .text-end {
             text-align: right !important;
+        }
+
+        .text-center {
+            text-align: center !important;
         }
 
         /* Table styling */
         .table-responsive {
             width: 100% !important;
             overflow: visible !important;
+            page-break-inside: avoid;
         }
 
         .table {
             width: 100% !important;
             border-collapse: collapse !important;
-            margin-bottom: 15pt !important;
+            margin-bottom: 10pt !important;
             page-break-inside: auto;
+            font-size: 10pt !important;
         }
 
         .table thead {
@@ -468,8 +497,8 @@
         }
 
         .table th {
-            padding: 8pt 6pt !important;
-            border: 1pt solid #003d82 !important;
+            padding: 6pt 4pt !important;
+            border: 0.5pt solid #003d82 !important;
             font-weight: bold !important;
             color: white !important;
             background-color: #003d82 !important;
@@ -478,9 +507,9 @@
         }
 
         .table td {
-            padding: 6pt !important;
-            border: 1pt solid #ddd !important;
-            line-height: 1.3 !important;
+            padding: 5pt !important;
+            border: 0.5pt solid #ddd !important;
+            line-height: 1.2 !important;
         }
 
         .table tbody tr {
@@ -496,21 +525,26 @@
 
         /* Badge styling */
         .badge {
-            padding: 3pt 6pt !important;
-            font-size: 9pt !important;
-            border-radius: 3pt !important;
+            padding: 2pt 4pt !important;
+            font-size: 8pt !important;
+            border-radius: 2pt !important;
             display: inline-block !important;
             -webkit-print-color-adjust: exact;
             print-color-adjust: exact;
         }
 
-        .bg-primary {
-            background-color: #003d82 !important;
+        .badge-lg {
+            padding: 3pt 6pt !important;
+            font-size: 9pt !important;
+        }
+
+        .bg-info {
+            background-color: #17a2b8 !important;
             color: white !important;
         }
 
-        .bg-danger {
-            background-color: #dc3545 !important;
+        .bg-dark {
+            background-color: #343a40 !important;
             color: white !important;
         }
 
@@ -519,51 +553,84 @@
             color: white !important;
         }
 
-        /* Summary section */
-        .bg-primary.p-20 {
-            background-color: #003d82 !important;
+        .bg-secondary {
+            background-color: #6c757d !important;
             color: white !important;
-            padding: 15pt !important;
-            border-radius: 5pt !important;
+        }
+
+        .bg-danger {
+            background-color: #dc3545 !important;
+            color: white !important;
+        }
+
+        /* Summary card with gradient */
+        .card[style*="gradient"] {
+            background: #003d82 !important;
+            color: white !important;
             -webkit-print-color-adjust: exact;
             print-color-adjust: exact;
+            border: 1pt solid #003d82 !important;
+            box-shadow: none !important;
+            page-break-inside: avoid;
+            margin-bottom: 8pt !important;
         }
 
-        .bg-primary * {
+        .card[style*="gradient"] .card-body {
+            padding: 8pt !important;
+        }
+
+        .card[style*="gradient"] .card-title {
+            color: white !important;
+            border-bottom: 1pt solid rgba(255,255,255,0.3) !important;
+            font-size: 10pt !important;
+            margin-bottom: 8pt !important;
+            padding-bottom: 6pt !important;
+        }
+
+        .card[style*="gradient"] * {
             color: white !important;
         }
 
-        /* Location box */
-        .p-20.radius-md {
-            padding: 15pt !important;
-            border: 1pt solid #ddd !important;
-            border-radius: 5pt !important;
+        .card[style*="gradient"] .summary-row {
+            color: white !important;
         }
 
-        /* Summary layout fix */
-        .mb-40 .col-md-6:first-child {
-            width: 48% !important;
-            display: inline-block !important;
-            vertical-align: top;
+        .card[style*="gradient"] .summary-row span {
+            color: white !important;
         }
 
-        .mb-40 .col-md-6:last-child {
-            width: 48% !important;
-            display: inline-block !important;
-            vertical-align: top;
-            float: right;
+        .summary-row {
+            display: flex !important;
+            justify-content: space-between !important;
+            padding: 4pt 0 !important;
+            font-size: 9pt !important;
+            margin-bottom: 2pt !important;
+        }
+
+        .summary-row span {
+            color: white !important;
+        }
+
+        /* Summary details section */
+        .summary-details {
+            width: 100% !important;
         }
 
         /* Horizontal rule */
         hr {
             border: 0 !important;
-            border-top: 1pt solid white !important;
-            margin: 8pt 0 !important;
+            border-top: 0.5pt solid #ddd !important;
+            margin: 4pt 0 !important;
             page-break-inside: avoid;
         }
 
         hr.bg-white {
-            opacity: 0.3 !important;
+            border-top: 0.5pt solid rgba(255,255,255,0.3) !important;
+            margin: 4pt 0 !important;
+        }
+
+        .card[style*="gradient"] hr {
+            border-top: 0.5pt solid rgba(255,255,255,0.3) !important;
         }
 
         /* Flex utilities for print */
@@ -573,6 +640,10 @@
 
         .justify-content-between {
             justify-content: space-between !important;
+        }
+
+        .justify-content-start {
+            justify-content: flex-start !important;
         }
 
         .justify-content-end {
@@ -614,10 +685,6 @@
         }
 
         /* Text utilities */
-        .text-center {
-            text-align: center !important;
-        }
-
         .text-muted {
             color: #6c757d !important;
         }
@@ -640,20 +707,20 @@
             print-color-adjust: exact !important;
         }
     }
-</style>
+    </style>
 
     <script>
         function printInvoice() {
             // Get order number for filename
             const orderNumber = '{{ $order->order_number }}';
-            
+
             // Set document title for print dialog
             const originalTitle = document.title;
             document.title = `Invoice_${orderNumber}`;
-            
+
             // Trigger print dialog
             window.print();
-            
+
             // Restore original title after print dialog closes
             setTimeout(() => {
                 document.title = originalTitle;

@@ -6,16 +6,16 @@ use App\Models\BaseModel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Traits\HumanDates;
+use App\Models\Traits\CountryCheckIdTrait;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\Vendor\app\Models\Vendor;
 use Illuminate\Database\Eloquent\Builder;
-use Modules\CatalogManagement\Models\Review;
 use Modules\Order\app\Models\Wishlist;
 use Illuminate\Support\Facades\Auth;
 
 class VendorProduct extends BaseModel
 {
-    use HasFactory, SoftDeletes, HumanDates;
+    use HasFactory, SoftDeletes, HumanDates, CountryCheckIdTrait;
 
     // Status constants
     const STATUS_PENDING = 'pending';
@@ -166,6 +166,18 @@ class VendorProduct extends BaseModel
         return $query->whereHas('product', function($subQ) use ($brandIdentifier) {
             $subQ->whereHas('brand', function($subSubQ) use ($brandIdentifier) {
                 $subSubQ->where('id', $brandIdentifier)->orWhere('slug', $brandIdentifier);
+            });
+        });
+    }
+
+    /**
+     * Scope: Filter by country (through product relationship)
+     */
+    public function scopeByCountry(Builder $query, $countryIdentifier)
+    {
+        return $query->whereHas('product', function($subQ) use ($countryIdentifier) {
+            $subQ->whereHas('country', function($subSubQ) use ($countryIdentifier) {
+                $subSubQ->where('id', $countryIdentifier)->orWhere('slug', $countryIdentifier);
             });
         });
     }

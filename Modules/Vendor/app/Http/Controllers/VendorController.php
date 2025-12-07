@@ -15,6 +15,7 @@ use Modules\CategoryManagment\app\Http\Resources\ActivityResource;
 use Modules\CategoryManagment\app\Services\ActivityService;
 use Modules\Vendor\app\Actions\VendorAction;
 use Modules\Vendor\app\Http\Requests\Vendor\VendorRequest;
+use Modules\Vendor\app\Models\Vendor;
 
 class VendorController extends Controller {
 
@@ -28,7 +29,6 @@ class VendorController extends Controller {
 
     public function index() {
         $languages = $this->languageService->getAll();
-
         // Get vendor statistics
         $statistics = \Modules\Vendor\app\Models\Vendor::getVendorsStatistics();
 
@@ -56,6 +56,7 @@ class VendorController extends Controller {
         ];
 
         $response = $this->vendorAction->getDataTable($data);
+        return $response;
         return response()->json([
             'data' => $response['data'],
             'recordsTotal' => $response['totalRecords'],
@@ -66,11 +67,11 @@ class VendorController extends Controller {
             'total' => $response['dataPaginated']->total(),
             'from' => $response['dataPaginated']->firstItem(),
             'to' => $response['dataPaginated']->lastItem()
-        ]);
+        ], 200, [], JSON_UNESCAPED_UNICODE);
     }
 
 
-    public function create() {
+    public function create($lang, $countryCode) {
         // Get all countries and activities for select dropdowns
         $countriesData = $this->countryService->getAllCountries([], 1000);
         $activitiesData = $this->activityService->getAllActivities([], 1000);
@@ -92,7 +93,7 @@ class VendorController extends Controller {
         return view('vendor::vendors.form', $data);
     }
 
-    public function store(VendorRequest $request)
+    public function store($lang, $countryCode, VendorRequest $request)
     {
         try {
             $data = $request->validated();
@@ -135,7 +136,7 @@ class VendorController extends Controller {
         }
     }
 
-    public function show($id) {
+    public function show($lang, $countryCode, $id) {
         $vendor = $this->vendorService->getVendorById($id);
         $languages = $this->languageService->getAll();
         $data = [
@@ -146,7 +147,7 @@ class VendorController extends Controller {
         return view('vendor::vendors.show', $data);
     }
 
-    public function edit($id) {
+    public function edit($lang, $countryCode, $id) {
         $vendor = $this->vendorService->getVendorById($id);
         // Get all countries and activities for select dropdowns
         $countriesData = $this->countryService->getAllCountries([], 1000);
@@ -168,7 +169,7 @@ class VendorController extends Controller {
         return view('vendor::vendors.form', $data);
     }
 
-    public function update(VendorRequest $request, $id) {
+    public function update($lang, $countryCode, VendorRequest $request, $id) {
         try {
             $this->vendorService->updateVendor($id, $request->all());
 
@@ -197,7 +198,7 @@ class VendorController extends Controller {
         }
     }
 
-    public function destroy($id) {
+    public function destroy($lang, $countryCode, $id) {
         try {
             $this->vendorService->deleteVendor($id);
 
@@ -223,7 +224,7 @@ class VendorController extends Controller {
     /**
      * Change vendor active status
      */
-    public function changeStatus(Request $request, $id)
+    public function changeStatus($lang, $countryCode, Request $request, $id)
     {
         try {
             $vendor = $this->vendorService->getVendorById($id);
@@ -260,7 +261,7 @@ class VendorController extends Controller {
     /**
      * Delete a vendor document
      */
-    public function destroyDocument($vendorId, $documentId)
+    public function destroyDocument($lang, $countryCode, $vendorId, $documentId)
     {
         try {
             $vendor = $this->vendorService->getVendorById($vendorId);

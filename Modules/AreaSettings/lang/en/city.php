@@ -51,6 +51,7 @@ return [
     'city_created' => 'City created successfully',
     'city_updated' => 'City updated successfully',
     'city_deleted' => 'City deleted successfully',
+    'cannot_delete_city_with_regions' => 'Cannot delete this city. It is currently used by :count regions.',
     'error_creating_city' => 'Error creating city',
     'error_updating_city' => 'Error updating city',
     'error_deleting_city' => 'Error deleting city',

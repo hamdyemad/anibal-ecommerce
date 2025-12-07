@@ -7,19 +7,23 @@ use App\Models\Attachment;
 use App\Traits\HasSlug;
 use App\Models\User;
 use App\Traits\Translation;
+use App\Models\Traits\CountryCheckIdTrait;
+
 use App\Models\Traits\HumanDates;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Builder;
 use Modules\CatalogManagement\app\Http\Requests\Api\ProductReviewRequest;
+use Modules\CategoryManagment\app\Models\Activity;
 use Modules\CategoryManagment\app\Models\Category;
 use Modules\CategoryManagment\app\Models\Department;
 use Modules\CategoryManagment\app\Models\SubCategory;
 use Modules\Vendor\app\Models\Vendor;
+use Modules\AreaSettings\app\Models\Country;
 
 class Product extends BaseModel
 {
-    use HasFactory, SoftDeletes, Translation, HumanDates;
+    use HasFactory, SoftDeletes, Translation, HumanDates, CountryCheckIdTrait;
 
     protected $guarded = [];
     protected $casts = [
@@ -163,9 +167,7 @@ class Product extends BaseModel
         return $this->belongsTo(Brand::class);
     }
 
-    /**
-     * Get the department
-     */
+
     public function department()
     {
         return $this->belongsTo(Department::class);
@@ -203,6 +205,13 @@ class Product extends BaseModel
         return $this->belongsTo(User::class, 'created_by_user_id');
     }
 
+    /**
+     * Get the country
+     */
+    public function country()
+    {
+        return $this->belongsTo(Country::class);
+    }
 
     /**
      * Get vendors that have added this product

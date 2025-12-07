@@ -28,7 +28,7 @@
                     <div class="overview-content w-100">
                         <div class="ap-po-details-content h-100">
                             <div class="ap-po-details__titlebar">
-                                <h1 class="ap-po-details__title" id="totalOrdersCount">0</h1>
+                                <h1 class="ap-po-details__title" id="totalOrdersCount">{{ $orders_count }}</h1>
                                 <p class="ap-po-details__text text-nowrap">{{ trans('order::order.total_orders') }}</p>
                             </div>
                             <div class="ap-po-details__icon-area">
@@ -45,7 +45,7 @@
                     <div class="overview-content w-100">
                         <div class="ap-po-details-content h-100">
                             <div class="ap-po-details__titlebar">
-                                <h1 class="ap-po-details__title" id="totalProductPrice">0.00 {{ __('common.currency') }}</h1>
+                                <h1 class="ap-po-details__title" id="totalProductPrice">{{ $total_price }} {{ currency() }}</h1>
                                 <p class="ap-po-details__text text-nowrap">{{ trans('order::order.total_product_price') }}</p>
                             </div>
                             <div class="ap-po-details__icon-area">
@@ -62,7 +62,7 @@
                     <div class="overview-content w-100">
                         <div class="ap-po-details-content h-100">
                             <div class="ap-po-details__titlebar">
-                                <h1 class="ap-po-details__title" id="totalIncome">0.00 {{ __('common.currency') }}</h1>
+                                <h1 class="ap-po-details__title" id="totalIncome">0.00 {{ currency() }}</h1>
                                 <p class="ap-po-details__text text-nowrap">{{ trans('order::order.income') }}</p>
                             </div>
                             <div class="ap-po-details__icon-area">
@@ -191,9 +191,7 @@
                             <thead>
                                 <tr class="userDatatable-header">
                                     <th class="text-center"><span class="userDatatable-title">#</span></th>
-                                    <th><span class="userDatatable-title">{{ trans('order::order.order_id') }}</span></th>
-                                    <th><span class="userDatatable-title">{{ trans('order::order.customer_name') }}</span></th>
-                                    <th><span class="userDatatable-title">{{ trans('order::order.customer_email') }}</span></th>
+                                    <th><span class="userDatatable-title">{{ __('common.order_information') }}</span></th>
                                     <th><span class="userDatatable-title">{{ trans('order::order.total_price') }}</span></th>
                                     <th><span class="userDatatable-title">{{ trans('order::order.items_count') }}</span></th>
                                     <th><span class="userDatatable-title">{{ trans('order::order.stage') }}</span></th>
@@ -294,30 +292,34 @@
                         className: 'text-center fw-bold'
                     },
                     {
-                        data: 'order_number',
-                        name: 'order_number',
+                        data: null,
+                        name: 'order_customer',
                         orderable: false,
                         searchable: true,
-                        render: function(data) {
-                            return `${data}`;
-                        }
-                    },
-                    {
-                        data: 'customer_name',
-                        name: 'customer_name',
-                        orderable: false,
-                        searchable: true,
-                        render: function(data) {
-                            return data || '-';
-                        }
-                    },
-                    {
-                        data: 'customer_email',
-                        name: 'customer_email',
-                        orderable: false,
-                        searchable: true,
-                        render: function(data) {
-                            return data || '-';
+                        render: function(data, type, row) {
+                            const orderNumber = data.order_number || '-';
+                            const customerName = data.customer_name || '-';
+                            const customerEmail = data.customer_email || '-';
+                            const customerPhone = data.customer_phone || '-';
+
+                            return `
+                                <div class="customer-info">
+                                    <div class="fw-bold mb-1">
+                                        <i class="uil uil-receipt me-1"></i> Order: <strong>${orderNumber}</strong>
+                                    </div>
+                                    <div class="small">
+                                        <div class="mb-1">
+                                            <i class="uil uil-user me-1"></i> <strong>${customerName}</strong>
+                                        </div>
+                                        <div class="mb-1">
+                                            <i class="uil uil-envelope me-1"></i> <a href="mailto:${customerEmail}">${customerEmail}</a>
+                                        </div>
+                                        <div>
+                                            <i class="uil uil-phone me-1"></i> ${customerPhone}
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
                         }
                     },
                     {
@@ -349,7 +351,7 @@
                                 ? data.translations.en.name
                                 : data.slug;
                             const stageColor = data.color || '#6c757d';
-                            return `<span class="badge" style="background-color: ${stageColor}; color: white;">${stageName}</span>`;
+                            return `<span class="badge badge-round badge-lg" style="background-color: ${stageColor}; color: white;">${stageName}</span>`;
                         }
                     },
                     {
@@ -396,55 +398,8 @@
                     '<"row mt-3"<"col-sm-12 col-md-5"i><"col-sm-12 col-md-7"p>>',
                 language: {
                     search: "{{ __('common.search') }}:",
-                },
-                drawCallback: function(settings) {
-                    updateStatistics(settings);
                 }
             });
-
-            // Function to update statistics
-            function updateStatistics(settings) {
-                const data = settings.json;
-
-                if (data && data.data) {
-                    let totalOrders = data.recordsTotal || 0;
-                    let totalProductPrice = 0;
-                    let totalIncome = 0;
-
-                    // Calculate totals from all orders (not just current page)
-                    $.ajax({
-                        url: '{{ route('admin.orders.datatable') }}',
-                        type: 'GET',
-                        data: {
-                            per_page: 10000, // Get all records
-                            page: 1,
-                            search: $('#search').val(),
-                            stage: $('#stage').val(),
-                            created_date_from: $('#created_from_filter').val(),
-                            created_date_to: $('#created_until_filter').val(),
-                        },
-                        success: function(response) {
-                            if (response.data) {
-                                totalOrders = response.recordsFiltered || response.recordsTotal || 0;
-
-                                response.data.forEach(order => {
-                                    totalProductPrice += parseFloat(order.total_product_price || 0);
-                                    
-                                    // Only add to income if order is delivered
-                                    if (order.stage_id === 3) {
-                                        totalIncome += parseFloat(order.total_price || 0);
-                                    }
-                                });
-
-                                // Update card displays
-                                $('#totalOrdersCount').text(totalOrders);
-                                $('#totalProductPrice').text(totalProductPrice.toFixed(2) + ' {{ __('common.currency') }}');
-                                $('#totalIncome').text(totalIncome.toFixed(2) + ' {{ __('common.currency') }}');
-                            }
-                        }
-                    });
-                }
-            }
 
             $('#entriesSelect').on('change', function() {
                 table.page.len($(this).val()).draw();

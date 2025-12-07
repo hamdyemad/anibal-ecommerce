@@ -97,6 +97,11 @@ return [
     'delivered' => 'تم التسليم',
     'cancelled' => 'ملغى',
 
+    // Order Information
+    'order_information' => 'معلومات الطلب',
+    'variant' => 'المتغير',
+    'no_variant' => 'بدون متغير',
+
     // Order Summary
     'order_summary' => 'ملخص الطلب',
     'subtotal' => 'المجموع الفرعي',

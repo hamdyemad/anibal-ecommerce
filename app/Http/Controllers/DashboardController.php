@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use Modules\Withdraw\app\Models\Withdraw;
+use Illuminate\Database\Eloquent\Model;
 
 class DashboardController extends Controller
 {
@@ -14,7 +14,7 @@ class DashboardController extends Controller
         return view('pages.dashboard.dashboard', $data);
     }
 
-    public function test() {
+    // Automatically get all models inside app/Models
 
-    }
+
 }

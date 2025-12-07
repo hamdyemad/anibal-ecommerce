@@ -1,18 +1,27 @@
 <?php
 
-namespace Modules\CatalogManagement\Models;
+namespace Modules\CatalogManagement\app\Models;
 
 use App\Models\BaseModel;
-use App\Models\Traits\HumanDates;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Builder;
 use Modules\CatalogManagement\app\Models\VendorProduct;
 use Modules\Customer\app\Models\Customer;
+use App\Models\Traits\HumanDates;
+use App\Models\Traits\CountryCheckIdTrait;
 
 class Review extends BaseModel
 {
-    use HasFactory, SoftDeletes, HumanDates;
+    use HasFactory, SoftDeletes, HumanDates, CountryCheckIdTrait;
+
+    /**
+     * Create a new factory instance for the model.
+     */
+    protected static function newFactory()
+    {
+        return \Modules\CatalogManagement\database\factories\ReviewFactory::new();
+    }
 
     // Status constants
     const STATUS_PENDING = 'pending';

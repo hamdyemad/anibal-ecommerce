@@ -50,7 +50,7 @@ class CurrencyController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
+    public function create($lang, $countryCode)
     {
         $languages = $this->languageService->getAll();
         $data = [
@@ -63,7 +63,7 @@ class CurrencyController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(CurrencyRequest $request)
+    public function store($lang, $countryCode, CurrencyRequest $request)
     {
         $validated = $request->validated();
 
@@ -97,7 +97,7 @@ class CurrencyController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show($lang, $countryCode, string $id)
     {
         try {
             $languages = $this->languageService->getAll();
@@ -117,7 +117,7 @@ class CurrencyController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(string $id)
+    public function edit($lang, $countryCode, string $id)
     {
         try {
             $languages = $this->languageService->getAll();
@@ -137,7 +137,7 @@ class CurrencyController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(CurrencyRequest $request, string $id)
+    public function update($lang, $countryCode, CurrencyRequest $request, string $id)
     {
         $validated = $request->validated();
 
@@ -171,10 +171,10 @@ class CurrencyController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Request $request, string $id)
+    public function destroy($lang, $countryCode, Request $request, string $id)
     {
         try {
-            $this->currencyService->deleteCurrency($id);
+            $this->currencyService->deleteCurrency((int) $id);
 
             if ($request->ajax() || $request->wantsJson()) {
                 return response()->json([
@@ -187,15 +187,24 @@ class CurrencyController extends Controller
             return redirect()->route('admin.system-settings.currencies.index')
                 ->with('success', __('systemsetting::currency.deleted_successfully'));
         } catch (\Exception $e) {
+            // Log the error for debugging
+            \Log::error('Currency deletion error: ' . $e->getMessage(), [
+                'currency_id' => $id,
+                'user_id' => auth()->id(),
+            ]);
+
+            // Get the error message
+            $errorMessage = $e->getMessage();
+
             if ($request->ajax() || $request->wantsJson()) {
                 return response()->json([
                     'success' => false,
-                    'message' => __('systemsetting::currency.error_deleting') . ': ' . $e->getMessage()
+                    'message' => $errorMessage
                 ], 422);
             }
 
             return redirect()->route('admin.system-settings.currencies.index')
-                ->with('error', __('systemsetting::currency.error_deleting') . ': ' . $e->getMessage());
+                ->with('error', $errorMessage);
         }
     }
 }

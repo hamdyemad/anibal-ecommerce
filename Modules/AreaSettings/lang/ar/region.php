@@ -51,6 +51,8 @@ return [
     'region_created' => 'تم إنشاء المنطقة بنجاح',
     'region_updated' => 'تم تحديث المنطقة بنجاح',
     'region_deleted' => 'تم حذف المنطقة بنجاح',
+    'cannot_delete_region_with_subregions' => 'لا يمكن حذف هذه المنطقة. يتم استخدامها حالياً في :count مناطق فرعية.',
+    'cannot_delete_region_with_vendors' => 'لا يمكن حذف هذه المنطقة. معينة حالياً لـ :count بائعين.',
     'error_creating_region' => 'خطأ في إنشاء المنطقة',
     'error_updating_region' => 'خطأ في تحديث المنطقة',
     'error_deleting_region' => 'خطأ في حذف المنطقة',

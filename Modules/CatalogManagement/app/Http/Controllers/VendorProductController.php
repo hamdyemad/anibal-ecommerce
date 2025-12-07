@@ -114,7 +114,7 @@ class VendorProductController extends Controller
     /**
      * Show form to import/add product to vendor store
      */
-    public function importForm($productId)
+    public function importForm($lang, $countryCode, $productId)
     {
         $product = Product::with(['variants.variantConfiguration', 'brand', 'department', 'category'])
                          ->where('status', 'approved')
@@ -140,7 +140,7 @@ class VendorProductController extends Controller
     /**
      * Import product to vendor store
      */
-    public function import(Request $request, $productId)
+    public function import($lang, $countryCode, Request $request, $productId)
     {
         try {
             DB::beginTransaction();

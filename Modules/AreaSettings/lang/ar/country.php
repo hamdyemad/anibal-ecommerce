@@ -69,6 +69,9 @@ return [
     'error_deleting_country' => 'خطأ في حذف الدولة',
     'country_not_found' => 'الدولة غير موجودة',
     'no_countries_found' => 'لا توجد دول',
+    'cannot_delete_country_with_cities' => 'لا يمكن حذف هذه الدولة. يتم استخدامها حالياً في :count مدن.',
+    'cannot_delete_last_country' => 'لا يمكن حذف آخر دولة. يجب أن تبقى دولة واحدة على الأقل في النظام.',
+    'default_transferred' => 'تم نقل حالة الدولة الافتراضية إلى :country.',
 
     // Delete Modal
     'confirm_delete' => 'تأكيد الحذف',

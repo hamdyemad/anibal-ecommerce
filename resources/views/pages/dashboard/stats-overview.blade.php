@@ -19,7 +19,7 @@
                     <div class="overview-content w-100">
                         <div class="ap-po-details-content d-flex flex-wrap justify-content-between">
                             <div class="ap-po-details__titlebar">
-                                <h1 style="">3,250.00 {{ __('common.egp') }}</h1>
+                                <h1 style="">3,250.00 {{ currency() }}</h1>
                                 <p>{{ trans('dashboard.Total Expenses') }}</p>
                             </div>
                             <div class="ap-po-details__icon-area">
@@ -36,7 +36,7 @@
                     <div class="overview-content w-100">
                         <div class="ap-po-details-content d-flex flex-wrap justify-content-between">
                             <div class="ap-po-details__titlebar">
-                                <h1 style="">3,250.00 {{ __('common.egp') }}</h1>
+                                <h1 style="">3,250.00 {{ currency() }}</h1>
                                 <p>{{ trans('dashboard.Total Income (After Delivery)') }}</p>
                             </div>
                             <div class="ap-po-details__icon-area">
@@ -53,7 +53,7 @@
                     <div class="overview-content w-100">
                         <div class="ap-po-details-content d-flex flex-wrap justify-content-between">
                             <div class="ap-po-details__titlebar">
-                                <h1 style="">3,250.00 {{ __('common.egp') }}</h1>
+                                <h1 style="">3,250.00 {{ currency() }}</h1>
                                 <p>{{ trans('dashboard.Net Profit Y.T.D') }}</p>
                             </div>
                             <div class="ap-po-details__icon-area">
@@ -81,7 +81,7 @@
                     <div class="overview-content w-100">
                         <div class="ap-po-details-content d-flex flex-wrap justify-content-between">
                             <div class="ap-po-details__titlebar">
-                                <h1 style="">3,250.00 {{ __('common.egp') }}</h1>
+                                <h1 style="">3,250.00 {{ currency() }}</h1>
                                 <p>{{ trans('dashboard.Revenue Y.T.D') }}</p>
                             </div>
                             <div class="ap-po-details__icon-area">
@@ -98,7 +98,7 @@
                     <div class="overview-content w-100">
                         <div class="ap-po-details-content d-flex flex-wrap justify-content-between">
                             <div class="ap-po-details__titlebar">
-                                <h1 style="">3,250.00 {{ __('common.egp') }}</h1>
+                                <h1 style="">3,250.00 {{ currency() }}</h1>
                                 <p>{{ trans('dashboard.Total New Orders') }}</p>
                             </div>
                             <div class="ap-po-details__icon-area">
@@ -115,7 +115,7 @@
                     <div class="overview-content w-100">
                         <div class="ap-po-details-content d-flex flex-wrap justify-content-between">
                             <div class="ap-po-details__titlebar">
-                                <h1 style="">3,250.00 {{ __('common.egp') }}</h1>
+                                <h1 style="">3,250.00 {{ currency() }}</h1>
                                 <p>{{ trans('dashboard.Total In Progress Orders') }}</p>
                             </div>
                             <div class="ap-po-details__icon-area">

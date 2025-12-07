@@ -54,6 +54,7 @@ return [
     'occasion_created' => 'تم إنشاء المناسبة بنجاح',
     'occasion_updated' => 'تم تحديث المناسبة بنجاح',
     'occasion_deleted' => 'تم حذف المناسبة بنجاح',
+    'products_added' => 'منتجات مضافة',
     'error_creating_occasion' => 'خطأ في إنشاء المناسبة',
     'error_updating_occasion' => 'خطأ في تحديث المناسبة',
     'error_deleting_occasion' => 'خطأ في حذف المناسبة',
@@ -99,4 +100,15 @@ return [
 
     // Additional translations for form
     'must_be_greater_than_zero' => 'يجب أن يكون أكبر من 0',
+
+    // Form labels
+    'enter_occasion_name' => 'أدخل اسم المناسبة',
+    'enter_occasion_title' => 'أدخل عنوان المناسبة',
+    'enter_occasion_sub_title' => 'أدخل العنوان الفرعي للمناسبة',
+    'recommended_size' => 'الحجم الموصى به: 1538×402px',
+    'select_vendor' => 'اختر التاجر',
+    'type_to_search_products' => 'اكتب للبحث عن المنتجات...',
+    'enter_seo_title' => 'أدخل عنوان SEO',
+    'enter_seo_description' => 'أدخل وصف SEO',
+    'type_keyword_press_enter' => 'اكتب كلمة مفتاحية واضغط انتر',
 ];

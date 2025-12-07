@@ -21,7 +21,7 @@ class VendorRepository implements VendorInterface
     }
     public function getAllVendors(array $filters = [], int $perPage = 10)
     {
-        $query = Vendor::with(['user', 'country', 'country.translations', 'activities', 'translations', 'commission'])
+        $query = Vendor::with(['user', 'country', 'country.translations', 'activities', 'translations'])
         ->filter($filters);
         return ($perPage == 0) ?  $query->get() : $query->latest()->paginate($perPage);
     }
@@ -46,8 +46,7 @@ class VendorRepository implements VendorInterface
             'logo',
             'banner',
             'documents',
-            'documents.translations',
-            'commission'
+            'documents.translations'
         ])->findOrFail($id);
     }
 
@@ -56,6 +55,7 @@ class VendorRepository implements VendorInterface
         return DB::transaction(function () use ($data) {
             // $role = rand(0, 9999);
             $userData = [
+                'slug' => \Str::uuid(),
                 'email' => $data['email'],
                 'password' => $data['password'],
                 'active' => $data['active'] ?? false,
@@ -68,8 +68,7 @@ class VendorRepository implements VendorInterface
             // Create vendor with temporary slug
             $vendor = Vendor::create([
                 'user_id' => $user->id,
-                'country_id' => $data['country_id'],
-                'type' => $data['type'],
+                'type' => $data['type'] ?? 'product',
                 'active' => $data['active'] ?? false,
             ]);
             // Handle logo upload
@@ -95,14 +94,6 @@ class VendorRepository implements VendorInterface
             if (!empty($data['activity_ids'])) {
                 $vendor->activities()->sync($data['activity_ids']);
             }
-
-            // Store commission
-            if (isset($data['commission'])) {
-                $vendor->commission()->create([
-                    'commission' => $data['commission'],
-                ]);
-            }
-
             // Store translations
             $this->storeTranslations($vendor, $data);
 
@@ -171,8 +162,7 @@ class VendorRepository implements VendorInterface
 
             // Update vendor
             $vendor->update([
-                'country_id' => $data['country_id'],
-                'type' => $data['type'],
+                'type' => $data['type'] ?? 'product',
                 'active' => $data['active'] ?? false,
             ]);
 
@@ -180,15 +170,6 @@ class VendorRepository implements VendorInterface
             if (!empty($data['activity_ids'])) {
                 $vendor->activities()->sync($data['activity_ids']);
             }
-
-            // Update commission
-            if (isset($data['commission'])) {
-                $vendor->commission()->delete();
-                $vendor->commission()->create([
-                    'commission' => $data['commission'],
-                ]);
-            }
-
             // Update translations
             $this->storeTranslations($vendor, $data);
 
@@ -219,7 +200,7 @@ class VendorRepository implements VendorInterface
     public function deleteVendor(int $id)
     {
         return DB::transaction(function () use ($id) {
-            $vendor = Vendor::with(['user', 'attachments', 'commission'])->findOrFail($id);
+            $vendor = Vendor::with(['user', 'attachments'])->findOrFail($id);
 
             // Get user before deleting vendor
             $user = $vendor->user;
@@ -250,10 +231,6 @@ class VendorRepository implements VendorInterface
             // Detach activities (many-to-many) - must be done before vendor deletion
             $vendor->activities()->detach();
 
-            // Force delete commission if exists (commission uses soft delete)
-            if ($vendor->commission) {
-                $vendor->commission->forceDelete();
-            }
 
             // Force delete vendor (bypass soft delete) to avoid foreign key constraint issues
             $vendor->forceDelete();
@@ -285,6 +262,21 @@ class VendorRepository implements VendorInterface
 
                 // Update or create name translation
                 if (!empty($fields['name'])) {
+                    if($language->code == 'en') {
+                        // $originalSlug = $slug;
+                        if(Vendor::where('slug', Str::slug($fields['name']))->exists()) {
+                            $model = Vendor::where('slug', Str::slug($fields['name']))->first();
+                            $vendor->update([
+                                'slug' => $model->slug . '-' . rand(1, 1000)
+                            ]);
+
+                        } else {
+                            $vendor->update([
+                                'slug' => Str::slug($fields['name'])
+                            ]);
+                        }
+                    }
+
                     $vendor->translations()->updateOrCreate(
                         [
                             'lang_id' => $language->id,

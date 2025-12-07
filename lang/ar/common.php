@@ -18,6 +18,7 @@ return [
     'back' => 'رجوع',
     'search' => 'بحث',
     'filter' => 'تصفية',
+    'information' => 'معلومات',
     'export' => 'تصدير',
     'import' => 'استيراد',
     'download' => 'تنزيل',
@@ -197,4 +198,5 @@ return [
     'note' => 'ملاحظة',
     'trashed' => 'محذوف',
     'restore' => 'استعادة',
+    'no_data_available' => 'لا توجد بيانات متاحة',
 ];

@@ -130,6 +130,49 @@
                                         @endforeach
                                     </div>
 
+                                    <div class="row">
+                                                                                <!-- Activities Selection -->
+                                        <div class="col-md-6 mb-3">
+                                            <div class="form-group">
+                                                <label for="activities" class="form-label">
+                                                    {{ trans('vendor::vendor.activities') }}
+                                                    <span class="text-danger">*</span>
+                                                </label>
+                                                <select name="activity_ids[]" id="activities" class="form-control select2" multiple>
+                                                    @foreach($activities as $activity)
+                                                        <option value="{{ $activity->id }}"
+                                                            {{ isset($vendor) && $vendor->activities->contains($activity->id) ? 'selected' : '' }}>
+                                                            {{ $activity->getTranslation('name', app()->getLocale()) }}
+                                                        </option>
+                                                    @endforeach
+                                                </select>
+                                                @error('activity_ids')
+                                                    <div class="text-danger mt-1">{{ $message }}</div>
+                                                @enderror
+                                            </div>
+                                        </div>
+
+                                        <!-- Active -->
+                                        <div class="col-md-6 mb-3">
+                                            <div class="form-group">
+                                                <label class="form-label d-block">
+                                                    {{ trans('vendor::vendor.active') }}
+                                                </label>
+                                                <div class="form-check form-switch form-switch-lg">
+                                                    <input
+                                                        class="form-check-input"
+                                                        type="checkbox"
+                                                        role="switch"
+                                                        id="active"
+                                                        name="active"
+                                                        value="1"
+                                                        {{ isset($vendor) && $vendor->active ? 'checked' : (!isset($vendor) ? 'checked' : '') }}
+                                                    >
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
                                 </div>
                             </div>
                             <!-- Logo and Banner Section -->
@@ -173,77 +216,6 @@
                                     </div>
 
                                     <div class="row">
-                                        <!-- Country Selection -->
-                                        <div class="col-md-6 mb-3">
-                                            <div class="form-group">
-                                                <label for="country_id" class="form-label">
-                                                    {{ trans('vendor::vendor.country') }}
-                                                    <span class="text-danger">*</span>
-                                                </label>
-                                                <select name="country_id" id="country_id" class="form-control select2">
-                                                    <option value="">{{ trans('vendor::vendor.select_country') }}</option>
-                                                    @foreach($countries as $country)
-                                                        <option value="{{ $country['id'] }}"
-                                                            {{ isset($vendor) && $vendor->country_id == $country['id'] ? 'selected' : '' }}>
-                                                            {{ $country['name'] }}
-                                                        </option>
-                                                    @endforeach
-                                                </select>
-                                                @error('country_id')
-                                                    <div class="text-danger mt-1">{{ $message }}</div>
-                                                @enderror
-                                            </div>
-                                        </div>
-
-                                        <!-- Commission -->
-                                        <div class="col-md-6 mb-3">
-                                            <div class="form-group">
-                                                <label for="commission" class="form-label">
-                                                    {{ trans('vendor::vendor.commission') }} (%)
-                                                    <span class="text-danger">*</span>
-                                                </label>
-                                                <input
-                                                    type="number"
-                                                    name="commission"
-                                                    id="commission"
-                                                    class="form-control ih-medium ip-gray radius-xs b-light px-15"
-                                                    min="0"
-                                                    max="100"
-                                                    step="0.01"
-                                                    value="{{ (isset($vendor) && $vendor->commission) ? $vendor->commission->commission : old('commission') }}"
-                                                    placeholder="{{ trans('vendor::vendor.enter_commission') }}"
-                                                    @if(app()->getLocale() == 'ar') dir="rtl" @endif
-                                                >
-                                                @error('commission')
-                                                    <div class="text-danger mt-1">{{ $message }}</div>
-                                                @enderror
-                                            </div>
-                                        </div>
-
-                                        <!-- Vendor Type -->
-                                        <div class="col-md-6 mb-3">
-                                            <div class="form-group">
-                                                <label for="type" class="form-label">
-                                                    {{ trans('vendor::vendor.vendor_type') }}
-                                                    <span class="text-danger">*</span>
-                                                </label>
-                                                <select name="type" id="type" class="form-control select2">
-                                                    <option value="">{{ trans('vendor::vendor.select_vendor_type') }}</option>
-                                                    <option value="product" {{ (isset($vendor) && $vendor->type == 'product') || old('type') == 'product' ? 'selected' : '' }}>
-                                                        {{ trans('vendor::vendor.product') }}
-                                                    </option>
-                                                    <option value="booking" {{ (isset($vendor) && $vendor->type == 'booking') || old('type') == 'booking' ? 'selected' : '' }}>
-                                                        {{ trans('vendor::vendor.booking') }}
-                                                    </option>
-                                                    <option value="product_booking" {{ (isset($vendor) && $vendor->type == 'product_booking') || old('type') == 'product_booking' ? 'selected' : '' }}>
-                                                        {{ trans('vendor::vendor.product_booking') }}
-                                                    </option>
-                                                </select>
-                                                @error('type')
-                                                    <div class="text-danger mt-1">{{ $message }}</div>
-                                                @enderror
-                                            </div>
-                                        </div>
                                         {{-- Social Media Section --}}
                                 <div class="col-12 mb-2">
                                     <h6 class="fw-500">{{ trans('catalogmanagement::brand.social_media') }}</h6>
@@ -338,46 +310,7 @@
                                         @enderror
                                     </div>
                                 </div>
-                                        <!-- Activities Selection -->
-                                        <div class="col-md-6 mb-3">
-                                            <div class="form-group">
-                                                <label for="activities" class="form-label">
-                                                    {{ trans('vendor::vendor.activities') }}
-                                                    <span class="text-danger">*</span>
-                                                </label>
-                                                <select name="activity_ids[]" id="activities" class="form-control select2" multiple>
-                                                    @foreach($activities as $activity)
-                                                        <option value="{{ $activity->id }}"
-                                                            {{ isset($vendor) && $vendor->activities->contains($activity->id) ? 'selected' : '' }}>
-                                                            {{ $activity->getTranslation('name', app()->getLocale()) }}
-                                                        </option>
-                                                    @endforeach
-                                                </select>
-                                                @error('activity_ids')
-                                                    <div class="text-danger mt-1">{{ $message }}</div>
-                                                @enderror
-                                            </div>
-                                        </div>
 
-                                        <!-- Active -->
-                                        <div class="col-md-6 mb-3">
-                                            <div class="form-group">
-                                                <label class="form-label d-block">
-                                                    {{ trans('vendor::vendor.active') }}
-                                                </label>
-                                                <div class="form-check form-switch form-switch-lg">
-                                                    <input
-                                                        class="form-check-input"
-                                                        type="checkbox"
-                                                        role="switch"
-                                                        id="active"
-                                                        name="active"
-                                                        value="1"
-                                                        {{ isset($vendor) && $vendor->active ? 'checked' : (!isset($vendor) ? 'checked' : '') }}
-                                                    >
-                                                </div>
-                                            </div>
-                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -782,9 +715,6 @@ window.vendorFormConfig = {
         vendorNameRequired: '{{ app()->getLocale() == "ar" ? "اسم التاجر مطلوب" : "Vendor name is required" }}',
         vendorNameEnRequired: '{{ app()->getLocale() == "ar" ? "اسم التاجر باللغة الإنجليزية مطلوب" : "Vendor name in English is required" }}',
         vendorNameArRequired: '{{ app()->getLocale() == "ar" ? "اسم التاجر باللغة العربية مطلوب" : "Vendor name in Arabic is required" }}',
-        countryRequired: '{{ app()->getLocale() == "ar" ? "الدولة مطلوبة" : "Country is required" }}',
-        commissionRequired: '{{ app()->getLocale() == "ar" ? "العمولة مطلوبة" : "Commission is required" }}',
-        vendorTypeRequired: '{{ app()->getLocale() == "ar" ? "نوع المورد مطلوب" : "Vendor type is required" }}',
         activitiesRequired: '{{ app()->getLocale() == "ar" ? "يرجى اختيار نشاط واحد على الأقل" : "Please select at least one activity" }}',
         logoRequired: '{{ app()->getLocale() == "ar" ? "الشعار مطلوب" : "Logo is required" }}',
         bannerRequired: '{{ app()->getLocale() == "ar" ? "البانر مطلوب" : "Banner is required" }}',

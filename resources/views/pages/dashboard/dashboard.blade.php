@@ -1,12 +1,17 @@
 @php
-    $user_type = auth()->user()->user_type->name;
-    $vendor = auth()->user()->vendor;
+    try {
+        $user_type = auth()->user()->user_type?->name ?? 'Unknown';
+        $vendor = auth()->user()->vendor ?? null;
+    } catch (\Exception $e) {
+        $user_type = 'Unknown';
+        $vendor = null;
+    }
 @endphp
 
 @extends('layout.app')
 
 @section('title')
-    {{ $title }}
+    {{ $title ?? 'Dashboard' }}
 @endsection
 @section('content')
     <div class="crm mb-25">
@@ -30,18 +35,10 @@
                 @include('pages.dashboard.withdraw-transactions')
                 @include('pages.dashboard.stats-overview')
                 @include('pages.dashboard.income-and-expenses')
-
-
-
-                {{-- Statistics Cards --}}
                 @include('pages.dashboard.stats-cards')
-
                 {{-- Orders Overview & Top Selling Products --}}
-                <div class="col-12">
-                    <div class="row">
-                        @include('pages.dashboard.orders-overview')
-                    </div>
-                </div>
+                @include('pages.dashboard.orders-overview')
+
                 {{-- Charts Row: Sales, Earnings, Total Sales --}}
                 <div class="col-12">
                     <div class="row">
@@ -53,10 +50,10 @@
                 @include('pages.dashboard.top-selling-products')
                 @include('pages.dashboard.latest-orders')
                 @include('pages.dashboard.best-customers')
-                @if ($user_type == 'super_admin')
+
+                @if (in_array(auth()->user()->user_type_id, \App\Models\UserType::adminIds()))
                     @include('pages.dashboard.top-vendors')
                 @endif
-
                 @include('pages.dashboard.recent-activities')
 
             </div>

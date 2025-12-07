@@ -1,29 +1,33 @@
 @php
-    $vendor = auth()->user()->vendor;
-
+    $vendor = auth()->user()->vendor ?? null;
     $all_transactions = [];
 
-    if ($vendor) {
-        $all_transactions = Modules\Withdraw\app\Models\Withdraw::with([
-            'vendor' => function ($vendor) {
-                $vendor->with('translations')->first();
-            },
-        ])
-            ->whereIn('status', ['accepted', 'rejected'])
-            ->where('reciever_id', $vendor->id)
-            ->latest()
-            ->limit(10)
-            ->get();
-    } else {
-        $all_transactions = Modules\Withdraw\app\Models\Withdraw::with([
-            'vendor' => function ($vendor) {
-                $vendor->with('translations')->first();
-            },
-        ])
-            ->whereIn('status', ['new'])
-            ->latest()
-            ->limit(10)
-            ->get();
+    try {
+        if ($vendor) {
+            $all_transactions = Modules\Withdraw\app\Models\Withdraw::with([
+                'vendor' => function ($vendor) {
+                    $vendor->with('translations')->first();
+                },
+            ])
+                ->whereIn('status', ['accepted', 'rejected'])
+                ->where('reciever_id', $vendor->id)
+                ->latest()
+                ->limit(10)
+                ->get();
+        } else {
+            $all_transactions = Modules\Withdraw\app\Models\Withdraw::with([
+                'vendor' => function ($vendor) {
+                    $vendor->with('translations')->first();
+                },
+            ])
+                ->whereIn('status', ['new'])
+                ->latest()
+                ->limit(10)
+                ->get();
+        }
+    } catch (\Exception $e) {
+        // Silently fail
+        $all_transactions = [];
     }
 @endphp
 <li class="nav-notification">

@@ -951,3 +951,69 @@ function formatImage($imagePath): ?string
     return url(asset('storage/' . $imagePath));
 }
 
+/**
+ * Generate route URL with country code prefix
+ *
+ * @param string $name
+ * @param array $parameters
+ * @param bool $absolute
+ * @return string
+ */
+function routeWithCountryCode($name, $parameters = [], $absolute = true): string
+{
+    $countryCode = strtolower(session('country_code') ?? 'us');
+
+    // Add country code as first parameter
+    $parameters = array_merge(['countryCode' => $countryCode], $parameters);
+
+    return route($name, $parameters, $absolute);
+}
+
+/**
+ * Get current country code from session or default
+ *
+ * @return string
+ */
+function getCountryCode(): string
+{
+    return session('country_code') ?? 'eg';
+}
+
+/**
+ * Get currency symbol for the current country
+ *
+ * @return string
+ */
+function currency(): string
+{
+    try {
+        $countryCode = session('country_code') ?? 'eg';
+        $country = \Modules\AreaSettings\app\Models\Country::where('code', $countryCode)->first();
+
+        if ($country && $country->currency) {
+            return $country->currency->symbol;
+        }
+
+        return 'EGP'; // Default fallback
+    } catch (\Exception $e) {
+        return 'EGP'; // Fallback in case of error
+    }
+}
+
+function current_country()
+{
+    try {
+        $countryCode = session('country_code');
+        if($countryCode) {
+            $country = \Modules\AreaSettings\app\Models\Country::where('code', $countryCode)->first();
+        } else {
+            $country = \Modules\AreaSettings\app\Models\Country::default()->first();
+        }
+        if ($country) {
+            return $country;
+        }
+        return '';
+    } catch (\Exception $e) {
+        return null; // Fallback in case of error
+    }
+}

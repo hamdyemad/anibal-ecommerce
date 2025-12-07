@@ -4,29 +4,28 @@ namespace Modules\Vendor\app\Models;
 
 use App\Models\BaseModel;
 use App\Traits\Translation;
+use App\Models\Traits\CountryCheckIdTrait;
+
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Models\User;
 use App\Models\Attachment;
-use App\Traits\HasSlug;
 use App\Models\Traits\HumanDates;
 use Illuminate\Database\Eloquent\Builder;
 use Modules\AreaSettings\app\Models\Country;
-use Modules\CatalogManagement\Models\Review;
+use app\Models\Language;
+use Modules\CatalogManagement\app\Models\Review;
 use Modules\CategoryManagment\app\Models\Activity;
 use Modules\Order\app\Models\OrderProduct;
 use Modules\Withdraw\app\Models\Withdraw;
 
 class Vendor extends BaseModel
 {
-    use HasFactory, SoftDeletes, Translation, HumanDates, HasSlug;
+    use HasFactory, SoftDeletes, Translation, HumanDates;
 
     protected $guarded = [];
 
-    // HasSlug trait configuration
-    protected $slugWithRandomSuffix = true;
-    protected $slugSuffixLength = 6;
-    protected $appends = ['reviews_count', 'average_rating'];
+    protected $appends = ['reviews_count', 'average_rating', 'total_balance', 'total_sent', 'total_remaining'];
 
 
 
@@ -103,21 +102,12 @@ class Vendor extends BaseModel
         return $this->morphMany(Review::class, 'reviewable');
     }
 
-    /**
-     * Get the vendor's commission
-     */
-    public function commission()
-    {
-        return $this->hasOne(VendorCommission::class);
-    }
-
     public function scopeActive(Builder $query)
     {
         return $query->where('active', true);
     }
-    /**
-     * Get vendor products (bank products added by this vendor)
-     */
+
+
     public function vendorProducts()
     {
         return $this->hasMany(\Modules\CatalogManagement\app\Models\VendorProduct::class);
@@ -181,28 +171,8 @@ class Vendor extends BaseModel
         return implode(', ', $keywords);
     }
 
-    /**
-     * Calculate total balance from orders
-     */
-    public function getTotalBalanceAttribute()
-    {
-        return $this->total_orders()->sum('price') ?? 0;
-    }
-
-    /**
-     * Calculate total sent money (withdrawals)
-     */
-    public function getTotalSentMoneyAttribute()
-    {
-        return $this->withdraw()->where('status', 'accepted')->sum('sent_amount') ?? 0;
-    }
-
-    /**
-     * Calculate total remaining balance
-     */
-    public function getTotalRemainingAttribute()
-    {
-        return $this->total_balance - $this->total_sent_money;
+    public function getNameAttribute() {
+        return $this->getTranslation('name', app()->getLocale());
     }
 
     public function getReviewsCountAttribute()
@@ -216,20 +186,88 @@ class Vendor extends BaseModel
     }
 
     /**
+     * Get total balance for this vendor
+     */
+    public function getTotalBalanceAttribute()
+    {
+        return \Modules\Order\app\Models\Order::whereHas('products', function($query) {
+            $query->where('vendor_id', $this->id);
+        })->sum('total_price') ?? 0;
+    }
+
+    /**
+     * Get total sent for this vendor
+     */
+    public function getTotalSentAttribute()
+    {
+        return $this->withdraw()
+            ->where('status', 'accepted')
+            ->sum('sent_amount') ?? 0;
+    }
+
+    /**
+     * Get total remaining for this vendor
+     */
+    public function getTotalRemainingAttribute()
+    {
+        return $this->total_balance - $this->total_sent;
+    }
+
+    /**
+     * Get statistics for a single vendor
+     */
+    public function getStatistics()
+    {
+        // Get total balance from orders where this vendor has order products
+        $totalBalance = \Modules\Order\app\Models\Order::whereHas('products', function($query) {
+            $query->where('vendor_id', $this->id);
+        })->sum('total_price') ?? 0;
+
+        // Get total sent from accepted withdrawals for this vendor
+        $totalSent = $this->withdraw()
+            ->where('status', 'accepted')
+            ->sum('sent_amount') ?? 0;
+
+        $totalRemaining = $totalBalance - $totalSent;
+
+        return [
+            'total_balance' => $totalBalance,
+            'total_sent' => number_format($totalSent, 2),
+            'total_remaining' => number_format($totalRemaining, 2),
+        ];
+    }
+
+    /**
      * Static method to get all vendors statistics
      */
     public static function getVendorsStatistics()
     {
-        $totalBalance = static::withSum('total_orders', 'price')->get()->sum('total_orders_sum_price') ?? 0;
-        $totalSent = static::withSum(['withdraw' => function($query) {
-            $query->where('status', 'accepted');
-        }], 'sent_amount')->get()->sum('withdraw_sum_sent_amount') ?? 0;
-        $totalRemaining = $totalBalance - $totalSent;
+        $vendors = static::all();
+        $vendorStats = [];
+        $totalBalance = 0;
+        $totalSent = 0;
+        $totalRemaining = 0;
+
+        foreach ($vendors as $vendor) {
+            $vendorStats[$vendor->id] = [
+                'vendor_id' => $vendor->id,
+                'vendor_name' => $vendor->getTranslation('name', app()->getLocale()) ?? $vendor->name,
+                'total_balance' => $vendor->getStatistics()['total_balance'],
+                'total_sent' => $vendor->getStatistics()['total_sent'],
+                'total_remaining' => $vendor->getStatistics()['total_remaining'],
+            ];
+
+            // Add to totals
+            $totalBalance += (float) str_replace(',', '', $vendor->getStatistics()['total_balance']);
+            $totalSent += (float) str_replace(',', '', $vendor->getStatistics()['total_sent']);
+            $totalRemaining += (float) str_replace(',', '', $vendor->getStatistics()['total_remaining']);
+        }
 
         return [
             'total_balance' => number_format($totalBalance, 2),
             'total_sent' => number_format($totalSent, 2),
             'total_remaining' => number_format($totalRemaining, 2),
+            'vendors' => $vendorStats,
         ];
     }
 
@@ -278,6 +316,10 @@ class Vendor extends BaseModel
         // Filter by department
         if (!empty($filters['department_id'])) {
             $query->byDepartment($filters['department_id']);
+        }
+
+        if (!empty($filters['created_at'])) {
+            $query->where('created_at', $filters['created_at']);
         }
 
         return $query;

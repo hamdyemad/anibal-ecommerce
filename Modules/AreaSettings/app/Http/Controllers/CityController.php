@@ -63,7 +63,7 @@ class CityController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function create(Request $request)
+    public function create($lang, $countryCode, Request $request)
     {
         $languages = $this->languageService->getAll();
         $countries = CountryResource::collection($this->countryService->getAllCountries())->resolve();
@@ -75,7 +75,7 @@ class CityController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(CityRequest $request)
+    public function store($lang, $countryCode, CityRequest $request)
     {
         $validated = $request->validated();
 
@@ -111,7 +111,7 @@ class CityController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show($lang, $countryCode, string $id)
     {
         try {
             $city = $this->cityService->getCityById($id);
@@ -126,7 +126,7 @@ class CityController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(string $id)
+    public function edit($lang, $countryCode, string $id)
     {
         try {
             $languages = $this->languageService->getAll();
@@ -142,7 +142,7 @@ class CityController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(CityRequest $request, string $id)
+    public function update($lang, $countryCode, CityRequest $request, string $id)
     {
         $validated = $request->validated();
 
@@ -180,7 +180,7 @@ class CityController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Request $request, string $id)
+    public function destroy($lang, $countryCode, Request $request, string $id)
     {
         try {
             $this->cityService->deleteCity($id);
@@ -213,7 +213,7 @@ class CityController extends Controller
     /**
      * Change the status of the specified city.
      */
-    public function changeStatus(Request $request, string $id)
+    public function changeStatus($lang, $countryCode, Request $request, string $id)
     {
         // Validate the request
         $request->validate([

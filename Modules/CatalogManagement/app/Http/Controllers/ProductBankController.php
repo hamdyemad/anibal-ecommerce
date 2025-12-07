@@ -120,7 +120,7 @@ class ProductBankController extends Controller
     /**
      * Show form for creating new bank product
      */
-    public function create()
+    public function create($lang, $countryCode)
     {
         $languages = $this->languageService->getAll();
         $brands = $this->brandService->getAllBrands([], 0);
@@ -145,7 +145,7 @@ class ProductBankController extends Controller
     /**
      * Store new bank product
      */
-    public function store(Request $request)
+    public function store($lang, $countryCode, Request $request)
     {
         try {
             DB::beginTransaction();

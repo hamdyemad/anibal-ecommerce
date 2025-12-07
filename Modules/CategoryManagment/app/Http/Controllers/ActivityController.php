@@ -8,6 +8,7 @@ use Modules\CategoryManagment\app\Services\ActivityService;
 use Modules\CategoryManagment\app\Http\Requests\ActivityRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Modules\CatalogManagement\app\Models\VendorProduct;
 use Modules\CategoryManagment\app\Actions\ActivityAction;
 
 class ActivityController extends Controller
@@ -98,6 +99,14 @@ class ActivityController extends Controller
      */
     public function index(Request $request)
     {
+        // $vendorProduct = VendorProduct::with(['product.department.activities'])->latest()->first();
+        // return $vendorProduct->tax->tax_rate;
+        // $activies = $vendorProduct->product->department->activities;
+        // $commissionsRate = 0;
+        // foreach($activies as $activity) {
+        //     $commissionsRate+= $activity->commission;
+        // }
+        // return $commissionsRate;
         // Get languages for table headers
         $languages = $this->languageService->getAll();
         return view('categorymanagment::activity.index', compact('languages'));
@@ -106,7 +115,7 @@ class ActivityController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
+    public function create($lang, $countryCode)
     {
         $languages = $this->languageService->getAll();
         return view('categorymanagment::activity.form', compact('languages'));
@@ -115,7 +124,7 @@ class ActivityController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(ActivityRequest $request)
+    public function store($lang, $countryCode, ActivityRequest $request)
     {
         $validated = $request->validated();
 
@@ -151,10 +160,17 @@ class ActivityController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show($lang, $countryCode, string $id)
     {
+        $activity = $this->activityService->getActivityById($id);
+
+        // Check if activity exists
+        if (!$activity) {
+            return redirect()->route('admin.category-management.activities.index')
+                ->with('error', __('Activity not found'));
+        }
+
         try {
-            $activity = $this->activityService->getActivityById($id);
             $languages = $this->languageService->getAll();
             return view('categorymanagment::activity.view', compact('activity', 'languages'));
         } catch (\Exception $e) {
@@ -166,7 +182,7 @@ class ActivityController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(string $id)
+    public function edit($lang, $countryCode, string $id)
     {
         try {
             $languages = $this->languageService->getAll();
@@ -181,7 +197,7 @@ class ActivityController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(ActivityRequest $request, string $id)
+    public function update($lang, $countryCode, ActivityRequest $request, string $id)
     {
         $validated = $request->validated();
 
@@ -217,7 +233,7 @@ class ActivityController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Request $request, string $id)
+    public function destroy($lang, $countryCode, Request $request, string $id)
     {
         try {
             $this->activityService->deleteActivity($id);
@@ -250,7 +266,7 @@ class ActivityController extends Controller
     /**
      * Change the status of the specified activity.
      */
-    public function changeStatus(Request $request, string $id)
+    public function changeStatus($lang, $countryCode, Request $request, string $id)
     {
         try {
             $request->validate([

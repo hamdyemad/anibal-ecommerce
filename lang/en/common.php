@@ -18,6 +18,7 @@ return [
     'back' => 'Back',
     'search' => 'Search',
     'filter' => 'Filter',
+    'information' => 'Information',
     'export' => 'Export',
     'import' => 'Import',
     'download' => 'Download',
@@ -195,4 +196,5 @@ return [
     'note' => 'Note',
     'trashed' => 'Trashed',
     'restore' => 'Restore',
+    'no_data_available' => 'No Data Available',
 ];

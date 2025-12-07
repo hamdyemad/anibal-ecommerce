@@ -11,10 +11,11 @@ class VendorQueryAction
      */
     public function handle(array $filters = [])
     {
-        $query = Vendor::query()->with('translations')->active();
-
-        // Load relationships
-        $query->with(['translations', 'country', 'logo', 'banner']);
+        $query = Vendor::query()
+            ->with('translations', 'country', 'logo', 'banner')
+            ->withCount('vendorProducts')
+            ->active()
+            ;
 
         if (!empty($filters)) {
             $query->filter($filters);
@@ -45,8 +46,9 @@ class VendorQueryAction
                          ->where('translations.translatable_type', 'Modules\\Vendor\\app\\Models\\Vendor')
                          ->where('translations.lang_key', 'name');
                 })
+                ->select('vendors.*', 'translations.lang_value')
                 ->orderBy('translations.lang_value', $sortType)
-                ->select('vendors.*')->distinct('vendors.id');
+                ->distinct();
                 break;
             case 'rating':
                 // $query->withAvg('reviews', 'rating')

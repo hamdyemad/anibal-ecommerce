@@ -853,39 +853,6 @@ function validateCurrentStep(step) {
             }
         });
 
-        // Validate country
-        const country = stepElement.find('#country_id').val();
-        if (!country) {
-            const config = window.vendorFormConfig;
-            errors.push({
-                field: 'country_id',
-                message: config?.errorMessages?.countryRequired || 'Country is required',
-                element: stepElement.find('#country_id')
-            });
-        }
-
-        // Validate commission
-        const commission = stepElement.find('#commission').val();
-        if (!commission || commission === '') {
-            const config = window.vendorFormConfig;
-            errors.push({
-                field: 'commission',
-                message: config?.errorMessages?.commissionRequired || 'Commission is required',
-                element: stepElement.find('#commission')
-            });
-        }
-
-        // Validate vendor type
-        const vendorType = stepElement.find('#type').val();
-        if (!vendorType) {
-            const config = window.vendorFormConfig;
-            errors.push({
-                field: 'type',
-                message: config?.errorMessages?.vendorTypeRequired || 'Vendor type is required',
-                element: stepElement.find('#type')
-            });
-        }
-
         // Validate activities
         const activities = stepElement.find('#activities').val();
         if (!activities || activities.length === 0) {

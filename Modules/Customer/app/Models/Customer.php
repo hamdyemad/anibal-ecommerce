@@ -3,6 +3,7 @@
 namespace Modules\Customer\app\Models;
 
 use App\Models\Traits\HumanDates;
+use App\Models\Traits\CountryCheckIdTrait;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -12,9 +13,17 @@ use Laravel\Sanctum\HasApiTokens;
 
 class Customer extends Authenticatable
 {
-    use HasFactory, SoftDeletes, Notifiable, HasApiTokens, HumanDates;
+    use HasFactory, SoftDeletes, Notifiable, HasApiTokens, HumanDates, CountryCheckIdTrait;
 
     protected $guarded = [];
+
+    /**
+     * Create a new factory instance for the model.
+     */
+    protected static function newFactory()
+    {
+        return \Modules\Customer\database\factories\CustomerFactory::new();
+    }
 
     protected $appends = ['full_name'];
 

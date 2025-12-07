@@ -30,7 +30,15 @@ class OrderController extends Controller
     public function index()
     {
         $languages = Language::all();
-        return view('order::orders.index', compact('languages'));
+
+        $total_price = Order::latest()->sum('total_price');
+        $orders_count = Order::latest()->count();
+        $data = [
+            'languages' => $languages,
+            'orders_count' => $orders_count,
+            'total_price' => $total_price,
+        ];
+        return view('order::orders.index', $data);
     }
 
     /**
@@ -78,11 +86,12 @@ class OrderController extends Controller
                     'order_number' => $order->order_number,
                     'customer_name' => $order->customer_name,
                     'customer_email' => $order->customer_email,
-                    'total_price' => $order->total_price,
-                    'total_product_price' => $order->total_product_price,
+                    'customer_phone' => $order->customer_phone ?? '-',
+                    'total_price' => $order->total_price . ' ' . currency(),
+                    'total_product_price' => $order->total_product_price . ' ' . currency(),
                     'items_count' => $itemsCount,
                     'stage' => $order->stage,
-                    'created_at' => $order->created_at ? $order->created_at->format('Y-m-d H:i') : '-',
+                    'created_at' => $order->created_at,
                 ];
 
                 $data[] = $rowData;
@@ -119,7 +128,7 @@ class OrderController extends Controller
     /**
      * Show create order form
      */
-    public function create()
+    public function create($lang, $countryCode)
     {
         return view('order::orders.create');
     }
@@ -127,7 +136,7 @@ class OrderController extends Controller
     /**
      * Store a newly created order
      */
-    public function store(StoreOrderRequest $request)
+    public function store($lang, $countryCode, StoreOrderRequest $request)
     {
         try {
             $order = $this->orderService->createOrder($request->validated());
@@ -154,11 +163,10 @@ class OrderController extends Controller
     /**
      * Display the specified order
      */
-    public function show($id)
+    public function show($lang, $countryCode, $id)
     {
         try {
             $order = $this->orderService->getOrderById($id);
-
             if (!$order) {
                 return abort(404, trans('order::order.order_not_found'));
             }
@@ -169,12 +177,59 @@ class OrderController extends Controller
         }
     }
 
+    /**
+     * Show the form for editing the specified order
+     */
+    public function edit($lang, $countryCode, $id)
+    {
+        // Implementation here
+    }
+
+    /**
+     * Update the specified order
+     */
+    public function update($lang, $countryCode, $id, UpdateOrderRequest $request)
+    {
+        // Implementation here
+    }
+
+    /**
+     * Delete the specified order
+     */
+    public function destroy($lang, $countryCode, $id)
+    {
+        // Implementation here
+    }
+
+    /**
+     * Get order with all products
+     */
+    public function getOrderWithProducts($id)
+    {
+        // Implementation here
+    }
+
+    /**
+     * Add product to order
+     */
+    public function addProduct($orderId, AddProductToOrderRequest $request)
+    {
+        // Implementation here
+    }
+
+    /**
+     * Remove product from order
+     */
+    public function removeProduct($orderId, $orderProductId)
+    {
+        // Implementation here
+    }
 
 
     /**
      * Change order stage
      */
-    public function changeStage($id, ChangeOrderStageRequest $request)
+    public function changeStage($lang, $countryCode, $id, ChangeOrderStageRequest $request)
     {
         try {
             $order = $this->orderService->changeOrderStage($id, $request->stage_id);

@@ -53,7 +53,7 @@ class CountryController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
+    public function create($lang, $countryCode)
     {
         $languages = $this->languageService->getAll();
         $currencies = $this->currencyService->getActiveCurrencies();
@@ -68,7 +68,7 @@ class CountryController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(CountryRequest $request)
+    public function store($lang, $countryCode, CountryRequest $request)
     {
         $validated = $request->validated();
 
@@ -104,7 +104,7 @@ class CountryController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show($lang, $countryCode, string $id)
     {
         try {
             $languages = $this->languageService->getAll();
@@ -124,7 +124,7 @@ class CountryController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(string $id)
+    public function edit($lang, $countryCode, string $id)
     {
         try {
             $languages = $this->languageService->getAll();
@@ -146,7 +146,7 @@ class CountryController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(CountryRequest $request, string $id)
+    public function update($lang, $countryCode, CountryRequest $request, string $id)
     {
         $validated = $request->validated();
 
@@ -182,7 +182,7 @@ class CountryController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Request $request, string $id)
+    public function destroy($lang, $countryCode, Request $request, string $id)
     {
         try {
             $this->countryService->deleteCountry($id);
@@ -199,23 +199,26 @@ class CountryController extends Controller
             return redirect()->route('admin.area-settings.countries.index')
                 ->with('success', __('Country deleted successfully'));
         } catch (\Exception $e) {
+            // Get the error message
+            $errorMessage = $e->getMessage();
+
             // Check if request is AJAX
             if ($request->ajax() || $request->wantsJson()) {
                 return response()->json([
                     'success' => false,
-                    'message' => __('Error deleting country: ') . $e->getMessage()
+                    'message' => $errorMessage
                 ], 422);
             }
 
             return redirect()->route('admin.area-settings.countries.index')
-                ->with('error', __('Error deleting country: ') . $e->getMessage());
+                ->with('error', $errorMessage);
         }
     }
 
     /**
      * Change the status of the specified country.
      */
-    public function changeStatus(Request $request, string $id)
+    public function changeStatus($lang, $countryCode, Request $request, string $id)
     {
         // Validate the request
         $request->validate([

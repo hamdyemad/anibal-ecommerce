@@ -173,6 +173,22 @@
 
                                     <div class="col-md-3">
                                         <div class="form-group">
+                                            <label for="configuration_filter" class="il-gray fs-14 fw-500 mb-10">
+                                                <i class="uil uil-package me-1"></i>
+                                                {{ __('catalogmanagement::product.configuration') ?? 'Configuration' }}
+                                            </label>
+                                            <select
+                                                class="select2 form-control ih-medium ip-gray radius-xs b-light px-15 form-select"
+                                                id="configuration_filter">
+                                                <option value="">{{ __('common.all') }}</option>
+                                                <option value="simple" @if(request('configuration') == 'simple') selected @endif>{{ __('catalogmanagement::product.simple_product') ?? 'Simple Product' }}</option>
+                                                <option value="variants" @if(request('configuration') == 'variants') selected @endif>{{ __('catalogmanagement::product.variant_product') ?? 'Variant Product' }}</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-3">
+                                        <div class="form-group">
                                             <label for="active" class="il-gray fs-14 fw-500 mb-10">
                                                 <i class="uil uil-check-circle me-1"></i>
                                                 {{ __('common.active_status') }}
@@ -389,6 +405,9 @@
             if (urlParams.has('brand_id')) $('#brand_filter').val(urlParams.get('brand_id')).trigger('change');
             if (urlParams.has('category_id')) $('#category_filter').val(urlParams.get('category_id')).trigger('change');
             if (urlParams.has('product_type')) $('#product_type').val(urlParams.get('product_type')).trigger('change');
+            if (urlParams.has('configuration') && $('#configuration_filter').length) {
+                $('#configuration_filter').val(urlParams.get('configuration')).trigger('change');
+            }
             if (urlParams.has('active')) $('#active').val(urlParams.get('active')).trigger('change');
             if (urlParams.has('status')) $('#status').val(urlParams.get('status')).trigger('change');
             if (urlParams.has('created_date_from')) $('#created_date_from').val(urlParams.get('created_date_from'));
@@ -406,6 +425,7 @@
                         d.brand_id = $('#brand_filter').val();
                         d.category_id = $('#category_filter').val();
                         d.product_type = $('#product_type').val();
+                        d.configuration = $('#configuration_filter').length ? $('#configuration_filter').val() : '';
                         d.active = $('#active').val();
                         d.status = $('#status').val();
                         @if(isset($statusFilter) && $statusFilter)
@@ -454,6 +474,18 @@
                                 <span class="badge ${typeClass} text-white px-2 py-1 rounded-pill fw-bold" style="font-size: 10px;">
                                     <i class="uil ${row.product_type === 'bank' ? 'uil-database' : 'uil-box'} me-1"></i>
                                     ${productType}
+                                </span>
+                            </div>`;
+
+                            // Configuration Type (Simple or Variant)
+                            const configurationType = row.configuration_type || 'simple';
+                            const configClass = configurationType === 'variants' ? 'bg-warning' : 'bg-success';
+                            const configLabel = configurationType === 'variants' ? 'Variant Product' : 'Simple Product';
+                            const configIcon = configurationType === 'variants' ? 'uil-layers' : 'uil-package';
+                            html += `<div class="mb-2">
+                                <span class="badge badge-round badge-lg ${configClass} text-white px-2 py-1 rounded-pill fw-bold" style="font-size: 10px;">
+                                    <i class="uil ${configIcon} me-1"></i>
+                                    ${configLabel}
                                 </span>
                             </div>`;
 
@@ -579,7 +611,7 @@
 
                             // Add approve/reject button and move to bank for admin users only
                             @if(auth()->user() && in_array(auth()->user()->user_type_id, \App\Models\UserType::adminIds()))
-                                if(data.status == 'pending') {
+                                if(data.product_type == 'product') {
                                     actions += `
                                         <a href="javascript:void(0);" class="change-status btn btn-success table_action_father"
                                         data-bs-toggle="modal" data-bs-target="#modal-change-status"
@@ -665,6 +697,7 @@
                 const brand = $('#brand_filter').val();
                 const category = $('#category_filter').val();
                 const productType = $('#product_type').val();
+                const configuration = $('#configuration_filter').val();
                 const active = $('#active').val();
                 const status = $('#status').val();
                 const dateFrom = $('#created_date_from').val();
@@ -675,6 +708,7 @@
                 if (brand) params.set('brand_id', brand);
                 if (category) params.set('category_id', category);
                 if (productType) params.set('product_type', productType);
+                if (configuration) params.set('configuration', configuration);
                 if (active) params.set('active', active);
                 if (status) params.set('status', status);
                 if (dateFrom) params.set('created_date_from', dateFrom);
@@ -694,7 +728,7 @@
             });
 
             // Filters - Use 'select2:select' and 'select2:clear' events for Select2 dropdowns
-            $('#vendor_filter, #brand_filter, #category_filter, #product_type, #active, #status').on('select2:select select2:clear change', function() {
+            $('#vendor_filter, #brand_filter, #category_filter, #product_type, #configuration_filter, #active, #status').on('select2:select select2:clear change', function() {
                 table.ajax.reload();
             });
 
@@ -716,6 +750,7 @@
                 $('#brand_filter').val('').trigger('change');
                 $('#category_filter').val('').trigger('change');
                 $('#product_type').val('').trigger('change');
+                $('#configuration_filter').val('').trigger('change');
                 $('#active').val('').trigger('change');
                 $('#status').val('').trigger('change');
 

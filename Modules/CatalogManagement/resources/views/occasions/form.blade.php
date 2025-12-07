@@ -332,10 +332,10 @@
                             {{-- Occasion Name Fields --}}
                             <x-multilingual-input
                                 name="name"
-                                label="Name"
-                                labelAr="الاسم"
-                                placeholder="Enter occasion name"
-                                placeholderAr="أدخل اسم المناسبة"
+                                :label="trans('catalogmanagement::occasion.name')"
+                                :labelAr="'اسم العرض'"
+                                :placeholder="trans('catalogmanagement::occasion.enter_occasion_name')"
+                                :placeholderAr="'اسم العرض'"
                                 :languages="$languages"
                                 :model="$occasion ?? null"
                                 :required="true"
@@ -344,10 +344,10 @@
                             {{-- Occasion Title Fields --}}
                             <x-multilingual-input
                                 name="title"
-                                label="Title"
-                                labelAr="العنوان"
-                                placeholder="Enter occasion title"
-                                placeholderAr="أدخل عنوان المناسبة"
+                                :label="trans('catalogmanagement::occasion.title')"
+                                :labelAr="'العنوان'"
+                                :placeholder="trans('catalogmanagement::occasion.enter_occasion_title')"
+                                :placeholderAr="'العنوان'"
                                 :languages="$languages"
                                 :model="$occasion ?? null"
                             />
@@ -355,10 +355,10 @@
                             {{-- Occasion Sub Title Fields --}}
                             <x-multilingual-input
                                 name="sub_title"
-                                label="Sub Title"
-                                labelAr="العنوان الفرعي"
-                                placeholder="Enter occasion sub title"
-                                placeholderAr="أدخل العنوان الفرعي للمناسبة"
+                                :label="trans('catalogmanagement::occasion.sub_title')"
+                                :labelAr="'العنوان الفرعى'"
+                                :placeholder="trans('catalogmanagement::occasion.enter_occasion_sub_title')"
+                                :placeholderAr="'العنوان الفرعى'"
                                 :languages="$languages"
                                 :model="$occasion ?? null"
                             />
@@ -371,7 +371,7 @@
                                             id="occasion_image"
                                             name="image"
                                             :placeholder="trans('catalogmanagement::occasion.image')"
-                                            recommendedSize="Recommended size: 1538×402px"
+                                            :recommendedSize="trans('catalogmanagement::occasion.recommended_size')"
                                             :existingImage="isset($occasion) && $occasion->image ? asset('storage/' . $occasion->image) : null"
                                             aspectRatio="16:9"
                                             :required="true"
@@ -446,7 +446,7 @@
                                             {{ trans('catalogmanagement::occasion.vendor') }} <span class="text-danger">*</span>
                                         </label>
                                         <select name="vendor_id" id="vendor_id" class="form-control select2">
-                                            <option value="">{{ trans('common.select') }}</option>
+                                            <option value="">{{ trans('catalogmanagement::occasion.select_vendor') }}</option>
                                             @foreach($vendors as $vendor)
                                                 <option value="{{ $vendor->id }}" {{ old('vendor_id', $occasion->vendor_id ?? '') == $vendor->id ? 'selected' : '' }}>
                                                     {{ $vendor->name }}
@@ -474,7 +474,7 @@
                                         <input type="text"
                                                id="product_search"
                                                class="form-control ih-medium ip-gray radius-xs b-light px-15"
-                                               placeholder="{{ trans('catalogmanagement::occasion.search_products_placeholder') }}">
+                                               :placeholder="trans('catalogmanagement::occasion.type_to_search_products')">
                                         <small class="text-muted">{{ trans('catalogmanagement::occasion.search_products_help') }}</small>
                                     </div>
 
@@ -554,10 +554,10 @@
                                         {{-- SEO Title Fields --}}
                                         <x-multilingual-input
                                             name="seo_title"
-                                            label="SEO Title"
-                                            labelAr="عنوان SEO"
-                                            placeholder="Enter SEO title"
-                                            placeholderAr="أدخل عنوان SEO"
+                                            :label="trans('catalogmanagement::occasion.seo_title')"
+                                            :labelAr="trans('catalogmanagement::occasion.seo_title')"
+                                            :placeholder="trans('catalogmanagement::occasion.enter_seo_title')"
+                                            :placeholderAr="trans('catalogmanagement::occasion.enter_seo_title')"
                                             :languages="$languages"
                                             :model="$occasion ?? null"
                                         />
@@ -565,10 +565,10 @@
                                         {{-- SEO Description Fields --}}
                                         <x-multilingual-input
                                             name="seo_description"
-                                            label="SEO Description"
-                                            labelAr="وصف SEO"
-                                            placeholder="Enter SEO description"
-                                            placeholderAr="أدخل وصف SEO"
+                                            :label="trans('catalogmanagement::occasion.seo_description')"
+                                            :labelAr="trans('catalogmanagement::occasion.seo_description')"
+                                            :placeholder="trans('catalogmanagement::occasion.enter_seo_description')"
+                                            :placeholderAr="trans('catalogmanagement::occasion.enter_seo_description')"
                                             type="textarea"
                                             rows="3"
                                             :languages="$languages"
@@ -578,10 +578,10 @@
                                         {{-- SEO Keywords Fields --}}
                                         <x-multilingual-input
                                             name="seo_keywords"
-                                            label="SEO Keywords"
-                                            labelAr="كلمات مفتاحية SEO"
-                                            placeholder="Type a keyword and press Enter..."
-                                            placeholderAr="اكتب كلمة مفتاحية واضغط انتر"
+                                            :label="trans('catalogmanagement::occasion.seo_keywords')"
+                                            :labelAr="trans('catalogmanagement::occasion.seo_keywords')"
+                                            :placeholder="trans('catalogmanagement::occasion.type_keyword_press_enter')"
+                                            :placeholderAr="trans('catalogmanagement::occasion.type_keyword_press_enter')"
                                             :tags="true"
                                             :languages="$languages"
                                             :model="$occasion ?? null"
@@ -680,6 +680,7 @@
                     data: {
                         search: search,
                         vendor_id: vendorId,
+                        country_id: $("meta[name='current_country_id']").attr("content"),
                         paginated: 'ok',
                     },
                     success: function(response) {
@@ -709,7 +710,7 @@
 
                 products.forEach(function(vendorProduct) {
                     // Get product image
-                    const productImage = vendorProduct.image || '{{ asset("images/placeholder.png") }}';
+                    const productImage = vendorProduct.image || '{{ asset("assets/img/logo.png") }}';
                     const productName = vendorProduct.name || 'N/A';
 
                     // Check if product has variants
@@ -868,7 +869,7 @@
             function storeProductDetails(products) {
                 products.forEach(function(product) {
                     const variants = product.variants || [];
-                    const productImage = product.image || '{{ asset("images/placeholder.png") }}';
+                    const productImage = product.image || '{{ asset("assets/img/logo.png") }}';
                     const productName = product.name || 'N/A';
 
                     if (variants.length > 0) {
@@ -1095,63 +1096,6 @@
                     // Hide loading overlay and reset progress bar
                     LoadingOverlay.hide();
 
-                    // Handle validation errors
-                    if (error.errors) {
-                        Object.keys(error.errors).forEach(field => {
-                            // Convert Laravel dot notation to HTML bracket notation
-                            let fieldName = field.replace(/\.(\d+)\./g, '[$1][').replace(/\.(\w+)$/, '[$1]');
-                            if (fieldName.includes('[') && !fieldName.endsWith(']')) {
-                                fieldName += ']';
-                            }
-
-                            // Try multiple selectors to find the input
-                            let input = document.querySelector(`[name="${fieldName}"]`) ||
-                                       document.querySelector(`[name="${field}"]`) ||
-                                       document.querySelector(`input[name*="${field.split('.').pop()}"]`) ||
-                                       document.querySelector(`textarea[name*="${field.split('.').pop()}"]`) ||
-                                       document.querySelector(`select[name*="${field.split('.').pop()}"]`);
-
-                            if (input) {
-                                input.classList.add('is-invalid');
-
-                                // Add invalid border to image upload container if it's an image field
-                                if (field === 'image') {
-                                    const imageContainer = input.closest('.dm-uploader');
-                                    if (imageContainer) {
-                                        imageContainer.style.border = '1px solid #dc3545';
-                                        imageContainer.style.borderRadius = '4px';
-                                    }
-                                }
-
-                                // Remove any existing error message for this field
-                                const existingError = input.parentNode.querySelector('.invalid-feedback');
-                                if (existingError) {
-                                    existingError.remove();
-                                }
-
-                                // Get language information from the input's data-lang attribute or label
-                                let languageName = '';
-                                const langCode = input.getAttribute('data-lang');
-                                if (langCode) {
-                                    const label = input.parentNode.querySelector('label');
-                                    if (label) {
-                                        const labelText = label.textContent;
-                                        const match = labelText.match(/\(([^)]+)\)/);
-                                        if (match) {
-                                            languageName = ` (${match[1]})`;
-                                        }
-                                    }
-                                }
-
-                                const feedback = document.createElement('div');
-                                feedback.className = 'invalid-feedback d-block';
-                                feedback.style.display = 'block !important';
-                                feedback.textContent = error.errors[field][0] + languageName;
-                                input.parentNode.appendChild(feedback);
-                            }
-                        });
-                    }
-
                     // Show error message with all validation errors
                     const alert = document.createElement('div');
                     alert.className = 'alert alert-danger alert-dismissible fade show d-block';
@@ -1163,21 +1107,6 @@
                         </div>
                     `;
 
-                    // Add all validation errors as a list
-                    if (error.errors && Object.keys(error.errors).length > 0) {
-                        errorHtml += '<ul class="mb-0 mt-2">';
-                        Object.keys(error.errors).forEach(field => {
-                            const fieldErrors = error.errors[field];
-                            if (Array.isArray(fieldErrors)) {
-                                fieldErrors.forEach(msg => {
-                                    errorHtml += `<li>${msg}</li>`;
-                                });
-                            } else {
-                                errorHtml += `<li>${fieldErrors}</li>`;
-                            }
-                        });
-                        errorHtml += '</ul>';
-                    }
 
                     errorHtml += '<button type="button" class="btn-close" data-bs-dismiss="alert"></button>';
                     alert.innerHTML = errorHtml;

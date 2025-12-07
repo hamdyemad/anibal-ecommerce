@@ -1,9 +1,9 @@
 
 
-<nav class="navbar navbar-light">
+<nav class="navbar navbar-light" style="box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);">
     <div class="navbar-left">
         <div class="logo-area">
-            <a class="navbar-brand" href="#">
+            <a class="navbar-brand" href="{{ route('admin.dashboard') }}">
                 @if(app()->getLocale() == 'ar')
                     <img src="{{ asset('assets/img/logo_ar.png') }}" alt="svg">
                 @else
@@ -17,6 +17,7 @@
     <div class="navbar-right">
         <ul class="navbar-right__menu">
             @include('partials.top_nav._search')
+            @include('partials.top_nav._country_selector')
             @include('partials.top_nav._vendors_withdraw_requests')
             @include('partials.top_nav._become_vendor_requests')
             @include('partials.top_nav._orders')

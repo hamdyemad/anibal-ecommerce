@@ -20,15 +20,13 @@ use Modules\CategoryManagment\app\Models\Department;
 use Modules\CategoryManagment\app\Models\Category;
 use Modules\CategoryManagment\app\Models\SubCategory;
 use Modules\AreaSettings\app\Models\Region;
+use Modules\AreaSettings\app\Models\Country;
 
 class AutoProductSeeder extends Seeder
 {
     private $faker;
     private $fakerAr;
 
-    /**
-     * Product categories for realistic naming
-     */
     private $productCategories = [
         'Electronics' => ['Smartphone', 'Laptop', 'Tablet', 'Headphones', 'Speaker', 'Camera', 'Monitor', 'Keyboard', 'Mouse', 'Smartwatch'],
         'Fashion' => ['T-Shirt', 'Jeans', 'Dress', 'Jacket', 'Sneakers', 'Boots', 'Hat', 'Scarf', 'Sunglasses', 'Belt'],
@@ -45,68 +43,119 @@ class AutoProductSeeder extends Seeder
         'Elite', 'Advanced', 'Supreme', 'Ultimate', 'Enhanced', 'Optimized', 'Refined', 'Superior', 'Exclusive', 'Special'
     ];
 
-    private $colors = ['Black', 'White', 'Red', 'Blue', 'Green', 'Yellow', 'Purple', 'Orange', 'Pink', 'Gray', 'Brown', 'Navy', 'Beige'];
-    private $sizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
-    private $numericalSizes = ['38', '39', '40', '41', '42', '43', '44', '45'];
-
     public function __construct()
     {
         $this->faker = Faker::create('en_US');
         $this->fakerAr = Faker::create('ar_SA');
     }
 
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
         echo "\n🚀 Starting Auto Product Seeder...\n";
 
-        // Get required data
-        $vendors = Vendor::where('active', true)->get();
-        $languages = Language::whereIn('code', ['en', 'ar'])->get()->keyBy('code');
-        $brands = Brand::where('active', true)->get();
-        $departments = Department::where('active', true)->get();
-        $categories = Category::where('active', true)->get();
-        $subCategories = SubCategory::where('active', true)->get();
-        $taxes = Tax::where('active', true)->get();
-        $regions = Region::where('active', true)->get();
+        // Get country_id from session
+        $countryCode = session('country_code', 'EG');
+        $country = Country::where('code', strtoupper($countryCode))->first();
 
-        // Setup variant configuration keys and values
-        $this->setupVariantConfigurations($languages);
+        if (!$country) {
+            $country = Country::first();
+        }
 
-        // Validation
-        if ($vendors->isEmpty()) {
-            echo "❌ Error: No active vendors found. Please create vendors first.\n";
+        $countryId = $country ? $country->id : null;
+
+        if (!$countryId) {
+            echo "❌ Error: No country found for code: {$countryCode}\n";
             return;
         }
 
-        if ($brands->isEmpty() || $departments->isEmpty() || $categories->isEmpty() ||
-            $subCategories->isEmpty() || $taxes->isEmpty() || $regions->isEmpty()) {
-            echo "❌ Error: Missing required data (brands, departments, categories, taxes, or regions).\n";
+        echo "✓ Using country: {$country->code} (ID: {$countryId})\n";
+
+        // Fetch required data
+        $vendors = Vendor::where('active', 1)->where('country_id', $countryId)->get();
+        $languages = Language::whereIn('code', ['en', 'ar'])->get()->keyBy('code');
+        $brands = Brand::where('active', 1)->where('country_id', $countryId)->get();
+        $taxes = Tax::where('active', 1)->where('country_id', $countryId)->get();
+
+        // Get regions through cities for this country
+        $regions = Region::whereHas('city', function($q) use ($countryId) {
+            $q->where('country_id', $countryId);
+        })->where('active', 1)->get();
+
+        $variantKeys = VariantConfigurationKey::where('country_id', $countryId)->get();
+
+        // Debug: Check all vendors
+        $allVendors = Vendor::all();
+        echo "📊 Total vendors in DB: {$allVendors->count()}\n";
+        foreach ($allVendors as $v) {
+            echo "  - Vendor ID: {$v->id}, Active: {$v->active}, Country ID: {$v->country_id}\n";
+        }
+
+        if ($vendors->isEmpty()) {
+            echo "❌ Error: No active vendors found for country: {$country->code}\n";
+            echo "   Searched for: active=1, country_id={$countryId}\n";
+            return;
+        }
+
+        if ($brands->isEmpty()) {
+            echo "❌ Error: Missing brands for country {$countryCode}\n";
+            return;
+        }
+
+        if ($regions->isEmpty()) {
+            echo "❌ Error: No regions found for country {$countryCode}\n";
             return;
         }
 
         echo "✓ Found {$vendors->count()} active vendors\n";
-        echo "✓ Found {$brands->count()} brands, {$departments->count()} departments, {$categories->count()} categories\n";
-        echo "✓ Found {$regions->count()} regions for stock management\n\n";
+        echo "✓ Found {$brands->count()} brands\n";
+        echo "✓ Found {$regions->count()} regions\n";
+        echo "✓ Found {$variantKeys->count()} variant keys\n";
 
         $totalProducts = 0;
 
         foreach ($vendors as $vendor) {
             echo "📦 Creating products for vendor: {$vendor->getTranslation('name', 'en')}\n";
 
-            for ($i = 1; $i <= 40; $i++) {
-                // Randomize product type (60% simple, 40% variants)
-                $isVariant = $this->faker->boolean(40);
+            // Get departments, categories, and sub-categories related to this vendor's activities
+            $vendorDepartments = Department::where('active', 1)
+                ->where('country_id', $countryId)
+                ->whereHas('activities', function($q) use ($vendor) {
+                    $q->whereHas('vendors', function($vq) use ($vendor) {
+                        $vq->where('vendor_id', $vendor->id);
+                    });
+                })
+                ->get();
 
+            if ($vendorDepartments->isEmpty()) {
+                echo "  ⚠️  No departments found for vendor activities. Skipping...\n";
+                continue;
+            }
+
+            // Get categories related to vendor's departments
+            $vendorCategories = Category::where('active', 1)
+                ->where('country_id', $countryId)
+                ->whereIn('department_id', $vendorDepartments->pluck('id'))
+                ->get();
+
+            // Get sub-categories related to vendor's categories
+            $vendorSubCategories = SubCategory::where('active', 1)
+                ->where('country_id', $countryId)
+                ->whereIn('category_id', $vendorCategories->pluck('id'))
+                ->get();
+
+            if ($vendorCategories->isEmpty()) {
+                echo "  ⚠️  No categories found for vendor departments. Skipping...\n";
+                continue;
+            }
+
+            for ($i = 1; $i <= 40; $i++) {
                 try {
-                    if ($isVariant) {
-                        $this->createVariantProduct($vendor, $languages, $brands, $departments, $categories, $subCategories, $taxes, $regions);
-                        echo "  ✓ Created variant product {$i}/40\n";
+                    // 60% simple, 40% variant
+                    $isVariant = $this->faker->boolean(40);
+                    if ($isVariant && !$variantKeys->isEmpty()) {
+                        $this->createVariantProduct($vendor, $languages, $brands, $vendorDepartments, $vendorCategories, $vendorSubCategories, $taxes, $regions, $variantKeys, $countryId);
                     } else {
-                        $this->createSimpleProduct($vendor, $languages, $brands, $departments, $categories, $subCategories, $taxes, $regions);
-                        echo "  ✓ Created simple product {$i}/40\n";
+                        $this->createSimpleProduct($vendor, $languages, $brands, $vendorDepartments, $vendorCategories, $vendorSubCategories, $taxes, $regions, $countryId);
                     }
                     $totalProducts++;
                 } catch (\Exception $e) {
@@ -122,431 +171,136 @@ class AutoProductSeeder extends Seeder
         echo "📊 Total vendors processed: {$vendors->count()}\n\n";
     }
 
-    /**
-     * Create a simple product
-     */
-    private function createSimpleProduct($vendor, $languages, $brands, $departments, $categories, $subCategories, $taxes, $regions)
+    private function createSimpleProduct($vendor, $languages, $brands, $departments, $categories, $subCategories, $taxes, $regions, $countryId)
     {
-        $productName = $this->generateProductName();
+        try {
+            $productName = $this->generateProductName();
 
-        // Get a random category
-        $category = $categories->random();
-
-        // Get a random subcategory that belongs to this category (if any exist)
-        $subCategoryId = null;
-        if ($subCategories->isNotEmpty()) {
-            $categorySubCategories = $subCategories->where('category_id', $category->id);
-            if ($categorySubCategories->isNotEmpty()) {
-                $subCategoryId = $categorySubCategories->random()->id;
+            // Check if collections are empty before using random()
+            if ($categories->isEmpty()) {
+                throw new \Exception('Categories collection is empty');
             }
-        }
+            $category = $categories->random();
 
-        // Create base product
-        $product = Product::create([
-            'slug' => Str::slug($productName) . '-' . Str::random(6),
-            'type' => Product::TYPE_PRODUCT,
-            'configuration_type' => 'simple',
-            'is_active' => $this->faker->boolean(90),
-            'brand_id' => $brands->random()->id,
-            'department_id' => $departments->random()->id,
-            'category_id' => $category->id,
-            'sub_category_id' => $subCategoryId,
-            'vendor_id' => $vendor->id,
-            'created_by_user_id' => $vendor->user_id,
-        ]);
-
-        // Store translations
-        foreach ($languages as $langCode => $language) {
-            $product->translations()->create([
-                'lang_id' => $language->id,
-                'lang_key' => 'title',
-                'lang_value' => $langCode === 'en' ? $productName : $this->fakerAr->words(3, true),
-            ]);
-            $product->translations()->create([
-                'lang_id' => $language->id,
-                'lang_key' => 'details',
-                'lang_value' => $langCode === 'en' ? $this->faker->paragraphs(3, true) : $this->fakerAr->paragraphs(3, true),
-            ]);
-            $product->translations()->create([
-                'lang_id' => $language->id,
-                'lang_key' => 'summary',
-                'lang_value' => $langCode === 'en' ? $this->faker->sentence(15) : $this->fakerAr->sentence(15),
-            ]);
-            $product->translations()->create([
-                'lang_id' => $language->id,
-                'lang_key' => 'features',
-                'lang_value' => $langCode === 'en' ? $this->generateFeatures() : $this->generateFeaturesAr(),
-            ]);
-            $product->translations()->create([
-                'lang_id' => $language->id,
-                'lang_key' => 'instructions',
-                'lang_value' => $langCode === 'en' ? $this->faker->paragraphs(2, true) : $this->fakerAr->paragraphs(2, true),
-            ]);
-            $product->translations()->create([
-                'lang_id' => $language->id,
-                'lang_key' => 'meta_title',
-                'lang_value' => $langCode === 'en' ? $productName : $this->fakerAr->words(3, true),
-            ]);
-            $product->translations()->create([
-                'lang_id' => $language->id,
-                'lang_key' => 'meta_description',
-                'lang_value' => $langCode === 'en' ? $this->faker->sentence(20) : $this->fakerAr->sentence(20),
-            ]);
-            $product->translations()->create([
-                'lang_id' => $language->id,
-                'lang_key' => 'meta_keywords',
-                'lang_value' => $langCode === 'en' ? implode(', ', $this->faker->words(8)) : implode(', ', $this->fakerAr->words(8)),
-            ]);
-        }
-
-        // Create vendor product
-        $price = $this->faker->randomFloat(2, 50, 5000);
-        $hasDiscount = $this->faker->boolean(30);
-
-        $vendorProduct = VendorProduct::create([
-            'vendor_id' => $vendor->id,
-            'product_id' => $product->id,
-            'is_active' => $product->is_active,
-            'status' => $this->faker->randomElement(['pending', 'approved', 'approved', 'approved']),
-            'tax_id' => $taxes->random()->id,
-            'sku' => strtoupper($this->faker->bothify('SKU-####-????')),
-            'max_per_order' => $this->faker->numberBetween(1, 10),
-            'is_featured' => $this->faker->boolean(20),
-        ]);
-
-        // Get any available variant configuration for simple products
-        $standardConfig = null;
-        $variantKeys = VariantConfigurationKey::all();
-
-        foreach ($variantKeys as $key) {
-            $configs = VariantsConfiguration::where('key_id', $key->id)->first();
-            if ($configs) {
-                $standardConfig = $configs;
-                break;
+            if ($brands->isEmpty()) {
+                throw new \Exception('Brands collection is empty');
             }
-        }
 
-        // If no configurations found, create a default one
-        if (!$standardConfig && !$variantKeys->isEmpty()) {
-            $firstKey = $variantKeys->first();
-            $standardConfig = VariantsConfiguration::create([
-                'key_id' => $firstKey->id,
-                'parent_id' => null,
-            ]);
-
-            foreach ($languages as $langCode => $language) {
-                $standardConfig->translations()->create([
-                    'lang_id' => $language->id,
-                    'lang_key' => 'name',
-                    'lang_value' => $langCode === 'en' ? 'Standard' : 'قياسي',
-                ]);
+            if ($departments->isEmpty()) {
+                throw new \Exception('Departments collection is empty');
             }
-        }
 
-        // Create single product variant (for simple products)
-        $variant = ProductVariant::create([
-            'product_id' => $product->id,
-            'variant_configuration_id' => $standardConfig->id,
-        ]);
-
-        // Store variant translation
-        foreach ($languages as $langCode => $language) {
-            $variant->translations()->create([
-                'lang_id' => $language->id,
-                'lang_key' => 'title',
-                'lang_value' => $langCode === 'en' ? 'Standard' : 'قياسي',
-            ]);
-        }
-
-        // Create vendor product variant with pricing
-        $vendorProductVariant = VendorProductVariant::create([
-            'vendor_product_id' => $vendorProduct->id,
-            'variant_configuration_id' => $standardConfig->id,
-            'sku' => $vendorProduct->sku,
-            'price' => $price,
-            'has_discount' => $hasDiscount,
-            'price_before_discount' => $hasDiscount ? $price * $this->faker->randomFloat(2, 1.15, 1.5) : 0,
-            'discount_end_date' => $hasDiscount ? $this->faker->dateTimeBetween('now', '+3 months') : null,
-        ]);
-
-        // Create regional stock
-        foreach ($regions->random($this->faker->numberBetween(2, min(5, $regions->count()))) as $region) {
-            VendorProductVariantStock::create([
-                'vendor_product_variant_id' => $vendorProductVariant->id,
-                'region_id' => $region->id,
-                'quantity' => $this->faker->numberBetween(10, 500),
-            ]);
-        }
-    }
-
-    /**
-     * Setup variant configuration keys and values
-     */
-    private function setupVariantConfigurations($languages)
-    {
-        // Get all existing variant configuration keys
-        $variantKeys = VariantConfigurationKey::all();
-
-        // If no keys exist, create default Color and Size keys
-        if ($variantKeys->isEmpty()) {
-            $this->createDefaultVariantKeys($languages);
-            $variantKeys = VariantConfigurationKey::all();
-        }
-
-        // Loop through each variant key and setup its configurations
-        foreach ($variantKeys as $key) {
-            $keyName = $key->getTranslation('name', 'en');
-
-            // Get existing configurations for this key
-            $existingConfigs = VariantsConfiguration::where('key_id', $key->id)->get();
-
-            echo "✓ Found variant key: {$keyName} with {$existingConfigs->count()} configurations\n";
-
-            // Setup configurations based on key type
-            if (strtolower($keyName) === 'color') {
-                $this->setupColorConfigurations($key, $languages, $existingConfigs);
-            } elseif (strtolower($keyName) === 'size') {
-                $this->setupSizeConfigurations($key, $languages, $existingConfigs);
+            if ($taxes->isEmpty()) {
+                throw new \Exception('Taxes collection is empty');
             }
-        }
-    }
 
-    /**
-     * Create default variant keys if none exist
-     */
-    private function createDefaultVariantKeys($languages)
-    {
-        // Create Color key
-        $colorKey = VariantConfigurationKey::create(['id' => 1]);
-        foreach ($languages as $langCode => $language) {
-            $colorKey->translations()->create([
-                'lang_id' => $language->id,
-                'lang_key' => 'name',
-                'lang_value' => $langCode === 'en' ? 'Color' : 'اللون',
-            ]);
-        }
-
-        // Create Size key
-        $sizeKey = VariantConfigurationKey::create(['id' => 2]);
-        foreach ($languages as $langCode => $language) {
-            $sizeKey->translations()->create([
-                'lang_id' => $language->id,
-                'lang_key' => 'name',
-                'lang_value' => $langCode === 'en' ? 'Size' : 'الحجم',
-            ]);
-        }
-    }
-
-    /**
-     * Setup color configurations for a key
-     */
-    private function setupColorConfigurations($key, $languages, $existingConfigs)
-    {
-        foreach ($this->colors as $color) {
-            $existingConfig = $existingConfigs->filter(function($config) use ($color) {
-                return $config->getTranslation('name', 'en') === $color;
-            })->first();
-
-            if (!$existingConfig) {
-                $config = VariantsConfiguration::create([
-                    'key_id' => $key->id,
-                    'parent_id' => null,
-                ]);
-
-                foreach ($languages as $langCode => $language) {
-                    $config->translations()->create([
-                        'lang_id' => $language->id,
-                        'lang_key' => 'name',
-                        'lang_value' => $langCode === 'en' ? $color : $this->translateColorToArabic($color),
-                    ]);
+            $subCategoryId = null;
+            if ($subCategories->isNotEmpty()) {
+                $categorySubCategories = $subCategories->where('category_id', $category->id);
+                if ($categorySubCategories->isNotEmpty()) {
+                    $subCategoryId = $categorySubCategories->random()->id;
                 }
             }
-        }
-    }
 
-    /**
-     * Setup size configurations for a key
-     */
-    private function setupSizeConfigurations($key, $languages, $existingConfigs)
-    {
-        $allSizes = array_merge($this->sizes, $this->numericalSizes);
+            $product = Product::create([
+                'slug' => Str::slug($productName) . '-' . Str::random(6),
+                'type' => Product::TYPE_PRODUCT,
+                'configuration_type' => 'simple',
+                'is_active' => $this->faker->boolean(90),
+                'brand_id' => $brands->random()->id,
+                'department_id' => $departments->random()->id,
+                'category_id' => $category->id,
+                'sub_category_id' => $subCategoryId,
+                'vendor_id' => $vendor->id,
+                'created_by_user_id' => $vendor->user_id,
+                'country_id' => $countryId,
+            ]);
 
-        foreach ($allSizes as $size) {
-            $existingConfig = $existingConfigs->filter(function($config) use ($size) {
-                return $config->getTranslation('name', 'en') === $size;
-            })->first();
-
-            if (!$existingConfig) {
-                $config = VariantsConfiguration::create([
-                    'key_id' => $key->id,
-                    'parent_id' => null,
-                ]);
-
-                foreach ($languages as $langCode => $language) {
-                    $config->translations()->create([
-                        'lang_id' => $language->id,
-                        'lang_key' => 'name',
-                        'lang_value' => $size,
-                    ]);
-                }
-            }
-        }
-
-        echo "✓ Setup variant configurations completed\n";
-    }
-
-    /**
-     * Create a variant product
-     */
-    private function createVariantProduct($vendor, $languages, $brands, $departments, $categories, $subCategories, $taxes, $regions)
-    {
-        $productName = $this->generateProductName();
-
-        // Get a random category
-        $category = $categories->random();
-
-        // Get a random subcategory that belongs to this category (if any exist)
-        $subCategoryId = null;
-        if ($subCategories->isNotEmpty()) {
-            $categorySubCategories = $subCategories->where('category_id', $category->id);
-            if ($categorySubCategories->isNotEmpty()) {
-                $subCategoryId = $categorySubCategories->random()->id;
-            }
-        }
-
-        // Create base product
-        $product = Product::create([
-            'slug' => Str::slug($productName) . '-' . Str::random(6),
-            'type' => Product::TYPE_PRODUCT,
-            'configuration_type' => 'variants',
-            'is_active' => $this->faker->boolean(90),
-            'brand_id' => $brands->random()->id,
-            'department_id' => $departments->random()->id,
-            'category_id' => $category->id,
-            'sub_category_id' => $subCategoryId,
-            'vendor_id' => $vendor->id,
-            'created_by_user_id' => $vendor->user_id,
-        ]);
-
-        // Store translations
         foreach ($languages as $langCode => $language) {
-            $product->translations()->create([
-                'lang_id' => $language->id,
-                'lang_key' => 'title',
-                'lang_value' => $langCode === 'en' ? $productName : $this->fakerAr->words(3, true),
-            ]);
-            $product->translations()->create([
-                'lang_id' => $language->id,
-                'lang_key' => 'details',
-                'lang_value' => $langCode === 'en' ? $this->faker->paragraphs(3, true) : $this->fakerAr->paragraphs(3, true),
-            ]);
-            $product->translations()->create([
-                'lang_id' => $language->id,
-                'lang_key' => 'summary',
-                'lang_value' => $langCode === 'en' ? $this->faker->sentence(15) : $this->fakerAr->sentence(15),
-            ]);
-            $product->translations()->create([
-                'lang_id' => $language->id,
-                'lang_key' => 'features',
-                'lang_value' => $langCode === 'en' ? $this->generateFeatures() : $this->generateFeaturesAr(),
-            ]);
-            $product->translations()->create([
-                'lang_id' => $language->id,
-                'lang_key' => 'instructions',
-                'lang_value' => $langCode === 'en' ? $this->faker->paragraphs(2, true) : $this->fakerAr->paragraphs(2, true),
-            ]);
-            $product->translations()->create([
-                'lang_id' => $language->id,
-                'lang_key' => 'meta_title',
-                'lang_value' => $langCode === 'en' ? $productName : $this->fakerAr->words(3, true),
-            ]);
-            $product->translations()->create([
-                'lang_id' => $language->id,
-                'lang_key' => 'meta_description',
-                'lang_value' => $langCode === 'en' ? $this->faker->sentence(20) : $this->fakerAr->sentence(20),
-            ]);
-            $product->translations()->create([
-                'lang_id' => $language->id,
-                'lang_key' => 'meta_keywords',
-                'lang_value' => $langCode === 'en' ? implode(', ', $this->faker->words(8)) : implode(', ', $this->fakerAr->words(8)),
-            ]);
-        }
-
-        // Create vendor product
-        $vendorProduct = VendorProduct::create([
-            'vendor_id' => $vendor->id,
-            'product_id' => $product->id,
-            'is_active' => $this->faker->boolean(90),
-            'status' => $this->faker->randomElement(['pending', 'approved', 'approved', 'approved']),
-            'tax_id' => $taxes->random()->id,
-            'sku' => strtoupper($this->faker->bothify('SKU-####-????')),
-            'max_per_order' => $this->faker->numberBetween(1, 10),
-            'is_active' => $product->is_active,
-            'is_featured' => $this->faker->boolean(20),
-        ]);
-
-        // Get available variant configurations dynamically
-        $variantKeys = VariantConfigurationKey::all();
-
-        // Find the first key that has configurations to use for variants
-        $primaryKey = null;
-        $availableConfigs = collect();
-
-        foreach ($variantKeys as $key) {
-            $configs = VariantsConfiguration::where('key_id', $key->id)->get();
-            if ($configs->isNotEmpty()) {
-                $primaryKey = $key;
-                $availableConfigs = $configs;
-                break;
-            }
-        }
-
-        // If no configurations found, skip variant creation
-        if (!$primaryKey || $availableConfigs->isEmpty()) {
-            echo "  ⚠️ No variant configurations found, skipping variant product\n";
-            return;
-        }
-
-        // Select random configurations for this product
-        $selectedConfigs = $availableConfigs->random($this->faker->numberBetween(1, min(3, $availableConfigs->count())));
-
-        // Create variants
-        foreach ($selectedConfigs as $config) {
-            $configName = $config->getTranslation('name', 'en') ?? 'Variant';
-            $variantTitle = $configName;
-
-            $price = $this->faker->randomFloat(2, 50, 5000);
-            $hasDiscount = $this->faker->boolean(30);
-
-            // Create product variant with proper variant configuration ID
-            $variant = ProductVariant::create([
-                'product_id' => $product->id,
-                'variant_configuration_id' => $config->id,
-            ]);
-
-            // Store variant translation
-            foreach ($languages as $langCode => $language) {
-                $translatedTitle = $config->getTranslation('name', $langCode) ?? $variantTitle;
-                $variant->translations()->create([
+            $product->translations()->createMany([
+                [
                     'lang_id' => $language->id,
                     'lang_key' => 'title',
-                    'lang_value' => $translatedTitle,
-                ]);
-            }
-
-            // Create vendor product variant
-            $vendorProductVariant = VendorProductVariant::create([
-                'vendor_product_id' => $vendorProduct->id,
-                'variant_configuration_id' => $config->id,
-                'sku' => $vendorProduct->sku . '-' . strtoupper(substr($configName, 0, 3)),
-                'price' => $price,
-                'has_discount' => $hasDiscount,
-                'price_before_discount' => $hasDiscount ? $price * $this->faker->randomFloat(2, 1.15, 1.5) : 0,
-                'discount_end_date' => $hasDiscount ? $this->faker->dateTimeBetween('now', '+3 months') : null,
+                    'lang_value' => $langCode === 'en' ? $productName : $this->fakerAr->words(3, true),
+                ],
+                [
+                    'lang_id' => $language->id,
+                    'lang_key' => 'details',
+                    'lang_value' => $langCode === 'en' ? $this->faker->paragraphs(3, true) : $this->fakerAr->paragraphs(3, true),
+                ],
+                [
+                    'lang_id' => $language->id,
+                    'lang_key' => 'summary',
+                    'lang_value' => $langCode === 'en' ? $this->faker->sentence(15) : $this->fakerAr->sentence(15),
+                ],
+                [
+                    'lang_id' => $language->id,
+                    'lang_key' => 'features',
+                    'lang_value' => $langCode === 'en' ? $this->generateFeatures() : $this->generateFeaturesAr(),
+                ],
+                [
+                    'lang_id' => $language->id,
+                    'lang_key' => 'instructions',
+                    'lang_value' => $langCode === 'en' ? $this->generateInstructions() : $this->generateInstructionsAr(),
+                ],
+                [
+                    'lang_id' => $language->id,
+                    'lang_key' => 'extra_description',
+                    'lang_value' => $langCode === 'en' ? $this->faker->paragraphs(2, true) : $this->fakerAr->paragraphs(2, true),
+                ],
+                [
+                    'lang_id' => $language->id,
+                    'lang_key' => 'material',
+                    'lang_value' => $langCode === 'en' ? $this->faker->randomElement(['Cotton', 'Polyester', 'Leather', 'Plastic', 'Metal', 'Wood', 'Glass', 'Ceramic', 'Rubber', 'Silk']) : $this->fakerAr->randomElement(['قطن', 'بوليستر', 'جلد', 'بلاستيك', 'معادن', 'خشب', 'زجاج', 'سيراميك', 'مطاط', 'حرير']),
+                ],
+                [
+                    'lang_id' => $language->id,
+                    'lang_key' => 'video_link',
+                    'lang_value' => 'https://www.youtube.com/watch?v=' . $this->faker->bothify('??????????'),
+                ],
+                [
+                    'lang_id' => $language->id,
+                    'lang_key' => 'meta_title',
+                    'lang_value' => $langCode === 'en' ? $productName . ' - Premium Quality' : $this->fakerAr->words(4, true),
+                ],
+                [
+                    'lang_id' => $language->id,
+                    'lang_key' => 'meta_description',
+                    'lang_value' => $langCode === 'en' ? $this->faker->sentence(20) : $this->fakerAr->sentence(20),
+                ],
+                [
+                    'lang_id' => $language->id,
+                    'lang_key' => 'meta_keywords',
+                    'lang_value' => json_encode($langCode === 'en' ? $this->faker->words(5) : $this->fakerAr->words(5)),
+                ],
             ]);
+        }
 
-            // Create regional stock
-            foreach ($regions->random($this->faker->numberBetween(2, min(5, $regions->count()))) as $region) {
+        $vendorProduct = VendorProduct::create([
+            'vendor_id' => $vendor->id,
+            'product_id' => $product->id,
+            'is_active' => $product->is_active,
+            'status' => $this->faker->randomElement(['pending', 'approved']),
+            'tax_id' => $taxes->random()->id,
+            'sku' => strtoupper($this->faker->bothify('SKU-####-????')),
+            'max_per_order' => $this->faker->numberBetween(1, 10),
+            'is_featured' => $this->faker->boolean(20),
+            'country_id' => $countryId,
+        ]);
+
+
+        $vendorProductVariant = VendorProductVariant::create([
+            'vendor_product_id' => $vendorProduct->id,
+            'variant_configuration_id' => null,
+            'sku' => $vendorProduct->sku,
+            'price' => $this->faker->randomFloat(2, 50, 5000),
+            'price_before_discount' => 0,
+            'has_discount' => false,
+        ]);
+
+        if ($regions->isNotEmpty()) {
+            $numRegions = min(5, $regions->count());
+            foreach ($regions->random($this->faker->numberBetween(1, $numRegions)) as $region) {
                 VendorProductVariantStock::create([
                     'vendor_product_variant_id' => $vendorProductVariant->id,
                     'region_id' => $region->id,
@@ -554,23 +308,200 @@ class AutoProductSeeder extends Seeder
                 ]);
             }
         }
+        } catch (\Exception $e) {
+            throw $e;
+        }
     }
 
-    /**
-     * Generate a realistic product name
-     */
+    private function createVariantProduct($vendor, $languages, $brands, $departments, $categories, $subCategories, $taxes, $regions, $variantKeys, $countryId)
+    {
+        try {
+            $productName = $this->generateProductName();
+
+            // Check if collections are empty before using random()
+            if ($categories->isEmpty()) {
+                throw new \Exception('Categories collection is empty');
+            }
+            $category = $categories->random();
+
+            if ($brands->isEmpty()) {
+                throw new \Exception('Brands collection is empty');
+            }
+
+            if ($departments->isEmpty()) {
+                throw new \Exception('Departments collection is empty');
+            }
+
+            if ($taxes->isEmpty()) {
+                throw new \Exception('Taxes collection is empty');
+            }
+
+            $subCategoryId = null;
+            if ($subCategories->isNotEmpty()) {
+                $categorySubCategories = $subCategories->where('category_id', $category->id);
+                if ($categorySubCategories->isNotEmpty()) {
+                    $subCategoryId = $categorySubCategories->random()->id;
+                }
+            }
+
+            $product = Product::create([
+                'slug' => Str::slug($productName) . '-' . Str::random(6),
+                'type' => Product::TYPE_PRODUCT,
+                'configuration_type' => 'variants',
+                'is_active' => $this->faker->boolean(90),
+                'brand_id' => $brands->random()->id,
+                'department_id' => $departments->random()->id,
+                'category_id' => $category->id,
+                'sub_category_id' => $subCategoryId,
+                'vendor_id' => $vendor->id,
+                'created_by_user_id' => $vendor->user_id,
+                'country_id' => $countryId,
+            ]);
+
+        foreach ($languages as $langCode => $language) {
+            $product->translations()->createMany([
+                [
+                    'lang_id' => $language->id,
+                    'lang_key' => 'title',
+                    'lang_value' => $langCode === 'en' ? $productName : $this->fakerAr->words(3, true),
+                ],
+                [
+                    'lang_id' => $language->id,
+                    'lang_key' => 'details',
+                    'lang_value' => $langCode === 'en' ? $this->faker->paragraphs(3, true) : $this->fakerAr->paragraphs(3, true),
+                ],
+                [
+                    'lang_id' => $language->id,
+                    'lang_key' => 'summary',
+                    'lang_value' => $langCode === 'en' ? $this->faker->sentence(15) : $this->fakerAr->sentence(15),
+                ],
+                [
+                    'lang_id' => $language->id,
+                    'lang_key' => 'features',
+                    'lang_value' => $langCode === 'en' ? $this->generateFeatures() : $this->generateFeaturesAr(),
+                ],
+                [
+                    'lang_id' => $language->id,
+                    'lang_key' => 'instructions',
+                    'lang_value' => $langCode === 'en' ? $this->generateInstructions() : $this->generateInstructionsAr(),
+                ],
+                [
+                    'lang_id' => $language->id,
+                    'lang_key' => 'extra_description',
+                    'lang_value' => $langCode === 'en' ? $this->faker->paragraphs(2, true) : $this->fakerAr->paragraphs(2, true),
+                ],
+                [
+                    'lang_id' => $language->id,
+                    'lang_key' => 'material',
+                    'lang_value' => $langCode === 'en' ? $this->faker->randomElement(['Cotton', 'Polyester', 'Leather', 'Plastic', 'Metal', 'Wood', 'Glass', 'Ceramic', 'Rubber', 'Silk']) : $this->fakerAr->randomElement(['قطن', 'بوليستر', 'جلد', 'بلاستيك', 'معادن', 'خشب', 'زجاج', 'سيراميك', 'مطاط', 'حرير']),
+                ],
+                [
+                    'lang_id' => $language->id,
+                    'lang_key' => 'video_link',
+                    'lang_value' => 'https://www.youtube.com/watch?v=' . $this->faker->bothify('??????????'),
+                ],
+                [
+                    'lang_id' => $language->id,
+                    'lang_key' => 'meta_title',
+                    'lang_value' => $langCode === 'en' ? $productName . ' - Premium Quality' : $this->fakerAr->words(4, true),
+                ],
+                [
+                    'lang_id' => $language->id,
+                    'lang_key' => 'meta_description',
+                    'lang_value' => $langCode === 'en' ? $this->faker->sentence(20) : $this->fakerAr->sentence(20),
+                ],
+                [
+                    'lang_id' => $language->id,
+                    'lang_key' => 'meta_keywords',
+                    'lang_value' => json_encode($langCode === 'en' ? $this->faker->words(5) : $this->fakerAr->words(5)),
+                ],
+            ]);
+        }
+
+        $vendorProduct = VendorProduct::create([
+            'vendor_id' => $vendor->id,
+            'product_id' => $product->id,
+            'is_active' => $product->is_active,
+            'status' => $this->faker->randomElement(['pending', 'approved']),
+            'tax_id' => $taxes->random()->id,
+            'sku' => strtoupper($this->faker->bothify('SKU-####-????')),
+            'max_per_order' => $this->faker->numberBetween(1, 10),
+            'is_featured' => $this->faker->boolean(20),
+            'country_id' => $countryId,
+        ]);
+
+        // Get variant keys for this country
+        if ($variantKeys->isEmpty()) {
+            // fallback to simple variant
+            $this->createSimpleProduct($vendor, $languages, $brands, $departments, $categories, $subCategories, $taxes, $regions, $countryId);
+            return;
+        }
+
+        // Select 1-3 random variant keys
+        $selectedKeys = $variantKeys->random($this->faker->numberBetween(1, min(3, $variantKeys->count())));
+
+        foreach ($selectedKeys as $variantKey) {
+            // Get variant values for this key
+            $variantValues = VariantsConfiguration::where('key_id', $variantKey->id)->get();
+
+            if ($variantValues->isEmpty()) {
+                continue;
+            }
+
+            // Select a random value for this key
+            $selectedValue = $variantValues->random();
+            $variantTitle = $selectedValue->getTranslation('name', 'en') ?? 'Variant';
+            $price = $this->faker->randomFloat(2, 50, 5000);
+            $hasDiscount = $this->faker->boolean(30);
+
+            $variant = ProductVariant::create([
+                'product_id' => $product->id,
+                'variant_configuration_id' => $selectedValue->id,
+            ]);
+
+            foreach ($languages as $langCode => $language) {
+                $translatedTitle = $selectedValue->getTranslation('name', $langCode) ?? $variantTitle;
+                $variant->translations()->create([
+                    'lang_id' => $language->id,
+                    'lang_key' => 'title',
+                    'lang_value' => $translatedTitle,
+                ]);
+            }
+
+            $vendorProductVariant = VendorProductVariant::create([
+                'vendor_product_id' => $vendorProduct->id,
+                'variant_configuration_id' => $selectedValue->id,
+                'sku' => $vendorProduct->sku . '-' . strtoupper(substr($variantTitle, 0, 3)),
+                'price' => $price,
+                'has_discount' => $hasDiscount,
+                'price_before_discount' => $hasDiscount ? $price * $this->faker->randomFloat(2, 1.15, 1.5) : 0,
+                'discount_end_date' => $hasDiscount ? $this->faker->dateTimeBetween('now', '+3 months') : null,
+            ]);
+
+            if ($regions->isNotEmpty()) {
+                $numRegions = min(5, $regions->count());
+                foreach ($regions->random($this->faker->numberBetween(1, $numRegions)) as $region) {
+                    VendorProductVariantStock::create([
+                        'vendor_product_variant_id' => $vendorProductVariant->id,
+                        'region_id' => $region->id,
+                        'quantity' => $this->faker->numberBetween(5, 200),
+                    ]);
+                }
+            }
+        }
+        } catch (\Exception $e) {
+            throw $e;
+        }
+    }
+
     private function generateProductName(): string
     {
         $category = $this->faker->randomElement(array_keys($this->productCategories));
         $productType = $this->faker->randomElement($this->productCategories[$category]);
         $adjective = $this->faker->randomElement($this->adjectives);
-
         return "$adjective $productType";
     }
 
-    /**
-     * Generate product features in English
-     */
     private function generateFeatures(): string
     {
         $features = [];
@@ -580,9 +511,6 @@ class AutoProductSeeder extends Seeder
         return implode("\n", $features);
     }
 
-    /**
-     * Generate product features in Arabic
-     */
     private function generateFeaturesAr(): string
     {
         $features = [];
@@ -592,27 +520,23 @@ class AutoProductSeeder extends Seeder
         return implode("\n", $features);
     }
 
-    /**
-     * Translate color to Arabic
-     */
-    private function translateColorToArabic(string $color): string
+    private function generateInstructions(): string
     {
-        $translations = [
-            'Black' => 'أسود',
-            'White' => 'أبيض',
-            'Red' => 'أحمر',
-            'Blue' => 'أزرق',
-            'Green' => 'أخضر',
-            'Yellow' => 'أصفر',
-            'Purple' => 'بنفسجي',
-            'Orange' => 'برتقالي',
-            'Pink' => 'وردي',
-            'Gray' => 'رمادي',
-            'Brown' => 'بني',
-            'Navy' => 'كحلي',
-            'Beige' => 'بيج',
-        ];
+        $instructions = [];
+        $steps = $this->faker->numberBetween(3, 6);
+        for ($i = 1; $i <= $steps; $i++) {
+            $instructions[] = "Step $i: " . $this->faker->sentence($this->faker->numberBetween(5, 10));
+        }
+        return implode("\n", $instructions);
+    }
 
-        return $translations[$color] ?? $color;
+    private function generateInstructionsAr(): string
+    {
+        $instructions = [];
+        $steps = $this->faker->numberBetween(3, 6);
+        for ($i = 1; $i <= $steps; $i++) {
+            $instructions[] = "الخطوة $i: " . $this->fakerAr->sentence($this->faker->numberBetween(5, 10));
+        }
+        return implode("\n", $instructions);
     }
 }

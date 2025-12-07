@@ -70,31 +70,24 @@ class VendorAction {
             ->orderBy('trans_sort.lang_value', $orderDirection)
             ->select('vendors.*'); // Select only vendors columns to avoid conflicts
         } else {
-            // Special handling for commission sorting (relationship)
-            if ($orderColumnIndex === (count($languages) + 3)) {
-                $query->leftJoin('vendor_commission', 'vendors.id', '=', 'vendor_commission.vendor_id')
-                      ->orderBy('vendor_commission.commission', $orderDirection)
-                      ->select('vendors.*');
-            } else {
-                // Build column map for non-translation columns
-                $orderColumns = [
-                    0 => 'id',
-                    (count($languages) + 1) => 'id', // email (sortable via user relationship - using id for now)
-                    (count($languages) + 2) => 'country_id', // country
-                    (count($languages) + 4) => 'active', // active status
-                    (count($languages) + 5) => 'created_at',
-                ];
+            // Build column map for non-translation columns
+            $orderColumns = [
+                0 => 'id',
+                (count($languages) + 1) => 'id', // email (sortable via user relationship - using id for now)
+                (count($languages) + 2) => 'country_id', // country
+                (count($languages) + 3) => 'active', // active status
+                (count($languages) + 4) => 'created_at',
+            ];
 
-                if (isset($orderColumns[$orderColumnIndex])) {
-                    $query->orderBy($orderColumns[$orderColumnIndex], $orderDirection);
-                }
+            if (isset($orderColumns[$orderColumnIndex])) {
+                $query->orderBy($orderColumns[$orderColumnIndex], $orderDirection);
             }
         }
 
         // Apply pagination
         $perPage = $data['length'];
         $page = $data['page'];
-        $vendors = $query->with(['translations', 'user', 'country', 'commission', 'logo'])->paginate($perPage, ['*'], 'page', $page);
+        $vendors = $query->with(['translations', 'user', 'country', 'logo'])->paginate($perPage, ['*'], 'page', $page);
 
         // Return raw data - rendering will be handled by DataTables in the view
         $tableData = [];
@@ -106,14 +99,12 @@ class VendorAction {
                 'logo' => $vendor->logo ? asset('storage/' . $vendor->logo->path) : null,
                 'email' => $vendor->user->email ?? '-',
                 'country_name' => $vendor->country ? $vendor->country->getTranslation('name', app()->getLocale()) : '-',
-                'commission' => ($vendor->commission) ? $vendor->commission->commission : 0,
                 'active' => $vendor->active,
                 'created_at' => $vendor->created_at,
             ];
-
             // Add translations for each language
             foreach ($languages as $language) {
-                $name = $vendor->getTranslation('name', $language->code) ?? '-';
+                $name = $vendor->name;
                 $rowData['translations'][$language->code] = [
                     'name' => truncateString($name, 15),
                     'rtl' => $language->rtl

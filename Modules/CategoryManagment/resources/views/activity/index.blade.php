@@ -21,7 +21,9 @@
 
                 <div class="userDatatable global-shadow border-light-0 p-30 bg-white radius-xl w-100 mb-30">
                     <div class="d-flex justify-content-between align-items-center mb-25">
-                        <h4 class="mb-0 fw-500">{{ __('activity.activities_management') }}</h4>
+                        <div class="d-flex align-items-center gap-2">
+                            <h4 class="mb-0 fw-500">{{ __('activity.activities_management') }}</h4>
+                        </div>
                         @can('activities.create')
                             <div class="d-flex gap-2">
                                 <a href="{{ route('admin.category-management.activities.create') }}"
@@ -31,7 +33,7 @@
                             </div>
                         @endcan
                     </div>
-                    <div class="alert alert-info  glowing-alert" role="alert">
+                    <div class="alert alert-info glowing-alert" role="alert">
                         {{ __('common.live_search_info') }}
                     </div>
                     {{-- Search and Filter --}}
@@ -117,14 +119,8 @@
                             <thead>
                                 <tr class="userDatatable-header">
                                     <th><span class="userDatatable-title">#</span></th>
-                                    @foreach ($languages as $language)
-                                        <th>
-                                            <span class="userDatatable-title"
-                                                @if ($language->rtl) dir="rtl" @endif>
-                                                {{ __('activity.name') }} ({{ $language->name }})
-                                            </span>
-                                        </th>
-                                    @endforeach
+                                    <th><span class="userDatatable-title">{{ __('common.information') }}</span></th>
+                                    <th><span class="userDatatable-title">{{ trans('categorymanagment::activity.commission') }}</span></th>
                                     <th><span class="userDatatable-title">{{ __('activity.activation') }}</span></th>
                                     <th><span class="userDatatable-title">{{ __('activity.created_at') }}</span></th>
                                     <th><span class="userDatatable-title">{{ __('common.actions') }}</span></th>
@@ -213,38 +209,41 @@
                             return data;
                         }
                     },
-                    // Name columns for each language
-                    @foreach ($languages as $language)
-                        {
-                            data: 'translations.{{ $language->code }}.name',
-                            name: 'name_{{ $language->code }}',
-                            render: function(data, type, row) {
-                                // For sorting, return the raw text value
-                                if (type === 'sort' || type === 'type') {
-                                    return row.translations && row.translations[
-                                            '{{ $language->code }}'] ?
-                                        row.translations['{{ $language->code }}'].name : '-';
-                                }
-
-                                // For display, return formatted HTML
-                                if (row.translations && row.translations[
-                                        '{{ $language->code }}']) {
-                                    const translation = row.translations['{{ $language->code }}'];
-                                    const name = translation.name || '-';
-                                    if (translation.rtl) {
-                                        return '<span dir="rtl">' + $('<div>').text(name).html() +
-                                            '</span>';
-                                    }
-                                    return $('<div>').text(name).html();
-                                }
-                                return '-';
+                    // Information column (EN/AR names combined)
+                    {
+                        data: 'information',
+                        name: 'information',
+                        orderable: false,
+                        searchable: false,
+                        render: function(data, type, row) {
+                            if (!data) return '<span class="text-muted">—</span>';
+                            let html = '<div class="activity-info">';
+                            if (data.name_en && data.name_en !== '-') {
+                                html += `<div class="mb-1"><span class="text-primary">${$('<div/>').text(data.name_en).html()}</span></div>`;
                             }
-                        },
-                    @endforeach
+                            if (data.name_ar && data.name_ar !== '-') {
+                                html += `<div><span class="text-primary" dir="rtl">${$('<div/>').text(data.name_ar).html()}</span></div>`;
+                            }
+                            html += '</div>';
+                            return html;
+                        }
+                    },
+                    // Commission column
+                    {
+                        data: 'commission',
+                        name: 'commission',
+                        orderable: false,
+                        searchable: false,
+                        render: function(data) {
+                            return data ? parseFloat(data).toFixed(2) + '%' : '0.00%';
+                        }
+                    },
                     // Active Status column
                     {
                         data: 'active',
                         name: 'active',
+                        orderable: false,
+                        searchable: false,
                         render: function(data, type, row) {
                             // For sorting, return numeric value
                             if (type === 'sort' || type === 'type') {
@@ -282,6 +281,8 @@
                     {
                         data: 'created_at',
                         name: 'created_at',
+                        orderable: false,
+                        searchable: false,
                         render: function(data) {
                             return data;
                         }
@@ -594,6 +595,12 @@
                         switcher.prop('disabled', false);
                     }
                 });
+            });
+
+            // Update counter badge when table loads or reloads
+            table.on('draw.dt', function() {
+                const totalRecords = table.page.info().recordsTotal;
+                $('#activitiesCounter').text(totalRecords);
             });
 
             // Delete functionality is now handled by the delete-with-loading component

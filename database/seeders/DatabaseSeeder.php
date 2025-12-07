@@ -33,6 +33,12 @@ class DatabaseSeeder extends Seeder
 
         // $this->call(ActivitySeeder::class);
 
+        // Seed vendors with country_id
+        // $this->call(VendorSeeder::class);
+
+        // Seed brands with country_id
+        // $this->call(BrandSeeder::class);
+
         // Auto-generate products for all vendors (40 products each)
         // $this->call(AutoProductSeeder::class);
 

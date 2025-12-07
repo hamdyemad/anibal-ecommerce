@@ -1,5 +1,11 @@
 @php
-    $langs = \App\Models\Language::all();
+    $langs = collect();
+    try {
+        $langs = \App\Models\Language::all();
+    } catch (\Exception $e) {
+        // Silently fail - use empty collection
+        $langs = collect();
+    }
 @endphp
 <li class="nav-flag-select">
     <div class="dropdown-custom">

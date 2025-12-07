@@ -3,10 +3,41 @@
 @section('title', trans('vendor::vendor.vendor_details'))
 @section('styles')
 <style>
-    .view-item.docs-box {
-        border: 3px dashed var(--color-primary);
-        padding: 10px;
-        border-radius: 5px;
+    .document-card {
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        border-radius: 12px;
+        padding: 20px;
+        text-align: center;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+
+    .document-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    }
+
+    .document-icon {
+        font-size: 48px;
+        color: #0056B7;
+        margin-bottom: 15px;
+    }
+
+    .document-name {
+        font-weight: 600;
+        color: #272b41;
+        margin-bottom: 8px;
+        word-break: break-word;
+        line-height: 1.4;
+    }
+
+    .document-size {
+        font-size: 12px;
+        color: #6c757d;
     }
 </style>
 @endsection
@@ -81,18 +112,6 @@
                                                     </div>
                                                     <div class="p-12 rounded-circle d-flex align-items-center justify-content-center" style="background-color: rgba(255,255,255,0.2); width: 45px; height: 45px;">
                                                         <i class="uil uil-calculator-alt fs-20" style="color: white;"></i>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="col-md-6">
-                                                {{-- Commission --}}
-                                                <div class="d-flex align-items-center justify-content-between p-15 rounded" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); box-shadow: 0 4px 15px rgba(250, 112, 154, 0.3);">
-                                                    <div>
-                                                        <p class="mb-0 fs-13 fw-bold" style="color: rgba(255,255,255,0.9);">{{ trans('vendor::vendor.commission') }}</p>
-                                                        <p class="mb-0 fs-20 fw-bold mt-5" style="color: white;">{{ $vendor->commission ? $vendor->commission->commission . '%' : '0%' }}</p>
-                                                    </div>
-                                                    <div class="p-12 rounded-circle d-flex align-items-center justify-content-center" style="background-color: rgba(255,255,255,0.2); width: 45px; height: 45px;">
-                                                        <i class="uil uil-percentage fs-20" style="color: white;"></i>
                                                     </div>
                                                 </div>
                                             </div>
@@ -222,25 +241,31 @@
                                     <div class="card-body">
                                         <div class="row">
                                             @foreach($vendor->documents as $document)
-                                                <div class="col-md-6 mb-3">
-                                                    <div class="view-item docs-box">
-                                                        <label class="il-gray fs-14 fw-500 mb-10">
-                                                            {{ $document->getTranslation('name', app()->getLocale()) ?? trans('vendor::vendor.document') }}
-                                                        </label>
-                                                        <p class="fs-15 color-dark">
+                                                <div class="col-md-4 mb-4">
+                                                    <div class="document-card">
+                                                        <div class="document-icon">
+                                                            <i class="uil uil-file-pdf"></i>
+                                                        </div>
+                                                        <div class="document-content">
+                                                            <h6 class="document-name">
+                                                                {{ $document->getTranslation('name', app()->getLocale()) ?? trans('vendor::vendor.document') }}
+                                                            </h6>
+                                                            <p class="document-size text-muted mb-3">
+                                                                <small>{{ trans('common.document') }}</small>
+                                                            </p>
                                                             <div class="d-flex gap-2">
-                                                                <a href="{{ asset('storage/' . $document->path) }}" target="_blank" class="btn btn-sm btn-light">
-                                                                    <i class="uil uil-file-download me-1"></i>{{ trans('common.download') ?? 'Download' }}
+                                                                <a href="{{ asset('storage/' . $document->path) }}" target="_blank" class="btn btn-sm btn-primary flex-grow-1">
+                                                                    <i class="uil uil-download-alt me-1"></i>{{ trans('common.download') ?? 'Download' }}
                                                                 </a>
-                                                                <button type="button" class="btn btn-sm btn-danger delete-document-btn"
+                                                                <button type="button" class="btn btn-sm btn-outline-danger delete-document-btn"
                                                                         data-bs-toggle="modal"
                                                                         data-bs-target="#modal-delete-document"
                                                                         data-document-id="{{ $document->id }}"
                                                                         data-document-name="{{ $document->getTranslation('name', app()->getLocale()) ?? trans('vendor::vendor.document') }}">
-                                                                    <i class="uil uil-trash-alt me-1"></i>{{ trans('common.delete') ?? 'Delete' }}
+                                                                    <i class="uil uil-trash-alt"></i>
                                                                 </button>
                                                             </div>
-                                                        </p>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             @endforeach

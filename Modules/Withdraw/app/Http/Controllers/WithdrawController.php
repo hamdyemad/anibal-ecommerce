@@ -283,7 +283,7 @@ class WithdrawController extends Controller
         return view('withdraw::all_vendors_transactions', compact('languages', 'vendors'));
     }
 
-    public function getVendorBalance($vendor_id)
+    public function getVendorBalance($lang, $countryCode, $vendor_id)
     {
         return $vendors = $this->withdrawService->getVendorBalance($vendor_id);
     }
@@ -424,7 +424,7 @@ class WithdrawController extends Controller
             ->with('success', "Money request sent successfully !");
     }
 
-    public function transactionsRequestsDatatable(Request $request, $status)
+    public function transactionsRequestsDatatable($lang, $countryCode, Request $request, $status)
     {
         $perPage = $request->input('length', 10);
         $page = ($request->input('start', 0) / $perPage) + 1;
@@ -516,7 +516,7 @@ class WithdrawController extends Controller
         // }
     }
 
-    public function transactionsRequests($status)
+    public function transactionsRequests($lang, $countryCode, $status)
     {
         $languages = $this->languageService->getAll();
         $vendors = [];

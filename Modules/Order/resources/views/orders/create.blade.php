@@ -381,7 +381,7 @@
                             <i class="uil uil-receipt text-warning me-2" style="font-size: 18px;"></i>
                             <span class="fw-500">{{ trans('order.subtotal') }}</span>
                         </div>
-                        <span class="fw-500" id="subtotal">0.00 {{ __('common.currency') }}</span>
+                        <span class="fw-500" id="subtotal">0.00 {{ currency() }}</span>
                     </div>
 
                     {{-- Shipping Cost --}}
@@ -390,7 +390,7 @@
                             <i class="uil uil-truck text-info me-2" style="font-size: 18px;"></i>
                             <span class="fw-500">{{ trans('order.shipping') }}</span>
                         </div>
-                        <span class="fw-500" id="shippingDisplay">0.00 {{ __('common.currency') }}</span>
+                        <span class="fw-500" id="shippingDisplay">0.00 {{ currency() }}</span>
                     </div>
 
                     {{-- Total Tax --}}
@@ -415,7 +415,7 @@
                             </button>
                         </div>
                         <div id="feesContainer"></div>
-                        <span class="fw-500" id="totalFeesDisplay">0.00 {{ __('common.currency') }}</span>
+                        <span class="fw-500" id="totalFeesDisplay">0.00 {{ currency() }}</span>
                     </div>
 
                     {{-- Additional Discounts Section --}}
@@ -430,7 +430,7 @@
                             </button>
                         </div>
                         <div id="discountsContainer"></div>
-                        <span class="fw-500" id="totalDiscountsDisplay">0.00 {{ __('common.currency') }}</span>
+                        <span class="fw-500" id="totalDiscountsDisplay">0.00 {{ currency() }}</span>
                     </div>
 
                     {{-- Grand Total --}}
@@ -689,7 +689,7 @@
                                              style="cursor: pointer;">
                                             <div class="d-flex justify-content-between">
                                                 <span class="fw-500">${productName}</span>
-                                                <span class="text-muted">${price.toFixed(2)} {{ __('common.currency') }}</span>
+                                                <span class="text-muted">${price.toFixed(2)} {{ currency() }}</span>
                                             </div>
                                             <small class="text-muted">${variantName} (SKU: ${variantSku}) ${limitation > 0 ? `- Max: ${limitation}` : ''}</small>
                                         </div>
@@ -1345,10 +1345,14 @@
                             const row = `
                         <tr>
                             <td>${product.name}</td>
-                            <td class="text-center">${product.price.toFixed(2)} {{ __('common.currency') }}</td>
+                            <td class="text-center">${product.price.toFixed(2)} {{ currency() }}</td>
                             <td class="text-center">${product.quantity}</td>
+<<<<<<< HEAD
+                            <td class="text-center">${product.total.toFixed(2)} {{ currency() }}</td>
+=======
                             <td class="text-center">${taxRate > 0 ? taxRate.toFixed(2) + '%' : '-'}</td>
                             <td class="text-center">${product.total.toFixed(2)} {{ __('common.currency') }}</td>
+>>>>>>> d4200aef0ea04b00dcb9eb0e3f11b282d9dc60b0
                             <td class="text-center">
                                 <button type="button" class="btn btn-sm btn-danger remove-product" data-product-id="${product.id}">
                                     <i class="uil uil-trash"></i>
@@ -1441,14 +1445,14 @@
                     // Form validation function
                     function validateForm() {
                         let errors = [];
-                        
+
                         // Check customer selection
                         const customerType = $('input[name="customer_type"]:checked').val();
-                        
+
                         if (customerType === 'existing') {
                             const customerId = $('#selected_customer_id').val();
                             const addressId = $('#customer_address_select').val();
-                            
+
                             if (!customerId || customerId.trim() === '') {
                                 errors.push('{{ trans('order.select_customer') }} is required');
                             }
@@ -1460,7 +1464,7 @@
                             const email = $('#external_customer_email').val();
                             const phone = $('#external_customer_phone').val();
                             const address = $('#external_customer_address').val();
-                            
+
                             if (!name || name.trim() === '') {
                                 errors.push('{{ trans('order.customer_name') }} is required');
                             }
@@ -1476,15 +1480,15 @@
                                 errors.push('{{ trans('order.customer_address') }} is required');
                             }
                         }
-                        
+
                         // Check products
                         if (!products || products.length === 0) {
                             errors.push('{{ trans('order.add_product') }} - At least one product is required');
                         }
-                        
+
                         return errors;
                     }
-                    
+
                     // Email validation helper
                     function isValidEmail(email) {
                         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;

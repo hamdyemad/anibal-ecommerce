@@ -4,19 +4,22 @@ namespace App\Observers;
 
 use App\Models\ActivityLog;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Log;
 
 class GlobalModelObserver
 {
     /**
-     * Models to exclude from logging
+     * Models to exclude from logging and country_id storage
      */
     private array $excludedModels = [
         ActivityLog::class,
         'App\Models\PersonalAccessToken',
+        'Modules\Vendor\app\Models\Vendor',
         'App\Models\PasswordReset',
         'App\Models\FailedJob',
         'App\Models\Translation',
     ];
+
 
     /**
      * Handle the Model "created" event.
@@ -115,9 +118,10 @@ class GlobalModelObserver
     {
         $changes = $model->getChanges();
         $original = $model->getOriginal();
-        
+
         return array_intersect_key($original, $changes);
     }
+
 
     /**
      * Log the activity
@@ -129,7 +133,8 @@ class GlobalModelObserver
     ): void {
         $modelName = class_basename($model);
         $identifier = $model->id;
-        
+
+        \Log::info("fired");
         // Map actions to translation keys
         $descriptionKeys = [
             'created' => 'activity_log.created_model',

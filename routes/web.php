@@ -1,11 +1,17 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\Artisan;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\LanguageController;
-use App\Http\Controllers\PaginationController;
 use App\Http\Controllers\ProfileController;
+use Database\Seeders\AutoProductSeeder;
+use Database\Seeders\CategoryDepartmentSeeder;
+use Database\Seeders\OrderStageSeeder;
+use Database\Seeders\TaxSeeder;
+use Database\Seeders\VariantConfigurationSeeder;
+use Illuminate\Support\Facades\Artisan;
+use Modules\CatalogManagement\database\seeders\ReviewSeeder;
+use Modules\Order\database\seeders\OrderDatabaseSeeder;
 
 /*
 |--------------------------------------------------------------------------
@@ -34,16 +40,37 @@ Route::group(['prefix' => '/', 'middleware' => 'guest'], function() {
     });
 });
 
-Route::post('/logout',[AuthController::class,'logout'])->name('logout')->middleware('auth');
+// Protected routes
+Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+Route::get('/profile', [ProfileController::class, 'index'])->name('profile.index');
+Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
+Route::put('/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.password.update');
 
-// Profile Routes
-Route::middleware('auth')->group(function() {
-    Route::get('/profile', [ProfileController::class, 'index'])->name('profile.index');
-    Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::put('/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.password.update');
-});
+// Country switch route - updates URL with new country code
+Route::get('/switch-country/{countryCode}', function($countryCode) {
+    $countryCode = strtoupper($countryCode);
+    session()->put('country_code', $countryCode);
 
-Route::get('/lang/{lang}',[ LanguageController::class,'switchLang'])->name('switch_lang');
+    // Get current URL and replace country code
+    $previousUrl = url()->previous();
+    $parsedUrl = parse_url($previousUrl);
+    $path = $parsedUrl['path'] ?? '';
+    $segments = explode('/', trim($path, '/'));
+
+    // URL format: /{lang}/{country}/admin/...
+    // Replace segment 1 (country code) with new country code
+    if (count($segments) >= 3 && $segments[2] === 'admin') {
+        // segments[0] = lang, segments[1] = country, segments[2] = admin, ...
+        $segments[1] = strtolower($countryCode);
+    }
+
+    $newPath = '/' . implode('/', $segments);
+    return redirect($newPath);
+})->name('switch_country');
+
+
+
+
 // Route::get('/pagination-per-page/{per_page}',[ PaginationController::class,'set_pagination_per_page'])->name('pagination_per_page');
 
 
@@ -54,39 +81,30 @@ Route::get('/permissions/reset', function() {
     return "done";
 });
 
+Route::get('/lang/{lang}',[ LanguageController::class,'switchLang'])->name('switch_lang');
 
-Route::get('/seeder', function() {
-    try {
-        $exitCode = \Artisan::call('db:seed', [
-            '--class' => 'AutoProductSeeder',
-            // '--class' => 'OrderStageSeeder',
-            '--force' => true
-        ]);
-        $output = \Artisan::output();
-
-        if ($exitCode === 0) {
-            return response()->json([
-                'success' => true,
-                'message' => 'AutoProductSeeder completed successfully!',
-                'output' => $output,
-                'exit_code' => $exitCode
-            ]);
-        } else {
-            return response()->json([
-                'success' => false,
-                'message' => 'Seeder failed to run',
-                'output' => $output, // This will show the actual error from the seeder
-                'exit_code' => $exitCode
-            ], 500);
-        }
-    } catch (\Exception $e) {
-        return response()->json([
-            'success' => false,
-            'message' => 'Exception occurred while running seeder',
-            'error' => $e->getMessage(),
-            'file' => $e->getFile(),
-            'line' => $e->getLine(),
-            'trace' => $e->getTraceAsString()
-        ], 500);
+// Country Switch Route
+Route::get('/switch-country/{countryCode}', function($countryCode) {
+    $country = \Modules\AreaSettings\app\Models\Country::where('code', strtoupper($countryCode))->first();
+    if ($country) {
+        session()->put('country_code', $country->code);
     }
-});
+
+    // Get current URL and replace country code
+    $previousUrl = url()->previous();
+    $parsedUrl = parse_url($previousUrl);
+    $path = $parsedUrl['path'] ?? '';
+    $segments = explode('/', trim($path, '/'));
+
+    // Replace the first segment (country code) with new country code
+    if (count($segments) >= 1) {
+        $segments[0] = strtolower($countryCode);
+    }
+
+    $newPath = '/' . implode('/', $segments);
+    return redirect($newPath);
+})->name('switch_country');
+
+
+
+

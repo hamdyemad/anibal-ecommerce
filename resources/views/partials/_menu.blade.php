@@ -1,9 +1,14 @@
 @php
-    $user_type_id = auth()->user()->user_type_id;
-    $user_type = auth()->user()->user_type->name;
-    $vendor = auth()->user()->vendor;
+    $user = auth()->user();
+    $user_type_id = $user->user_type_id ?? null;
+    $user_type = $user->user_type?->name ?? 'Unknown';
+    $vendor = $user->vendor ?? null;
     $currentLocale = LaravelLocalization::getCurrentLocale();
-    $currentRoute = Request::route()->getName();
+    try {
+        $currentRoute = Request::route() ? Request::route()->getName() : null;
+    } catch (\Exception $e) {
+        $currentRoute = null;
+    }
     $currentUrl = Request::url();
 
     // Helper function to check if menu item is active
@@ -45,30 +50,39 @@
     $new_transactions = 0;
     $accepted_transactions = 0;
     $rejected_transactions = 0;
+    $all_transactions = 0;
 
-    if ($vendor) {
-        $new_transactions = Modules\Withdraw\app\Models\Withdraw::where('reciever_id', $vendor->id)
-            ->where('status', 'new')
-            ->count();
-        $accepted_transactions = Modules\Withdraw\app\Models\Withdraw::where('reciever_id', $vendor->id)
-            ->where('status', 'accepted')
-            ->count();
-        $rejected_transactions = Modules\Withdraw\app\Models\Withdraw::where('reciever_id', $vendor->id)
-            ->where('status', 'rejected')
-            ->count();
-    } else {
-        $new_transactions = Modules\Withdraw\app\Models\Withdraw::where('status', 'new')->count();
-        $accepted_transactions = Modules\Withdraw\app\Models\Withdraw::where('status', 'accepted')->count();
-        $rejected_transactions = Modules\Withdraw\app\Models\Withdraw::where('status', 'rejected')->count();
+    try {
+        if ($vendor) {
+            $new_transactions = Modules\Withdraw\app\Models\Withdraw::where('reciever_id', $vendor->id)
+                ->where('status', 'new')
+                ->count();
+            $accepted_transactions = Modules\Withdraw\app\Models\Withdraw::where('reciever_id', $vendor->id)
+                ->where('status', 'accepted')
+                ->count();
+            $rejected_transactions = Modules\Withdraw\app\Models\Withdraw::where('reciever_id', $vendor->id)
+                ->where('status', 'rejected')
+                ->count();
+        } else {
+            $new_transactions = Modules\Withdraw\app\Models\Withdraw::where('status', 'new')->count();
+            $accepted_transactions = Modules\Withdraw\app\Models\Withdraw::where('status', 'accepted')->count();
+            $rejected_transactions = Modules\Withdraw\app\Models\Withdraw::where('status', 'rejected')->count();
+        }
+
+        $all_transactions = Modules\Withdraw\app\Models\Withdraw::count();
+    } catch (\Exception $e) {
+        // Silently fail - keep all at 0
+        $new_transactions = 0;
+        $accepted_transactions = 0;
+        $rejected_transactions = 0;
+        $all_transactions = 0;
     }
-
-    $all_transactions = Modules\Withdraw\app\Models\Withdraw::count();
 @endphp
 <div class="sidebar__menu-group">
     <ul class="sidebar_nav">
         <li>
             <a href="{{ route('admin.dashboard') }}"
-                class="{{ Request::is(LaravelLocalization::getCurrentLocale() . '/admin/dashboard') ? 'active' : '' }}">
+                class="{{ Request::is('admin/dashboard') ? 'active' : '' }}">
                 <span class="nav-icon uil uil-create-dashboard"></span>
                 <span class="menu-text">{{ trans('menu.dashboard.title') }}</span>
             </a>
@@ -437,7 +451,7 @@
                                 <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive(['admin.taxes.index', 'admin.taxes.show', 'admin.taxes.edit'], $currentRoute) ? 'active' : '' }}"
                                     href="{{ route('admin.taxes.index') }}">
                                     {{ trans('menu.taxes.all') }}
-                                    <span class="badge badge-round badge-primary ms-1">12</span>
+                                    <span class="badge badge-round badge-primary ms-1">{{ \Modules\CatalogManagement\app\Models\Tax::count() }}</span>
                                 </a>
                             </li>
                         @endcan
@@ -837,7 +851,7 @@
                                 <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive(['admin.area-settings.countries.index', 'admin.area-settings.countries.create', 'admin.area-settings.countries.show', 'admin.area-settings.countries.edit'], $currentRoute) ? 'active' : '' }}"
                                     href="{{ route('admin.area-settings.countries.index') }}">
                                     {{ trans('menu.area settings.country') }}
-                                    <span class="badge badge-round badge-primary  ms-1">15</span>
+                                    <span class="badge badge-round badge-primary  ms-1">{{ \Modules\AreaSettings\app\Models\Country::count() }}</span>
                                 </a>
                             </li>
                         @endcan
@@ -847,7 +861,7 @@
                                 <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive(['admin.area-settings.cities.index', 'admin.area-settings.cities.create', 'admin.area-settings.cities.show', 'admin.area-settings.cities.edit'], $currentRoute) ? 'active' : '' }}"
                                     href="{{ route('admin.area-settings.cities.index') }}">
                                     {{ trans('menu.area settings.city') }}
-                                    <span class="badge badge-round badge-info ms-1">120</span>
+                                    <span class="badge badge-round badge-info ms-1">{{ \Modules\AreaSettings\app\Models\City::count() }}</span>
                                 </a>
                             </li>
                         @endcan
@@ -857,7 +871,7 @@
                                 <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive(['admin.area-settings.regions.index', 'admin.area-settings.regions.create', 'admin.area-settings.regions.show', 'admin.area-settings.regions.edit'], $currentRoute) ? 'active' : '' }}"
                                     href="{{ route('admin.area-settings.regions.index') }}">
                                     {{ trans('menu.area settings.region') }}
-                                    <span class="badge badge-round badge-warning ms-1">45</span>
+                                    <span class="badge badge-round badge-warning ms-1">{{ \Modules\AreaSettings\app\Models\Region::count() }}</span>
                                 </a>
                             </li>
                         @endcan
@@ -867,7 +881,7 @@
                                 <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive(['admin.area-settings.subregions.index', 'admin.area-settings.subregions.create', 'admin.area-settings.subregions.show', 'admin.area-settings.subregions.edit'], $currentRoute) ? 'active' : '' }}"
                                     href="{{ route('admin.area-settings.subregions.index') }}">
                                     {{ trans('menu.area settings.subregion') }}
-                                    <span class="badge badge-round badge-secondary ms-1">80</span>
+                                    <span class="badge badge-round badge-secondary ms-1">{{ \Modules\AreaSettings\app\Models\SubRegion::count() }}</span>
                                 </a>
                             </li>
                         @endcan

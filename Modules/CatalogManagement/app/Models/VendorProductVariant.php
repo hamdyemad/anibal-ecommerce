@@ -3,6 +3,7 @@
 namespace Modules\CatalogManagement\app\Models;
 
 use App\Models\Traits\HumanDates;
+
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -91,7 +92,7 @@ class VendorProductVariant extends Model
 
     public function getVariantNameAttribute()
     {
-        return $this->variantConfiguration->name;
+        return $this->variantConfiguration->name ?? '--';
     }
 
     public function getVariantPathEnAttribute()

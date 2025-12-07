@@ -30,9 +30,12 @@ class ActivityAction {
     public function getDataTable($data)
     {
         try {
-            // Get pagination parameters
-            $perPage = $data['per_page'] ?? $data['length'] ?? 10;
-            $page = $data['page'] ?? 1;
+            // Get pagination parameters from DataTables
+            $perPage = isset($data['length']) && $data['length'] > 0 ? (int)$data['length'] : 10;
+            $start = isset($data['start']) && $data['start'] >= 0 ? (int)$data['start'] : 0;
+            // Calculate page number from start offset
+            $page = $perPage > 0 ? floor($start / $perPage) + 1 : 1;
+
 
             // Get sorting parameters
             $orderColumnIndex = $data['orderColumnIndex'] ?? 0;
@@ -83,25 +86,19 @@ class ActivityAction {
 
             // Return raw data - rendering will be handled by DataTables in the view
             $data = [];
+            $startIndex = ($page - 1) * $perPage + 1; // Calculate starting index for current page
             foreach ($activities as $index => $activity) {
                 $rowData = [
-                    'index' => $index + 1,
+                    'index' => $startIndex + $index,
                     'id' => $activity->id,
-                    'translations' => [],
+                    'information' => [
+                        'name_en' => $activity->translations->where('lang_id', $languages->where('code', 'en')->first()?->id)->where('lang_key', 'name')->first()?->lang_value ?? '-',
+                        'name_ar' => $activity->translations->where('lang_id', $languages->where('code', 'ar')->first()?->id)->where('lang_key', 'name')->first()?->lang_value ?? '-',
+                    ],
+                    'commission' => $activity->commission ?? 0,
                     'active' => $activity->active,
                     'created_at' => $activity->created_at,
                 ];
-
-                // Add translations for each language
-                foreach ($languages as $language) {
-                    $translation = $activity->translations->where('lang_id', $language->id)
-                        ->where('lang_key', 'name')
-                        ->first();
-                    $rowData['translations'][$language->code] = [
-                        'name' => $translation ? $translation->lang_value : '-',
-                        'rtl' => $language->rtl
-                    ];
-                }
 
                 // Add first translation name for delete modal
                 $firstTranslation = $activity->translations->where('lang_key', 'name')->first();

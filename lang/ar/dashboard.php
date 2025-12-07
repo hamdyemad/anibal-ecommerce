@@ -128,4 +128,8 @@ return [
     'employee' => 'الموظف',
     'activity' => 'النشاط',
     'activity_date' => 'تاريخ النشاط',
+
+    // Country Selector
+    'select_country' => 'اختر الدولة',
+    'current_country' => 'الدولة الحالية',
 ];
