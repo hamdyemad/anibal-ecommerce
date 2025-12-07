@@ -210,33 +210,8 @@
         </div>
     </div>
 
-    {{-- Change Order Stage Modal --}}
-    <div class="modal fade" id="changeStageModal" tabindex="-1" aria-labelledby="changeStageModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="changeStageModalLabel">{{ trans('order::order.change_order_stage') }}</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <form id="changeStageForm">
-                    @csrf
-                    <div class="modal-body">
-                        <input type="hidden" id="orderId" name="order_id">
-                        <div class="form-group">
-                            <label for="newStage" class="form-label">{{ trans('order::order.select_new_stage') }}</label>
-                            <select id="newStage" name="stage_id" class="form-select" required>
-                                <option value="">{{ trans('order::order.select_stage') }}</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('common.cancel') }}</button>
-                        <button type="submit" class="btn btn-primary">{{ trans('order::order.update_stage') }}</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
+    {{-- Include Change Stage Modal Component --}}
+    <x-order::change-stage-modal :order-id="null" />
 
 @endsection
 
@@ -319,12 +294,12 @@
                         className: 'text-center fw-bold'
                     },
                     {
-                        data: 'id',
-                        name: 'id',
+                        data: 'order_number',
+                        name: 'order_number',
                         orderable: false,
                         searchable: true,
                         render: function(data) {
-                            return `#${data}`;
+                            return `${data}`;
                         }
                     },
                     {
@@ -351,7 +326,7 @@
                         orderable: false,
                         searchable: false,
                         render: function(data) {
-                            return data ? `$${parseFloat(data).toFixed(2)}` : '-';
+                            return data ? ` ${parseFloat(data).toFixed(2)}` : '-';
                         }
                     },
                     {
@@ -405,6 +380,7 @@
                                     data-bs-toggle="modal"
                                     data-bs-target="#changeStageModal"
                                     data-id="${row.id}"
+                                    data-stage-id="${row.stage?.id || ''}"
                                     title="{{ trans('order::order.change_order_stage') }}">
                                         <i class="uil uil-exchange-alt table_action_icon"></i>
                                     </button>
@@ -452,8 +428,12 @@
                                 totalOrders = response.recordsFiltered || response.recordsTotal || 0;
 
                                 response.data.forEach(order => {
-                                    totalProductPrice += parseFloat(order.total_price || 0);
-                                    totalIncome += parseFloat(order.total_price || 0);
+                                    totalProductPrice += parseFloat(order.total_product_price || 0);
+                                    
+                                    // Only add to income if order is delivered
+                                    if (order.stage_id === 3) {
+                                        totalIncome += parseFloat(order.total_price || 0);
+                                    }
                                 });
 
                                 // Update card displays
@@ -529,7 +509,7 @@
                 const stageId = $('#newStage').val();
 
                 if (!stageId) {
-                    alert('{{ trans('order::order.please_select_stage') }}');
+                    toastr.warning('{{ trans('order.please_select_stage') }}');
                     return;
                 }
 
@@ -558,46 +538,34 @@
                         if (modal) modal.hide();
 
                         // Show success message
-                        if (typeof Swal !== 'undefined') {
-                            Swal.fire({
-                                icon: 'success',
-                                title: '{{ __('common.success') }}',
-                                text: response.message || '{{ trans('order::order.stage_updated_successfully') }}',
-                                timer: 2000,
-                                showConfirmButton: false,
-                                toast: true,
-                                position: 'top-end'
-                            });
-                        }
+                        toastr.success(response.message || '{{ trans('order.stage_updated_successfully') }}');
 
                         // Reload table
-                        table.ajax.reload();
+                        setTimeout(() => table.ajax.reload(), 1500);
                     },
                     error: function(xhr) {
                         if (typeof LoadingOverlay !== 'undefined') {
                             LoadingOverlay.hide();
                         }
 
-                        let errorMessage = '{{ trans('order::order.error_updating_stage') }}';
+                        let errorMessage = '{{ trans('order.error_updating_stage') }}';
                         if (xhr.responseJSON && xhr.responseJSON.message) {
                             errorMessage = xhr.responseJSON.message;
                         }
 
-                        if (typeof Swal !== 'undefined') {
-                            Swal.fire({
-                                icon: 'error',
-                                title: '{{ __('common.error') }}',
-                                text: errorMessage,
-                                timer: 3000,
-                                showConfirmButton: false,
-                                toast: true,
-                                position: 'top-end'
-                            });
-                        } else {
-                            alert(errorMessage);
-                        }
+                        toastr.error(errorMessage);
                     }
                 });
+            });
+
+            // Handle change stage modal - set order ID and stage ID from button data attributes
+            $('#changeStageModal').on('show.bs.modal', function(e) {
+                const button = $(e.relatedTarget);
+                const orderId = button.data('id');
+                const stageId = button.data('stage-id');
+
+                $('#orderId').val(orderId);
+                $('#currentStageId').val(stageId);
             });
         });
     </script>

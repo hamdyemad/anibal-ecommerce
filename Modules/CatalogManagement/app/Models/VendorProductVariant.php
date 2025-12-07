@@ -9,6 +9,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\Vendor\app\Models\Vendor;
+use Modules\Order\app\Models\OrderFulfillment;
+use Modules\Order\app\Models\OrderProduct;
 
 class VendorProductVariant extends Model
 {
@@ -66,6 +68,19 @@ class VendorProductVariant extends Model
     public function stocks()
     {
         return $this->hasMany(VendorProductVariantStock::class);
+    }
+
+    /**
+     * Get the order fulfillments for this variant
+     */
+    public function fulfillments()
+    {
+        return $this->hasManyThrough(
+            OrderFulfillment::class,
+            OrderProduct::class,
+            'vendor_product_variant_id',
+            'order_product_id'
+        );
     }
 
     /**
@@ -204,14 +219,19 @@ class VendorProductVariant extends Model
      */
     public function getCountDeliveredProductAttribute()
     {
-        return 0;
+        return (int) $this->fulfillments()
+            ->where('status', 'delivered')
+            ->sum('allocated_quantity');
     }
 
     /**
-     * Accessor: countOfAvailable - Total available stock
+     * Accessor: countOfAvailable - Total available stock (checks fulfillments)
+     * Available = Total Stock - Allocated Stock
      */
     public function getCountOfAvailableAttribute()
     {
-        return ($this->total_stock ?? 0) - ($this->countDeliveredProduct ?? 0);
+        $totalStock = $this->total_stock ?? 0;
+
+        return $totalStock - $this->CountDeliveredProduct;
     }
 }

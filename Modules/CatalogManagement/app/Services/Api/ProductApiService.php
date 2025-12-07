@@ -39,12 +39,23 @@ class ProductApiService
         return $product;
     }
 
-    /**
-     * Store product review
-     */
+    public function incrementProductSales($productId, $quantity = 1)
+    {
+        return $this->repository->incrementProductSales($productId, $quantity);
+    }
+
+
     public function findProduct(string $productId)
     {
         return $this->repository->findProduct($productId);
+    }
+
+    /**
+     * Find vendor product with all relationships for order creation pipeline
+     */
+    public function findProductForOrder(string $productId)
+    {
+        return $this->repository->findProductForOrder($productId);
     }
 
     /**
@@ -88,5 +99,14 @@ class ProductApiService
     public function getTreesByFilters(array $filters)
     {
         return $this->repository->getTreesByFilters($filters);
+    }
+
+    /**
+     * Get all vendor product variants with their product details
+     * Used for order creation
+     */
+    public function getVariantsWithProduct(array $filters)
+    {
+        return $this->repository->getVariantsWithProduct($filters);
     }
 }

@@ -5,10 +5,9 @@ namespace Modules\CatalogManagement\app\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use App\Models\Region;
 use App\Traits\Translation;
 use App\Models\Traits\CountryCheckIdTrait;
-use Modules\AreaSettings\app\Models\Region as ModelsRegion;
+use Modules\AreaSettings\app\Models\Region;
 
 class VariantStock extends Model
 {
@@ -38,6 +37,6 @@ class VariantStock extends Model
      */
     public function region()
     {
-        return $this->belongsTo(ModelsRegion::class);
+        return $this->belongsTo(Region::class);
     }
 }

@@ -16,7 +16,7 @@ class OrderFulfillment extends BaseModel
         'order_product_id',
         'region_id',
         'allocated_quantity',
-        // 'status',
+        'status',
         'notes',
     ];
 
@@ -47,10 +47,10 @@ class OrderFulfillment extends BaseModel
     /**
      * Scope to filter by status.
      */
-    // public function scopeByStatus($query, $status)
-    // {
-    //     return $query->where('status', $status);
-    // }
+    public function scopeByStatus($query, $status)
+    {
+        return $query->where('status', $status);
+    }
 
     /**
      * Scope to filter by order.

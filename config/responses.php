@@ -461,6 +461,14 @@ return [
     ],
     "vendor_not_found" => [
         "en" => "Vendor Not Found",
-        "ar" => "المورد غير موجود"
-    ]
+        "ar" => "المورد غير موجود",
+    ],
+    "order_stages_retrieved_successfully" => [
+        "en" => "Order stages retrieved successfully",
+        "ar" => "تم استرجاع مراحل الطلب بنجاح",
+    ],
+    "order_stage_not_found" => [
+        "en" => "Order stage not found",
+        "ar" => "مرحلة الطلب غير موجودة",
+    ],
 ];

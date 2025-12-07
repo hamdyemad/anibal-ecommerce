@@ -56,17 +56,28 @@ return [
     'error_creating_order' => 'Error creating order',
     'error_updating_order' => 'Error updating order',
     'error_deleting_order' => 'Error deleting order',
+    'order_not_found' => 'Order not found',
+    'error_loading_order' => 'Error loading order',
 
     // Validation Messages
     'order_id_required' => 'Order ID is required',
+    'customer_required' => 'Please select a customer',
     'customer_name_required' => 'Customer name is required',
     'customer_email_required' => 'Customer email is required',
     'customer_email_invalid' => 'Customer email must be a valid email address',
     'customer_phone_required' => 'Customer phone is required',
+    'customer_address_required' => 'Customer address is required',
+    'address_required' => 'Please select an address',
+    'products_required' => 'Please add at least 3 products to the order',
     'total_price_required' => 'Total price is required',
     'total_price_numeric' => 'Total price must be a number',
     'stage_id_required' => 'Stage is required',
     'stage_id_exists' => 'Selected stage does not exist',
+
+    // Pipeline Error Messages
+    'product_not_found' => 'Product with ID :id not found or invalid data structure',
+    'product_id_not_found' => 'Product ID not found for vendor product :id',
+    'vendor_id_not_found' => 'Vendor ID not found for vendor product :id',
 
     // Actions
     'add_product' => 'Add Product',
@@ -92,7 +103,22 @@ return [
     'shipping' => 'Shipping',
     'tax' => 'Tax',
     'discount' => 'Discount',
+    'discounts' => 'Discounts',
+    'fees' => 'Fees',
+    'fee' => 'Fee',
     'total' => 'Total',
+    'products' => 'Products',
+    'fees_and_discounts' => 'Fees & Discounts',
+    'location' => 'Location',
+    'commission' => 'Commission',
+    'type' => 'Type',
+    'reason' => 'Reason',
+    'amount' => 'Amount',
+    'invoice' => 'Invoice',
+    'reg_number' => 'Reg. Number',
+    'product' => 'Product',
+    'price_per_unit' => 'Price Per Unit',
+    'actions' => 'Actions',
 
     // Promo Code
     'promo_code' => 'Promo Code',

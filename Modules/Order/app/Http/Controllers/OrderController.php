@@ -6,7 +6,9 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Modules\Order\app\Services\OrderService;
 use Modules\Order\app\Http\Requests\CreateOrderRequest;
+use Modules\Order\app\Http\Requests\StoreOrderRequest;
 use Modules\Order\app\Http\Requests\UpdateOrderRequest;
+use Modules\Order\app\Http\Requests\ChangeOrderStageRequest;
 use Modules\Order\app\Http\Requests\AddProductToOrderRequest;
 use Modules\Order\app\Http\Requests\AddExtraFeeDiscountRequest;
 use Modules\Order\app\Http\Requests\CreateFulfillmentRequest;
@@ -73,9 +75,11 @@ class OrderController extends Controller
                 $rowData = [
                     'index' => $index++,
                     'id' => $order->id,
+                    'order_number' => $order->order_number,
                     'customer_name' => $order->customer_name,
                     'customer_email' => $order->customer_email,
                     'total_price' => $order->total_price,
+                    'total_product_price' => $order->total_product_price,
                     'items_count' => $itemsCount,
                     'stage' => $order->stage,
                     'created_at' => $order->created_at ? $order->created_at->format('Y-m-d H:i') : '-',
@@ -123,9 +127,28 @@ class OrderController extends Controller
     /**
      * Store a newly created order
      */
-    public function store($lang, $countryCode, CreateOrderRequest $request)
+    public function store($lang, $countryCode, StoreOrderRequest $request)
     {
-        // Implementation here
+        try {
+            $order = $this->orderService->createOrder($request->validated());
+
+            return response()->json([
+                'status' => true,
+                'message' => trans('order::order.order_created'),
+                'data' => [
+                    'id' => $order->id,
+                    'customer_name' => $order->customer_name,
+                    'total_price' => $order->total_price,
+                    'created_at' => $order->created_at,
+                ],
+            ], 201);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => false,
+                'message' => trans('order::order.error_creating_order'),
+                'errors' => [$e->getMessage()],
+            ], 422);
+        }
     }
 
     /**
@@ -133,7 +156,17 @@ class OrderController extends Controller
      */
     public function show($lang, $countryCode, $id)
     {
-        // Implementation here
+        try {
+            $order = $this->orderService->getOrderById($id);
+
+            if (!$order) {
+                return abort(404, trans('order::order.order_not_found'));
+            }
+
+            return view('order::orders.show', compact('order'));
+        } catch (\Exception $e) {
+            return abort(500, trans('order::order.error_loading_order'));
+        }
     }
 
     /**
@@ -184,18 +217,14 @@ class OrderController extends Controller
         // Implementation here
     }
 
+
     /**
      * Change order stage
      */
-    public function changeStage($lang, $countryCode, $id, Request $request)
+    public function changeStage($lang, $countryCode, $id, ChangeOrderStageRequest $request)
     {
         try {
-            $request->validate([
-                'stage_id' => 'required|exists:order_stages,id',
-            ]);
-
-            $order = Order::findOrFail($id);
-            $order->update(['stage_id' => $request->stage_id]);
+            $order = $this->orderService->changeOrderStage($id, $request->stage_id);
 
             return response()->json([
                 'status' => true,
@@ -209,69 +238,5 @@ class OrderController extends Controller
                 'errors' => [$e->getMessage()]
             ], 422);
         }
-    }
-
-    /**
-     * Update order status/stage
-     */
-    public function updateStatus($id, Request $request)
-    {
-        // Implementation here
-    }
-
-    /**
-     * Add extra fee or discount to order
-     */
-    public function addExtraFeeDiscount($orderId, AddExtraFeeDiscountRequest $request)
-    {
-        // Implementation here
-    }
-
-    /**
-     * Get order fulfillments
-     */
-    public function getFulfillments($orderId)
-    {
-        // Implementation here
-    }
-
-    /**
-     * Create fulfillment for order product
-     */
-    public function createFulfillment($orderId, CreateFulfillmentRequest $request)
-    {
-        // Implementation here
-    }
-
-    /**
-     * Update fulfillment status
-     */
-    public function updateFulfillmentStatus($fulfillmentId, Request $request)
-    {
-        // Implementation here
-    }
-
-    /**
-     * Get order summary/totals
-     */
-    public function getSummary($id)
-    {
-        // Implementation here
-    }
-
-    /**
-     * Print order invoice
-     */
-    public function printInvoice($id)
-    {
-        // Implementation here
-    }
-
-    /**
-     * Export orders to CSV/Excel
-     */
-    public function export(Request $request)
-    {
-        // Implementation here
     }
 }
