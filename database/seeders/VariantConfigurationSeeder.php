@@ -136,6 +136,11 @@ class VariantConfigurationSeeder extends Seeder
         // Get country from session or use first country
         $countryCode = session('country_code', 'EG');
         $country = \Modules\AreaSettings\app\Models\Country::where('code', strtoupper($countryCode))->first();
+
+        if (!$country) {
+            $country = \Modules\AreaSettings\app\Models\Country::first();
+        }
+
         $countryId = $country ? $country->id : null;
 
         if (!$countryId) {
@@ -186,21 +191,27 @@ class VariantConfigurationSeeder extends Seeder
                     })->first();
 
                 if (!$existingValue) {
-                    $config = VariantsConfiguration::create([
-                        'key_id' => $variantKey->id,
-                        'parent_id' => null,
-                    ]);
-
-                    foreach ($languages as $langCode => $language) {
-                        $config->translations()->create([
-                            'lang_id' => $language->id,
-                            'lang_key' => 'name',
-                            'lang_value' => $langCode === 'en' ? $valueData['en'] : $valueData['ar'],
+                    try {
+                        $config = VariantsConfiguration::create([
+                            'key_id' => $variantKey->id,
+                            'parent_id' => null,
                         ]);
-                    }
 
-                    echo "    ✓ Created value: {$valueData['en']}\n";
-                    $valuesCreated++;
+                        foreach ($languages as $langCode => $language) {
+                            $config->translations()->create([
+                                'lang_id' => $language->id,
+                                'lang_key' => 'name',
+                                'lang_value' => $langCode === 'en' ? $valueData['en'] : $valueData['ar'],
+                            ]);
+                        }
+
+                        echo "    ✓ Created value: {$valueData['en']}\n";
+                        $valuesCreated++;
+                    } catch (\Exception $e) {
+                        echo "    ⏭️ Error creating value {$valueData['en']}: {$e->getMessage()}\n";
+                    }
+                } else {
+                    echo "    ⏭️ Value exists: {$valueData['en']}\n";
                 }
             }
         }

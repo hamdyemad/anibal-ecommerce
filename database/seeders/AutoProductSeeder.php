@@ -56,6 +56,11 @@ class AutoProductSeeder extends Seeder
         // Get country_id from session
         $countryCode = session('country_code', 'EG');
         $country = Country::where('code', strtoupper($countryCode))->first();
+
+        if (!$country) {
+            $country = Country::first();
+        }
+
         $countryId = $country ? $country->id : null;
 
         if (!$countryId) {
@@ -66,23 +71,31 @@ class AutoProductSeeder extends Seeder
         echo "✓ Using country: {$country->code} (ID: {$countryId})\n";
 
         // Fetch required data
-        $vendors = Vendor::where('active', true)->where('country_id', $countryId)->get();
+        $vendors = Vendor::where('active', 1)->where('country_id', $countryId)->get();
         $languages = Language::whereIn('code', ['en', 'ar'])->get()->keyBy('code');
-        $brands = Brand::where('active', true)->where('country_id', $countryId)->get();
-        $departments = Department::where('active', true)->where('country_id', $countryId)->get();
-        $categories = Category::where('active', true)->where('country_id', $countryId)->get();
-        $subCategories = SubCategory::where('active', true)->where('country_id', $countryId)->get();
-        $taxes = Tax::where('active', true)->where('country_id', $countryId)->get();
+        $brands = Brand::where('active', 1)->where('country_id', $countryId)->get();
+        $departments = Department::where('active', 1)->where('country_id', $countryId)->get();
+        $categories = Category::where('active', 1)->where('country_id', $countryId)->get();
+        $subCategories = SubCategory::where('active', 1)->where('country_id', $countryId)->get();
+        $taxes = Tax::where('active', 1)->where('country_id', $countryId)->get();
 
         // Get regions through cities for this country
         $regions = Region::whereHas('city', function($q) use ($countryId) {
             $q->where('country_id', $countryId);
-        })->where('active', true)->get();
+        })->where('active', 1)->get();
 
         $variantKeys = VariantConfigurationKey::where('country_id', $countryId)->get();
 
+        // Debug: Check all vendors
+        $allVendors = Vendor::all();
+        echo "📊 Total vendors in DB: {$allVendors->count()}\n";
+        foreach ($allVendors as $v) {
+            echo "  - Vendor ID: {$v->id}, Active: {$v->active}, Country ID: {$v->country_id}\n";
+        }
+
         if ($vendors->isEmpty()) {
             echo "❌ Error: No active vendors found for country: {$country->code}\n";
+            echo "   Searched for: active=1, country_id={$countryId}\n";
             return;
         }
 

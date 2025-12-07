@@ -19,6 +19,11 @@ class ActivitySeeder extends Seeder
         // Get country_id from current country_code in session
         $countryCode = session('country_code', 'EG');
         $country = \Modules\AreaSettings\app\Models\Country::where('code', strtoupper($countryCode))->first();
+
+        if (!$country) {
+            $country = \Modules\AreaSettings\app\Models\Country::first();
+        }
+
         $countryId = $country ? $country->id : null;
 
         Activity::factory()

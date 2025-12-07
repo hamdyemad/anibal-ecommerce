@@ -65,13 +65,9 @@ class BrandSeeder extends Seeder
             return;
         }
 
-        // Get country from session or use first country
-        $countryCode = session('country_code');
-        $country = null;
-
-        if ($countryCode) {
-            $country = Country::where('code', strtolower($countryCode))->first();
-        }
+        // Get country from session
+        $countryCode = session('country_code', 'EG');
+        $country = Country::where('code', strtoupper($countryCode))->first();
 
         if (!$country) {
             $country = Country::first();
@@ -97,20 +93,20 @@ class BrandSeeder extends Seeder
      */
     private function createBrand($brandData, $languages, $countryId)
     {
-        // Check if brand exists globally (slug is unique across all countries)
-        $slug = Str::slug($brandData['en']);
-        $existingBrand = Brand::where('slug', $slug)->first();
+        // Generate base slug
+        $baseSlug = Str::slug($brandData['en']);
 
-        if ($existingBrand) {
+        // Check if brand with this slug already exists
+        if (Brand::where('slug', $baseSlug)->exists()) {
             echo "  ⏭️ Skipped brand: {$brandData['en']} (already exists)\n";
             return;
         }
 
-        // Generate unique slug globally
+        // Generate unique slug globally (in case of race conditions)
+        $slug = $baseSlug;
         $counter = 1;
-        $originalSlug = $slug;
         while (Brand::where('slug', $slug)->exists()) {
-            $slug = $originalSlug . '-' . $counter;
+            $slug = $baseSlug . '-' . $counter;
             $counter++;
         }
 

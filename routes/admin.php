@@ -23,6 +23,8 @@ use Database\Seeders\TaxSeeder;
 use Database\Seeders\VariantConfigurationSeeder;
 use Database\Seeders\VendorSeeder;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\DB;
+use Modules\AreaSettings\app\Models\Country;
 use Modules\CatalogManagement\database\seeders\ReviewSeeder;
 use Modules\Order\database\seeders\OrderDatabaseSeeder;
 

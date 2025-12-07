@@ -54,13 +54,9 @@ class VendorSeeder extends Seeder
             return;
         }
 
-        // Get country from session or use first country
-        $countryCode = session('country_code');
-        $country = null;
-
-        if ($countryCode) {
-            $country = Country::where('code', strtolower($countryCode))->first();
-        }
+        // Get country from session
+        $countryCode = session('country_code', 'EG');
+        $country = Country::where('code', strtoupper($countryCode))->first();
 
         if (!$country) {
             $country = Country::first();
@@ -73,10 +69,10 @@ class VendorSeeder extends Seeder
 
         $countryId = $country->id;
 
-        // Get activities
-        $activities = Activity::all();
+        // Get activities for this country
+        $activities = Activity::where('country_id', $countryId)->get();
         if ($activities->isEmpty()) {
-            echo "❌ No activities found. Please run CategoryDepartmentSeeder first.\n";
+            echo "❌ No activities found for country {$country->code}. Please run ActivitySeeder first.\n";
             return;
         }
 
@@ -93,18 +89,23 @@ class VendorSeeder extends Seeder
      */
     private function createVendor($vendorData, $languages, $countryId, $activities)
     {
-        // Check if vendor exists
-        $existingVendor = Vendor::whereHas('translations', function($q) use ($vendorData) {
-            $q->where('lang_key', 'name')->where('lang_value', $vendorData['en']);
-        })->first();
-
-        if ($existingVendor) {
+        // Check if vendor exists by slug
+        $baseSlug = Str::slug($vendorData['en']);
+        if (Vendor::where('slug', $baseSlug)->exists()) {
             echo "  ⚠️  Vendor already exists: {$vendorData['en']}\n";
             return;
         }
 
+        // Generate unique slug
+        $slug = $baseSlug;
+        $counter = 1;
+        while (Vendor::where('slug', $slug)->exists()) {
+            $slug = $baseSlug . '-' . $counter;
+            $counter++;
+        }
+
         // Generate unique email
-        $baseEmail = Str::slug($vendorData['en']) . '@vendor.test';
+        $baseEmail = $baseSlug . '@vendor.test';
         $email = $baseEmail;
         $counter = 1;
         while (User::where('email', $email)->exists()) {
@@ -113,45 +114,49 @@ class VendorSeeder extends Seeder
             $counter++;
         }
 
-        // Create vendor user
-        $vendorUser = User::create([
-            'uuid' => Str::uuid(),
-            'email' => $email,
-            'password' => bcrypt('password'),
-            'user_type_id' => UserType::where('name', 'vendor')->first()->id ?? 3,
-            'active' => 1,
-        ]);
-
-        // Get random activity from country
-        $activity = $activities->where('country_id', $countryId)->random();
-
-        // Get random brand from country
-        $brand = Brand::where('country_id', $countryId)->inRandomOrder()->first();
-
-        // Create vendor
-        $vendor = Vendor::create([
-            'user_id' => $vendorUser->id,
-            'country_id' => $countryId,
-            'slug' => Str::slug($vendorData['en']),
-            'type' => 'product',
-            'active' => 1,
-        ]);
-
-        // Add translations
-        foreach ($languages as $langCode => $language) {
-            $vendor->translations()->create([
-                'lang_id' => $language->id,
-                'lang_key' => 'name',
-                'lang_value' => $langCode === 'en' ? $vendorData['en'] : $vendorData['ar'],
+        try {
+            // Create vendor user
+            $vendorUser = User::create([
+                'uuid' => Str::uuid(),
+                'email' => $email,
+                'password' => bcrypt('password'),
+                'user_type_id' => UserType::where('name', 'vendor')->first()->id ?? 3,
+                'active' => 1,
             ]);
-        }
 
-        // Attach random activity
-        if ($activity) {
-            $vendor->activities()->attach($activity->id);
-        }
+            // Get random activity from country
+            $activity = $activities->where('country_id', $countryId)->random();
 
-        $brandName = $brand ? $brand->getTranslation('name', 'en') : 'None';
-        echo "  ✓ Created vendor: {$vendorData['en']} (Activity: {$activity?->getTranslation('name', 'en')}, Brand: {$brandName}, Country ID: {$countryId})\n";
+            // Get random brand from country
+            $brand = Brand::where('country_id', $countryId)->inRandomOrder()->first();
+
+            // Create vendor
+            $vendor = Vendor::create([
+                'user_id' => $vendorUser->id,
+                'country_id' => $countryId,
+                'slug' => $slug,
+                'type' => 'product',
+                'active' => 1,
+            ]);
+
+            // Add translations
+            foreach ($languages as $langCode => $language) {
+                $vendor->translations()->create([
+                    'lang_id' => $language->id,
+                    'lang_key' => 'name',
+                    'lang_value' => $langCode === 'en' ? $vendorData['en'] : $vendorData['ar'],
+                ]);
+            }
+
+            // Attach random activity
+            if ($activity) {
+                $vendor->activities()->attach($activity->id);
+            }
+
+            $brandName = $brand ? $brand->getTranslation('name', 'en') : 'None';
+            echo "  ✓ Created vendor: {$vendorData['en']} (Activity: {$activity?->getTranslation('name', 'en')}, Brand: {$brandName}, Country ID: {$countryId})\n";
+        } catch (\Exception $e) {
+            echo "  ⏭️ Skipped vendor: {$vendorData['en']} (error: {$e->getMessage()})\n";
+        }
     }
 }

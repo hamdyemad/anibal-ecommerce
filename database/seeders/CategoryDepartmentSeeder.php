@@ -192,6 +192,11 @@ class CategoryDepartmentSeeder extends Seeder
         // Get country_id from current country_code in session
         $countryCode = session('country_code', 'EG');
         $country = Country::where('code', strtoupper($countryCode))->first();
+
+        if (!$country) {
+            $country = Country::first();
+        }
+
         $countryId = $country ? $country->id : null;
 
         // Create Activities and Departments
