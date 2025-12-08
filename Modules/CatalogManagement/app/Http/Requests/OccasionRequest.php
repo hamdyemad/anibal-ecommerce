@@ -20,17 +20,17 @@ class OccasionRequest extends FormRequest
      */
     public function rules(): array
     {
-        // Get the occasion ID from route parameter (for update) or use null (for create)
-        $occasionId = $this->route('occasion') ?? $this->route('id');
+        // Check if this is an update request (PUT/PATCH) or create request (POST)
+        $isUpdate = $this->isMethod('put') || $this->isMethod('patch');
 
         // Image is required only when creating, nullable when updating
-        $imageRule = $occasionId ? 'nullable' : 'required';
+        $imageRule = $isUpdate ? 'nullable' : 'required';
 
         return [
             // Basic fields
             'vendor_id' => 'required|exists:vendors,id',
             'is_active' => 'boolean',
-            'image' => $imageRule . '|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
+            // 'image' => $imageRule . '|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
             'start_date' => 'nullable|date',
             'end_date' => 'nullable|date|after_or_equal:start_date',
 

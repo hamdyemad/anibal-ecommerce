@@ -78,7 +78,6 @@ class AppServiceProvider extends ServiceProvider
                 $modelClass = 'App\\Models\\' . $modelFile->getBasename('.php');
                 if (class_exists($modelClass) && is_subclass_of($modelClass, Model::class)) {
                     $modelClass::observe(GlobalModelObserver::class);
-                    $modelClass::observe(CountryObserver::class);
                 }
             }
         } catch (\Exception $e) {
@@ -105,7 +104,6 @@ class AppServiceProvider extends ServiceProvider
                     foreach (File::allFiles($modelsPath) as $modelFile) {
                         $modelClass = "Modules\\{$moduleName}\\app\\Models\\" . $modelFile->getBasename('.php');
                         if (class_exists($modelClass) && is_subclass_of($modelClass, Model::class)) {
-                            $modelClass::observe(CountryObserver::class);
                             $modelClass::observe(GlobalModelObserver::class);
                         }
                     }

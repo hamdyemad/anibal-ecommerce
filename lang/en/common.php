@@ -14,6 +14,7 @@ return [
     'saving' => 'Saving',
     'please_wait' => 'Please wait',
     'redirecting' => 'Redirecting',
+    'stock' => 'Stock',
     'cancel' => 'Cancel',
     'back' => 'Back',
     'search' => 'Search',
@@ -197,4 +198,8 @@ return [
     'trashed' => 'Trashed',
     'restore' => 'Restore',
     'no_data_available' => 'No Data Available',
+    'drag_to_reorder' => 'Drag to reorder',
+    'order_updated_successfully' => 'Order updated successfully',
+    'error_updating_order' => 'Error updating order',
+    'no_positions_provided' => 'No positions provided',
 ];

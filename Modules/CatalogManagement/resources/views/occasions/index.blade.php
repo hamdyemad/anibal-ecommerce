@@ -164,11 +164,7 @@
                             <thead>
                                 <tr class="userDatatable-header">
                                     <th class="text-center"><span class="userDatatable-title">#</span></th>
-                                    @foreach($languages as $language)
-                                        <th><span class="userDatatable-title">{{ trans('catalogmanagement::occasion.name') }} ({{ $language->name }})</span></th>
-                                    @endforeach
-                                    <th><span class="userDatatable-title">{{ trans('catalogmanagement::occasion.vendor') }}</span></th>
-                                    <th><span class="userDatatable-title">{{ trans('catalogmanagement::occasion.image') }}</span></th>
+                                    <th><span class="userDatatable-title">{{ trans('catalogmanagement::occasion.occasion_information') }}</span></th>
                                     <th><span class="userDatatable-title">{{ trans('catalogmanagement::occasion.start_date') }}</span></th>
                                     <th><span class="userDatatable-title">{{ trans('catalogmanagement::occasion.end_date') }}</span></th>
                                     <th><span class="userDatatable-title">{{ trans('catalogmanagement::occasion.status') }}</span></th>
@@ -240,38 +236,55 @@
                             return meta.row + meta.settings._iDisplayStart + 1;
                         }
                     },
-                    @foreach($languages as $language)
                     {
-                        data: function(row) {
-                            if (row.name && typeof row.name === 'object') {
-                                return row.name['{{ $language->code }}'] || '-';
-                            }
-                            return '-';
-                        },
-                        name: 'translations.name',
-                        orderable: false,
-                        searchable: true
-                    },
-                    @endforeach
-                    {
-                        data: 'vendor',
-                        name: 'vendor.name',
+                        data: 'occasion_information',
+                        name: 'occasion_information',
                         orderable: false,
                         searchable: false,
                         render: function(data, type, row) {
-                            return data || '-';
-                        }
-                    },
-                    {
-                        data: 'image',
-                        name: 'image',
-                        orderable: false,
-                        searchable: false,
-                        render: function(data, type, row) {
-                            if (data) {
-                                return `<img src="${data}" alt="Occasion Image" style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px;">`;
+                            if (!data) return '<span class="text-muted">—</span>';
+
+                            let html = '<div class="occasion-info-container" style="display: flex; gap: 12px; align-items: flex-start;">';
+
+                            // Image
+                            if (data.image) {
+                                html += `<div style="flex-shrink: 0;">
+                                    <img src="${data.image}" alt="Occasion Image" style="width: 60px; height: 60px; object-fit: cover; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                                </div>`;
+                            } else {
+                                html += `<div style="flex-shrink: 0; width: 60px; height: 60px; background: #f0f0f0; border-radius: 6px; display: flex; align-items: center; justify-content: center;">
+                                    <i class="uil uil-image-slash" style="font-size: 24px; color: #ccc;"></i>
+                                </div>`;
                             }
-                            return '<span class="text-muted">{{ trans("catalogmanagement::occasion.no_image") }}</span>';
+
+                            // Names and Vendor
+                            html += '<div style="flex: 1; min-width: 0;">';
+
+                            // EN Name
+                            if (data.name_en && data.name_en !== '-') {
+                                html += `<div style="margin-bottom: 4px;">
+                                    <span class="badge bg-primary text-white px-2 py-1 me-2 rounded-pill fw-bold" style="font-size: 10px;">EN</span>
+                                    <span class="text-dark fw-semibold" style="font-size: 14px;">${$('<div/>').text(data.name_en).html()}</span>
+                                </div>`;
+                            }
+
+                            // AR Name
+                            if (data.name_ar && data.name_ar !== '-') {
+                                html += `<div style="margin-bottom: 4px;">
+                                    <span class="badge bg-success text-white px-2 py-1 me-2 rounded-pill fw-bold" style="font-size: 10px;">AR</span>
+                                    <span class="text-dark fw-semibold" dir="rtl" style="font-size: 14px; font-family: 'Cairo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">${$('<div/>').text(data.name_ar).html()}</span>
+                                </div>`;
+                            }
+
+                            // Vendor
+                            if (data.vendor && data.vendor !== '-') {
+                                html += `<div style="margin-top: 6px;">
+                                    <span class="badge badge-primary badge-round badge-lg" style="background-color: #5f63f2; font-size: 11px;">${$('<div/>').text(data.vendor).html()}</span>
+                                </div>`;
+                            }
+
+                            html += '</div></div>';
+                            return html;
                         }
                     },
                     {

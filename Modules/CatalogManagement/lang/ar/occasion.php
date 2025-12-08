@@ -25,6 +25,16 @@ return [
     'created_from' => 'من تاريخ',
     'created_until' => 'إلى تاريخ',
     'no_image' => 'لا توجد صورة',
+    'occasion_information' => 'معلومات المناسبة',
+    'slug' => 'الرابط الودود',
+    'occasion_details' => 'تفاصيل المناسبة',
+    'basic_information' => 'المعلومات الأساسية',
+    'quick_info' => 'معلومات سريعة',
+    'total_variants' => 'إجمالي المتغيرات',
+    'duration' => 'المدة',
+    'product' => 'المنتج',
+    'position' => 'الموضع',
+    'no_variants' => 'لم يتم إضافة متغيرات منتجات بعد',
 
     // Product Variants
     'product_variants' => 'متغيرات المنتجات',
@@ -61,6 +71,8 @@ return [
     'error_loading_data' => 'خطأ في تحميل البيانات',
     'status_changed_successfully' => 'تم تغيير الحالة بنجاح',
     'error_changing_status' => 'خطأ في تغيير الحالة',
+    'product_deleted_successfully' => 'تم إزالة المنتج من المناسبة بنجاح',
+    'error_deleting_product' => 'خطأ في إزالة المنتج من المناسبة',
 
     // Validation
     'translations_required' => 'الترجمات مطلوبة',

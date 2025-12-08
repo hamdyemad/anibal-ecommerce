@@ -39,6 +39,8 @@ Route::group(['middleware' => 'adminGuard'], function() {
 // Occasions
 Route::get('occasions/datatable', 'OccasionController@datatable')->name('occasions.datatable');
 Route::post('occasions/{id}/toggle-status', 'OccasionController@toggleStatus')->name('occasions.toggle-status');
+Route::delete('occasions/{occasion}/products/{product}', 'OccasionController@destroyProduct')->name('occasions.products.destroy');
+Route::post('occasions/{occasion}/update-positions', 'OccasionController@updatePositions')->name('occasions.update-positions');
 Route::resource('occasions', 'OccasionController');
 
 

@@ -25,6 +25,16 @@ return [
     'created_from' => 'Created From',
     'created_until' => 'Created Until',
     'no_image' => 'No Image',
+    'occasion_information' => 'Occasion Information',
+    'slug' => 'Slug',
+    'occasion_details' => 'Occasion Details',
+    'basic_information' => 'Basic Information',
+    'quick_info' => 'Quick Info',
+    'total_variants' => 'Total Variants',
+    'duration' => 'Duration',
+    'product' => 'Product',
+    'position' => 'Position',
+    'no_variants' => 'No product variants added yet',
 
     // Product Variants
     'product_variants' => 'Product Variants',
@@ -61,6 +71,8 @@ return [
     'error_loading_data' => 'Error loading data',
     'status_changed_successfully' => 'Status changed successfully',
     'error_changing_status' => 'Error changing status',
+    'product_deleted_successfully' => 'Product removed from occasion successfully',
+    'error_deleting_product' => 'Error removing product from occasion',
 
     // Validation
     'translations_required' => 'Translations are required',

@@ -166,13 +166,17 @@
                                                                 $translation = $occasion->getTranslation('name', $lang->code);
                                                             @endphp
                                                             <div class="col-md-6 mb-3">
-                                                                <small class="text-muted d-block" style="@if ($lang->code == 'ar') direction: rtl; text-align: right; @endif">{{ $lang->code }}:</small>
-                                                                <div class="fs-15 color-dark mb-0" style="@if ($lang->code == 'ar') direction: rtl; text-align: right; font-family: 'Cairo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; @endif">
-                                                                    @if($translation)
-                                                                        {{ $translation }}
-                                                                    @else
-                                                                        --
-                                                                    @endif
+                                                                <div style="padding: 12px; background: #f8f9fa; border-radius: 6px; @if ($lang->code == 'ar') border-right: 3px solid #5f63f2; @else border-left: 3px solid #5f63f2; @endif">
+                                                                    <small class="text-muted d-block mb-2" style="@if ($lang->code == 'ar') direction: rtl; text-align: right; @endif">
+                                                                        <span class="badge @if ($lang->code == 'en') bg-primary @else bg-success @endif text-white px-2 py-1 round-pill fw-bold" style="font-size: 10px;">{{ strtoupper($lang->code) }}</span>
+                                                                    </small>
+                                                                    <div class="fs-15 color-dark mb-0 fw-500" style="@if ($lang->code == 'ar') direction: rtl; text-align: right; font-family: 'Cairo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; @endif">
+                                                                        @if($translation)
+                                                                            {{ $translation }}
+                                                                        @else
+                                                                            <span class="text-muted">—</span>
+                                                                        @endif
+                                                                    </div>
                                                                 </div>
                                                             </div>
                                                         @endforeach
@@ -190,13 +194,17 @@
                                                                 $translation = $occasion->getTranslation('title', $lang->code);
                                                             @endphp
                                                             <div class="col-md-6 mb-3">
-                                                                <small class="text-muted d-block" style="@if ($lang->code == 'ar') direction: rtl; text-align: right; @endif">{{ $lang->code }}:</small>
-                                                                <div class="fs-15 color-dark mb-0" style="@if ($lang->code == 'ar') direction: rtl; text-align: right; font-family: 'Cairo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; @endif">
-                                                                    @if($translation)
-                                                                        {{ $translation }}
-                                                                    @else
-                                                                        --
-                                                                    @endif
+                                                                <div style="padding: 12px; background: #f8f9fa; border-radius: 6px; @if ($lang->code == 'ar') border-right: 3px solid #5f63f2; @else border-left: 3px solid #5f63f2; @endif">
+                                                                    <small class="text-muted d-block mb-2" style="@if ($lang->code == 'ar') direction: rtl; text-align: right; @endif">
+                                                                        <span class="badge @if ($lang->code == 'en') bg-primary @else bg-success @endif text-white px-2 py-1 round-pill fw-bold" style="font-size: 10px;">{{ strtoupper($lang->code) }}</span>
+                                                                    </small>
+                                                                    <div class="fs-15 color-dark mb-0 fw-500" style="@if ($lang->code == 'ar') direction: rtl; text-align: right; font-family: 'Cairo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; @endif">
+                                                                        @if($translation)
+                                                                            {{ $translation }}
+                                                                        @else
+                                                                            <span class="text-muted">—</span>
+                                                                        @endif
+                                                                    </div>
                                                                 </div>
                                                             </div>
                                                         @endforeach
@@ -214,13 +222,17 @@
                                                                 $translation = $occasion->getTranslation('sub_title', $lang->code);
                                                             @endphp
                                                             <div class="col-md-6 mb-3">
-                                                                <small class="text-muted d-block" style="@if ($lang->code == 'ar') direction: rtl; text-align: right; @endif">{{ $lang->code }}:</small>
-                                                                <div class="fs-15 color-dark mb-0" style="@if ($lang->code == 'ar') direction: rtl; text-align: right; font-family: 'Cairo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; @endif">
-                                                                    @if($translation)
-                                                                        {{ $translation }}
-                                                                    @else
-                                                                        --
-                                                                    @endif
+                                                                <div style="padding: 12px; background: #f8f9fa; border-radius: 6px; @if ($lang->code == 'ar') border-right: 3px solid #5f63f2; @else border-left: 3px solid #5f63f2; @endif">
+                                                                    <small class="text-muted d-block mb-2" style="@if ($lang->code == 'ar') direction: rtl; text-align: right; @endif">
+                                                                        <span class="badge @if ($lang->code == 'en') bg-primary @else bg-success @endif text-white px-2 py-1 round-pill fw-bold" style="font-size: 10px;">{{ strtoupper($lang->code) }}</span>
+                                                                    </small>
+                                                                    <div class="fs-15 color-dark mb-0 fw-500" style="@if ($lang->code == 'ar') direction: rtl; text-align: right; font-family: 'Cairo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; @endif">
+                                                                        @if($translation)
+                                                                            {{ $translation }}
+                                                                        @else
+                                                                            <span class="text-muted">—</span>
+                                                                        @endif
+                                                                    </div>
                                                                 </div>
                                                             </div>
                                                         @endforeach
@@ -304,153 +316,7 @@
                                         </div>
                                     </div>
                                 </div>
-
-                                {{-- SEO Information --}}
-                                <div class="card card-holder mt-3">
-                                    <div class="card-header">
-                                        <h3>
-                                            <i class="uil uil-search me-1"></i>{{ trans('catalogmanagement::occasion.seo_information') }}
-                                        </h3>
-                                    </div>
-                                    <div class="card-body">
-                                        <div class="row">
-                                            {{-- SEO Title --}}
-                                            <div class="col-md-12">
-                                                <div class="view-item box-items-translations">
-                                                    <label class="il-gray fs-14 fw-500 mb-10">{{ trans('catalogmanagement::occasion.seo_title') }}</label>
-                                                    <div class="row">
-                                                        @foreach ($languages as $lang)
-                                                            @php
-                                                                $translation = $occasion->getTranslation('seo_title', $lang->code);
-                                                            @endphp
-                                                            <div class="col-md-6 mb-3">
-                                                                <small class="text-muted d-block" style="@if ($lang->code == 'ar') direction: rtl; text-align: right; @endif">{{ $lang->code }}:</small>
-                                                                <div class="fs-15 color-dark mb-0" style="@if ($lang->code == 'ar') direction: rtl; text-align: right; font-family: 'Cairo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; @endif">
-                                                                    @if($translation)
-                                                                        {{ $translation }}
-                                                                    @else
-                                                                        --
-                                                                    @endif
-                                                                </div>
-                                                            </div>
-                                                        @endforeach
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            {{-- SEO Description --}}
-                                            <div class="col-md-12">
-                                                <div class="view-item box-items-translations">
-                                                    <label class="il-gray fs-14 fw-500 mb-10">{{ trans('catalogmanagement::occasion.seo_description') }}</label>
-                                                    <div class="row">
-                                                        @foreach ($languages as $lang)
-                                                            @php
-                                                                $translation = $occasion->getTranslation('seo_description', $lang->code);
-                                                            @endphp
-                                                            <div class="col-md-6 mb-3">
-                                                                <small class="text-muted d-block" style="@if ($lang->code == 'ar') direction: rtl; text-align: right; @endif">{{ $lang->code }}:</small>
-                                                                <div class="fs-15 color-dark mb-0" style="@if ($lang->code == 'ar') direction: rtl; text-align: right; font-family: 'Cairo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; @endif">
-                                                                    @if($translation)
-                                                                        {{ $translation }}
-                                                                    @else
-                                                                        --
-                                                                    @endif
-                                                                </div>
-                                                            </div>
-                                                        @endforeach
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            {{-- SEO Keywords --}}
-                                            <div class="col-md-12">
-                                                <div class="view-item box-items-translations">
-                                                    <label class="il-gray fs-14 fw-500 mb-10">{{ trans('catalogmanagement::occasion.seo_keywords') }}</label>
-                                                    <div class="row">
-                                                        @foreach ($languages as $lang)
-                                                            @php
-                                                                $translation = $occasion->getTranslation('seo_keywords', $lang->code);
-                                                            @endphp
-                                                            <div class="col-md-6 mb-3">
-                                                                <small class="text-muted d-block" style="@if ($lang->code == 'ar') direction: rtl; text-align: right; @endif">{{ $lang->code }}:</small>
-                                                                <div class="fs-15 color-dark mb-0" style="@if ($lang->code == 'ar') direction: rtl; text-align: right; font-family: 'Cairo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; @endif">
-                                                                    @if($translation)
-                                                                        {{ $translation }}
-                                                                    @else
-                                                                        --
-                                                                    @endif
-                                                                </div>
-                                                            </div>
-                                                        @endforeach
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {{-- Occasion Products (Variants) --}}
-                                <div class="card card-holder mt-3">
-                                    <div class="card-header">
-                                        <h3>
-                                            <i class="uil uil-box me-1"></i>{{ trans('catalogmanagement::occasion.product_variants') }}
-                                        </h3>
-                                    </div>
-                                    <div class="card-body">
-                                        @if($occasion->occasionProducts->count() > 0)
-                                            <div class="table-responsive">
-                                                <table class="table table-hover table-bordered">
-                                                    <thead>
-                                                        <tr>
-                                                            <th>#</th>
-                                                            <th>{{ trans('catalogmanagement::occasion.product') }}</th>
-                                                            <th>{{ trans('catalogmanagement::occasion.variant_name') }}</th>
-                                                            <th>{{ trans('catalogmanagement::occasion.sku') }}</th>
-                                                            <th>{{ trans('catalogmanagement::occasion.original_price') }}</th>
-                                                            <th>{{ trans('catalogmanagement::occasion.special_price') }}</th>
-                                                            <th>{{ trans('catalogmanagement::occasion.position') }}</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        @foreach($occasion->occasionProducts as $index => $product)
-                                                            <tr>
-                                                                <td>{{ $index + 1 }}</td>
-                                                                <td>
-                                                                    <strong>{{ $product->vendorProductVariant->vendorProduct->product->name ?? '-' }}</strong>
-                                                                </td>
-                                                                <td>
-                                                                    {{ $product->vendorProductVariant->variantConfiguration->name ?? 'Default' }}
-                                                                </td>
-                                                                <td>
-                                                                    <code>{{ $product->vendorProductVariant->sku ?? '-' }}</code>
-                                                                </td>
-                                                                <td>
-                                                                    <span class="badge badge-info">{{ number_format($product->vendorProductVariant->price ?? 0, 2) }} {{ trans('common.egp') }}</span>
-                                                                </td>
-                                                                <td>
-                                                                    @if($product->special_price)
-                                                                        <span class="badge badge-success">{{ number_format($product->special_price, 2) }} {{ trans('common.egp') }}</span>
-                                                                    @else
-                                                                        <span class="text-muted">-</span>
-                                                                    @endif
-                                                                </td>
-                                                                <td>
-                                                                    <span class="badge badge-primary">{{ $product->position }}</span>
-                                                                </td>
-                                                            </tr>
-                                                        @endforeach
-                                                    </tbody>
-                                                </table>
-                                            </div>
-                                        @else
-                                            <div class="alert alert-info" role="alert">
-                                                <i class="uil uil-info-circle me-2"></i>{{ trans('catalogmanagement::occasion.no_variants') }}
-                                            </div>
-                                        @endif
-                                    </div>
-                                </div>
                             </div>
-
                             {{-- Sidebar --}}
                             <div class="col-md-4 order-1 order-md-2">
                                 {{-- Image --}}
@@ -465,11 +331,10 @@
                                             $imageAttachment = $occasion->attachments()->where('type', 'image')->first();
                                         @endphp
                                         @if($imageAttachment)
-                                            <img src="{{ asset('storage/' . $imageAttachment->path) }}" alt="Occasion Image" class="img-fluid rounded" style="max-width: 100%; max-height: 300px; object-fit: cover;">
+                                            <img src="{{ asset('storage/' . $imageAttachment->path) }}" alt="Occasion Image" class="img-fluid round" style="max-width: 100%; max-height: 300px; object-fit: cover;">
                                         @else
-                                            <div class="p-5 bg-light rounded">
-                                                <i class="uil uil-image-slash" style="font-size: 48px; color: #ccc;"></i>
-                                                <p class="text-muted mt-2">{{ trans('catalogmanagement::occasion.no_image') }}</p>
+                                            <div class="p-5 bg-light round">
+                                            <img src="{{ asset('assets/img/default.png') }}" alt="Occasion Image" class="img-fluid round" style="max-width: 100%; max-height: 300px; object-fit: cover;">
                                             </div>
                                         @endif
                                     </div>
@@ -505,9 +370,374 @@
                                 </div>
                             </div>
                         </div>
+                        <div class="row">
+                            {{-- SEO Information --}}
+                            <div class="card card-holder mt-3">
+                                <div class="card-header">
+                                    <h3>
+                                        <i class="uil uil-search me-1"></i>{{ trans('catalogmanagement::occasion.seo_information') }}
+                                    </h3>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        {{-- SEO Title --}}
+                                        <div class="col-md-12">
+                                            <div class="view-item box-items-translations">
+                                                <label class="il-gray fs-14 fw-500 mb-10">{{ trans('catalogmanagement::occasion.seo_title') }}</label>
+                                                <div class="row">
+                                                    @foreach ($languages as $lang)
+                                                        @php
+                                                            $translation = $occasion->getTranslation('seo_title', $lang->code);
+                                                        @endphp
+                                                        <div class="col-md-6 mb-3">
+                                                            <div style="padding: 12px; background: #f8f9fa; border-radius: 6px; @if ($lang->code == 'ar') border-right: 3px solid #5f63f2; @else border-left: 3px solid #5f63f2; @endif">
+                                                                <small class="text-muted d-block mb-2" style="@if ($lang->code == 'ar') direction: rtl; text-align: right; @endif">
+                                                                    <span class="badge @if ($lang->code == 'en') bg-primary @else bg-success @endif text-white px-2 py-1 round-pill fw-bold" style="font-size: 10px;">{{ strtoupper($lang->code) }}</span>
+                                                                </small>
+                                                                <div class="fs-15 color-dark mb-0 fw-500" style="@if ($lang->code == 'ar') direction: rtl; text-align: right; font-family: 'Cairo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; @endif">
+                                                                    @if($translation)
+                                                                        {{ $translation }}
+                                                                    @else
+                                                                        <span class="text-muted">—</span>
+                                                                    @endif
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    @endforeach
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {{-- SEO Description --}}
+                                        <div class="col-md-12">
+                                            <div class="view-item box-items-translations">
+                                                <label class="il-gray fs-14 fw-500 mb-10">{{ trans('catalogmanagement::occasion.seo_description') }}</label>
+                                                <div class="row">
+                                                    @foreach ($languages as $lang)
+                                                        @php
+                                                            $translation = $occasion->getTranslation('seo_description', $lang->code);
+                                                        @endphp
+                                                        <div class="col-md-6 mb-3">
+                                                            <div style="padding: 12px; background: #f8f9fa; border-radius: 6px; @if ($lang->code == 'ar') border-right: 3px solid #5f63f2; @else border-left: 3px solid #5f63f2; @endif">
+                                                                <small class="text-muted d-block mb-2" style="@if ($lang->code == 'ar') direction: rtl; text-align: right; @endif">
+                                                                    <span class="badge @if ($lang->code == 'en') bg-primary @else bg-success @endif text-white px-2 py-1 round-pill fw-bold" style="font-size: 10px;">{{ strtoupper($lang->code) }}</span>
+                                                                </small>
+                                                                <div class="fs-15 color-dark mb-0 fw-500" style="@if ($lang->code == 'ar') direction: rtl; text-align: right; font-family: 'Cairo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; @endif">
+                                                                    @if($translation)
+                                                                        {{ $translation }}
+                                                                    @else
+                                                                        <span class="text-muted">—</span>
+                                                                    @endif
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    @endforeach
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {{-- SEO Keywords --}}
+                                        <div class="col-md-12">
+                                            <div class="view-item box-items-translations">
+                                                <label class="il-gray fs-14 fw-500 mb-10">{{ trans('catalogmanagement::occasion.seo_keywords') }}</label>
+                                                <div class="row">
+                                                    @foreach ($languages as $lang)
+                                                        @php
+                                                            $translation = $occasion->getTranslation('seo_keywords', $lang->code);
+                                                        @endphp
+                                                        <div class="col-md-6 mb-3">
+                                                            <div style="padding: 12px; background: #f8f9fa; border-radius: 6px; @if ($lang->code == 'ar') border-right: 3px solid #5f63f2; @else border-left: 3px solid #5f63f2; @endif">
+                                                                <small class="text-muted d-block mb-2" style="@if ($lang->code == 'ar') direction: rtl; text-align: right; @endif">
+                                                                    <span class="badge @if ($lang->code == 'en') bg-primary @else bg-success @endif text-white px-2 py-1 round-pill fw-bold" style="font-size: 10px;">{{ strtoupper($lang->code) }}</span>
+                                                                </small>
+                                                                <div class="fs-15 color-dark mb-0 fw-500" style="@if ($lang->code == 'ar') direction: rtl; text-align: right; font-family: 'Cairo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; @endif">
+                                                                    @if($translation)
+                                                                        {{ $translation }}
+                                                                    @else
+                                                                        <span class="text-muted">—</span>
+                                                                    @endif
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    @endforeach
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {{-- Occasion Products (Variants) --}}
+                            <div class="card card-holder mt-3">
+                                <div class="card-header">
+                                    <h3>
+                                        <i class="uil uil-box me-1"></i>{{ trans('catalogmanagement::occasion.product_variants') }}
+                                    </h3>
+                                </div>
+                                <div class="card-body">
+                                    @if($occasion->occasionProducts->count() > 0)
+                                        <div class="table-responsive">
+                                            <table class="table table-hover table-bordered" id="occasionProductsTable">
+                                                <thead>
+                                                    <tr>
+                                                        <th>#</th>
+                                                        <th>{{ trans('catalogmanagement::occasion.product') }}</th>
+                                                        <th>{{ trans('catalogmanagement::occasion.variant_name') }}</th>
+                                                        <th>{{ trans('catalogmanagement::occasion.sku') }}</th>
+                                                        <th>{{ trans('catalogmanagement::occasion.original_price') }}</th>
+                                                        <th>{{ trans('catalogmanagement::occasion.special_price') }}</th>
+                                                        <th>{{ trans('catalogmanagement::occasion.position') }}</th>
+                                                        <th>{{ __('common.actions') }}</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="occasionProductsBody" class="sortable-tbody">
+                                                    @foreach($occasion->occasionProducts as $index => $product)
+                                                        <tr class="draggable-row" data-product-id="{{ $product->id }}" data-position="{{ $product->position }}" draggable="true">
+                                                            <td>{{ $index + 1 }}</td>
+                                                            <td>
+                                                                <strong>{{ $product->vendorProductVariant->vendorProduct->product->name ?? '-' }}</strong>
+                                                            </td>
+                                                            <td>
+                                                                {{ $product->vendorProductVariant->variantConfiguration->name ?? 'Default' }}
+                                                            </td>
+                                                            <td>
+                                                                <code>{{ $product->vendorProductVariant->sku ?? '-' }}</code>
+                                                            </td>
+                                                            <td>
+                                                                <span class="badge badge-lg badge-round badge-info">{{ number_format($product->vendorProductVariant->price ?? 0, 2) }} {{ trans('common.egp') }}</span>
+                                                            </td>
+                                                            <td>
+                                                                @if($product->special_price)
+                                                                    <span class="badge badge-lg badge-round badge-success">{{ number_format($product->special_price, 2) }} {{ trans('common.egp') }}</span>
+                                                                @else
+                                                                    <span class="text-muted">-</span>
+                                                                @endif
+                                                            </td>
+                                                            <td>
+                                                                <span class="badge badge-lg badge-round badge-primary">{{ $product->position }}</span>
+                                                            </td>
+                                                            <td>
+                                                                <div class="d-flex gap-2 justify-content-center">
+                                                                    <button type="button"
+                                                                        class="btn btn-sm btn-danger delete-occasion-product"
+                                                                        data-bs-toggle="modal"
+                                                                        data-bs-target="#modal-delete-product"
+                                                                        data-product-id="{{ $product->id }}"
+                                                                        data-occasion-id="{{ $occasion->id }}"
+                                                                        data-product-name="{{ $product->vendorProductVariant->vendorProduct->product->name ?? 'Product' }}"
+                                                                        title="{{ __('common.delete') }}">
+                                                                        <i class="uil uil-trash-alt"></i>
+                                                                    </button>
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                    @endforeach
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    @else
+                                        <div class="alert alert-info" role="alert">
+                                            <i class="uil uil-info-circle me-2"></i>{{ trans('catalogmanagement::occasion.no_variants') }}
+                                        </div>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 @endsection
+
+@push('scripts')
+<script>
+    $(document).ready(function() {
+        let draggedElement = null;
+        let draggedOverElement = null;
+        let deleteProductData = {};
+
+        // Drag and Drop functionality
+        $(document).on('dragstart', '.draggable-row', function(e) {
+            draggedElement = this;
+            $(this).addClass('dragging').css('opacity', '0.5');
+            e.originalEvent.dataTransfer.effectAllowed = 'move';
+        });
+
+        $(document).on('dragend', '.draggable-row', function(e) {
+            $(this).removeClass('dragging').css('opacity', '1');
+            $('.draggable-row').removeClass('drag-over');
+            draggedElement = null;
+            draggedOverElement = null;
+        });
+
+        $(document).on('dragover', '.draggable-row', function(e) {
+            e.preventDefault();
+            e.originalEvent.dataTransfer.dropEffect = 'move';
+
+            if (this !== draggedElement) {
+                $(this).addClass('drag-over');
+                draggedOverElement = this;
+            }
+        });
+
+        $(document).on('dragleave', '.draggable-row', function(e) {
+            $(this).removeClass('drag-over');
+        });
+
+        $(document).on('drop', '.draggable-row', function(e) {
+            e.preventDefault();
+
+            if (this !== draggedElement) {
+                // Swap rows
+                $(draggedElement).insertBefore($(this));
+                updatePositions();
+            }
+        });
+
+        // Update positions after drag and drop
+        function updatePositions() {
+            const positions = [];
+
+            $('#occasionProductsBody .draggable-row').each(function(index) {
+                const productId = $(this).data('product-id');
+                positions.push({
+                    product_id: productId,
+                    position: index
+                });
+            });
+
+            // Send update to server
+            $.ajax({
+                url: `{{ route('admin.occasions.update-positions', $occasion->id) }}`,
+                type: 'POST',
+                data: {
+                    _token: '{{ csrf_token() }}',
+                    positions: positions
+                },
+                success: function(response) {
+                    if (response.status) {
+                        toastr.success(response.message || '{{ __("common.order_updated_successfully") }}');
+                    } else {
+                        toastr.error(response.message || '{{ __("common.error_updating_order") }}');
+                    }
+                },
+                error: function(xhr) {
+                    toastr.error('{{ __("common.error_updating_order") }}');
+                }
+            });
+        }
+
+        // Store delete product data when modal is opened
+        $(document).on('click', '.delete-occasion-product', function(e) {
+            deleteProductData = {
+                productId: $(this).data('product-id'),
+                occasionId: $(this).data('occasion-id'),
+                productName: $(this).data('product-name')
+            };
+
+            // Update modal content
+            $('#delete-product-name').text(deleteProductData.productName);
+        });
+
+        // Confirm delete button in modal
+        $(document).on('click', '#confirmDeleteProductBtn', function(e) {
+            e.preventDefault();
+
+            if (!deleteProductData.productId) return;
+
+            // Show loading
+            LoadingOverlay.show({
+                text: '{{ __("main.deleting") }}',
+                subtext: '{{ __("main.please wait") }}'
+            });
+
+            // Send delete request
+            $.ajax({
+                url: `{{ route('admin.occasions.products.destroy', ['occasion' => $occasion->id, 'product' => ':product']) }}`.replace(':product', deleteProductData.productId),
+                type: 'DELETE',
+                data: {
+                    _token: '{{ csrf_token() }}'
+                },
+                success: function(response) {
+                    LoadingOverlay.hide();
+                    if (response.status) {
+                        toastr.success(response.message || '{{ trans("catalogmanagement::occasion.product_deleted_successfully") }}');
+                        // Close modal
+                        bootstrap.Modal.getInstance(document.getElementById('modal-delete-product')).hide();
+                        // Reload page after 1 second
+                        setTimeout(() => {
+                            location.reload();
+                        }, 1000);
+                    } else {
+                        toastr.error(response.message || '{{ trans("catalogmanagement::occasion.error_deleting_product") }}');
+                    }
+                },
+                error: function(xhr) {
+                    LoadingOverlay.hide();
+                    const message = xhr.responseJSON?.message || '{{ trans("catalogmanagement::occasion.error_deleting_product") }}';
+                    toastr.error(message);
+                }
+            });
+        });
+    });
+</script>
+
+{{-- Delete Product Modal --}}
+<div class="modal fade" id="modal-delete-product" tabindex="-1" aria-labelledby="deleteProductModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-danger">
+                <h5 class="modal-title text-white" id="deleteProductModalLabel">
+                    <i class="uil uil-trash-alt me-2"></i>{{ __('main.confirm delete') }}
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-warning" role="alert">
+                    <i class="uil uil-exclamation-triangle me-2"></i>
+                    {{ __('main.are you sure you want to delete this') }} <strong id="delete-product-name">Product</strong>?
+                </div>
+                <p class="text-muted mb-0">{{ __('main.this action cannot be undone') }}</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('main.cancel') }}</button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteProductBtn">
+                    <i class="uil uil-trash-alt me-2"></i>{{ __('main.delete') }}
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .draggable-row {
+        transition: all 0.2s ease;
+    }
+
+    .draggable-row.dragging {
+        background-color: #f0f0f0 !important;
+        opacity: 0.5;
+    }
+
+    .draggable-row.drag-over {
+        border-top: 3px solid #5f63f2 !important;
+        background-color: #f8f9ff !important;
+    }
+
+    .drag-handle {
+        cursor: move;
+        user-select: none;
+        transition: all 0.2s ease;
+    }
+
+    .drag-handle:hover {
+        color: #5f63f2 !important;
+        transform: scale(1.2);
+    }
+
+    .draggable-row:hover .drag-handle i {
+        color: #5f63f2 !important;
+    }
+</style>
+@endpush

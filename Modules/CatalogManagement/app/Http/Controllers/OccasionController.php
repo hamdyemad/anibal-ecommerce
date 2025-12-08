@@ -54,20 +54,27 @@ class OccasionController extends Controller
             $query = $this->occasionService->getOccasionsQuery($filters);
 
             return DataTables::of($query)
-                ->addColumn('name', function ($occasion) {
-                    $languages = \App\Models\Language::all();
-                    $translations = [];
-                    foreach ($languages as $language) {
-                        $translations[$language->code] = $occasion->getTranslation('name', $language->code) ?? '-';
-                    }
-                    return $translations;
-                })
-                ->addColumn('vendor', function ($occasion) {
-                    return $occasion->vendor ? $occasion->vendor->name : '-';
-                })
-                ->addColumn('image', function ($occasion) {
+                ->addColumn('occasion_information', function ($occasion) {
+                    // Get EN and AR names
+                    $nameEn = $occasion->getTranslation('name', 'en') ?? '-';
+                    $nameAr = $occasion->getTranslation('name', 'ar') ?? '-';
+
+                    // Get vendor name
+                    $vendorName = $occasion->vendor ? $occasion->vendor->getTranslation('name', app()->getLocale()) ??
+                                  $occasion->vendor->getTranslation('name', 'en') ??
+                                  $occasion->vendor->getTranslation('name', 'ar') ??
+                                  $occasion->vendor->name ?? '-' : '-';
+
+                    // Get image
                     $imageAttachment = $occasion->attachments()->where('type', 'image')->first();
-                    return $imageAttachment ? asset('storage/' . $imageAttachment->path) : null;
+                    $image = $imageAttachment ? asset('storage/' . $imageAttachment->path) : null;
+
+                    return [
+                        'name_en' => $nameEn,
+                        'name_ar' => $nameAr,
+                        'vendor' => $vendorName,
+                        'image' => $image
+                    ];
                 })
                 ->addColumn('start_date', function ($occasion) {
                     return $occasion->start_date ? $occasion->start_date : '-';
@@ -81,7 +88,7 @@ class OccasionController extends Controller
                 ->addColumn('created_at', function ($occasion) {
                     return $occasion->created_at;
                 })
-                ->rawColumns(['name'])
+                ->rawColumns(['occasion_information'])
                 ->make(true);
         } catch (\Exception $e) {
             return response()->json([
@@ -112,6 +119,7 @@ class OccasionController extends Controller
      */
     public function store($lang, $countryCode, OccasionRequest $request)
     {
+        \Log::info($request->all());
         try {
             $validated = $request->validated();
             $occasion = $this->occasionService->createOccasion($validated);
@@ -239,73 +247,73 @@ class OccasionController extends Controller
         }
     }
 
-    /**
-     * Search products for Select2 AJAX
-     */
-    public function searchProducts(Request $request)
-    {
-        try {
-            $vendorId = $request->input('vendor_id');
-            $search = $request->input('search', '');
-            $page = $request->input('page', 1);
-            $perPage = 20;
+    // /**
+    //  * Search products for Select2 AJAX
+    //  */
+    // public function searchProducts(Request $request)
+    // {
+    //     try {
+    //         $vendorId = $request->input('vendor_id');
+    //         $search = $request->input('search', '');
+    //         $page = $request->input('page', 1);
+    //         $perPage = 20;
 
-            if (!$vendorId) {
-                return response()->json([
-                    'results' => [],
-                    'pagination' => ['more' => false]
-                ]);
-            }
+    //         if (!$vendorId) {
+    //             return response()->json([
+    //                 'results' => [],
+    //                 'pagination' => ['more' => false]
+    //             ]);
+    //         }
 
-            // Query vendor product variants
-            $query = \Modules\Vendor\app\Models\VendorProductVariant::query()
-                ->where('vendor_id', $vendorId)
-                ->with(['product', 'variantConfiguration'])
-                ->when($search, function ($q) use ($search) {
-                    $q->whereHas('product', function ($query) use ($search) {
-                        $query->where('name', 'like', "%{$search}%")
-                              ->orWhere('sku', 'like', "%{$search}%");
-                    });
-                });
+    //         // Query vendor product variants
+    //         $query = \Modules\Vendor\app\Models\VendorProductVariant::query()
+    //             ->where('vendor_id', $vendorId)
+    //             ->with(['product', 'variantConfiguration'])
+    //             ->when($search, function ($q) use ($search) {
+    //                 $q->whereHas('product', function ($query) use ($search) {
+    //                     $query->where('name', 'like', "%{$search}%")
+    //                           ->orWhere('sku', 'like', "%{$search}%");
+    //                 });
+    //             });
 
-            $total = $query->count();
-            $variants = $query->skip(($page - 1) * $perPage)
-                             ->take($perPage)
-                             ->get();
+    //         $total = $query->count();
+    //         $variants = $query->skip(($page - 1) * $perPage)
+    //                          ->take($perPage)
+    //                          ->get();
 
-            $results = $variants->map(function ($variant) {
-                return [
-                    'id' => $variant->id,
-                    'text' => $variant->product->name . ' - ' . ($variant->variantConfiguration->name ?? 'Default'),
-                    'product_name' => $variant->product->name ?? 'N/A',
-                    'variant_name' => $variant->variantConfiguration->name ?? 'Default',
-                    'sku' => $variant->sku ?? 'N/A',
-                    'original_price' => number_format($variant->price ?? 0, 2),
-                    'special_price' => $variant->special_price ? number_format($variant->special_price, 2) : null,
-                    'image' => $variant->product->main_image ? asset('storage/' . $variant->product->main_image) : null,
-                ];
-            });
+    //         $results = $variants->map(function ($variant) {
+    //             return [
+    //                 'id' => $variant->id,
+    //                 'text' => $variant->product->name . ' - ' . ($variant->variantConfiguration->name ?? 'Default'),
+    //                 'product_name' => $variant->product->name ?? 'N/A',
+    //                 'variant_name' => $variant->variantConfiguration->name ?? 'Default',
+    //                 'sku' => $variant->sku ?? 'N/A',
+    //                 'original_price' => number_format($variant->price ?? 0, 2),
+    //                 'special_price' => $variant->special_price ? number_format($variant->special_price, 2) : null,
+    //                 'image' => $variant->product->main_image ? asset('storage/' . $variant->product->main_image) : null,
+    //             ];
+    //         });
 
-            return response()->json([
-                'results' => $results,
-                'pagination' => [
-                    'more' => ($page * $perPage) < $total
-                ]
-            ]);
+    //         return response()->json([
+    //             'results' => $results,
+    //             'pagination' => [
+    //                 'more' => ($page * $perPage) < $total
+    //             ]
+    //         ]);
 
-        } catch (\Exception $e) {
-            return response()->json([
-                'results' => [],
-                'pagination' => ['more' => false],
-                'error' => $e->getMessage()
-            ], 500);
-        }
-    }
+    //     } catch (\Exception $e) {
+    //         return response()->json([
+    //             'results' => [],
+    //             'pagination' => ['more' => false],
+    //             'error' => $e->getMessage()
+    //         ], 500);
+    //     }
+    // }
 
     /**
      * Toggle occasion status
      */
-    public function toggleStatus(Request $request, $id)
+    public function toggleStatus($lang, $countryCode, Request $request, $id)
     {
         try {
             $validator = Validator::make($request->all(), [
@@ -330,6 +338,75 @@ class OccasionController extends Controller
             return response()->json([
                 'status' => false,
                 'message' => trans('catalogmanagement::occasion.error_changing_status') . ': ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Remove a product from occasion
+     */
+    public function destroyProduct($lang, $countryCode,Request $request, $occasion, $product)
+    {
+        try {
+            // Find and delete the occasion product
+            $occasionProduct = \Modules\CatalogManagement\app\Models\OccasionProduct::where('occasion_id', $occasion)
+                ->where('id', $product)
+                ->firstOrFail();
+
+            $occasionProduct->delete();
+
+            return response()->json([
+                'status' => true,
+                'message' => trans('catalogmanagement::occasion.product_deleted_successfully'),
+            ]);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return response()->json([
+                'status' => false,
+                'message' => trans('catalogmanagement::occasion.error_deleting_product'),
+            ], 404);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => false,
+                'message' => trans('catalogmanagement::occasion.error_deleting_product') . ': ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Update product positions in occasion
+     */
+    public function updatePositions($lang, $countryCode, Request $request, $occasion)
+    {
+        try {
+            $positions = $request->input('positions', []);
+
+            if (empty($positions)) {
+                return response()->json([
+                    'status' => false,
+                    'message' => trans('common.no_positions_provided'),
+                ], 422);
+            }
+
+            // Update positions for each product
+            foreach ($positions as $item) {
+                if (!isset($item['product_id']) || !isset($item['position'])) {
+                    continue;
+                }
+
+                \Modules\CatalogManagement\app\Models\OccasionProduct::where('id', $item['product_id'])
+                    ->where('occasion_id', $occasion)
+                    ->update(['position' => $item['position']]);
+            }
+
+            return response()->json([
+                'status' => true,
+                'message' => trans('common.order_updated_successfully') ?? 'Order updated successfully',
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Error updating occasion product positions: ' . $e->getMessage());
+            return response()->json([
+                'status' => false,
+                'message' => trans('common.error_updating_order') ?? 'Error updating order',
             ], 500);
         }
     }
