@@ -42,6 +42,7 @@ return [
     'search_products_placeholder' => 'Type to search products...',
     'search_products_help' => 'Search and select products to add to this occasion',
     'searching_products' => 'Searching products',
+    'loading_products' => 'Loading products...',
     'no_products_found' => 'No products found',
     'product_name' => 'Product Name',
     'variant_name' => 'Variant Name',

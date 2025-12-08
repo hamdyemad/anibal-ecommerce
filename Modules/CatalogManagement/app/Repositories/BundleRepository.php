@@ -23,7 +23,7 @@ class BundleRepository implements BundleRepositoryInterface
      */
     public function getAllBundles($filters = [], $perPage = 15)
     {
-        $query = Bundle::filter($filters)
+        $query = Bundle::with('attachments', 'country', 'vendor', 'bundleCategory', 'bundleProducts')->filter($filters)
         ->latest();
         return ($perPage == 0) ? $query->get() : $query->paginate($perPage);
     }
@@ -33,8 +33,19 @@ class BundleRepository implements BundleRepositoryInterface
      */
     public function getBundleById($id)
     {
-        return Bundle::
-        where('id', $id)
+        return Bundle::with([
+            'attachments',
+            'country',
+            'vendor',
+            'bundleCategory',
+            'bundleProducts.vendorProductVariant' => function ($query) {
+                $query->with([
+                    'vendorProduct.product.translations',
+                    'variantConfiguration.key'
+                ]);
+            }
+        ])
+        ->where('id', $id)
         ->orwhere('slug', $id)->first();
     }
 
@@ -44,11 +55,10 @@ class BundleRepository implements BundleRepositoryInterface
     public function createBundle($data)
     {
         $bundle = Bundle::create([
-            'country_id' => $data['country_id'],
             'vendor_id' => $data['vendor_id'],
             'bundle_category_id' => $data['bundle_category_id'],
             'sku' => $data['sku'],
-            'slug' => \Str::uniqid(),
+            'slug' => uniqid(),
             'is_active' => $data['is_active'] ?? true,
         ]);
 
@@ -57,6 +67,9 @@ class BundleRepository implements BundleRepositoryInterface
 
         // Store translations
         $this->storeTranslations($bundle, $data);
+
+        // Store bundle products
+        $this->storeBundleProducts($bundle, $data);
 
         return $bundle;
     }
@@ -78,6 +91,9 @@ class BundleRepository implements BundleRepositoryInterface
 
         // Update translations
         $this->storeTranslations($bundle, $data);
+
+        // Update bundle products
+        $this->storeBundleProducts($bundle, $data);
 
         return $bundle;
     }
@@ -132,6 +148,29 @@ class BundleRepository implements BundleRepositoryInterface
     {
         $bundle->update(['is_active' => !$bundle->is_active]);
         return $bundle;
+    }
+
+    /**
+     * Store bundle products
+     */
+    protected function storeBundleProducts(Bundle $bundle, array $data): void
+    {
+        if (!isset($data['bundle_products']) || !is_array($data['bundle_products'])) {
+            return;
+        }
+
+        // Delete existing bundle products if updating
+        $bundle->bundleProducts()->delete();
+
+        // Store new bundle products
+        foreach ($data['bundle_products'] as $product) {
+            $bundle->bundleProducts()->create([
+                'vendor_product_variant_id' => $product['vendor_product_variant_id'],
+                'price' => $product['price'],
+                'limitation_quantity' => $product['limitation_quantity'] ?? null,
+                'min_quantity' => $product['min_quantity'] ?? 1,
+            ]);
+        }
     }
 
     /**

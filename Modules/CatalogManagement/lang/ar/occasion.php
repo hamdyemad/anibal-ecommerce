@@ -42,6 +42,7 @@ return [
     'search_products_placeholder' => 'اكتب للبحث عن المنتجات...',
     'search_products_help' => 'ابحث واختر المنتجات لإضافتها إلى هذه المناسبة',
     'searching_products' => 'جاري البحث عن المنتجات',
+    'loading_products' => 'جاري تحميل المنتجات...',
     'no_products_found' => 'لم يتم العثور على منتجات',
     'product_name' => 'اسم المنتج',
     'variant_name' => 'اسم المتغير',

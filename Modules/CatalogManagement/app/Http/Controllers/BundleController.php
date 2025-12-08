@@ -5,6 +5,7 @@ namespace Modules\CatalogManagement\app\Http\Controllers;
 use App\Http\Controllers\Controller;
 use Modules\CatalogManagement\app\Services\BundleService;
 use Modules\CatalogManagement\app\Http\Requests\BundleRequest;
+use Modules\CatalogManagement\app\Http\Resources\BundleResource;
 use App\Services\LanguageService;
 use Modules\CatalogManagement\app\Services\BundleCategoryService;
 use Modules\Vendor\app\Services\VendorService;
@@ -67,7 +68,7 @@ class BundleController extends Controller
 
             return response()->json([
                 'message' => 'Bundle created successfully',
-                'redirect' => route('bundles.show', ['lang' => $lang, 'countryCode' => $countryCode, 'id' => $bundle->id]),
+                'redirect' => route('admin.bundles.show', $bundle->id),
             ]);
         } catch (\Exception $e) {
             \Log::error('Bundle creation error: ' . $e->getMessage());
@@ -98,8 +99,11 @@ class BundleController extends Controller
         $languages = $this->languageService->getAll();
         $vendors = $this->vendorService->getAllVendors();
         $categories = $this->bundleCategoryService->getActiveBundleCategories();
+        // return $bundle;
+        $bundleResource = (new BundleResource($bundle))->resolve();
+        return $bundleResource;
+        return view('catalogmanagement::bundles.form', compact('bundle', 'bundleResource', 'languages', 'vendors', 'categories'));
 
-        return view('catalogmanagement::bundles.form', compact('bundle', 'languages', 'vendors', 'categories'));
     }
 
     /**
@@ -160,6 +164,28 @@ class BundleController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Error updating bundle status: ' . $e->getMessage(),
+            ], 422);
+        }
+    }
+
+    /**
+     * Remove a product from bundle
+     */
+    public function destroyProduct($lang, $countryCode, $bundle, $product)
+    {
+        try {
+            $bundleModel = $this->bundleService->getBundleById($bundle);
+            $bundleProduct = $bundleModel->bundleProducts()->findOrFail($product);
+            $bundleProduct->delete();
+
+            return response()->json([
+                'status' => true,
+                'message' => trans('catalogmanagement::bundle.product_deleted_successfully'),
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => false,
+                'message' => trans('catalogmanagement::bundle.error_deleting_product'),
             ], 422);
         }
     }

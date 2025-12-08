@@ -1,235 +1,443 @@
 @extends('layout.app')
-@section('title', $bundle->getTranslation('name', app()->getLocale()))
+
+@section('title', trans('catalogmanagement::bundle.view_bundle'))
 
 @push('styles')
 <style>
-    .info-section {
-        background: #f8f9fa;
-        padding: 1.5rem;
-        border-radius: 8px;
-        margin-bottom: 2rem;
-    }
+/* Bundle View HTML Content Styling */
+.fs-15.color-dark {
+    line-height: 1.6;
+}
 
-    .info-row {
-        display: flex;
-        justify-content: space-between;
-        padding: 0.75rem 0;
-        border-bottom: 1px solid #e9ecef;
-    }
+.fs-15.color-dark table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 10px 0;
+    background: #fff;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
 
-    .info-row:last-child {
-        border-bottom: none;
-    }
+.fs-15.color-dark table th,
+.fs-15.color-dark table td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid #e3e6f0;
+}
 
-    .info-label {
-        font-weight: 600;
-        color: #495057;
-        min-width: 200px;
-    }
+.fs-15.color-dark table th {
+    background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+    color: white;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-size: 12px;
+}
 
-    .info-value {
-        color: #212529;
-        flex: 1;
-    }
+.fs-15.color-dark table tr:hover {
+    background-color: #f8f9fa;
+}
 
-    .badge-group {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.5rem;
-    }
+.fs-15.color-dark table tr:last-child td {
+    border-bottom: none;
+}
 
-    .language-badge {
-        display: inline-block;
-        padding: 0.25rem 0.75rem;
-        background: #e3f2fd;
-        color: #1565c0;
-        border-radius: 4px;
-        font-size: 0.875rem;
-        font-weight: 500;
-    }
+.fs-15.color-dark strong {
+    color: #2c3e50;
+    font-weight: 600;
+}
 
-    .nav-tabs .nav-link {
-        color: #6c757d;
-        border: none;
-        border-bottom: 2px solid transparent;
-        padding: 0.75rem 1.5rem;
-    }
+.fs-15.color-dark em {
+    color: #7f8c8d;
+    font-style: italic;
+}
 
-    .nav-tabs .nav-link.active {
-        color: #007bff;
-        border-bottom-color: #007bff;
-        background: none;
-    }
+.fs-15.color-dark ul,
+.fs-15.color-dark ol {
+    margin: 10px 0;
+    padding-left: 20px;
+}
 
-    .tab-content {
-        background: white;
-        padding: 2rem;
-        border-radius: 8px;
-    }
+.fs-15.color-dark li {
+    margin-bottom: 5px;
+    line-height: 1.5;
+}
+
+.fs-15.color-dark p {
+    margin-bottom: 10px;
+    line-height: 1.6;
+}
+
+.fs-15.color-dark h1,
+.fs-15.color-dark h2,
+.fs-15.color-dark h3,
+.fs-15.color-dark h4,
+.fs-15.color-dark h5,
+.fs-15.color-dark h6 {
+    margin: 15px 0 10px 0;
+    color: #2c3e50;
+    font-weight: 600;
+}
+
+.fs-15.color-dark blockquote {
+    border-left: 4px solid #4e73df;
+    padding-left: 15px;
+    margin: 15px 0;
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 4px;
+}
+
+.fs-15.color-dark a {
+    color: #4e73df;
+    text-decoration: none;
+}
+
+.fs-15.color-dark a:hover {
+    color: #224abe;
+    text-decoration: underline;
+}
+
+/* Arabic content styling */
+.fs-15.color-dark[style*="direction: rtl"] {
+    font-family: 'Cairo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.fs-15.color-dark[style*="direction: rtl"] table th,
+.fs-15.color-dark[style*="direction: rtl"] table td {
+    text-align: right;
+}
 </style>
 @endpush
 
 @section('content')
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="card-title mb-0">{{ $bundle->getTranslation('name', app()->getLocale()) }}</h5>
-                    <div class="btn-group" role="group">
-                        <a href="{{ route('bundles.edit', ['lang' => app()->getLocale(), 'countryCode' => session('country_code'), 'id' => $bundle->id]) }}"
-                            class="btn btn-warning btn-sm">
-                            <i class="uil uil-edit"></i> Edit
-                        </a>
-                        <a href="{{ route('bundles.index', ['lang' => app()->getLocale(), 'countryCode' => session('country_code')]) }}"
-                            class="btn btn-secondary btn-sm">
-                            <i class="uil uil-arrow-left"></i> Back
-                        </a>
-                    </div>
-                </div>
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-lg-12">
+                <x-breadcrumb :items="[
+                    [
+                        'title' => trans('dashboard.title'),
+                        'url' => route('admin.dashboard'),
+                        'icon' => 'uil uil-estate',
+                    ],
+                    [
+                        'title' => trans('catalogmanagement::bundle.bundles_management'),
+                        'url' => route('admin.bundles.index'),
+                    ],
+                    ['title' => trans('catalogmanagement::bundle.view_bundle')],
+                ]" />
+            </div>
+        </div>
 
-                <div class="card-body">
-                    <!-- Basic Information -->
-                    <div class="info-section">
-                        <h6 class="mb-3">{{ trans('catalogmanagement::bundle.basic_information') }}</h6>
-
-                        <div class="info-row">
-                            <span class="info-label">SKU:</span>
-                            <span class="info-value">{{ $bundle->sku }}</span>
-                        </div>
-
-                        <div class="info-row">
-                            <span class="info-label">{{ trans('catalogmanagement::bundle.vendor') }}:</span>
-                            <span class="info-value">{{ $bundle->vendor->getTranslation('name', app()->getLocale()) ?? 'N/A' }}</span>
-                        </div>
-
-                        <div class="info-row">
-                            <span class="info-label">{{ trans('catalogmanagement::bundle.category') }}:</span>
-                            <span class="info-value">{{ $bundle->bundleCategory->getTranslation('name', app()->getLocale()) ?? 'N/A' }}</span>
-                        </div>
-
-                        <div class="info-row">
-                            <span class="info-label">{{ trans('catalogmanagement::bundle.status') }}:</span>
-                            <span class="info-value">
-                                @if($bundle->is_active)
-                                    <span class="badge bg-success">Active</span>
-                                @else
-                                    <span class="badge bg-danger">Inactive</span>
-                                @endif
-                            </span>
-                        </div>
-
-                        <div class="info-row">
-                            <span class="info-label">{{ trans('catalogmanagement::bundle.created_at') }}:</span>
-                            <span class="info-value">{{ $bundle->created_at->format('Y-m-d H:i') }}</span>
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="card border-0 shadow-sm mb-3">
+                    <div class="card-header bg-white border-bottom py-20 d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0 fw-500">{{ trans('catalogmanagement::bundle.bundle_details') }}</h5>
+                        <div class="d-flex gap-10">
+                            <a href="{{ route('admin.bundles.index') }}" class="btn btn-light btn-sm">
+                                <i class="uil uil-arrow-left me-2"></i>{{ trans('common.back_to_list') }}
+                            </a>
+                            <a href="{{ route('admin.bundles.edit', $bundle->id) }}" class="btn btn-primary btn-sm">
+                                <i class="uil uil-edit me-2"></i>{{ trans('common.edit') }}
+                            </a>
                         </div>
                     </div>
-
-                    <!-- Translations -->
-                    <div class="info-section">
-                        <h6 class="mb-3">{{ trans('catalogmanagement::bundle.translations') }}</h6>
-
-                        <ul class="nav nav-tabs" role="tablist">
-                            @foreach($languages as $index => $language)
-                                <li class="nav-item">
-                                    <a class="nav-link {{ $index === 0 ? 'active' : '' }}"
-                                        data-bs-toggle="tab" href="#lang-{{ $language->code }}">
-                                        {{ strtoupper($language->code) }}
-                                    </a>
-                                </li>
-                            @endforeach
-                        </ul>
-
-                        <div class="tab-content">
-                            @foreach($languages as $index => $language)
-                                <div id="lang-{{ $language->code }}" class="tab-pane {{ $index === 0 ? 'active' : '' }}">
-                                    <div class="info-row">
-                                        <span class="info-label">{{ trans('catalogmanagement::bundle.name') }}:</span>
-                                        <span class="info-value">{{ $bundle->getTranslation('name', $language->code) ?? 'N/A' }}</span>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-8 order-2 order-md-1">
+                                {{-- Basic Information --}}
+                                <div class="card card-holder">
+                                    <div class="card-header">
+                                        <h3>
+                                            <i class="uil uil-info-circle me-1"></i>{{ trans('catalogmanagement::bundle.basic_information') }}
+                                        </h3>
                                     </div>
+                                    <div class="card-body">
+                                        <div class="row">
+                                            {{-- Bundle Name --}}
+                                            <div class="col-md-12">
+                                                <div class="view-item box-items-translations">
+                                                    <label class="il-gray fs-14 fw-500 mb-10">{{ trans('catalogmanagement::bundle.name') }}</label>
+                                                    <div class="row">
+                                                        @foreach ($languages as $lang)
+                                                            @php
+                                                                $translation = $bundle->getTranslation('name', $lang->code);
+                                                            @endphp
+                                                            <div class="col-md-6 mb-3">
+                                                                <div style="padding: 12px; background: #f8f9fa; border-radius: 6px; @if ($lang->code == 'ar') border-right: 3px solid #5f63f2; @else border-left: 3px solid #5f63f2; @endif">
+                                                                    <small class="text-muted d-block mb-2" style="@if ($lang->code == 'ar') direction: rtl; text-align: right; @endif">
+                                                                        <span class="badge @if ($lang->code == 'en') bg-primary @else bg-success @endif text-white px-2 py-1 round-pill fw-bold" style="font-size: 10px;">{{ strtoupper($lang->code) }}</span>
+                                                                    </small>
+                                                                    <div class="fs-15 color-dark mb-0 fw-500" style="@if ($lang->code == 'ar') direction: rtl; text-align: right; font-family: 'Cairo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; @endif">
+                                                                        @if($translation)
+                                                                            {{ $translation }}
+                                                                        @else
+                                                                            <span class="text-muted">—</span>
+                                                                        @endif
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        @endforeach
+                                                    </div>
+                                                </div>
+                                            </div>
 
-                                    <div class="info-row">
-                                        <span class="info-label">{{ trans('catalogmanagement::bundle.description') }}:</span>
-                                        <span class="info-value">
-                                            {!! nl2br($bundle->getTranslation('description', $language->code) ?? 'N/A') !!}
-                                        </span>
-                                    </div>
+                                            {{-- Bundle Description --}}
+                                            <div class="col-md-12">
+                                                <div class="view-item box-items-translations">
+                                                    <label class="il-gray fs-14 fw-500 mb-10">{{ trans('catalogmanagement::bundle.description') }}</label>
+                                                    <div class="row">
+                                                        @foreach ($languages as $lang)
+                                                            @php
+                                                                $translation = $bundle->getTranslation('description', $lang->code);
+                                                            @endphp
+                                                            <div class="col-md-6 mb-3">
+                                                                <div style="padding: 12px; background: #f8f9fa; border-radius: 6px; @if ($lang->code == 'ar') border-right: 3px solid #5f63f2; @else border-left: 3px solid #5f63f2; @endif">
+                                                                    <small class="text-muted d-block mb-2" style="@if ($lang->code == 'ar') direction: rtl; text-align: right; @endif">
+                                                                        <span class="badge @if ($lang->code == 'en') bg-primary @else bg-success @endif text-white px-2 py-1 round-pill fw-bold" style="font-size: 10px;">{{ strtoupper($lang->code) }}</span>
+                                                                    </small>
+                                                                    <div class="fs-15 color-dark mb-0 fw-500" style="@if ($lang->code == 'ar') direction: rtl; text-align: right; font-family: 'Cairo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; @endif">
+                                                                        @if($translation)
+                                                                            {!! nl2br(e($translation)) !!}
+                                                                        @else
+                                                                            <span class="text-muted">—</span>
+                                                                        @endif
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        @endforeach
+                                                    </div>
+                                                </div>
+                                            </div>
 
-                                    <hr class="my-3">
+                                            {{-- Vendor --}}
+                                            <div class="col-md-6">
+                                                <div class="view-item">
+                                                    <label class="il-gray fs-14 fw-500 mb-10">{{ trans('catalogmanagement::bundle.vendor') }}</label>
+                                                    <p class="fs-15">
+                                                        @if ($bundle->vendor)
+                                                            <span class="badge badge-round badge-primary badge-lg">
+                                                                {{ $bundle->vendor->getTranslation('name', app()->getLocale()) ?? $bundle->vendor->getTranslation('name', 'en') ?? $bundle->vendor->getTranslation('name', 'ar') ?? '-' }}
+                                                            </span>
+                                                        @else
+                                                            <span class="text-muted">-</span>
+                                                        @endif
+                                                    </p>
+                                                </div>
+                                            </div>
 
-                                    <h6 class="mb-3">{{ trans('catalogmanagement::bundle.seo_information') }}</h6>
+                                            {{-- Bundle Category --}}
+                                            <div class="col-md-6">
+                                                <div class="view-item">
+                                                    <label class="il-gray fs-14 fw-500 mb-10">{{ trans('catalogmanagement::bundle.category') }}</label>
+                                                    <p class="fs-15">
+                                                        @if ($bundle->bundleCategory)
+                                                            <span class="badge badge-round badge-primary badge-lg">
+                                                                {{ $bundle->bundleCategory->getTranslation('name', app()->getLocale()) ?? $bundle->bundleCategory->getTranslation('name', 'en') ?? $bundle->bundleCategory->getTranslation('name', 'ar') ?? '-' }}
+                                                            </span>
+                                                        @else
+                                                            <span class="text-muted">-</span>
+                                                        @endif
+                                                    </p>
+                                                </div>
+                                            </div>
 
-                                    <div class="info-row">
-                                        <span class="info-label">{{ trans('catalogmanagement::bundle.seo_title') }}:</span>
-                                        <span class="info-value">{{ $bundle->getTranslation('seo_title', $language->code) ?? 'N/A' }}</span>
-                                    </div>
+                                            {{-- SKU --}}
+                                            <div class="col-md-6">
+                                                <div class="view-item">
+                                                    <label class="il-gray fs-14 fw-500 mb-10">{{ trans('catalogmanagement::bundle.sku') }}</label>
+                                                    <p class="fs-15 color-dark fw-500">
+                                                        <code>{{ $bundle->sku ?? '-' }}</code>
+                                                    </p>
+                                                </div>
+                                            </div>
 
-                                    <div class="info-row">
-                                        <span class="info-label">{{ trans('catalogmanagement::bundle.seo_description') }}:</span>
-                                        <span class="info-value">{{ $bundle->getTranslation('seo_description', $language->code) ?? 'N/A' }}</span>
-                                    </div>
+                                            {{-- Status --}}
+                                            <div class="col-md-6">
+                                                <div class="view-item">
+                                                    <label class="il-gray fs-14 fw-500 mb-10">{{ trans('catalogmanagement::bundle.status') }}</label>
+                                                    <p class="fs-15 color-dark fw-500">
+                                                        @if ($bundle->is_active)
+                                                            <span class="badge badge-round badge-success badge-lg">
+                                                                <i class="uil uil-check-circle me-1"></i>{{ trans('catalogmanagement::bundle.active') }}
+                                                            </span>
+                                                        @else
+                                                            <span class="badge badge-round badge-danger badge-lg">
+                                                                <i class="uil uil-times-circle me-1"></i>{{ trans('catalogmanagement::bundle.inactive') }}
+                                                            </span>
+                                                        @endif
+                                                    </p>
+                                                </div>
+                                            </div>
 
-                                    <div class="info-row">
-                                        <span class="info-label">{{ trans('catalogmanagement::bundle.seo_keywords') }}:</span>
-                                        <span class="info-value">
-                                            @php
-                                                $keywords = $bundle->getTranslation('seo_keywords', $language->code);
-                                                if ($keywords) {
-                                                    $keywordArray = array_filter(array_map('trim', explode(',', $keywords)));
-                                                    if (!empty($keywordArray)) {
-                                                        echo '<div class="badge-group">';
-                                                        foreach ($keywordArray as $keyword) {
-                                                            echo '<span class="badge bg-info">' . htmlspecialchars($keyword) . '</span>';
-                                                        }
-                                                        echo '</div>';
-                                                    } else {
-                                                        echo 'N/A';
-                                                    }
-                                                } else {
-                                                    echo 'N/A';
-                                                }
-                                            @endphp
-                                        </span>
+                                            {{-- Created At --}}
+                                            <div class="col-md-6">
+                                                <div class="view-item">
+                                                    <label class="il-gray fs-14 fw-500 mb-10">{{ trans('catalogmanagement::bundle.created_at') }}</label>
+                                                    <p class="fs-15 color-dark fw-500">
+                                                        <i class="uil uil-calendar-alt me-1"></i>{{ $bundle->created_at ? $bundle->created_at : '-' }}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
-                            @endforeach
-                        </div>
-                    </div>
-
-                    <!-- Bundle Products -->
-                    <div class="info-section">
-                        <h6 class="mb-3">{{ trans('catalogmanagement::bundle.bundle_products') }}</h6>
-
-                        @if($bundle->bundleProducts->count() > 0)
-                            <div class="table-responsive">
-                                <table class="table table-sm">
-                                    <thead>
-                                        <tr>
-                                            <th>Product Variant</th>
-                                            <th>Price</th>
-                                            <th>Min Quantity</th>
-                                            <th>Limitation Quantity</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @foreach($bundle->bundleProducts as $product)
-                                            <tr>
-                                                <td>{{ $product->vendorProductVariant->product->getTranslation('name', app()->getLocale()) ?? 'N/A' }}</td>
-                                                <td>{{ number_format($product->price, 2) }}</td>
-                                                <td>{{ $product->min_quantity }}</td>
-                                                <td>{{ $product->limitation_quantity ?? 'Unlimited' }}</td>
-                                            </tr>
-                                        @endforeach
-                                    </tbody>
-                                </table>
                             </div>
-                        @else
-                            <p class="text-muted">No products added to this bundle yet.</p>
-                        @endif
+                            {{-- Sidebar --}}
+                            <div class="col-md-4 order-1 order-md-2">
+                                {{-- Image --}}
+                                <div class="card card-holder mb-3">
+                                    <div class="card-header">
+                                        <h3>
+                                            <i class="uil uil-image me-1"></i>{{ trans('catalogmanagement::bundle.image') }}
+                                        </h3>
+                                    </div>
+                                    <div class="card-body text-center">
+                                        @php
+                                            $imageAttachment = $bundle->attachments()->where('type', 'image')->first();
+                                        @endphp
+                                        @if($imageAttachment)
+                                            <img src="{{ asset('storage/' . $imageAttachment->path) }}" alt="Bundle Image" class="img-fluid round" style="max-width: 100%; max-height: 300px; object-fit: cover;">
+                                        @else
+                                            <div class="p-5 bg-light round">
+                                            <img src="{{ asset('assets/img/default.png') }}" alt="Bundle Image" class="img-fluid round" style="max-width: 100%; max-height: 300px; object-fit: cover;">
+                                            </div>
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            {{-- SEO Information --}}
+                            <div class="card card-holder mt-3">
+                                <div class="card-header">
+                                    <h3>
+                                        <i class="uil uil-search me-1"></i>{{ trans('catalogmanagement::bundle.seo_information') }}
+                                    </h3>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        {{-- SEO Title --}}
+                                        <div class="col-md-12">
+                                            <div class="view-item box-items-translations">
+                                                <label class="il-gray fs-14 fw-500 mb-10">{{ trans('catalogmanagement::bundle.seo_title') }}</label>
+                                                <div class="row">
+                                                    @foreach ($languages as $lang)
+                                                        @php
+                                                            $translation = $bundle->getTranslation('seo_title', $lang->code);
+                                                        @endphp
+                                                        <div class="col-md-6 mb-3">
+                                                            <div style="padding: 12px; background: #f8f9fa; border-radius: 6px; @if ($lang->code == 'ar') border-right: 3px solid #5f63f2; @else border-left: 3px solid #5f63f2; @endif">
+                                                                <small class="text-muted d-block mb-2" style="@if ($lang->code == 'ar') direction: rtl; text-align: right; @endif">
+                                                                    <span class="badge @if ($lang->code == 'en') bg-primary @else bg-success @endif text-white px-2 py-1 round-pill fw-bold" style="font-size: 10px;">{{ strtoupper($lang->code) }}</span>
+                                                                </small>
+                                                                <div class="fs-15 color-dark mb-0 fw-500" style="@if ($lang->code == 'ar') direction: rtl; text-align: right; font-family: 'Cairo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; @endif">
+                                                                    @if($translation)
+                                                                        {{ $translation }}
+                                                                    @else
+                                                                        <span class="text-muted">—</span>
+                                                                    @endif
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    @endforeach
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {{-- SEO Description --}}
+                                        <div class="col-md-12">
+                                            <div class="view-item box-items-translations">
+                                                <label class="il-gray fs-14 fw-500 mb-10">{{ trans('catalogmanagement::bundle.seo_description') }}</label>
+                                                <div class="row">
+                                                    @foreach ($languages as $lang)
+                                                        @php
+                                                            $translation = $bundle->getTranslation('seo_description', $lang->code);
+                                                        @endphp
+                                                        <div class="col-md-6 mb-3">
+                                                            <div style="padding: 12px; background: #f8f9fa; border-radius: 6px; @if ($lang->code == 'ar') border-right: 3px solid #5f63f2; @else border-left: 3px solid #5f63f2; @endif">
+                                                                <small class="text-muted d-block mb-2" style="@if ($lang->code == 'ar') direction: rtl; text-align: right; @endif">
+                                                                    <span class="badge @if ($lang->code == 'en') bg-primary @else bg-success @endif text-white px-2 py-1 round-pill fw-bold" style="font-size: 10px;">{{ strtoupper($lang->code) }}</span>
+                                                                </small>
+                                                                <div class="fs-15 color-dark mb-0 fw-500" style="@if ($lang->code == 'ar') direction: rtl; text-align: right; font-family: 'Cairo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; @endif">
+                                                                    @if($translation)
+                                                                        {{ $translation }}
+                                                                    @else
+                                                                        <span class="text-muted">—</span>
+                                                                    @endif
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    @endforeach
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {{-- SEO Keywords --}}
+                                        <div class="col-md-12">
+                                            <div class="view-item box-items-translations">
+                                                <label class="il-gray fs-14 fw-500 mb-10">{{ trans('catalogmanagement::bundle.seo_keywords') }}</label>
+                                                <div class="row">
+                                                    @foreach ($languages as $lang)
+                                                        @php
+                                                            $translation = $bundle->getTranslation('seo_keywords', $lang->code);
+                                                            $keywords = [];
+                                                            if ($translation) {
+                                                                // Try to decode as JSON first (if stored as JSON array)
+                                                                $decoded = json_decode($translation, true);
+                                                                if (is_array($decoded)) {
+                                                                    $keywords = $decoded;
+                                                                } else {
+                                                                    // Otherwise split by comma
+                                                                    $keywords = array_map('trim', explode(',', $translation));
+                                                                    $keywords = array_filter($keywords); // Remove empty values
+                                                                }
+                                                            }
+                                                        @endphp
+                                                        <div class="col-md-6 mb-3">
+                                                            <div style="padding: 12px; background: #f8f9fa; border-radius: 6px; @if ($lang->code == 'ar') border-right: 3px solid #5f63f2; @else border-left: 3px solid #5f63f2; @endif">
+                                                                <small class="text-muted d-block mb-2" style="@if ($lang->code == 'ar') direction: rtl; text-align: right; @endif">
+                                                                    <span class="badge badge-lg badge-round @if ($lang->code == 'en') bg-primary @else bg-success @endif text-white px-2 py-1 round-pill fw-bold" style="font-size: 10px;">{{ strtoupper($lang->code) }}</span>
+                                                                </small>
+                                                                <div class="fs-15 color-dark mb-0" style="@if ($lang->code == 'ar') direction: rtl; text-align: right; font-family: 'Cairo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; @endif">
+                                                                    @if(count($keywords) > 0)
+                                                                        <div class="d-flex flex-wrap gap-2">
+                                                                            @foreach($keywords as $keyword)
+                                                                                <span class="badge badge-lg badge-round bg-info text-white" style="font-size: 12px; padding: 6px 10px;">
+                                                                                    {{ trim($keyword) }}
+                                                                                </span>
+                                                                            @endforeach
+                                                                        </div>
+                                                                    @else
+                                                                        <span class="text-muted">—</span>
+                                                                    @endif
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    @endforeach
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {{-- Bundle Products --}}
+                            @include('catalogmanagement::bundles.bundle-products-table', ['bundle' => $bundle, 'showDragHandle' => false, 'showActions' => true])
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
 @endsection
+
+@push('after-body')
+{{-- Loading Overlay Component --}}
+<x-loading-overlay
+    loadingText="{{ trans('main.deleting') }}"
+    loadingSubtext="{{ trans('main.please wait') }}"
+/>
+@endpush

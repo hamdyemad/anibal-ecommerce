@@ -486,6 +486,14 @@
                                             <p>{{ trans('catalogmanagement::occasion.search_products_help') }}</p>
                                         </div>
                                     </div>
+
+                                    {{-- Loading Spinner --}}
+                                    <div id="products-loader" style="display: none; text-align: center; padding: 20px;">
+                                        <div class="spinner-border text-primary" role="status">
+                                            <span class="visually-hidden">{{ __('common.loading') }}</span>
+                                        </div>
+                                        <p class="text-muted mt-2">{{ trans('catalogmanagement::occasion.loading_products') }}</p>
+                                    </div>
                                 </div>
 
 
@@ -655,6 +663,10 @@
                     return;
                 }
 
+                // Show loader
+                $('#products-loader').show();
+                $('#products-grid').hide();
+
                 $.ajax({
                     url: '/api/products',
                     type: 'GET',
@@ -671,6 +683,10 @@
                     },
                     success: function(response) {
                         console.log('Products response:', response);
+
+                        // Hide loader
+                        $('#products-loader').hide();
+                        $('#products-grid').show();
 
                         if (response.status && response.data && response.data.length > 0) {
                             allProducts = [];
@@ -734,6 +750,8 @@
 
                             $('#products-grid').html(productsHtml);
                         } else {
+                            $('#products-loader').hide();
+                            $('#products-grid').show();
                             $('#products-grid').html(`
                                 <div class="col-12 text-center text-muted py-5">
                                     <i class="uil uil-inbox fs-1 mb-2"></i>
@@ -744,6 +762,8 @@
                     },
                     error: function(error) {
                         console.error('Error loading products:', error);
+                        $('#products-loader').hide();
+                        $('#products-grid').show();
                         $('#products-grid').html(`
                             <div class="col-12 text-center text-danger py-5">
                                 <i class="uil uil-exclamation-triangle fs-1 mb-2"></i>

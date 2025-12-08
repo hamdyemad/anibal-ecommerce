@@ -37,6 +37,7 @@ Route::group(['middleware' => 'adminGuard'], function() {
     // Bundles
     Route::get('bundles/datatable', 'BundleController@datatable')->name('bundles.datatable');
     Route::post('bundles/{id}/toggle-status', 'BundleController@toggleStatus')->name('bundles.toggle-status');
+    Route::delete('bundles/{bundle}/products/{product}', 'BundleController@destroyProduct')->name('bundles.products.destroy');
     Route::resource('bundles', 'BundleController');
 
 });

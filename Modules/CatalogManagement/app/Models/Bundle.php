@@ -2,6 +2,7 @@
 
 namespace Modules\CatalogManagement\app\Models;
 
+use App\Models\Attachment;
 use App\Models\BaseModel;
 use App\Models\Traits\HumanDates;
 use App\Traits\HasSlug;
@@ -25,6 +26,16 @@ class Bundle extends BaseModel
     ];
 
     /**
+     * Attachments relationship
+     */
+    public function attachments()
+    {
+        return $this->morphMany(Attachment::class, 'attachable');
+    }
+
+
+
+    /**
      * Relationships
      */
     public function country()
@@ -45,11 +56,6 @@ class Bundle extends BaseModel
     public function bundleProducts()
     {
         return $this->hasMany(BundleProduct::class);
-    }
-
-    public function attachments()
-    {
-        return $this->morphMany('App\Models\Attachment', 'attachmentable');
     }
 
     /**

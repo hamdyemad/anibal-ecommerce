@@ -23,6 +23,7 @@ class BundleRequest extends FormRequest
             'vendor_id' => 'required|exists:vendors,id',
             'bundle_category_id' => 'required|exists:bundle_categories,id',
             'sku' => 'required|string|unique:bundles,sku' . ($this->bundle ? ',' . $this->bundle->id : ''),
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'is_active' => 'nullable|boolean',
             'translations' => 'required|array',
             'translations.*.name' => 'required|string|max:255',
@@ -32,6 +33,12 @@ class BundleRequest extends FormRequest
             'translations.*.seo_keywords' => 'nullable|string',
             'attachments' => 'nullable|array',
             'attachments.*.path' => 'nullable|string',
+            // Bundle Products Validation
+            'bundle_products' => 'required|array|min:1',
+            'bundle_products.*.vendor_product_variant_id' => 'required|exists:vendor_product_variants,id',
+            'bundle_products.*.price' => 'required|numeric|min:0',
+            'bundle_products.*.limitation_quantity' => 'nullable|numeric|min:1',
+            'bundle_products.*.min_quantity' => 'required|numeric|min:1',
         ];
     }
 
@@ -41,14 +48,30 @@ class BundleRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'vendor_id.required' => 'Vendor is required',
-            'vendor_id.exists' => 'Selected vendor does not exist',
-            'bundle_category_id.required' => 'Bundle category is required',
-            'bundle_category_id.exists' => 'Selected category does not exist',
-            'sku.required' => 'SKU is required',
-            'sku.unique' => 'SKU must be unique',
-            'translations.required' => 'Translations are required',
-            'translations.*.name.required' => 'Bundle name is required for each language',
+            'vendor_id.required' => trans('catalogmanagement::bundle.vendor_required'),
+            'vendor_id.exists' => trans('catalogmanagement::bundle.vendor_not_exist'),
+            'bundle_category_id.required' => trans('catalogmanagement::bundle.category_required'),
+            'bundle_category_id.exists' => trans('catalogmanagement::bundle.category_not_exist'),
+            'sku.required' => trans('catalogmanagement::bundle.sku_required'),
+            'sku.unique' => trans('catalogmanagement::bundle.sku_unique'),
+            'image.image' => trans('catalogmanagement::bundle.image_must_be_image'),
+            'image.mimes' => trans('catalogmanagement::bundle.image_invalid_format'),
+            'image.max' => trans('catalogmanagement::bundle.image_too_large'),
+            'translations.required' => trans('catalogmanagement::bundle.translations_required'),
+            'translations.*.name.required' => trans('catalogmanagement::bundle.name_required_each_language'),
+            // Bundle Products Messages
+            'bundle_products.required' => trans('catalogmanagement::bundle.bundle_products_required'),
+            'bundle_products.min' => trans('catalogmanagement::bundle.bundle_products_required'),
+            'bundle_products.*.vendor_product_variant_id.required' => trans('catalogmanagement::bundle.product_variant_required'),
+            'bundle_products.*.vendor_product_variant_id.exists' => trans('catalogmanagement::bundle.product_not_exist'),
+            'bundle_products.*.price.required' => trans('catalogmanagement::bundle.price_required'),
+            'bundle_products.*.price.numeric' => trans('catalogmanagement::bundle.price_numeric'),
+            'bundle_products.*.price.min' => trans('catalogmanagement::bundle.price_min'),
+            'bundle_products.*.limitation_quantity.numeric' => trans('catalogmanagement::bundle.limit_quantity_numeric'),
+            'bundle_products.*.limitation_quantity.min' => trans('catalogmanagement::bundle.limit_quantity_min'),
+            'bundle_products.*.min_quantity.required' => trans('catalogmanagement::bundle.min_quantity_required'),
+            'bundle_products.*.min_quantity.numeric' => trans('catalogmanagement::bundle.min_quantity_numeric'),
+            'bundle_products.*.min_quantity.min' => trans('catalogmanagement::bundle.min_quantity_min'),
         ];
     }
 
