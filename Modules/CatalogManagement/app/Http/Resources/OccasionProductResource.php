@@ -18,7 +18,7 @@ class OccasionProductResource extends JsonResource
             'id' => $this->id,
             'occasion_id' => $this->occasion_id,
             'vendor_product_variant_id' => $this->vendor_product_variant_id,
-            'special_price' => $this->special_price,
+            'special_price' => $this->special_price ?? '',
             'position' => $this->position,
 
             // Vendor Product Variant Information
