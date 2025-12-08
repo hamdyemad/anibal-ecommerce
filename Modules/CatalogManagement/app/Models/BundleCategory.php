@@ -5,6 +5,7 @@ namespace Modules\CatalogManagement\app\Models;
 use App\Models\BaseModel;
 use App\Models\Attachment;
 use App\Models\Traits\HumanDates;
+use App\Models\Traits\AutoStoreCountryId;
 use App\Traits\HasSlug;
 use App\Models\Traits\CountryCheckIdTrait;
 use App\Traits\Translation;
@@ -14,7 +15,7 @@ use Illuminate\Database\Eloquent\Builder;
 
 class BundleCategory extends BaseModel
 {
-    use HasFactory, SoftDeletes, Translation, HumanDates, HasSlug, CountryCheckIdTrait;
+    use HasFactory, SoftDeletes, Translation, HumanDates, HasSlug, AutoStoreCountryId, CountryCheckIdTrait;
 
     protected $guarded = [];
 

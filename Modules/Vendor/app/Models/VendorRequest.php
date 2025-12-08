@@ -4,6 +4,8 @@ namespace Modules\Vendor\app\Models;
 
 use App\Models\Traits\HumanDates;
 use App\Models\Traits\CountryCheckIdTrait;
+use App\Models\Traits\AutoStoreCountryId;
+
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -11,7 +13,7 @@ use Modules\CategoryManagment\app\Models\Activity;
 
 class VendorRequest extends Model
 {
-    use HasFactory, SoftDeletes, HumanDates, CountryCheckIdTrait;
+    use HasFactory, SoftDeletes, HumanDates, AutoStoreCountryId, CountryCheckIdTrait;
 
     protected $table = 'vendor_requests';
 

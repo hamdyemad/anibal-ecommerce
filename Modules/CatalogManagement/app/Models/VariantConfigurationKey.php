@@ -5,6 +5,7 @@ namespace Modules\CatalogManagement\app\Models;
 use App\Models\Traits\HumanDates;
 use App\Traits\Translation;
 use App\Models\Traits\CountryCheckIdTrait;
+use App\Models\Traits\AutoStoreCountryId;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -13,7 +14,7 @@ use Illuminate\Database\Eloquent\Builder;
 
 class VariantConfigurationKey extends Model
 {
-    use HasFactory, Translation, SoftDeletes, HumanDates, CountryCheckIdTrait;
+    use HasFactory, Translation, SoftDeletes, HumanDates, AutoStoreCountryId, CountryCheckIdTrait;
 
     protected $table = 'variants_configurations_keys';
     protected $guarded = [];

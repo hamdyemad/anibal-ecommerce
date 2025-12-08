@@ -5,6 +5,8 @@ namespace Modules\Withdraw\app\Models;
 use App\Models\Traits\HumanDates;
 use App\Models\User;
 use App\Models\Traits\CountryCheckIdTrait;
+use App\Models\Traits\AutoStoreCountryId;
+
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Modules\Vendor\app\Models\Vendor;
@@ -13,7 +15,7 @@ use Modules\Vendor\app\Models\Vendor;
 
 class Withdraw extends Model
 {
-    use HasFactory, HumanDates, CountryCheckIdTrait;
+    use HasFactory, HumanDates, AutoStoreCountryId, CountryCheckIdTrait;
 
     protected $guarded = [];
 

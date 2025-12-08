@@ -7,13 +7,14 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Builder;
 use Modules\CatalogManagement\app\Models\VendorProduct;
+use App\Models\Traits\AutoStoreCountryId;
 use Modules\Customer\app\Models\Customer;
 use App\Models\Traits\HumanDates;
 use App\Models\Traits\CountryCheckIdTrait;
 
 class Review extends BaseModel
 {
-    use HasFactory, SoftDeletes, HumanDates, CountryCheckIdTrait;
+    use HasFactory, SoftDeletes, HumanDates, AutoStoreCountryId, CountryCheckIdTrait;
 
     /**
      * Create a new factory instance for the model.

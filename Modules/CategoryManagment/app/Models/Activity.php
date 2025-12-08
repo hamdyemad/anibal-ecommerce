@@ -6,6 +6,7 @@ use App\Models\Traits\HumanDates;
 use App\Models\Traits\CountryCheckIdTrait;
 use App\Traits\HasSlug;
 use App\Traits\Translation;
+use App\Models\Traits\AutoStoreCountryId;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -14,7 +15,7 @@ use Modules\Vendor\app\Models\Vendor;
 
 class Activity extends Model
 {
-    use HasFactory, Translation, SoftDeletes, HumanDates, HasSlug, CountryCheckIdTrait;
+    use HasFactory, Translation, SoftDeletes, HumanDates, HasSlug, AutoStoreCountryId, CountryCheckIdTrait;
 
     protected $table = 'activities';
     protected $guarded = [];

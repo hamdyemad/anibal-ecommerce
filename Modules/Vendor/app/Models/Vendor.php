@@ -5,6 +5,7 @@ namespace Modules\Vendor\app\Models;
 use App\Models\BaseModel;
 use App\Traits\Translation;
 use App\Models\Traits\CountryCheckIdTrait;
+use App\Models\Traits\AutoStoreCountryId;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -21,7 +22,7 @@ use Modules\Withdraw\app\Models\Withdraw;
 
 class Vendor extends BaseModel
 {
-    use HasFactory, SoftDeletes, Translation, HumanDates;
+    use HasFactory, SoftDeletes, Translation, HumanDates, AutoStoreCountryId, CountryCheckIdTrait;
 
     protected $guarded = [];
 

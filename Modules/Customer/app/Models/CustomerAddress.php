@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Builder;
 use App\Models\Traits\CountryCheckIdTrait;
+use App\Models\Traits\AutoStoreCountryId;
 use Modules\AreaSettings\app\Models\City;
 use Modules\AreaSettings\app\Models\Country;
 use Modules\AreaSettings\app\Models\Region;
@@ -14,7 +15,7 @@ use Modules\AreaSettings\app\Models\Subregion;
 
 class CustomerAddress extends BaseModel
 {
-    use HasFactory, SoftDeletes, CountryCheckIdTrait;
+    use HasFactory, SoftDeletes, AutoStoreCountryId, CountryCheckIdTrait;
 
     protected $table = 'customer_addresses';
 

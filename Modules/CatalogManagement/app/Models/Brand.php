@@ -5,6 +5,7 @@ namespace Modules\CatalogManagement\app\Models;
 use App\Models\Attachment;
 use App\Models\BaseModel;
 use App\Models\Traits\HumanDates;
+use App\Models\Traits\AutoStoreCountryId;
 use App\Traits\HasSlug;
 use App\Models\Traits\CountryCheckIdTrait;
 
@@ -14,7 +15,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Brand extends BaseModel
 {
-    use HasFactory, Translation, SoftDeletes, HumanDates, HasSlug, CountryCheckIdTrait;
+    use HasFactory, Translation, SoftDeletes, HumanDates, HasSlug, AutoStoreCountryId, CountryCheckIdTrait;
 
     protected $table = 'brands';
     protected $guarded = [];

@@ -4,6 +4,7 @@ namespace Modules\CatalogManagement\app\Models;
 
 use App\Models\Attachment;
 use App\Models\BaseModel;
+use App\Models\Traits\AutoStoreCountryId;
 use App\Models\Traits\HumanDates;
 use App\Traits\HasSlug;
 use App\Traits\Translation;
@@ -14,7 +15,7 @@ use Modules\Vendor\app\Models\Vendor;
 
 class Occasion extends BaseModel
 {
-    use HasFactory, Translation, SoftDeletes, HumanDates, CountryCheckIdTrait;
+    use HasFactory, Translation, SoftDeletes, HumanDates, AutoStoreCountryId, CountryCheckIdTrait;
 
     protected $table = 'occasions';
     protected $guarded = [];

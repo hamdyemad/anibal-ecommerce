@@ -8,12 +8,14 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Modules\CatalogManagement\app\Models\VendorProduct;
 use App\Models\Traits\CountryCheckIdTrait;
+use App\Models\Traits\AutoStoreCountryId;
+
 
 use Modules\Customer\app\Models\Customer;
 
 class Wishlist extends BaseModel
 {
-    use HasFactory, HumanDates, CountryCheckIdTrait;
+    use HasFactory, HumanDates, AutoStoreCountryId, CountryCheckIdTrait;
 
     protected $fillable = [
         'customer_id',

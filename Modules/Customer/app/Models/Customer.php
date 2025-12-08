@@ -4,6 +4,7 @@ namespace Modules\Customer\app\Models;
 
 use App\Models\Traits\HumanDates;
 use App\Models\Traits\CountryCheckIdTrait;
+use App\Models\Traits\AutoStoreCountryId;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -13,7 +14,7 @@ use Laravel\Sanctum\HasApiTokens;
 
 class Customer extends Authenticatable
 {
-    use HasFactory, SoftDeletes, Notifiable, HasApiTokens, HumanDates, CountryCheckIdTrait;
+    use HasFactory, SoftDeletes, Notifiable, HasApiTokens, HumanDates, AutoStoreCountryId, CountryCheckIdTrait;
 
     protected $guarded = [];
 

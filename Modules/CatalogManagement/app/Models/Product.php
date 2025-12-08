@@ -14,7 +14,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Builder;
 use Modules\CatalogManagement\app\Http\Requests\Api\ProductReviewRequest;
-use Modules\CategoryManagment\app\Models\Activity;
+use App\Models\Traits\AutoStoreCountryId;
 use Modules\CategoryManagment\app\Models\Category;
 use Modules\CategoryManagment\app\Models\Department;
 use Modules\CategoryManagment\app\Models\SubCategory;
@@ -23,7 +23,7 @@ use Modules\AreaSettings\app\Models\Country;
 
 class Product extends BaseModel
 {
-    use HasFactory, SoftDeletes, Translation, HumanDates, CountryCheckIdTrait;
+    use HasFactory, SoftDeletes, Translation, HumanDates, AutoStoreCountryId, CountryCheckIdTrait;
 
     protected $guarded = [];
     protected $casts = [
