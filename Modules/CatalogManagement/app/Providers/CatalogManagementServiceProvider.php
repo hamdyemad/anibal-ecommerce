@@ -29,8 +29,10 @@ use Modules\CatalogManagement\app\Repositories\Api\ReviewRepository;
 use Modules\CatalogManagement\app\Services\Api\ReviewService;
 use Modules\CategoryManagment\app\Services\Api\CategoryApiService;
 use Modules\CatalogManagement\app\Interfaces\BundleCategoryRepositoryInterface;
+use Modules\CatalogManagement\app\Interfaces\BundleRepositoryInterface;
 use Modules\CatalogManagement\app\Repositories\BundleCategoryRepository;
 use Modules\CatalogManagement\app\Interfaces\OccasionRepositoryInterface;
+use Modules\CatalogManagement\app\Repositories\BundleRepository;
 use Modules\CatalogManagement\app\Repositories\OccasionRepository;
 use Nwidart\Modules\Traits\PathNamespace;
 use RecursiveDirectoryIterator;
@@ -104,6 +106,11 @@ class CatalogManagementServiceProvider extends ServiceProvider
         $this->app->bind(
             BundleCategoryRepositoryInterface::class,
             BundleCategoryRepository::class
+        );
+
+        $this->app->bind(
+            BundleRepositoryInterface::class,
+            BundleRepository::class
         );
 
         $this->app->bind(

@@ -103,10 +103,23 @@ class BundleCategoryController extends Controller
             return redirect()->route('admin.bundle-categories.index')
                 ->with('success', trans('catalogmanagement::bundle_category.bundle_category_created'));
         } catch (\Exception $e) {
+            \Log::error('Bundle Category Creation Error', [
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
             if ($request->ajax() || $request->wantsJson()) {
                 return response()->json([
                     'success' => false,
-                    'message' => trans('catalogmanagement::bundle_category.error_creating_bundle_category')
+                    'message' => trans('catalogmanagement::bundle_category.error_creating_bundle_category'),
+                    'error' => config('app.debug') ? $e->getMessage() : null,
+                    'debug' => config('app.debug') ? [
+                        'file' => $e->getFile(),
+                        'line' => $e->getLine(),
+                        'trace' => $e->getTraceAsString()
+                    ] : null
                 ], 500);
             }
 
@@ -188,16 +201,29 @@ class BundleCategoryController extends Controller
     public function destroy($lang, $countryCode, Request $request, $id)
     {
         try {
+            \Log::info('Destroying bundle category', ['id' => $id]);
+
             $this->bundleCategoryService->deleteBundleCategory($id);
+
+            \Log::info('Bundle category destroyed successfully', ['id' => $id]);
 
             return response()->json([
                 'success' => true,
                 'message' => trans('catalogmanagement::bundle_category.bundle_category_deleted')
             ]);
         } catch (\Exception $e) {
+            \Log::error('Error destroying bundle category', [
+                'id' => $id,
+                'error' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
             return response()->json([
                 'success' => false,
-                'message' => trans('catalogmanagement::bundle_category.error_deleting_bundle_category')
+                'message' => trans('catalogmanagement::bundle_category.error_deleting_bundle_category'),
+                'error' => config('app.debug') ? $e->getMessage() : null
             ], 500);
         }
     }

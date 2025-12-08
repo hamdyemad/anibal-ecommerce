@@ -9,6 +9,11 @@ interface BundleCategoryRepositoryInterface
      */
     public function getBundleCategoriesQuery(array $filters = [], $orderBy = null, $orderDirection = 'desc');
 
+
+    // Get All Bundle Categories per page
+    public function getAll(array $filters = [], $per_page);
+
+
     /**
      * Get bundle category by ID
      */

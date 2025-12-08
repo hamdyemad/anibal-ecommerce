@@ -3,9 +3,6 @@
 namespace Modules\CatalogManagement\app\Services;
 
 use Modules\CatalogManagement\app\Interfaces\BundleCategoryRepositoryInterface;
-use Illuminate\Support\Str;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
 
 class BundleCategoryService
 {
@@ -18,29 +15,35 @@ class BundleCategoryService
     }
 
     /**
+     * Get all bundle categories with optional filters
+     */
+    public function getBundleCategoriesQuery(array $filters = [], $orderBy = null, $orderDirection = 'desc')
+    {
+        return $this->bundleCategoryRepository->getBundleCategoriesQuery($filters, $orderBy, $orderDirection);
+    }
+
+    /**
+     * Get all bundle categories with pagination
+     */
+    public function getAll(array $filters = [], $per_page = 10)
+    {
+        return $this->bundleCategoryRepository->getAll($filters, $per_page);
+    }
+
+    /**
+     * Get bundle category by ID
+     */
+    public function getBundleCategoryById($id)
+    {
+        return $this->bundleCategoryRepository->getBundleCategoryById($id);
+    }
+
+    /**
      * Create bundle category
      */
     public function createBundleCategory(array $data)
     {
-        return DB::transaction(function () use ($data) {
-            // Generate slug from first translation name
-            $firstTranslation = collect($data['translations'])->first();
-            $name = $firstTranslation['name'] ?? 'bundle-category';
-            $data['slug'] = Str::slug($name) . '-' . Str::random(6);
-
-            $bundleCategory = $this->bundleCategoryRepository->createBundleCategory($data);
-
-            // Handle image upload
-            if (isset($data['image']) && $data['image']) {
-                $path = $data['image']->store("bundle-categories/{$bundleCategory->id}", 'public');
-                $bundleCategory->attachments()->create([
-                    'path' => $path,
-                    'type' => 'image'
-                ]);
-            }
-
-            return $bundleCategory;
-        });
+        return $this->bundleCategoryRepository->createBundleCategory($data);
     }
 
     /**
@@ -48,30 +51,7 @@ class BundleCategoryService
      */
     public function updateBundleCategory($id, array $data)
     {
-        return DB::transaction(function () use ($id, $data) {
-            $bundleCategory = $this->bundleCategoryRepository->updateBundleCategory($id, $data);
-
-            // Handle image upload
-            if (isset($data['image']) && $data['image']) {
-                // Delete old image
-                $oldImage = $bundleCategory->attachments()->where('type', 'image')->first();
-                if ($oldImage) {
-                    if (Storage::disk('public')->exists($oldImage->path)) {
-                        Storage::disk('public')->delete($oldImage->path);
-                    }
-                    $oldImage->delete();
-                }
-
-                // Store new image
-                $path = $data['image']->store("bundle-categories/{$bundleCategory->id}", 'public');
-                $bundleCategory->attachments()->create([
-                    'path' => $path,
-                    'type' => 'image'
-                ]);
-            }
-
-            return $bundleCategory;
-        });
+        return $this->bundleCategoryRepository->updateBundleCategory($id, $data);
     }
 
     /**
@@ -79,19 +59,15 @@ class BundleCategoryService
      */
     public function deleteBundleCategory($id)
     {
-        return DB::transaction(function () use ($id) {
-            $bundleCategory = $this->bundleCategoryRepository->getBundleCategoryById($id);
+        return $this->bundleCategoryRepository->deleteBundleCategory($id);
+    }
 
-            // Delete attachments
-            foreach ($bundleCategory->attachments as $attachment) {
-                if (Storage::disk('public')->exists($attachment->path)) {
-                    Storage::disk('public')->delete($attachment->path);
-                }
-                $attachment->delete();
-            }
-
-            return $this->bundleCategoryRepository->deleteBundleCategory($id);
-        });
+    /**
+     * Get all active bundle categories
+     */
+    public function getActiveBundleCategories()
+    {
+        return $this->bundleCategoryRepository->getActiveBundleCategories();
     }
 
     /**

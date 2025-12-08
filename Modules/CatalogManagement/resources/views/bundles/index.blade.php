@@ -1,6 +1,6 @@
 @extends('layout.app')
 @section('title')
-    {{ trans('catalogmanagement::bundle_category.bundle_categories_management') }} | Bnaia
+    {{ trans('catalogmanagement::bundle.bundles_management') }} | Bnaia
 @endsection
 @push('styles')
     <!-- Select2 CSS loaded via Vite -->
@@ -16,7 +16,7 @@
                         'url' => route('admin.dashboard'),
                         'icon' => 'uil uil-estate',
                     ],
-                    ['title' => trans('catalogmanagement::bundle_category.bundle_categories_management')],
+                    ['title' => trans('catalogmanagement::bundle.bundles_management')],
                 ]" />
             </div>
         </div>
@@ -26,11 +26,11 @@
 
                 <div class="userDatatable global-shadow border-light-0 p-30 bg-white radius-xl w-100 mb-30">
                     <div class="d-flex justify-content-between align-items-center mb-25">
-                        <h4 class="mb-0 fw-500 fw-bold">{{ trans('catalogmanagement::bundle_category.bundle_categories_management') }}</h4>
+                        <h4 class="mb-0 fw-500 fw-bold">{{ trans('catalogmanagement::bundle.bundles_management') }}</h4>
                         <div class="d-flex gap-2">
-                            <a href="{{ route('admin.bundle-categories.create') }}"
+                            <a href="{{ route('admin.bundles.create') }}"
                                 class="btn btn-primary btn-default btn-squared text-capitalize">
-                                <i class="uil uil-plus"></i> {{ trans('catalogmanagement::bundle_category.add_bundle_category') }}
+                                <i class="uil uil-plus"></i> {{ trans('catalogmanagement::bundle.add_bundle') }}
                             </a>
                         </div>
                     </div>
@@ -60,14 +60,14 @@
                                         <div class="form-group">
                                             <label for="active" class="il-gray fs-14 fw-500 mb-10">
                                                 <i class="uil uil-check-circle me-1"></i>
-                                                {{ trans('catalogmanagement::bundle_category.status') }}
+                                                {{ trans('catalogmanagement::bundle.status') }}
                                             </label>
                                             <select
                                                 class="form-control ih-medium ip-gray radius-xs b-light px-15 form-select"
                                                 id="active">
-                                                <option value="">{{ trans('catalogmanagement::bundle_category.all_status') }}</option>
-                                                <option value="1">{{ trans('catalogmanagement::bundle_category.active') }}</option>
-                                                <option value="0">{{ trans('catalogmanagement::bundle_category.inactive') }}</option>
+                                                <option value="">{{ trans('catalogmanagement::bundle.all_status') }}</option>
+                                                <option value="1">{{ trans('catalogmanagement::bundle.active') }}</option>
+                                                <option value="0">{{ trans('catalogmanagement::bundle.inactive') }}</option>
                                             </select>
                                         </div>
                                     </div>
@@ -77,7 +77,7 @@
                                         <div class="form-group">
                                             <label for="created_from_filter" class="il-gray fs-14 fw-500 mb-10">
                                                 <i class="uil uil-calendar-alt me-1"></i>
-                                                {{ trans('catalogmanagement::bundle_category.created_from') }}
+                                                {{ trans('catalogmanagement::bundle.created_from') }}
                                             </label>
                                             <input type="date"
                                                 class="form-control ih-medium ip-gray radius-xs b-light px-15"
@@ -90,7 +90,7 @@
                                         <div class="form-group">
                                             <label for="created_until_filter" class="il-gray fs-14 fw-500 mb-10">
                                                 <i class="uil uil-calendar-alt me-1"></i>
-                                                {{ trans('catalogmanagement::bundle_category.created_until') }}
+                                                {{ trans('catalogmanagement::bundle.created_until') }}
                                             </label>
                                             <input type="date"
                                                 class="form-control ih-medium ip-gray radius-xs b-light px-15"
@@ -98,7 +98,7 @@
                                         </div>
                                     </div>
 
-                                    <div class="col-md-12 d-flex align-items-center">
+                                    <div class="col-md-12 d-flex align-items-center mt-3">
                                         <button type="button" id="searchBtn"
                                             class="btn btn-success btn-default btn-squared me-1"
                                             title="{{ __('common.search') }}">
@@ -134,15 +134,15 @@
 
                     {{-- DataTable --}}
                     <div class="table-responsive">
-                        <table id="bundleCategoriesDataTable" class="table mb-0 table-bordered table-hover" style="width:100%">
+                        <table id="bundlesDataTable" class="table mb-0 table-bordered table-hover" style="width:100%">
                             <thead>
                                 <tr class="userDatatable-header">
                                     <th class="text-center"><span class="userDatatable-title">#</span></th>
-                                    @foreach($languages as $language)
-                                        <th><span class="userDatatable-title">{{ trans('catalogmanagement::bundle_category.name') }} ({{ $language->name }})</span></th>
-                                    @endforeach
-                                    <th><span class="userDatatable-title">{{ trans('catalogmanagement::bundle_category.status') }}</span></th>
-                                    <th><span class="userDatatable-title">{{ trans('catalogmanagement::bundle_category.created_at') }}</span></th>
+                                    <th><span class="userDatatable-title">{{ trans('catalogmanagement::bundle.bundle_information') }}</span></th>
+                                    <th><span class="userDatatable-title">{{ trans('catalogmanagement::bundle.sku') }}</span></th>
+                                    <th><span class="userDatatable-title">{{ trans('catalogmanagement::bundle.vendor') }}</span></th>
+                                    <th><span class="userDatatable-title">{{ trans('catalogmanagement::bundle.status') }}</span></th>
+                                    <th><span class="userDatatable-title">{{ trans('catalogmanagement::bundle.created_at') }}</span></th>
                                     <th><span class="userDatatable-title">{{ __('common.actions') }}</span></th>
                                 </tr>
                             </thead>
@@ -156,8 +156,8 @@
     </div>
 
     {{-- Delete Modal --}}
-    <x-delete-with-loading modalId="modal-delete-bundle-category" tableId="bundleCategoriesDataTable" deleteButtonClass="delete-bundle-category"
-        :title="trans('main.confirm delete')" :message="trans('main.are you sure you want to delete this')" itemNameId="delete-bundle-category-name" confirmBtnId="confirmDeleteBundleCategoryBtn"
+    <x-delete-with-loading modalId="modal-delete-bundle" tableId="bundlesDataTable" deleteButtonClass="delete-bundle"
+        :title="trans('main.confirm delete')" :message="trans('main.are you sure you want to delete this')" itemNameId="delete-bundle-name" confirmBtnId="confirmDeleteBundleBtn"
         :cancelText="trans('main.cancel')" :deleteText="trans('main.delete')" :loadingDeleting="trans('main.deleting')" :loadingPleaseWait="trans('main.please wait')" :loadingDeletedSuccessfully="trans('main.deleted success')" :loadingRefreshing="trans('main.refreshing')"
         :errorDeleting="trans('main.error on delete')" />
 
@@ -180,43 +180,97 @@
             if (urlParams.has('created_until')) $('#created_until_filter').val(urlParams.get('created_until'));
 
             // Server-side processing with pagination
-            let table = $('#bundleCategoriesDataTable').DataTable({
+            let table = $('#bundlesDataTable').DataTable({
                 processing: true,
                 serverSide: true,
                 ajax: {
-                    url: '{{ route('admin.bundle-categories.datatable') }}',
+                    url: '{{ route('admin.bundles.datatable') }}',
                     type: 'GET',
                     data: function(d) {
                         d.per_page = d.length;
                         d.page = (d.start / d.length) + 1;
                         d.search = $('#search').val();
                         d.active = $('#active').val();
-                        d.created_date_from = $('#created_from_filter').val();
-                        d.created_date_to = $('#created_until_filter').val();
+                        d.created_from = $('#created_from_filter').val();
+                        d.created_until = $('#created_until_filter').val();
                         return d;
                     }
                 },
                 columns: [
                     {
-                        data: 'index',
-                        name: 'index',
+                        data: 'id',
+                        name: 'id',
                         orderable: false,
                         searchable: false,
-                        className: 'text-center fw-bold'
+                        render: function(data, type, row, meta) {
+                            return meta.row + meta.settings._iDisplayStart + 1;
+                        }
                     },
-                    @foreach($languages as $language)
                     {
-                        data: 'translations.{{ $language->code }}.name',
-                        name: 'translations.{{ $language->code }}.name',
+                        data: 'bundle_information',
+                        name: 'bundle_information',
+                        orderable: false,
+                        searchable: false,
                         render: function(data, type, row) {
+                            if (!data) return '<span class="text-muted">—</span>';
+
+                            let html = '<div class="bundle-info-container" style="display: flex; gap: 12px; align-items: flex-start;">';
+
+                            // Image
+                            if (data.image) {
+                                html += `<div style="flex-shrink: 0;">
+                                    <img src="${data.image}" alt="Bundle Image" style="width: 60px; height: 60px; object-fit: cover; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                                </div>`;
+                            } else {
+                                html += `<img src="{{ asset('assets/img/default.png') }}" alt="Bundle Image" style="width: 60px; height: 60px; object-fit: cover; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">`;
+                            }
+
+                            // Names
+                            html += '<div style="flex: 1; min-width: 0;">';
+
+                            // EN Name
+                            if (data.name_en && data.name_en !== '-') {
+                                html += `<div style="margin-bottom: 4px;">
+                                    <span class="badge bg-primary text-white px-2 py-1 me-2 rounded-pill fw-bold" style="font-size: 10px;">EN</span>
+                                    <span class="text-dark fw-semibold" style="font-size: 14px;">${$('<div/>').text(data.name_en).html()}</span>
+                                </div>`;
+                            }
+
+                            // AR Name
+                            if (data.name_ar && data.name_ar !== '-') {
+                                html += `<div style="margin-bottom: 4px;">
+                                    <span class="badge bg-success text-white px-2 py-1 me-2 rounded-pill fw-bold" style="font-size: 10px;">AR</span>
+                                    <span class="text-dark fw-semibold" dir="rtl" style="font-size: 14px; font-family: 'Cairo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">${$('<div/>').text(data.name_ar).html()}</span>
+                                </div>`;
+                            }
+
+                            html += '</div></div>';
+                            return html;
+                        }
+                    },
+                    {
+                        data: 'sku',
+                        name: 'sku',
+                        orderable: false,
+                        searchable: false,
+                        render: function(data) {
                             return data || '-';
                         }
                     },
-                    @endforeach
                     {
-                        data: 'active',
-                        name: 'active',
+                        data: 'vendor',
+                        name: 'vendor',
                         orderable: false,
+                        searchable: false,
+                        render: function(data) {
+                            return data || '-';
+                        }
+                    },
+                    {
+                        data: 'is_active',
+                        name: 'is_active',
+                        orderable: false,
+                        searchable: false,
                         render: function(data, type, row) {
                             const isChecked = data ? 'checked' : '';
                             const switchId = 'status-switch-' + row.id;
@@ -235,42 +289,40 @@
                     },
                     {
                         data: 'created_at',
+                        orderable: false,
+                        searchable: false,
                         name: 'created_at',
                         render: function(data) {
-                            return data;
+                            return data || '-';
                         }
                     },
                     {
                         data: null,
-                        name: 'actions',
                         orderable: false,
                         searchable: false,
                         render: function(data, type, row) {
-                            let viewUrl = "{{ route('admin.bundle-categories.show', ':id') }}".replace(':id', row.id),
-                                editUrl = "{{ route('admin.bundle-categories.edit', ':id') }}".replace(':id', row.id),
-                                deleteUrl = "{{ route('admin.bundle-categories.destroy', ':id') }}".replace(':id', row.id)
+                            let showUrl = "{{ route('admin.bundles.show', ':id') }}".replace(':id', row.id);
+                            let editUrl = "{{ route('admin.bundles.edit', ':id') }}".replace(':id', row.id);
                             return `
-                                <div class="orderDatatable_actions d-inline-flex gap-1">
-                                    <a href="${viewUrl}"
+                                <div class="orderDatatable_actions d-inline-flex gap-1 justify-content-center">
+                                    <a href="${showUrl}"
                                     class="view btn btn-primary table_action_father"
-                                    title="{{ trans('catalogmanagement::bundle_category.view_bundle_category') }}">
+                                    title="{{ trans('catalogmanagement::bundle.view_bundle') }}">
                                         <i class="uil uil-eye table_action_icon"></i>
                                     </a>
-
                                     <a href="${editUrl}"
                                     class="edit btn btn-warning table_action_father"
-                                    title="{{ trans('catalogmanagement::bundle_category.edit_bundle_category') }}">
+                                    title="{{ trans('catalogmanagement::bundle.edit_bundle') }}">
                                         <i class="uil uil-edit table_action_icon"></i>
                                     </a>
-
                                     <a href="javascript:void(0);"
-                                    class="remove delete-bundle-category btn btn-danger table_action_father"
+                                    class="remove delete-bundle btn btn-danger table_action_father"
                                     data-bs-toggle="modal"
-                                    data-bs-target="#modal-delete-bundle-category"
+                                    data-bs-target="#modal-delete-bundle"
                                     data-id="${row.id}"
-                                    data-url="${deleteUrl}"
-                                    data-name="${row.translations && row.translations.en ? row.translations.en.name : 'Bundle Category'}"
-                                    title="{{ trans('catalogmanagement::bundle_category.delete_bundle_category') }}">
+                                    data-name="${row.name && row.name.en ? row.name.en : 'Bundle'}"
+                                    data-url="{{ route('admin.bundles.index') }}/${row.id}"
+                                    title="{{ trans('catalogmanagement::bundle.delete_bundle') }}">
                                         <i class="uil uil-trash-alt table_action_icon"></i>
                                     </a>
                                 </div>
@@ -282,37 +334,32 @@
                 lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]],
                 order: [[0, 'desc']],
                 pagingType: 'full_numbers',
-                dom: '<"row"<"col-sm-12"tr>>' +
-                    '<"row mt-3"<"col-sm-12 col-md-5"i><"col-sm-12 col-md-7"p>>',
                 language: {
-                    search: "{{ __('common.search') }}:",
+                    search: '',
+                    searchPlaceholder: "{{ __('common.search') }}...",
+                    lengthMenu: '_MENU_',
+                    info: "{{ __('common.showing') }} _START_ {{ __('common.to') }} _END_ {{ __('common.of') }} _TOTAL_ {{ __('common.entries') }}",
+                    infoEmpty: "{{ __('common.showing') }} 0 {{ __('common.to') }} 0 {{ __('common.of') }} 0 {{ __('common.entries') }}",
+                    infoFiltered: "({{ __('common.filtered_from') }} _MAX_ {{ __('common.total_entries') }})",
+                    zeroRecords: "{{ __('common.no_matching_records_found') }}",
+                    emptyTable: "{{ __('common.no_data_available') }}",
+                    paginate: {
+                        first: '<i class="uil uil-angle-double-left"></i>',
+                        last: '<i class="uil uil-angle-double-right"></i>',
+                        next: '<i class="uil uil-angle-right"></i>',
+                        previous: '<i class="uil uil-angle-left"></i>'
+                    }
+                },
+                dom: '<"row"<"col-sm-12"tr>>' +
+                     '<"row"<"col-sm-12 col-md-5"i><"col-sm-12 col-md-7"p>>',
+                drawCallback: function() {
+                    $('.dataTables_paginate > .pagination').addClass('pagination-bordered');
                 }
             });
 
-            $('#entriesSelect').on('change', function() {
-                table.page.len($(this).val()).draw();
-            });
-
-            // Live search with debounce
-            let searchTimer;
-            $('#search').on('keyup', function() {
-                clearTimeout(searchTimer);
-                searchTimer = setTimeout(function() {
-                    table.ajax.reload();
-                    updateUrlParams();
-                }, 500);
-            });
-
-            // Search button click
+            // Search button
             $('#searchBtn').on('click', function() {
                 table.ajax.reload();
-                updateUrlParams();
-            });
-
-            // Filter change handlers
-            $('#active, #created_from_filter, #created_until_filter').on('change', function() {
-                table.ajax.reload();
-                updateUrlParams();
             });
 
             // Reset filters
@@ -322,82 +369,97 @@
                 $('#created_from_filter').val('');
                 $('#created_until_filter').val('');
                 table.ajax.reload();
-                // Clear URL parameters
+                // Clear URL params
                 window.history.replaceState({}, '', window.location.pathname);
             });
 
-            // Update URL parameters function
+            // Entries per page
+            $('#entriesSelect').on('change', function() {
+                per_page = $(this).val();
+                table.page.len(per_page).draw();
+            });
+
+            // Function to update URL params
             function updateUrlParams() {
                 const params = new URLSearchParams();
+
                 if ($('#search').val()) params.set('search', $('#search').val());
                 if ($('#active').val()) params.set('active', $('#active').val());
                 if ($('#created_from_filter').val()) params.set('created_from', $('#created_from_filter').val());
                 if ($('#created_until_filter').val()) params.set('created_until', $('#created_until_filter').val());
 
-                const newUrl = params.toString() ? `${window.location.pathname}?${params.toString()}` : window.location.pathname;
+                const newUrl = params.toString()
+                    ? `${window.location.pathname}?${params.toString()}`
+                    : window.location.pathname;
+
                 window.history.replaceState({}, '', newUrl);
             }
 
-            $(document).on('change', '.status-switcher', function() {
-                const switcher = $(this);
-                const id = switcher.data('id');
-                const newStatus = switcher.is(':checked') ? 1 : 0;
+            // Live search with debounce for all filters
+            let searchTimer;
 
-                switcher.prop('disabled', true);
+            // Text search - live search on keyup
+            $('#search').on('keyup', function(e) {
+                clearTimeout(searchTimer);
+                searchTimer = setTimeout(function() {
+                    table.ajax.reload();
+                    updateUrlParams();
+                }, 500);
+            });
 
-                // Show loading overlay for status change
-                if (typeof LoadingOverlay !== 'undefined') {
-                    LoadingOverlay.show({
-                        text: '{{ trans('catalogmanagement::bundle_category.status_changed_successfully') }}',
-                        subtext: '{{ __('common.please_wait') }}...'
-                    });
+            // Select filters - live search on change
+            $('#active').on('change', function() {
+                table.ajax.reload();
+                updateUrlParams();
+            });
+
+            // Date filters - live search on change
+            $('#created_from_filter, #created_until_filter').on('change', function() {
+                table.ajax.reload();
+                updateUrlParams();
+            });
+
+            // Enter key to search immediately
+            $('#search').on('keypress', function(e) {
+                if (e.which === 13) {
+                    clearTimeout(searchTimer);
+                    table.ajax.reload();
+                    updateUrlParams();
                 }
+            });
 
-                let route = "{{ route('admin.bundle-categories.toggle-status', ':id') }}".replace(':id', id)
+            // Status switcher
+            $(document).on('change', '.status-switcher', function() {
+                let switcher = $(this);
+                let bundleId = switcher.data('id');
+                let isActive = switcher.is(':checked') ? 1 : 0;
+
+                // Show loading overlay
+                LoadingOverlay.show();
+
                 $.ajax({
-                    url: route,
+                    url: '{{ route("admin.bundles.toggle-status", ":id") }}'.replace(':id', bundleId),
                     type: 'POST',
                     data: {
                         _token: '{{ csrf_token() }}',
-                        status: newStatus
+                        is_active: isActive
                     },
                     success: function(response) {
-                         if (typeof LoadingOverlay !== 'undefined') {
-                             LoadingOverlay.hide();
-                         }
-                         switcher.prop('disabled', false);
-                         // Optional: Toast
-                         if (typeof Swal !== 'undefined') {
-                                Swal.fire({
-                                    icon: 'success',
-                                    title: '{{ __('common.success') ?? 'Success' }}',
-                                    text: response.message,
-                                    timer: 2000,
-                                    showConfirmButton: false,
-                                    toast: true,
-                                    position: 'top-end'
-                                });
+                        LoadingOverlay.hide();
+                        if (response.status) {
+                            toastr.success(response.message);
+                        } else {
+                            toastr.error(response.message);
+                            switcher.prop('checked', !switcher.is(':checked'));
                         }
                     },
                     error: function(xhr) {
-                        if (typeof LoadingOverlay !== 'undefined') {
-                             LoadingOverlay.hide();
-                        }
-                        switcher.prop('disabled', false);
+                        LoadingOverlay.hide();
                         switcher.prop('checked', !switcher.is(':checked'));
-                        alert('Error changing status');
+                        toastr.error('{{ trans("catalogmanagement::bundle.error_changing_status") }}');
                     }
                 });
             });
         });
-    </script>
-
-    {{-- Delete Modal Configuration --}}
-    <script>
-        // Configure delete functionality
-        window.deleteConfig = {
-            url: "{{ route('admin.bundle-categories.index') }}",
-            token: '{{ csrf_token() }}'
-        };
     </script>
 @endpush

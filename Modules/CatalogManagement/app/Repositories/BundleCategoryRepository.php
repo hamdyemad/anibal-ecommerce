@@ -20,6 +20,15 @@ class BundleCategoryRepository implements BundleCategoryRepositoryInterface
         return $query;
     }
 
+
+    public function getAll(array $filters = [], $per_page = 10)
+    {
+        $query = BundleCategory::with(['translations'])
+        ->filter($filters);
+        ($per_page == 0) ? $query->get() : $query->paginate($per_page);
+    }
+
+
     /**
      * Get bundle category by ID
      */
@@ -33,17 +42,38 @@ class BundleCategoryRepository implements BundleCategoryRepositoryInterface
      */
     public function createBundleCategory(array $data)
     {
-        return DB::transaction(function () use ($data) {
-            $bundleCategory = BundleCategory::create([
-                'slug' => $data['slug'] ?? null,
-                'active' => $data['active'] ?? 1,
+        try {
+            return DB::transaction(function () use ($data) {
+                Log::info('Creating bundle category', ['data' => $data]);
+
+                $bundleCategory = BundleCategory::create([
+                    'slug' => uniqid(),
+                    'active' => $data['active'] ?? 1,
+                ]);
+
+                Log::info('Bundle category created', ['id' => $bundleCategory->id]);
+
+                // Store translations (this will update the slug based on English name)
+                $this->storeTranslations($bundleCategory, $data);
+
+                Log::info('Translations stored for bundle category', ['id' => $bundleCategory->id]);
+
+                // Handle image upload
+                $this->handleImage($bundleCategory, $data);
+
+                Log::info('Image handled for bundle category', ['id' => $bundleCategory->id]);
+
+                return $bundleCategory;
+            });
+        } catch (\Exception $e) {
+            Log::error('Error creating bundle category', [
+                'error' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString()
             ]);
-
-            // Store translations
-            $this->storeTranslations($bundleCategory, $data);
-
-            return $bundleCategory;
-        });
+            throw $e;
+        }
     }
 
     /**
@@ -61,6 +91,21 @@ class BundleCategoryRepository implements BundleCategoryRepositoryInterface
             // Store translations (this will handle updates)
             $this->storeTranslations($bundleCategory, $data);
 
+            // Handle image upload
+            if (isset($data['image']) && $data['image']) {
+                // Delete old image
+                $oldImage = $bundleCategory->attachments()->where('type', 'image')->first();
+                if ($oldImage) {
+                    if (\Illuminate\Support\Facades\Storage::disk('public')->exists($oldImage->path)) {
+                        \Illuminate\Support\Facades\Storage::disk('public')->delete($oldImage->path);
+                    }
+                    $oldImage->delete();
+                }
+
+                // Store new image
+                $this->handleImage($bundleCategory, $data);
+            }
+
             return $bundleCategory->fresh();
         });
     }
@@ -70,8 +115,19 @@ class BundleCategoryRepository implements BundleCategoryRepositoryInterface
      */
     public function deleteBundleCategory($id)
     {
-        $bundleCategory = $this->getBundleCategoryById($id);
-        return $bundleCategory->delete();
+        return DB::transaction(function () use ($id) {
+            $bundleCategory = $this->getBundleCategoryById($id);
+
+            // Delete attachments
+            foreach ($bundleCategory->attachments as $attachment) {
+                if (\Illuminate\Support\Facades\Storage::disk('public')->exists($attachment->path)) {
+                    \Illuminate\Support\Facades\Storage::disk('public')->delete($attachment->path);
+                }
+                $attachment->delete();
+            }
+
+            return $bundleCategory->delete();
+        });
     }
 
     /**
@@ -152,6 +208,20 @@ class BundleCategoryRepository implements BundleCategoryRepositoryInterface
                     }
                 }
             }
+        }
+    }
+
+    /**
+     * Handle image upload for bundle category
+     */
+    protected function handleImage(BundleCategory $bundleCategory, array $data): void
+    {
+        if (isset($data['image']) && $data['image']) {
+            $path = $data['image']->store("bundle-categories/{$bundleCategory->id}", 'public');
+            $bundleCategory->attachments()->create([
+                'path' => $path,
+                'type' => 'image'
+            ]);
         }
     }
 }

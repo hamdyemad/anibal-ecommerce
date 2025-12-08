@@ -34,6 +34,11 @@ Route::group(['middleware' => 'adminGuard'], function() {
     Route::post('bundle-categories/{id}/toggle-status', 'BundleCategoryController@toggleStatus')->name('bundle-categories.toggle-status');
     Route::resource('bundle-categories', 'BundleCategoryController');
 
+    // Bundles
+    Route::get('bundles/datatable', 'BundleController@datatable')->name('bundles.datatable');
+    Route::post('bundles/{id}/toggle-status', 'BundleController@toggleStatus')->name('bundles.toggle-status');
+    Route::resource('bundles', 'BundleController');
+
 });
 
 // Occasions
@@ -86,19 +91,7 @@ Route::group(['prefix' => 'products'], function() {
 
 // Product resource (must be last)
 Route::resource('products', 'ProductController');
-// Bundles (placeholder routes for future implementation)
-Route::get('bundles', function() {
-    return 'comming soon...';
-})->name('bundles.index');
-Route::get('bundles/create', function() {
-    return 'comming soon...';
-})->name('bundles.create');
-Route::get('bundles/{id}', function($id) {
-    return 'comming soon...';
-})->name('bundles.show');
-Route::get('bundles/{id}/edit', function($id) {
-    return 'comming soon...';
-})->name('bundles.edit');
+
 
 // API routes for variant selection in product form
 Route::get('api/variant-keys', 'VariantsConfigurationController@getVariantKeys')->name('api.variant-keys');
