@@ -264,10 +264,12 @@ class VendorRepository implements VendorInterface
                 if (!empty($fields['name'])) {
                     if($language->code == 'en') {
                         // $originalSlug = $slug;
-                        if(Vendor::where('slug', Str::slug($fields['name']))->exists()) {
-                            $model = Vendor::where('slug', Str::slug($fields['name']))->first();
+                        $model = Vendor::where('slug', Str::slug($fields['name']))
+                        ->withoutCountryFilter()->first();
+                        if($model) {
+                            $newSlug = $model->slug . '-' . rand(1, 1000);
                             $vendor->update([
-                                'slug' => $model->slug . '-' . rand(1, 1000)
+                                'slug' => $newSlug
                             ]);
 
                         } else {
