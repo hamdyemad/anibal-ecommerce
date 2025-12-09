@@ -1,14 +1,15 @@
 <?php
 
 namespace Modules\CatalogManagement\app\Models;
+
+use App\Models\BaseModel;
 use App\Models\Traits\CountryCheckIdTrait;
 use App\Models\Traits\AutoStoreCountryId;
 
 use App\Models\Traits\HumanDates;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
-class Promocode extends Model
+class Promocode extends BaseModel
 {
     use HasFactory, HumanDates, AutoStoreCountryId, CountryCheckIdTrait;
 
@@ -20,4 +21,16 @@ class Promocode extends Model
         'is_active' => 'boolean',
         'value' => 'decimal:2',
     ];
+
+    public function scopeActive($query)
+    {
+        return $query->where('is_active', true);
+    }
+
+    public function scopeIsValid($query)
+    {
+        return $query->active()
+                ->where('valid_from', '<', now())
+                ->where('valid_until', '>', now());
+    }
 }

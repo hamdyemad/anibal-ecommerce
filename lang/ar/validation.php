@@ -132,6 +132,7 @@ return [
     'url' => 'يجب أن يكون :attribute عنوان URL صالحاً.',
     'uuid' => 'يجب أن يكون :attribute UUID صالحاً.',
 
+
     /*
     |--------------------------------------------------------------------------
     | Custom Validation Language Lines
@@ -180,6 +181,26 @@ return [
     'min_star_max_star' => 'لا يمكن أن يكون الحد الأدنى للنجوم أكبر من الحد الأقصى',
     'status_invalid' => 'يجب أن تكون الحالة أحد الخيارات التالية: pending, approved, rejected',
     'vendor_product_id_not_exist' => 'معرف المنتج غير موجود',
+    'vendor_product_id_required' => 'معرف المنتج مطلوب',
+    'vendor_product_variant_id_not_exist' => 'معرف متغير المنتج غير موجود',
+    'quantity_required' => 'الكمية مطلوبة',
+    'quantity_min' => 'يجب أن تكون الكمية على الأقل 1',
+    'quantity_exceeds_max_per_order' => 'لا يمكن أن تتجاوز الكمية :max لكل طلب',
+    'type_required' => 'النوع مطلوب',
+    'type_invalid' => 'يجب أن يكون النوع أحد الخيارات التالية: product, bundle, occasion',
+    'bundle_id_not_exist' => 'معرف الحزمة غير موجود',
+    'occasion_id_not_exist' => 'معرف المناسبة غير موجود',
+    'cart_type_invalid' => 'يجب أن يكون نوع السلة أحد الخيارات التالية: product, bundle, occasion',
+
+    // Checkout validation messages
+    'user_address_id_required' => 'عنوان المستخدم مطلوب',
+    'user_address_id_integer' => 'يجب أن يكون عنوان المستخدم رقماً',
+    'user_address_id_exists' => 'عنوان المستخدم المحدد غير موجود',
+    'promo_code_id_string' => 'يجب أن يكون رمز الترويج نصاً',
+    'order_from_in' => 'يجب أن يكون الطلب من أحد الخيارات التالية: WEB, ANDROID, IOS',
+    'payment_type_in' => 'يجب أن تكون طريقة الدفع أحد الخيارات التالية: cash_on_delivery, online, aman',
+    'use_point_required' => 'حقل استخدام النقاط مطلوب',
+    'use_point_boolean' => 'يجب أن تكون قيمة استخدام النقاط صحيحة أو خاطئة',
 
     /*
     |--------------------------------------------------------------------------

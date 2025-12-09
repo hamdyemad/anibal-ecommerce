@@ -8,13 +8,19 @@ use Modules\Order\app\Interfaces\OrderStageRepositoryInterface;
 use Modules\Order\app\Repositories\OrderStageRepository;
 use Modules\Order\app\Interfaces\Api\WishlistRepositoryInterface;
 use Modules\Order\app\Repositories\Api\WishlistRepository;
+use Modules\Order\app\Interfaces\Api\CartRepositoryInterface;
+use Modules\Order\app\Repositories\Api\CartRepository;
 use Modules\Order\app\Interfaces\Api\OrderStageApiRepositoryInterface;
 use Modules\Order\app\Repositories\Api\OrderStageApiRepository;
 use Modules\Order\app\Actions\WishlistQueryAction;
+use Modules\Order\app\Actions\CartQueryAction;
 use Modules\Order\app\Interfaces\OrderRepositoryInterface;
 use Modules\Order\app\Repositories\OrderRepository;
 use Modules\Order\app\Interfaces\OrderFulfillmentRepositoryInterface;
 use Modules\Order\app\Repositories\OrderFulfillmentRepository;
+use Modules\Order\app\Interfaces\Api\OrderApiRepositoryInterface;
+use Modules\Order\app\Repositories\Api\OrderApiRepository;
+use Modules\Order\app\Services\Api\OrderApiService;
 use Nwidart\Modules\Traits\PathNamespace;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
@@ -64,6 +70,12 @@ class OrderServiceProvider extends ServiceProvider
             WishlistRepository::class
         );
 
+        // Register cart repository bindings
+        $this->app->bind(
+            CartRepositoryInterface::class,
+            CartRepository::class
+        );
+
         // Register order stage API repository bindings
         $this->app->bind(
             OrderStageApiRepositoryInterface::class,
@@ -76,8 +88,20 @@ class OrderServiceProvider extends ServiceProvider
             OrderFulfillmentRepository::class
         );
 
+        // Register order API repository bindings
+        $this->app->bind(
+            OrderApiRepositoryInterface::class,
+            OrderApiRepository::class
+        );
+
+        // Register order API service
+        $this->app->singleton(OrderApiService::class);
+
         // Register wishlist query action
         $this->app->singleton(WishlistQueryAction::class);
+
+        // Register cart query action
+        $this->app->singleton(CartQueryAction::class);
     }
 
     /**

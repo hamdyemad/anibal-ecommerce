@@ -20,7 +20,7 @@ class BrandService
     public function getAllBrands(array $filters = [], int $perPage = 10)
     {
         try {
-            return $this->brandRepository->getAllBrands($filters, $perPage);
+            return $this->brandRepository->getAllBrands($perPage, $filters);
         } catch (\Exception $e) {
             Log::error('Error fetching brands: ' . $e->getMessage());
             throw $e;
@@ -64,13 +64,13 @@ class BrandService
                 'search' => $search,
                 'active' => 1
             ];
-            
+
             // Get query from repository
             $query = $this->brandRepository->getAllBrandsQuery($filters);
-            
+
             // Count total for pagination
             $total = $query->count();
-            
+
             // Get paginated brands
             $brands = $query->skip(($page - 1) * $perPage)
                 ->take($perPage)

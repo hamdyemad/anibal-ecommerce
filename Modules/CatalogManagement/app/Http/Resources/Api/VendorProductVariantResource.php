@@ -14,12 +14,13 @@ class VendorProductVariantResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        $locale = app()->getLocale();
         return [
             'id' => $this->id,
             'show_end_offer_at_section' => (bool) $this->has_discount,
             'stock' => $this->total_stock ?? 0,
             'sku' => $this->sku,
-            'variant_name' => $this->variant_name ?? '',
+            'variant_name' => $this->{"variant_path_{$locale}"} ?? '',
             // 'configuration' => VariantConfigurationResource::make($this->whenLoaded('variantConfiguration')),
             'real_price' => $this->formatPrice((float) $this->price),
             'fake_price' => $this->price_before_discount ? $this->formatPrice((float) $this->price_before_discount) : null,

@@ -12,7 +12,7 @@ class PromocodeService
 
     public function getAllPromocodes(array $filters = [], int $perPage = 15)
     {
-        return $this->promocodeRepository->getAllPromocodes($filters, $perPage);
+        return $this->promocodeRepository->getAllPromocodes($perPage, $filters);
     }
 
     public function getPromocodeById(int $id)

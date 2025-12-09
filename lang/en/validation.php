@@ -176,9 +176,29 @@ return [
     'min_star_max_star' => 'min_star cannot be greater than max_star',
     'status_invalid' => 'status must be one of: pending, approved, rejected',
     'vendor_product_id_not_exist' => 'vendor_product_id does not exist',
+    'vendor_product_id_required' => 'vendor_product_id is required',
+    'vendor_product_variant_id_not_exist' => 'vendor_product_variant_id does not exist',
+    'quantity_required' => 'quantity is required',
+    'quantity_min' => 'quantity must be at least 1',
+    'quantity_exceeds_max_per_order' => 'quantity cannot exceed :max per order',
+    'type_required' => 'type is required',
+    'type_invalid' => 'type must be one of: product, bundle, occasion',
+    'bundle_id_not_exist' => 'bundle_id does not exist',
+    'occasion_id_not_exist' => 'occasion_id does not exist',
     'rate_invalid' => 'rate must be between 1 and 5',
     'has_discount_invalid' => 'has_discount must be a boolean',
     'featured_invalid' => 'featured must be a boolean',
+    'cart_type_invalid' => 'cart type must be one of: product, bundle, occasion',
+
+    // Checkout validation messages
+    'user_address_id_required' => 'user address is required',
+    'user_address_id_integer' => 'user address must be an integer',
+    'user_address_id_exists' => 'selected user address does not exist',
+    'promo_code_id_string' => 'promo code must be a string',
+    'order_from_in' => 'order from must be one of: WEB, ANDROID, IOS',
+    'payment_type_in' => 'payment type must be one of: cash_on_delivery, online, aman',
+    'use_point_required' => 'use point field is required',
+    'use_point_boolean' => 'use point must be true or false',
 
     /*
     |--------------------------------------------------------------------------
