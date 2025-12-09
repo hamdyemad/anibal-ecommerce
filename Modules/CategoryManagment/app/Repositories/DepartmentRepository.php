@@ -102,8 +102,8 @@ class DepartmentRepository implements DepartmentRepositoryInterface
             }
         }
 
-        if(isset($data['activities'])) {
-            $department->activities()->sync($data['activities']);
+        if(isset($data['activity_id'])) {
+            $department->activities()->sync($data['activity_id']);
         }
 
         // Handle image upload
@@ -200,8 +200,8 @@ class DepartmentRepository implements DepartmentRepositoryInterface
                 }
             }
         }
-        if(isset($data['activities'])) {
-            $department->activities()->sync($data['activities']);
+        if(isset($data['activity_id'])) {
+            $department->activities()->sync($data['activity_id']);
         }
 
         return $department;

@@ -341,9 +341,9 @@
                                     title="{{ trans('common.delete') }}"
                                     data-bs-toggle="modal"
                                     data-bs-target="#modal-delete-department"
-                                    data-item-id="${row.department_id}"
-                                    data-item-name="${$('<div>').text(row.first_name).html()}"
-                                    data-url="{{ url('admin/category-management/departments') }}/${row.department_id}">
+                                    data-id="${row.department_id}"
+                                    data-name="${$('<div>').text(row.translations && row.translations['en'] ? row.translations['en'].name : 'Department').html()}"
+                                    data-url="${'{{ route('admin.category-management.departments.destroy', 'REPLACE_ID') }}'.replace('REPLACE_ID', row.department_id)}">
                                         <i class="uil uil-trash-alt table_action_icon"></i>
                                     </a>
                                 </li>

@@ -251,10 +251,9 @@
                         searchable: false,
                         className: 'text-center',
                         render: function(data) {
-                            const showUrl =
-                                `{{ url('admin/category-management/categories') }}/${data.id}`;
-                            const editUrl = `${showUrl}/edit`;
-                            const destroyUrl = showUrl;
+                            let showUrl = "{{ route('admin.category-management.categories.show', ':id') }}".replace(':id', data.id),
+                                editUrl = "{{ route('admin.category-management.categories.edit', ':id') }}".replace(':id', data.id),
+                                deleteUrl = "{{ route('admin.category-management.categories.destroy', ':id') }}".replace(':id', data.id);
 
                             return `
                             <div class="orderDatatable_actions d-inline-flex gap-1">
@@ -273,7 +272,7 @@
                                    data-bs-toggle="modal" data-bs-target="#modal-delete-category"
                                    data-item-id="${data.id}"
                                    data-item-name="${data.translations?.{{ app()->getLocale() }}?.name || 'Category'}"
-                                   data-url="${destroyUrl}"
+                                   data-url="${deleteUrl}"
                                    title="{{ trans('common.delete') }}">
                                     <i class="uil uil-trash-alt table_action_icon"></i>
                                 </a>

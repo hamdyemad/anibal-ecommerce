@@ -129,7 +129,8 @@
                                         <label for="activities" class="il-gray fs-14 fw-500 mb-10">
                                             {{ trans('categorymanagment::department.activities') }} <span class="text-danger">*</span>
                                         </label>
-                                        <select id="activities" class="form-control select2 @error('activities') is-invalid @enderror" multiple name="activities[]">
+                                        <select id="activities" class="form-control select2 @error('activities') is-invalid @enderror" name="activity_id">
+                                            <option value="">{{ __('main.choose') }}</option>
                                             @foreach($activities as $activity)
                                                 <option value="{{ $activity['id'] }}"
                                                     {{ isset($department) && $department->activities->contains($activity['id']) ? 'selected' : '' }}>

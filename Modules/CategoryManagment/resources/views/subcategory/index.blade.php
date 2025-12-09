@@ -353,13 +353,9 @@
                         orderable: false,
                         searchable: false,
                         render: function(data, type, row) {
-                            const showUrl =
-                                '{{ url('admin/category-management/subcategories') }}/' + row.id;
-                            const editUrl =
-                                '{{ url('admin/category-management/subcategories') }}/' + row.id +
-                                '/edit';
-                            const destroyUrl =
-                                '{{ url('admin/category-management/subcategories') }}/' + row.id;
+                            let showUrl = "{{ route('admin.category-management.subcategories.show', ':id') }}".replace(':id',row.id),
+                                editUrl = "{{ route('admin.category-management.subcategories.edit', ':id') }}".replace(':id',row.id),
+                                destroyUrl = "{{ route('admin.category-management.subcategories.destroy', ':id') }}".replace(':id',row.id);
 
                             return `
                                 <div class="orderDatatable_actions d-inline-flex gap-1">
