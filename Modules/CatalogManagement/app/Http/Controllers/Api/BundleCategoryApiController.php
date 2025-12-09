@@ -7,14 +7,13 @@ use App\Traits\Res;
 use Illuminate\Http\Request;
 use Modules\CatalogManagement\app\Http\Resources\Api\BundleCategoryResource;
 use Modules\CatalogManagement\app\Http\Resources\BundleResource;
-use Modules\CatalogManagement\app\Services\BundleCategoryService;
-use Modules\CatalogManagement\app\Services\BundleService;
+use Modules\CatalogManagement\app\Repositories\Api\BundleCategoryApiRepository;
 
 class BundleCategoryApiController extends Controller
 {
     use Res;
 
-    public function __construct(protected BundleCategoryService $bundleCategoryService)
+    public function __construct(protected BundleCategoryApiRepository $bundleCategoryService)
     {
     }
 

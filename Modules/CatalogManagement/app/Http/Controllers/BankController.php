@@ -42,7 +42,7 @@ class BankController extends Controller
             $vendors = $this->vendorService->getAllVendors([], 0);
         }
 
-        $taxes = $this->taxService->getAllTaxes([], 0);
+        $taxes = $this->taxService->getAllTaxes(0, []);
 
         return view('catalogmanagement::product.bank-stock-management', compact(
             'languages',
@@ -139,7 +139,7 @@ class BankController extends Controller
     public function getTaxes(Request $request)
     {
         try {
-            $taxes = $this->taxService->getAllTaxes([], 0);
+            $taxes = $this->taxService->getAllTaxes(0, []);
 
             return response()->json([
                 'success' => true,

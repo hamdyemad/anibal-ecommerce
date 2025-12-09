@@ -63,7 +63,22 @@ class Bundle extends Model
 
     public function bundleProducts()
     {
-        return $this->hasMany(BundleProduct::class);
+        return $this->hasMany(BundleProduct::class, 'bundle_id');
+    }
+
+    public function bundleTotalPrice()
+    {
+        return $this->bundleProductsPrice() * $this->bundleProductsCount();
+    }
+
+    public function bundleProductsCount()
+    {
+        return $this->bundleProducts()->sum('min_quantity');
+    }
+
+    public function bundleProductsPrice()
+    {
+        return $this->bundleProducts()->sum('price');
     }
 
     /**
@@ -74,10 +89,6 @@ class Bundle extends Model
         return 'bundle';
     }
 
-    public function getDescriptionAttribute()
-    {
-        return $this->getTranslation('description');
-    }
 
     /**
      * Scope for active bundles

@@ -88,4 +88,5 @@ return [
     'position' => 'Position',
     'error_deleting_product' => 'Error deleting product from bundle',
     'product_deleted_successfully' => 'Product deleted from bundle successfully',
+    'totals' => 'Totals',
 ];

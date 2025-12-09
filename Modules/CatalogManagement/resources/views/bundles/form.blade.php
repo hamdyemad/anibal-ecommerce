@@ -296,7 +296,7 @@
 
                                         {{-- SEO Keywords Fields --}}
                                         <x-multilingual-input name="seo_keywords" :label="trans('catalogmanagement::bundle.seo_keywords')" :labelAr="'كلمات مفتاحية SEO'"
-                                            :placeholder="trans('catalogmanagement::bundle.enter_seo_keywords')" :placeholderAr="'كلمات مفتاحية SEO'" :languages="$languages" :model="$bundle ?? null" />
+                                            :placeholder="trans('catalogmanagement::bundle.enter_seo_keywords')" :placeholderAr="'كلمات مفتاحية SEO'" :tags="true" :languages="$languages" :model="$bundle ?? null" />
                                     </div>
                                 </div>
                             </div>
@@ -305,7 +305,7 @@
                             <div class="row mt-4">
                                 <div class="col-12">
                                     <div class="d-flex gap-2 justify-content-end">
-                                        <button type="submit" id="submitBtn" class="btn btn-primary btn-default btn-squared">
+                                        <button id="submitBtn" class="btn btn-primary btn-default btn-squared">
                                             <span class="spinner-border spinner-border-sm d-none me-2" role="status" aria-hidden="true"></span>
                                             {{ isset($bundle) ? trans('catalogmanagement::bundle.update_bundle') : trans('catalogmanagement::bundle.create_bundle') }}
                                         </button>

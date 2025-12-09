@@ -124,7 +124,7 @@ class ProductBankController extends Controller
     {
         $languages = $this->languageService->getAll();
         $brands = $this->brandService->getAllBrands([], 0);
-        $taxes = $this->taxService->getAllTaxes([], 0);
+        $taxes = $this->taxService->getAllTaxes(0, []);
         $regions = $this->regionService->getAllRegions([], 0);
         $departments = $this->departmentService->getAllDepartments([], 0);
 
@@ -239,7 +239,7 @@ class ProductBankController extends Controller
 
         $languages = $this->languageService->getAll();
         $brands = $this->brandService->getAllBrands([], 0);
-        $taxes = $this->taxService->getAllTaxes([], 0);
+        $taxes = $this->taxService->getAllTaxes(0, []);
         $regions = $this->regionService->getAllRegions([], 0);
         $departments = $this->departmentService->getAllDepartments([], 0);
 

@@ -17,9 +17,6 @@
                 <table class="table table-hover table-bordered" id="bundleProductsTable">
                     <thead>
                         <tr>
-                            @if($showDragHandle)
-                                <th style="width: 50px;"><i class="uil uil-arrows-move" title="{{ __('common.drag_to_reorder') }}"></i></th>
-                            @endif
                             <th>#</th>
                             <th>{{ trans('catalogmanagement::bundle.product_variant') }}</th>
                             <th>{{ trans('catalogmanagement::bundle.price') }}</th>
@@ -33,11 +30,6 @@
                     <tbody id="bundleProductsBody" class="sortable-tbody">
                         @foreach(($bundle ? $bundle->bundleProducts : $products) as $index => $product)
                             <tr class="draggable-row" data-product-id="{{ $product->id }}" data-bundle-id="{{ $bundle?->id }}" data-position="{{ $product->position ?? $index }}" draggable="{{ $showDragHandle ? 'true' : 'false' }}">
-                                @if($showDragHandle)
-                                    <td class="drag-handle text-center" style="cursor: move; user-select: none;">
-                                        <i class="uil uil-arrows-move" style="color: #5f63f2; font-size: 18px;"></i>
-                                    </td>
-                                @endif
                                 <td>{{ $index + 1 }}</td>
                                 <td>
                                     <div>
@@ -52,7 +44,7 @@
                                                     $current = $current->parent_data;
                                                 }
                                             @endphp
-                                            <div class="text-muted small mt-1" style="padding-left: 10px; border-left: 2px solid #5f63f2;">
+                                            <div class="text-muted small mt-1">
                                                 @foreach($path as $item)
                                                     <strong>{{ $item->key->name }}</strong>
                                                     ->
@@ -86,6 +78,35 @@
                                 @endif
                             </tr>
                         @endforeach
+                        @if(($bundle && $bundle->bundleProducts->count() > 0) || count($products) > 0)
+                            <tr class="table-active fw-bold" style="background-color: #f8f9fa;">
+                                <td colspan="{{ $showDragHandle ? 3 : 2 }}">
+                                    <strong>{{ trans('catalogmanagement::bundle.totals') }}</strong>
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge badge-lg badge-round badge-info">
+                                        {{ number_format(($bundle ? $bundle->bundleProducts->sum('price') : collect($products)->sum('price')) ?? 0, 2) }} {{ currency() }}
+                                    </span>
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge badge-lg badge-round badge-primary">
+                                        {{ ($bundle ? $bundle->bundleProducts->sum('min_quantity') : collect($products)->sum('min_quantity')) ?? 0 }}
+                                    </span>
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge badge-lg badge-round badge-secondary">
+                                        {{ ($bundle ? $bundle->bundleProducts->sum('limitation_quantity') : collect($products)->sum('limitation_quantity')) ?? 0 }}
+                                    </span>
+                                </td>
+                                @if($showActions)
+                                    <td class="text-center">
+                                        <span class="badge badge-lg badge-round badge-success">
+                                            {{ number_format(($bundle ? $bundle->bundleTotalPrice() : 0) ?? 0, 2) }} {{ currency() }}
+                                        </span>
+                                    </td>
+                                @endif
+                            </tr>
+                        @endif
                     </tbody>
                 </table>
             </div>

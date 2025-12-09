@@ -941,7 +941,7 @@ function truncateString($string, $length = 15, $append = '...')
 function formatImage($imagePath): ?string
 {
     if (!$imagePath) {
-        return null;
+        return '';
     }
 
     if ($imagePath instanceof Attachment) {

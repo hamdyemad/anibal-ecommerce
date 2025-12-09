@@ -5,6 +5,8 @@ namespace Modules\CatalogManagement\app\Http\Resources\Api;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Modules\Vendor\app\Http\Resources\Api\VendorApiResource;
+use Modules\CatalogManagement\app\Http\Resources\Api\BundleProductResource;
+use Modules\CatalogManagement\app\Http\Resources\Api\BundleCategoryResource;
 
 class BundleResource extends JsonResource
 {
@@ -21,23 +23,24 @@ class BundleResource extends JsonResource
             // Translations
             'name' => $this->name,
             'description' => $this->description,
-            // 'seo_title' => $this->getTranslation('seo_title'),
-            // 'seo_description' => $this->getTranslation('seo_description'),
-            // 'seo_keywords' => $this->getTranslation('seo_keywords'),
-
+            'image' => ($this->main_image) ? asset('storage/' . $this->main_image->path) : '',
+            'seo_title' => $this->getTranslation('seo_title') ?? '',
+            'seo_description' => $this->getTranslation('seo_description') ?? '',
+            'seo_keywords' => $this->getTranslation('seo_keywords') ?? '',
+            'category' => $this->when('bundleCategory', function() {
+                return new BundleCategoryResource($this->bundleCategory);
+            }),
+            'bundle_products_count' => $this->bundle_products_count ?? 0,
+            'total_price' => number_format($this->bundleTotalPrice(), 2, '.', '.'),
             // Relationships
-            // 'vendor' => $this->when('vendor', function() {
-            //     return new VendorApiResource($this->vendor);
-            // }),
-
-            // 'category' => $this->when('category', function() {
-            //     return new BundleCategoryResource($this->vendor);
-            // }),
-
-            // 'bundle_products' => BundleProductResource::collection($this->bundleProducts),
-
+            'vendor' => $this->when('vendor', function() {
+                return new VendorApiResource($this->vendor);
+            }),
+            'bundle_products' => $this->when('bundleProducts', function() {
+                return BundleProductResource::collection($this->bundleProducts);
+            }),
             'created_at' => $this->created_at,
-            'updated_at' => $this->updated_at,
+            'updated_at' => $this->updated_at
         ];
     }
 

@@ -100,7 +100,7 @@ class DepartmentController extends Controller
     {
         try {
             $languages = $this->languageService->getAll();
-            $activities = $this->activityService->getAllActivities([], 0);
+            $activities = $this->activityService->getAllActivities(0, []);
             $activities = ActivityResource::collection($activities)->resolve();
             return view('categorymanagment::department.form', compact('languages', 'activities'));
         } catch (\Exception $e) {
@@ -168,7 +168,7 @@ class DepartmentController extends Controller
     {
         try {
             $languages = $this->languageService->getAll();
-            $activities = $this->activityService->getAllActivities([], 0);
+            $activities = $this->activityService->getAllActivities(0, []);
             $activities = ActivityResource::collection($activities)->resolve();
             $department = $this->departmentService->getDepartmentById($id);
             return view('categorymanagment::department.form', compact('department', 'languages', 'activities'));

@@ -129,7 +129,7 @@ class VendorProductController extends Controller
         }
 
         $languages = $this->languageService->getAll();
-        $taxes = $this->taxService->getAllTaxes([], 0);
+        $taxes = $this->taxService->getAllTaxes(0, []);
         $regions = $this->regionService->getAllRegions([], 0);
 
         return view('catalogmanagement::vendor-products.import-form', compact(

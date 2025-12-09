@@ -22,6 +22,8 @@ use Modules\CatalogManagement\app\Services\Api\ProductApiService;
 use Modules\CatalogManagement\app\Actions\ProductQueryAction;
 use App\Actions\IsPaginatedAction;
 use Modules\CatalogManagement\app\Interfaces\Api\BrandApiRepositoryInterface;
+use Modules\CatalogManagement\app\Interfaces\Api\BundleCategoryApiRepositoryInterface;
+use Modules\CatalogManagement\app\Interfaces\Api\BundleRepositoryApiInterface;
 use Modules\CatalogManagement\app\Repositories\Api\BrandApiRepository;
 use Modules\CatalogManagement\app\Services\Api\BrandApiService;
 use Modules\CatalogManagement\app\Interfaces\Api\ReviewRepositoryInterface;
@@ -32,6 +34,8 @@ use Modules\CatalogManagement\app\Interfaces\BundleCategoryRepositoryInterface;
 use Modules\CatalogManagement\app\Interfaces\BundleRepositoryInterface;
 use Modules\CatalogManagement\app\Repositories\BundleCategoryRepository;
 use Modules\CatalogManagement\app\Interfaces\OccasionRepositoryInterface;
+use Modules\CatalogManagement\app\Repositories\Api\BundleApiRepository;
+use Modules\CatalogManagement\app\Repositories\Api\BundleCategoryApiRepository;
 use Modules\CatalogManagement\app\Repositories\BundleRepository;
 use Modules\CatalogManagement\app\Repositories\OccasionRepository;
 use Nwidart\Modules\Traits\PathNamespace;
@@ -145,6 +149,18 @@ class CatalogManagementServiceProvider extends ServiceProvider
                 );
             }
         );
+
+
+        $this->app->bind(
+            BundleCategoryApiRepositoryInterface::class,
+            BundleCategoryApiRepository::class
+        );
+
+        $this->app->bind(
+            BundleRepositoryApiInterface::class,
+            BundleApiRepository::class
+        );
+
     }
 
     /**

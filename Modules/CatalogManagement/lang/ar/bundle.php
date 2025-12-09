@@ -88,4 +88,5 @@ return [
     'position' => 'الموضع',
     'error_deleting_product' => 'خطأ في حذف المنتج من الحزمة',
     'product_deleted_successfully' => 'تم حذف المنتج من الحزمة بنجاح',
+    'totals' => 'الإجماليات',
 ];
