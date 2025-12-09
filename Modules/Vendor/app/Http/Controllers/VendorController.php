@@ -149,7 +149,7 @@ class VendorController extends Controller {
         $vendor = $this->vendorService->getVendorById($id);
         // Get all countries and activities for select dropdowns
         $countriesData = $this->countryService->getAllCountries([], 1000);
-        $activitiesData = $this->activityService->getAllActivities([], 1000);
+        $activitiesData = $this->activityService->getAllActivities(0, []);
 
         // Extract items from paginated results
         $countries = CountryResource::collection($countriesData)->resolve();
