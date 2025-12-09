@@ -477,12 +477,6 @@
                     loadingRecords: "{{ __('common.loading') ?? 'Loading' }}...",
                     processing: "{{ __('common.processing') ?? 'Processing' }}...",
                     search: "{{ __('common.search') ?? 'Search' }}:",
-                    paginate: {
-                        first: '{{ __('common.first') ?? 'First' }}',
-                        last: '{{ __('common.last') ?? 'Last' }}',
-                        next: '{{ __('common.next') ?? 'Next' }}',
-                        previous: '{{ __('common.previous') ?? 'Previous' }}'
-                    },
                     aria: {
                         sortAscending: ": {{ __('common.sort_ascending') ?? 'activate to sort column ascending' }}",
                         sortDescending: ": {{ __('common.sort_descending') ?? 'activate to sort column descending' }}"

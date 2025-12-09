@@ -26,7 +26,7 @@ class BundlesApiController extends Controller
         $per_page = $request->get('per_page', 10);
 
         $bundles = $this->bundleService->getAllBundles($request->all(), $per_page);
-
+        // return $bundles;
         return $this->sendRes(config('responses.success')[app()->getLocale()], true, BundleResource::collection($bundles));
     }
 

@@ -420,10 +420,17 @@
                     processing: "{{ __('common.processing') ?? 'Processing' }}...",
                     search: "{{ __('common.search') ?? 'Search' }}:",
                     paginate: {
-                        first: '{{ __('common.first') ?? 'First' }}',
-                        last: '{{ __('common.last') ?? 'Last' }}',
-                        next: '{{ __('common.next') ?? 'Next' }}',
-                        previous: '{{ __('common.previous') ?? 'Previous' }}'
+                        @if(app()->getLocale() == 'en')
+                            first: '<i class="uil uil-angle-double-left"></i>',
+                            last: '<i class="uil uil-angle-double-right"></i>',
+                            next: '<i class="uil uil-angle-right"></i>',
+                            previous: '<i class="uil uil-angle-left"></i>'
+                        @else
+                            first: '<i class="uil uil-angle-double-right"></i>',
+                            last: '<i class="uil uil-angle-double-left"></i>',
+                            next: '<i class="uil uil-angle-left"></i>',
+                            previous: '<i class="uil uil-angle-right"></i>'
+                        @endif
                     },
                     aria: {
                         sortAscending: ": {{ __('common.sort_ascending') ?? 'activate to sort column ascending' }}",

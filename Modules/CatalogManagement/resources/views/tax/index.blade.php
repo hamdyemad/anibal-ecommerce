@@ -366,10 +366,17 @@
                     processing: "{{ trans('common.processing') }}...",
                     search: "{{ trans('common.search') }}:",
                     paginate: {
-                        first: '{{ trans('common.first') }}',
-                        last: '{{ trans('common.last') }}',
-                        next: '{{ trans('common.next') }}',
-                        previous: '{{ trans('common.previous') }}'
+                        @if(app()->getLocale() == 'en')
+                            first: '<i class="uil uil-angle-double-left"></i>',
+                            last: '<i class="uil uil-angle-double-right"></i>',
+                            next: '<i class="uil uil-angle-right"></i>',
+                            previous: '<i class="uil uil-angle-left"></i>'
+                        @else
+                            first: '<i class="uil uil-angle-double-right"></i>',
+                            last: '<i class="uil uil-angle-double-left"></i>',
+                            next: '<i class="uil uil-angle-left"></i>',
+                            previous: '<i class="uil uil-angle-right"></i>'
+                        @endif
                     },
                     aria: {
                         sortAscending: ": {{ trans('common.sort_ascending') }}",

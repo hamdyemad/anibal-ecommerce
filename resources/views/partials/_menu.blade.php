@@ -350,37 +350,41 @@
         </li>
 
         {{-- Bundles Menu --}}
-        @if(in_array($user_type_id, \App\Models\UserType::adminIds()))
-            <li
-                class="has-child {{ isParentMenuOpen(['admin.bundle-categories.index', 'admin.bundle-categories.create', 'admin.bundle-categories.show', 'admin.bundle-categories.edit', 'admin.bundles.index', 'admin.bundles.create', 'admin.bundles.show', 'admin.bundles.edit'], ['admin/bundle-categories*', 'admin/bundles*']) ? 'open' : '' }}">
-                <a href="#"
-                    class="{{ isParentMenuOpen(['admin.bundle-categories.index', 'admin.bundle-categories.create', 'admin.bundle-categories.show', 'admin.bundle-categories.edit', 'admin.bundles.index', 'admin.bundles.create', 'admin.bundles.show', 'admin.bundles.edit'], ['admin/bundle-categories*', 'admin/bundles*']) ? 'active' : '' }}">
-                    <span class="nav-icon uil uil-package"></span>
-                    <span class="menu-text">{{ trans('menu.bundles.title') }}</span>
-                    <span class="toggle-icon"></span>
-                </a>
-                <ul class="px-0">
-                    <li>
-                        <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive(['admin.bundle-categories.index', 'admin.bundle-categories.create', 'admin.bundle-categories.show', 'admin.bundle-categories.edit'], $currentRoute) ? 'active' : '' }}"
-                            href="{{ route('admin.bundle-categories.index') }}">
-                            {{ trans('menu.bundles.bundle_categories') }}
-                            <span class="badge badge-round badge-info ms-1">
-                                {{ \Modules\CatalogManagement\app\Models\BundleCategory::count() }}
-                            </span>
-                        </a>
-                    </li>
-                    <li>
-                        <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive(['admin.bundles.index', 'admin.bundles.create', 'admin.bundles.show', 'admin.bundles.edit'], $currentRoute) ? 'active' : '' }}"
-                            href="{{ route('admin.bundles.index') }}">
-                            {{ trans('menu.bundles.all_bundles') }}
-                            <span class="badge badge-round badge-primary ms-1">
-                                0
-                            </span>
-                        </a>
-                    </li>
-                </ul>
-            </li>
-        @endif
+        <li
+            class="has-child {{ isParentMenuOpen(['admin.bundle-categories.index', 'admin.bundle-categories.create', 'admin.bundle-categories.show', 'admin.bundle-categories.edit', 'admin.bundles.index', 'admin.bundles.create', 'admin.bundles.show', 'admin.bundles.edit'], ['admin/bundle-categories*', 'admin/bundles*']) ? 'open' : '' }}">
+            <a href="#"
+                class="{{ isParentMenuOpen(['admin.bundle-categories.index', 'admin.bundle-categories.create', 'admin.bundle-categories.show', 'admin.bundle-categories.edit', 'admin.bundles.index', 'admin.bundles.create', 'admin.bundles.show', 'admin.bundles.edit'], ['admin/bundle-categories*', 'admin/bundles*']) ? 'active' : '' }}">
+                <span class="nav-icon uil uil-package"></span>
+                <span class="menu-text">{{ trans('menu.bundles.title') }}</span>
+                <span class="toggle-icon"></span>
+            </a>
+            <ul class="px-0">
+                @if(in_array($user_type_id, \App\Models\UserType::adminIds()))
+                <li>
+                    <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive(['admin.bundle-categories.index', 'admin.bundle-categories.create', 'admin.bundle-categories.show', 'admin.bundle-categories.edit'], $currentRoute) ? 'active' : '' }}"
+                        href="{{ route('admin.bundle-categories.index') }}">
+                        {{ trans('menu.bundles.bundle_categories') }}
+                        <span class="badge badge-round badge-info ms-1">
+                            {{ \Modules\CatalogManagement\app\Models\BundleCategory::count() }}
+                        </span>
+                    </a>
+                </li>
+                @endif
+                <li>
+                    <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive(['admin.bundles.index', 'admin.bundles.create', 'admin.bundles.show', 'admin.bundles.edit'], $currentRoute) ? 'active' : '' }}"
+                        href="{{ route('admin.bundles.index') }}">
+                        {{ trans('menu.bundles.all_bundles') }}
+                        <span class="badge badge-round badge-primary ms-1">
+                            @if(in_array($user_type_id, \App\Models\UserType::adminIds()))
+                                {{ \Modules\CatalogManagement\app\Models\Bundle::count() }}
+                            @else
+                                {{ \Modules\CatalogManagement\app\Models\Bundle::where('vendor_id', auth()->user()->vendor->id ?? 0)->count() }}
+                            @endif
+                        </span>
+                    </a>
+                </li>
+            </ul>
+        </li>
 
         {{-- Occasions Menu --}}
         <li class="{{ isMenuActive(['admin.occasions.index', 'admin.occasions.create', 'admin.occasions.show', 'admin.occasions.edit'], $currentRoute) ? 'active' : '' }}">

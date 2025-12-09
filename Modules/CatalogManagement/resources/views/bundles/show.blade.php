@@ -272,6 +272,43 @@
                                                 </div>
                                             </div>
 
+                                            {{-- Approval Status --}}
+                                            <div class="col-md-6">
+                                                <div class="view-item">
+                                                    <label class="il-gray fs-14 fw-500 mb-10">{{ trans('catalogmanagement::bundle.approval_status') ?? 'Approval Status' }}</label>
+                                                    <p class="fs-15 color-dark fw-500">
+                                                        @if ($bundle->admin_approval === 1)
+                                                            <span class="badge badge-round badge-success badge-lg">
+                                                                <i class="uil uil-check-circle me-1"></i>{{ trans('catalogmanagement::bundle.approved') }}
+                                                            </span>
+                                                        @elseif ($bundle->admin_approval === 2)
+                                                            <span class="badge badge-round badge-danger badge-lg">
+                                                                <i class="uil uil-times-circle me-1"></i>{{ trans('catalogmanagement::bundle.rejected') }}
+                                                            </span>
+                                                        @else
+                                                            <span class="badge badge-round badge-warning badge-lg">
+                                                                <i class="uil uil-clock me-1"></i>{{ trans('catalogmanagement::bundle.pending_approval') }}
+                                                            </span>
+                                                        @endif
+                                                    </p>
+                                                </div>
+                                            </div>
+
+                                            {{-- Rejection Reason (only show if rejected) --}}
+                                            @if ($bundle->admin_approval === 2 && $bundle->approval_reason)
+                                                <div class="col-md-12">
+                                                    <div class="view-item">
+                                                        <label class="il-gray fs-14 fw-500 mb-10">{{ trans('catalogmanagement::bundle.rejection_reason') ?? 'Rejection Reason' }}</label>
+                                                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                                            <i class="uil uil-info-circle me-2"></i>
+                                                            <p class="fs-15 color-dark fw-500 mb-0">
+                                                                {{ $bundle->approval_reason }}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            @endif
+
                                             {{-- Created At --}}
                                             <div class="col-md-6">
                                                 <div class="view-item">

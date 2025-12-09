@@ -324,13 +324,7 @@
                 language: {
                     "lengthMenu": "{{ trans('common.show') }} _MENU_ {{ trans('common.entries') }}",
                     "info": "{{ trans('common.showing') }} _START_ {{ trans('common.to') }} _END_ {{ trans('common.of') }} _TOTAL_",
-                    "search": "{{ trans('common.search') }}:",
-                    "paginate": {
-                        "first": "{{ trans('common.first') }}",
-                        "last": "{{ trans('common.last') }}",
-                        "next": "{{ trans('common.next') }}",
-                        "previous": "{{ trans('common.previous') }}"
-                    }
+                    "search": "{{ trans('common.search') }}:"
                 }
             });
 

@@ -12,8 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('bundles', function (Blueprint $table) {
-            $table->integer('admin_approval')->default(0)->after('is_active')->comment('Admin approval status: 0=pending, 1=approved, 2=rejected');
-            $table->text('approval_reason')->nullable()->after('admin_approval')->comment('Reason for rejection or notes');
+            // Change admin_approval from boolean to integer
+            // 0 = pending, 1 = approved, 2 = rejected
+            $table->integer('admin_approval')->default(0)->change();
         });
     }
 
@@ -23,7 +24,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('bundles', function (Blueprint $table) {
-            $table->dropColumn(['admin_approval', 'approval_reason']);
+            $table->boolean('admin_approval')->default(false)->change();
         });
     }
 };

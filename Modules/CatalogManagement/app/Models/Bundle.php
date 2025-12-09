@@ -25,7 +25,7 @@ class Bundle extends Model
 
     protected $casts = [
         'is_active' => 'boolean',
-        'admin_approval' => 'boolean',
+        'admin_approval' => 'integer',
     ];
 
     /**
@@ -100,6 +100,31 @@ class Bundle extends Model
     }
 
     /**
+     * Scope for approved bundles
+     * admin_approval: 0 = pending, 1 = approved, 2 = rejected
+     */
+    public function scopeApproved(Builder $query)
+    {
+        return $query->where('admin_approval', 1);
+    }
+
+    /**
+     * Scope for pending approval bundles
+     */
+    public function scopePending(Builder $query)
+    {
+        return $query->where('admin_approval', 0);
+    }
+
+    /**
+     * Scope for rejected bundles
+     */
+    public function scopeRejected(Builder $query)
+    {
+        return $query->where('admin_approval', 2);
+    }
+
+    /**
      * Filter scope
      */
     public function scopeFilter(Builder $query, array $filters)
@@ -116,6 +141,10 @@ class Bundle extends Model
 
         if (isset($filters['active']) && $filters['active'] !== '') {
             $query->where('is_active', $filters['active']);
+        }
+
+        if (isset($filters['approval_status']) && $filters['approval_status'] !== '') {
+            $query->where('admin_approval', $filters['approval_status']);
         }
 
         if (!empty($filters['vendor_id'])) {

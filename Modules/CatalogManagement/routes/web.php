@@ -34,22 +34,29 @@ Route::group(['middleware' => 'adminGuard'], function() {
     Route::post('bundle-categories/{id}/toggle-status', 'BundleCategoryController@toggleStatus')->name('bundle-categories.toggle-status');
     Route::resource('bundle-categories', 'BundleCategoryController');
 
-    // Bundles
-    Route::get('bundles/datatable', 'BundleController@datatable')->name('bundles.datatable');
-    Route::post('bundles/{id}/toggle-status', 'BundleController@toggleStatus')->name('bundles.toggle-status');
-    Route::delete('bundles/{bundle}/products/{product}', 'BundleController@destroyProduct')->name('bundles.products.destroy');
-    Route::resource('bundles', 'BundleController');
-
 });
 
 // Occasions
-Route::get('occasions/datatable', 'OccasionController@datatable')->name('occasions.datatable');
-Route::post('occasions/{id}/toggle-status', 'OccasionController@toggleStatus')->name('occasions.toggle-status');
-Route::delete('occasions/{occasion}/products/{product}', 'OccasionController@destroyProduct')->name('occasions.products.destroy');
-Route::post('occasions/{occasion}/update-positions', 'OccasionController@updatePositions')->name('occasions.update-positions');
-Route::post('occasions/{occasion}/products/{product}/update-special-price', 'OccasionController@updateSpecialPrice')->name('occasions.products.update-special-price');
+
+Route::prefix('occasions')->group(function () {
+    Route::get('datatable', 'OccasionController@datatable')->name('occasions.datatable');
+    Route::post('{id}/toggle-status', 'OccasionController@toggleStatus')->name('occasions.toggle-status');
+    Route::delete('{occasion}/products/{product}', 'OccasionController@destroyProduct')->name('occasions.products.destroy');
+    Route::post('{occasion}/update-positions', 'OccasionController@updatePositions')->name('occasions.update-positions');
+    Route::post('{occasion}/products/{product}/update-special-price', 'OccasionController@updateSpecialPrice')->name('occasions.products.update-special-price');
+});
 Route::resource('occasions', 'OccasionController');
 
+
+
+// Bundles
+Route::prefix('bundles')->group(function () {
+    Route::get('datatable', 'BundleController@datatable')->name('bundles.datatable');
+    Route::post('{id}/toggle-status', 'BundleController@toggleStatus')->name('bundles.toggle-status');
+    Route::post('{id}/change-approval', 'BundleController@changeApproval')->name('bundles.change-approval');
+    Route::delete('{bundle}/products/{product}', 'BundleController@destroyProduct')->name('bundles.products.destroy');
+});
+Route::resource('bundles', 'BundleController');
 
 
 Route::group(['prefix' => 'products'], function() {

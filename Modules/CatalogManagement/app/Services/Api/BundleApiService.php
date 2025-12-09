@@ -2,12 +2,13 @@
 
 namespace Modules\CatalogManagement\app\Services\Api;
 
+use Modules\CatalogManagement\app\Interfaces\Api\BundleRepositoryApiInterface;
 
 class BundleApiService
 {
     protected $bundleRepository;
 
-    public function __construct(BundleRepos $bundleRepository)
+    public function __construct(BundleRepositoryApiInterface $bundleRepository)
     {
         $this->bundleRepository = $bundleRepository;
     }
@@ -28,35 +29,4 @@ class BundleApiService
         return $this->bundleRepository->getBundleById($id);
     }
 
-    /**
-     * Create bundle
-     */
-    public function createBundle($data)
-    {
-        return $this->bundleRepository->createBundle($data);
-    }
-
-    /**
-     * Update bundle
-     */
-    public function updateBundle($bundle, $data)
-    {
-        return $this->bundleRepository->updateBundle($bundle, $data);
-    }
-
-    /**
-     * Delete bundle
-     */
-    public function deleteBundle($bundle)
-    {
-        return $this->bundleRepository->deleteBundle($bundle);
-    }
-
-    /**
-     * Toggle active status
-     */
-    public function toggleActive($bundle)
-    {
-        return $this->bundleRepository->toggleActive($bundle);
-    }
 }

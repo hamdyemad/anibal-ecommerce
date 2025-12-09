@@ -21,6 +21,9 @@ class VendorProductVariantResource extends JsonResource
             'stock' => $this->total_stock ?? 0,
             'sku' => $this->sku,
             'variant_name' => $this->{"variant_path_{$locale}"} ?? '',
+            'vendor_product' => $this->whenLoaded('vendorProduct', function() {
+                return new VendorProductResource($this->vendorProduct);
+            }),
             // 'configuration' => VariantConfigurationResource::make($this->whenLoaded('variantConfiguration')),
             'real_price' => $this->formatPrice((float) $this->price),
             'fake_price' => $this->price_before_discount ? $this->formatPrice((float) $this->price_before_discount) : null,

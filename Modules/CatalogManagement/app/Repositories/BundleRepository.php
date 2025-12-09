@@ -27,6 +27,11 @@ class BundleRepository implements BundleRepositoryInterface
     {
         $query = Bundle::with('attachments', 'country', 'vendor', 'bundleCategory', 'bundleProducts')->filter($filters)
         ->latest();
+
+        if(isVendor()) {
+            $query->where('vendor_id', auth()->user()->vendor->id);
+        }
+
         return ($perPage == 0) ? $query->get() : $query->paginate($perPage);
     }
 
@@ -35,7 +40,7 @@ class BundleRepository implements BundleRepositoryInterface
      */
     public function getBundleById($id)
     {
-        return Bundle::with([
+        $query = Bundle::with([
             'attachments',
             'country',
             'vendor',
@@ -47,8 +52,15 @@ class BundleRepository implements BundleRepositoryInterface
                 ]);
             }
         ])
-        ->where('id', $id)
-        ->orwhere('slug', $id)->first();
+        ->where(function($q) use($id) {
+            $q->where('id', $id)
+            ->orwhere('slug', $id);
+        });
+        if(isVendor()) {
+            $query->where('vendor_id', auth()->user()->vendor->id);
+        }
+
+        return $query->firstOrFail();
     }
 
     /**
@@ -56,9 +68,7 @@ class BundleRepository implements BundleRepositoryInterface
      */
     public function createBundle($data)
     {
-        // Determine admin_approval: true if admin creates it, false if vendor creates it
-        $isAdmin = Auth::check() && in_array(Auth::user()->user_type_id, UserType::adminIds());
-
+        (isAdmin()) ? $isAdmin = true: $isAdmin = false;
         $bundle = Bundle::create([
             'vendor_id' => $data['vendor_id'],
             'bundle_category_id' => $data['bundle_category_id'],
@@ -85,11 +95,14 @@ class BundleRepository implements BundleRepositoryInterface
      */
     public function updateBundle($bundle, $data)
     {
+        (isAdmin()) ? $isAdmin = true: $isAdmin = false;
+
         $bundle->update([
             'vendor_id' => $data['vendor_id'] ?? $bundle->vendor_id,
             'bundle_category_id' => $data['bundle_category_id'] ?? $bundle->bundle_category_id,
             'sku' => $data['sku'] ?? $bundle->sku,
             'is_active' => $data['is_active'] ?? $bundle->is_active,
+            'admin_approval' => $isAdmin ? true : false,
         ]);
 
         // Handle main image upload
@@ -178,11 +191,12 @@ class BundleRepository implements BundleRepositoryInterface
 
     /**
      * Change admin approval status
+     * 0 = pending, 1 = approved, 2 = rejected
      */
-    public function changeApprovalStatus($bundle, $approved, $reason = null)
+    public function changeApprovalStatus($bundle, $approvalStatus, $reason = null)
     {
         $bundle->update([
-            'admin_approval' => $approved,
+            'admin_approval' => $approvalStatus,
             'approval_reason' => $reason,
         ]);
         return $bundle;

@@ -364,13 +364,7 @@
                     zeroRecords: "{{ __('withdraw::withdraw.no_transactions_found') }}",
                     loadingRecords: "{{ __('withdraw::withdraw.loading') }}",
                     processing: "{{ __('withdraw::withdraw.processing') }}",
-                    search: "{{ __('withdraw::withdraw.search') }}:",
-                    paginate: {
-                        first: "{{ __('withdraw::withdraw.first') }}",
-                        last: "{{ __('withdraw::withdraw.last') }}",
-                        next: "{{ __('withdraw::withdraw.next') }}",
-                        previous: "{{ __('withdraw::withdraw.previous') }}"
-                    },
+                    search: "{{ __('withdraw::withdraw.search') }}:"
                 }
             });
 

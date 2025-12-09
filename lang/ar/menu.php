@@ -99,9 +99,9 @@
             'create' => 'إنشاء ضريبة',
         ],
         'bundles' => [
-            'title' => 'الحزم',
-            'bundle_categories' => 'فئات الحزم',
-            'all_bundles' => 'جميع الحزم',
+            'title' => 'الباقات',
+            'bundle_categories' => 'فئات الباقات',
+            'all_bundles' => 'جميع الباقات',
         ],
         'occasions' => 'المناسبات',
         'offers' => [

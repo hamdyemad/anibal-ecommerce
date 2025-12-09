@@ -352,13 +352,7 @@
                     emptyTable: "{{ __('systemsetting::currency.no_currencies_found') ?? 'No currencies found' }}",
                     loadingRecords: "{{ __('common.loading') ?? 'Loading' }}...",
                     processing: "{{ __('common.processing') ?? 'Processing' }}...",
-                    search: "{{ __('common.search') ?? 'Search' }}:",
-                    paginate: {
-                        first: '{{ __('common.first') ?? 'First' }}',
-                        last: '{{ __('common.last') ?? 'Last' }}',
-                        next: '{{ __('common.next') ?? 'Next' }}',
-                        previous: '{{ __('common.previous') ?? 'Previous' }}'
-                    }
+                    search: "{{ __('common.search') ?? 'Search' }}:"
                 }
             });
 

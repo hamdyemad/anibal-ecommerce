@@ -27,6 +27,12 @@ class BundleCategory extends BaseModel
     }
 
 
+    public function bundles()
+    {
+        return $this->hasMany(Bundle::class, 'bundle_category_id');
+    }
+
+
     public function getTitleAttribute()
     {
         return $this->getTranslation('title', app()->getLocale());

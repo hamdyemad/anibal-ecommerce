@@ -18,29 +18,16 @@ class BundleProductResource extends JsonResource
             'vendor_product_variant_id' => $this->vendor_product_variant_id,
             'price' => $this->price,
             'min_quantity' => $this->min_quantity,
+            'is_gift' => ($this->price == 0) ? true : false,
             'limitation_quantity' => $this->limitation_quantity,
             'position' => $this->position,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
 
             // Vendor Product Variant Details
-            'vendor_product_variant' => $this->vendorProductVariant ? [
-                'id' => $this->vendorProductVariant->id,
-                'sku' => $this->vendorProductVariant->sku,
-                'price' => $this->vendorProductVariant->price,
-                'product' => $this->vendorProductVariant->vendorProduct ? [
-                    'id' => $this->vendorProductVariant->vendorProduct->product->id,
-                    'name' => $this->vendorProductVariant->vendorProduct->product->name
-                ] : null,
-                'variant_configuration' => $this->vendorProductVariant->variantConfiguration ? [
-                    'id' => $this->vendorProductVariant->variantConfiguration->id,
-                    'name' => $this->vendorProductVariant->variantConfiguration->name,
-                    'key' => $this->vendorProductVariant->variantConfiguration->key ? [
-                        'id' => $this->vendorProductVariant->variantConfiguration->key->id,
-                        'name' => $this->vendorProductVariant->variantConfiguration->key->name
-                    ] : null
-                ] : null
-            ] : null,
+            'vendor_product_variant' => $this->whenLoaded('vendorProductVariant', function() {
+                return new VendorProductVariantResource($this->vendorProductVariant);
+            })
         ];
     }
 }

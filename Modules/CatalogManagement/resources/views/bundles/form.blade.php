@@ -204,25 +204,56 @@
 
 
                             </div>
+
+                            {{-- SEO Information Section --}}
+                            <div class="card">
+                                <div class="card-header">
+                                    <h6 class="p-0 fw-500 fw-bold">
+                                        {{ trans('catalogmanagement::bundle.seo_information') }}</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        {{-- SEO Title Fields --}}
+                                        <x-multilingual-input name="seo_title" :label="trans('catalogmanagement::bundle.seo_title')" :labelAr="'عنوان ال SEO'"
+                                            :placeholder="trans('catalogmanagement::bundle.enter_seo_title')" :placeholderAr="'عنوان ال SEO'" :languages="$languages" :model="$bundle ?? null" />
+
+                                        {{-- SEO Description Fields --}}
+                                        <x-multilingual-input name="seo_description" :label="trans('catalogmanagement::bundle.seo_description')" :labelAr="'وصف SEO'"
+                                            :placeholder="trans('catalogmanagement::bundle.enter_seo_description')" :placeholderAr="'وصف SEO'" type="textarea" rows="3"
+                                            :languages="$languages" :model="$bundle ?? null" />
+
+                                        {{-- SEO Keywords Fields --}}
+                                        <x-multilingual-input name="seo_keywords" :label="trans('catalogmanagement::bundle.seo_keywords')" :labelAr="'كلمات مفتاحية SEO'"
+                                            :placeholder="trans('catalogmanagement::bundle.enter_seo_keywords')" :placeholderAr="'كلمات مفتاحية SEO'" :tags="true" :languages="$languages" :model="$bundle ?? null" />
+                                    </div>
+                                </div>
+                            </div>
+
                             {{-- Vendor and Category Selection --}}
                             <div class="row">
                                 <div class="col-md-12 mb-25">
                                     <div class="form-group">
-                                        <label for="vendor_id" class="il-gray fs-14 fw-500 mb-10">
-                                            {{ trans('catalogmanagement::bundle.vendor') }} <span class="text-danger">*</span>
-                                        </label>
-                                        <select name="vendor_id" id="vendor_id" class="form-control select2" required>
-                                            <option value="">{{ trans('catalogmanagement::bundle.select_vendor') }}</option>
-                                            @foreach ($vendors as $vendor)
-                                                <option value="{{ $vendor->id }}"
-                                                    {{ old('vendor_id', $bundle->vendor_id ?? '') == $vendor->id ? 'selected' : '' }}>
-                                                    {{ $vendor->getTranslation('name', 'en') }}
-                                                </option>
-                                            @endforeach
-                                        </select>
-                                        @error('vendor_id')
-                                            <div class="invalid-feedback d-block">{{ $message }}</div>
-                                        @enderror
+                                        @if($isAdmin)
+                                            {{-- Admin: Show vendor dropdown --}}
+                                            <label for="vendor_id" class="il-gray fs-14 fw-500 mb-10">
+                                                {{ trans('catalogmanagement::bundle.vendor') }} <span class="text-danger">*</span>
+                                            </label>
+                                            <select name="vendor_id" id="vendor_id" class="form-control select2" required>
+                                                <option value="">{{ trans('catalogmanagement::bundle.select_vendor') }}</option>
+                                                @foreach ($vendors as $vendor)
+                                                    <option value="{{ $vendor->id }}"
+                                                        {{ old('vendor_id', $bundle->vendor_id ?? '') == $vendor->id ? 'selected' : '' }}>
+                                                        {{ $vendor->getTranslation('name', 'en') }}
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                            @error('vendor_id')
+                                                <div class="invalid-feedback d-block">{{ $message }}</div>
+                                            @enderror
+                                        @else
+                                            {{-- Vendor: Auto-set vendor ID and hide dropdown --}}
+                                            <input type="hidden" name="vendor_id" id="vendor_id" value="{{ $userVendorId }}">
+                                        @endif
                                     </div>
                                 </div>
                             </div>
@@ -277,29 +308,6 @@
 
 
 
-                            {{-- SEO Information Section --}}
-                            <div class="card">
-                                <div class="card-header">
-                                    <h6 class="p-0 fw-500 fw-bold">
-                                        {{ trans('catalogmanagement::bundle.seo_information') }}</h6>
-                                </div>
-                                <div class="card-body">
-                                    <div class="row">
-                                        {{-- SEO Title Fields --}}
-                                        <x-multilingual-input name="seo_title" :label="trans('catalogmanagement::bundle.seo_title')" :labelAr="'عنوان ال SEO'"
-                                            :placeholder="trans('catalogmanagement::bundle.enter_seo_title')" :placeholderAr="'عنوان ال SEO'" :languages="$languages" :model="$bundle ?? null" />
-
-                                        {{-- SEO Description Fields --}}
-                                        <x-multilingual-input name="seo_description" :label="trans('catalogmanagement::bundle.seo_description')" :labelAr="'وصف SEO'"
-                                            :placeholder="trans('catalogmanagement::bundle.enter_seo_description')" :placeholderAr="'وصف SEO'" type="textarea" rows="3"
-                                            :languages="$languages" :model="$bundle ?? null" />
-
-                                        {{-- SEO Keywords Fields --}}
-                                        <x-multilingual-input name="seo_keywords" :label="trans('catalogmanagement::bundle.seo_keywords')" :labelAr="'كلمات مفتاحية SEO'"
-                                            :placeholder="trans('catalogmanagement::bundle.enter_seo_keywords')" :placeholderAr="'كلمات مفتاحية SEO'" :tags="true" :languages="$languages" :model="$bundle ?? null" />
-                                    </div>
-                                </div>
-                            </div>
 
                             {{-- Form Actions --}}
                             <div class="row mt-4">
@@ -338,6 +346,15 @@
 
             // Initialize form with existing bundle data (on edit)
             $(document).ready(function() {
+                // Check if user is vendor (not admin)
+                const isAdmin = @json($isAdmin ?? true);
+                const userVendorId = @json($userVendorId ?? null);
+
+                // If vendor user, automatically show products section (but don't load products yet)
+                if (!isAdmin && userVendorId) {
+                    $('#productsSection').show();
+                }
+
                 @if(isset($bundleResource) && isset($bundleResource['bundle_products']) && count($bundleResource['bundle_products']) > 0)
                     // Show products section
                     $('#productsSection').show();

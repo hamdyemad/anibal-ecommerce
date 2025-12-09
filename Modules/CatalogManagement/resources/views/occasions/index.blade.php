@@ -381,10 +381,17 @@
                     zeroRecords: "{{ __('common.no_matching_records_found') }}",
                     emptyTable: "{{ __('common.no_data_available') }}",
                     paginate: {
-                        first: '<i class="uil uil-angle-double-left"></i>',
-                        last: '<i class="uil uil-angle-double-right"></i>',
-                        next: '<i class="uil uil-angle-right"></i>',
-                        previous: '<i class="uil uil-angle-left"></i>'
+                        @if(app()->getLocale() == 'en')
+                            first: '<i class="uil uil-angle-double-left"></i>',
+                            last: '<i class="uil uil-angle-double-right"></i>',
+                            next: '<i class="uil uil-angle-right"></i>',
+                            previous: '<i class="uil uil-angle-left"></i>'
+                        @else
+                            first: '<i class="uil uil-angle-double-right"></i>',
+                            last: '<i class="uil uil-angle-double-left"></i>',
+                            next: '<i class="uil uil-angle-left"></i>',
+                            previous: '<i class="uil uil-angle-right"></i>'
+                        @endif
                     }
                 },
                 dom: '<"row"<"col-sm-12"tr>>' +

@@ -365,12 +365,6 @@
                     loadingRecords: "{{ __('customer::customer.loading') }}",
                     processing: "{{ __('customer::customer.processing') }}",
                     search: "{{ __('customer::customer.search') }}:",
-                    paginate: {
-                        first: "{{ __('customer::customer.first') }}",
-                        last: "{{ __('customer::customer.last') }}",
-                        next: "{{ __('customer::customer.next') }}",
-                        previous: "{{ __('customer::customer.previous') }}"
-                    },
                 }
             });
 

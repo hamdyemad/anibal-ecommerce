@@ -22,6 +22,10 @@ class BundleCategoryResource extends JsonResource
             'seo_title' => $this->getSeoTitle(),
             'seo_description' => $this->getSeoDescription(),
             'seo_keywords' => $this->getSeoKeywords(),
+            'bundles_count' => $this->bundles_count,
+            'bundles' => $this->whenLoaded('bundles', function() {
+                return BundleResource::collection($this->bundles);
+            }),
             'active' => $this->active,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,

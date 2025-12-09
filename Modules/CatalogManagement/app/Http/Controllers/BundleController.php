@@ -9,6 +9,7 @@ use Modules\CatalogManagement\app\Http\Resources\BundleResource;
 use App\Services\LanguageService;
 use Modules\CatalogManagement\app\Services\BundleCategoryService;
 use Modules\Vendor\app\Services\VendorService;
+use Illuminate\Http\Request;
 
 class BundleController extends Controller
 {
@@ -79,10 +80,22 @@ class BundleController extends Controller
     public function create($lang, $countryCode)
     {
         $languages = $this->languageService->getAll();
-        $vendors = $this->vendorService->getAllVendors();
         $categories = $this->bundleCategoryService->getActiveBundleCategories();
 
-        return view('catalogmanagement::bundles.form', compact('languages', 'vendors', 'categories'));
+        // Check if user is admin or vendor
+        $isAdmin = in_array(auth()->user()->user_type_id, \App\Models\UserType::adminIds());
+        $vendors = [];
+        $userVendorId = null;
+
+        if ($isAdmin) {
+            // Admin can create bundles for any vendor
+            $vendors = $this->vendorService->getAllVendors();
+        } else {
+            // Vendor can only create bundles for their own vendor
+            $userVendorId = auth()->user()->vendor->id ?? null;
+        }
+
+        return view('catalogmanagement::bundles.form', compact('languages', 'vendors', 'categories', 'isAdmin', 'userVendorId'));
     }
 
     /**
@@ -129,7 +142,22 @@ class BundleController extends Controller
         $vendors = $this->vendorService->getAllVendors();
         $categories = $this->bundleCategoryService->getActiveBundleCategories();
         $bundleResource = (new BundleResource($bundle))->resolve();
-        return view('catalogmanagement::bundles.form', compact('bundle', 'bundleResource', 'languages', 'vendors', 'categories'));
+
+        // Check if user is admin or vendor
+        $isAdmin = in_array(auth()->user()->user_type_id, \App\Models\UserType::adminIds());
+        $vendors = [];
+        $userVendorId = null;
+
+        if ($isAdmin) {
+            // Admin can create bundles for any vendor
+            $vendors = $this->vendorService->getAllVendors();
+        } else {
+            // Vendor can only create bundles for their own vendor
+            $userVendorId = auth()->user()->vendor->id ?? null;
+        }
+
+
+        return view('catalogmanagement::bundles.form', compact('bundle', 'bundleResource', 'languages', 'vendors', 'categories', 'userVendorId', 'isAdmin'));
 
     }
 
@@ -198,6 +226,46 @@ class BundleController extends Controller
     }
 
     /**
+     * Change bundle approval status
+     * 0 = pending, 1 = approved, 2 = rejected
+     */
+    public function changeApproval(Request $request, $lang, $countryCode, $id)
+    {
+        try {
+            $bundle = $this->bundleService->getBundleById($id);
+
+            $action = $request->input('action');
+            $reason = $request->input('reason', null);
+
+            if (!in_array($action, ['approve', 'reject'])) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Invalid action',
+                ], 422);
+            }
+
+            // Map action to approval status: approve = 1, reject = 2
+            $approvalStatus = ($action === 'approve') ? 1 : 2;
+            $bundle = $this->bundleService->changeApprovalStatus($bundle, $approvalStatus, $reason);
+
+            $message = ($action === 'approve')
+                ? trans('catalogmanagement::bundle.bundle_approved_successfully')
+                : trans('catalogmanagement::bundle.bundle_rejected_successfully');
+
+            return response()->json([
+                'status' => true,
+                'message' => $message,
+                'admin_approval' => $bundle->admin_approval,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Error changing approval status: ' . $e->getMessage(),
+            ], 422);
+        }
+    }
+
+    /**
      * Remove a product from bundle
      */
     public function destroyProduct($lang, $countryCode, $bundle, $product)
@@ -219,37 +287,4 @@ class BundleController extends Controller
         }
     }
 
-    /**
-     * Change admin approval status
-     */
-    public function changeApproval($lang, $countryCode, $id)
-    {
-        try {
-            $request = request();
-            $request->validate([
-                'approved' => 'required|boolean',
-                'reason' => 'nullable|string|max:500',
-            ]);
-
-            $bundle = $this->bundleService->getBundleById($id);
-            $bundle = $this->bundleService->changeApprovalStatus(
-                $bundle,
-                $request->get('approved'),
-                $request->get('reason')
-            );
-
-            return response()->json([
-                'status' => true,
-                'message' => $request->get('approved')
-                    ? trans('catalogmanagement::bundle.bundle_approved_successfully')
-                    : trans('catalogmanagement::bundle.bundle_rejected_successfully'),
-                'admin_approval' => $bundle->admin_approval,
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'status' => false,
-                'message' => trans('catalogmanagement::bundle.error_changing_approval'),
-            ], 422);
-        }
-    }
 }
