@@ -60,4 +60,12 @@ class BundleService
     {
         return $this->bundleRepository->toggleActive($bundle);
     }
+
+    /**
+     * Change admin approval status
+     */
+    public function changeApprovalStatus($bundle, $approved, $reason = null)
+    {
+        return $this->bundleRepository->changeApprovalStatus($bundle, $approved, $reason);
+    }
 }

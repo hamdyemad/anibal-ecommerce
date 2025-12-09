@@ -25,6 +25,7 @@ class Bundle extends Model
 
     protected $casts = [
         'is_active' => 'boolean',
+        'admin_approval' => 'boolean',
     ];
 
     /**

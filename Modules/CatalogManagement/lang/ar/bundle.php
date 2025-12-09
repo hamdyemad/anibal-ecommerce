@@ -89,4 +89,12 @@ return [
     'error_deleting_product' => 'خطأ في حذف المنتج من الحزمة',
     'product_deleted_successfully' => 'تم حذف المنتج من الحزمة بنجاح',
     'totals' => 'الإجماليات',
+    'admin_approval' => 'موافقة المسؤول',
+    'approved' => 'موافق عليه',
+    'pending_approval' => 'في انتظار الموافقة',
+    'rejected' => 'مرفوض',
+    'bundle_approved_successfully' => 'تمت الموافقة على الحزمة بنجاح',
+    'bundle_rejected_successfully' => 'تم رفض الحزمة بنجاح',
+    'error_changing_approval' => 'خطأ في تغيير حالة موافقة الحزمة',
+    'approval_reason' => 'سبب الموافقة',
 ];

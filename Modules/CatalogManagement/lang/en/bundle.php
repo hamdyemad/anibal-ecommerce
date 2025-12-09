@@ -89,4 +89,12 @@ return [
     'error_deleting_product' => 'Error deleting product from bundle',
     'product_deleted_successfully' => 'Product deleted from bundle successfully',
     'totals' => 'Totals',
+    'admin_approval' => 'Admin Approval',
+    'approved' => 'Approved',
+    'pending_approval' => 'Pending Approval',
+    'rejected' => 'Rejected',
+    'bundle_approved_successfully' => 'Bundle approved successfully',
+    'bundle_rejected_successfully' => 'Bundle rejected successfully',
+    'error_changing_approval' => 'Error changing bundle approval status',
+    'approval_reason' => 'Approval Reason',
 ];

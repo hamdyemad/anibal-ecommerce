@@ -8,6 +8,8 @@ use App\Models\Language;
 use App\Models\Attachment;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Auth;
+use App\Models\UserType;
 
 class BundleRepository implements BundleRepositoryInterface
 {
@@ -54,12 +56,16 @@ class BundleRepository implements BundleRepositoryInterface
      */
     public function createBundle($data)
     {
+        // Determine admin_approval: true if admin creates it, false if vendor creates it
+        $isAdmin = Auth::check() && in_array(Auth::user()->user_type_id, UserType::adminIds());
+
         $bundle = Bundle::create([
             'vendor_id' => $data['vendor_id'],
             'bundle_category_id' => $data['bundle_category_id'],
             'sku' => $data['sku'],
             'slug' => uniqid(),
             'is_active' => $data['is_active'] ?? true,
+            'admin_approval' => $isAdmin ? true : false,
         ]);
 
         // Handle main image upload
@@ -167,6 +173,18 @@ class BundleRepository implements BundleRepositoryInterface
     public function toggleActive($bundle)
     {
         $bundle->update(['is_active' => !$bundle->is_active]);
+        return $bundle;
+    }
+
+    /**
+     * Change admin approval status
+     */
+    public function changeApprovalStatus($bundle, $approved, $reason = null)
+    {
+        $bundle->update([
+            'admin_approval' => $approved,
+            'approval_reason' => $reason,
+        ]);
         return $bundle;
     }
 

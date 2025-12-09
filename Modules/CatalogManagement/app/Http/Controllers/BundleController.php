@@ -58,6 +58,8 @@ class BundleController extends Controller
                 'sku' => $bundle->sku ?? '-',
                 'vendor' => $bundle->vendor->name,
                 'is_active' => $bundle->is_active,
+                'admin_approval' => $bundle->admin_approval,
+                'approval_reason' => $bundle->approval_reason,
                 'created_at' => $bundle->created_at
             ];
         });
@@ -213,6 +215,40 @@ class BundleController extends Controller
             return response()->json([
                 'status' => false,
                 'message' => trans('catalogmanagement::bundle.error_deleting_product'),
+            ], 422);
+        }
+    }
+
+    /**
+     * Change admin approval status
+     */
+    public function changeApproval($lang, $countryCode, $id)
+    {
+        try {
+            $request = request();
+            $request->validate([
+                'approved' => 'required|boolean',
+                'reason' => 'nullable|string|max:500',
+            ]);
+
+            $bundle = $this->bundleService->getBundleById($id);
+            $bundle = $this->bundleService->changeApprovalStatus(
+                $bundle,
+                $request->get('approved'),
+                $request->get('reason')
+            );
+
+            return response()->json([
+                'status' => true,
+                'message' => $request->get('approved')
+                    ? trans('catalogmanagement::bundle.bundle_approved_successfully')
+                    : trans('catalogmanagement::bundle.bundle_rejected_successfully'),
+                'admin_approval' => $bundle->admin_approval,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => false,
+                'message' => trans('catalogmanagement::bundle.error_changing_approval'),
             ], 422);
         }
     }
