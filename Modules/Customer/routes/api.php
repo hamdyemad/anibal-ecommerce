@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use Modules\Customer\app\Http\Controllers\Api\CustomerApiController;
 use Modules\Customer\app\Http\Controllers\Api\CustomerAuthController;
 use Modules\Customer\app\Http\Controllers\Api\CustomerAddressController;
+use Modules\Customer\app\Http\Controllers\Api\CustomerPointsApiController;
 
 // Auth routes (no authentication required)
 Route::prefix('auth')->group(function () {
@@ -46,6 +47,12 @@ Route::prefix('customers')->group(function () {
     Route::get('', [CustomerApiController::class, 'index']);
     Route::get('{customerId}/addresses', [CustomerApiController::class, 'getAddresses']);
     Route::post('{customerId}/addresses', [CustomerAddressController::class, 'storeAddress']);
+});
+
+// Points routes (authentication required)
+Route::middleware(['auth:sanctum', 'check.customer.auth'])->prefix('points')->group(function () {
+    Route::get('my-points', [CustomerPointsApiController::class, 'myPoints'])->name('my-points');
+    Route::get('transactions', [CustomerPointsApiController::class, 'transactions'])->name('transactions');
 });
 
 
