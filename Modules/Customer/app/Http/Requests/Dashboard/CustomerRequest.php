@@ -35,7 +35,10 @@ class CustomerRequest extends FormRequest
             ],
             'phone' => 'nullable|string|max:20',
             'date_of_birth' => 'nullable|date|before:today',
-            'gender' => 'nullable|in:male,female',
+            'gender' => 'required|in:male,female',
+            'city_id' => 'required|exists:cities,id',
+            'region_id' => 'required|exists:regions,id',
+            'gender' => 'required|in:male,female',
             'password' => $isUpdate ? 'nullable|string|min:8|confirmed' : 'required|string|min:8|confirmed',
             'status' => 'boolean',
         ];
@@ -67,7 +70,14 @@ class CustomerRequest extends FormRequest
             'date_of_birth.date' => __('customer::customer.date_of_birth') . ' ' . __('validation.date'),
             'date_of_birth.before' => __('customer::customer.date_of_birth') . ' ' . __('validation.before', ['date' => 'today']),
 
+            'gender.required' => __('customer::customer.gender') . ' ' . __('validation.required'),
             'gender.in' => __('customer::customer.gender') . ' ' . __('validation.in'),
+
+            'city_id.required' => __('customer::customer.city') . ' ' . __('validation.required'),
+            'city_id.exists' => __('customer::customer.city') . ' ' . __('validation.exists'),
+
+            'region_id.required' => __('customer::customer.region') . ' ' . __('validation.required'),
+            'region_id.exists' => __('customer::customer.region') . ' ' . __('validation.exists'),
 
             'password.required' => __('customer::customer.password') . ' ' . __('validation.required'),
             'password.string' => __('customer::customer.password') . ' ' . __('validation.string'),
@@ -92,6 +102,8 @@ class CustomerRequest extends FormRequest
             'phone' => __('customer::customer.phone'),
             'date_of_birth' => __('customer::customer.date_of_birth'),
             'gender' => __('customer::customer.gender'),
+            'city_id' => __('customer::customer.city'),
+            'region_id' => __('customer::customer.region'),
             'password' => __('customer::customer.password'),
             'status' => __('customer::customer.status'),
         ];
@@ -105,6 +117,24 @@ class CustomerRequest extends FormRequest
         $this->merge([
             'status' => $this->boolean('status'),
         ]);
+    }
+
+    public function withValidator($validator)
+    {
+        $validator->after(function ($validator) {
+            // Validate that region belongs to the city if both are provided
+            if ($this->city_id && $this->region_id) {
+                $region = \Modules\AreaSettings\app\Models\Region::where('id', $this->region_id)
+                    ->where('city_id', $this->city_id)
+                    ->first();
+
+                if (!$region) {
+                    $validator->errors()->add('region_id', trans('customer::customer.region_must_belong_to_city'));
+                }
+            }
+        });
+
+        return $validator;
     }
 
     /**

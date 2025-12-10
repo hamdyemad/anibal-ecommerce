@@ -59,6 +59,12 @@ class SystemSettingServiceProvider extends ServiceProvider
             \Modules\SystemSetting\app\Repositories\Api\MessageApiRepository::class
         );
 
+        // Points Setting Repository Binding
+        $this->app->bind(
+            \Modules\SystemSetting\app\Interfaces\PointsSettingRepositoryInterface::class,
+            \Modules\SystemSetting\app\Repositories\PointsSettingRepository::class
+        );
+
         // Bind Services
         $this->app->bind(
             \Modules\SystemSetting\app\Services\CurrencyService::class
@@ -74,6 +80,10 @@ class SystemSettingServiceProvider extends ServiceProvider
 
         $this->app->bind(
             \Modules\SystemSetting\app\Services\Api\MessageApiService::class
+        );
+
+        $this->app->bind(
+            \Modules\SystemSetting\app\Services\PointsSettingService::class
         );
     }
 

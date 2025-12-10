@@ -38,7 +38,7 @@
                                 <div class="row g-3 align-items-end">
 
                                     {{-- Search --}}
-                                    <div class="col-md-4">
+                                    <div class="col-md-3">
                                         <div class="form-group">
                                             <label for="search" class="il-gray fs-14 fw-500 mb-10">
                                                 <i class="uil uil-search me-1"></i> {{ __('customer::customer.search') }}
@@ -53,7 +53,7 @@
                                     </div>
 
                                     {{-- Status --}}
-                                    <div class="col-md-4">
+                                    <div class="col-md-3">
                                         <div class="form-group">
                                             <label for="active" class="il-gray fs-14 fw-500 mb-10">
                                                 <i class="uil uil-check-circle me-1"></i>
@@ -70,7 +70,7 @@
                                     </div>
 
                                     {{-- Email Verified --}}
-                                    <div class="col-md-4">
+                                    <div class="col-md-3">
                                         <div class="form-group">
                                             <label for="email_verified" class="il-gray fs-14 fw-500 mb-10">
                                                 <i class="uil uil-envelope-check me-1"></i>
@@ -86,8 +86,38 @@
                                         </div>
                                     </div>
 
+                                    {{-- City Filter --}}
+                                    <div class="col-md-3">
+                                        <div class="form-group">
+                                            <label for="city_filter" class="il-gray fs-14 fw-500 mb-10">
+                                                <i class="uil uil-map-pin me-1"></i>
+                                                {{ __('customer::customer.city') }}
+                                            </label>
+                                            <select
+                                                class="select2 form-control ih-medium ip-gray radius-xs b-light px-15 form-select"
+                                                id="city_filter">
+                                                <option value="">{{ __('main.choose') }}</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    {{-- Region Filter --}}
+                                    <div class="col-md-3">
+                                        <div class="form-group">
+                                            <label for="region_filter" class="il-gray fs-14 fw-500 mb-10">
+                                                <i class="uil uil-map-marker me-1"></i>
+                                                {{ __('customer::customer.region') }}
+                                            </label>
+                                            <select
+                                                class="select2 form-control ih-medium ip-gray radius-xs b-light px-15 form-select"
+                                                id="region_filter">
+                                                <option value="">{{ __('main.choose') }}</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
                                     {{-- Created Date From --}}
-                                    <div class="col-md-6">
+                                    <div class="col-md-3">
                                         <div class="form-group">
                                             <label for="created_date_from" class="il-gray fs-14 fw-500 mb-10">
                                                 <i class="uil uil-calendar-alt me-1"></i>
@@ -100,7 +130,7 @@
                                     </div>
 
                                     {{-- Created Date To --}}
-                                    <div class="col-md-6">
+                                    <div class="col-md-3">
                                         <div class="form-group">
                                             <label for="created_date_to" class="il-gray fs-14 fw-500 mb-10">
                                                 <i class="uil uil-calendar-alt me-1"></i>
@@ -124,11 +154,6 @@
                                             title="{{ __('customer::customer.reset_filters') }}">
                                             <i class="uil uil-redo me-1"></i>
                                             {{ __('customer::customer.reset_filters') }}
-                                        </button>
-                                        <button type="button" id="exportExcel"
-                                            class="btn btn-primary btn-default btn-squared"
-                                            title="{{ __('customer::customer.export_excel') }}">
-                                            <i class="uil uil-file-download-alt me-1"></i> {{ __('customer::customer.export_excel') }}
                                         </button>
                                     </div>
 
@@ -157,9 +182,9 @@
                             <thead>
                                 <tr class="userDatatable-header">
                                     <th class="text-center"><span class="userDatatable-title">#</span></th>
-                                    <th><span class="userDatatable-title">{{ __('customer::customer.full_name') }}</span></th>
-                                    <th><span class="userDatatable-title">{{ __('customer::customer.email') }}</span></th>
-                                    <th><span class="userDatatable-title">{{ __('customer::customer.phone') }}</span></th>
+                                    <th><span class="userDatatable-title">{{ __('customer::customer.customer_information') }}</span></th>
+                                    <th><span class="userDatatable-title">{{ __('customer::customer.city') }}</span></th>
+                                    <th><span class="userDatatable-title">{{ __('customer::customer.region') }}</span></th>
                                     <th><span class="userDatatable-title">{{ __('customer::customer.status') }}</span></th>
                                     <th><span class="userDatatable-title">{{ __('customer::customer.email_verified') }}</span></th>
                                     <th><span class="userDatatable-title">{{ __('customer::customer.created_at') }}</span></th>
@@ -186,6 +211,94 @@
 
 @push('scripts')
     <script>
+        // Function to get URL parameter
+        function getUrlParameter(name) {
+            var regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
+            var results = regex.exec(location.search);
+            return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
+        }
+
+        // Load cities from session country on page load
+        const sessionCountryId = $("meta[name='current_country_id']").attr('content');
+        if (sessionCountryId) {
+            fetch(`/api/area/countries/${sessionCountryId}/cities`, {
+                method: 'GET',
+                headers: {
+                    'lang': "{{ app()->getLocale() }}"
+                }
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.data && Array.isArray(data.data)) {
+                        data.data.forEach(city => {
+                            const option = document.createElement('option');
+                            option.value = city.id;
+                            option.textContent = city.name;
+                            document.getElementById('city_filter').appendChild(option);
+                        });
+                    }
+                    // Reinitialize Select2
+                    if (typeof $ !== 'undefined' && $.fn.select2) {
+                        $('#city_filter').select2({
+                            theme: 'bootstrap-5',
+                            width: '100%'
+                        });
+                    }
+                    // After cities are loaded, set city value from URL params
+                    const cityIdFromUrl = getUrlParameter('city_id');
+                    if (cityIdFromUrl) {
+                        $('#city_filter').val(cityIdFromUrl).trigger('change');
+                    }
+                })
+                .catch(error => console.error('Error loading cities:', error));
+        }
+
+        // Handle city filter change to load regions
+        $('#city_filter').on('change', function() {
+            const cityId = this.value;
+            const regionSelect = document.getElementById('region_filter');
+
+            // Clear region select
+            regionSelect.innerHTML = '<option value="">{{ __("main.choose") }}</option>';
+
+            if (cityId) {
+                // Fetch regions for selected city
+                fetch(`/api/area/cities/${cityId}/regions`, {
+                    method: 'GET',
+                    headers: {
+                        'lang': "{{ app()->getLocale() }}"
+                    }
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.data && Array.isArray(data.data)) {
+                            data.data.forEach(region => {
+                                const option = document.createElement('option');
+                                option.value = region.id;
+                                option.textContent = region.name;
+                                regionSelect.appendChild(option);
+                            });
+                        }
+                        // Reinitialize Select2
+                        if (typeof $ !== 'undefined' && $.fn.select2) {
+                            $('#region_filter').select2({
+                                theme: 'bootstrap-5',
+                                width: '100%'
+                            });
+                        }
+                        // After cities are loaded, set city value from URL params
+                        const regionIdFromUrl = getUrlParameter('region_id');
+                        if (regionIdFromUrl) {
+                            $('#region_filter').val(regionIdFromUrl).trigger('change');
+                        }
+                    })
+                    .catch(error => console.error('Error loading regions:', error));
+            }
+        });
+
+
+
+
         $(document).ready(function() {
             console.log('Customers page loaded, initializing DataTable...');
 
@@ -202,6 +315,8 @@
                         d.active = $('#active').val();
                         d.email_verified = $('#email_verified').val();
                         d.search = $('#search').val();
+                        d.city_id = $('#city_filter').val();
+                        d.region_id = $('#region_filter').val();
                         d.created_date_from = $('#created_date_from').val();
                         d.created_date_to = $('#created_date_to').val();
                         if (d.order && d.order.length > 0) {
@@ -246,25 +361,30 @@
                         }
                     },
                     {
-                        data: 'full_name',
-                        name: 'full_name',
+                        data: 'customer_info',
+                        name: 'customer_info',
                         orderable: false,
                         render: function(data, type, row) {
-                            console.log('Rendering full_name:', data);
-                            return '<div class="userDatatable-content">' + (data || '-') + '</div>';
+                            let info = '<div class="userDatatable-content">';
+                            info += '<div class="mb-2"><strong>' + (row.full_name || '-') + '</strong></div>';
+                            info += '<div class="mb-2"><strong>{{ __("customer::customer.email") }}:</strong> ' + (row.email || '-') + '</div>';
+                            (row.phone) ? info += '<div><strong>{{ __("customer::customer.phone") }}:</strong> ' + (row.phone) + '</div>' : '';
+                            ;
+                            info += '</div>';
+                            return info;
                         }
                     },
                     {
-                        data: 'email',
-                        name: 'email',
-                        orderable: true,
+                        data: 'city_name',
+                        name: 'city_name',
+                        orderable: false,
                         render: function(data, type, row) {
                             return '<div class="userDatatable-content">' + (data || '-') + '</div>';
                         }
                     },
                     {
-                        data: 'phone',
-                        name: 'phone',
+                        data: 'region_name',
+                        name: 'region_name',
                         orderable: false,
                         render: function(data, type, row) {
                             return '<div class="userDatatable-content">' + (data || '-') + '</div>';
@@ -303,15 +423,7 @@
                         name: 'created_at',
                         orderable: false,
                         render: function(data, type, row) {
-                            const date = new Date(data);
-                            const formatted = date.toLocaleDateString('en-US', {
-                                year: 'numeric',
-                                month: 'short',
-                                day: 'numeric',
-                                hour: '2-digit',
-                                minute: '2-digit'
-                            });
-                            return '<div class="userDatatable-content">' + formatted + '</div>';
+                            return '<div class="userDatatable-content">' + row.created_at + '</div>';
                         }
                     },
                     {
@@ -370,7 +482,7 @@
 
             // Initialize Select2 on all select elements
             if ($.fn.select2) {
-                $('#entriesSelect, #active, #email_verified').select2({
+                $('#entriesSelect, #active, #email_verified, #city_filter, #region_filter').select2({
                     theme: 'bootstrap-5',
                     minimumResultsForSearch: Infinity,
                     width: '100%'
@@ -379,16 +491,15 @@
                 console.error('Select2 is not loaded');
             }
 
+
+
+
+
             $('#entriesSelect').on('change', function() {
                 table.page.len($(this).val()).draw();
             });
 
-            // Function to get URL parameter
-            function getUrlParameter(name) {
-                var regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
-                var results = regex.exec(location.search);
-                return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
-            }
+
 
             // Function to update URL with filter parameters
             function updateUrlWithFilters() {
@@ -397,12 +508,16 @@
                 const search = $('#search').val();
                 const active = $('#active').val();
                 const emailVerified = $('#email_verified').val();
+                const cityId = $('#city_filter').val();
+                const regionId = $('#region_filter').val();
                 const createdDateFrom = $('#created_date_from').val();
                 const createdDateTo = $('#created_date_to').val();
 
                 if (search) params.set('search', search);
                 if (active) params.set('active', active);
                 if (emailVerified) params.set('email_verified', emailVerified);
+                if (cityId) params.set('city_id', cityId);
+                if (regionId) params.set('region_id', regionId);
                 if (createdDateFrom) params.set('created_date_from', createdDateFrom);
                 if (createdDateTo) params.set('created_date_to', createdDateTo);
 
@@ -415,6 +530,8 @@
                 $('#search').val(getUrlParameter('search'));
                 $('#active').val(getUrlParameter('active'));
                 $('#email_verified').val(getUrlParameter('email_verified'));
+                $('#city_filter').val(getUrlParameter('city_id'));
+                $('#region_filter').val(getUrlParameter('region_id'));
                 $('#created_date_from').val(getUrlParameter('created_date_from'));
                 $('#created_date_to').val(getUrlParameter('created_date_to'));
             }
@@ -441,7 +558,7 @@
             });
 
             // Filter change handlers
-            $('#active, #email_verified, #created_date_from, #created_date_to').on('change', function() {
+            $('#active, #email_verified, #city_filter, #region_filter, #created_date_from, #created_date_to').on('change', function() {
                 updateUrlWithFilters();
                 table.draw();
             });
@@ -453,6 +570,26 @@
                 $('#search').val('');
                 $('#active').val('').trigger('change');
                 $('#email_verified').val('').trigger('change');
+
+                // Reset city and region
+                $('#city_filter').val('');
+                $('#region_filter').val('');
+                document.getElementById('region_filter').innerHTML = '<option value="">{{ __("main.choose") }}</option>';
+                document.getElementById('city_filter').innerHTML = '<option value="">{{ __("main.choose") }}</option>';
+
+                // Reinitialize Select2 for region
+                if (typeof $ !== 'undefined' && $.fn.select2) {
+                    $('#region_filter').select2({
+                        theme: 'bootstrap-5',
+                        width: '100%'
+                    });
+                     $('#city_filter').select2({
+                        theme: 'bootstrap-5',
+                        width: '100%'
+                    });
+                }
+
+
                 $('#created_date_from').val('');
                 $('#created_date_to').val('');
 

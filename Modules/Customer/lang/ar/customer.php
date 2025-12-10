@@ -23,6 +23,7 @@ return [
 
     // Table headers
     'full_name' => 'الاسم الكامل',
+    'customer_information' => 'معلومات العميل',
     'email' => 'البريد الإلكتروني',
     'phone' => 'الهاتف',
     'status' => 'الحالة',
@@ -79,6 +80,10 @@ return [
     'female' => 'أنثى',
     'password' => 'كلمة المرور',
     'password_confirmation' => 'تأكيد كلمة المرور',
+    'phone' => 'الهاتف',
+    'country' => 'الدولة',
+    'city' => 'المدينة',
+    'region' => 'المنطقة',
     'save' => 'حفظ',
     'update' => 'تحديث',
     'cancel' => 'إلغاء',
@@ -90,6 +95,10 @@ return [
     'customer_updated' => 'تم تحديث العميل بنجاح',
     'customer_deleted' => 'تم حذف العميل بنجاح',
     'validation_errors' => 'يرجى إصلاح الأخطاء التالية:',
+
+    // Validation messages
+    'city_must_belong_to_country' => 'يجب أن تنتمي المدينة المختارة إلى الدولة المختارة.',
+    'region_must_belong_to_city' => 'يجب أن تنتمي المنطقة المختارة إلى المدينة المختارة.',
 
     // OTP Email translations
     'otp_email' => [

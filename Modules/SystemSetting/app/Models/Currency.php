@@ -38,9 +38,21 @@ class Currency extends Model
         return $this->hasMany(Country::class, 'currency_id');
     }
 
+
+    public function pointSetting()
+    {
+        return $this->hasOne(PointsSetting::class, 'currency_id');
+    }
+
     /**
      * Get the currency image
      */
+
+    public function getNameAttribute()
+    {
+        return $this->getTranslation('name', app()->getLocale());
+    }
+
     public function getImageAttribute()
     {
         $attachment = $this->attachments()->where('type', 'image')->first();

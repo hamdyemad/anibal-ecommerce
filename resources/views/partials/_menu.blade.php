@@ -698,7 +698,7 @@
 
 
         @if (in_array($user_type_id, \App\Models\UserType::adminIds()))
-            @can('points.index')
+            {{-- @can('points.index')
                 <li class="menu-title mt-30">
                     <span>{{ trans('menu.sections.points system') }}</span>
                 </li>
@@ -711,21 +711,19 @@
                     <ul class="px-0">
                         <li>
                             <a class="d-flex align-items-center justify-content-between fw-bold"
-                                href="{{ route('admin.dashboard') }}">
+                                href="{{ route('admin.points-settings.index') }}">
                                 {{ trans('menu.point managment.title') }}
-                                {{-- <span class="badge badge-round badge-primary  ms-1">50</span> --}}
                             </a>
                         </li>
                         <li>
                             <a class="d-flex align-items-center justify-content-between fw-bold"
                                 href="{{ route('admin.dashboard') }}">
                                 {{ trans('menu.point managment.users points') }}
-                                {{-- <span class="badge badge-round badge-primary  ms-1">50</span> --}}
                             </a>
                         </li>
                     </ul>
                 </li>
-            @endcan
+            @endcan --}}
 
 
             @can('advertisements.index')
@@ -937,6 +935,20 @@
                     </ul>
                 </li>
             @endcanany
+
+            @can('system.points.view')
+                <li>
+                    <a href="{{ route('admin.user-points.index') }}"
+                        class="{{ isMenuActive(['admin.user-points.index'], $currentRoute) ? 'active' : '' }}">
+                        <span class="d-flex align-items-center justify-content-between fw-bold w-100">
+                            <span class="d-flex align-items-center">
+                                <span class="nav-icon uil uil-star"></span>
+                                <span class="menu-text">{{ trans('systemsetting::points.user_points_management') }}</span>
+                            </span>
+                        </span>
+                    </a>
+                </li>
+            @endcan
 
             @can('system.currency.index')
                 <li>

@@ -23,6 +23,7 @@ return [
 
     // Table headers
     'full_name' => 'Full Name',
+    'customer_information' => 'Customer Information',
     'email' => 'Email',
     'phone' => 'Phone',
     'status' => 'Status',
@@ -79,6 +80,10 @@ return [
     'female' => 'Female',
     'password' => 'Password',
     'password_confirmation' => 'Confirm Password',
+    'phone' => 'Phone',
+    'country' => 'Country',
+    'city' => 'City',
+    'region' => 'Region',
     'save' => 'Save',
     'update' => 'Update',
     'cancel' => 'Cancel',
@@ -90,6 +95,10 @@ return [
     'customer_updated' => 'Customer updated successfully',
     'customer_deleted' => 'Customer deleted successfully',
     'validation_errors' => 'Please fix the following errors:',
+
+    // Validation messages
+    'city_must_belong_to_country' => 'The selected city must belong to the selected country.',
+    'region_must_belong_to_city' => 'The selected region must belong to the selected city.',
 
     // OTP Email translations
     'otp_email' => [

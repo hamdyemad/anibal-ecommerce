@@ -115,6 +115,71 @@
                                             </div>
                                         </div>
 
+                                        {{-- Gender --}}
+                                        <div class="col-md-6">
+                                            <div class="form-group mb-25">
+                                                <label for="gender" class="form-label">
+                                                    {{ __('customer::customer.gender') }} <span class="text-danger">*</span>
+                                                </label>
+                                                <select name="gender" id="gender" class="form-control ih-medium ip-gray radius-xs b-light px-15 select2">
+                                                    <option value="">{{ __('customer::customer.select_gender') }}</option>
+                                                    <option value="male" {{ (isset($customer) && $customer->gender === 'male') || old('gender') === 'male' ? 'selected' : '' }}>
+                                                        {{ __('customer::customer.male') }}
+                                                    </option>
+                                                    <option value="female" {{ (isset($customer) && $customer->gender === 'female') || old('gender') === 'female' ? 'selected' : '' }}>
+                                                        {{ __('customer::customer.female') }}
+                                                    </option>
+                                                </select>
+                                                @error('gender')
+                                                    <div class="text-danger">{{ $message }}</div>
+                                                @enderror
+                                            </div>
+                                        </div>
+
+                                        {{-- City --}}
+                                        <div class="col-md-6">
+                                            <div class="form-group mb-25">
+                                                <label for="city_id" class="form-label">
+                                                    {{ __('customer::customer.city') }} <span class="text-danger">*</span>
+                                                </label>
+                                                <select name="city_id" id="city_id" class="form-control ih-medium ip-gray radius-xs b-light px-15 select2">
+                                                    <option value="">{{ __('main.choose') }}</option>
+                                                    @if(isset($customer) && $customer->city_id)
+                                                        @foreach($cities ?? [] as $city)
+                                                            <option value="{{ $city->id }}" {{ $customer->city_id === $city->id ? 'selected' : '' }}>
+                                                                {{ $city->name }}
+                                                            </option>
+                                                        @endforeach
+                                                    @endif
+                                                </select>
+                                                @error('city_id')
+                                                    <div class="text-danger">{{ $message }}</div>
+                                                @enderror
+                                            </div>
+                                        </div>
+
+                                        {{-- Region --}}
+                                        <div class="col-md-6">
+                                            <div class="form-group mb-25">
+                                                <label for="region_id" class="form-label">
+                                                    {{ __('customer::customer.region') }} <span class="text-danger">*</span>
+                                                </label>
+                                                <select name="region_id" id="region_id" class="form-control ih-medium ip-gray radius-xs b-light px-15 select2">
+                                                    <option value="">{{ __('main.choose') }}</option>
+                                                    @if(isset($customer) && $customer->region_id)
+                                                        @foreach($regions ?? [] as $region)
+                                                            <option value="{{ $region->id }}" {{ $customer->region_id === $region->id ? 'selected' : '' }}>
+                                                                {{ $region->name }}
+                                                            </option>
+                                                        @endforeach
+                                                    @endif
+                                                </select>
+                                                @error('region_id')
+                                                    <div class="text-danger">{{ $message }}</div>
+                                                @enderror
+                                            </div>
+                                        </div>
+
                                         {{-- Status --}}
                                         <div class="col-md-6">
                                             <div class="form-group mb-25">
@@ -159,8 +224,6 @@
                                                     id="email"
                                                     class="form-control ih-medium ip-gray radius-xs b-light px-15"
                                                     value="{{ isset($customer) ? $customer->email : old('email') }}"
-                                                    placeholder="{{ __('customer::customer.email') }}"
-
                                                 >
                                                 @error('email')
                                                     <div class="text-danger">{{ $message }}</div>
@@ -179,7 +242,7 @@
                                                     name="password"
                                                     id="password"
                                                     class="form-control ih-medium ip-gray radius-xs b-light px-15"
-                                                    placeholder="{{ __('customer::customer.password') }}"
+                                                    dir="ltr"
                                                 >
                                                 @if(isset($customer))
                                                     <small class="text-muted">{{ __('Leave empty to keep current password') }}</small>
@@ -202,7 +265,7 @@
                                                     name="password_confirmation"
                                                     id="password_confirmation"
                                                     class="form-control ih-medium ip-gray radius-xs b-light px-15"
-                                                    placeholder="{{ __('customer::customer.password_confirmation') }}"
+                                                    dir="ltr"
                                                 >
                                                 @error('password_confirmation')
                                                     <div class="text-danger">{{ $message }}</div>
@@ -238,7 +301,6 @@
 
 @push('scripts')
 <script>
-document.addEventListener('DOMContentLoaded', function() {
     // Initialize Select2
     if (typeof $ !== 'undefined' && $.fn.select2) {
         $('.select2').select2({
@@ -414,7 +476,100 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
-});
+
+    // Load cities from session country on page load
+    const citySelect = document.getElementById('city_id');
+    const regionSelect = document.getElementById('region_id');
+    const sessionCountryId = $("meta[name='current_country_id']").attr('content');
+    const selectedCityId = "{{ isset($customer) ? $customer->city_id : '' }}";
+    const selectedRegionId = "{{ isset($customer) ? $customer->region_id : '' }}";
+
+    // Load cities on page load if session country exists
+    if (sessionCountryId) {
+        fetchCities();
+    }
+
+    function fetchCities(countryId) {
+        fetch(`/api/area/countries/${sessionCountryId}/cities`, {
+                method: 'GET',
+                headers: {
+                    'lang': "{{ app()->getLocale() }}"
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.data && Array.isArray(data.data)) {
+                    data.data.forEach(city => {
+                        const option = document.createElement('option');
+                        option.value = city.id;
+                        option.textContent = city.name;
+                        $("#city_id").append(option);
+                    });
+                }
+                // Reinitialize Select2
+                if (typeof $ !== 'undefined' && $.fn.select2) {
+                    $($("#city_id")).select2({
+                        theme: 'bootstrap-5',
+                        width: '100%'
+                    });
+                }
+
+                // Set selected city value if editing
+                if (selectedCityId) {
+                    $("#city_id").val(selectedCityId);
+                    // Fetch regions for the selected city
+                    fetchRegions(selectedCityId);
+                }
+            })
+            .catch(error => console.error('Error loading cities:', error));
+    }
+
+    function fetchRegions(cityId) {
+        // Fetch regions for selected city
+        fetch(`/api/area/cities/${cityId}/regions`,  {
+            method: 'GET',
+            headers: {
+                'lang': "{{ app()->getLocale() }}"
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.data && Array.isArray(data.data)) {
+                data.data.forEach(region => {
+                    const option = document.createElement('option');
+                    option.value = region.id;
+                    option.textContent = region.name;
+                    regionSelect.appendChild(option);
+                });
+            }
+            // Reinitialize Select2
+            if (typeof $ !== 'undefined' && $.fn.select2) {
+                $(regionSelect).select2({
+                    theme: 'bootstrap-5',
+                    width: '100%'
+                });
+            }
+
+            // Set selected region value if editing
+            if (selectedRegionId) {
+                $(regionSelect).val(selectedRegionId).trigger('change');
+            }
+        })
+        .catch(error => console.error('Error loading regions:', error));
+    }
+    // Handle city change to load regions
+    $("#city_id").on('change', function() {
+        const cityId = this.value;
+        console.log(cityId)
+
+        // Clear existing regions
+        regionSelect.innerHTML = '<option value="">{{ __("main.choose") }}</option>';
+
+        if (cityId) {
+            fetchRegions(cityId)
+        }
+    });
+
 </script>
 @endpush
 

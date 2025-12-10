@@ -27,7 +27,7 @@ class CityApiController extends Controller
 
     public function getCitiesByCountry(Request $request, $id)
     {
-        $cities = $this->cityService->getCitiesByCountry($request->all(), $id);
+        $cities = $this->cityService->getCitiesByCountry($id, $request->all());
 
         return $this->sendRes(config('responses.success')[app()->getLocale()], true, CityResource::collection($cities));
     }

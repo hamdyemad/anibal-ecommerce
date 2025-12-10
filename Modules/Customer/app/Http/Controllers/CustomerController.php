@@ -24,7 +24,6 @@ class CustomerController extends Controller
     public function datatable(Request $request)
     {
         $filters = $request->all();
-
         $query = $this->customerService->getCustomersQuery($filters);
 
         $total = $query->count();
@@ -43,6 +42,8 @@ class CustomerController extends Controller
                 'full_name' => $customer->full_name,
                 'email' => $customer->email,
                 'phone' => $customer->phone,
+                'city_name' => $customer->city?->name ?? '-',
+                'region_name' => $customer->region?->name ?? '-',
                 'status' => $customer->status,
                 'email_verified_at' => $customer->email_verified_at,
                 'created_at' => $customer->created_at,
@@ -82,7 +83,7 @@ class CustomerController extends Controller
 
     public function show($lang, $countryCode, $id)
     {
-        $customer = $this->customerService->findById([], $id);
+        $customer = $this->customerService->findById($id, []);
 
         if (!$customer) {
             abort(404);
@@ -93,7 +94,7 @@ class CustomerController extends Controller
 
     public function edit($lang, $countryCode, $id)
     {
-        $customer = $this->customerService->findById([],$id);
+        $customer = $this->customerService->findById($id, []);
 
         if (!$customer) {
             abort(404);
@@ -104,7 +105,7 @@ class CustomerController extends Controller
 
     public function update($lang, $countryCode, CustomerRequest $request, $id)
     {
-        $customer = $this->customerService->findById([], $id);
+        $customer = $this->customerService->findById($id, []);
 
         if (!$customer) {
             abort(404);
@@ -144,7 +145,7 @@ class CustomerController extends Controller
     public function changeStatus($lang, $countryCode, Request $request, $id)
     {
         try {
-            $customer = $this->customerService->findById([], $id);
+            $customer = $this->customerService->findById($id, []);
 
             if (!$customer) {
                 return response()->json([
@@ -176,7 +177,7 @@ class CustomerController extends Controller
     public function changeVerification($lang, $countryCode, Request $request, $id)
     {
         try {
-            $customer = $this->customerService->findById([], $id);
+            $customer = $this->customerService->findById($id, []);
 
             if (!$customer) {
                 return response()->json([

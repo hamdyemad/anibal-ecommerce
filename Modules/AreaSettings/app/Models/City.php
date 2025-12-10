@@ -39,6 +39,10 @@ class City extends BaseModel
             $query->byCountry($filters['country_id']);
         }
 
+        if (!empty($filters['default'])) {
+            $query->where('default', true);
+        }
+
         return $query;
     }
 }
