@@ -29,7 +29,9 @@ Route::group(['prefix' => 'user-points', 'as' => 'user-points'], function() {
     Route::get('', [UserPointsController::class, 'index'])->name('.index');
     Route::get('datatable', [UserPointsController::class, 'datatable'])->name('.datatable');
     Route::get('{id}', [UserPointsController::class, 'show'])->name('.show');
-    Route::get('{userId}/transactions/datatable', [UserPointsController::class, 'transactions'])->name('user-points.transactions.datatable');
+    Route::get('{userId}/transactions', [UserPointsController::class, 'transactionsView'])->name('.transactions');
+    Route::get('{userId}/transactions/datatable', [UserPointsController::class, 'transactions'])->name('.transactions.datatable');
+    Route::post('{userId}/adjust', [UserPointsController::class, 'adjustPoints'])->name('.adjust');
 });
 
 // Messages

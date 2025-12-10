@@ -11,12 +11,13 @@
     'languages' => [],
     'model' => null,
     'oldPrefix' => 'translations',
-    'tags' => false
+    'tags' => false,
+    'cols' => 6
 ])
 
 <div class="row">
     @foreach($languages as $language)
-        <div class="col-md-6 mb-25 @if(app()->getLocale() == 'ar') {{ $language->code == 'ar' ? 'order-1' : 'order-2' }} @else {{ $language->code == 'en' ? 'order-1' : 'order-2' }} @endif">
+        <div class="col-md-{{ $cols }} mb-25 @if(app()->getLocale() == 'ar') {{ $language->code == 'ar' ? 'order-1' : 'order-2' }} @else {{ $language->code == 'en' ? 'order-1' : 'order-2' }} @endif">
             <div class="form-group">
                 <label for="translation_{{ $language->id }}_{{ $name }}" class="il-gray fs-14 fw-500 mb-10 d-block"
                     @if($language->code == 'ar' && (app()->getLocale() == 'en' || app()->getLocale() == 'ar'))

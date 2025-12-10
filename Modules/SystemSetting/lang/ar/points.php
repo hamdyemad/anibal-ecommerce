@@ -65,4 +65,21 @@ return [
     'transaction_expires_at' => 'تنتهي في',
     'transaction_created_at' => 'تم الإنشاء في',
     'transaction_is_expired' => 'منتهية',
+    'transaction_history' => 'سجل المعاملات',
+    'view_transactions' => 'عرض المعاملات',
+
+    // Transaction Details
+    'date' => 'التاريخ',
+    'type' => 'النوع',
+    'points' => 'النقاط',
+    'description' => 'الوصف',
+    'expiration' => 'انتهاء الصلاحية',
+    'active' => 'نشط',
+    'expired' => 'منتهي',
+
+    // Adjust Points
+    'adjust_points' => 'تعديل النقاط',
+    'adjust_points_help' => 'أدخل قيمة موجبة لإضافة نقاط أو سالبة للخصم',
+    'points_adjusted_successfully' => 'تم تعديل النقاط بنجاح',
+    'adjusted_points' => 'النقاط المعدلة',
 ];

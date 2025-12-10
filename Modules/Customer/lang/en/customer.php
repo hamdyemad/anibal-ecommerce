@@ -23,6 +23,7 @@ return [
 
     // Table headers
     'full_name' => 'Full Name',
+    'customer_name' => 'Customer Name',
     'customer_information' => 'Customer Information',
     'email' => 'Email',
     'phone' => 'Phone',

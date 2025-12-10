@@ -154,129 +154,138 @@
 
         <div class="row">
             <div class="col-lg-12">
-                <div class="card border-0 shadow-sm">
-                    <div class="card-header bg-white border-bottom py-20">
-                        <h5 class="mb-0 fw-500 fw-bold">
-                            {{ trans('systemsetting::points.user_points_management') }}
-                        </h5>
+                <div class="userDatatable global-shadow border-light-0 p-30 bg-white radius-xl w-100 mb-30">
+                    <div class="d-flex justify-content-between align-items-center mb-25">
+                        <h4 class="mb-0 fw-500 fw-bold">{{ trans('systemsetting::points.user_points_management') }}</h4>
                     </div>
-                    <div class="card-body">
-                        <!-- Filter Section -->
-                        <div class="filter-section">
-                            <div class="filter-group">
-                                <div class="filter-input">
-                                    <input type="text"
-                                           id="searchInput"
-                                           class="form-control form-control-sm"
-                                           placeholder="{{ trans('common.search_by_name_or_email') }}">
+
+                    {{-- Search & Filters --}}
+                    <div class="mb-25">
+                        <div class="card border-0 shadow-sm">
+                            <div class="card-body">
+                                <div class="row g-3 align-items-end">
+
+                                    {{-- Search --}}
+                                    <div class="col-md-4">
+                                        <div class="form-group">
+                                            <label for="search" class="il-gray fs-14 fw-500 mb-10">
+                                                <i class="uil uil-search me-1"></i> {{ __('common.search') }}
+                                            </label>
+                                            <input type="text"
+                                                class="form-control ih-medium ip-gray radius-xs b-light px-15"
+                                                id="search"
+                                                placeholder="{{ __('common.search') }}..."
+                                                autocomplete="off">
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-12 d-flex align-items-center mt-3">
+                                        <button type="button" id="searchBtn"
+                                            class="btn btn-success btn-default btn-squared me-1"
+                                            title="{{ __('common.search') }}">
+                                            <i class="uil uil-search me-1"></i>
+                                            {{ __('common.search') }}
+                                        </button>
+                                        <button type="button" id="resetFilters"
+                                            class="btn btn-warning btn-default btn-squared me-1"
+                                            title="{{ __('common.reset') }}">
+                                            <i class="uil uil-redo me-1"></i>
+                                            {{ __('common.reset_filters') }}
+                                        </button>
+                                    </div>
+
                                 </div>
-                                <button class="filter-btn filter-btn-search" onclick="filterTable()">
-                                    <i class="uil uil-search"></i> {{ trans('common.search') }}
-                                </button>
-                                <button class="filter-btn filter-btn-reset" onclick="resetFilters()">
-                                    <i class="uil uil-redo"></i> {{ trans('common.reset') }}
-                                </button>
                             </div>
                         </div>
+                    </div>
 
-                        <!-- User Points Table -->
+                    {{-- Entries Per Page --}}
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div class="d-flex align-items-center">
+                            <label class="me-2 mb-0">{{ __('common.show') }}</label>
+                            <select id="entriesSelect" class="form-select form-select-sm" style="width: auto;">
+                                <option value="10">10</option>
+                                <option value="25">25</option>
+                                <option value="50">50</option>
+                                <option value="100">100</option>
+                            </select>
+                            <label class="ms-2 mb-0">{{ __('common.entries') }}</label>
+                        </div>
+                    </div>
+
+                        <!-- DataTable -->
                         <div class="table-responsive">
-                            <table class="table mb-0 table-bordered table-hover" id="userPointsTable">
+                            <table id="customerPointsTable" class="table mb-0 table-bordered table-hover" style="width:100%">
                                 <thead>
                                     <tr class="userDatatable-header">
                                         <th class="text-center"><span class="userDatatable-title">#</span></th>
-                                        <th><span class="userDatatable-title">{{ trans('systemsetting::points.user_information') }}</span></th>
-                                        <th class="text-center"><span class="userDatatable-title">{{ trans('systemsetting::points.total_points') }}</span></th>
+                                        <th><span class="userDatatable-title">{{ trans('customer::customer.customer_information') }}</span></th>
                                         <th class="text-center"><span class="userDatatable-title">{{ trans('systemsetting::points.earned_points') }}</span></th>
                                         <th class="text-center"><span class="userDatatable-title">{{ trans('systemsetting::points.redeemed_points') }}</span></th>
-                                        <th class="text-center"><span class="userDatatable-title">{{ trans('systemsetting::points.expired_points') }}</span></th>
-                                        <th class="text-center"><span class="userDatatable-title">{{ trans('common.actions') }}</span></th>
+                                        <th class="text-center"><span class="userDatatable-title">{{ trans('systemsetting::points.adjusted_points') }}</span></th>
+                                        <th class="text-center"><span class="userDatatable-title">{{ trans('systemsetting::points.available_points') }}</span></th>
+                                        <th class="text-center"><span class="userDatatable-title">{{ __('common.actions') }}</span></th>
                                     </tr>
                                 </thead>
-                                <tbody>
-                                </tbody>
+                                <tbody></tbody>
                             </table>
                         </div>
+
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Points Details Modal -->
-    <div class="modal fade" id="pointsDetailsModal" tabindex="-1" aria-labelledby="pointsDetailsModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header bg-light border-bottom">
-                    <h5 class="modal-title" id="pointsDetailsModalLabel">
-                        <i class="uil uil-star me-2"></i>{{ trans('systemsetting::points.points_details') }}
-                    </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <div id="pointsDetailsContent"></div>
-                </div>
-            </div>
-        </div>
-    </div>
+@endsection
 
+@push('scripts')
     <script>
-        let dataTable;
+        $(document).ready(function() {
+            let per_page = 10;
 
-        document.addEventListener('DOMContentLoaded', function() {
-            initializeDataTable();
-        });
-
-        function initializeDataTable() {
-            dataTable = $('#userPointsTable').DataTable({
+            // Initialize DataTable
+            let table = $('#customerPointsTable').DataTable({
                 processing: true,
                 serverSide: true,
                 ajax: {
-                    url: '{{ route("admin.user-points.datatable") }}',
+                    url: '{{ route('admin.user-points.datatable') }}',
                     type: 'GET',
                     data: function(d) {
-                        d.search = {
-                            value: $('#searchInput').val()
-                        };
+                        d.per_page = d.length;
+                        d.page = (d.start / d.length) + 1;
+                        d.search = $('#search').val();
+                        return d;
                     }
                 },
                 columns: [
                     {
-                        data: 'index',
-                        name: 'index',
-                        className: 'text-center',
+                        data: 'id',
+                        name: 'id',
                         orderable: false,
                         searchable: false,
-                        render: function(data) {
-                            return '<span class="userDatatable-content">' + data + '</span>';
+                        render: function(data, type, row, meta) {
+                            return meta.row + meta.settings._iDisplayStart + 1;
                         }
                     },
                     {
-                        data: 'user_information',
-                        name: 'user_information',
+                        data: 'customer_information',
+                        name: 'customer_information',
                         orderable: false,
                         searchable: false,
-                        render: function(data) {
-                            let photo = data.photo ? '{{ asset("storage/") }}/' + data.photo : '{{ asset("images/avatar.png") }}';
-                            return `
-                                <div class="user-info-cell">
-                                    <img src="${photo}" alt="${data.name}" class="user-avatar" onerror="this.src='{{ asset('images/avatar.png') }}'">
-                                    <div class="user-details">
-                                        <div class="user-name">${$('<div/>').text(data.name).html()}</div>
-                                        <div class="user-email">${$('<div/>').text(data.email).html()}</div>
-                                    </div>
-                                </div>
-                            `;
-                        }
-                    },
-                    {
-                        data: 'total_points',
-                        name: 'total_points',
-                        className: 'text-center',
-                        orderable: false,
-                        searchable: false,
-                        render: function(data) {
-                            return '<span class="points-badge points-total">' + data + '</span>';
+                        render: function(data, type, row) {
+                            if (!data) return '<span class="text-muted">—</span>';
+
+                            let html = '<div class="userDatatable-content">';
+                            html += '<div style="margin-bottom: 4px;">';
+                            html += '<span>' + $('<div/>').text(data.full_name).html() + '</span>';
+                            html += '</div>';
+                            html += '<div>';
+                            html += '<div><strong>{{ trans('customer::customer.email') }}:</strong> <span style="text-transform: lowercase;">' + data.email + '</span></div>';
+                            html += '<div><strong>{{ trans('customer::customer.phone') }}:</strong> ' + $('<div/>').text(data.phone).html() + '</div>';
+                            html += '</div>';
+                            html += '</div>';
+                            return html;
                         }
                     },
                     {
@@ -286,7 +295,13 @@
                         orderable: false,
                         searchable: false,
                         render: function(data) {
-                            return '<span class="points-badge points-earned">' + data + '</span>';
+                            let spanClass = 'success';
+                            if(data == 0) {
+                                spanClass = 'primary';
+                            } else if(data < 0) {
+                                spanClass = 'danger';
+                            }
+                            return `<span class="badge badge-round badge-lg badge-${spanClass}" style="padding: 6px 10px; font-size: 12px;">${data}</span>`;
                         }
                     },
                     {
@@ -296,126 +311,171 @@
                         orderable: false,
                         searchable: false,
                         render: function(data) {
-                            return '<span class="points-badge points-redeemed">' + data + '</span>';
+                            let spanClass = 'success';
+                            if(data == 0) {
+                                spanClass = 'primary';
+                            } else if(data < 0) {
+                                spanClass = 'danger';
+                            }
+                            return `<span class="badge badge-round badge-lg badge-${spanClass}" style="padding: 6px 10px; font-size: 12px;">${data}</span>`;
                         }
                     },
                     {
-                        data: 'expired_points',
-                        name: 'expired_points',
+                        data: 'adjusted_points',
+                        name: 'adjusted_points',
                         className: 'text-center',
                         orderable: false,
                         searchable: false,
                         render: function(data) {
-                            return '<span class="points-badge points-expired">' + data + '</span>';
+                            let spanClass = 'success';
+                            if(data == 0) {
+                                spanClass = 'primary';
+                            } else if(data < 0) {
+                                spanClass = 'danger';
+                            }
+                            return `<span class="badge badge-round badge-lg badge-${spanClass}" style="padding: 6px 10px; font-size: 12px;">${data}</span>`;
                         }
                     },
                     {
-                        data: 'id',
-                        name: 'actions',
+                        data: 'available_points',
+                        name: 'available_points',
                         className: 'text-center',
                         orderable: false,
                         searchable: false,
                         render: function(data) {
+                            let spanClass = 'success';
+                            if(data == 0) {
+                                spanClass = 'primary';
+                            } else if(data < 0) {
+                                spanClass = 'danger';
+                            }
+                            return `<span class="badge badge-round badge-lg badge-${spanClass}" style="padding: 6px 10px; font-size: 12px;">${data}</span>`;
+                        }
+                    },
+                    {
+                        data: null,
+                        orderable: false,
+                        searchable: false,
+                        render: function(data, type, row) {
+                            let viewUrl = "{{ route('admin.user-points.transactions',':id') }}".replace(':id', row.id);
                             return `
-                                <button class="action-btn action-btn-points"
-                                        onclick="viewPointsDetails(${data})"
-                                        title="{{ trans('systemsetting::points.view_points_details') }}">
-                                    <i class="uil uil-star"></i>
-                                </button>
+                                <div class="orderDatatable_actions d-inline-flex gap-1 justify-content-center">
+                                    <a href="${viewUrl}"
+                                       class="btn btn-info table_action_father"
+                                       onclick="this.href = this.href.replace(':lang', '{{ app()->getLocale() }}').replace(':countryCode', '{{ session('country_code', 'EG') }}').replace(':id', ${row.id})"
+                                       title="{{ trans('systemsetting::points.view_transactions') }}">
+                                        <i class="uil uil-history table_action_icon"></i>
+                                    </a>
+                                </div>
                             `;
                         }
                     }
                 ],
-                language: {
-                    url: '{{ asset("vendor/datatables/i18n/" . app()->getLocale() . ".json") }}'
-                },
-                pageLength: 10,
+                pageLength: per_page,
                 lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]],
-                order: [[0, 'desc']]
-            });
-        }
-
-        function filterTable() {
-            if (dataTable) {
-                dataTable.draw();
-            }
-        }
-
-        function resetFilters() {
-            $('#searchInput').val('');
-            if (dataTable) {
-                dataTable.draw();
-            }
-        }
-
-        function viewPointsDetails(id) {
-            fetch('{{ route("admin.user-points.show", ":id") }}'.replace(':id', id), {
-                method: 'GET',
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest',
+                order: [[0, 'desc']],
+                pagingType: 'full_numbers',
+                language: {
+                    search: '',
+                    searchPlaceholder: "{{ __('common.search') }}...",
+                    lengthMenu: '_MENU_',
+                    info: "{{ __('common.showing') }} _START_ {{ __('common.to') }} _END_ {{ __('common.of') }} _TOTAL_ {{ __('common.entries') }}",
+                    infoEmpty: "{{ __('common.showing') }} 0 {{ __('common.to') }} 0 {{ __('common.of') }} 0 {{ __('common.entries') }}",
+                    infoFiltered: "({{ __('common.filtered_from') }} _MAX_ {{ __('common.total_entries') }})",
+                    zeroRecords: "{{ __('common.no_matching_records_found') }}",
+                    emptyTable: "{{ __('common.no_data_available') }}",
+                    paginate: {
+                        @if(app()->getLocale() == 'en')
+                            first: '<i class="uil uil-angle-double-left"></i>',
+                            last: '<i class="uil uil-angle-double-right"></i>',
+                            next: '<i class="uil uil-angle-right"></i>',
+                            previous: '<i class="uil uil-angle-left"></i>'
+                        @else
+                            first: '<i class="uil uil-angle-double-right"></i>',
+                            last: '<i class="uil uil-angle-double-left"></i>',
+                            next: '<i class="uil uil-angle-left"></i>',
+                            previous: '<i class="uil uil-angle-right"></i>'
+                        @endif
+                    }
+                },
+                dom: '<"row"<"col-sm-12"tr>>' +
+                     '<"row"<"col-sm-12 col-md-5"i><"col-sm-12 col-md-7"p>>',
+                drawCallback: function() {
+                    $('.dataTables_paginate > .pagination').addClass('pagination-bordered');
                 }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    const userPhoto = data.data.user_photo
-                        ? '{{ asset("storage/") }}/' + data.data.user_photo
-                        : '{{ asset("images/avatar.png") }}';
-
-                    const html = `
-                        <div class="text-center mb-3">
-                            <img src="${userPhoto}" alt="${data.data.user_name}"
-                                 class="rounded-circle" style="width: 80px; height: 80px; object-fit: cover;"
-                                 onerror="this.src='{{ asset('images/avatar.png') }}'">
-                        </div>
-                        <div class="mb-3">
-                            <h6 class="fw-bold">${$('<div/>').text(data.data.user_name).html()}</h6>
-                            <small class="text-muted">${$('<div/>').text(data.data.user_email).html()}</small>
-                        </div>
-                        <hr>
-                        <div class="row">
-                            <div class="col-6 mb-3">
-                                <div class="text-center">
-                                    <div class="points-badge points-total w-100">${data.data.total_points}</div>
-                                    <small class="d-block mt-2">{{ trans('systemsetting::points.total_points') }}</small>
-                                </div>
-                            </div>
-                            <div class="col-6 mb-3">
-                                <div class="text-center">
-                                    <div class="points-badge points-earned w-100">${data.data.earned_points}</div>
-                                    <small class="d-block mt-2">{{ trans('systemsetting::points.earned_points') }}</small>
-                                </div>
-                            </div>
-                            <div class="col-6 mb-3">
-                                <div class="text-center">
-                                    <div class="points-badge points-redeemed w-100">${data.data.redeemed_points}</div>
-                                    <small class="d-block mt-2">{{ trans('systemsetting::points.redeemed_points') }}</small>
-                                </div>
-                            </div>
-                            <div class="col-6 mb-3">
-                                <div class="text-center">
-                                    <div class="points-badge points-expired w-100">${data.data.expired_points}</div>
-                                    <small class="d-block mt-2">{{ trans('systemsetting::points.expired_points') }}</small>
-                                </div>
-                            </div>
-                            <div class="col-12">
-                                <div class="alert alert-info mb-0">
-                                    <strong>{{ trans('systemsetting::points.available_points') }}:</strong> ${data.data.available_points}
-                                </div>
-                            </div>
-                        </div>
-                    `;
-
-                    document.getElementById('pointsDetailsContent').innerHTML = html;
-                    new bootstrap.Modal(document.getElementById('pointsDetailsModal')).show();
-                } else {
-                    toastr.error(data.message || '{{ trans("common.error_occurred") }}');
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                toastr.error('{{ trans("common.error_occurred") }}');
             });
-        }
+
+            // Handle entries per page change
+            $('#entriesSelect').on('change', function() {
+                table.page.len($(this).val()).draw();
+            });
+
+            // Search button click
+            $('#searchBtn').on('click', function() {
+                table.draw();
+            });
+
+            // Reset filters button click
+            $('#resetFilters').on('click', function() {
+                $('#search').val('');
+                table.draw();
+            });
+
+            // View points details
+            window.viewPointsDetails = function(id) {
+                fetch('{{ route("admin.user-points.show", ":id") }}'.replace(':id', id), {
+                    method: 'GET',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const html = `
+                            <div class="mb-3">
+                                <h6 class="fw-bold">${$('<div/>').text(data.data.user_name).html()}</h6>
+                                <small class="text-muted">${$('<div/>').text(data.data.user_email).html()}</small>
+                            </div>
+                            <hr>
+                            <div class="row">
+                                <div class="col-6 mb-3">
+                                    <div class="text-center">
+                                        <div class="badge badge-round badge-lg bg-success w-100" style="padding: 10px; font-size: 14px;">${data.data.earned_points}</div>
+                                        <small class="d-block mt-2">{{ trans('systemsetting::points.earned_points') }}</small>
+                                    </div>
+                                </div>
+                                <div class="col-6 mb-3">
+                                    <div class="text-center">
+                                        <div class="badge badge-round badge-lg bg-warning w-100" style="padding: 10px; font-size: 14px;">${data.data.redeemed_points}</div>
+                                        <small class="d-block mt-2">{{ trans('systemsetting::points.redeemed_points') }}</small>
+                                    </div>
+                                </div>
+                                <div class="col-6 mb-3">
+                                    <div class="text-center">
+                                        <div class="badge badge-round badge-lg bg-info w-100" style="padding: 10px; font-size: 14px;">${data.data.adjusted_points}</div>
+                                        <small class="d-block mt-2">{{ trans('systemsetting::points.adjusted_points') }}</small>
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <div class="alert alert-info mb-0">
+                                        <strong>{{ trans('systemsetting::points.available_points') }}:</strong> ${data.data.available_points}
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+
+                        document.getElementById('pointsDetailsContent').innerHTML = html;
+                        new bootstrap.Modal(document.getElementById('pointsDetailsModal')).show();
+                    } else {
+                        toastr.error(data.message || '{{ trans("common.error_occurred") }}');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    toastr.error('{{ trans("common.error_occurred") }}');
+                });
+            };
+        });
     </script>
-@endsection
+@endpush

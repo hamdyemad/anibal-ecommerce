@@ -11,7 +11,7 @@ class CustomerQueryAction
      */
     public function handle(array $filters = [])
     {
-        $query = Customer::query();
+        $query = Customer::query()->with('country');
 
         // Search filter
         if (!empty($filters['search'])) {

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ config('app.name') }} - Welcome</title>
+    <title>{{ Bnaia }} - Welcome</title>
     <style>
         * {
             margin: 0;
@@ -182,7 +182,7 @@
     <div class="container">
         <!-- Header -->
         <header>
-            <h1>{{ config('app.name') }}</h1>
+            <h1>Bnaia</h1>
             <p>{{ __('Welcome to our platform') }}</p>
         </header>
 
@@ -201,7 +201,7 @@
 
         <!-- Main Content -->
         <div class="content">
-            <h2>{{ __('Welcome to') }} {{ config('app.name') }}</h2>
+            <h2>{{ __('Welcome to') }} {{ Bnaia }}</h2>
             <p>
                 {{ __('Thank you for joining our community. Your email has been successfully verified!') }}
             </p>
@@ -242,7 +242,7 @@
 
         <!-- Footer -->
         <footer>
-            <p>&copy; {{ date('Y') }} {{ config('app.name') }}. {{ __('All rights reserved.') }}</p>
+            <p>&copy; {{ date('Y') }} {{ Bnaia }}. {{ __('All rights reserved.') }}</p>
         </footer>
     </div>
 </body>

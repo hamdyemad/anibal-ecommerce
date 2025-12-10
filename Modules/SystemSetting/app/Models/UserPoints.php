@@ -28,13 +28,11 @@ class UserPoints extends Model
         return $this->belongsTo(User::class);
     }
 
-    /**
-     * Get all transactions for this user's points
-     */
     public function transactions()
     {
-        return $this->hasMany(UserPointsTransaction::class, 'user_id', 'user_id');
+        return $this->morphMany(UserPointsTransaction::class, 'transactionable');
     }
+
 
     /**
      * Get available points (total - redeemed - expired)

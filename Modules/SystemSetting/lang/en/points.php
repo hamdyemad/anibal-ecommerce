@@ -65,4 +65,21 @@ return [
     'transaction_expires_at' => 'Expires At',
     'transaction_created_at' => 'Created At',
     'transaction_is_expired' => 'Expired',
+    'transaction_history' => 'Transaction History',
+    'view_transactions' => 'View Transactions',
+
+    // Transaction Details
+    'date' => 'Date',
+    'type' => 'Type',
+    'points' => 'Points',
+    'description' => 'Description',
+    'expiration' => 'Expiration',
+    'active' => 'Active',
+    'expired' => 'Expired',
+
+    // Adjust Points
+    'adjust_points' => 'Adjust Points',
+    'adjust_points_help' => 'Enter positive value to add points or negative to deduct',
+    'points_adjusted_successfully' => 'Points adjusted successfully',
+    'adjusted_points' => 'Adjusted Points',
 ];

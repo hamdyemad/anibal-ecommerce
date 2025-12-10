@@ -2,13 +2,15 @@
 
 namespace Modules\SystemSetting\app\Models;
 
+use App\Models\Traits\HumanDates;
 use App\Models\User;
+use App\Traits\Translation;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class UserPointsTransaction extends Model
 {
-    use SoftDeletes;
+    use Translation, SoftDeletes, HumanDates;
 
     protected $table = 'user_points_transactions';
     protected $guarded = [];
@@ -32,6 +34,11 @@ class UserPointsTransaction extends Model
     public function transactionable()
     {
         return $this->morphTo();
+    }
+
+
+    public function getDescriptionAttribute() {
+        return $this->getTranslation('description', app()->getLocale());
     }
 
     /**

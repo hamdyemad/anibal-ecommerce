@@ -119,6 +119,7 @@ return [
     'recommended_cover_size' => 'الحجم الموصى به: 1200×400 بكسل',
     'please_fix_errors' => 'يرجى إصلاح أخطاء التحقق',
     'error_occurred' => 'حدث خطأ',
+    'validation_error' => 'خطأ في التحقق',
     'basic_info' => 'المعلومات الأساسية',
     'id' => 'الرقم التعريفي',
     'language' => 'اللغة',

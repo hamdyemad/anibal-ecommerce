@@ -7,6 +7,7 @@ use Modules\Customer\app\Models\Customer;
 use Modules\SystemSetting\app\Models\UserPoints;
 use Modules\SystemSetting\app\Models\PointsSetting;
 use Modules\SystemSetting\app\Models\PointsSystem;
+use Modules\SystemSetting\app\Models\UserPointsTransaction;
 
 class CustomerObserver
 {
@@ -18,7 +19,7 @@ class CustomerObserver
         try {
 
             $pointSystem = PointsSystem::latest()->first();
-            if($pointSystem->is_enabled) {
+            if ($pointSystem->is_enabled) {
 
                 // Get customer's country
                 $currency = $customer->country->currency;
@@ -28,22 +29,30 @@ class CustomerObserver
                     return; // No points setting found, skip
                 }
 
-                // Check if customer already has points record
-                $existingPoints = UserPoints::where('user_id', $customer->id)->first();
-                if ($existingPoints) {
-                    return; // Already has points, skip
-                }
-
                 // Create customer points record with welcome bonus
                 $welcomePoints = $pointsSetting->welcome_points ?? 0;
 
-                UserPoints::create([
+                $userPoint = UserPoints::create([
                     'user_id' => $customer->id,
                     'total_points' => $welcomePoints,
                     'earned_points' => $welcomePoints,
                     'redeemed_points' => 0,
                     'expired_points' => 0,
                 ]);
+
+                // Create transaction record for the welcome points
+                $descriptionEn = "Earned {$welcomePoints} points from registration";
+                $descriptionAr = "حصلت على {$welcomePoints} نقطة من التسجيل";
+
+                $transaction = $userPoint->transactions()->create([
+                    'user_id' => $customer->id,
+                    'points' => $welcomePoints,
+                    'type' => 'earned',
+                ]);
+                // Store English translation
+                $transaction->setTranslation('description', 'en', $descriptionEn);
+                // Store Arabic translation
+                $transaction->setTranslation('description', 'ar', $descriptionAr);
             }
         } catch (\Exception $e) {
             // Silently fail - don't block customer creation

@@ -23,6 +23,7 @@ return [
 
     // Table headers
     'full_name' => 'الاسم الكامل',
+    'customer_name' => 'اسم العميل',
     'customer_information' => 'معلومات العميل',
     'email' => 'البريد الإلكتروني',
     'phone' => 'الهاتف',
