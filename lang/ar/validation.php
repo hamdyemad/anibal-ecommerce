@@ -201,7 +201,8 @@ return [
     'payment_type_in' => 'يجب أن تكون طريقة الدفع أحد الخيارات التالية: cash_on_delivery, online, aman',
     'use_point_required' => 'حقل استخدام النقاط مطلوب',
     'use_point_boolean' => 'يجب أن تكون قيمة استخدام النقاط صحيحة أو خاطئة',
-
+    'customer_address_id_not_exist' => 'عنوان العميل غير موجود',
+    'customer_id_not_exist' => 'العميل غير موجود                    ',
     /*
     |--------------------------------------------------------------------------
     | Custom Validation Attributes

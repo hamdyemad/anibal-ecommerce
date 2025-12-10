@@ -15,6 +15,7 @@ interface ProductApiRepositoryInterface
     public function incrementProductViews(string $productId);
     public function incrementProductSales(string $productId, $quantity);
     public function getVariantsWithProduct(array $filters);
+    public function findProductForOrder(string $id);
 
 
 

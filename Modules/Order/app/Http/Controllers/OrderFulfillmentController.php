@@ -8,6 +8,7 @@ use Modules\Order\app\Services\OrderStageTransitionService;
 use Modules\Order\app\Http\Requests\AllocateFulfillmentRequest;
 use Modules\Order\app\Models\Order;
 use Illuminate\Validation\ValidationException;
+use Modules\Order\app\Models\OrderStage;
 
 class OrderFulfillmentController extends Controller
 {
@@ -25,7 +26,7 @@ class OrderFulfillmentController extends Controller
     /**
      * Show the stock allocation page for an order
      */
-    public function show($orderId)
+    public function show($orderId, $lang, $countryCode)
     {
         $data = $this->fulfillmentService->getStockDataForOrder($orderId);
 
@@ -35,7 +36,7 @@ class OrderFulfillmentController extends Controller
     /**
      * Save stock allocations and update order stage
      */
-    public function allocate(AllocateFulfillmentRequest $request, $orderId)
+    public function allocate(AllocateFulfillmentRequest $request, $lang, $countryCode, $orderId)
     {
         try {
             $order = Order::findOrFail($orderId);
@@ -47,7 +48,7 @@ class OrderFulfillmentController extends Controller
             $this->fulfillmentService->updateStockRegions($orderId);
 
             // Update order stage to "in-progress" (slug: in-progress)
-            $inProgressStage = \Modules\Order\app\Models\OrderStage::where('slug', 'in-progress')->firstOrFail();
+            $inProgressStage = OrderStage::where('slug', 'in-progress')->firstOrFail();
             $order->update(['stage_id' => $inProgressStage->id]);
 
             return redirect()->route('admin.orders.show', $orderId)

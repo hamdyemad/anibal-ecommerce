@@ -3,6 +3,7 @@
 namespace Modules\Order\app\Pipelines;
 
 use Closure;
+use Illuminate\Support\Facades\Log;
 use Modules\Customer\app\Models\Customer;
 use Modules\Customer\app\Models\CustomerAddress;
 use Modules\Customer\app\Services\Api\CustomerAddressService;
@@ -27,9 +28,14 @@ class FetchUserData
         // Determine if customer is existing or external
         if ($data['customer_type'] === 'existing') {
             $customer = $this->customerService->getById($data['selected_customer_id']);
-
-            $address = $this->customerAddressService->getAddressById($data['customer_address_id'], $customer);
-
+            if (!$customer) {
+                throw new \Exception(__('validation.customer_id_not_exist'));
+            }
+            // Ensure customer_address_id is an integer
+            $address = $this->customerAddressService->getAddressById($data["customer_address_id"], $customer);
+            if (!$address) {
+                throw new \Exception(__('validation.customer_address_id_not_exist'));
+            }
             $context['customer'] = [
                 'id' => $customer->id,
                 'name' => $customer->full_name,

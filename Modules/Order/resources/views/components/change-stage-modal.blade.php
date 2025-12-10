@@ -36,10 +36,10 @@
         // Fetch order stages for dropdown
         function loadOrderStages() {
             const orderId = $('#orderId').val();
-            
+
             // Use order-specific endpoint if order ID is available
-            const url = orderId ? `/api/orders/${orderId}/allowed-stages` : '/api/order-stages';
-            
+            const url = orderId ? "{{ route('api.orders.allowed-stages', '__id__') }}".replace('__id__', orderId) : "{{ route('api.order-stages.index') }}";
+
             $.ajax({
                 url: url,
                 type: 'GET',
@@ -90,7 +90,7 @@
             // Check if selected stage requires fulfillment (in-progress)
             if (selectedStage && selectedStage.slug === 'in-progress') {
                 // Redirect to fulfillment page instead of changing stage directly
-                window.location.href = '{{ url('admin/order-fulfillments') }}/' + orderId + '/allocate';
+                window.location.href = "{{ route('admin.order-fulfillments.show', '__id__') }}".replace('__id__', orderId);
                 return;
             }
 
@@ -99,7 +99,7 @@
             $submitBtn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> {{ trans('common.updating') }}...');
 
             $.ajax({
-                url: '{{ url('admin/orders') }}/' + orderId + '/change-stage',
+                url: '{{ route("admin.orders.change-stage", "__id__") }}'.replace('__id__', orderId),
                 type: 'POST',
                 data: {
                     _token: '{{ csrf_token() }}',

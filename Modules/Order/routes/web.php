@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Route;
 use Modules\Order\app\Http\Controllers\OrderStageController;
 use Modules\Order\app\Http\Controllers\OrderController;
 use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
-
+use Modules\Order\app\Http\Controllers\OrderFulfillmentController;
 
 // Order Stages Management
 // Custom routes (must be defined before resource routes)
@@ -25,6 +25,6 @@ Route::resource('orders', OrderController::class);
 
 // Order Fulfillment Management
 Route::prefix('order-fulfillments')->name('order-fulfillments.')->group(function () {
-    Route::get('{orderId}/allocate', [\Modules\Order\app\Http\Controllers\OrderFulfillmentController::class, 'show'])->name('show');
-    Route::post('{orderId}/allocate', [\Modules\Order\app\Http\Controllers\OrderFulfillmentController::class, 'allocate'])->name('allocate');
+    Route::get('{orderId}/allocate', [OrderFulfillmentController::class, 'show'])->name('show');
+    Route::post('{orderId}/allocate', [OrderFulfillmentController::class, 'allocate'])->name('allocate');
 });

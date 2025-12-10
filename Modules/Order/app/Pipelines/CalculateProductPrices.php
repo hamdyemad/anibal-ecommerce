@@ -20,6 +20,7 @@ class CalculateProductPrices
      */
     public function handle($payload, Closure $next)
     {
+
         $data = $payload['data'];
         $context = $payload['context'];
 
@@ -79,7 +80,7 @@ class CalculateProductPrices
             $productTotal = $price * $quantity;
             $tax = ($productTotal * $taxRate) / 100;
             $commissionAmount = ($productTotal * $totalCommissionRate) / 100;
-            
+
             // Log::info('productTotal: '. $productId .' |' . $productTotal . '|');
             // Log::info('productTax: '. $productId .' |' . $tax . '|');
             // Log::info('productCommission: '. $productId .' |' . $commissionAmount . '|');
@@ -125,7 +126,7 @@ class CalculateProductPrices
         $context['items_count'] = $itemsCount;
         $context['product_sales_to_update'] = $productSalesData;
         // Log::info('context: '. print_r($context));
-        // throw new \Exception('test');   
+        // throw new \Exception('test');
         return $next([
             'data' => $data,
             'context' => $context,

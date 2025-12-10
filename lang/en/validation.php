@@ -199,7 +199,8 @@ return [
     'payment_type_in' => 'payment type must be one of: cash_on_delivery, online, aman',
     'use_point_required' => 'use point field is required',
     'use_point_boolean' => 'use point must be true or false',
-
+    'customer_address_id_not_exist' => 'customer address does not exist',
+    'customer_id_not_exist' => 'Customer not defined',
     /*
     |--------------------------------------------------------------------------
     | Custom Validation Attributes

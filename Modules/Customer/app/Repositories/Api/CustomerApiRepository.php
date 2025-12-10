@@ -31,7 +31,7 @@ class CustomerApiRepository implements CustomerApiRepositoryInterface
 
     public function getById(string $id): ?Customer
     {
-        return Customer::where('id', $id)->first();
+        return Customer::find($id);
     }
 
     public function create(array $data): Customer
