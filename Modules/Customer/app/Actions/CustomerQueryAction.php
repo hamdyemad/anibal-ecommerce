@@ -32,6 +32,17 @@ class CustomerQueryAction
             $query->where('status', $filters['active']);
         }
 
+        // City filter
+        if (!empty($filters['city_id'])) {
+            $query->where('city_id', intval($filters['city_id']));
+        }
+
+        // Region filter
+        if (!empty($filters['region_id'])) {
+            $query->where('region_id', intval($filters['region_id']));
+        }
+
+
         // Email verification filter
         if (isset($filters['email_verified']) && $filters['email_verified'] !== '') {
             if ($filters['email_verified'] == '1') {
@@ -62,7 +73,7 @@ class CustomerQueryAction
         }
 
         // Load relationships
-        $query->with(['addresses', 'fcmTokens']);
+        $query->with(['addresses', 'fcmTokens', 'city', 'region']);
 
         // Order by latest first
         $query->latest();

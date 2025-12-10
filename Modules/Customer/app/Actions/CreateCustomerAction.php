@@ -21,6 +21,10 @@ class CreateCustomerAction
             'phone' => $data['phone'] ?? null,
             'lang' => $data['lang'] ?? 'en',
             'status' => $data['status'] ?? true,
+            'country_id' => $data['country_id'] ?? null,
+            'city_id' => $data['city_id'] ?? null,
+            'region_id' => $data['region_id'] ?? null,
+            'gender' => $data['gender'] ?? null,
         ]);
     }
 }

@@ -27,7 +27,7 @@ class RegionApiController extends Controller
 
     public function getRegionsByCity(Request $request, $id)
     {
-        $regions = $this->RegionService->getRegionsByCity($request->all(), $id);
+        $regions = $this->RegionService->getRegionsByCity($id, $request->all());
 
         return $this->sendRes(config('responses.success')[app()->getLocale()], true, RegionResource::collection($regions));
     }

@@ -11,10 +11,20 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Hash;
 use Laravel\Sanctum\HasApiTokens;
+use Modules\Customer\app\Observers\CustomerObserver;
 
 class Customer extends Authenticatable
 {
     use HasFactory, SoftDeletes, Notifiable, HasApiTokens, HumanDates, AutoStoreCountryId, CountryCheckIdTrait;
+
+    /**
+     * Boot the model.
+     */
+    // protected static function boot()
+    // {
+    //     parent::boot();
+    //     static::observe(CustomerObserver::class);
+    // }
 
     protected $guarded = [];
 
@@ -35,6 +45,7 @@ class Customer extends Authenticatable
     protected $casts = [
         'password' => 'hashed',
         'status' => 'boolean',
+        'gender' => 'string',
     ];
 
     // /**
@@ -75,6 +86,30 @@ class Customer extends Authenticatable
     public function primaryAddress()
     {
         return $this->hasOne(CustomerAddress::class)->where('is_primary', true);
+    }
+
+    /**
+     * Get country for this customer
+     */
+    public function country()
+    {
+        return $this->belongsTo(\Modules\AreaSettings\app\Models\Country::class);
+    }
+
+    /**
+     * Get city for this customer
+     */
+    public function city()
+    {
+        return $this->belongsTo(\Modules\AreaSettings\app\Models\City::class);
+    }
+
+    /**
+     * Get region for this customer
+     */
+    public function region()
+    {
+        return $this->belongsTo(\Modules\AreaSettings\app\Models\Region::class);
     }
 
     /**

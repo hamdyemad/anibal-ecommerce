@@ -24,7 +24,6 @@ class CustomerController extends Controller
     public function datatable(Request $request)
     {
         $filters = $request->all();
-
         $query = $this->customerService->getCustomersQuery($filters);
 
         $total = $query->count();
@@ -43,6 +42,8 @@ class CustomerController extends Controller
                 'full_name' => $customer->full_name,
                 'email' => $customer->email,
                 'phone' => $customer->phone,
+                'city_name' => $customer->city?->name ?? '-',
+                'region_name' => $customer->region?->name ?? '-',
                 'status' => $customer->status,
                 'email_verified_at' => $customer->email_verified_at,
                 'created_at' => $customer->created_at,

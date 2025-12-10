@@ -47,6 +47,9 @@ class CustomerRepository implements CustomerRepositoryInterface
                 'phone' => $data['phone'] ?? null,
                 'image' => $data['image'] ?? null,
                 'status' => $data['status'] ?? true,
+                'gender' => $data['gender'],
+                'city_id' => $data['city_id'],
+                'region_id' => $data['region_id'],
                 'lang' => $data['lang'] ?? 'en',
                 'email_verified_at' => Carbon::now(),
             ]);
@@ -74,6 +77,9 @@ class CustomerRepository implements CustomerRepositoryInterface
                 'image' => $data['image'] ?? $customer->image,
                 'status' => $data['status'] ?? $customer->status,
                 'lang' => $data['lang'] ?? $customer->lang,
+                'gender' => $data['gender'] ?? $customer->gender,
+                'city_id' => $data['city_id'] ?? $customer->city_id,
+                'region_id' => $data['region_id'] ?? $customer->region_id,
                 'email_verified_at' => Carbon::now(),
             ];
 

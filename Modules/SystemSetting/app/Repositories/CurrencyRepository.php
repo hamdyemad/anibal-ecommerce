@@ -14,7 +14,7 @@ class CurrencyRepository implements CurrencyRepositoryInterface
      */
     public function getAllCurrencies(array $filters = [], ?int $perPage = 15)
     {
-        $query = Currency::with('translations','attachments')->filter($filters);
+        $query = Currency::with('translations','attachments', 'pointSetting')->filter($filters);
 
         // Order by latest
         $query->orderBy('created_at', 'desc');
