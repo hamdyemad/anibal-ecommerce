@@ -6,7 +6,7 @@ use App\Actions\IsPaginatedAction;
 use Illuminate\Support\Facades\DB;
 use Modules\CatalogManagement\app\DTOs\ReviewFilterDTO;
 use Modules\CatalogManagement\app\Interfaces\Api\ReviewRepositoryInterface;
-use Modules\CatalogManagement\Models\Review;
+use Modules\CatalogManagement\app\Models\Review;
 
 class ReviewRepository implements ReviewRepositoryInterface
 {

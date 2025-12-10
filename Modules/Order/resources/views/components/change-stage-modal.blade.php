@@ -98,6 +98,14 @@
             const originalText = $submitBtn.html();
             $submitBtn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> {{ trans('common.updating') }}...');
 
+            // Show loading overlay
+            if (typeof LoadingOverlay !== 'undefined') {
+                LoadingOverlay.show({
+                    text: '{{ trans('order::order.updating_stage') }}',
+                    subtext: '{{ __('common.please_wait') }}...'
+                });
+            }
+
             $.ajax({
                 url: '{{ route("admin.orders.change-stage", "__id__") }}'.replace('__id__', orderId),
                 type: 'POST',
@@ -106,15 +114,38 @@
                     stage_id: stageId
                 },
                 success: function(response) {
-                    if (response.status) {
-                        toastr.success(response.message);
-                        setTimeout(() => location.reload(), 1500);
-                    } else {
-                        toastr.error(response.message || '{{ trans('common.error_occurred') }}');
+                    if (typeof LoadingOverlay !== 'undefined') {
+                        LoadingOverlay.hide();
                     }
+
+                    // Close modal
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('changeStageModal'));
+                    if (modal) modal.hide();
+
+                    // Show success message
+                    toastr.success(response.message || '{{ trans('order::order.stage_updated_successfully') }}');
+
+                    // Reload page or table based on context
+                    setTimeout(() => {
+                        // Check if we're on the index page with DataTable
+                        if (typeof table !== 'undefined' && table.ajax) {
+                            table.ajax.reload();
+                        } else {
+                            // Otherwise reload the page (for show page)
+                            location.reload();
+                        }
+                    }, 1500);
                 },
                 error: function(xhr) {
-                    const errorMessage = xhr.responseJSON?.message || '{{ trans('common.error_occurred') }}';
+                    if (typeof LoadingOverlay !== 'undefined') {
+                        LoadingOverlay.hide();
+                    }
+
+                    let errorMessage = '{{ trans('order::order.error_updating_stage') }}';
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        errorMessage = xhr.responseJSON.message;
+                    }
+
                     toastr.error(errorMessage);
                 },
                 complete: function() {

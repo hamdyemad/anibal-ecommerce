@@ -178,55 +178,6 @@ class OrderController extends Controller
     }
 
     /**
-     * Show the form for editing the specified order
-     */
-    public function edit($lang, $countryCode, $id)
-    {
-        // Implementation here
-    }
-
-    /**
-     * Update the specified order
-     */
-    public function update($lang, $countryCode, $id, UpdateOrderRequest $request)
-    {
-        // Implementation here
-    }
-
-    /**
-     * Delete the specified order
-     */
-    public function destroy($lang, $countryCode, $id)
-    {
-        // Implementation here
-    }
-
-    /**
-     * Get order with all products
-     */
-    public function getOrderWithProducts($id)
-    {
-        // Implementation here
-    }
-
-    /**
-     * Add product to order
-     */
-    public function addProduct($orderId, AddProductToOrderRequest $request)
-    {
-        // Implementation here
-    }
-
-    /**
-     * Remove product from order
-     */
-    public function removeProduct($orderId, $orderProductId)
-    {
-        // Implementation here
-    }
-
-
-    /**
      * Change order stage
      */
     public function changeStage($lang, $countryCode, $id, ChangeOrderStageRequest $request)

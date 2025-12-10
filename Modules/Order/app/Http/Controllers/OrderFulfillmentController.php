@@ -26,7 +26,7 @@ class OrderFulfillmentController extends Controller
     /**
      * Show the stock allocation page for an order
      */
-    public function show($orderId, $lang, $countryCode)
+    public function show($lang, $countryCode, $orderId)
     {
         $data = $this->fulfillmentService->getStockDataForOrder($orderId);
 

@@ -302,9 +302,15 @@
                                 <a href="{{ route('admin.orders.index') }}" class="btn btn-outline-secondary btn-sm">
                                     <i class="uil uil-arrow-left me-2"></i>{{ trans('common.back') }}
                                 </a>
+                                @php
+                                    $finalStages = ['deliver', 'cancel', 'refund'];
+                                    $isFinalStage = in_array($order->stage?->slug, $finalStages);
+                                @endphp
+                                @if(!$isFinalStage)
                                 <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#changeStageModal">
                                     <i class="uil uil-check-circle me-2"></i>{{ trans('order::order.change_order_stage') }}
                                 </button>
+                                @endif
                                 <button class="btn btn-info btn-sm" onclick="printInvoice()">
                                     <i class="uil uil-print me-2"></i>{{ trans('order::order.print_invoice') }}
                                 </button>

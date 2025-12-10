@@ -40,16 +40,16 @@ class OrderRepository implements OrderRepositoryInterface
     {
         return DB::transaction(function () use ($id, $stageId) {
             $order = Order::with('stage')->findOrFail($id);
-            
+
             // Fetch the new stage
             $newStage = OrderStage::findOrFail($stageId);
-            
+
             // Update order stage
             $order->update(['stage_id' => $stageId]);
-            
+
             // Update fulfillment statuses based on stage slug
             $this->updateFulfillmentsByStage($order, $newStage);
-            
+
             return $order->refresh();
         });
     }

@@ -370,6 +370,10 @@
                         searchable: false,
                         render: function(data, type, row) {
                             let showUrl = "{{ route('admin.orders.show', ':id') }}".replace(':id', row.id);
+                            // Check if stage is delivered, cancelled, or refund
+                            const finalStages = ['deliver', 'cancel', 'refund'];
+                            const isFinalStage = row.stage && finalStages.includes(row.stage.slug);
+
                             return `
                                 <div class="orderDatatable_actions d-inline-flex gap-1 justify-content-center">
                                     <a href="${showUrl}"
@@ -377,6 +381,7 @@
                                     title="{{ trans('order::order.view_order') }}">
                                         <i class="uil uil-eye table_action_icon"></i>
                                     </a>
+                                    ${!isFinalStage ? `
                                     <button type="button"
                                     class="change-stage btn btn-info table_action_father"
                                     data-bs-toggle="modal"
@@ -386,6 +391,7 @@
                                     title="{{ trans('order::order.change_order_stage') }}">
                                         <i class="uil uil-exchange-alt table_action_icon"></i>
                                     </button>
+                                    ` : ''}
                                 </div>
                             `;
                         }
@@ -449,69 +455,6 @@
                 const newUrl = params.toString() ? `${window.location.pathname}?${params.toString()}` : window.location.pathname;
                 window.history.replaceState({}, '', newUrl);
             }
-
-            // Handle change stage modal
-            $(document).on('click', '.change-stage', function() {
-                const orderId = $(this).data('id');
-                $('#orderId').val(orderId);
-            });
-
-            // Handle change stage form submission
-            $('#changeStageForm').on('submit', function(e) {
-                e.preventDefault();
-
-                const orderId = $('#orderId').val();
-                const stageId = $('#newStage').val();
-
-                if (!stageId) {
-                    toastr.warning('{{ trans('order.please_select_stage') }}');
-                    return;
-                }
-
-                // Show loading overlay
-                if (typeof LoadingOverlay !== 'undefined') {
-                    LoadingOverlay.show({
-                        text: '{{ trans('order::order.updating_stage') }}',
-                        subtext: '{{ __('common.please_wait') }}...'
-                    });
-                }
-
-                $.ajax({
-                    url: `{{ url('admin/orders') }}/${orderId}/change-stage`,
-                    type: 'POST',
-                    data: {
-                        _token: '{{ csrf_token() }}',
-                        stage_id: stageId
-                    },
-                    success: function(response) {
-                        if (typeof LoadingOverlay !== 'undefined') {
-                            LoadingOverlay.hide();
-                        }
-
-                        // Close modal
-                        const modal = bootstrap.Modal.getInstance(document.getElementById('changeStageModal'));
-                        if (modal) modal.hide();
-
-                        // Show success message
-                        toastr.success(response.message || '{{ trans('order.stage_updated_successfully') }}');
-
-                        // Reload table
-                        setTimeout(() => table.ajax.reload(), 1500);
-                    },
-                    error: function(xhr) {
-                        if (typeof LoadingOverlay !== 'undefined') {
-                            LoadingOverlay.hide();
-                        }
-
-                        let errorMessage = '{{ trans('order.error_updating_stage') }}';
-                        if (xhr.responseJSON && xhr.responseJSON.message) {
-                            errorMessage = xhr.responseJSON.message;
-                        }
-
-                        toastr.error(errorMessage);
-                    }
-                });
-            });
 
             // Handle change stage modal - set order ID and stage ID from button data attributes
             $('#changeStageModal').on('show.bs.modal', function(e) {
