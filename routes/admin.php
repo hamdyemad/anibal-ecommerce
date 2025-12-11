@@ -177,7 +177,7 @@ Route::get('/truncate', function(Illuminate\Http\Request $request) {
         abort(403, 'Unauthorized');
     }
     DB::statement('SET FOREIGN_KEY_CHECKS=0;');
-    Translation::latest()->forceDelete();
+    // Translation::latest()->forceDelete();
     $tables = [
         // 'activities','activities_departments', 'activity_logs','cities', 'regions', 'subregions', 'vendor_regions',
         // 'attachments', 'brands', 'bundle_categories', 'categories',
