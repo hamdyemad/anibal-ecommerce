@@ -39,44 +39,8 @@
                                     </div>
                                     <div class="card-body">
                                         <div class="row">
-                                            {{-- Dynamic Language Translations for Name --}}
-                                            @foreach($languages as $language)
-                                                <div class="col-md-6">
-                                                    <div class="view-item">
-                                                        <label class="il-gray fs-14 fw-500 mb-10" @if($language->rtl) dir="rtl" style="text-align: right; display: block;" @endif>
-                                                            @if($language->code == 'ar')
-                                                                الاسم بالعربية
-                                                            @elseif($language->code == 'en')
-                                                                {{ trans('categorymanagment::category.name_english') }}
-                                                            @else
-                                                                {{ trans('categorymanagment::category.name') }} ({{ $language->name }})
-                                                            @endif
-                                                        </label>
-                                                        <p class="fs-15 color-dark fw-500" @if($language->rtl) dir="rtl" style="text-align: right;" @endif>
-                                                            {{ $category->getTranslation('name', $language->code) ?? '-' }}
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                            @endforeach
-                                            {{-- Dynamic Language Translations for Description --}}
-                                            @foreach($languages as $language)
-                                                <div class="col-md-6">
-                                                    <div class="view-item">
-                                                        <label class="il-gray fs-14 fw-500 mb-10" @if($language->rtl) dir="rtl" style="text-align: right; display: block;" @endif>
-                                                            @if($language->code == 'ar')
-                                                                الوصف بالعربية
-                                                            @elseif($language->code == 'en')
-                                                                {{ trans('categorymanagment::category.description_english') }}
-                                                            @else
-                                                                {{ trans('categorymanagment::category.description') }} ({{ $language->name }})
-                                                            @endif
-                                                        </label>
-                                                        <p class="fs-15 color-dark" @if($language->rtl) dir="rtl" style="text-align: right;" @endif>
-                                                            {{ $category->getTranslation('description', $language->code) ?? '-' }}
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                            @endforeach
+                                            <x-translation-display :label="trans('categorymanagment::category.name')" :model="$category" fieldName="name" :languages="$languages" />
+                                            <x-translation-display :label="trans('categorymanagment::category.description')" :model="$category" fieldName="description" :languages="$languages" />
                                             {{-- Category Department --}}
                                             <div class="col-md-6">
                                                 <div class="view-item">
