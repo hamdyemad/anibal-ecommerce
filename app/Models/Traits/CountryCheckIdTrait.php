@@ -28,23 +28,28 @@ trait CountryCheckIdTrait
      */
     protected static function resolveCountryId()
     {
-        // Try multiple sources for country code (in order of priority)
-        $code = session('country_code')
-            ?? request('country_code')
-            ?? config('app.default_country_code')
-            ?? null;
+        try {
+            // Try multiple sources for country code (in order of priority)
+            $code = session('country_code')
+                ?? request('country_code')
+                ?? config('app.default_country_code')
+                ?? null;
 
-        if (!$code) {
-            if(request('country_id')) {
-                $countryId = Country::where('id', request('country_id'))->value('id');
+            if (!$code) {
+                if(request('country_id')) {
+                    $countryId = Country::where('id', request('country_id'))->value('id');
+                } else {
+                    $countryId = Country::default()->value('id');
+                }
             } else {
-                $countryId = Country::default()->value('id');
+                $countryId = Country::where('code', $code)->value('id');
             }
-        } else {
-            $countryId = Country::where('code', $code)->value('id');
-        }
 
-        return $countryId;
+            return $countryId;
+        } catch (\Exception $e) {
+            // If database query fails, return null to skip filtering
+            return null;
+        }
     }
 
     /**
