@@ -31,9 +31,8 @@ class BrandApiController extends Controller
                 422
             );
         }
-
         $brands = $this->BrandService->getAllBrands($dto);
-
+        // return $brands;
         return $this->sendRes(config('responses.success')[app()->getLocale()], true, BrandApiResource::collection($brands));
     }
 
