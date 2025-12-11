@@ -301,6 +301,7 @@
                         orderable: false,
                         searchable: false,
                         render: function(data, type, row) {
+                            let indexUrl = "{{ route('admin.taxes.index') }}";
                             let viewUrl = "{{ route('admin.taxes.show', ':id') }}".replace(':id', row.id);
                             let editUrl = "{{ route('admin.taxes.edit', ':id') }}".replace(':id', row.id);
                             return `
@@ -328,7 +329,7 @@
                                 data-bs-target="#modal-delete-tax"
                                 data-item-id="${row.id}"
                                 data-item-name="${$('<div>').text(row.first_name).html()}"
-                                data-url="{{ url('admin/taxes') }}/${row.id}"
+                                data-url="${indexUrl}/${row.id}"
                                 title="{{ trans('common.delete') }}">
                                     <i class="uil uil-trash-alt table_action_icon"></i>
                                 </a>
