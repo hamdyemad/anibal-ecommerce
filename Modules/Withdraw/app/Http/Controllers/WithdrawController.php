@@ -228,16 +228,15 @@ class WithdrawController extends Controller
         // Prepare data for DataTable with safe calculations
         $data = [];
         foreach ($vendors as $item) {
-            $totalOrders = OrderProduct::where('vendor_id', $item->id)
-                         ->sum('price') ?? 0;
+            $ordersBalance = $item->total_balance;
             $totalSentMoney = Withdraw::where('reciever_id', $item->id)
                                     ->where('status', 'accepted')
                                     ->sum('sent_amount') ?? 0;
 
-            $remaining = $totalOrders - $totalSentMoney;
+            $remaining = $ordersBalance - $totalSentMoney;
 
             // Get logo safely
-            $logoPath = asset('storage/' . $item->logo->path);
+            $logoPath = ($item->logo) ? asset('storage/' . $item->logo->path) : '';
 
             // Get vendor name safely
             $vendorName = $item->name;
@@ -247,7 +246,7 @@ class WithdrawController extends Controller
                     'logo' => $logoPath,
                     'name' => $vendorName
                 ],
-                'before_sending_money' => number_format($totalOrders, 2) . ' ' . __('withdraw::withdraw.currency'),
+                'before_sending_money' => number_format($ordersBalance, 2) . ' ' . __('withdraw::withdraw.currency'),
                 'sent_amount' => number_format($totalSentMoney, 2) . ' ' . __('withdraw::withdraw.currency'),
                 'after_sending_amount' => number_format($remaining, 2) . ' ' . __('withdraw::withdraw.currency'),
                 'created_at' => $item->created_at,

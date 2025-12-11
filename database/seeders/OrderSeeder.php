@@ -27,7 +27,7 @@ class OrderSeeder extends Seeder
         // Get required data
         $customers = Customer::all();
         $stages = OrderStage::all();
-        $vendorProducts = VendorProduct::with('product.department.activities', 'variants')->limit(20)->get();
+        $vendorProducts = VendorProduct::with('product.department.activities', 'variants')->limit(50)->get();
         $countries = Country::where('active', true)->limit(5)->get();
 
         if ($customers->isEmpty()) {
@@ -52,106 +52,107 @@ class OrderSeeder extends Seeder
 
         $orderCount = 0;
 
-        // Create 30 orders
-        for ($i = 1; $i <= 30; $i++) {
-            try {
-                $customer = $customers->random();
-                $stage = $stages->random();
-                // Use customer's country
-                $country = Country::find($customer->country_id);
+        // Create 200 orders for every customer
+        foreach ($customers as $customer) {
+            for ($i = 1; $i <= 200; $i++) {
+                try {
+                    $stage = $stages->random();
+                    // Use customer's country
+                    $country = Country::find($customer->country_id);
 
-                if (!$country) {
-                    $this->command->warning("Customer {$customer->id} has no country_id. Skipping order creation.");
-                    continue;
-                }
-
-                $city = $country->cities()->first();
-                $region = $city ? $city->regions()->first() : null;
-
-                // Generate order number
-                $orderNumber = 'ORD-' . date('Y') . '-' . str_pad($i, 5, '0', STR_PAD_LEFT);
-
-                // Random order data
-                $itemsCount = rand(1, 5);
-                $totalProductPrice = 0;
-                $totalTax = 0;
-                $shipping = rand(50, 200);
-                $promoDiscount = rand(0, 1) ? rand(10, 100) : 0;
-
-                // Create order
-                $order = Order::create([
-                    'order_number' => $orderNumber,
-                    'customer_id' => $customer->id,
-                    'customer_name' => $customer->full_name,
-                    'customer_email' => $customer->email,
-                    'customer_phone' => $customer->phone,
-                    'customer_address' => $this->generateAddress(),
-                    'order_from' => 'web',
-                    'payment_type' => $this->getRandomPaymentType(),
-                    'customer_promo_code_title' => $promoDiscount > 0 ? 'PROMO' . rand(100, 999) : null,
-                    'customer_promo_code_value' => $promoDiscount,
-                    'customer_promo_code_type' => $promoDiscount > 0 ? 'fixed' : null,
-                    'shipping' => $shipping,
-                    'stage_id' => $stage->id,
-                    'country_id' => $country->id,
-                    'city_id' => $city ? $city->id : null,
-                    'region_id' => $region ? $region->id : null,
-                    'items_count' => $itemsCount,
-                ]);
-
-                // Add order products
-                $selectedProducts = $vendorProducts->random(min($itemsCount, $vendorProducts->count()));
-
-                foreach ($selectedProducts as $vendorProduct) {
-                    // Calculate commission from activities
-                    $commission = 0;
-                    $activities = $vendorProduct->product->department->activities;
-                    foreach($activities as $activity) {
-                        $commission += $activity->commission;
+                    if (!$country) {
+                        $this->command->warning("Customer {$customer->id} has no country_id. Skipping order creation.");
+                        continue;
                     }
 
-                    $tax_rate = $vendorProduct->tax->tax_rate;
-                    $quantity = rand(1, 3);
-                    $price = rand(100, 5000);
-                    $productTotal = $price * $quantity;
-                    $tax = round($productTotal * ($tax_rate / 100), 2);
+                    $city = $country->cities()->first();
+                    $region = $city ? $city->regions()->first() : null;
 
-                    // Get variant if product has variants
-                    $variant = null;
-                    if ($vendorProduct->variants && $vendorProduct->variants->count() > 0) {
-                        // Randomly select a variant from available variants
-                        $variant = $vendorProduct->variants->random();
-                    }
+                    // Generate order number
+                    $orderNumber = 'ORD-' . date('Y') . '-' . str_pad($i, 5, '0', STR_PAD_LEFT);
 
-                    OrderProduct::create([
-                        'order_id' => $order->id,
-                        'vendor_id' => $vendorProduct->vendor_id,
-                        'vendor_product_id' => $vendorProduct->id,
-                        'vendor_product_variant_id' => $variant?->id,
-                        'price' => $price,
-                        'quantity' => $quantity,
-                        'commission' => $commission,
+                    // Random order data
+                    $itemsCount = rand(1, 5);
+                    $totalProductPrice = 0;
+                    $totalTax = 0;
+                    $shipping = rand(50, 200);
+                    $promoDiscount = rand(0, 1) ? rand(10, 100) : 0;
+
+                    // Create order
+                    $order = Order::create([
+                        'order_number' => $orderNumber,
+                        'customer_id' => $customer->id,
+                        'customer_name' => $customer->full_name,
+                        'customer_email' => $customer->email,
+                        'customer_phone' => $customer->phone,
+                        'customer_address' => $this->generateAddress(),
+                        'order_from' => 'web',
+                        'payment_type' => $this->getRandomPaymentType(),
+                        'customer_promo_code_title' => $promoDiscount > 0 ? 'PROMO' . rand(100, 999) : null,
+                        'customer_promo_code_value' => $promoDiscount,
+                        'customer_promo_code_type' => $promoDiscount > 0 ? 'fixed' : null,
+                        'shipping' => $shipping,
+                        'stage_id' => $stage->id,
+                        'country_id' => $country->id,
+                        'city_id' => $city ? $city->id : null,
+                        'region_id' => $region ? $region->id : null,
+                        'items_count' => $itemsCount,
                     ]);
 
-                    $totalProductPrice += $productTotal;
-                    $totalTax += $tax;
+                    // Add order products
+                    $selectedProducts = $vendorProducts->random(min($itemsCount, $vendorProducts->count()));
+
+                    foreach ($selectedProducts as $vendorProduct) {
+                        // Calculate commission from activities
+                        $commission = 0;
+                        $activities = $vendorProduct->product->department->activities;
+                        foreach($activities as $activity) {
+                            $commission += $activity->commission;
+                        }
+
+                        $tax_rate = $vendorProduct->tax->tax_rate;
+                        $quantity = rand(1, 3);
+                        $price = rand(100, 5000);
+                        $productTotal = $price * $quantity;
+                        $tax = round($productTotal * ($tax_rate / 100), 2);
+
+                        // Get variant if product has variants
+                        $variant = null;
+                        if ($vendorProduct->variants && $vendorProduct->variants->count() > 0) {
+                            // Randomly select a variant from available variants
+                            $variant = $vendorProduct->variants->random();
+                        }
+
+                        OrderProduct::create([
+                            'order_id' => $order->id,
+                            'vendor_id' => $vendorProduct->vendor_id,
+                            'vendor_product_id' => $vendorProduct->id,
+                            'vendor_product_variant_id' => $variant?->id,
+                            'price' => $price,
+                            'quantity' => $quantity,
+                            'commission' => $commission,
+                        ]);
+
+                        $totalProductPrice += $productTotal;
+                        $totalTax += $tax;
+                    }
+
+                    // Calculate total price
+                    $totalPrice = $totalProductPrice + $shipping + $totalTax - $promoDiscount;
+
+                    // Update order with calculated totals
+                    $order->update([
+                        'total_product_price' => $totalProductPrice,
+                        'total_tax' => $totalTax,
+                        'total_price' => max(0, $totalPrice), // Ensure no negative totals
+                    ]);
+
+                    $orderCount++;
+                    $this->command->info("✓ Created order: {$orderNumber} (ID: {$order->id}) - Customer: {$customer->full_name}");
+
+                } catch (\Exception $e) {
+                    $this->command->error("✗ Failed to create order for customer {$customer->id} #{$i}: {$e->getMessage()}");
                 }
-
-                // Calculate total price
-                $totalPrice = $totalProductPrice + $shipping + $totalTax - $promoDiscount;
-
-                // Update order with calculated totals
-                $order->update([
-                    'total_product_price' => $totalProductPrice,
-                    'total_tax' => $totalTax,
-                    'total_price' => max(0, $totalPrice), // Ensure no negative totals
-                ]);
-
-                $orderCount++;
-                $this->command->info("✓ Created order: {$orderNumber} (ID: {$order->id}) - Customer: {$customer->full_name}");
-
-            } catch (\Exception $e) {
-                $this->command->error("✗ Failed to create order #{$i}: {$e->getMessage()}");
             }
         }
 

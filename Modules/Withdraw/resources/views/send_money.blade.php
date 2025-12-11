@@ -297,7 +297,6 @@
     @push('scripts')
         <script>
             let sentAmountInput = document.getElementById('sent_amount');
-            let maxAmount = 0; // سيتم تحديثه من الـ AJAX
         </script>
 
         <script>
@@ -323,8 +322,6 @@
 
                         let remaining = Number(response.remaining.replace(/,/g, ''));
                         let waiting = Number(response.waiting_approve_requests.replace(/,/g, ''));
-                        maxAmount = remaining - waiting;
-                        $("#sent_amount").attr("data-max", maxAmount);
                     },
                     error: function(xhr, status, error) {
                         console.log("Error:", error);
@@ -345,10 +342,6 @@
 
                 let numVal = parseFloat(value);
                 if (!isNaN(numVal)) {
-                    if (numVal > maxAmount) {
-                        alert("{{ __('withdraw::withdraw.max_amount') }}: " + maxAmount.toLocaleString());
-                        numVal = maxAmount; // يمنع تجاوز max
-                    }
                     // إعادة تنسيق الرقم مع commas
                     let parts = numVal.toString().split('.');
                     parts[0] = Number(parts[0]).toLocaleString('en-US');
@@ -423,18 +416,6 @@
         <script>
             const form = document.getElementById('sendMoneyForm');
             const sentAmountInput = document.getElementById('sent_amount');
-
-            form.addEventListener('submit', function(e) {
-                // الرقم اللي فيه commas نحوله لصافي رقم
-                let maxAmount = Number(sentAmountInput.attr('max') || 0);
-                let enteredAmount = Number(sentAmountInput.value.replace(/,/g, ''));
-
-                if (enteredAmount > maxAmount) {
-                    e.preventDefault(); // منع الفورم من الsubmit
-                    alert("{{ __('withdraw::withdraw.amount_cannot_exceed_maximum') }}: " + maxAmount.toLocaleString());
-                    return false;
-                }
-            });
         </script>
 
         <script>

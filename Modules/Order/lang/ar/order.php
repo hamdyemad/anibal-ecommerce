@@ -16,6 +16,7 @@ return [
     'customer_email' => 'بريد العميل الإلكتروني',
     'customer_phone' => 'هاتف العميل',
     'customer_address' => 'عنوان العميل',
+    'vendor' => 'التاجر',
     'total_price' => 'السعر الإجمالي',
     'items_count' => 'عدد العناصر',
     'stage' => 'المرحلة',
@@ -27,6 +28,7 @@ return [
     // Filters
     'search_order_id_or_customer' => 'ابحث برقم الطلب أو اسم العميل...',
     'all_stages' => 'جميع المراحل',
+    'all_vendors' => 'جميع التجار',
     'created_from' => 'تم الإنشاء من',
     'created_until' => 'تم الإنشاء حتى',
 

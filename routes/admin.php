@@ -59,56 +59,56 @@ Route::get('seeder', function () {
         try {
         // Seeders in order of dependency
         $seeders = [
-            [
-                'class' => AreaSettingsSeeder::class,
-                'name' => 'Area Settings Seeder',
-                'description' => 'Creates cities, regions, and subregions for Egypt and Saudi Arabia',
-            ],
-            [
-                'class' => TaxSeeder::class,
-                'name' => 'Tax Seeder',
-                'description' => 'Creates tax rates (VAT 15%, 10%, 5%, etc.)',
-            ],
-            [
-                'class' => VariantConfigurationSeeder::class,
-                'name' => 'Variant Configuration Seeder',
-                'description' => 'Creates variant keys (Color, Size, Material) and their values',
-            ],
-            [
-                'class' => CategoryDepartmentSeeder::class,
-                'name' => 'Category & Department Seeder',
-                'description' => 'Creates activities, departments, categories, subcategories, brands, and regions',
-            ],
-            [
-                'class' => BrandSeeder::class,
-                'name' => 'Brand Seeder',
-                'description' => 'Creates brands with country_id and translations',
-            ],
-            [
-                'class' => VendorSeeder::class,
-                'name' => 'Vendor Seeder',
-                'description' => 'Creates vendors with country_id and translations',
-            ],
-            [
-                'class' => OrderStageSeeder::class,
-                'name' => 'Order Stage Seeder',
-                'description' => 'Creates order stages',
-            ],
-            [
-                'class' => AutoProductSeeder::class,
-                'name' => 'Auto Product Seeder',
-                'description' => 'Creates products with variants for each vendor',
-            ],
-            [
-                'class' => ReviewSeeder::class,
-                'name' => 'Review Seeder',
-                'description' => 'Creates customer reviews for products and vendors',
-            ],
-            [
-                'class' => CustomerSeeder::class,
-                'name' => 'Customer Seeder',
-                'description' => 'Creates 10 sample customers with contact information',
-            ],
+            // [
+            //     'class' => AreaSettingsSeeder::class,
+            //     'name' => 'Area Settings Seeder',
+            //     'description' => 'Creates cities, regions, and subregions for Egypt and Saudi Arabia',
+            // ],
+            // [
+            //     'class' => TaxSeeder::class,
+            //     'name' => 'Tax Seeder',
+            //     'description' => 'Creates tax rates (VAT 15%, 10%, 5%, etc.)',
+            // ],
+            // [
+            //     'class' => VariantConfigurationSeeder::class,
+            //     'name' => 'Variant Configuration Seeder',
+            //     'description' => 'Creates variant keys (Color, Size, Material) and their values',
+            // ],
+            // [
+            //     'class' => CategoryDepartmentSeeder::class,
+            //     'name' => 'Category & Department Seeder',
+            //     'description' => 'Creates activities, departments, categories, subcategories, brands, and regions',
+            // ],
+            // [
+            //     'class' => BrandSeeder::class,
+            //     'name' => 'Brand Seeder',
+            //     'description' => 'Creates brands with country_id and translations',
+            // ],
+            // [
+            //     'class' => VendorSeeder::class,
+            //     'name' => 'Vendor Seeder',
+            //     'description' => 'Creates vendors with country_id and translations',
+            // ],
+            // [
+            //     'class' => OrderStageSeeder::class,
+            //     'name' => 'Order Stage Seeder',
+            //     'description' => 'Creates order stages',
+            // ],
+            // [
+            //     'class' => AutoProductSeeder::class,
+            //     'name' => 'Auto Product Seeder',
+            //     'description' => 'Creates products with variants for each vendor',
+            // ],
+            // [
+            //     'class' => ReviewSeeder::class,
+            //     'name' => 'Review Seeder',
+            //     'description' => 'Creates customer reviews for products and vendors',
+            // ],
+            // [
+            //     'class' => CustomerSeeder::class,
+            //     'name' => 'Customer Seeder',
+            //     'description' => 'Creates 10 sample customers with contact information',
+            // ],
             [
                 'class' => OrderSeeder::class,
                 'name' => 'Order Seeder',
