@@ -16,7 +16,7 @@
 
         <div class="row">
             <div class="col-lg-12">
-                <div class="card border-0 shadow-sm card-holder">
+                <div class="card border-0 shadow-sm">
                     <div class="card-header">
                         <h3 class="mb-0 fw-500">{{ __('areasettings::city.city_details') }}</h3>
                         <div class="d-flex gap-10">
@@ -31,7 +31,7 @@
                     <div class="card-body">
                         <div class="row">
                             <div class="col-md-6">
-                                <div class="card">
+                                <div class="card  card-holder">
                                     <div class="card-header">
                                         <h3>
                                             <i class="uil uil-info-circle me-1"></i>{{ __('common.basic_information') }}
@@ -39,25 +39,7 @@
                                     </div>
                                     <div class="card-body">
                                         <div class="row">
-                                            {{-- Dynamic Language Translations for Name --}}
-                                            @foreach($languages as $language)
-                                                <div class="col-md-6">
-                                                    <div class="view-item">
-                                                        <label class="il-gray fs-14 fw-500 mb-10" @if($language->rtl) dir="rtl" style="text-align: right; display: block;" @endif>
-                                                            @if($language->code == 'ar')
-                                                                الاسم بالعربية
-                                                            @elseif($language->code == 'en')
-                                                                {{ __('areasettings::city.name_english') }}
-                                                            @else
-                                                                {{ __('areasettings::city.name') }} ({{ $language->name }})
-                                                            @endif
-                                                        </label>
-                                                        <p class="fs-15 color-dark fw-500" @if($language->rtl) dir="rtl" style="text-align: right;" @endif>
-                                                            {{ $city->getTranslation('name', $language->code) ?? '-' }}
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                            @endforeach
+                                            <x-translation-display :label="__('areasettings::city.name')" :model="$city" fieldName="name" :languages="$languages" />
                                             <div class="col-md-6">
                                                 <div class="view-item">
                                                     <label class="il-gray fs-14 fw-500 mb-10">{{ __('areasettings::city.country') }}</label>
@@ -105,7 +87,7 @@
                                 </div>
                             </div>
                             <div class="col-md-6">
-                                <div class="card">
+                                <div class="card  card-holder">
                                     <div class="card-header">
                                         <h3>
                                             <i class="uil uil-clock me-1"></i>{{ __('common.timestamps') }}
