@@ -148,7 +148,6 @@ class CustomerAuthController extends Controller
     public function login(LoginRequest $request)
     {
         $validated = $request->validated();
-
         $result = $this->authService->login($validated);
         if($result["status"] === "failed") {
             return $this->sendRes(

@@ -201,6 +201,8 @@ return [
     'error_loading_sub_categories' => 'خطأ في تحميل الفئات الفرعية',
     'error_loading_brands' => 'خطأ في تحميل العلامات التجارية',
     'note' => 'ملاحظة',
+    'country_code_required' => 'رأس رمز البلد (X-Country-Code) مطلوب.',
+    'invalid_country_code' => 'رمز البلد المقدم غير صالح.',
     'trashed' => 'محذوف',
     'restore' => 'استعادة',
     'no_data_available' => 'لا توجد بيانات متاحة',

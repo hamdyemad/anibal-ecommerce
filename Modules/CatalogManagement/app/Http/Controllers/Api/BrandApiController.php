@@ -3,10 +3,13 @@
 namespace Modules\CatalogManagement\app\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Language;
+use App\Models\Translation;
 use App\Traits\Res;
 use Illuminate\Http\Request;
 use Modules\CatalogManagement\app\DTOs\BrandFilterDTO;
 use Modules\CatalogManagement\app\Http\Resources\Api\BrandApiResource;
+use Modules\CatalogManagement\app\Models\Brand;
 use Modules\CatalogManagement\app\Services\Api\BrandApiService;
 
 class BrandApiController extends Controller
@@ -32,7 +35,7 @@ class BrandApiController extends Controller
             );
         }
         $brands = $this->BrandService->getAllBrands($dto);
-        // return $brands;
+
         return $this->sendRes(config('responses.success')[app()->getLocale()], true, BrandApiResource::collection($brands));
     }
 

@@ -41,6 +41,7 @@ Route::middleware(['auth:sanctum', 'check.customer.auth'])->prefix('addresses')-
     Route::get('', [CustomerAddressController::class, 'index']);
     Route::get('{addressId}', [CustomerAddressController::class, 'show']);
     Route::post('{addressId}', [CustomerAddressController::class, 'update']);
+    Route::delete('{addressId}', [CustomerAddressController::class, 'destroy']);
 });
 
 Route::prefix('customers')->group(function () {

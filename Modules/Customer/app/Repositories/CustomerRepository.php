@@ -8,6 +8,7 @@ use Modules\Customer\app\Actions\CustomerQueryAction;
 use Modules\Customer\app\Interfaces\CustomerRepositoryInterface;
 use Modules\Customer\app\Models\Customer;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 
 class CustomerRepository implements CustomerRepositoryInterface
 {
@@ -43,7 +44,7 @@ class CustomerRepository implements CustomerRepositoryInterface
                 'first_name' => $data['first_name'],
                 'last_name' => $data['last_name'],
                 'email' => $data['email'],
-                'password' => bcrypt($data['password']),
+                'password' => Hash::make($data['password']),
                 'phone' => $data['phone'] ?? null,
                 'image' => $data['image'] ?? null,
                 'status' => $data['status'] ?? true,
@@ -85,7 +86,7 @@ class CustomerRepository implements CustomerRepositoryInterface
 
             // Only update password if provided
             if (!empty($data['password'])) {
-                $updateData['password'] = bcrypt($data['password']);
+                $updateData['password'] = Hash::make($data['password']);
             }
 
             $customer->update($updateData);

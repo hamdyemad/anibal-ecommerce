@@ -196,6 +196,8 @@ return [
     'error_loading_sub_categories' => 'Error loading sub categories',
     'error_loading_brands' => 'Error loading brands',
     'note' => 'Note',
+    'country_code_required' => 'Country code header (X-Country-Code) is required.',
+    'invalid_country_code' => 'Invalid country code provided.',
     'trashed' => 'Trashed',
     'restore' => 'Restore',
     'no_data_available' => 'No Data Available',

@@ -2,6 +2,8 @@
 
 namespace Modules\CatalogManagement\app\Actions;
 
+use App\Models\Language;
+use App\Models\Translation;
 use Modules\CatalogManagement\app\Models\Brand;
 
 class BrandQueryAction
@@ -35,17 +37,26 @@ class BrandQueryAction
             $sortType = 'desc';
         }
 
+        $langId = Language::where('code', app()->getLocale())->value('id');
         switch ($sortBy) {
             case 'name':
-                $query->whereHas('translations', function($query) use ($sortType) {
-                    $query
+                $query->whereHas('translations', function ($q) use ($langId) {
+                    $q->where('translatable_type', Brand::class)
                     ->where('lang_key', 'name')
-                    ->where('lang_id', 2)
-                    ->orderBy('lang_value', 'desc');
-                });
-                break;
-            // default:
-            //     $query->orderBy('created_at', $sortType);
+                    ->where('lang_id', $langId);
+                })
+                ->orderBy(
+                    Translation::select('lang_value')
+                        ->whereColumn('translatable_id', 'brands.id')
+                        ->where('translatable_type', Brand::class)
+                        ->where('lang_key', 'name')
+                        ->where('lang_id', $langId)
+                        ->limit(1),
+                    $sortType
+                )
+                ;
+            default:
+                $query->orderBy('created_at', $sortType);
         }
 
         return $query;

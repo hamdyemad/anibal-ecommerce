@@ -22,7 +22,7 @@ class SetCountryCodeFromHeader
 
         if ($countryCode) {
             // Validate that the country code exists in database
-            $country = Country::where('code', strtoupper($countryCode))->first();
+            $country = Country::where('code', strtolower($countryCode))->first();
 
             if ($country) {
                 // Store in session

@@ -4,6 +4,7 @@ namespace Modules\Customer\app\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 use Modules\Customer\app\Services\CustomerService;
 use Modules\Customer\app\Interfaces\CustomerRepositoryInterface;
 use Modules\Customer\app\Http\Requests\Dashboard\CustomerRequest;
@@ -87,7 +88,6 @@ class CustomerController extends Controller
     public function show($lang, $countryCode, $id)
     {
         $customer = $this->customerService->findById($id, []);
-
         if (!$customer) {
             abort(404);
         }

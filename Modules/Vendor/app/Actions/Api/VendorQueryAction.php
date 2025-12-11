@@ -2,6 +2,8 @@
 
 namespace Modules\Vendor\app\Actions\Api;
 
+use App\Models\Language;
+use App\Models\Translation;
 use Modules\Vendor\app\Models\Vendor;
 
 class VendorQueryAction
@@ -38,17 +40,24 @@ class VendorQueryAction
         if (!in_array($sortType, ['asc', 'desc'])) {
             $sortType = 'desc';
         }
+        $langId = Language::where('code', app()->getLocale())->value('id');
 
         switch ($sortBy) {
             case 'name':
-                $query->join('translations', function($join) {
-                    $join->on('vendors.id', '=', 'translations.translatable_id')
-                         ->where('translations.translatable_type', 'Modules\\Vendor\\app\\Models\\Vendor')
-                         ->where('translations.lang_key', 'name');
+                $query->whereHas('translations', function ($q) use ($langId) {
+                    $q->where('translatable_type', Vendor::class)
+                    ->where('lang_key', 'name')
+                    ->where('lang_id', $langId);
                 })
-                ->select('vendors.*', 'translations.lang_value')
-                ->orderBy('translations.lang_value', $sortType)
-                ->distinct();
+                ->orderBy(
+                    Translation::select('lang_value')
+                        ->whereColumn('translatable_id', 'vendors.id')
+                        ->where('translatable_type', Vendor::class)
+                        ->where('lang_key', 'name')
+                        ->where('lang_id', $langId)
+                        ->limit(1),
+                    $sortType
+                );
                 break;
             case 'rating':
                 // $query->withAvg('reviews', 'rating')
