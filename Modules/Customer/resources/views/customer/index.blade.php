@@ -367,7 +367,7 @@
                         render: function(data, type, row) {
                             let info = '<div class="userDatatable-content">';
                             info += '<div class="mb-2"><strong>' + (row.full_name || '-') + '</strong></div>';
-                            info += '<div class="mb-2"><strong>{{ __("customer::customer.email") }}:</strong> ' + (row.email || '-') + '</div>';
+                            info += '<div class="mb-2"  style="text-transform: lowercase;"><strong>{{ __("customer::customer.email") }}:</strong> ' + (row.email || '-') + '</div>';
                             (row.phone) ? info += '<div><strong>{{ __("customer::customer.phone") }}:</strong> ' + (row.phone) + '</div>' : '';
                             ;
                             info += '</div>';
