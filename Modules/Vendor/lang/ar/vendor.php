@@ -2,7 +2,8 @@
 
 return [
     // Page Titles
-    'vendors_management' => 'إدارة الموردين',
+    'vendors_management' => 'إدارة البائعين',
+    'vendors' => 'البائعون',
     'create_vendor' => 'إنشاء مورد',
     'add_vendor' => 'إضافة مورد',
     'edit_vendor' => 'تعديل مورد',
