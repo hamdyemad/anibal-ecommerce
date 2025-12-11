@@ -245,7 +245,7 @@
             formData.append('_token', '{{ csrf_token() }}');
 
             // Make AJAX request to toggle the points system
-            fetch('{{ route("admin.points-system.toggle-enabled") }}', {
+            fetch('{{ route("admin.points-settings.points-system.toggle-enabled") }}', {
                 method: 'POST',
                 body: formData,
                 headers: {

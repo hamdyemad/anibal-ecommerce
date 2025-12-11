@@ -14,12 +14,14 @@ use Modules\Order\app\Http\Requests\AddExtraFeeDiscountRequest;
 use Modules\Order\app\Http\Requests\CreateFulfillmentRequest;
 use Modules\Order\app\Models\Order;
 use App\Models\Language;
+use Modules\Vendor\app\Services\VendorService;
 
 class OrderController extends Controller
 {
     protected $orderService;
 
-    public function __construct(OrderService $orderService)
+    public function __construct(OrderService $orderService, protected VendorService $vendorService
+    )
     {
         $this->orderService = $orderService;
     }
@@ -30,7 +32,6 @@ class OrderController extends Controller
     public function index()
     {
         $languages = Language::all();
-
         $total_price = Order::latest()->sum('total_price');
         $orders_count = Order::latest()->count();
         $data = [

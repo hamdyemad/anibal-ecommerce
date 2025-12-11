@@ -30,7 +30,6 @@ class WithdrawRepository implements WithdrawRepositoryInterface
     {
         // Get the vendor to access the user_id
         $vendor = Vendor::find($vendor_id);
-
         if (!$vendor || !$vendor->user_id) {
             return [
                 "orders_price" => "0.000",
@@ -59,8 +58,8 @@ class WithdrawRepository implements WithdrawRepositoryInterface
             ->where('status', 'new')
             ->sum('sent_amount');
 
-        $commission = 10;
-        $bnaia_balance = $vendor_order_prices - ($vendor_order_prices * $commission / 100);
+        $commission = $vendor->bnaia_commission;
+        $bnaia_balance = $vendor_order_prices - $commission;
         $remaining = $vendor_order_prices - $bnaia_balance;
         return [
             "orders_price" => number_format($vendor_order_prices, 2),

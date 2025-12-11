@@ -19,20 +19,23 @@ Route::group(['prefix' => 'system-settings', 'as' => 'system-settings.'], functi
 });
 
 // Points Settings
-Route::get('points-settings', [PointsSettingController::class, 'index'])->name('points-settings.index');
-Route::post('points-settings', [PointsSettingController::class, 'store'])->name('points-settings.store');
-Route::put('points-settings/{id}', [PointsSettingController::class, 'update'])->name('points-settings.update');
-Route::post('points-system/toggle-enabled', [PointsSettingController::class, 'togglePointsSystemEnabled'])->name('points-system.toggle-enabled');
+Route::group(['prefix' => 'points-settings', 'as' => 'points-settings.'], function() {
+    Route::get('', [PointsSettingController::class, 'index'])->name('index');
+    Route::post('', [PointsSettingController::class, 'store'])->name('store');
+    Route::put('{id}', [PointsSettingController::class, 'update'])->name('update');
+    Route::post('points-system/toggle-enabled', [PointsSettingController::class, 'togglePointsSystemEnabled'])->name('points-system.toggle-enabled');
 
-// User Points - Admin routes
-Route::group(['prefix' => 'user-points', 'as' => 'user-points'], function() {
-    Route::get('', [UserPointsController::class, 'index'])->name('.index');
-    Route::get('datatable', [UserPointsController::class, 'datatable'])->name('.datatable');
-    Route::get('{id}', [UserPointsController::class, 'show'])->name('.show');
-    Route::get('{userId}/transactions', [UserPointsController::class, 'transactionsView'])->name('.transactions');
-    Route::get('{userId}/transactions/datatable', [UserPointsController::class, 'transactions'])->name('.transactions.datatable');
-    Route::post('{userId}/adjust', [UserPointsController::class, 'adjustPoints'])->name('.adjust');
+    // User Points - Admin routes
+    Route::group(['prefix' => 'user-points', 'as' => 'user-points.'], function() {
+        Route::get('', [UserPointsController::class, 'index'])->name('index');
+        Route::get('datatable', [UserPointsController::class, 'datatable'])->name('datatable');
+        Route::get('{id}', [UserPointsController::class, 'show'])->name('show');
+        Route::get('{userId}/transactions', [UserPointsController::class, 'transactionsView'])->name('transactions');
+        Route::get('{userId}/transactions/datatable', [UserPointsController::class, 'transactions'])->name('transactions.datatable');
+        Route::post('{userId}/adjust', [UserPointsController::class, 'adjustPoints'])->name('adjust');
+    });
 });
+
 
 // Messages
 Route::group(['prefix' => 'admin', 'as' => 'admin.'], function() {

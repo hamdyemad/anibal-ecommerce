@@ -97,7 +97,7 @@
                                 <div class="row g-3 align-items-end">
 
                                     {{-- Search --}}
-                                    <div class="col-md-3">
+                                    <div class="col-md-2">
                                         <div class="form-group">
                                             <label for="search" class="il-gray fs-14 fw-500 mb-10">
                                                 <i class="uil uil-search me-1"></i> {{ __('common.search') }}
@@ -111,7 +111,7 @@
                                     </div>
 
                                     {{-- stage --}}
-                                    <div class="col-md-3">
+                                    <div class="col-md-2">
                                         <div class="form-group">
                                             <label for="stage" class="il-gray fs-14 fw-500 mb-10">
                                                 <i class="uil uil-check-circle me-1"></i>
@@ -191,9 +191,9 @@
                             <thead>
                                 <tr class="userDatatable-header">
                                     <th class="text-center"><span class="userDatatable-title">#</span></th>
-                                    <th><span class="userDatatable-title">{{ __('common.order_information') }}</span></th>
+                                    <th><span class="userDatatable-title">{{ trans('order::order.order_information') }}</span></th>
+                                    <th><span class="userDatatable-title">{{ trans('order::order.vendor') }}</span></th>
                                     <th><span class="userDatatable-title">{{ trans('order::order.total_price') }}</span></th>
-                                    <th><span class="userDatatable-title">{{ trans('order::order.items_count') }}</span></th>
                                     <th><span class="userDatatable-title">{{ trans('order::order.stage') }}</span></th>
                                     <th><span class="userDatatable-title">{{ trans('order::order.created_at') }}</span></th>
                                     <th><span class="userDatatable-title">{{ __('common.actions') }}</span></th>
@@ -278,6 +278,7 @@
                         d.page = (d.start / d.length) + 1;
                         d.search = $('#search').val();
                         d.stage = $('#stage').val();
+                        d.vendor = $('#vendor').val();
                         d.created_date_from = $('#created_from_filter').val();
                         d.created_date_to = $('#created_until_filter').val();
                         return d;
@@ -305,7 +306,7 @@
                             return `
                                 <div class="customer-info">
                                     <div class="fw-bold mb-1">
-                                        <i class="uil uil-receipt me-1"></i> Order: <strong>${orderNumber}</strong>
+                                        <i class="uil uil-receipt me-1"></i><strong>${orderNumber}</strong>
                                     </div>
                                     <div class="small">
                                         <div class="mb-1">
@@ -329,15 +330,6 @@
                         searchable: false,
                         render: function(data) {
                             return data ? ` ${parseFloat(data).toFixed(2)}` : '-';
-                        }
-                    },
-                    {
-                        data: 'items_count',
-                        name: 'items_count',
-                        orderable: false,
-                        searchable: false,
-                        render: function(data) {
-                            return data || '0';
                         }
                     },
                     {
@@ -422,7 +414,7 @@
             });
 
             // Filter change handlers
-            $('#stage, #created_from_filter, #created_until_filter').on('change', function() {
+            $('#stage, #vendor, #created_from_filter, #created_until_filter').on('change', function() {
                 table.ajax.reload();
                 updateUrlParams();
             });
@@ -431,6 +423,7 @@
             $('#resetFilters').on('click', function() {
                 $('#search').val('');
                 $('#stage').val('');
+                $('#vendor').val('');
                 $('#created_from_filter').val('');
                 $('#created_until_filter').val('');
                 table.ajax.reload();
@@ -443,6 +436,7 @@
                 const params = new URLSearchParams();
                 if ($('#search').val()) params.set('search', $('#search').val());
                 if ($('#stage').val()) params.set('stage', $('#stage').val());
+                if ($('#vendor').val()) params.set('vendor', $('#vendor').val());
                 if ($('#created_from_filter').val()) params.set('created_from', $('#created_from_filter').val());
                 if ($('#created_until_filter').val()) params.set('created_until', $('#created_until_filter').val());
 

@@ -31,7 +31,7 @@
                     <div class="card-body">
                         <div class="row">
                             <div class="col-md-6">
-                                <div class="card">
+                                <div class="card card-holder">
                                     <div class="card-header">
                                         <h3>
                                             <i class="uil uil-info-circle me-1"></i>{{ __('common.basic_information') }}
@@ -39,25 +39,7 @@
                                     </div>
                                     <div class="card-body">
                                         <div class="row">
-                                            {{-- Dynamic Language Translations for Name --}}
-                                            @foreach($languages as $language)
-                                                <div class="col-md-6">
-                                                    <div class="view-item">
-                                                        <label class="il-gray fs-14 fw-500 mb-10" @if($language->rtl) dir="rtl" style="text-align: right; display: block;" @endif>
-                                                            @if($language->code == 'ar')
-                                                                الاسم بالعربية
-                                                            @elseif($language->code == 'en')
-                                                                {{ __('areasettings::subregion.name_english') }}
-                                                            @else
-                                                                {{ __('areasettings::subregion.name') }} ({{ $language->name }})
-                                                            @endif
-                                                        </label>
-                                                        <p class="fs-15 color-dark fw-500" @if($language->rtl) dir="rtl" style="text-align: right;" @endif>
-                                                            {{ $subregion->getTranslation('name', $language->code) ?? '-' }}
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                            @endforeach
+                                            <x-translation-display :label="__('areasettings::subregion.name')" :model="$subregion" fieldName="name" :languages="$languages" />
                                             <div class="col-md-6">
                                                 <div class="view-item">
                                                     <label class="il-gray fs-14 fw-500 mb-10">{{ __('areasettings::subregion.country') }}</label>
@@ -117,7 +99,7 @@
                                 </div>
                             </div>
                             <div class="col-md-6">
-                                <div class="card">
+                                <div class="card card-holder">
                                     <div class="card-header">
                                         <h3>
                                             <i class="uil uil-clock me-1"></i>{{ __('common.timestamps') }}
@@ -128,13 +110,13 @@
                                             <div class="col-md-6">
                                                 <div class="view-item">
                                                     <label class="il-gray fs-14 fw-500 mb-10">{{ __('common.created_at') }}</label>
-                                                    <p class="fs-15 color-dark">{{ $subregion->created_at->format('d M, Y h:i A') }}</p>
+                                                    <p class="fs-15 color-dark">{{ $subregion->created_at }}</p>
                                                 </div>
                                             </div>
                                             <div class="col-md-6">
                                                 <div class="view-item">
                                                     <label class="il-gray fs-14 fw-500 mb-10">{{ trans('common.updated_at') }}</label>
-                                                    <p class="fs-15 color-dark">{{ $subregion->updated_at->format('d M, Y h:i A') }}</p>
+                                                    <p class="fs-15 color-dark">{{ $subregion->updated_at }}</p>
                                                 </div>
                                             </div>
                                         </div>
@@ -146,7 +128,7 @@
                         {{-- Hierarchy Navigation --}}
                         <div class="row mt-3">
                             <div class="col-md-12">
-                                <div class="card">
+                                <div class="card card-holder">
                                     <div class="card-header">
                                         <h3>
                                             <i class="uil uil-sitemap me-1"></i>{{ __('areasettings::subregion.hierarchy_navigation') }}

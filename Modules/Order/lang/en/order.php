@@ -16,6 +16,7 @@ return [
     'customer_email' => 'Customer Email',
     'customer_phone' => 'Customer Phone',
     'customer_address' => 'Customer Address',
+    'vendor' => 'Vendor',
     'total_price' => 'Total Price',
     'items_count' => 'Items Count',
     'stage' => 'Stage',
@@ -27,6 +28,7 @@ return [
     // Filters
     'search_order_id_or_customer' => 'Search by order ID or customer...',
     'all_stages' => 'All Stages',
+    'all_vendors' => 'All Vendors',
     'created_from' => 'Created From',
     'created_until' => 'Created Until',
 

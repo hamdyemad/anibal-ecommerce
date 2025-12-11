@@ -15,6 +15,7 @@ use App\Models\Traits\HumanDates;
 use Illuminate\Database\Eloquent\Builder;
 use Modules\AreaSettings\app\Models\Country;
 use app\Models\Language;
+use Illuminate\Support\Facades\DB;
 use Modules\CatalogManagement\app\Models\Review;
 use Modules\CategoryManagment\app\Models\Activity;
 use Modules\Order\app\Models\OrderProduct;
@@ -191,9 +192,15 @@ class Vendor extends BaseModel
      */
     public function getTotalBalanceAttribute()
     {
-        return \Modules\Order\app\Models\Order::whereHas('products', function($query) {
-            $query->where('vendor_id', $this->id);
-        })->sum('total_price') ?? 0;
+        return OrderProduct::where('vendor_id', $this->id)
+        ->sum(DB::raw('price * quantity'));
+    }
+
+    public function getBnaiaCommissionAttribute()
+    {
+        return OrderProduct::where('vendor_id', $this->id)
+            ->selectRaw('SUM(price * quantity * (commission / 100)) as total')
+            ->value('total');
     }
 
     /**
@@ -244,31 +251,21 @@ class Vendor extends BaseModel
     public static function getVendorsStatistics()
     {
         $vendors = static::all();
-        $vendorStats = [];
         $totalBalance = 0;
         $totalSent = 0;
         $totalRemaining = 0;
 
         foreach ($vendors as $vendor) {
-            $vendorStats[$vendor->id] = [
-                'vendor_id' => $vendor->id,
-                'vendor_name' => $vendor->getTranslation('name', app()->getLocale()) ?? $vendor->name,
-                'total_balance' => $vendor->getStatistics()['total_balance'],
-                'total_sent' => $vendor->getStatistics()['total_sent'],
-                'total_remaining' => $vendor->getStatistics()['total_remaining'],
-            ];
-
             // Add to totals
-            $totalBalance += (float) str_replace(',', '', $vendor->getStatistics()['total_balance']);
-            $totalSent += (float) str_replace(',', '', $vendor->getStatistics()['total_sent']);
-            $totalRemaining += (float) str_replace(',', '', $vendor->getStatistics()['total_remaining']);
+            $totalBalance += $vendor->total_balance;
+            $totalSent += $vendor->total_sent;
+            $totalRemaining += $vendor->total_remaining;
         }
 
         return [
             'total_balance' => number_format($totalBalance, 2),
             'total_sent' => number_format($totalSent, 2),
             'total_remaining' => number_format($totalRemaining, 2),
-            'vendors' => $vendorStats,
         ];
     }
 

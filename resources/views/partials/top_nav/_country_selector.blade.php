@@ -20,11 +20,20 @@
 @if(in_array(auth()->user()->user_type_id, \App\Models\UserType::adminIds()))
 <li class="nav-flag-select nav-country-select">
     <div class="dropdown-custom">
-        <a href="javascript:;" class="nav-item-toggle" title="{{ __('dashboard.select_country') }}">
-            <i class="uil uil-globe" style="font-size: 20px;"></i>
-            <span class="nav-item__title ms-1" style="font-size: 12px; font-weight: 600;">
-                {{ $currentCountryCode }}
-            </span>
+        <a href="javascript:;" class="nav-item-toggle d-flex" title="{{ __('dashboard.select_country') }}">
+           <div class="d-flex align-items-center" style="    background: #065ab9;
+            padding: 2px 20px;
+            border-radius: 5px;
+            color: #fff;">
+             <i class="uil uil-globe me-1" style="font-size: 20px;"></i>
+                <div>{{ __('dashboard.select_country') }}</div>
+            <div>
+                <span class="nav-item__title ms-1 badge badge-round badge-lg badge-white" style="color:#065ab9">
+                    {{ $currentCountryCode }}
+                </span>
+            </div>
+            </div>
+
         </a>
         <div class="dropdown-wrapper dropdown-wrapper--small">
             <div class="dropdown-header px-3 py-2 border-bottom">
