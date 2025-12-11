@@ -176,7 +176,7 @@
                     ],
                     [
                         'title' => trans('systemsetting::points.user_points_management'),
-                        'url' => route('admin.user-points.index'),
+                        'url' => route('admin.points-settings.user-points.index'),
                     ],
                     [
                         'title' => trans('systemsetting::points.transaction_history'),
@@ -192,14 +192,14 @@
                     <div class="row">
                         <div class="col-md-6">
                             <div class="user-info-item">
-                                <span class="user-info-label">{{ trans('customer::customer.customer_name') }}:</span>
-                                <span class="user-info-value" id="customerName">{{ $customer->full_name }}</span>
+                                <span class="user-info-label fw-bold">{{ trans('customer::customer.customer_name') }}:</span>
+                                <span class="user-info-value fw-bold" id="customerName">{{ $customer->full_name }}</span>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="user-info-item">
-                                <span class="user-info-label">{{ trans('customer::customer.email') }}:</span>
-                                <span class="user-info-value" id="customerEmail">{{ $customer->email }}</span>
+                                <span class="user-info-label fw-bold">{{ trans('customer::customer.email') }}:</span>
+                                <span class="user-info-value fw-bold" id="customerEmail">{{ $customer->email }}</span>
                             </div>
                         </div>
                     </div>
@@ -254,7 +254,7 @@
                     <div class="d-flex justify-content-between align-items-center mb-25">
                         <h4 class="mb-0 fw-500 fw-bold">{{ trans('systemsetting::points.transaction_history') }}</h4>
                         <div class="d-flex">
-                            <a href="{{ route('admin.user-points.index') }}" class="btn btn-primary btn-default btn-squared me-1">
+                            <a href="{{ route('admin.points-settings.user-points.index') }}" class="btn btn-primary btn-default btn-squared me-1">
                                 <i class="uil uil-arrow-left me-1"></i>
                                 {{ __('common.back') }}
                             </a>
@@ -291,7 +291,7 @@
                                     <div class="col-md-4">
                                         <div class="form-group">
                                             <label for="createdFrom" class="il-gray fs-14 fw-500 mb-10">
-                                                <i class="uil uil-calendar-alt me-1"></i> {{ __('common.from') }}
+                                                <i class="uil uil-calendar-alt me-1"></i> {{ __('common.date_from') }}
                                             </label>
                                             <input type="date"
                                                 class="form-control ih-medium ip-gray radius-xs b-light px-15"
@@ -304,7 +304,7 @@
                                     <div class="col-md-4">
                                         <div class="form-group">
                                             <label for="createdTo" class="il-gray fs-14 fw-500 mb-10">
-                                                <i class="uil uil-calendar-alt me-1"></i> {{ __('common.to') }}
+                                                <i class="uil uil-calendar-alt me-1"></i> {{ __('common.date_to') }}
                                             </label>
                                             <input type="date"
                                                 class="form-control ih-medium ip-gray radius-xs b-light px-15"
@@ -445,7 +445,7 @@
                 processing: true,
                 serverSide: true,
                 ajax: {
-                    url: '{{ route("admin.user-points.transactions.datatable", [":userId"]) }}'
+                    url: '{{ route("admin.points-settings.user-points.transactions.datatable", [":userId"]) }}'
                         .replace(':userId', userId),
                     type: 'GET',
                     data: function(d) {
@@ -682,7 +682,7 @@
 
                 console.log('Request Body:', requestBody);
 
-                fetch('{{ route("admin.user-points.adjust", ":id") }}'.replace(':id', userId), {
+                fetch('{{ route("admin.points-settings.user-points.adjust", ":id") }}'.replace(':id', userId), {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',

@@ -39,25 +39,7 @@
                                     </div>
                                     <div class="card-body">
                                         <div class="row">
-                                            {{-- Dynamic Language Translations for Name --}}
-                                            @foreach($languages as $language)
-                                                <div class="col-md-6">
-                                                    <div class="view-item">
-                                                        <label class="il-gray fs-14 fw-500 mb-10" @if($language->rtl) dir="rtl" style="text-align: right; display: block;" @endif>
-                                                            @if($language->code == 'ar')
-                                                                الاسم بالعربية
-                                                            @elseif($language->code == 'en')
-                                                                {{ __('areasettings::country.name_english') }}
-                                                            @else
-                                                                {{ __('areasettings::country.name') }} ({{ $language->name }})
-                                                            @endif
-                                                        </label>
-                                                        <p class="fs-15 color-dark fw-500" @if($language->rtl) dir="rtl" style="text-align: right;" @endif>
-                                                            {{ $country->getTranslation('name', $language->code) ?? '-' }}
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                            @endforeach
+                                            <x-translation-display :label="__('areasettings::country.name')" :model="$country" fieldName="name" :languages="$languages" />
                                             <div class="col-md-6">
                                                 <div class="view-item">
                                                     <label class="il-gray fs-14 fw-500 mb-10">{{ __('areasettings::country.country_code') }}</label>

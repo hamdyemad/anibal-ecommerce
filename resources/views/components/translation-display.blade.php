@@ -69,10 +69,18 @@
                                     <span class="text-muted">—</span>
                                 @endif
                             @else
-                                @if($translation)
-                                    {{ $translation }}
+                                @if($type === 'html')
+                                    @if($translation)
+                                        {!! $translation !!}
+                                    @else
+                                        <span class="text-muted">—</span>
+                                    @endif
                                 @else
-                                    <span class="text-muted">—</span>
+                                    @if($translation)
+                                        {{ $translation }}
+                                    @else
+                                        <span class="text-muted">—</span>
+                                    @endif
                                 @endif
                             @endif
                         </div>

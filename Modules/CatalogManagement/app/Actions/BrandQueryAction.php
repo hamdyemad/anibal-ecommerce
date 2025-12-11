@@ -37,18 +37,17 @@ class BrandQueryAction
 
         switch ($sortBy) {
             case 'name':
-                $query->join('translations', function($join) {
-                    $join->on('brands.id', '=', 'translations.translatable_id')
-                         ->where('translations.translatable_type', 'Modules\\CatalogManagement\\app\\Models\\Brand')
-                         ->where('translations.lang_key', 'name');
-                })
-                ->orderBy('translations.lang_value', $sortType)
-                ->select('brands.*')->distinct('brands.id');
+                $query->whereHas('translations', function($query) use ($sortType) {
+                    $query
+                    ->where('lang_key', 'name')
+                    ->where('lang_id', 2)
+                    ->orderBy('lang_value', 'desc');
+                });
                 break;
-            default:
-                $query->orderBy('created_at', $sortType);
+            // default:
+            //     $query->orderBy('created_at', $sortType);
         }
 
         return $query;
-    }   
+    }
 }

@@ -249,7 +249,7 @@
                 processing: true,
                 serverSide: true,
                 ajax: {
-                    url: '{{ route('admin.user-points.datatable') }}',
+                    url: '{{ route('admin.points-settings.user-points.datatable') }}',
                     type: 'GET',
                     data: function(d) {
                         d.per_page = d.length;
@@ -357,7 +357,7 @@
                         orderable: false,
                         searchable: false,
                         render: function(data, type, row) {
-                            let viewUrl = "{{ route('admin.user-points.transactions',':id') }}".replace(':id', row.id);
+                            let viewUrl = "{{ route('admin.points-settings.user-points.transactions',':id') }}".replace(':id', row.id);
                             return `
                                 <div class="orderDatatable_actions d-inline-flex gap-1 justify-content-center">
                                     <a href="${viewUrl}"
@@ -423,7 +423,7 @@
 
             // View points details
             window.viewPointsDetails = function(id) {
-                fetch('{{ route("admin.user-points.show", ":id") }}'.replace(':id', id), {
+                fetch('{{ route("admin.points-settings.user-points.show", ":id") }}'.replace(':id', id), {
                     method: 'GET',
                     headers: {
                         'X-Requested-With': 'XMLHttpRequest',

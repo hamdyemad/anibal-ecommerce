@@ -301,10 +301,13 @@
                         orderable: false,
                         searchable: false,
                         render: function(data, type, row) {
+                            let indexUrl = "{{ route('admin.taxes.index') }}";
+                            let viewUrl = "{{ route('admin.taxes.show', ':id') }}".replace(':id', row.id);
+                            let editUrl = "{{ route('admin.taxes.edit', ':id') }}".replace(':id', row.id);
                             return `
                             <div class="orderDatatable_actions d-inline-flex gap-1">
                                 @can('taxes.show')
-                                <a href="{{ url('admin/taxes') }}/${row.id}"
+                                <a href="${viewUrl}"
                                 class="view btn btn-primary table_action_father"
                                 title="{{ trans('common.view') }}">
                                     <i class="uil uil-eye table_action_icon"></i>
@@ -312,7 +315,7 @@
                                 @endcan
 
                                 @can('taxes.edit')
-                                <a href="{{ url('admin/taxes') }}/${row.id}/edit"
+                                <a href="${editUrl}"
                                 class="edit btn btn-warning table_action_father"
                                 title="{{ trans('common.edit') }}">
                                     <i class="uil uil-edit table_action_icon"></i>
@@ -326,7 +329,7 @@
                                 data-bs-target="#modal-delete-tax"
                                 data-item-id="${row.id}"
                                 data-item-name="${$('<div>').text(row.first_name).html()}"
-                                data-url="{{ url('admin/taxes') }}/${row.id}"
+                                data-url="${indexUrl}/${row.id}"
                                 title="{{ trans('common.delete') }}">
                                     <i class="uil uil-trash-alt table_action_icon"></i>
                                 </a>

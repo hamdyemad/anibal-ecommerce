@@ -39,44 +39,8 @@
                                     </div>
                                     <div class="card-body">
                                         <div class="row">
-                                            {{-- Dynamic Language Translations for Name --}}
-                                            @foreach($languages as $language)
-                                                <div class="col-md-6">
-                                                    <div class="view-item">
-                                                        <label class="il-gray fs-14 fw-500 mb-10" @if($language->rtl) dir="rtl" style="text-align: right; display: block;" @endif>
-                                                            @if($language->code == 'ar')
-                                                                الاسم بالعربية
-                                                            @elseif($language->code == 'en')
-                                                                {{ __('activity.name_english') }}
-                                                            @else
-                                                                {{ __('activity.name') }} ({{ $language->name }})
-                                                            @endif
-                                                        </label>
-                                                        <p class="fs-15 color-dark fw-500" @if($language->rtl) dir="rtl" style="text-align: right;" @endif>
-                                                            {{ $activity->getTranslation('name', $language->code) ?? '-' }}
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                            @endforeach
-                                            {{-- Dynamic Language Translations for Description --}}
-                                            @foreach($languages as $language)
-                                                <div class="col-md-6">
-                                                    <div class="view-item">
-                                                        <label class="il-gray fs-14 fw-500 mb-10" @if($language->rtl) dir="rtl" style="text-align: right; display: block;" @endif>
-                                                            @if($language->code == 'ar')
-                                                                الوصف بالعربية
-                                                            @elseif($language->code == 'en')
-                                                                {{ __('activity.description_english') }}
-                                                            @else
-                                                                {{ __('activity.description') }} ({{ $language->name }})
-                                                            @endif
-                                                        </label>
-                                                        <p class="fs-15 color-dark" @if($language->rtl) dir="rtl" style="text-align: right;" @endif>
-                                                            {{ $activity->getTranslation('description', $language->code) ?? '-' }}
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                            @endforeach
+                                            <x-translation-display :label="__('activity.name')" :model="$activity" fieldName="name" :languages="$languages" />
+                                            <x-translation-display :label="__('activity.description')" :model="$activity" fieldName="description" :languages="$languages" />
                                             {{-- Commission --}}
                                             <div class="col-md-6">
                                                 <div class="view-item">

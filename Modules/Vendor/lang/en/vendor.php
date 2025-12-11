@@ -3,6 +3,7 @@
 return [
     // Page Titles
     'vendors_management' => 'Vendors Management',
+    'vendors' => 'Vendors',
     'create_vendor' => 'Create Vendor',
     'add_vendor' => 'Add Vendor',
     'edit_vendor' => 'Edit Vendor',

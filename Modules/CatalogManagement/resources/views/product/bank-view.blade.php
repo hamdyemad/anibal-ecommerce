@@ -153,157 +153,17 @@
                                     </div>
                                     <div class="card-body">
                                         <div class="row">
-                                            {{-- Product Title --}}
-                                            <div class="col-md-12">
-                                                <div class="view-item box-items-translations">
-                                                    <label
-                                                        class="il-gray fs-14 fw-500 mb-10">{{ __('catalogmanagement::product.title') }}</label>
-                                                    <div class="row">
-                                                        @foreach ($languages as $lang)
-                                                            @php
-                                                                $translation = $product->getTranslation('title', $lang->code);
-                                                            @endphp
-                                                            <div class="col-md-6 mb-3">
-                                                                <small class="text-muted d-block"
-                                                                    style="@if ($lang->code == 'ar') direction: rtl; text-align: right; @endif">{{ $lang->code }}:</small>
-                                                                <div class="fs-15 color-dark mb-0"
-                                                                    style="@if ($lang->code == 'ar') direction: rtl; text-align: right; font-family: 'Cairo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; @endif">
-                                                                    @if($translation)
-                                                                        {{ $translation }}
-                                                                    @else
-                                                                        --
-                                                                    @endif
-                                                                </div>
-                                                            </div>
-                                                        @endforeach
-                                                    </div>
-                                                </div>
-                                            </div>
+                                            <x-translation-display :label="__('catalogmanagement::product.title')" :model="$product" fieldName="title" :languages="$languages" />
 
-                                            {{-- Product Description --}}
-                                            <div class="col-md-12">
-                                                <div class="view-item box-items-translations">
-                                                    <label
-                                                        class="il-gray fs-14 fw-500 mb-10">{{ __('catalogmanagement::product.details') }}</label>
-                                                    <div class="row">
-                                                        @foreach ($languages as $lang)
-                                                            @php
-                                                                $translation = $product->getTranslation('details', $lang->code);
-                                                            @endphp
-                                                            <div class="col-md-6 mb-3">
-                                                                <small class="text-muted d-block"
-                                                                    style="@if ($lang->code == 'ar') direction: rtl; text-align: right; @endif">{{ $lang->code }}:</small>
-                                                                <div class="fs-15 color-dark mb-0"
-                                                                    style="@if ($lang->code == 'ar') direction: rtl; text-align: right; font-family: 'Cairo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; @endif">
-                                                                    @if($translation)
-                                                                        {!! $translation !!}
-                                                                    @else
-                                                                        --
-                                                                    @endif
-                                                                </div>
-                                                            </div>
-                                                        @endforeach
-                                                    </div>
-                                                </div>
-                                            </div>
+                                            <x-translation-display :label="__('catalogmanagement::product.details')" :model="$product" fieldName="details" :languages="$languages" type="html" />
 
-                                            {{-- Summary --}}
-                                            <div class="col-md-12">
-                                                <div class="view-item box-items-translations">
-                                                    <label class="il-gray fs-14 fw-500 mb-10">{{ __('common.summary') }}</label>
-                                                    <div class="row">
-                                                        @foreach ($languages as $lang)
-                                                            @php
-                                                                $translation = $product->getTranslation('summary', $lang->code);
-                                                            @endphp
-                                                            <div class="col-md-6 mb-3">
-                                                                <small class="text-muted d-block" style="@if ($lang->code == 'ar') direction: rtl; text-align: right; @endif">{{ $lang->code }}:</small>
-                                                                <div class="fs-15 color-dark mb-0" style="@if ($lang->code == 'ar') direction: rtl; text-align: right; font-family: 'Cairo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; @endif">
-                                                                    @if($translation)
-                                                                        {!! $translation !!}
-                                                                    @else
-                                                                        --
-                                                                    @endif
-                                                                </div>
-                                                            </div>
-                                                        @endforeach
-                                                    </div>
-                                                </div>
-                                            </div>
+                                            <x-translation-display :label="__('common.summary')" :model="$product" fieldName="summary" :languages="$languages" type="html" />
 
-                                            {{-- Features --}}
-                                            <div class="col-md-12">
-                                                <div class="view-item box-items-translations">
-                                                    <label class="il-gray fs-14 fw-500 mb-10">{{ __('common.features') }}</label>
-                                                    <div class="row">
-                                                        @foreach ($languages as $lang)
-                                                            @php
-                                                                $translation = $product->getTranslation('features', $lang->code);
-                                                            @endphp
-                                                            <div class="col-md-6 mb-3">
-                                                                <small class="text-muted d-block" style="@if ($lang->code == 'ar') direction: rtl; text-align: right; @endif">{{ $lang->code }}:</small>
-                                                                <div class="fs-15 color-dark mb-0" style="@if ($lang->code == 'ar') direction: rtl; text-align: right; font-family: 'Cairo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; @endif">
-                                                                    @if($translation)
-                                                                        {!! $translation !!}
-                                                                    @else
-                                                                        --
-                                                                    @endif
-                                                                </div>
-                                                            </div>
-                                                        @endforeach
-                                                    </div>
-                                                </div>
-                                            </div>
+                                            <x-translation-display :label="__('common.features')" :model="$product" fieldName="features" :languages="$languages" type="html" />
 
-                                            {{-- Instructions --}}
-                                            <div class="col-md-12">
-                                                <div class="view-item box-items-translations">
-                                                    <label class="il-gray fs-14 fw-500 mb-10">{{ __('common.instructions') }}</label>
-                                                    <div class="row">
-                                                        @foreach ($languages as $lang)
-                                                            @php
-                                                                $translation = $product->getTranslation('instructions', $lang->code);
-                                                            @endphp
-                                                            <div class="col-md-6 mb-3">
-                                                                <small class="text-muted d-block" style="@if ($lang->code == 'ar') direction: rtl; text-align: right; @endif">{{ $lang->code }}:</small>
-                                                                <div class="fs-15 color-dark mb-0" style="@if ($lang->code == 'ar') direction: rtl; text-align: right; font-family: 'Cairo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; @endif">
-                                                                    @if($translation)
-                                                                        {!! $translation !!}
-                                                                    @else
-                                                                        --
-                                                                    @endif
-                                                                </div>
-                                                            </div>
-                                                        @endforeach
-                                                    </div>
-                                                </div>
-                                            </div>
+                                            <x-translation-display :label="__('common.instructions')" :model="$product" fieldName="instructions" :languages="$languages" type="html" />
 
-                                            {{-- Tags --}}
-                                            <div class="col-md-12">
-                                                <div class="view-item box-items-translations">
-                                                    <label class="il-gray fs-14 fw-500 mb-10">{{ __('common.tags') }}</label>
-                                                    <div class="row">
-                                                        @foreach ($languages as $lang)
-                                                            @php
-                                                                $translation = $product->getTranslation('tags', $lang->code);
-                                                            @endphp
-                                                            <div class="col-md-6 mb-3">
-                                                                <small class="text-muted d-block" style="@if ($lang->code == 'ar') direction: rtl; text-align: right; @endif">{{ $lang->code }}:</small>
-                                                                <div class="fs-15 color-dark mb-0" style="@if ($lang->code == 'ar') direction: rtl; text-align: right; font-family: 'Cairo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; @endif">
-                                                                    @if($translation)
-                                                                        @foreach(explode(',', $translation) as $tag)
-                                                                            <span class="badge badge-light-primary badge-pill">{{ $tag }}</span>
-                                                                        @endforeach
-                                                                    @else
-                                                                        --
-                                                                    @endif
-                                                                </div>
-                                                            </div>
-                                                        @endforeach
-                                                    </div>
-                                                </div>
-                                            </div>
+                                            <x-translation-display :label="__('common.tags')" :model="$product" fieldName="tags" :languages="$languages" type="keywords" />
                                             {{-- Product Type --}}
                                             <div class="col-md-6">
                                                 <div class="view-item">
@@ -511,85 +371,11 @@
                                     </div>
                                     <div class="card-body">
                                         <div class="row">
-                                            {{-- Meta Title --}}
-                                            <div class="col-md-12">
-                                                <div class="view-item box-items-translations">
-                                                    <label class="il-gray fs-14 fw-500 mb-10">{{ __('catalogmanagement::product.meta_title') }}</label>
-                                                    <div class="row">
-                                                        @foreach ($languages as $lang)
-                                                            @php
-                                                                $translation = $product->getTranslation('meta_title', $lang->code);
-                                                            @endphp
-                                                            <div class="col-md-6 mb-3">
-                                                                <small class="text-muted d-block"
-                                                                    style="@if ($lang->code == 'ar') direction: rtl; text-align: right; @endif">{{ $lang->code }}:</small>
-                                                                <div class="fs-15 color-dark mb-0"
-                                                                    style="@if ($lang->code == 'ar') direction: rtl; text-align: right; font-family: 'Cairo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; @endif">
-                                                                    @if($translation)
-                                                                        {{ $translation }}
-                                                                    @else
-                                                                        --
-                                                                    @endif
-                                                                </div>
-                                                            </div>
-                                                        @endforeach
-                                                    </div>
-                                                </div>
-                                            </div>
+                                            <x-translation-display :label="__('catalogmanagement::product.meta_title')" :model="$product" fieldName="meta_title" :languages="$languages" />
 
-                                            {{-- Meta Description --}}
-                                            <div class="col-md-12">
-                                                <div class="view-item box-items-translations">
-                                                    <label class="il-gray fs-14 fw-500 mb-10">{{ __('catalogmanagement::product.meta_description') }}</label>
-                                                    <div class="row">
-                                                        @foreach ($languages as $lang)
-                                                            @php
-                                                                $translation = $product->getTranslation('meta_description', $lang->code);
-                                                            @endphp
-                                                            <div class="col-md-6 mb-3">
-                                                                <small class="text-muted d-block"
-                                                                    style="@if ($lang->code == 'ar') direction: rtl; text-align: right; @endif">{{ $lang->code }}:</small>
-                                                                <div class="fs-15 color-dark mb-0"
-                                                                    style="@if ($lang->code == 'ar') direction: rtl; text-align: right; font-family: 'Cairo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; @endif">
-                                                                    @if($translation)
-                                                                        {{ $translation }}
-                                                                    @else
-                                                                        --
-                                                                    @endif
-                                                                </div>
-                                                            </div>
-                                                        @endforeach
-                                                    </div>
-                                                </div>
-                                            </div>
+                                            <x-translation-display :label="__('catalogmanagement::product.meta_description')" :model="$product" fieldName="meta_description" :languages="$languages" />
 
-                                            {{-- Meta Keywords --}}
-                                            <div class="col-md-12">
-                                                <div class="view-item box-items-translations">
-                                                    <label class="il-gray fs-14 fw-500 mb-10">{{ __('catalogmanagement::product.meta_keywords') }}</label>
-                                                    <div class="row">
-                                                        @foreach ($languages as $lang)
-                                                            @php
-                                                                $translation = $product->getTranslation('meta_keywords', $lang->code);
-                                                            @endphp
-                                                            <div class="col-md-6 mb-3">
-                                                                <small class="text-muted d-block"
-                                                                    style="@if ($lang->code == 'ar') direction: rtl; text-align: right; @endif">{{ $lang->code }}:</small>
-                                                                <div class="fs-15 color-dark mb-0"
-                                                                    style="@if ($lang->code == 'ar') direction: rtl; text-align: right; font-family: 'Cairo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; @endif">
-                                                                    @if($translation)
-                                                                        {{ $translation }}
-                                                                    @else
-                                                                        --
-                                                                    @endif
-                                                                </div>
-                                                            </div>
-                                                        @endforeach
-                                                    </div>
-                                                </div>
-                                            </div>
-
-
+                                            <x-translation-display :label="__('catalogmanagement::product.meta_keywords')" :model="$product" fieldName="meta_keywords" :languages="$languages" type="keywords" />
                                         </div>
                                     </div>
                                 </div>

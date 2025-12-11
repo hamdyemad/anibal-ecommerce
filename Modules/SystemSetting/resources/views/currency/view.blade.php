@@ -41,23 +41,7 @@
                                     </div>
                                     <div class="card-body">
                                         <div class="row">
-                                            {{-- Dynamic Language Translations for Name --}}
-                                            @foreach($languages as $language)
-                                                <div class="col-md-6">
-                                                    <div class="view-item">
-                                                        <label class="il-gray fs-14 fw-500 mb-10" @if($language->rtl) dir="rtl" style="text-align: right; display: block;" @endif>
-                                                            @if($language->code == 'ar')
-                                                                الاسم بالعربية
-                                                            @else
-                                                                {{ __('systemsetting::currency.name') }} ({{ $language->name }})
-                                                            @endif
-                                                        </label>
-                                                        <p class="fs-15 color-dark fw-500" @if($language->rtl) dir="rtl" style="text-align: right;" @endif>
-                                                            {{ $currency->translations->where('lang_id', $language->id)->first()->lang_value ?? '-' }}
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                            @endforeach
+                                            <x-translation-display :label="__('systemsetting::currency.name')" :model="$currency" fieldName="name" :languages="$languages" />
 
                                             {{-- Currency Code --}}
                                             <div class="col-md-6">

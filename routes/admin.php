@@ -89,11 +89,11 @@ Route::get('seeder', function () {
             //     'name' => 'Vendor Seeder',
             //     'description' => 'Creates vendors with country_id and translations',
             // ],
-            // [
-            //     'class' => OrderStageSeeder::class,
-            //     'name' => 'Order Stage Seeder',
-            //     'description' => 'Creates order stages',
-            // ],
+            [
+                'class' => OrderStageSeeder::class,
+                'name' => 'Order Stage Seeder',
+                'description' => 'Creates order stages',
+            ],
             // [
             //     'class' => AutoProductSeeder::class,
             //     'name' => 'Auto Product Seeder',
@@ -177,22 +177,22 @@ Route::get('/truncate', function(Illuminate\Http\Request $request) {
         abort(403, 'Unauthorized');
     }
     DB::statement('SET FOREIGN_KEY_CHECKS=0;');
-    Translation::latest()->forceDelete();
+    // Translation::latest()->forceDelete();
     $tables = [
-        'activities','activities_departments', 'activity_logs','cities', 'regions', 'subregions', 'vendor_regions',
-        'attachments', 'brands', 'bundle_categories', 'categories',
-        'departments',
-        'customers',
-        'customer_addresses', 'customer_fcm_tokens',
-        'customer_otps','customer_password_reset_tokens',
+        // 'activities','activities_departments', 'activity_logs','cities', 'regions', 'subregions', 'vendor_regions',
+        // 'attachments', 'brands', 'bundle_categories', 'categories',
+        // 'departments',
+        // 'customers',
+        // 'customer_addresses', 'customer_fcm_tokens',
+        // 'customer_otps','customer_password_reset_tokens',
         'orders', 'order_extra_fees_discounts',
         'order_fulfillments', 'order_products', 'order_product_taxes',
 
-        'products', 'product_variants', 'promocodes', 'reviews', 'sub_categories',
-        'taxes', 'translations', 'variants_configurations', 'variants_configurations_keys',
-        'vendors', 'vendors_activities', 'vendor_products', 'vendor_product_variants',
-        'vendor_product_variant_stocks', 'vendor_regions', 'vendor_requests', 'vendor_requests_activities',
-        'wishlists', 'withdraws'
+        // 'products', 'product_variants', 'promocodes', 'reviews', 'sub_categories',
+        // 'taxes', 'translations', 'variants_configurations', 'variants_configurations_keys',
+        // 'vendors', 'vendors_activities', 'vendor_products', 'vendor_product_variants',
+        // 'vendor_product_variant_stocks', 'vendor_regions', 'vendor_requests', 'vendor_requests_activities',
+        // 'wishlists', 'withdraws'
     ];
 
     foreach ($tables as $table) {

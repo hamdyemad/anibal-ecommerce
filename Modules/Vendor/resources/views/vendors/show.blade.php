@@ -415,7 +415,7 @@
                                                                 </p>
                                                             </div>
                                                             <div class="document-actions">
-                                                                <a href="{{ asset($document->path) }}" target="_blank" class="action-btn" title="{{ trans('common.show') }}">
+                                                                <a href="{{ asset('storage/' . $document->path) }}" target="_blank" class="action-btn" title="{{ trans('common.show') }}">
                                                                     <i class="uil uil-eye"></i>
                                                                 </a>
                                                                 <button type="button" class="action-btn delete-btn delete-document-btn"

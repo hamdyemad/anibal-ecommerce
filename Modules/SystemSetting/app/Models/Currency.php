@@ -12,6 +12,7 @@ use Modules\AreaSettings\app\Models\Country;
 
 class Currency extends Model
 {
+
     use Translation, SoftDeletes, HumanDates;
 
     protected $table = 'currencies';

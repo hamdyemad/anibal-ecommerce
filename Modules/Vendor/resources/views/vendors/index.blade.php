@@ -1,7 +1,7 @@
 @extends('layout.app')
 
 @section('title')
-    Vendors | Bnaia
+    {{ __('vendor::vendor.vendors') }}
 @endsection
 @push('styles')
     <!-- Select2 CSS loaded via Vite -->
