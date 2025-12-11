@@ -78,7 +78,7 @@
     <ul class="sidebar_nav">
         <li>
             <a href="{{ route('admin.dashboard') }}"
-                class="{{ Request::is('admin/dashboard') ? 'active' : '' }}">
+                class="{{ isMenuActive('admin.dashboard', $currentRoute) ? 'active' : '' }}">
                 <span class="nav-icon uil uil-create-dashboard"></span>
                 <span class="menu-text">{{ trans('menu.dashboard.title') }}</span>
             </a>
@@ -132,7 +132,7 @@
 
                 <li>
                     <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive('admin.transactionsRequests', $currentRoute) && request()->route('status') === 'new' ? 'active' : '' }}"
-                        href="{{ route('admin.transactionsRequests', 'new') }}">
+                        href="{{ route('admin.transactionsRequests', ['status' => 'new']) }}">
                         {{ trans('menu.withdraw module.new transaction requests') }}
                         <span class="badge badge-round badge-primary ms-1">{{ $new_transactions }}</span>
                     </a>
@@ -140,7 +140,7 @@
 
                 <li>
                     <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive('admin.transactionsRequests', $currentRoute) && request()->route('status') === 'accepted' ? 'active' : '' }}"
-                        href="{{ route('admin.transactionsRequests', 'accepted') }}">
+                        href="{{ route('admin.transactionsRequests', ['status' => 'accepted']) }}">
                         {{ trans('menu.withdraw module.accepted transaction requests') }}
                         <span class="badge badge-round badge-primary ms-1">{{ $accepted_transactions }}</span>
                     </a>
@@ -148,7 +148,7 @@
 
                 <li>
                     <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive('admin.transactionsRequests', $currentRoute) && request()->route('status') === 'rejected' ? 'active' : '' }}"
-                        href="{{ route('admin.transactionsRequests', 'rejected') }}">
+                        href="{{ route('admin.transactionsRequests', ['status' => 'rejected']) }}">
                         {{ trans('menu.withdraw module.rejected transaction requests') }}
                         <span class="badge badge-round badge-primary ms-1">{{ $rejected_transactions }}</span>
                     </a>
@@ -500,6 +500,33 @@
             @endcan
         @endif
 
+        @can('points.index')
+            <li class="menu-title mt-30">
+                <span>{{ trans('menu.sections.points system') }}</span>
+            </li>
+            <li class="has-child {{ isParentMenuOpen(['admin.points-settings.index', 'admin.points-settings.user-points.index', 'admin.points-settings.user-points.transactions'], ['admin/points-settings*']) ? 'open' : '' }}">
+                <a href="#" class="{{ isParentMenuOpen(['admin.points-settings.index', 'admin.points-settings.user-points.index', 'admin.points-settings.user-points.transactions'], ['admin/points-settings*']) ? 'active' : '' }}">
+                    <span class="nav-icon uil uil-coins"></span>
+                    <span class="menu-text">{{ trans('menu.point managment.title') }}</span>
+                    <span class="toggle-icon"></span>
+                </a>
+                <ul class="px-0">
+                    <li>
+                        <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive(['admin.points-settings.index'], $currentRoute) ? 'active' : '' }}"
+                            href="{{ route('admin.points-settings.index') }}">
+                            {{ trans('menu.point managment.title') }}
+                        </a>
+                    </li>
+                    <li>
+                        <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive(['admin.points-settings.user-points.index', 'admin.points-settings.user-points.transactions'], $currentRoute) ? 'active' : '' }}"
+                            href="{{ route('admin.points-settings.user-points.index') }}">
+                            {{ trans('menu.point managment.users points') }}
+                        </a>
+                    </li>
+                </ul>
+            </li>
+        @endcan
+
 
         <li class="menu-title mt-30">
             <span>{{ trans('menu.sections.user management') }}</span>
@@ -717,7 +744,7 @@
                         </li>
                         <li>
                             <a class="d-flex align-items-center justify-content-between fw-bold"
-                                href="{{ route('admin.user-points.index') }}">
+                                href="{{ route('admin.points-settings.user-points.index') }}">
                                 {{ trans('menu.point managment.users points') }}
                             </a>
                         </li>

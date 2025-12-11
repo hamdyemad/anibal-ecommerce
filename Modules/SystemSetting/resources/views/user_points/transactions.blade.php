@@ -176,7 +176,7 @@
                     ],
                     [
                         'title' => trans('systemsetting::points.user_points_management'),
-                        'url' => route('admin.user-points.index'),
+                        'url' => route('admin.points-settings.user-points.index'),
                     ],
                     [
                         'title' => trans('systemsetting::points.transaction_history'),
@@ -254,7 +254,7 @@
                     <div class="d-flex justify-content-between align-items-center mb-25">
                         <h4 class="mb-0 fw-500 fw-bold">{{ trans('systemsetting::points.transaction_history') }}</h4>
                         <div class="d-flex">
-                            <a href="{{ route('admin.user-points.index') }}" class="btn btn-primary btn-default btn-squared me-1">
+                            <a href="{{ route('admin.points-settings.user-points.index') }}" class="btn btn-primary btn-default btn-squared me-1">
                                 <i class="uil uil-arrow-left me-1"></i>
                                 {{ __('common.back') }}
                             </a>
@@ -445,7 +445,7 @@
                 processing: true,
                 serverSide: true,
                 ajax: {
-                    url: '{{ route("admin.user-points.transactions.datatable", [":userId"]) }}'
+                    url: '{{ route("admin.points-settings.user-points.transactions.datatable", [":userId"]) }}'
                         .replace(':userId', userId),
                     type: 'GET',
                     data: function(d) {
@@ -682,7 +682,7 @@
 
                 console.log('Request Body:', requestBody);
 
-                fetch('{{ route("admin.user-points.adjust", ":id") }}'.replace(':id', userId), {
+                fetch('{{ route("admin.points-settings.user-points.adjust", ":id") }}'.replace(':id', userId), {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
