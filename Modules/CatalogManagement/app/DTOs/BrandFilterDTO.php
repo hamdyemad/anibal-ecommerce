@@ -3,6 +3,7 @@
 namespace Modules\CatalogManagement\app\DTOs;
 
 use App\DTOs\FilterDTO;
+use Modules\CatalogManagement\app\Models\Brand;
 use Modules\CategoryManagment\app\Models\Category;
 use Modules\CategoryManagment\app\Models\Department;
 use Modules\CategoryManagment\app\Models\SubCategory;
@@ -14,6 +15,7 @@ class BrandFilterDTO extends FilterDTO
 
     public function __construct(
         public ?string $search = null,
+        public ?string $brand_id = null,
         public ?string $department_id = null,
         public ?string $category_id = null,
         public ?string $sub_category_id = null,
@@ -32,6 +34,7 @@ class BrandFilterDTO extends FilterDTO
     {
         return new self(
             search: $request->input('search'),
+            brand_id: $request->input('brand_id'),
             department_id: $request->input('department_id'),
             category_id: $request->input('category_id'),
             sub_category_id: $request->input('sub_category_id'),
@@ -48,6 +51,7 @@ class BrandFilterDTO extends FilterDTO
     {
         return array_filter([
             'search' => $this->search,
+            'brand_id' => $this->brand_id,
             'department_id' => $this->department_id,
             'category_id' => $this->category_id,
             'sub_category_id' => $this->sub_category_id,
@@ -63,6 +67,10 @@ class BrandFilterDTO extends FilterDTO
     public function validate(): bool
     {
         $this->errors = [];
+
+        if ($this->brand_id && !$this->brandExists($this->brand_id)) {
+            $this->errors['brand_id'][] = __('validation.brand_id_not_exist');
+        }
 
         if ($this->sort_by && !in_array($this->sort_by, ['created_at', 'name'])) {
             $this->errors['sort_by'][] = __('validation.sort_by_invalid');
@@ -98,6 +106,11 @@ class BrandFilterDTO extends FilterDTO
     public function getErrors(): array
     {
         return $this->errors;
+    }
+
+    private function brandExists(string $brandId): bool
+    {
+        return Brand::where('id', $brandId)->orWhere('slug', $brandId)->exists();
     }
 
     private function departmentExists(string $departmentId): bool

@@ -139,6 +139,13 @@ class Bundle extends Model
             ->orWhere('sku', 'like' ,"%" . $filters['search'] . "%");
         }
 
+        if (isset($filters['bundle_id'])) {
+            $query->where(function ($query) use ($filters) {
+                $query->where('id', $filters['bundle_id'])
+                ->orWhere('slug', $filters['bundle_id']);
+            });
+        }
+
         if (isset($filters['active']) && $filters['active'] !== '') {
             $query->where('is_active', $filters['active']);
         }

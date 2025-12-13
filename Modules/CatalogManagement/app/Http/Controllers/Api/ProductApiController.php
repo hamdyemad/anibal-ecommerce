@@ -6,21 +6,36 @@ use App\Http\Controllers\Controller;
 use App\Traits\Res;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Modules\CatalogManagement\app\DTOs\BrandFilterDTO;
 use Modules\CatalogManagement\app\DTOs\ProductFilterDTO;
+use Modules\CatalogManagement\app\Http\Requests\Api\FilterTypeRequest;
 use Modules\CatalogManagement\app\Services\Api\ProductApiService;
 use Modules\CatalogManagement\app\Http\Resources\Api\ProductResource;
 use Modules\CatalogManagement\app\Http\Resources\Api\VendorProductResource;
 use Modules\CatalogManagement\app\Http\Requests\Api\ProductReviewRequest;
+use Modules\CatalogManagement\app\Http\Resources\Api\BrandApiResource;
+use Modules\CatalogManagement\app\Http\Resources\Api\BundleCategoryResource;
 use Modules\CatalogManagement\app\Http\Resources\Api\SimpleProductResource;
 use Modules\CatalogManagement\app\Http\Resources\Api\VariantConfigurationKeyResource;
+use Modules\CatalogManagement\app\Http\Resources\Api\BundleResource;
+use Modules\CatalogManagement\app\Services\Api\BrandApiService;
+use Modules\CatalogManagement\app\Services\Api\BundleApiService;
+use Modules\CatalogManagement\app\Services\Api\BundleCategoryApiService;
+use Modules\CatalogManagement\app\Services\OccasionService;
 use Modules\CategoryManagment\app\Http\Resources\Api\GeneralResoruce;
+use Modules\CategoryManagment\app\Services\CategoryService;
 
 class ProductApiController extends Controller
 {
     use Res;
 
     public function __construct(
-        protected ProductApiService $productService
+        protected ProductApiService $productService,
+        protected CategoryService $categoryService,
+        protected BrandApiService $brandApiService,
+        protected BundleCategoryApiService $bundleCategoryApiService,
+        protected BundleApiService $bundleApiService,
+        protected OccasionService $occasionService,
     ) {}
 
 
@@ -314,6 +329,37 @@ class ProductApiController extends Controller
         );
     }
 
+     /**
+     * Get filters types
+     * GET /api/products/filter-by-type
+     */
+    public function filterByType(FilterTypeRequest $request)
+    {
+        $trees = $this->productService->getTreesByFilters($request->all());
+        $tress = VariantConfigurationKeyResource::collection($trees)->resolve();
+        $brandDto = BrandFilterDTO::fromRequest($request);
+        $brands = $this->brandApiService->getAllBrands($brandDto);
+        $brands = BrandApiResource::collection($brands)->resolve();
+        $returnedData = [];
+        if($request->type == 'bundle') {
+            $bundleCategories = $this->bundleCategoryApiService->getAll($request->all(), 0);
+            $bundleCategories = BundleCategoryResource::collection($bundleCategories)->resolve();
+            $returnedData['bundle_categories'] = $bundleCategories;
+        } else {
+            $occasions = $this->occasionService->getAllOccasions($request->all(), 0);
+            $returnedData['occasions'] = $occasions;
+        }
+        $returnedData['tress'] = $tress;
+        $returnedData['brands'] = $brands;
+        return $this->sendRes(
+            config('responses.success')[app()->getLocale()],
+            true,
+            $returnedData,
+            [],
+            200
+        );
+    }
+
     /**
      * Get variant trees by filters
      * GET /api/products/variants
@@ -430,4 +476,6 @@ class ProductApiController extends Controller
             200
         );
     }
+
+
 }

@@ -22,6 +22,19 @@ class BrandApiRepository implements BrandApiRepositoryInterface
         return $result;
     }
 
+
+    /**
+     * Get all Brands with filters and pagination
+     */
+    public function getAll($dto)
+    {
+        $filters = $dto;
+        $query = $this->query->handle($filters);
+        $result = $this->paginated->handle($query, $dto['per_page'], $dto['paginated']);
+        return $result;
+    }
+
+
     /**
      * Get Brand by ID
      */

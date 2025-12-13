@@ -92,4 +92,21 @@ class Brand extends BaseModel
         });
     }
 
+    /**
+     * Override filter scope to handle Brand-specific filtering
+     */
+    public function scopeFilter($query, array $filters)
+    {
+
+        // Char filter (filter by first letter)
+        if (isset($filters['brand_id'])) {
+            $query->where(function ($query) use ($filters) {
+                $query->where('id', $filters['brand_id'])
+                ->orWhere('slug', $filters['brand_id']);
+            });
+        }
+
+        return $query;
+    }
+
 }

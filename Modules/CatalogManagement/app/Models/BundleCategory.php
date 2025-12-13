@@ -106,6 +106,13 @@ class BundleCategory extends BaseModel
             });
         }
 
+        if (isset($filters['bundle_category_id'])) {
+            $query->where(function ($query) use ($filters) {
+                $query->where('id', $filters['bundle_category_id'])
+                ->orWhere('slug', $filters['bundle_category_id']);
+            });
+        }
+
         if (isset($filters['active']) && $filters['active'] !== '') {
             $query->where('active', $filters['active']);
         }

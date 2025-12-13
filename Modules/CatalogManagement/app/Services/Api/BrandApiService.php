@@ -23,6 +23,11 @@ class BrandApiService
         return $this->BrandRepository->getAllBrands($dto);
     }
 
+    public function getAll($dto)
+    {
+        return $this->BrandRepository->getAllBrands($dto);
+    }
+
     /**
      * Get Brand by ID
      */

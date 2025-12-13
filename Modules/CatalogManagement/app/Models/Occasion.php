@@ -70,6 +70,13 @@ class Occasion extends BaseModel
             });
         }
 
+        if (isset($filters['occasion_id'])) {
+            $query->where(function ($query) use ($filters) {
+                $query->where('id', $filters['occasion_id'])
+                ->orWhere('slug', $filters['occasion_id']);
+            });
+        }
+
         // Filter by active status
         if (isset($filters['active']) && $filters['active'] !== '' && $filters['active'] !== null) {
             $query->where('is_active', $filters['active']);

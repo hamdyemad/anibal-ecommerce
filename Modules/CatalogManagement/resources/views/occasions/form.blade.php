@@ -671,7 +671,8 @@
                     url: '/api/products',
                     type: 'GET',
                     headers: {
-                        'lang': "{{ app()->getLocale() }}"
+                        'lang': "{{ app()->getLocale() }}",
+                        'X-Country-Code': $('meta[name="currency_country_code"]').attr("content"),
                     },
                     data: {
                         search: searchTerm,

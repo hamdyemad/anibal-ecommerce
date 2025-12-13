@@ -11,6 +11,9 @@ interface BrandApiRepositoryInterface
      */
     public function getAllBrands(BrandFilterDTO $filters);
 
+
+    public function getAll($filters);
+
     /**
      * Get brand by ID
      */
