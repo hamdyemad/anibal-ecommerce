@@ -219,4 +219,14 @@
         'currencies' => [
             'title' => 'العملات',
         ],
+        'frontend settings' => [
+            'title' => 'إعدادات الواجهة الأمامية',
+            'our features' => 'مميزاتنا',
+            'footer content' => 'محتوى التذييل',
+            'faq management' => 'إدارة الأسئلة الشائعة',
+            'sliders' => 'المنزلقات',
+            'site information' => 'معلومات الموقع',
+            'contact us' => 'اتصل بنا',
+            'return policy' => 'سياسة الإرجاع',
+        ],
     ];

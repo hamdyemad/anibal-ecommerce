@@ -445,7 +445,7 @@
                     <a href="#"
                         class="{{ isParentMenuOpen(['admin.taxes.index', 'admin.taxes.create', 'admin.taxes.show', 'admin.taxes.edit'], ['admin/taxes*']) ? 'active' : '' }}">
                         <span class="nav-icon uil uil-percentage"></span>
-                        <span class="menu-text">{{ trans('menu.taxes.title') }}</span>
+                        <span class="menu-text fw-bold">{{ trans('menu.taxes.title') }}</span>
                         <span class="toggle-icon"></span>
                     </a>
                     <ul class="px-0">
@@ -461,7 +461,7 @@
 
                         @can('taxes.create')
                             <li><a href="{{ route('admin.taxes.create') }}"
-                                    class="{{ isMenuActive('admin.taxes.create', $currentRoute) ? 'active' : '' }}">{{ trans('menu.taxes.create') }}</a>
+                                    class=" fw-bold {{ isMenuActive('admin.taxes.create', $currentRoute) ? 'active' : '' }}">{{ trans('menu.taxes.create') }}</a>
                             </li>
                         @endcan
                     </ul>
@@ -476,7 +476,7 @@
                     <span class="d-flex align-items-center justify-content-between fw-bold w-100">
                         <span class="d-flex align-items-center">
                             <span class="nav-icon uil uil-ticket"></span>
-                            <span class="menu-text">{{ trans('menu.brands.title') }}</span>
+                            <span class="menu-text fw-bold">{{ trans('menu.brands.title') }}</span>
                         </span>
                         <span class="badge badge-round badge-success  ms-1">{{ \Modules\CatalogManagement\app\Models\Brand::count() }}</span>
                     </span>
@@ -751,31 +751,7 @@
                     </ul>
                 </li>
             @endcan
-            @can('advertisements.index')
-                <li class="has-child">
-                    <a href="#" class="">
-                        <span class="nav-icon uil uil-trophy"></span>
-                        <span class="menu-text">{{ trans('menu.advertisements.title') }}</span>
-                        <span class="toggle-icon"></span>
-                    </a>
-                    <ul class="px-0">
-                        <li>
-                            <a class="d-flex align-items-center justify-content-between fw-bold"
-                                href="{{ route('admin.dashboard') }}">
-                                {{ trans('menu.advertisements.title') }}
-                                <span class="badge badge-round badge-primary  ms-1">50</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a class="d-flex align-items-center justify-content-between fw-bold"
-                                href="{{ route('admin.dashboard') }}">
-                                {{ trans('menu.advertisements.positions') }}
-                                <span class="badge badge-round badge-primary  ms-1">50</span>
-                            </a>
-                        </li>
-                    </ul>
-                </li>
-            @endcan
+
 
             @canany(['notifications.send', 'notifications.view'])
                 <li class="has-child">
@@ -852,15 +828,137 @@
                 </li>
             @endcan
 
-            @can('settings.logs.view')
-                <li>
-                    <a href="{{ route('admin.system-settings.activity-logs.index') }}"
-                        class="{{ isMenuActive('admin.system-settings.activity-logs.index', $currentRoute) ? 'active' : '' }}">
-                        <span class="nav-icon uil uil-history"></span>
-                        <span class="menu-text">{{ trans('menu.system log.title') }}</span>
+
+            @can('advertisements.index')
+                <li class="has-child">
+                    <a href="#" class="">
+                        <span class="nav-icon uil uil-trophy"></span>
+                        <span class="menu-text">{{ trans('menu.advertisements.title') }}</span>
+                        <span class="toggle-icon"></span>
                     </a>
+                    <ul class="px-0">
+                        <li>
+                            <a class="d-flex align-items-center justify-content-between fw-bold"
+                                href="{{ route('admin.system-settings.ads.index') }}">
+                                {{ trans('menu.advertisements.title') }}
+                                <span class="badge badge-round badge-primary  ms-1">
+                                    {{ \Modules\SystemSetting\app\Models\Ad::count() }}
+                                </span>
+                            </a>
+                        </li>
+                    </ul>
                 </li>
             @endcan
+            {{-- Frontend Settings --}}
+            <li class="has-child {{ isParentMenuOpen(['admin.system-settings.features.index', 'admin.system-settings.footer-content.index', 'admin.system-settings.faqs.index', 'admin.system-settings.sliders.index', 'admin.system-settings.site-information.index'], ['*/system-settings/features*', '*/system-settings/footer-content*', '*/system-settings/faqs*', '*/system-settings/sliders*', '*/system-settings/site-information*']) ? 'open' : '' }}">
+                <a href="#" class="{{ isParentMenuOpen(['admin.system-settings.features.index', 'admin.system-settings.footer-content.index', 'admin.system-settings.faqs.index', 'admin.system-settings.sliders.index', 'admin.system-settings.site-information.index'], ['*/system-settings/features*', '*/system-settings/footer-content*', '*/system-settings/faqs*', '*/system-settings/sliders*', '*/system-settings/site-information*']) ? 'active' : '' }}">
+                    <span class="nav-icon uil uil-browser"></span>
+                    <span class="menu-text">{{ trans('menu.frontend settings.title') }}</span>
+                    <span class="toggle-icon"></span>
+                </a>
+                <ul class="px-0">
+                    <li>
+                        <a href="{{ route('admin.system-settings.features.index') }}"
+                            class="{{ isMenuActive('admin.system-settings.features.index', $currentRoute) ? 'active' : '' }}">
+                            <span class="nav-icon uil uil-star"></span>
+                            <span>{{ trans('menu.frontend settings.our features') }}</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ route('admin.system-settings.footer-content.index') }}"
+                            class="{{ isMenuActive('admin.system-settings.footer-content.index', $currentRoute) ? 'active' : '' }}">
+                            <span class="nav-icon uil uil-align-center-alt"></span>
+                            <span>{{ trans('menu.frontend settings.footer content') }}</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ route('admin.system-settings.faqs.index') }}"
+                            class="{{ isMenuActive(['admin.system-settings.faqs.index', 'admin.system-settings.faqs.create', 'admin.system-settings.faqs.edit', 'admin.system-settings.faqs.show'], $currentRoute) ? 'active' : '' }}">
+                            <span class="nav-icon uil uil-question-circle"></span>
+                            <span>{{ trans('menu.frontend settings.faq management') }}</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ route('admin.system-settings.sliders.index') }}"
+                            class="{{ isMenuActive(['admin.system-settings.sliders.index', 'admin.system-settings.sliders.create', 'admin.system-settings.sliders.edit', 'admin.system-settings.sliders.show'], $currentRoute) ? 'active' : '' }}">
+                            <span class="nav-icon uil uil-image-v"></span>
+                            <span>{{ trans('menu.frontend settings.sliders') }}</span>
+                        </a>
+                    </li>
+
+                </ul>
+            </li>
+            {{-- Site Information --}}
+            <li class="has-child">
+                <a href="#" class="{{ isMenuActive(['admin.system-settings.site-information.index'], $currentRoute) ? 'active' : '' }}">
+                    <span class="nav-icon uil uil-info-circle"></span>
+                    <span class="fw-bold">{{ trans('menu.frontend settings.site information') }}</span>
+                    <span class="toggle-icon"></span>
+                </a>
+                <ul class="px-0">
+                    <li>
+                        <a href="{{ route('admin.system-settings.site-information.index') }}"
+                            class="{{ isMenuActive('admin.system-settings.site-information.index', $currentRoute) ? 'active' : '' }}">
+                            <span class="nav-icon uil uil-phone"></span>
+                            <span class="fw-bold">{{ trans('menu.frontend settings.contact us') }}</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ route('admin.system-settings.return-policy.index') }}"
+                            class="{{ isMenuActive('admin.system-settings.return-policy.index', $currentRoute) ? 'active' : '' }}">
+                            <span class="nav-icon uil uil-file-contract"></span>
+                            <span class="fw-bold">{{ trans('menu.frontend settings.return policy') }}</span>
+                        </a>
+                    </li>
+                </ul>
+            </li>
+
+            @canany(['settings.terms.view', 'settings.privacy.view', 'settings.about.view', 'settings.contact.view',
+                'settings.messages.view'])
+                <li class="has-child">
+                    <a href="#" class="">
+                        <span class="nav-icon uil uil-setting"></span>
+                        <span class="menu-text">{{ trans('menu.system settings.title') }}</span>
+                        <span class="toggle-icon"></span>
+                    </a>
+                    <ul class="px-0">
+                        @can('settings.terms.view')
+                            <li><a href="{{ route('admin.dashboard') }}"><span
+                                        class="nav-icon uil uil-file-contract-dollar"></span>
+                                    {{ trans('menu.system settings.terms and conditions') }}</a></li>
+                        @endcan
+
+                        @can('settings.privacy.view')
+                            <li><a href="{{ route('admin.dashboard') }}"><span class="nav-icon uil uil-shield-check"></span>
+                                    {{ trans('menu.system settings.privacy policy') }}</a></li>
+                        @endcan
+
+                        @can('settings.about.view')
+                            <li><a href="{{ route('admin.dashboard') }}"><span class="nav-icon uil uil-info-circle"></span>
+                                    {{ trans('menu.system settings.about us') }}</a></li>
+                        @endcan
+
+                        @can('settings.contact.view')
+                            <li><a href="{{ route('admin.dashboard') }}"><span class="nav-icon uil uil-phone"></span>
+                                    {{ trans('menu.system settings.contact us') }}</a></li>
+                        @endcan
+
+                        @can('settings.messages.view')
+                            <li>
+                                <a class="d-flex align-items-center justify-content-between fw-bold"
+                                    href="{{ route('admin.dashboard') }}">
+                                    <span class="d-flex align-items-center">
+                                        <span class="nav-icon uil uil-envelope"></span>
+                                        <span>{{ trans('menu.system settings.messages') }}</span>
+                                    </span>
+                                    <span class="badge badge-round badge-primary ms-1">25</span>
+                                </a>
+                            </li>
+                        @endcan
+                    </ul>
+                </li>
+            @endcanany
+
 
             @canany(['area.country.index', 'area.city.index', 'area.region.index', 'area.subregion.index'])
                 <li
@@ -914,54 +1012,6 @@
                     </ul>
                 </li>
             @endcanany
-
-            @canany(['settings.terms.view', 'settings.privacy.view', 'settings.about.view', 'settings.contact.view',
-                'settings.messages.view'])
-                <li class="has-child">
-                    <a href="#" class="">
-                        <span class="nav-icon uil uil-setting"></span>
-                        <span class="menu-text">{{ trans('menu.system settings.title') }}</span>
-                        <span class="toggle-icon"></span>
-                    </a>
-                    <ul class="px-0">
-                        @can('settings.terms.view')
-                            <li><a href="{{ route('admin.dashboard') }}"><span
-                                        class="nav-icon uil uil-file-contract-dollar"></span>
-                                    {{ trans('menu.system settings.terms and conditions') }}</a></li>
-                        @endcan
-
-                        @can('settings.privacy.view')
-                            <li><a href="{{ route('admin.dashboard') }}"><span class="nav-icon uil uil-shield-check"></span>
-                                    {{ trans('menu.system settings.privacy policy') }}</a></li>
-                        @endcan
-
-                        @can('settings.about.view')
-                            <li><a href="{{ route('admin.dashboard') }}"><span class="nav-icon uil uil-info-circle"></span>
-                                    {{ trans('menu.system settings.about us') }}</a></li>
-                        @endcan
-
-                        @can('settings.contact.view')
-                            <li><a href="{{ route('admin.dashboard') }}"><span class="nav-icon uil uil-phone"></span>
-                                    {{ trans('menu.system settings.contact us') }}</a></li>
-                        @endcan
-
-                        @can('settings.messages.view')
-                            <li>
-                                <a class="d-flex align-items-center justify-content-between fw-bold"
-                                    href="{{ route('admin.dashboard') }}">
-                                    <span class="d-flex align-items-center">
-                                        <span class="nav-icon uil uil-envelope"></span>
-                                        <span>{{ trans('menu.system settings.messages') }}</span>
-                                    </span>
-                                    <span class="badge badge-round badge-primary ms-1">25</span>
-                                </a>
-                            </li>
-                        @endcan
-                    </ul>
-                </li>
-            @endcanany
-
-
             @can('system.currency.index')
                 <li>
                     <a href="{{ route('admin.system-settings.currencies.index') }}"
@@ -976,9 +1026,18 @@
                 </li>
             @endcan
 
+            @can('settings.logs.view')
+                <li>
+                    <a href="{{ route('admin.system-settings.activity-logs.index') }}"
+                        class="{{ isMenuActive('admin.system-settings.activity-logs.index', $currentRoute) ? 'active' : '' }}">
+                        <span class="nav-icon uil uil-history"></span>
+                        <span class="menu-text">{{ trans('menu.system log.title') }}</span>
+                    </a>
+                </li>
+            @endcan
+
         @endif
 
-    </ul>
 </div>
 
 <script>

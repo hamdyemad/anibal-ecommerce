@@ -227,4 +227,14 @@
         'currencies' => [
             'title' => 'Currencies',
         ],
+        'frontend settings' => [
+            'title' => 'Frontend Settings',
+            'our features' => 'Our Features',
+            'footer content' => 'Footer Content',
+            'faq management' => 'FAQ Management',
+            'sliders' => 'Sliders',
+            'site information' => 'Site Information',
+            'contact us' => 'Contact Us',
+            'return policy' => 'Return Policy',
+        ],
     ];

@@ -185,7 +185,7 @@
             // Wait a bit more for DOM to be fully ready
             setTimeout(function() {
                 // Initialize CKEditor for ALL textareas
-                const textareas = document.querySelectorAll('textarea');
+                const textareas = document.querySelectorAll('textarea:not(.nockeditor)');
                 textareas.forEach(function(textarea, index) {
                     // Skip if no ID or already initialized
                     if (!textarea.id || CKEDITOR.instances[textarea.id]) {

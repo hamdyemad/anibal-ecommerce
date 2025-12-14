@@ -6,11 +6,46 @@ use Modules\SystemSetting\app\Http\Controllers\ActivityLogController;
 use Modules\SystemSetting\app\Http\Controllers\MessageController;
 use Modules\SystemSetting\app\Http\Controllers\PointsSettingController;
 use Modules\SystemSetting\app\Http\Controllers\UserPointsController;
+use Modules\SystemSetting\app\Http\Controllers\AdController;
+use Modules\SystemSetting\app\Http\Controllers\FeatureController;
+use Modules\SystemSetting\app\Http\Controllers\FooterContentController;
+use Modules\SystemSetting\app\Http\Controllers\FaqController;
+use Modules\SystemSetting\app\Http\Controllers\SliderController;
+use Modules\SystemSetting\app\Http\Controllers\SiteInformationController;
+use Modules\SystemSetting\app\Http\Controllers\ReturnPolicyController;
 
 Route::group(['prefix' => 'system-settings', 'as' => 'system-settings.'], function() {
     // Currencies
     Route::get('currencies/datatable', [CurrencyController::class, 'datatable'])->name('currencies.datatable');
     Route::resource('currencies', CurrencyController::class);
+
+    // Ads
+    Route::get('ads/datatable', [AdController::class, 'datatable'])->name('ads.datatable');
+    Route::resource('ads', AdController::class);
+
+    // Features (Frontend Settings)
+    Route::get('features', [FeatureController::class, 'index'])->name('features.index');
+    Route::post('features', [FeatureController::class, 'store'])->name('features.store');
+
+    // Footer Content (Frontend Settings)
+    Route::get('footer-content', [FooterContentController::class, 'index'])->name('footer-content.index');
+    Route::post('footer-content', [FooterContentController::class, 'store'])->name('footer-content.store');
+
+    // FAQs (Frontend Settings)
+    Route::get('faqs/datatable', [FaqController::class, 'datatable'])->name('faqs.datatable');
+    Route::resource('faqs', FaqController::class);
+
+    // Sliders (Frontend Settings)
+    Route::get('sliders/datatable', [SliderController::class, 'datatable'])->name('sliders.datatable');
+    Route::resource('sliders', SliderController::class);
+
+    // Site Information (Frontend Settings)
+    Route::get('site-information', [SiteInformationController::class, 'index'])->name('site-information.index');
+    Route::put('site-information', [SiteInformationController::class, 'update'])->name('site-information.update');
+
+    // Return Policy (Frontend Settings)
+    Route::get('return-policy', [ReturnPolicyController::class, 'index'])->name('return-policy.index');
+    Route::put('return-policy', [ReturnPolicyController::class, 'update'])->name('return-policy.update');
 
     // Activity Logs
     Route::get('activity-logs/datatable', [ActivityLogController::class, 'datatable'])->name('activity-logs.datatable');

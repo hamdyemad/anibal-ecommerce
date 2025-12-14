@@ -12,7 +12,8 @@
     'model' => null,
     'oldPrefix' => 'translations',
     'tags' => false,
-    'cols' => 6
+    'cols' => 6,
+    'inputClass' => null
 ])
 
 <div class="row">
@@ -44,7 +45,7 @@
                     </div>
                 @elseif($type === 'textarea')
                     <textarea
-                        class="form-control ip-gray radius-xs b-light px-15 @error($oldPrefix . '.' . $language->id . '.' . $name) is-invalid @enderror"
+                        class="{{ $inputClass }} form-control ip-gray radius-xs b-light px-15 @error($oldPrefix . '.' . $language->id . '.' . $name) is-invalid @enderror"
                         id="translation_{{ $language->id }}_{{ $name }}"
                         name="{{ $oldPrefix }}[{{ $language->id }}][{{ $name }}]"
                         @if($rows) rows="{{ $rows }}" @endif

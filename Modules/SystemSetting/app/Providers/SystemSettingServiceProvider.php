@@ -65,6 +65,12 @@ class SystemSettingServiceProvider extends ServiceProvider
             \Modules\SystemSetting\app\Repositories\PointsSettingRepository::class
         );
 
+        // Ad Repository Binding
+        $this->app->bind(
+            \Modules\SystemSetting\app\Interfaces\AdRepositoryInterface::class,
+            \Modules\SystemSetting\app\Repositories\AdRepository::class
+        );
+
         // Bind Services
         $this->app->bind(
             \Modules\SystemSetting\app\Services\CurrencyService::class
@@ -84,6 +90,10 @@ class SystemSettingServiceProvider extends ServiceProvider
 
         $this->app->bind(
             \Modules\SystemSetting\app\Services\PointsSettingService::class
+        );
+
+        $this->app->bind(
+            \Modules\SystemSetting\app\Services\AdService::class
         );
     }
 
