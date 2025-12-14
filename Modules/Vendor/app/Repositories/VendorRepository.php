@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Modules\Vendor\app\Interfaces\VendorInterface;
 use Modules\Vendor\app\Models\Vendor;
+use Modules\Vendor\app\Models\VendorRequest;
 
 class VendorRepository implements VendorInterface
 {
@@ -70,6 +71,7 @@ class VendorRepository implements VendorInterface
                 'user_id' => $user->id,
                 'type' => $data['type'] ?? 'product',
                 'active' => $data['active'] ?? false,
+                'vendor_request_id' => $data['vendor_request_id'] ?? null,
             ]);
             // Handle logo upload
             if (isset($data['logo'])) {
@@ -100,6 +102,14 @@ class VendorRepository implements VendorInterface
             // Handle documents
             if (!empty($data['documents'])) {
                 $this->storeDocuments($vendor, $data['documents']);
+            }
+
+            // Update vendor request status to approved if vendor was created from a request
+            if (!empty($data['vendor_request_id'])) {
+                $vendorRequest = VendorRequest::find($data['vendor_request_id']);
+                if ($vendorRequest) {
+                    $vendorRequest->update(['status' => 'approved']);
+                }
             }
 
             return $vendor;

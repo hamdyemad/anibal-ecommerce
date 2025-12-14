@@ -607,6 +607,13 @@
                         <li>
                             <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive('admin.vendor-requests.index', $currentRoute) && !request()->has('status') ? 'active' : '' }}"
                                 href="{{ route('admin.vendor-requests.index') }}">
+                                {{ trans('common.all') }}
+                                <span class="badge badge-round badge-info ms-1">{{ \Modules\Vendor\app\Models\VendorRequest::count() }}</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive('admin.vendor-requests.index', $currentRoute) && !request()->has('status') ? 'active' : '' }}"
+                                href="{{ route('admin.vendor-requests.index') }}">
                                 {{ trans('menu.become a vendor requests.new') }}
                                 <span class="badge badge-round badge-primary ms-1">{{ \Modules\Vendor\app\Models\VendorRequest::pending()->count() }}</span>
                             </a>

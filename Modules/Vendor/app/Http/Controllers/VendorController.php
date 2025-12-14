@@ -70,7 +70,7 @@ class VendorController extends Controller {
     }
 
 
-    public function create($lang, $countryCode) {
+    public function create(Request $request, $lang, $countryCode) {
         // Get all countries and activities for select dropdowns
         $countriesData = $this->countryService->getAllCountries([], 1000);
         $activitiesData = $this->activityService->getAllActivities(0, []);
@@ -82,11 +82,21 @@ class VendorController extends Controller {
         // Get languages for translations
         $languages = $this->languageService->getAll();
 
+        // Get vendor request data from query parameters (if coming from vendor request)
+        $vendorRequestData = [
+            'vendor_request_id' => $request->query('vendor_request_id'),
+            'email' => $request->query('email'),
+            'phone' => $request->query('phone'),
+            'company_name' => $request->query('company_name'),
+            'activity_ids' => $request->query('activity_ids') ? explode(',', $request->query('activity_ids')) : []
+        ];
+
         $data = [
             'title' => __('vendor::vendor.add_vendor'),
             'countries' => $countries,
             'activities' => $activities,
-            'languages' => $languages
+            'languages' => $languages,
+            'vendorRequestData' => $vendorRequestData
         ];
         return view('vendor::vendors.form', $data);
     }
@@ -96,6 +106,13 @@ class VendorController extends Controller {
         try {
             $data = $request->validated();
             $vendor = $this->vendorService->createVendor($data);
+
+            // If vendor was created from a vendor request, approve the request
+            if (!empty($data['vendor_request_id'])) {
+                $vendorRequestService = app(\Modules\Vendor\app\Services\VendorRequestService::class);
+                $vendorRequestService->approveVendorRequest($data['vendor_request_id']);
+            }
+
             // Check if it's an AJAX request
             if ($request->wantsJson() || $request->ajax()) {
                 return response()->json([

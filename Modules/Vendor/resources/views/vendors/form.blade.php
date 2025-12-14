@@ -44,6 +44,11 @@
                             @method('PUT')
                         @endif
 
+                        <!-- Hidden field to store vendor request ID -->
+                        @if(isset($vendorRequestData) && $vendorRequestData['vendor_request_id'])
+                            <input type="hidden" name="vendor_request_id" value="{{ $vendorRequestData['vendor_request_id'] }}">
+                        @endif
+
                         <!-- Step 1: Vendor Information -->
                         <div class="wizard-step-content active" data-step="1">
                             <div class="card">
@@ -76,7 +81,7 @@
                                                     name="translations[{{ $language->id }}][name]"
                                                     id="name_{{ $language->code }}"
                                                     class="form-control ih-medium ip-gray radius-xs b-light px-15"
-                                                    value="{{ isset($vendor) ? $vendor->getTranslation('name', $language->code) : old('translations.'.$language->id.'.name') }}"
+                                                    value="{{ isset($vendor) ? $vendor->getTranslation('name', $language->code) : (old('translations.'.$language->id.'.name') ?? ($language->code == 'en' && isset($vendorRequestData) ? $vendorRequestData['company_name'] : '')) }}"
                                                     placeholder="{{ $language->code == 'ar' ? 'أدخل اسم التاجر' : 'Vendor Name' }}"
                                                     @if($language->code == 'ar' && (app()->getLocale() == 'en' || app()->getLocale() == 'ar'))
                                                         dir="rtl"
@@ -140,8 +145,16 @@
                                                 </label>
                                                 <select name="activity_ids[]" id="activities" class="form-control select2" multiple>
                                                     @foreach($activities as $activity)
+                                                        @php
+                                                            $isSelected = false;
+                                                            if (isset($vendor)) {
+                                                                $isSelected = $vendor->activities->contains($activity->id);
+                                                            } elseif (isset($vendorRequestData) && !empty($vendorRequestData['activity_ids'])) {
+                                                                $isSelected = in_array($activity->id, $vendorRequestData['activity_ids']);
+                                                            }
+                                                        @endphp
                                                         <option value="{{ $activity->id }}"
-                                                            {{ isset($vendor) && $vendor->activities->contains($activity->id) ? 'selected' : '' }}>
+                                                            {{ $isSelected ? 'selected' : '' }}>
                                                             {{ $activity->getTranslation('name', app()->getLocale()) }}
                                                         </option>
                                                     @endforeach
@@ -501,7 +514,7 @@
                                                     id="email"
                                                     class="form-control ih-medium ip-gray radius-xs b-light px-15"
                                                     placeholder="{{ app()->getLocale() == 'ar' ? 'أدخل البريد الإلكتروني' : 'Enter email address' }}"
-                                                    value="{{ isset($vendor) ? $vendor->user->email ?? '' : old('email') }}"
+                                                    value="{{ isset($vendor) ? $vendor->user->email ?? '' : (old('email') ?? (isset($vendorRequestData) ? $vendorRequestData['email'] : '')) }}"
                                                     @if(app()->getLocale() == 'ar') dir="rtl" @else dir="ltr" @endif
                                                 >
                                                 @error('email')

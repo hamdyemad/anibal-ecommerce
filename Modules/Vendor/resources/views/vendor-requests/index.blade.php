@@ -119,12 +119,6 @@
                                             <i class="uil uil-redo me-1"></i>
                                             {{ __('common.reset_filters') }}
                                         </button>
-                                        <button type="button" id="exportExcel"
-                                            class="btn btn-primary btn-default btn-squared"
-                                            title="{{ __('common.excel') }}">
-                                            <i class="uil uil-file-download-alt me-1"></i>
-                                            {{ __('common.export_excel') }}
-                                        </button>
                                     </div>
 
                                 </div>
@@ -170,26 +164,37 @@
         </div>
     </div>
 
-    {{-- Confirmation Modal --}}
+    {{-- Rejection Reason Modal --}}
     <div class="modal fade" id="confirmActionModal" tabindex="-1" aria-labelledby="confirmActionLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <form id="confirmActionForm" method="POST">
                     @csrf
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="confirmActionLabel">Confirm Action</h5>
+                    <div class="modal-header bg-opacity-10 border-bottom">
+                        <h5 class="modal-title" id="confirmActionLabel">
+                            <i class="uil uil-exclamation-triangle text-danger me-2"></i>Reject Vendor Request
+                        </h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
-                        <p id="confirmMessage">Are you sure?</p>
-                        <div id="rejectReasonDiv" style="display: none;">
-                            <label for="rejectReason" class="form-label">Rejection Reason:</label>
-                            <input type="text" class="form-control" id="rejectReason" name="reason" placeholder="Enter rejection reason...">
+                        <p id="confirmMessage" class="text-muted mb-3">Are you sure you want to reject this vendor request? Please provide a reason.</p>
+                        <div id="rejectReasonDiv">
+                            <label for="rejectReason" class="form-label fw-600 mb-2">
+                                <i class="uil uil-message-circle me-1"></i>Rejection Reason <span class="text-danger">*</span>
+                            </label>
+                            <textarea class="form-control nockeditor" id="rejectReason" name="reason"
+                                placeholder="Please explain why you are rejecting this vendor request..."
+                                rows="4" required></textarea>
+                            <small class="text-muted d-block mt-2">This reason will be visible to the vendor.</small>
                         </div>
                     </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-primary" id="confirmActionBtn">Confirm</button>
+                    <div class="modal-footer border-top">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            <i class="uil uil-times me-1"></i>Cancel
+                        </button>
+                        <button type="submit" class="btn btn-danger" id="confirmActionBtn">
+                            <i class="uil uil-trash-alt me-1"></i>Reject Request
+                        </button>
                     </div>
                 </form>
             </div>
@@ -305,7 +310,7 @@
                     {
                         data: 'id',
                         name: 'id',
-                        orderable: true,
+                        orderable: false,
                         searchable: false,
                         render: function(data, type, row) {
                             return row.row_number
@@ -360,7 +365,7 @@
                     {
                         data: 'status',
                         name: 'status',
-                        orderable: true,
+                        orderable: false,
                         render: function(data, type, row) {
                             const statusColors = {
                                 'pending': 'warning',
@@ -402,19 +407,28 @@
                         orderable: false,
                         searchable: false,
                         render: function(data, type, row) {
-                            let actions = `<div class="orderDatatable_actions d-inline-flex gap-1">`;
+                            let actions = `<div class="orderDatatable_actions d-inline-flex gap-1 text-center justify-content-center">`;
 
-                            // Pending: Show Approve and Reject buttons
+                            // Pending: Show Create Vendor, Approve and Reject buttons
                             if (row.status === 'pending') {
+                                // Build query params for vendor creation
+                                const activityIds = row.activities ? row.activities.map(a => a.id).join(',') : '';
+                                const params = new URLSearchParams({
+                                    vendor_request_id: row.id,
+                                    email: row.email,
+                                    phone: row.phone,
+                                    company_name: row.company_name,
+                                    activity_ids: activityIds
+                                });
+
                                 actions += `
-                                <a href="javascript:void(0);"
-                                class="approve btn btn-success table_action_father approve-btn"
-                                data-id="${row.id}"
-                                title="Approve">
-                                    <i class="uil uil-check table_action_icon"></i>
+                                <a href="{{ route('admin.vendors.create') }}?${params.toString()}"
+                                class="create-vendor btn btn-primary table_action_father"
+                                title="Create Vendor from Request">
+                                    <i class="uil uil-plus table_action_icon"></i>
                                 </a>
                                 <a href="javascript:void(0);"
-                                class="reject btn btn-warning table_action_father reject-btn"
+                                class="reject btn btn-danger table_action_father reject-btn"
                                 data-id="${row.id}"
                                 title="Reject">
                                     <i class="uil uil-times table_action_icon"></i>
@@ -423,31 +437,11 @@
                             }
                             // Approved: Show Reject and Archive buttons
                             else if (row.status === 'approved') {
-                                actions += `
-                                <a href="javascript:void(0);"
-                                class="reject btn btn-warning table_action_father reject-btn"
-                                data-id="${row.id}"
-                                title="Reject">
-                                    <i class="uil uil-times table_action_icon"></i>
-                                </a>
-                                <a href="javascript:void(0);"
-                                class="archive btn btn-danger table_action_father archive-btn"
-                                data-id="${row.id}"
-                                title="Archive">
-                                    <i class="uil uil-archive table_action_icon"></i>
-                                </a>
-                                `;
+                                actions += ``;
                             }
                             // Rejected: Show Archive button only
                             else if (row.status === 'rejected') {
-                                actions += `
-                                <a href="javascript:void(0);"
-                                class="archive btn btn-danger table_action_father archive-btn"
-                                data-id="${row.id}"
-                                title="Archive">
-                                    <i class="uil uil-archive table_action_icon"></i>
-                                </a>
-                                `;
+                                actions += ``;
                             }
 
                             actions += `</div>`;
@@ -547,108 +541,108 @@
                 table.ajax.reload();
             });
 
-            let pendingAction = null;
-            const confirmModalElement = document.getElementById('confirmActionModal');
-            let confirmModalInstance = new bootstrap.Modal(confirmModalElement, {
-                backdrop: 'static',
-                keyboard: false
-            });
+            // Handle reject button click
+            $(document).on('click', '.reject-btn', function(e) {
+                e.preventDefault();
+                const vendorRequestId = $(this).data('id');
 
-            // Reset modal when closed
-            confirmModalElement.addEventListener('hidden.bs.modal', function() {
-                setTimeout(function() {
-                    pendingAction = null;
-                    $('#rejectReason').val('');
-                    $('#confirmActionBtn').prop('disabled', false).text('Confirm');
-                }, 100);
-            });
-
-            // Approve vendor request
-            $(document).on('click', '.approve-btn', function() {
-                pendingAction = {
-                    type: 'approve',
-                    requestId: $(this).data('id')
-                };
-                $('#confirmMessage').text('Are you sure you want to approve this vendor request?');
-                $('#rejectReasonDiv').hide();
+                // Reset form
+                $('#confirmActionForm')[0].reset();
                 $('#rejectReason').val('');
-                confirmModalInstance.show();
-            });
 
-            // Reject vendor request
-            $(document).on('click', '.reject-btn', function() {
-                pendingAction = {
-                    type: 'reject',
-                    requestId: $(this).data('id')
-                };
-                $('#confirmMessage').text('Are you sure you want to reject this vendor request?');
-                $('#rejectReasonDiv').show();
-                $('#rejectReason').val('');
-                confirmModalInstance.show();
-            });
+                // Set form action - construct URL dynamically
+                const baseUrl = '{{ route('admin.vendor-requests.index') }}';
+                const actionUrl = baseUrl.replace('vendor-requests', 'vendor-requests/' + vendorRequestId + '/reject');
+                $('#confirmActionForm').attr('action', actionUrl);
 
-            // Archive vendor request
-            $(document).on('click', '.archive-btn', function() {
-                pendingAction = {
-                    type: 'archive',
-                    requestId: $(this).data('id')
-                };
-                $('#confirmMessage').text('Are you sure you want to archive this vendor request?');
-                $('#rejectReasonDiv').hide();
-                $('#rejectReason').val('');
-                confirmModalInstance.show();
+                // Show modal
+                const modal = new bootstrap.Modal(document.getElementById('confirmActionModal'));
+                modal.show();
             });
 
             // Handle form submission
             $('#confirmActionForm').on('submit', function(e) {
                 e.preventDefault();
 
-                if (!pendingAction) {
-                    console.warn('No pending action');
-                    return;
+                const reason = $('#rejectReason').val().trim();
+                const actionUrl = $(this).attr('action');
+
+                // Validate reason
+                if (!reason || reason.length === 0) {
+                    toastr.warning('Please provide a rejection reason', 'Validation Error');
+                    return false;
                 }
 
-                const $btn = $('#confirmActionBtn');
-                const originalText = $btn.text();
-                $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-2"></span>Processing...');
+                // Disable submit button during request
+                const submitBtn = $('#confirmActionBtn');
+                const originalText = submitBtn.html();
+                submitBtn.prop('disabled', true).html('<i class="uil uil-spinner-alt me-1"></i>Processing...');
 
-                // Show loading overlay
-                const loadingOverlay = document.querySelector('.loading-overlay');
-                if (loadingOverlay) {
-                    loadingOverlay.style.display = 'flex';
-                }
+                // Submit form via AJAX
+                $.ajax({
+                    url: actionUrl,
+                    type: 'POST',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    data: {
+                        _token: '{{ csrf_token() }}',
+                        reason: reason
+                    },
+                    dataType: 'json',
+                    success: function(response) {
+                        console.log('✅ Rejection successful:', response);
 
-                const form = document.getElementById('confirmActionForm');
+                        // Close modal
+                        const modalElement = document.getElementById('confirmActionModal');
+                        const modal = bootstrap.Modal.getInstance(modalElement);
+                        if (modal) {
+                            modal.hide();
+                        }
 
-                // Remove any existing _method input
-                const existingMethodInput = form.querySelector('input[name="_method"]');
-                if (existingMethodInput) {
-                    existingMethodInput.remove();
-                }
+                        // Show success message
+                        toastr.success(response.message || 'Vendor request rejected successfully', 'Success');
 
-                if (pendingAction.type === 'approve') {
-                    form.action = '{{ route('admin.vendor-requests.index') }}/' + pendingAction.requestId + '/approve';
-                    form.method = 'POST';
-                    console.log('Submitting approve form to:', form.action);
-                    form.submit();
-                } else if (pendingAction.type === 'reject') {
-                    form.action = '{{ route('admin.vendor-requests.index') }}/' + pendingAction.requestId + '/reject';
-                    form.method = 'POST';
-                    console.log('Submitting reject form to:', form.action);
-                    form.submit();
-                } else if (pendingAction.type === 'archive') {
-                    form.action = '{{ route('admin.vendor-requests.index') }}/' + pendingAction.requestId;
-                    form.method = 'POST';
-                    // Add hidden input for DELETE method
-                    const methodInput = document.createElement('input');
-                    methodInput.type = 'hidden';
-                    methodInput.name = '_method';
-                    methodInput.value = 'DELETE';
-                    form.appendChild(methodInput);
-                    console.log('Submitting archive form to:', form.action);
-                    form.submit();
-                }
+                        // Reload table
+                        setTimeout(function() {
+                            table.ajax.reload();
+                        }, 1000);
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('❌ Rejection failed:', {
+                            status: xhr.status,
+                            statusText: xhr.statusText,
+                            responseText: xhr.responseText,
+                            error: error
+                        });
+
+                        let errorMsg = 'Error rejecting vendor request';
+                        try {
+                            if (xhr.responseJSON && xhr.responseJSON.message) {
+                                errorMsg = xhr.responseJSON.message;
+                            } else if (xhr.responseJSON && xhr.responseJSON.errors) {
+                                errorMsg = Object.values(xhr.responseJSON.errors).flat().join(', ');
+                            }
+                        } catch (e) {
+                            if (xhr.status === 404) {
+                                errorMsg = 'Vendor request not found';
+                            } else if (xhr.status === 500) {
+                                errorMsg = 'Server error. Please try again later.';
+                            } else if (xhr.status === 422) {
+                                errorMsg = 'Validation error. Please provide a valid reason.';
+                            }
+                        }
+                        toastr.error(errorMsg, 'Error');
+                    },
+                    complete: function() {
+                        // Re-enable submit button
+                        submitBtn.prop('disabled', false).html(originalText);
+                    }
+                });
             });
+
         });
     </script>
 @endpush

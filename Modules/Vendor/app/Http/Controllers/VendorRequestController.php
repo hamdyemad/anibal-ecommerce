@@ -82,7 +82,7 @@ class VendorRequestController extends Controller
     /**
      * Show vendor request details
      */
-    public function show($id)
+    public function show($lang, $countryCode, $id)
     {
         $vendorRequest = $this->vendorRequestService->getVendorRequestById($id);
         return view('vendor::vendor-requests.show', compact('vendorRequest'));
@@ -91,7 +91,7 @@ class VendorRequestController extends Controller
     /**
      * Approve vendor request
      */
-    public function approve($id)
+    public function approve($lang, $countryCode, $id)
     {
         try {
             $vendorRequest = $this->vendorRequestService->approveVendorRequest($id);
@@ -106,27 +106,51 @@ class VendorRequestController extends Controller
     /**
      * Reject vendor request
      */
-    public function reject(Request $request, $id)
+    public function reject($lang, $countryCode, Request $request, $id)
     {
         try {
             $validated = $request->validate([
-                'reason' => 'nullable|string|min:3',
+                'reason' => 'required|string|min:3',
             ]);
 
-            $vendorRequest = $this->vendorRequestService->rejectVendorRequest($id, $validated['reason']);
+            $reason = $validated['reason'];
+            $vendorRequest = $this->vendorRequestService->rejectVendorRequest((int)$id, $reason);
+
+            // Return JSON for AJAX requests
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => __('vendor::vendor.reject_success'),
+                    'data' => $vendorRequest
+                ]);
+            }
 
             return redirect()->route('admin.vendor-requests.index')
                 ->with('success', __('vendor::vendor.reject_success'));
         } catch (\Exception $e) {
+            \Log::error('Vendor request rejection failed', [
+                'error' => $e->getMessage(),
+                'request_id' => $id,
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            // Return JSON for AJAX requests
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => __('vendor::vendor.reject_error') . ': ' . $e->getMessage()
+                ], 422);
+            }
+
             return redirect()->back()
-                ->with('error', __('vendor::vendor.reject_error'));
+                ->with('error', __('vendor::vendor.reject_error') . ': ' . $e->getMessage());
         }
     }
 
     /**
      * Delete vendor request
      */
-    public function destroy($id)
+    public function destroy($lang, $countryCode, $id)
     {
         try {
             $this->vendorRequestService->deleteVendorRequest($id);

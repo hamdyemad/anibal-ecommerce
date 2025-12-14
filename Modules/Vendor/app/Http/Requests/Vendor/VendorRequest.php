@@ -68,6 +68,9 @@ class VendorRequest extends FormRequest
             // Status
             'active' => 'nullable|boolean',
 
+            // Vendor Request Reference (when creating from vendor request)
+            'vendor_request_id' => 'nullable|integer|exists:vendor_requests,id',
+
             // Documents (using language IDs) - Required for vendor creation, optional for update
             'documents' => $isUpdate ? 'nullable|array' : 'required|array|min:1',
             'documents.*.translations' => 'required_with:documents|array',

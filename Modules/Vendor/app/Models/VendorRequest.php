@@ -31,6 +31,14 @@ class VendorRequest extends Model
     ];
 
     /**
+     * Get the vendor created from this request
+     */
+    public function vendor()
+    {
+        return $this->hasOne(Vendor::class, 'vendor_request_id');
+    }
+
+    /**
      * Get the activities for this vendor request
      */
     public function activities()
