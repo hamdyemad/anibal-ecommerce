@@ -217,6 +217,8 @@ return [
     'before_discount' => 'قبل الخصم',
     'updated' => 'تم التحديث',
     'company_name' => 'اسم الشركة',
+    'manager_name' => 'اسم المدير',
+    'company_logo' => 'شعار الشركة',
     'email' => 'البريد الإلكتروني',
     'phone' => 'الهاتف',
     'date' => 'التاريخ',

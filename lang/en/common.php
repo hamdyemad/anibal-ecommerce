@@ -212,6 +212,8 @@ return [
     'before_discount' => 'Before Discount',
     'updated' => 'Updated',
     'company_name' => 'Company Name',
+    'manager_name' => 'Manager Name',
+    'company_logo' => 'Company Logo',
     'email' => 'Email',
     'phone' => 'Phone',
     'date' => 'Date',

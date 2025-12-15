@@ -67,23 +67,6 @@
 
                                     <div class="col-md-3">
                                         <div class="form-group">
-                                            <label for="activity_filter" class="il-gray fs-14 fw-500 mb-10">
-                                                <i class="uil uil-briefcase me-1"></i>
-                                                {{ __('vendor::vendor.activity') }}
-                                            </label>
-                                            <select
-                                                class="select2 form-control ih-medium ip-gray radius-xs b-light px-15 form-select"
-                                                id="activity_filter">
-                                                <option value="">{{ __('common.all') }}</option>
-                                                @foreach($activities as $activity)
-                                                    <option value="{{ $activity['id'] }}">{{ $activity['name'] }}</option>
-                                                @endforeach
-                                            </select>
-                                        </div>
-                                    </div>
-
-                                    <div class="col-md-3">
-                                        <div class="form-group">
                                             <label for="created_date_from" class="il-gray fs-14 fw-500 mb-10">
                                                 <i class="uil uil-calendar-alt me-1"></i>
                                                 {{ __('common.created_date_from') }}
@@ -147,7 +130,8 @@
                                 <tr class="userDatatable-header">
                                     <th><span class="userDatatable-title">#</span></th>
                                     <th><span class="userDatatable-title">{{ trans('vendor::vendor.company_information') }}</span></th>
-                                    <th><span class="userDatatable-title">{{ trans('vendor::vendor.activities') }}</span></th>
+                                    <th><span class="userDatatable-title">{{ trans('common.email') }}</span></th>
+                                    <th><span class="userDatatable-title">{{ trans('common.phone') }}</span></th>
                                     <th><span class="userDatatable-title">{{ trans('common.status') }}</span></th>
                                     <th><span class="userDatatable-title">{{ trans('vendor::vendor.rejection_reason') }}</span></th>
                                     <th><span class="userDatatable-title">{{ trans('common.date') }}</span></th>
@@ -212,6 +196,17 @@
                 </div>
                 <div class="modal-body">
                     <div class="row">
+                        {{-- Company Logo --}}
+                        <div class="col-md-12 mb-3 text-center">
+                            <div class="view-item">
+                                <label class="il-gray fs-14 fw-500 mb-10 d-block">{{ trans('common.company_logo') ?? 'Company Logo' }}</label>
+                                <img id="modalCompanyLogo" src="" alt="Company Logo" style="max-width: 200px; max-height: 200px; object-fit: cover; border-radius: 8px; display: none;">
+                                <div id="modalCompanyLogoPlaceholder" style="width: 200px; height: 200px; background-color: #e9ecef; border-radius: 8px; display: flex; align-items: center; justify-content: center; margin: 0 auto;">
+                                    <i class="uil uil-image" style="font-size: 48px; color: #999;"></i>
+                                </div>
+                            </div>
+                        </div>
+
                         {{-- Company Information --}}
                         <div class="col-md-6 mb-3">
                             <div class="view-item">
@@ -236,21 +231,19 @@
                             </div>
                         </div>
 
+                        {{-- Manager Name --}}
+                        <div class="col-md-6 mb-3">
+                            <div class="view-item">
+                                <label class="il-gray fs-14 fw-500 mb-10">{{ trans('common.manager_name') }}</label>
+                                <p class="fs-15 color-dark" id="modalManagerName">-</p>
+                            </div>
+                        </div>
+
                         {{-- Status --}}
                         <div class="col-md-6 mb-3">
                             <div class="view-item">
                                 <label class="il-gray fs-14 fw-500 mb-10">{{ trans('common.status') }}</label>
                                 <p class="fs-15" id="modalStatus">-</p>
-                            </div>
-                        </div>
-
-                        {{-- Activities --}}
-                        <div class="col-md-12 mb-3">
-                            <div class="view-item">
-                                <label class="il-gray fs-14 fw-500 mb-10">{{ trans('vendor::vendor.activities') }}</label>
-                                <div id="modalActivities">
-                                    <span class="text-muted">-</span>
-                                </div>
                             </div>
                         </div>
 
@@ -294,7 +287,6 @@
             // Populate filters from URL parameters on page load
             if (urlParams.has('search')) $('#search').val(urlParams.get('search'));
             if (urlParams.has('status')) $('#status').val(urlParams.get('status'));
-            if (urlParams.has('activity_id')) $('#activity_filter').val(urlParams.get('activity_id'));
             if (urlParams.has('created_date_from')) $('#created_date_from').val(urlParams.get('created_date_from'));
             if (urlParams.has('created_date_to')) $('#created_date_to').val(urlParams.get('created_date_to'));
 
@@ -304,7 +296,6 @@
 
                 if ($('#search').val()) params.set('search', $('#search').val());
                 if ($('#status').val()) params.set('status', $('#status').val());
-                if ($('#activity_filter').val()) params.set('activity_id', $('#activity_filter').val());
                 if ($('#created_date_from').val()) params.set('created_date_from', $('#created_date_from').val());
                 if ($('#created_date_to').val()) params.set('created_date_to', $('#created_date_to').val());
 
@@ -326,7 +317,6 @@
                         // Add filter parameters
                         d.search = $('#search').val();
                         d.status = $('#status').val();
-                        d.activity_id = $('#activity_filter').val();
                         d.created_date_from = $('#created_date_from').val();
                         d.created_date_to = $('#created_date_to').val();
                         // Add sorting parameters
@@ -401,15 +391,28 @@
                         name: 'company_info',
                         orderable: false,
                         render: function(data, type, row) {
+                            let logoHtml = '';
+                            if (row.company_logo) {
+                                logoHtml = `<img src="${row.company_logo}" alt="Company Logo" style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px; margin-right: 12px;">`;
+                            } else {
+                                logoHtml = `<div style="width: 60px; height: 60px; background-color: #e9ecef; border-radius: 8px; margin-right: 12px; display: flex; align-items: center; justify-content: center;"><i class="uil uil-image" style="font-size: 24px; color: #999;"></i></div>`;
+                            }
+
                             let html = `
                                 <div class="vendor-card p-2 bg-light-subtle rounded-3">
-                                    <div class="d-flex align-items-center mb-2">
-                                        <div>
-                                            <div class="fw-semibold text-dark text-capitalize">
-                                                ${$('<div>').text(row.company_name).html()}
+                                    <div class="d-flex align-items-center">
+                                        ${logoHtml}
+                                        <div style="width: 100%;">
+                                            <div class="mb-2">
+                                                <small class="text-muted d-block">{{ trans('common.company_name') }}:</small>
+                                                <div class="fw-semibold text-dark text-capitalize">
+                                                    ${$('<div>').text(row.company_name).html()}
+                                                </div>
                                             </div>
-                                            <small class="text-muted">${$('<div>').text(row.email).html()}</small>
-                                            <small class="text-muted d-block">${row.phone}</small>
+                                            <div>
+                                                <small class="text-muted d-block">{{ trans('common.manager_name') }}:</small>
+                                                <small class="text-dark">${row.manager_name ? $('<div>').text(row.manager_name).html() : '-'}</small>
+                                            </div>
                                         </div>
                                     </div>
                             `;
@@ -417,20 +420,24 @@
                             return html;
                         }
                     },
-
-                    // Activities column
+                    // Email column
                     {
-                        data: 'activities',
-                        name: 'activities',
+                        data: 'email',
+                        name: 'email',
                         orderable: false,
                         render: function(data, type, row) {
-                            if (!row.activities || row.activities.length === 0) {
-                                return '<span class="badge bg-secondary">None</span>';
-                            }
-                            return row.activities.map(a => `<span class="badge bg-info badge-lg badge-round">${a.name}</span>`).join(' ');
+                            return `<span class="text-dark">${$('<div>').text(row.email).html()}</span>`;
                         }
                     },
-
+                    // Phone column
+                    {
+                        data: 'phone',
+                        name: 'phone',
+                        orderable: false,
+                        render: function(data, type, row) {
+                            return `<span class="text-dark">${row.phone}</span>`;
+                        }
+                    },
                     // Status column
                     {
                         data: 'status',
@@ -489,9 +496,10 @@
                             data-company-name="${row.company_name}"
                             data-email="${row.email}"
                             data-phone="${row.phone}"
+                            data-manager-name="${row.manager_name || ''}"
+                            data-company-logo="${row.company_logo || ''}"
                             data-status="${row.status}"
                             data-created-at="${row.created_at}"
-                            data-activities='${JSON.stringify(row.activities || [])}'
                             data-rejection-reason="${row.rejection_reason || ''}"
                             title="View Details">
                                 <i class="uil uil-eye table_action_icon"></i>
@@ -503,11 +511,7 @@
                                 // Build query params for vendor creation
                                 const activityIds = row.activities ? row.activities.map(a => a.id).join(',') : '';
                                 const params = new URLSearchParams({
-                                    vendor_request_id: row.id,
-                                    email: row.email,
-                                    phone: row.phone,
-                                    company_name: row.company_name,
-                                    activity_ids: activityIds
+                                    vendor_request_id: row.id
                                 });
 
                                 actions += `
@@ -569,7 +573,7 @@
 
             // Initialize Select2 on filter dropdowns
             if ($.fn.select2) {
-                $('#entriesSelect, #status, #activity_filter').select2({
+                $('#entriesSelect, #status').select2({
                     theme: 'bootstrap-5',
                     minimumResultsForSearch: Infinity,
                     width: '100%'
@@ -600,7 +604,7 @@
             });
 
             // Filter change handlers - real-time filtering
-            $('#status, #activity_filter').on('change', function() {
+            $('#status').on('change', function() {
                 updateUrlWithFilters();
                 table.ajax.reload();
             });
@@ -622,7 +626,6 @@
                 // Clear all filter inputs
                 $('#search').val('');
                 $('#status').val('').trigger('change');
-                $('#activity_filter').val('').trigger('change');
                 $('#created_date_from').val('');
                 $('#created_date_to').val('');
                 // Update URL and reload table
@@ -638,24 +641,27 @@
                 const companyName = $(this).data('company-name');
                 const email = $(this).data('email');
                 const phone = $(this).data('phone');
+                const managerName = $(this).data('manager-name');
+                const companyLogo = $(this).data('company-logo');
                 const status = $(this).data('status');
                 const createdAt = $(this).data('created-at');
                 const rejectionReason = $(this).data('rejection-reason');
-                const activitiesJson = $(this).attr('data-activities');
-
-                // Parse activities
-                let activities = [];
-                try {
-                    activities = JSON.parse(activitiesJson) || [];
-                } catch (e) {
-                    activities = [];
-                }
 
                 // Populate modal fields
                 $('#modalCompanyName').text(companyName || '-');
                 $('#modalEmail').text(email || '-');
                 $('#modalPhone').text(phone || '-');
+                $('#modalManagerName').text(managerName || '-');
                 $('#modalCreatedAt').text(createdAt || '-');
+
+                // Handle company logo
+                if (companyLogo) {
+                    $('#modalCompanyLogo').attr('src', companyLogo).show();
+                    $('#modalCompanyLogoPlaceholder').hide();
+                } else {
+                    $('#modalCompanyLogo').hide();
+                    $('#modalCompanyLogoPlaceholder').show();
+                }
 
                 // Set status badge
                 let statusBadge = '-';
@@ -671,17 +677,6 @@
                     statusBadge = '<span class="badge badge-danger badge-round badge-lg">' + statusText + '</span>';
                 }
                 $('#modalStatus').html(statusBadge);
-
-                // Set activities
-                if (activities.length > 0) {
-                    let activitiesHtml = '';
-                    activities.forEach(function(activity) {
-                        activitiesHtml += '<span class="badge badge-info badge-round badge-lg me-2 mb-2">' + (activity.name || activity) + '</span>';
-                    });
-                    $('#modalActivities').html(activitiesHtml);
-                } else {
-                    $('#modalActivities').html('<span class="text-muted">-</span>');
-                }
 
                 // Show rejection reason only if status is rejected
                 if (status === 'rejected' && rejectionReason) {

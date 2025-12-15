@@ -72,6 +72,7 @@ class VendorRepository implements VendorInterface
                 'type' => $data['type'] ?? 'product',
                 'active' => $data['active'] ?? false,
                 'vendor_request_id' => $data['vendor_request_id'] ?? null,
+                'phone' => $data['phone'] ?? null,
             ]);
             // Handle logo upload
             if (isset($data['logo'])) {
@@ -109,6 +110,15 @@ class VendorRepository implements VendorInterface
                 $vendorRequest = VendorRequest::find($data['vendor_request_id']);
                 if ($vendorRequest) {
                     $vendorRequest->update(['status' => 'approved']);
+                    // Handle logo upload
+                    if (isset($vendorRequest)) {
+                        if(!$vendor->logo) {
+                            $vendor->attachments()->create([
+                                'path' => $vendorRequest->company_logo,
+                                'type' => 'logo',
+                            ]);
+                        }
+                    }
                 }
             }
 
@@ -174,6 +184,7 @@ class VendorRepository implements VendorInterface
             $vendor->update([
                 'type' => $data['type'] ?? 'product',
                 'active' => $data['active'] ?? false,
+                'phone' => $data['phone'] ?? null,
             ]);
 
             // Sync activities (many-to-many relationship)

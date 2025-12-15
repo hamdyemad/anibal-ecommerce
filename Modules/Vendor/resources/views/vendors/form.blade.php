@@ -1,5 +1,12 @@
 @extends('layout.app')
 
+@php
+    $vendorRequest = null;
+    if(request('vendor_request_id')) {
+        $vendorRequest = \Modules\Vendor\app\Models\VendorRequest::
+        where('id', request('vendor_request_id'))->where('status', 'pending')->first();
+    }
+@endphp
 @section('title')
 {{ $title }}
 @endsection
@@ -45,8 +52,8 @@
                         @endif
 
                         <!-- Hidden field to store vendor request ID -->
-                        @if(isset($vendorRequestData) && $vendorRequestData['vendor_request_id'])
-                            <input type="hidden" name="vendor_request_id" value="{{ $vendorRequestData['vendor_request_id'] }}">
+                        @if($vendorRequest)
+                            <input type="hidden" name="vendor_request_id" value="{{ $vendorRequest->id }}">
                         @endif
 
                         <!-- Step 1: Vendor Information -->
@@ -81,7 +88,7 @@
                                                     name="translations[{{ $language->id }}][name]"
                                                     id="name_{{ $language->code }}"
                                                     class="form-control ih-medium ip-gray radius-xs b-light px-15"
-                                                    value="{{ isset($vendor) ? $vendor->getTranslation('name', $language->code) : (old('translations.'.$language->id.'.name') ?? ($language->code == 'en' && isset($vendorRequestData) ? $vendorRequestData['company_name'] : '')) }}"
+                                                    value="{{ isset($vendor) ? $vendor->getTranslation('name', $language->code) : (old('translations.'.$language->id.'.name') ?? ($language->code == 'en' && $vendorRequest ? $vendorRequest->company_name : '')) }}"
                                                     placeholder="{{ $language->code == 'ar' ? 'أدخل اسم التاجر' : 'Vendor Name' }}"
                                                     @if($language->code == 'ar' && (app()->getLocale() == 'en' || app()->getLocale() == 'ar'))
                                                         dir="rtl"
@@ -136,7 +143,7 @@
                                     </div>
 
                                     <div class="row">
-                                                                                <!-- Activities Selection -->
+                                        <!-- Activities Selection -->
                                         <div class="col-md-6 mb-3">
                                             <div class="form-group">
                                                 <label for="activities" class="form-label">
@@ -149,8 +156,8 @@
                                                             $isSelected = false;
                                                             if (isset($vendor)) {
                                                                 $isSelected = $vendor->activities->contains($activity->id);
-                                                            } elseif (isset($vendorRequestData) && !empty($vendorRequestData['activity_ids'])) {
-                                                                $isSelected = in_array($activity->id, $vendorRequestData['activity_ids']);
+                                                            } elseif ($vendorRequest) {
+                                                                $isSelected = $vendorRequest->activities->contains($activity->id);
                                                             }
                                                         @endphp
                                                         <option value="{{ $activity->id }}"
@@ -160,6 +167,25 @@
                                                     @endforeach
                                                 </select>
                                                 @error('activity_ids')
+                                                    <div class="text-danger mt-1">{{ $message }}</div>
+                                                @enderror
+                                            </div>
+                                        </div>
+                                        <!-- Phone Number -->
+                                        <div class="col-md-6 mb-3">
+                                            <div class="form-group">
+                                                <label for="phone" class="form-label">
+                                                    {{ trans('common.phone') }}
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    name="phone"
+                                                    id="phone"
+                                                    class="form-control ih-medium ip-gray radius-xs b-light px-15 @error('phone') is-invalid @enderror"
+                                                    value="{{ isset($vendor) ? $vendor->phone : (old('phone') ?? ($vendorRequest ? $vendorRequest->phone : '')) }}"
+                                                    placeholder="{{ trans('common.phone') }}"
+                                                >
+                                                @error('phone')
                                                     <div class="text-danger mt-1">{{ $message }}</div>
                                                 @enderror
                                             </div>
@@ -199,12 +225,20 @@
                                     <div class="row">
                                         <!-- Logo Upload -->
                                         <div class="col-md-6 mb-3">
+                                            @php
+                                                $existingLogo = null;
+                                                if (isset($vendor) && $vendor->logo) {
+                                                    $existingLogo = $vendor->logo->path;
+                                                } elseif ($vendorRequest && $vendorRequest->company_logo) {
+                                                    $existingLogo = $vendorRequest->company_logo;
+                                                }
+                                            @endphp
                                             <x-image-upload
                                                 id="logo"
                                                 name="logo"
                                                 label="{{ trans('vendor::vendor.logo') }} ({{ trans('vendor::vendor.logo_recommended_size') }})"
-                                                :required="!isset($vendor)"
-                                                :existingImage="isset($vendor) && $vendor->logo ? $vendor->logo->path : null"
+                                                :required="!isset($vendor) && (!$vendorRequest || !$vendorRequest->company_logo)"
+                                                :existingImage="$existingLogo"
                                                 placeholder="{{ trans('vendor::vendor.click_to_upload_logo') }}"
                                                 recommendedSize="{{ trans('vendor::vendor.logo_recommended_size') }}"
                                                 accept="image/jpeg,image/png,image/jpg,image/gif"
@@ -514,7 +548,7 @@
                                                     id="email"
                                                     class="form-control ih-medium ip-gray radius-xs b-light px-15"
                                                     placeholder="{{ app()->getLocale() == 'ar' ? 'أدخل البريد الإلكتروني' : 'Enter email address' }}"
-                                                    value="{{ isset($vendor) ? $vendor->user->email ?? '' : (old('email') ?? (isset($vendorRequestData) ? $vendorRequestData['email'] : '')) }}"
+                                                    value="{{ isset($vendor) ? $vendor->user->email ?? '' : (old('email') ?? ($vendorRequest ? $vendorRequest->email : '')) }}"
                                                     @if(app()->getLocale() == 'ar') dir="rtl" @else dir="ltr" @endif
                                                 >
                                                 @error('email')
@@ -729,7 +763,9 @@ window.vendorFormConfig = {
         vendorNameEnRequired: '{{ app()->getLocale() == "ar" ? "اسم التاجر باللغة الإنجليزية مطلوب" : "Vendor name in English is required" }}',
         vendorNameArRequired: '{{ app()->getLocale() == "ar" ? "اسم التاجر باللغة العربية مطلوب" : "Vendor name in Arabic is required" }}',
         activitiesRequired: '{{ app()->getLocale() == "ar" ? "يرجى اختيار نشاط واحد على الأقل" : "Please select at least one activity" }}',
-        logoRequired: '{{ app()->getLocale() == "ar" ? "الشعار مطلوب" : "Logo is required" }}',
+        @if(!$vendorRequest)
+            logoRequired: '{{ app()->getLocale() == "ar" ? "الشعار مطلوب" : "Logo is required" }}',
+        @endif
         bannerRequired: '{{ app()->getLocale() == "ar" ? "البانر مطلوب" : "Banner is required" }}',
 
         // Step 2 - Documents

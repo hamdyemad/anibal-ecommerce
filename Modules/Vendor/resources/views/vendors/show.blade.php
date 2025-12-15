@@ -372,6 +372,15 @@
                                                     </p>
                                                 </div>
                                             </div>
+                                            {{-- Phone --}}
+                                            <div class="col-md-6">
+                                                <div class="view-item">
+                                                    <label class="il-gray fs-14 fw-500 mb-10">{{ __('common.phone') }}</label>
+                                                    <p class="fs-15 color-dark">
+                                                        {{ $vendor->phone ?? '-' }}
+                                                    </p>
+                                                </div>
+                                            </div>
                                             {{-- Activation Status --}}
                                             <div class="col-md-6">
                                                 <div class="view-item">
