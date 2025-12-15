@@ -79,6 +79,22 @@ class OrderProduct extends Model
         return $this->hasMany(OrderFulfillment::class);
     }
 
+    /**
+     * Get the bundle if this is a bundle order item.
+     */
+    public function bundle(): BelongsTo
+    {
+        return $this->belongsTo(Bundle::class);
+    }
+
+    /**
+     * Get the occasion if this is an occasion order item.
+     */
+    public function occasion(): BelongsTo
+    {
+        return $this->belongsTo(Occasion::class);
+    }
+
     public function getProductTitleAttribute()
     {
         return $this->getTranslation('name', app()->getLocale());

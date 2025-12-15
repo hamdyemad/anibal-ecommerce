@@ -57,21 +57,19 @@ class Cart extends BaseModel
 
     /**
      * Get the bundle if this is a bundle cart item.
-     * Note: Bundle model location depends on your project structure
      */
-    // public function bundle()
-    // {
-    //     // Adjust namespace based on your project structure
-    //     return $this->belongsTo(\App\Models\Bundle::class, 'bundle_id');
-    // }
+    public function bundle(): BelongsTo
+    {
+        return $this->belongsTo(Bundle::class, 'bundle_id');
+    }
 
     /**
      * Get the occasion if this is an occasion cart item.
      */
-    // public function occasion()
-    // {
-    //     return $this->belongsTo(\Modules\CatalogManagement\app\Models\Occasion::class, 'occasion_id');
-    // }
+    public function occasion(): BelongsTo
+    {
+        return $this->belongsTo(Occasion::class, 'occasion_id');
+    }
 
     /**
      * Scope to filter by customer
