@@ -5,6 +5,8 @@ namespace Modules\Customer\app\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Traits\Res;
 use Illuminate\Http\Request;
+use Modules\SystemSetting\app\Models\PointsSetting;
+use Modules\SystemSetting\app\Models\PointsSystem;
 use Modules\SystemSetting\app\Models\UserPoints;
 use Modules\SystemSetting\app\Models\UserPointsTransaction;
 
@@ -62,7 +64,6 @@ class CustomerPointsApiController extends Controller
 
             // Build query
             $query = UserPointsTransaction::where('user_id', $user->id);
-
             // Apply type filter
             if ($type) {
                 $query->where('type', $type);
@@ -70,10 +71,9 @@ class CustomerPointsApiController extends Controller
 
             // Get total count before pagination
             $total = $query->count();
-
             // Get paginated transactions
             $transactions = $query->latest()
-                ->paginate($perPage, ['*'], 'page', $page);
+                ->paginate($perPage);
 
             // Format transactions
             $formattedTransactions = $transactions->map(function ($transaction) {
@@ -83,14 +83,14 @@ class CustomerPointsApiController extends Controller
                     'type' => $transaction->type,
                     'type_label' => trans('systemsetting::points.type_' . $transaction->type),
                     'description' => $transaction->description,
-                    'expires_at' => $transaction->expires_at ? $transaction->expires_at->format('Y-m-d H:i:s') : null,
+                    'expires_at' => $transaction->expires_at,
                     'is_expired' => $transaction->is_expired,
-                    'created_at' => $transaction->created_at->format('Y-m-d H:i:s'),
+                    'created_at' => $transaction->created_at,
                 ];
             });
 
             $data = [
-                'transactions' => $formattedTransactions,
+                'items' => $formattedTransactions,
                 'pagination' => [
                     'total' => $total,
                     'per_page' => $perPage,
@@ -105,6 +105,34 @@ class CustomerPointsApiController extends Controller
                 trans('systemsetting::points.transactions_retrieved_successfully'),
                 true,
                 $data
+            );
+        } catch (\Exception $e) {
+            return $this->sendRes(
+                trans('common.error_occurred'),
+                false,
+                [],
+                [],
+                500
+            );
+        }
+    }
+
+
+    public function settings(Request $request)
+    {
+        try {
+            $user = auth()->user();
+            // Get points settings
+            $settings = [
+                'system_enabled' => PointsSystem::isEnabled(),
+                'points_per_currency' => PointsSetting::where('currency_id', $user->country->currency->id)->first()?->points_value ?? 1, // Points per currency unit
+                'welcome_points' => PointsSetting::where('currency_id', $user->country->currency->id)->first()?->welcome_points ?? 1, // Welcome points
+            ];
+
+            return $this->sendRes(
+                trans('systemsetting::points.settings_retrieved_successfully'),
+                true,
+                $settings
             );
         } catch (\Exception $e) {
             return $this->sendRes(

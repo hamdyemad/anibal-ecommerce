@@ -27,6 +27,9 @@ return [
     'points_setting_deleted' => 'تم حذف إعداد النقاط بنجاح',
     'points_system_updated' => 'تم تحديث نظام النقاط بنجاح',
     'status_changed_successfully' => 'تم تغيير الحالة بنجاح',
+    'points_retrieved_successfully' => 'تم جلب النقاط بنجاح',
+    'transactions_retrieved_successfully' => 'تم جلب المعاملات بنجاح',
+    'settings_retrieved_successfully' => 'تم جلب الإعدادات بنجاح',
 
     // Errors
     'error_creating_setting' => 'خطأ في إنشاء إعداد النقاط',

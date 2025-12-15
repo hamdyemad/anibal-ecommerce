@@ -37,17 +37,14 @@ trait CountryCheckIdTrait
                 ?? config('app.default_country_code')
                 ?? null;
 
-            if (!$code) {
-                if(request('country_id')) {
-                    $countryId = Country::where('id', request('country_id'))->value('id');
-                } else {
-                    $countryId = Country::default()->value('id');
-                }
-            } else {
+            if(request('country_id')) {
+                $countryId = Country::where('id', request('country_id'))->value('id');
+            }
+            if($code) {
                 $countryId = Country::where('code', $code)->value('id');
             }
 
-            return $countryId;
+            return $countryId ?? null;
         } catch (\Exception $e) {
             // If database query fails, return null to skip filtering
             return null;
