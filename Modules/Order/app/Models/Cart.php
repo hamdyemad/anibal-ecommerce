@@ -6,9 +6,10 @@ use App\Models\BaseModel;
 use App\Models\Traits\HumanDates;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\CatalogManagement\app\Models\VendorProduct;
 use Modules\CatalogManagement\app\Models\VendorProductVariant;
+use Modules\CatalogManagement\app\Models\Bundle;
+use Modules\CatalogManagement\app\Models\Occasion;
 use Modules\Customer\app\Models\Customer;
 
 class Cart extends BaseModel
@@ -55,18 +56,12 @@ class Cart extends BaseModel
         return $this->belongsTo(VendorProductVariant::class, 'vendor_product_variant_id');
     }
 
-    /**
-     * Get the bundle if this is a bundle cart item.
-     */
-    public function bundle(): BelongsTo
+    public function bundle()
     {
         return $this->belongsTo(Bundle::class, 'bundle_id');
     }
 
-    /**
-     * Get the occasion if this is an occasion cart item.
-     */
-    public function occasion(): BelongsTo
+    public function occasion()
     {
         return $this->belongsTo(Occasion::class, 'occasion_id');
     }

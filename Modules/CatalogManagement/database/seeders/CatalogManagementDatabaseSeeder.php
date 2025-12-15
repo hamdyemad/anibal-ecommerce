@@ -13,6 +13,8 @@ class CatalogManagementDatabaseSeeder extends Seeder
     {
         $this->call([
             ProductSeeder::class,
+            BundleSeeder::class,
+            OccasionSeeder::class,
         ]);
     }
 }

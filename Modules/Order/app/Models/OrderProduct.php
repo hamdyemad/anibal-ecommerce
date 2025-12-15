@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Modules\CatalogManagement\app\Models\Bundle;
+use Modules\CatalogManagement\app\Models\Occasion;
 use Modules\Order\database\factories\OrderProductFactory;
 use Modules\CatalogManagement\app\Models\VendorProduct;
 use Modules\CatalogManagement\app\Models\VendorProductVariant;
@@ -29,6 +31,8 @@ class OrderProduct extends Model
         'price',
         'vendor_id',
         'commission',
+        'occasion_id',
+        'bundle_id',
     ];
 
     /**
@@ -79,24 +83,18 @@ class OrderProduct extends Model
         return $this->hasMany(OrderFulfillment::class);
     }
 
-    /**
-     * Get the bundle if this is a bundle order item.
-     */
-    public function bundle(): BelongsTo
-    {
-        return $this->belongsTo(Bundle::class);
-    }
-
-    /**
-     * Get the occasion if this is an occasion order item.
-     */
-    public function occasion(): BelongsTo
-    {
-        return $this->belongsTo(Occasion::class);
-    }
-
     public function getProductTitleAttribute()
     {
         return $this->getTranslation('name', app()->getLocale());
+    }
+
+    public function bundle()
+    {
+        return $this->belongsTo(Bundle::class, 'bundle_id');
+    }
+
+    public function occasion()
+    {
+        return $this->belongsTo(Occasion::class, 'occasion_id');
     }
 }
