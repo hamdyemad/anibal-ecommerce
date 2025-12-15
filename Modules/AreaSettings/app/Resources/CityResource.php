@@ -19,6 +19,7 @@ class CityResource extends JsonResource
             'name' => $this->name,
             'slug' => $this->slug,
             'default' => $this->default,
+            'image' => ($this->image) ? asset('storage/' . $this->image->path) : '',
             'country' => new CountryResource($this->country),
             'active' => $this->active,
             'created_at' => $this->created_at,
