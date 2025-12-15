@@ -21,6 +21,10 @@ class VendorProductResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        $totalReviews = $this->reviews_count;
+        $totalStars = $this->reviews_count * $this->reviews_avg_star;
+        $avgStar = $totalReviews > 0 ? round($totalStars / $totalReviews, 2) : null;
+
         return [
             'id' => $this->id,
             'vendor_id' => $this->vendor_id,
@@ -29,7 +33,8 @@ class VendorProductResource extends JsonResource
             'points' => $this->points ?? 0,
             'sku' => $this->sku,
             'star' => $this->average_rating ?? 0,
-            'num_of_user_review' => $this->reviews_count ?? 0,
+            'reviews_count' => $this->reviews_count ?? 0,
+            'avg_review_start' => $avgStar ?? 0,
             'limitation' => $this->max_per_order,
             'status' => $this->is_featured ? __('catalogmanagement::product.featured') : __('catalogmanagement::product.active'),
             'image' => formatImage($this->product->mainImage),

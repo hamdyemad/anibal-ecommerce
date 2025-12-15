@@ -40,7 +40,7 @@ Route::prefix('products')->middleware(['auth.optional:sanctum', 'throttle:produc
 Route::get('{reviewableType}/{reviewableId}/reviews', [ReviewApiController::class, 'getByReviewable']);
 
 // Review Routes (authenticated)
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/{reviewableType}/{reviewableId}/reviews', [ReviewApiController::class, 'store']);
     Route::get('/reviews/my-reviews', [ReviewApiController::class, 'getCustomerReviews']);
 });

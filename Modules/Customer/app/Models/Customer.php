@@ -56,6 +56,7 @@ class Customer extends Authenticatable
     //     return $this->hasMany(CustomerAccessToken::class, 'customer_id', 'id');
     // }
 
+
     /**
      * Mutator: Hash password before storing in database
      */

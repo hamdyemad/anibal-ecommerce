@@ -95,6 +95,12 @@ class SystemSettingServiceProvider extends ServiceProvider
         $this->app->bind(
             \Modules\SystemSetting\app\Services\AdService::class
         );
+
+        // Apis
+        $this->app->bind(
+            \Modules\SystemSetting\app\Interfaces\Api\AdApiRepositoryInterface::class,
+            \Modules\SystemSetting\app\Repositories\Api\AdApiRepository::class
+        );
     }
 
     /**

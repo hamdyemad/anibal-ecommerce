@@ -9,5 +9,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
 });
 
+// Route::resource('ads', AdApiController::class);
+
+
 // Messages API
 Route::post('messages/send', [MessageApiController::class, 'sendMessage']);

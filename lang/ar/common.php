@@ -48,6 +48,8 @@ return [
     'pending' => 'قيد الانتظار',
     'approved' => 'موافق عليه',
     'rejected' => 'مرفوض',
+    'approve' => 'الموافقة',
+    'reject' => 'الرفض',
     'success' => 'نجاح',
     'error' => 'خطأ',
     'warning' => 'تحذير',

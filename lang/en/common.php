@@ -45,6 +45,8 @@ return [
     'pending' => 'Pending',
     'approved' => 'Approved',
     'rejected' => 'Rejected',
+    'approve' => 'Approve',
+    'reject' => 'Reject',
     'success' => 'Success',
     'error' => 'Error',
     'warning' => 'Warning',

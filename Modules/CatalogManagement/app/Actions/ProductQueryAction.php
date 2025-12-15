@@ -21,7 +21,8 @@ class ProductQueryAction
                 'variants',
                 'vendor',
                 'tax',
-            ]);
+            ])
+            ->withCount('reviews');
 
         if (!empty($filters)) {
             $query->filter($filters);

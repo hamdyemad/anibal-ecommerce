@@ -126,6 +126,13 @@
             'main category' => 'الفئة الرئيسية',
             'sub category' => 'الفئة الفرعية',
         ],
+        'product_reviews' => [
+            'title' => 'تقييمات المنتجات',
+            'all' => 'الكل',
+            'accepted' => 'مقبول',
+            'rejected' => 'مرفوض',
+            'new' => 'جديد',
+        ],
         'product reviews' => [
             'title' => 'تقييمات المنتجات',
             'all' => 'الكل',

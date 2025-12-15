@@ -81,7 +81,9 @@ class ProductApiRepository implements ProductApiRepositoryInterface
      */
     public function findProduct(string $id)
     {
-        return $this->query->handle([])->where('id', $id)->first();
+        return $this->query->handle([])
+        ->where('id', $id)
+        ->first();
     }
 
     /**
@@ -277,11 +279,23 @@ class ProductApiRepository implements ProductApiRepositoryInterface
                     $query->with(['stocks.region']);
                 }
             ])
+            ->withCount('reviews')
+            ->withAvg('reviews', 'star') // assumes your reviews table has a 'star' column
             ->get();
 
+        $reviews =[];
+        $totalReviews = $vendorProducts->sum('reviews_count');
+        $reviews['total_reviews'] = $totalReviews;
+        // Calculate weighted average star rating
+        $totalStars = $vendorProducts->sum(function ($vp) {
+            return $vp->reviews_count * $vp->reviews_avg_star;
+        });
+        $avgStar = $totalReviews > 0 ? round($totalStars / $totalReviews, 2) : null;
+        $reviews['avg_star'] = $avgStar;
         return [
             'product' => $product,
-            'vendorProducts' => $vendorProducts
+            'vendorProducts' => $vendorProducts,
+            'reviews' => $reviews,
         ];
     }
 

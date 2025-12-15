@@ -4,6 +4,7 @@ namespace Modules\CatalogManagement\app\Http\Resources\Api;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Modules\CatalogManagement\app\Models\VendorProduct;
 
 class ReviewResource extends JsonResource
 {
@@ -17,7 +18,7 @@ class ReviewResource extends JsonResource
         return [
             'id' => $this->id,
             'reviewable_id' => $this->reviewable_id,
-            'reviewable_type' => $this->reviewable_type == "VendorProduct" ? "products" : "vendors",
+            'reviewable_type' => $this->reviewable_type == VendorProduct::class ? "products" : "vendors",
             'customer_id' => $this->customer_id,
             'customer' => [
                 'id' => $this->customer?->id,
