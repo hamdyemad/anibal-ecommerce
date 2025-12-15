@@ -74,6 +74,15 @@ class CustomerServiceProvider extends ServiceProvider
                 );
             }
         );
+
+        $this->app->bind(
+            \Modules\Customer\app\Services\Api\CustomerAddressService::class,
+            function ($app) {
+                return new \Modules\Customer\app\Services\Api\CustomerAddressService(
+                    $app->make(\Modules\Customer\app\Interfaces\Api\CustomerAddressRepositoryInterface::class),
+                );
+            }
+        );
     }
 
     /**

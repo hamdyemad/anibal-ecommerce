@@ -7,17 +7,15 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Modules\Order\app\Interfaces\Api\OrderApiRepositoryInterface;
 use Modules\Order\app\Pipelines\FetchCartItems;
-use Modules\Order\app\Pipelines\AddShipping;
 use Modules\Order\app\Pipelines\ValidatePromoCode;
 use Modules\Order\app\Pipelines\ValidateProducts;
 use Modules\Order\app\Pipelines\FetchUserData;
-use Modules\Order\app\Pipelines\CalculateProductPrices;
+use Modules\Order\app\Pipelines\CalculateApiProductPrices;
 use Modules\Order\app\Pipelines\CalculateExtras;
 use Modules\Order\app\Pipelines\CalculateFinalTotal;
 use Modules\Order\app\Pipelines\CalculateShipping;
 use Modules\Order\app\Pipelines\CreateOrder;
 use Modules\Order\app\Pipelines\SyncOrderProducts;
-use Modules\Order\app\Pipelines\SyncExtras;
 use Modules\Order\app\Pipelines\UpdateProductSales;
 use Modules\Order\app\Pipelines\EmptyCart;
 
@@ -48,7 +46,7 @@ class OrderApiService
                     ValidatePromoCode::class,
                     ValidateProducts::class,
                     FetchUserData::class,
-                    CalculateProductPrices::class,
+                    CalculateApiProductPrices::class,
                     CalculateShipping::class,
                     CalculateExtras::class,
                     CalculateFinalTotal::class,
