@@ -14,6 +14,7 @@ use Modules\Order\app\Pipelines\FetchUserData;
 use Modules\Order\app\Pipelines\CalculateProductPrices;
 use Modules\Order\app\Pipelines\CalculateExtras;
 use Modules\Order\app\Pipelines\CalculateFinalTotal;
+use Modules\Order\app\Pipelines\CalculateShipping;
 use Modules\Order\app\Pipelines\CreateOrder;
 use Modules\Order\app\Pipelines\SyncOrderProducts;
 use Modules\Order\app\Pipelines\SyncExtras;
@@ -44,11 +45,11 @@ class OrderApiService
                 ])
                 ->through([
                     FetchCartItems::class,
-                    AddShipping::class,
                     ValidatePromoCode::class,
                     ValidateProducts::class,
                     FetchUserData::class,
                     CalculateProductPrices::class,
+                    CalculateShipping::class,
                     CalculateExtras::class,
                     CalculateFinalTotal::class,
                     CreateOrder::class,

@@ -5,6 +5,7 @@ use Modules\Order\app\Http\Controllers\Api\WishlistApiController;
 use Modules\Order\app\Http\Controllers\Api\CartApiController;
 use Modules\Order\app\Http\Controllers\Api\OrderApiController;
 use Modules\Order\app\Http\Controllers\Api\OrderStageApiController;
+use Modules\Order\app\Http\Controllers\Api\ShippingCalculationController;
 
 // Public API routes (no authentication required)
 Route::prefix('order-stages')->group(function () {
@@ -46,6 +47,11 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::get('/{orderId}', [OrderApiController::class, 'show'])->name('show');
         Route::post('/{orderId}/cancel', [OrderApiController::class, 'cancel'])->name('cancel');
         Route::post('/{orderId}/return', [OrderApiController::class, 'return'])->name('return');
+    });
+
+    // Shipping calculation routes
+    Route::prefix('shipping')->group(function () {
+        Route::post('/calculate', [ShippingCalculationController::class, 'calculate'])->name('calculate');
     });
 });
 Route::post('/promocode/check', [OrderApiController::class, 'checkPromoCode'])->name('check-promo-code');

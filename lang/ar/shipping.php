@@ -1,0 +1,78 @@
+<?php
+
+return [
+    // Page titles
+    'shipping_management' => 'إدارة الشحن',
+    'shippings' => 'الشحنات',
+    'create_shipping' => 'إنشاء شحنة',
+    'edit_shipping' => 'تعديل الشحنة',
+    'view_shipping' => 'عرض الشحنة',
+
+    // Form labels
+    'name' => 'الاسم',
+    'cost' => 'التكلفة',
+    'status' => 'الحالة',
+    'city' => 'المدينة',
+    'category' => 'الفئة',
+    'country' => 'الدولة',
+    'active' => 'نشط',
+    'inactive' => 'غير نشط',
+
+    // Validation messages
+    'translations_required' => 'ترجمة واحدة على الأقل مطلوبة',
+    'name_required' => 'الاسم مطلوب',
+    'name_max_255' => 'لا يجب أن يتجاوز الاسم 255 حرفًا',
+    'cost_required' => 'التكلفة مطلوبة',
+    'status_required' => 'الحالة مطلوبة',
+    'city_id_required' => 'المدينة مطلوبة',
+    'category_id_required' => 'الفئة مطلوبة',
+    'country_id_required' => 'الدولة مطلوبة',
+
+    // Success messages
+    'created_successfully' => 'تم إنشاء الشحنة بنجاح',
+    'updated_successfully' => 'تم تحديث الشحنة بنجاح',
+    'deleted_successfully' => 'تم حذف الشحنة بنجاح',
+    'status_changed_successfully' => 'تم تغيير حالة الشحنة بنجاح',
+
+    // Error messages
+    'error_creating' => 'خطأ في إنشاء الشحنة',
+    'error_updating' => 'خطأ في تحديث الشحنة',
+    'error_deleting' => 'خطأ في حذف الشحنة',
+    'error_changing_status' => 'خطأ في تغيير حالة الشحنة',
+
+    // Table columns
+    'id' => 'المعرف',
+    'title' => 'العنوان',
+    'actions' => 'الإجراءات',
+    'created_at' => 'تم الإنشاء في',
+    'updated_at' => 'تم التحديث في',
+
+    // Buttons
+    'add_shipping' => 'إضافة شحنة',
+    'edit' => 'تعديل',
+    'delete' => 'حذف',
+    'save' => 'حفظ',
+    'cancel' => 'إلغاء',
+    'back' => 'رجوع',
+
+    // Confirmations
+    'confirm_delete' => 'هل أنت متأكد من رغبتك في حذف هذه الشحنة؟',
+
+    // Filter labels
+    'created_from' => 'تم الإنشاء من',
+    'created_until' => 'تم الإنشاء حتى',
+
+    // Shipping calculation
+    'calculation_success' => 'تم حساب تكلفة الشحن بنجاح',
+    'address_not_found' => 'عنوان العميل غير موجود',
+    'no_shipping_available' => 'لا توجد خيارات شحن متاحة للعنوان المحدد',
+    'address_id_required' => 'معرّف عنوان العميل مطلوب',
+    'customer_id_required' => 'معرّف العميل مطلوب',
+    'customer_id_not_found' => 'العميل غير موجود',
+    'cart_items_required' => 'عناصر السلة مطلوبة',
+    'cart_items_min' => 'عنصر واحد على الأقل في السلة مطلوب',
+    'category_id_not_found' => 'الفئة غير موجودة',
+    'product_id_required' => 'معرّف المنتج مطلوب',
+    'quantity_required' => 'الكمية مطلوبة',
+    'quantity_min' => 'يجب أن تكون الكمية 1 على الأقل',
+];

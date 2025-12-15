@@ -241,30 +241,7 @@
                             </div>
                         </div>
 
-                        {{-- Order Details Section --}}
-                        <div class="mb-30">
-                            <h6 class="fw-500 mb-20">
-                                <i class="uil uil-receipt me-2"></i>{{ trans('order.order_details') }}
-                            </h6>
 
-                            <div class="row">
-                                {{-- Shipping Cost --}}
-                                <div class="col-md-6 mb-25">
-                                    <div class="form-group">
-                                        <label class="il-gray fs-14 fw-500 mb-10 d-block">
-                                            {{ trans('order.shipping') }}
-                                        </label>
-                                        <input type="number"
-                                            class="form-control ih-medium ip-gray radius-xs b-light px-15"
-                                            id="shipping" name="shipping" placeholder="0.00" step="0.01"
-                                            min="0" value="0">
-                                        @error('shipping')
-                                            <div class="invalid-feedback d-block">{{ $message }}</div>
-                                        @enderror
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
 
                         {{-- Products Section --}}
                         <div class="mb-30">
@@ -321,6 +298,8 @@
                             <input type="hidden" id="selected_product_price" value="">
                             <input type="hidden" id="selected_product_limitation" value="">
                             <input type="hidden" id="selected_product_tax_rate" value="">
+                            <input type="hidden" id="selected_product_category_id" value="">
+                            <input type="hidden" id="selected_product_category_name" value="">
                             {{-- Products List --}}
                             <div class="table-responsive">
                                 <table class="table table-sm table-bordered" id="productsTable">
@@ -360,9 +339,10 @@
                             </div>
                         </div>
 
-                        {{-- Hidden inputs for fees and discounts --}}
+                        {{-- Hidden inputs for fees, discounts, and shipping --}}
                         <input type="hidden" id="feesData" name="feesData" value="[]">
                         <input type="hidden" id="discountsData" name="discountsData" value="[]">
+                        <input type="hidden" id="shipping" name="shipping" value="0">
                     </form>
                 </div>
             </div>
@@ -605,9 +585,11 @@
                                     allProducts = response.data;
                                     console.log('Products loaded:', allProducts.length);
                                     console.log('Sample product:', allProducts[0]);
+                                    console.log('Sample product full structure:', JSON.stringify(allProducts[0], null, 2));
                                 } else if (response && Array.isArray(response)) {
                                     allProducts = response;
                                     console.log('Products loaded:', allProducts.length);
+                                    console.log('Sample product:', allProducts[0]);
                                 }
                             },
                             error: function(xhr) {
@@ -668,6 +650,22 @@
                                     const limitation = product.limitation || 0;
                                     const taxRate = product.tax && product.tax.tax_rate ? product
                                         .tax.tax_rate : 0;
+                                    
+                                    // Extract category from product
+                                    let categoryId = null;
+                                    let categoryName = null;
+                                    
+                                    if (product.category) {
+                                        categoryId = product.category.id;
+                                        categoryName = product.category.name;
+                                    }
+                                    
+                                    console.log('Product category:', {
+                                        productName,
+                                        categoryId,
+                                        categoryName,
+                                        fullCategory: product.category
+                                    });
 
                                     if (product.variants && product.variants.length > 0) {
                                         product.variants.forEach(variant => {
@@ -686,6 +684,8 @@
                                              data-price="${price}"
                                              data-limitation="${limitation}"
                                              data-tax-rate="${taxRate}"
+                                             data-category-id="${categoryId}"
+                                             data-category-name="${categoryName}"
                                              style="cursor: pointer;">
                                             <div class="d-flex justify-content-between">
                                                 <span class="fw-500">${productName}</span>
@@ -706,6 +706,8 @@
                                          data-price="0"
                                          data-limitation="${limitation}"
                                          data-tax-rate="${taxRate}"
+                                         data-category-id="${categoryId}"
+                                         data-category-name="${categoryName}"
                                          style="cursor: pointer;">
                                         <div class="d-flex justify-content-between">
                                             <span class="fw-500">${productName}</span>
@@ -733,6 +735,8 @@
                         const price = $(this).data('price');
                         const limitation = $(this).data('limitation') || 0;
                         const taxRate = $(this).data('tax-rate') || 0;
+                        const categoryId = $(this).data('category-id');
+                        const categoryName = $(this).data('category-name');
 
                         console.log('Product selected:', {
                             productId,
@@ -740,7 +744,9 @@
                             name,
                             price,
                             limitation,
-                            taxRate
+                            taxRate,
+                            categoryId,
+                            categoryName
                         });
 
                         $('#product_search').val(name);
@@ -750,6 +756,8 @@
                         $('#selected_product_price').val(price);
                         $('#selected_product_limitation').val(limitation);
                         $('#selected_product_tax_rate').val(taxRate);
+                        $('#selected_product_category_id').val(categoryId);
+                        $('#selected_product_category_name').val(categoryName);
                         $('#product_suggestions').hide();
                         $('#addProductBtn').prop('disabled', false);
 
@@ -1253,6 +1261,8 @@
                         const quantity = parseInt($('#product_quantity').val()) || 1;
                         const limitation = parseInt($('#selected_product_limitation').val()) || 0;
                         const taxRate = parseFloat($('#selected_product_tax_rate').val()) || 0;
+                        const categoryId = parseInt($('#selected_product_category_id').val()) || null;
+                        const categoryName = $('#selected_product_category_name').val();
 
                         console.log('Adding product:', {
                             productId,
@@ -1261,7 +1271,9 @@
                             productPrice,
                             quantity,
                             limitation,
-                            taxRate
+                            taxRate,
+                            categoryId,
+                            categoryName
                         });
 
                         if (!productId) {
@@ -1301,6 +1313,9 @@
                                 vendor_product_id: productId,
                                 vendor_product_variant_id: variantId,
                                 quantity: quantity,
+                                // Category data for shipping calculation
+                                category_id: categoryId,
+                                category_name: categoryName,
                                 // Display data for UI (not sent to server)
                                 id: productId + (variantId ? '_' + variantId : ''), // Unique ID for UI
                                 name: productName,
@@ -1324,6 +1339,8 @@
                         $('#product_quantity').removeAttr('max');
                         $('#addProductBtn').prop('disabled', true);
                         updateSummary();
+                        // Trigger shipping calculation when product is added
+                        $(document).trigger('productAdded');
                     });
 
                     // Remove Product
@@ -1332,6 +1349,8 @@
                         products = products.filter(p => p.id !== productId);
                         renderProductsTable();
                         updateSummary();
+                        // Recalculate shipping when product is removed
+                        calculateShipping();
                     });
 
                     // Render Products Table
@@ -1347,12 +1366,8 @@
                             <td>${product.name}</td>
                             <td class="text-center">${product.price.toFixed(2)} {{ currency() }}</td>
                             <td class="text-center">${product.quantity}</td>
-<<<<<<< HEAD
                             <td class="text-center">${product.total.toFixed(2)} {{ currency() }}</td>
-=======
                             <td class="text-center">${taxRate > 0 ? taxRate.toFixed(2) + '%' : '-'}</td>
-                            <td class="text-center">${product.total.toFixed(2)} {{ __('common.currency') }}</td>
->>>>>>> d4200aef0ea04b00dcb9eb0e3f11b282d9dc60b0
                             <td class="text-center">
                                 <button type="button" class="btn btn-sm btn-danger remove-product" data-product-id="${product.id}">
                                     <i class="uil uil-trash"></i>
@@ -1437,10 +1452,74 @@
 
                     // Update summary on input change
                     $(document).on('change keyup',
-                        '.fee-reason, .fee-amount, .discount-reason, .discount-amount, #shipping',
+                        '.fee-reason, .fee-amount, .discount-reason, .discount-amount',
                         function() {
                             updateSummary();
                         });
+
+                    // Calculate shipping when product is added
+                    $(document).on('productAdded', function() {
+                        calculateShipping();
+                    });
+
+                    // Calculate shipping when address is changed
+                    $('#customer_address_select').on('change', function() {
+                        calculateShipping();
+                    });
+
+                    // Calculate shipping cost via API
+                    function calculateShipping() {
+                        const customerType = $('input[name="customer_type"]:checked').val();
+                        const customerId = $('#selected_customer_id').val();
+                        const addressId = $('#customer_address_select').val();
+
+                        // Only calculate for existing customers with selected address
+                        if (customerType !== 'existing' || !customerId || !addressId) {
+                            $('#shipping').val(0);
+                            updateSummary();
+                            return;
+                        }
+
+                        // Format cart items for shipping calculation
+                        const cartItems = products.map(p => ({
+                            category_id: p.category_id,
+                            category_name: p.category_name,
+                            product_id: p.vendor_product_id,
+                            quantity: p.quantity
+                        }));
+
+                        // Call shipping calculation endpoint
+                        $.ajax({
+                            url: '{{ route('admin.shipping.calculate') }}',
+                            type: 'POST',
+                            headers: {
+                                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
+                                'Content-Type': 'application/json'
+                            },
+                            data: JSON.stringify({
+                                customer_id: customerId,
+                                customer_address_id: addressId,
+                                cart_items: cartItems
+                            }),
+                            success: function(response) {
+                                console.log('Shipping response:', response);
+                                if (response.success && response.data) {
+                                    const shippingCost = parseFloat(response.data.shipping_cost) || 0;
+                                    $('#shipping').val(shippingCost);
+                                    updateSummary();
+                                } else {
+                                    $('#shipping').val(0);
+                                    updateSummary();
+                                }
+                            },
+                            error: function(xhr) {
+                                console.error('Shipping calculation error:', xhr);
+                                console.log('Response:', xhr.responseJSON);
+                                $('#shipping').val(0);
+                                updateSummary();
+                            }
+                        });
+                    }
 
                     // Form validation function
                     function validateForm() {
@@ -1529,11 +1608,13 @@
                             });
                         });
 
-                        // Prepare products with only required fields
+                        // Prepare products with required fields including category data
                         const productsForServer = products.map(p => ({
                             vendor_product_id: p.vendor_product_id,
                             vendor_product_variant_id: p.vendor_product_variant_id,
-                            quantity: p.quantity
+                            quantity: p.quantity,
+                            category_id: p.category_id,
+                            category_name: p.category_name
                         }));
 
                         // Update hidden inputs with collected data
@@ -1545,6 +1626,7 @@
                         console.log('Products for server:', productsForServer);
                         console.log('Fees collected:', fees);
                         console.log('Discounts collected:', discounts);
+                        console.log('Shipping value:', $('#shipping').val());
 
                         if (typeof LoadingOverlay !== 'undefined') {
                             LoadingOverlay.show({

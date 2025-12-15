@@ -9,6 +9,7 @@ use Modules\Order\app\Pipelines\ValidateProducts;
 use Modules\Order\app\Pipelines\FetchUserData;
 use Modules\Order\app\Pipelines\CalculateProductPrices;
 use Modules\Order\app\Pipelines\CalculateExtras;
+use Modules\Order\app\Pipelines\CalculateShipping;
 use Modules\Order\app\Pipelines\CalculateFinalTotal;
 use Modules\Order\app\Pipelines\CreateOrder;
 use Modules\Order\app\Pipelines\SyncOrderProducts;
@@ -37,6 +38,7 @@ class OrderService
                     FetchUserData::class,
                     CalculateProductPrices::class,
                     CalculateExtras::class,
+                    CalculateShipping::class,
                     CalculateFinalTotal::class,
                     CreateOrder::class,
                     SyncOrderProducts::class,

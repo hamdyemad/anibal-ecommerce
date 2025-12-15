@@ -2,6 +2,7 @@
 
 namespace Modules\Order\app\Pipelines;
 
+use App\Exceptions\OrderException;
 use Closure;
 use Illuminate\Support\Facades\Auth;
 use Modules\Order\app\DTOs\CartFilterDTO;
@@ -28,6 +29,8 @@ class FetchCartItems
                 'vendor_product_id' => $item->vendor_product_id,
                 'vendor_product_variant_id' => $item->vendor_product_variant_id,
                 'quantity' => $item->quantity,
+                'category_id' => $item->vendorProduct->product->category_id ?? null,
+                'category_name' => $item->vendorProduct->product->category->name ?? null,
             ])
             ->toArray();
 

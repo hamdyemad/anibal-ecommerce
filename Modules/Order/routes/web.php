@@ -3,6 +3,8 @@
 use Illuminate\Support\Facades\Route;
 use Modules\Order\app\Http\Controllers\OrderStageController;
 use Modules\Order\app\Http\Controllers\OrderController;
+use Modules\Order\app\Http\Controllers\ShippingController;
+use Modules\Order\app\Http\Controllers\ShippingCalculationController;
 use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
 use Modules\Order\app\Http\Controllers\OrderFulfillmentController;
 
@@ -28,3 +30,11 @@ Route::prefix('order-fulfillments')->name('order-fulfillments.')->group(function
     Route::get('{orderId}/allocate', [OrderFulfillmentController::class, 'show'])->name('show');
     Route::post('{orderId}/allocate', [OrderFulfillmentController::class, 'allocate'])->name('allocate');
 });
+
+// Shippings Management
+Route::get('shippings/datatable', [ShippingController::class, 'datatable'])->name('shippings.datatable');
+Route::post('shippings/{id}/change-status', [ShippingController::class, 'changeStatus'])->name('shippings.change-status');
+Route::resource('shippings', ShippingController::class);
+
+// Shipping Calculation
+Route::post('shipping/calculate', [ShippingCalculationController::class, 'calculate'])->name('shipping.calculate');

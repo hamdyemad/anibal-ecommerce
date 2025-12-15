@@ -717,13 +717,14 @@
         @if (in_array($user_type_id, \App\Models\UserType::adminIds()))
             @can('shipping_methods.index')
                 <li>
-                    <a href="{{ route('admin.dashboard') }}">
+                    <a href="{{ route('admin.shippings.index') }}"
+                        class="{{ isMenuActive('admin.shippings.index', $currentRoute) ? 'active' : '' }}">
                         <span class="d-flex align-items-center justify-content-between fw-bold w-100">
                             <span class="d-flex align-items-center">
                                 <span class="nav-icon uil uil-truck"></span>
                                 <span class="menu-text">{{ trans('menu.orders.shipping methods') }}</span>
                             </span>
-                            <span class="badge badge-round badge-primary  ms-1">50</span>
+                            <span class="badge badge-round badge-primary  ms-1">{{ \Modules\Order\app\Models\Shipping::count() }}</span>
                         </span>
                     </a>
                 </li>

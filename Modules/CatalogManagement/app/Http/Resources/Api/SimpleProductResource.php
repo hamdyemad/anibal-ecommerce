@@ -46,6 +46,10 @@ class SimpleProductResource extends JsonResource
             'meta_description' => $this->product->meta_description,
             'meta_keywords' => $this->product->meta_keywords ?? [],
             'tax' => TaxResource::make($this->tax),
+            'category' => [
+                'id' => $this->product->category_id,
+                'name' => $this->product->category->name ?? null,
+            ],
             'variants' => VendorProductVariantResource::collection($this->whenLoaded('variants')),
         ];
     }

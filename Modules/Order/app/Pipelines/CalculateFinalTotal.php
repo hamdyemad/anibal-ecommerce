@@ -2,7 +2,9 @@
 
 namespace Modules\Order\app\Pipelines;
 
+use App\Exceptions\OrderException;
 use Closure;
+use Exception;
 
 class CalculateFinalTotal
 {
@@ -19,7 +21,8 @@ class CalculateFinalTotal
         $promoDiscount = $promocode ? $this->calculatePromoDiscount($context['total_product_price'], $promocode->value, $promocode->type) : 0;
         
         $subtotal = $context['total_product_price'];
-        $shipping = $context['shipping'] ?? 0;
+        // Use calculated shipping from CalculateShipping pipeline, or fallback to data
+        $shipping = (float) ($data['shipping'] ?? 0);
         $tax = $context['total_tax'] ?? 0;
         $fees = $context['total_fees'] ?? 0;
         $discounts = $context['total_discounts'] ?? 0;
@@ -27,6 +30,7 @@ class CalculateFinalTotal
         $totalPrice = $subtotal + $shipping + $fees + $tax - $discounts - $promoDiscount;
 
         $context['subtotal'] = $subtotal;
+        $context['shipping'] = $shipping;
         $context['total_price'] = max(0, $totalPrice); // Ensure total is not negative
         $context['promo_code_discount'] = $promoDiscount;
 

@@ -9,7 +9,7 @@ use Modules\AreaSettings\app\Http\Controllers\Api\SubRegionApiController;
 Route::prefix('area')->group(function () {
     Route::apiResource('countries', CountryApiController::class);
     Route::get('cities', [CityApiController::class, 'index']);
-    Route::get('countries/{id}/cities', [CityApiController::class, 'getCitiesByCountry']);
+    Route::get('countries/{id}/cities', [CityApiController::class, 'getCitiesByCountry'])->name('area.cities.by-country');
 
     Route::get('regions', [RegionApiController::class, 'index']);
     Route::get('cities/{id}/regions', [RegionApiController::class, 'getRegionsByCity']);
