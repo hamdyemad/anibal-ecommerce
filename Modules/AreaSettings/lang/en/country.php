@@ -144,5 +144,10 @@ return [
     'default_country' => 'Default Country',
     'set_as_default' => 'Set as Default',
     'default_country_info' => 'Only one country can be set as default at a time',
+
+    // Image Upload
+    'image' => 'Country Image',
+    'click_to_upload_image' => 'Click to upload country image',
+    'recommended_size' => 'Recommended size: 400x300px',
 ];
 

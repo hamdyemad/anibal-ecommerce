@@ -39,6 +39,7 @@ class CountryRequest extends FormRequest
             'translations.*.name' => 'required|string|max:255',
             'active' => 'nullable|boolean',
             'default' => 'nullable|boolean',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ];
 
         return $rules;

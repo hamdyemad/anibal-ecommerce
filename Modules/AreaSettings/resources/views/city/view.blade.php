@@ -30,7 +30,7 @@
                     </div>
                     <div class="card-body">
                         <div class="row">
-                            <div class="col-md-6">
+                            <div class="col-md-12">
                                 <div class="card  card-holder">
                                     <div class="card-header">
                                         <h3>
@@ -86,7 +86,30 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-md-6">
+                            @if($city->image)
+                            {{-- Country Image --}}
+                            <div class="col-md-12">
+                                <div class="card card-holder">
+                                    <div class="card-header">
+                                        <h3>
+                                            <i class="uil uil-image me-1"></i>{{ __('areasettings::city.image') }}
+                                        </h3>
+                                    </div>
+                                    <div class="card-body text-center">
+                                        @if($city->image)
+                                            <div class="image-wrapper">
+                                                <img src="{{ asset('storage/' . $city->image->path) }}"
+                                                alt="{{ $city->getTranslation('name', app()->getLocale()) }}"
+                                                class="category-image img-fluid">
+                                            </div>
+                                        @else
+                                            <p class="fs-15 color-light fst-italic">{{ __('common.no_image') ?? 'No image uploaded' }}</p>
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
+                            @endif
+                            <div class="col-md-12">
                                 <div class="card  card-holder">
                                     <div class="card-header">
                                         <h3>
@@ -117,6 +140,8 @@
             </div>
         </div>
     </div>
+    {{-- Image Modal Component --}}
+    <x-image-modal />
 @endsection
 
 @push('styles')
