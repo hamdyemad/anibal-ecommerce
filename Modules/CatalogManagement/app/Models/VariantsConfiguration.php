@@ -49,6 +49,10 @@ class VariantsConfiguration extends Model
         return $this->children()->with('childrenRecursive', 'key');
     }
 
+    public function getColorAttribute() {
+        return $this->value;
+    }
+
 
     /**
      * Get all of the ProductVariantConfiguration for the VariantsConfiguration

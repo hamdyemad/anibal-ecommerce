@@ -145,6 +145,15 @@ class CityRepository implements CityRepositoryInterface
                 }
             }
 
+            // Handle image upload
+            if (isset($data['image'])) {
+                $path = $data['image']->store("cities/$city->id", 'public');
+                $city->attachments()->create([
+                    'path' => $path,
+                    'type' => 'image'
+                ]);
+            }
+
             return $city;
         });
     }
@@ -197,6 +206,21 @@ class CityRepository implements CityRepositoryInterface
                 }
             }
 
+            // Handle image upload
+            if (isset($data['image'])) {
+                $city->attachments()->delete();
+                $image = $city->attachments()->first();
+                if(file_exists($image)) {
+                    unlink($image->path);
+                }
+                $path = $data['image']->store("cities/$city->id", 'public');
+                $city->attachments()->create([
+                    'path' => $path,
+                    'type' => 'image'
+                ]);
+            }
+
+
             $city->refresh();
             $city->load(['country.translations', 'translations']);
 
@@ -210,6 +234,14 @@ class CityRepository implements CityRepositoryInterface
     public function deleteCity(int $id)
     {
         $city = City::findOrFail($id);
+
+
+        $city->attachments()->forceDelete();
+        $image = $city->attachments()->first();
+        if(file_exists($image)) {
+            unlink($image->path);
+        }
+
 
         // Check if city has regions
         $regionsCount = $city->regions()->count();

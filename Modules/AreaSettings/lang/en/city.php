@@ -96,4 +96,9 @@ return [
     'default_city' => 'Default City',
     'set_as_default' => 'Set as Default',
     'default_city_info' => 'Only one city can be set as default at a time',
+
+    // Image Upload
+    'image' => 'City Image',
+    'click_to_upload_image' => 'Click to upload city image',
+    'recommended_size' => 'Recommended size: 400x300px',
 ];

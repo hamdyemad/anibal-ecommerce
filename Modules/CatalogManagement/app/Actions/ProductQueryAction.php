@@ -21,7 +21,10 @@ class ProductQueryAction
                 'variants',
                 'vendor',
                 'tax',
-            ]);
+            ])
+            ->withCount('reviews')
+            ->withAvg('reviews', 'star') // assumes your reviews table has a 'star' column;
+            ;
 
         if (!empty($filters)) {
             $query->filter($filters);

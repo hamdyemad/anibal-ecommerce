@@ -62,9 +62,8 @@ class Review extends BaseModel
      */
     public function vendorProduct()
     {
-        return $this->belongsTo(VendorProduct::class);
+        return $this->belongsTo(VendorProduct::class, 'reviewable_id');
     }
-
     /**
      * Get the customer who wrote this review
      */

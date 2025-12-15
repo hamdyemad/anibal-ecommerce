@@ -26,7 +26,7 @@ class VendorRequest extends FormRequest
 
         // Logo validation: required on create, optional on update if logo exists
         $logoRule = 'required|image|mimes:jpeg,png,jpg,gif|max:2048';
-        if ($isUpdate && $vendor->logo) {
+        if ($isUpdate && $vendor->logo || $this->vendor_request_id) {
             $logoRule = 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048';
         }
 
@@ -67,6 +67,7 @@ class VendorRequest extends FormRequest
 
             // Status
             'active' => 'nullable|boolean',
+            'phone' => 'nullable|string',
 
             // Vendor Request Reference (when creating from vendor request)
             'vendor_request_id' => 'nullable|integer|exists:vendor_requests,id',

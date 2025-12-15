@@ -147,5 +147,10 @@ return [
     'default_country' => 'الدولة الافتراضية',
     'set_as_default' => 'تعيين كافتراضي',
     'default_country_info' => 'يمكن تعيين دولة واحدة فقط كافتراضية في كل مرة',
+
+    // Image Upload
+    'image' => 'صورة الدولة',
+    'click_to_upload_image' => 'انقر لتحميل صورة الدولة',
+    'recommended_size' => 'الحجم الموصى به: 400x300 بكسل',
 ];
 

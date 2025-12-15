@@ -63,6 +63,10 @@ class Ad extends Model
         return __('systemsetting::ads.positions.' . $this->position);
     }
 
+
+    public function scopeActive(Builder $query) {
+        return $query->where('active', 1);
+    }
     /**
      * Scope for filtering
      */

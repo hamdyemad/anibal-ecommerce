@@ -372,6 +372,15 @@
                                                     </p>
                                                 </div>
                                             </div>
+                                            {{-- Phone --}}
+                                            <div class="col-md-6">
+                                                <div class="view-item">
+                                                    <label class="il-gray fs-14 fw-500 mb-10">{{ __('common.phone') }}</label>
+                                                    <p class="fs-15 color-dark">
+                                                        {{ $vendor->phone ?? '-' }}
+                                                    </p>
+                                                </div>
+                                            </div>
                                             {{-- Activation Status --}}
                                             <div class="col-md-6">
                                                 <div class="view-item">
@@ -382,6 +391,15 @@
                                                         @else
                                                             <span class="badge badge-danger badge-round badge-lg">{{ trans('vendor::vendor.inactive') }}</span>
                                                         @endif
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            {{-- Slug --}}
+                                            <div class="col-md-6">
+                                                <div class="view-item">
+                                                    <label class="il-gray fs-14 fw-500 mb-10">{{ trans('main.slug') }}</label>
+                                                    <p class="fs-15">
+                                                        <span class="badge badge-success badge-round badge-lg">{{ $vendor->slug }}</span>
                                                     </p>
                                                 </div>
                                             </div>

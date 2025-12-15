@@ -32,33 +32,17 @@
                             @endif
 
                             <div class="row">
-                                @foreach($languages as $language)
-                                    <div class="col-md-6">
-                                        <div class="form-group mb-25">
-                                            <label for="translations_{{ $language->id }}_name" class="form-label w-100 text-start">
-                                                @if($language->code == 'en')
-                                                {{ __('areasettings::city.name') }} ({{ $language->name }})
-                                                @elseif($language->code == 'ar')
-                                                    الاسم بالعربية
-                                                @endif
-
-                                                <span class="text-danger">*</span>
-                                            </label>
-                                            <input
-                                                type="text"
-                                                name="translations[{{ $language->id }}][name]"
-                                                id="translations_{{ $language->id }}_name"
-                                                class="form-control ih-medium ip-gray radius-xs b-light px-15"
-                                                value="{{ isset($city) ? $city->getTranslation('name', $language->code) : old('translations.'.$language->id.'.name') }}"
-                                                {{ $language->rtl ? 'dir=rtl' : '' }}
-                                                placeholder="{{ $language->code == 'ar' ? 'أدخل اسم المدينة' : 'Enter city name' }}"
-                                            >
-                                            @error('translations.'.$language->id.'.name')
-                                                <div class="text-danger">{{ $message }}</div>
-                                            @enderror
-                                        </div>
-                                    </div>
-                                @endforeach
+                                <x-multilingual-input
+                                    name="name"
+                                    oldPrefix="translations"
+                                    label="Name"
+                                    :labelAr="'الاسم'"
+                                    :placeholder="'name'"
+                                    :placeholderAr="'الاسم'"
+                                    type="text"
+                                    :languages="$languages"
+                                    :model="$city ?? null"
+                                />
                                 <!-- Country Selection -->
                                 <div class="col-md-6">
                                     <div class="form-group mb-25">
@@ -124,6 +108,17 @@
                                             <div class="text-danger fs-12 mt-1">{{ $message }}</div>
                                         @enderror
                                     </div>
+                                </div>
+                                <div class="col-md-6 mb-25">
+                                    <x-image-upload
+                                        id="city_image"
+                                        name="image"
+                                        :label="trans('areasettings::city.image')"
+                                        :placeholder="trans('areasettings::city.click_to_upload_image')"
+                                        :recommendedSize="trans('areasettings::city.recommended_size')"
+                                        :existingImage="isset($city) && $city->image ? $city->image->path : null"
+                                        aspectRatio="square"
+                                    />
                                 </div>
 
                                 <div class="col-12">

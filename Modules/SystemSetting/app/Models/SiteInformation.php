@@ -22,6 +22,10 @@ class SiteInformation extends Model
         'updated_at' => 'datetime',
     ];
 
+
+    public function getAddressAttribute() {
+        return $this->getTranslation('address', app()->getLocale());
+    }
     /**
      * Scope to filter site information
      */

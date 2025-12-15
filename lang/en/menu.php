@@ -134,6 +134,13 @@
             'main category' => 'main category',
             'sub category' => 'sub category',
         ],
+        'product_reviews' => [
+            'title' => 'product reviews',
+            'all' => 'all',
+            'accepted' => 'accepted',
+            'rejected' => 'rejected',
+            'new' => 'new',
+        ],
         'product reviews' => [
             'title' => 'product reviews',
             'all' => 'all',

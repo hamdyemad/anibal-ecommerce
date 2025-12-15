@@ -8,6 +8,8 @@ use Illuminate\Http\Request;
 use Modules\CatalogManagement\app\DTOs\ReviewFilterDTO;
 use Modules\CatalogManagement\app\Http\Requests\Api\StoreReviewRequest;
 use Modules\CatalogManagement\app\Http\Resources\Api\ReviewResource;
+use Modules\CatalogManagement\app\Models\Review;
+use Modules\CatalogManagement\app\Models\VendorProduct;
 use Modules\CatalogManagement\app\Services\Api\ReviewService;
 
 class ReviewApiController extends Controller
@@ -65,9 +67,8 @@ class ReviewApiController extends Controller
     {
         $dto = ReviewFilterDTO::fromRequest($request);
         $dto->reviewable_id = $reviewableId;
-        $dto->reviewable_type = $reviewableType == "products" ? "VendorProduct" : "Vendor";
+        $dto->reviewable_type = $reviewableType == "products" ? VendorProduct::class : "Vendor";
         $dto->status = 'approved';
-
         if (!$dto->validate()) {
             return $this->sendRes(
                 config('responses.validation')[app()->getLocale()],
@@ -78,9 +79,7 @@ class ReviewApiController extends Controller
             );
         }
 
-
         $reviews = $this->reviewService->getReviews($dto);
-
         return $this->sendRes(
             config('responses.success')[app()->getLocale()],
             true,

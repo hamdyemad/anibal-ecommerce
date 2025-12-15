@@ -5,6 +5,7 @@ namespace Modules\AreaSettings\app\Models;
 use App\Models\BaseModel;
 use App\Models\Traits\HumanDates;
 use App\Traits\HasSlug;
+use App\Models\Attachment;
 use App\Traits\Translation;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -18,6 +19,19 @@ class Country extends BaseModel
     protected $table = 'countries';
     protected $guarded = [];
 
+
+    /**
+     * Attachments relationship
+     */
+    public function attachments()
+    {
+        return $this->morphMany(Attachment::class, 'attachable');
+    }
+
+    public function image()
+    {
+        return $this->morphOne(Attachment::class, 'attachable')->where('type', 'image');
+    }
 
     public function vendors() {
         return $this->hasMany(Vendor::class, 'country_id');

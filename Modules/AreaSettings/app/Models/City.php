@@ -2,6 +2,7 @@
 
 namespace Modules\AreaSettings\app\Models;
 
+use App\Models\Attachment;
 use App\Models\BaseModel;
 use App\Models\Traits\HumanDates;
 use App\Traits\HasSlug;
@@ -16,6 +17,20 @@ class City extends BaseModel
 
     protected $table = 'cities';
     protected $guarded = [];
+
+    /**
+     * Attachments relationship
+     */
+    public function attachments()
+    {
+        return $this->morphMany(Attachment::class, 'attachable');
+    }
+
+    public function image()
+    {
+        return $this->morphOne(Attachment::class, 'attachable')->where('type', 'image');
+    }
+
 
     public function regions() {
         return $this->hasMany(Region::class, 'city_id');

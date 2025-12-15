@@ -69,7 +69,7 @@ class VendorApiController extends Controller
         return $this->sendRes(
             config('responses.success')[app()->getLocale()],
             true,
-            new VendorRequestResource($vendorRequest),
+            [],
             [],
             201
         );

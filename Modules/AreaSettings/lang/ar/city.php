@@ -96,4 +96,9 @@ return [
     'default_city' => 'المدينة الافتراضية',
     'set_as_default' => 'تعيين كافتراضي',
     'default_city_info' => 'يمكن تعيين مدينة واحدة فقط كافتراضية في كل مرة',
+
+    // Image Upload
+    'image' => 'صورة المدينة',
+    'click_to_upload_image' => 'انقر لتحميل صورة المدينة',
+    'recommended_size' => 'الحجم الموصى به: 400x300 بكسل',
 ];

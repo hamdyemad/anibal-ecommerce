@@ -19,8 +19,8 @@ Route::apiResource('brands', BrandApiController::class);
 
 
 // Product Routes - Optional Authentication (handles both guests and authenticated users)
-// Higher throttle limit (300/min) for public product endpoints
-Route::prefix('products')->middleware(['auth.optional:sanctum', 'throttle:products'])->group(function () {
+// Throttling disabled - using per-request rate limiting instead
+Route::prefix('products')->middleware(['auth.optional:sanctum'])->group(function () {
     Route::get('/', [ProductApiController::class, 'index']);
     Route::get('/featured', [ProductApiController::class, 'featured']);
     Route::get('/best-selling', [ProductApiController::class, 'bestSelling']);
@@ -40,7 +40,7 @@ Route::prefix('products')->middleware(['auth.optional:sanctum', 'throttle:produc
 Route::get('{reviewableType}/{reviewableId}/reviews', [ReviewApiController::class, 'getByReviewable']);
 
 // Review Routes (authenticated)
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/{reviewableType}/{reviewableId}/reviews', [ReviewApiController::class, 'store']);
     Route::get('/reviews/my-reviews', [ReviewApiController::class, 'getCustomerReviews']);
 });

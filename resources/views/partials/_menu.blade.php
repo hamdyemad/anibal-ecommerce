@@ -406,32 +406,41 @@
             </a>
         </li>
         @can('reviews.view')
-            <li class="has-child">
-                <a href="#" class="">
+            @php
+                try {
+                    $reviews_all = Modules\CatalogManagement\app\Models\Review::count();
+                    $reviews_accepted = Modules\CatalogManagement\app\Models\Review::where('status', 'approved')->count();
+                    $reviews_rejected = Modules\CatalogManagement\app\Models\Review::where('status', 'rejected')->count();
+                } catch (\Exception $e) {
+                    $reviews_all = $reviews_accepted = $reviews_rejected = 0;
+                }
+            @endphp
+            <li class="has-child {{ isParentMenuOpen(['admin.reviews.index'], ['admin/reviews*']) ? 'open' : '' }}">
+                <a href="#" class="{{ isParentMenuOpen(['admin.reviews.index'], ['admin/reviews*']) ? 'active' : '' }}">
                     <span class="nav-icon uil uil-star"></span>
-                    <span class="menu-text">{{ trans('menu.product reviews.title') }}</span>
+                    <span class="menu-text">{{ trans('menu.product_reviews.title') }}</span>
                     <span class="toggle-icon"></span>
                 </a>
                 <ul class="px-0">
                     <li>
-                        <a class="d-flex align-items-center justify-content-between fw-bold"
-                            href="{{ route('admin.dashboard') }}">
-                            {{ trans('menu.product reviews.all') }}
-                            <span class="badge badge-round badge-primary ms-1">150</span>
+                        <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive('admin.reviews.index', $currentRoute) && request()->query('status') === 'all' ? 'active' : '' }}"
+                            href="{{ route('admin.reviews.index', ['status' => 'all']) }}">
+                            {{ trans('menu.product_reviews.all') }}
+                            <span class="badge badge-round badge-primary ms-1">{{ $reviews_all }}</span>
                         </a>
                     </li>
                     <li>
-                        <a class="d-flex align-items-center justify-content-between fw-bold"
-                            href="{{ route('admin.dashboard') }}">
-                            {{ trans('menu.product reviews.accepted') }}
-                            <span class="badge badge-round badge-primary ms-1">120</span>
+                        <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive('admin.reviews.index', $currentRoute) && request()->query('status') === 'approved' ? 'active' : '' }}"
+                            href="{{ route('admin.reviews.index', ['status' => 'approved']) }}">
+                            {{ trans('menu.product_reviews.accepted') }}
+                            <span class="badge badge-round badge-success ms-1">{{ $reviews_accepted }}</span>
                         </a>
                     </li>
                     <li>
-                        <a class="d-flex align-items-center justify-content-between fw-bold"
-                            href="{{ route('admin.dashboard') }}">
-                            {{ trans('menu.product reviews.rejected') }}
-                            <span class="badge badge-round badge-primary ms-1">30</span>
+                        <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive('admin.reviews.index', $currentRoute) && request()->query('status') === 'rejected' ? 'active' : '' }}"
+                            href="{{ route('admin.reviews.index', ['status' => 'rejected']) }}">
+                            {{ trans('menu.product_reviews.rejected') }}
+                            <span class="badge badge-round badge-danger ms-1">{{ $reviews_rejected }}</span>
                         </a>
                     </li>
                 </ul>
@@ -733,34 +742,6 @@
 
 
         @if (isAdmin())
-            @can('points.index')
-                <li class="menu-title mt-30">
-                    <span>{{ trans('menu.sections.points system') }}</span>
-                </li>
-                <li class="has-child">
-                    <a href="#" class="">
-                        <span class="nav-icon uil uil-coins"></span>
-                        <span class="menu-text">{{ trans('menu.point managment.title') }}</span>
-                        <span class="toggle-icon"></span>
-                    </a>
-                    <ul class="px-0">
-                        <li>
-                            <a class="d-flex align-items-center justify-content-between fw-bold"
-                                href="{{ route('admin.points-settings.index') }}">
-                                {{ trans('menu.point managment.title') }}
-                            </a>
-                        </li>
-                        <li>
-                            <a class="d-flex align-items-center justify-content-between fw-bold"
-                                href="{{ route('admin.points-settings.user-points.index') }}">
-                                {{ trans('menu.point managment.users points') }}
-                            </a>
-                        </li>
-                    </ul>
-                </li>
-            @endcan
-
-
             @canany(['notifications.send', 'notifications.view'])
                 <li class="has-child">
                     <a href="#" class="">
@@ -838,15 +819,15 @@
 
 
             @can('advertisements.index')
-                <li class="has-child">
-                    <a href="#" class="">
+                <li class="has-child {{ isParentMenuOpen(['admin.system-settings.ads.index'], ['*/system-settings/ads*']) ? 'open' : '' }}">
+                    <a href="#" class="{{ isParentMenuOpen(['admin.system-settings.ads.index'], ['*/system-settings/ads*']) ? 'active' : '' }}">
                         <span class="nav-icon uil uil-trophy"></span>
                         <span class="menu-text">{{ trans('menu.advertisements.title') }}</span>
                         <span class="toggle-icon"></span>
                     </a>
                     <ul class="px-0">
                         <li>
-                            <a class="d-flex align-items-center justify-content-between fw-bold"
+                            <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive('admin.system-settings.ads.index', $currentRoute) ? 'active' : '' }}"
                                 href="{{ route('admin.system-settings.ads.index') }}">
                                 {{ trans('menu.advertisements.title') }}
                                 <span class="badge badge-round badge-primary  ms-1">

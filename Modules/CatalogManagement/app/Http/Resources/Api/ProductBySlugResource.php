@@ -20,6 +20,7 @@ class ProductBySlugResource extends JsonResource
     {
         $product = $this['product'];
         $vendorProducts = $this['vendorProducts'];
+        $reviews = $this['reviews'];
 
         return [
             'id' => $product->id,
@@ -30,6 +31,7 @@ class ProductBySlugResource extends JsonResource
             'category' => new LightCategoryApiResource($product->category),
             'department' => new LightDepartmentApiResource($product->department),
             'sub_category' => new LightSubCategoryApiResource($product->subCategory),
+            'reviews' => $reviews,
             'vendors' => $vendorProducts->map(function($vendorProduct) {
                 $variants = $vendorProduct->variants->map(function($variant) {
                     $totalStock = $variant->stocks->sum('quantity');

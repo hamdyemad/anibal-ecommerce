@@ -27,6 +27,9 @@ return [
     'points_setting_deleted' => 'Points setting deleted successfully',
     'points_system_updated' => 'Points system updated successfully',
     'status_changed_successfully' => 'Status changed successfully',
+    'points_retrieved_successfully' => 'Points retrieved successfully',
+    'transactions_retrieved_successfully' => 'Transactions retrieved successfully',
+    'settings_retrieved_successfully' => 'Settings retrieved successfully',
 
     // Errors
     'error_creating_setting' => 'Error creating points setting',

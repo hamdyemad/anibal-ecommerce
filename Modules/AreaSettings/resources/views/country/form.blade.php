@@ -47,17 +47,17 @@
                             @endif
                             <div class="row">
                                 <!-- Translation Fields -->
-                                @foreach($languages as $language)
-                                    <div class="col-md-6">
-                                        <div class="form-group mb-3">
-                                            <label for="name_{{ $language->id }}" class="form-label w-100" @if($language->code == 'ar') dir="rtl" @endif>{{ __('areasettings::country.name_' . ($language->code == 'ar' ? 'ar' : 'en')) }} <span class="text-danger">*</span></label>
-                                            <input type="text" class="form-control ih-medium ip-gray radius-xs b-light px-15" id="name_{{ $language->id }}" @if($language->code == 'ar') dir="rtl" @endif name="translations[{{ $language->id }}][name]" value="{{ old('translations.' . $language->id . '.name', isset($country) ? $country->translations->where('lang_id', $language->id)->first()->lang_value ?? '' : '') }}" placeholder="{{ $language->code == 'ar' ? 'أدخل اسم الدولة' : 'Enter country name' }}">
-                                            @error('translations.' . $language->id . '.name')
-                                                <div class="text-danger small mt-1">{{ $message }}</div>
-                                            @enderror
-                                        </div>
-                                    </div>
-                                @endforeach
+                                <x-multilingual-input
+                                    name="name"
+                                    oldPrefix="translations"
+                                    label="Name"
+                                    :labelAr="'الاسم'"
+                                    :placeholder="'name'"
+                                    :placeholderAr="'الاسم'"
+                                    type="text"
+                                    :languages="$languages"
+                                    :model="$country ?? null"
+                                />
                                 <div class="col-md-6">
                                     <div class="form-group mb-3">
                                         <label for="code" class="form-label">{{ __('areasettings::country.country_code') }} <span class="text-danger">*</span></label>
@@ -142,6 +142,17 @@
                                             <div class="text-danger fs-12 mt-1">{{ $message }}</div>
                                         @enderror
                                     </div>
+                                </div>
+                                <div class="col-md-6 mb-25">
+                                    <x-image-upload
+                                        id="country_image"
+                                        name="image"
+                                        :label="trans('areasettings::country.image')"
+                                        :placeholder="trans('areasettings::country.click_to_upload_image')"
+                                        :recommendedSize="trans('areasettings::country.recommended_size')"
+                                        :existingImage="isset($country) && $country->image ? $country->image->path : null"
+                                        aspectRatio="square"
+                                    />
                                 </div>
                                 <div class="col-md-12">
                                     <div class="form-group mt-4 d-flex align-items-center justify-content-end">

@@ -38,7 +38,6 @@ class VendorRequestController extends Controller
             'search' => $request->get('search'),
             'status' => $request->get('status'),
             'email' => $request->get('email'),
-            'activity_id' => $request->get('activity_id'),
             'created_date_from' => $request->get('created_date_from'),
             'created_date_to' => $request->get('created_date_to'),
         ];
@@ -56,15 +55,13 @@ class VendorRequestController extends Controller
                 'email' => $request->email,
                 'phone' => $request->phone,
                 'company_name' => $request->company_name,
+                'manager_name' => $request->manager_name,
+                'company_logo' => $request->company_logo ? asset('storage/' . $request->company_logo) : null,
+                'company_logo_storage' => $request->company_logo,
                 'status' => $request->status,
-                'activities' => $request->activities->map(function ($activity) {
-                    return [
-                        'id' => $activity->id,
-                        'name' => $activity->getTranslation('name', app()->getLocale()),
-                    ];
-                }),
                 'created_at' => $request->created_at,
                 'rejection_reason' => $request->rejection_reason,
+                'activities' => $request->activities ? $request->activities->toArray() : [],
             ];
         });
 

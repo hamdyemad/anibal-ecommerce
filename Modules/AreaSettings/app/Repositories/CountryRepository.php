@@ -59,6 +59,15 @@ class CountryRepository implements CountryRepositoryInterface
                 'default' => $data['default'] ?? 0,
             ]);
 
+            // Handle image upload
+            if (isset($data['image'])) {
+                $path = $data['image']->store("countries/$country->id", 'public');
+                $country->attachments()->create([
+                    'path' => $path,
+                    'type' => 'image'
+                ]);
+            }
+
             // Set translations from nested array
             if (isset($data['translations']) && is_array($data['translations'])) {
                 foreach ($data['translations'] as $langId => $translation) {
@@ -109,6 +118,22 @@ class CountryRepository implements CountryRepositoryInterface
             }
             $country->update($updatedData);
 
+
+            // Handle image upload
+            if (isset($data['image'])) {
+                $country->attachments()->delete();
+                $image = $country->attachments()->first();
+                if(file_exists($image)) {
+                    unlink($image->path);
+                }
+                $path = $data['image']->store("countries/$country->id", 'public');
+                $country->attachments()->create([
+                    'path' => $path,
+                    'type' => 'image'
+                ]);
+            }
+
+
             // Update translations from nested array
             if (isset($data['translations']) && is_array($data['translations'])) {
                 foreach ($data['translations'] as $langId => $translation) {
@@ -140,6 +165,12 @@ class CountryRepository implements CountryRepositoryInterface
     {
         $country = Country::findOrFail($id);
 
+        $country->attachments()->forceDelete();
+        $image = $country->attachments()->first();
+        if(file_exists($image)) {
+            unlink($image->path);
+        }
+
         // Check if this is the last country - cannot delete
         $totalCountriesCount = Country::count();
         if ($totalCountriesCount <= 1) {
@@ -167,7 +198,7 @@ class CountryRepository implements CountryRepositoryInterface
             }
         }
 
-        $country->translations()->delete();
+        $country->translations()->forceDelete();
         return $country->delete();
     }
 

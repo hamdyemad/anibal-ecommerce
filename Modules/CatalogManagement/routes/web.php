@@ -3,6 +3,12 @@
 use Illuminate\Support\Facades\Route;
 
 Route::group(['middleware' => 'adminGuard'], function() {
+    // Reviews
+    Route::get('reviews', 'ReviewController@index')->name('reviews.index');
+    Route::get('reviews/datatable', 'ReviewController@datatable')->name('reviews.datatable');
+    Route::post('reviews/{review}/approve', 'ReviewController@approve')->name('reviews.approve');
+    Route::post('reviews/{review}/reject', 'ReviewController@reject')->name('reviews.reject');
+
     // Brands
     Route::get('brands/datatable', 'BrandController@datatable')->name('brands.datatable');
     Route::resource('brands', 'BrandController');

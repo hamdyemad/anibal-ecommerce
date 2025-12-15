@@ -34,6 +34,7 @@ class ReviewRepository implements ReviewRepositoryInterface
         $query = Review::query()
             ->with(['vendorProduct', 'customer'])
             ->filter($filters);
+        return $query->get();
 
         // Apply sorting
         $sortBy = $dto->sort_by ?? 'created_at';
@@ -42,7 +43,7 @@ class ReviewRepository implements ReviewRepositoryInterface
 
         // Handle pagination
         $paginated = $dto->paginated != null ? $dto->paginated : null;
-        return $this->isPaginatedAction->handle($query, $paginated, $dto->per_page);
+        return $this->isPaginatedAction->handle($query, $dto->per_page, $paginated);
     }
 
 }

@@ -13,7 +13,7 @@ class BrandQueryAction
      */
     public function handle(array $filters = [])
     {
-        $query = Brand::query()->active();
+        $query = Brand::query()->withCount('products')->active();
 
         // Load relationships
         $query->with(['translations', 'logo', 'cover']);

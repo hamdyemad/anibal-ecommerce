@@ -21,6 +21,7 @@ class BrandApiResource extends JsonResource
             'logo' => formatImage($this->logo),
             'cover' => formatImage($this->cover),
             'description' => $this->description,
+            'products_count' => $this->products_count,
             'is_active' => $this->is_active,
             'facebook' => $this->facebook_url,
             'instagram' => $this->instagram_url,

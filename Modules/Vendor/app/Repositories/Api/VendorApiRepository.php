@@ -40,19 +40,21 @@ class VendorApiRepository implements VendorApiRepositoryInterface
     public function createVendorRequest(array $data)
     {
         return DB::transaction(function () use ($data) {
-            $vendorRequest = VendorRequest::create([
+            $createData = [
                 'email' => $data['email'],
                 'phone' => $data['phone'],
                 'company_name' => $data['company_name'],
+                'manager_name' => $data['manager_name'] ?? null,
                 'status' => 'pending',
-            ]);
-
-            // Attach activities to vendor request
-            if (!empty($data['activities'])) {
-                $vendorRequest->activities()->attach($data['activities']);
+            ];
+            // Handle company logo upload
+            if (!empty($data['company_logo'])) {
+                $createData['company_logo'] = $data['company_logo']->store('vendor-requests', 'public');
             }
 
-            return $vendorRequest->load('activities');
+            $vendorRequest = VendorRequest::create($createData);
+
+            return $vendorRequest;
         });
     }
 }
