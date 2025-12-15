@@ -9,7 +9,7 @@ class AdApiRepository implements AdApiRepositoryInterface
 {
     public function all()
     {
-        return Ad::with('translations', 'attachments')->get();
+        return Ad::with('translations', 'attachments')->active()->get();
     }
 
     public function find($id)

@@ -10,27 +10,22 @@ use Illuminate\Support\Str;
 use Modules\SystemSetting\app\Actions\AdAction;
 use Modules\SystemSetting\app\Http\Requests\AdRequest;
 use Modules\SystemSetting\app\Http\Resources\Api\AdsResource;
+use Modules\SystemSetting\app\Http\Resources\Api\FeatureResource;
 use Modules\SystemSetting\app\Models\Ad;
+use Modules\SystemSetting\app\Models\Feature;
 use Modules\SystemSetting\app\Services\Api\AdApiService;
 use Yajra\DataTables\Facades\DataTables;
 
-class AdApiController extends Controller
+class FeatureApiController extends Controller
 {
     use Res;
-    protected $adService;
-
-    public function __construct(AdApiService $adService)
-    {
-        $this->adService = $adService;
-    }
-
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        $ads = $this->adService->getAll();
-        return $this->sendRes(__('main.success'), true, AdsResource::collection($ads));
+        $features = Feature::all();
+        return $this->sendRes(__('main.success'), true, FeatureResource::collection($features));
     }
 
 }
