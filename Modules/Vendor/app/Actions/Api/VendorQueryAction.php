@@ -15,7 +15,9 @@ class VendorQueryAction
     {
         $query = Vendor::query()
             ->with('translations', 'country', 'logo', 'banner')
-            ->withCount('vendorProducts')
+            ->withCount(['vendorProducts' => function($q) {
+                $q->status('approved')->active();
+            }])
             ->active()
             ;
 

@@ -385,6 +385,15 @@
                                                     </p>
                                                 </div>
                                             </div>
+                                            {{-- Slug --}}
+                                            <div class="col-md-6">
+                                                <div class="view-item">
+                                                    <label class="il-gray fs-14 fw-500 mb-10">{{ trans('main.slug') }}</label>
+                                                    <p class="fs-15">
+                                                        <span class="badge badge-success badge-round badge-lg">{{ $vendor->slug }}</span>
+                                                    </p>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
