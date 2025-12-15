@@ -135,32 +135,21 @@ class CartRepository implements CartRepositoryInterface
                 return (float) $price * $cart->quantity;
             }
         }
-        // elseif ($cart->type === 'bundle' && $cart->bundle) {
-        //     // Get bundle product price
-        //     // This assumes BundleProduct model exists
-        //     $bundleProduct = DB::table('bundle_products')
-        //         ->where('bundle_id', $cart->bundle_id)
-        //         ->where('vendor_product_id', $cart->vendor_product_id)
-        //         ->where('vendor_product_variant_id', $cart->vendor_product_variant_id)
-        //         ->first();
+        elseif ($cart->type === 'bundle' && $cart->bundle) {
+            // Get bundle product price
+            // This assumes BundleProduct model exists
+            $bundleProduct = $cart->bundle->bundleProducts->where('vendor_product_variant_id', $cart->vendor_product_variant_id)->first();
 
-        //     if ($bundleProduct) {
-        //         return (float) $bundleProduct->price * $cart->quantity;
-        //     }
-        // } elseif ($cart->type === 'occasion' && $cart->occasion) {
-        //     // Get occasion product price
-        //     // This assumes OccasionProduct model exists
-        //     $occasionProduct = DB::table('occasion_products')
-        //         ->where('occasion_id', $cart->occasion_id)
-        //         ->where('vendor_product_id', $cart->vendor_product_id)
-        //         ->where('vendor_product_variant_id', $cart->vendor_product_variant_id)
-        //         ->first();
+            if ($bundleProduct) {
+                return (float) $bundleProduct->price * $cart->quantity;
+            }
+        } elseif ($cart->type === 'occasion' && $cart->occasion) {
+            $occasionProduct = $cart->occasion->occasionProducts->where('vendor_product_variant_id', $cart->vendor_product_variant_id)->first();
 
-        //     if ($occasionProduct) {
-        //         $price = $occasionProduct->special_price ?? $occasionProduct->price;
-        //         return (float) $price * $cart->quantity;
-        //     }
-        // }
+            if ($occasionProduct) {
+                return (float) $occasionProduct->special_price * $cart->quantity;
+            }
+        }
 
         return 0;
     }
