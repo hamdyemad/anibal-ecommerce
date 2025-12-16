@@ -13,13 +13,34 @@ class BrandQueryAction
      */
     public function handle(array $filters = [])
     {
-        $query = Brand::query()->withCount('products')->active();
+        $query = Brand::query()->active();
 
         // Load relationships
         $query->with(['translations', 'logo', 'cover']);
 
         if (!empty($filters)) {
             $query->filter($filters);
+        }
+
+        // Apply products count with filter if vendor_id exists
+        if (isset($filters['vendor_id'])) {
+            $vendorIdentifier = $filters['vendor_id'];
+            $vendor = \Modules\Vendor\app\Models\Vendor::where('slug', $vendorIdentifier)
+                ->orWhere('id', $vendorIdentifier)->first();
+
+            if ($vendor) {
+                $query->withCount(['products' => function ($q) use ($vendor) {
+                    $q->whereHas('vendorProducts', function ($vq) use ($vendor) {
+                        $vq->where('vendor_id', $vendor->id)
+                            ->where('is_active', true)
+                            ->where('status', 'approved');
+                    });
+                }]);
+            } else {
+                $query->withCount('products');
+            }
+        } else {
+            $query->withCount('products');
         }
 
         $query = $this->applySorting($query, $filters);
