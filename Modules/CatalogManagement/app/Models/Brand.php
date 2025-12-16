@@ -111,7 +111,9 @@ class Brand extends BaseModel
             $vendor = Vendor::where('slug', $filters['vendor_id'])->orWhere('id', $filters['vendor_id'])->first();
             $query->whereHas('products', function ($query) use($vendor) {
                 $query->whereHas('vendorProducts', function ($query) use($vendor) {
-                    $query->where('vendor_id', $vendor->id);
+                    $query->where('vendor_id', $vendor->id)
+                          ->where('is_active', true)
+                          ->where('status', 'approved');
                 });
             });
         }
