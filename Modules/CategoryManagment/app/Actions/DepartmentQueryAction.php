@@ -2,7 +2,6 @@
 
 namespace Modules\CategoryManagment\app\Actions;
 
-use Modules\CategoryManagment\app\Models\Activity;
 use Modules\CategoryManagment\app\Models\Department;
 
 class DepartmentQueryAction
