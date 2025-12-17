@@ -380,10 +380,28 @@
                             if (!data || !Array.isArray(data) || data.length === 0) {
                                 return '<span class="text-muted">-</span>';
                             }
-                            return data.map(function(d) {
-                                return '<span class="badge badge-round badge-lg badge-primary mb-1 me-1">' +
-                                    (d.name || '-') + '</span>';
-                            }).join(' ');
+
+                            const displayLimit = 2;
+                            let visibleHtml = '';
+                            let hiddenHtml = '';
+                            const uniqueId = `depts-${row.id}`;
+
+                            data.forEach((d, index) => {
+                                const badge = `<span class="badge badge-round badge-lg badge-primary mb-1 me-1">${d.name || '-'}</span>`;
+                                if (index < displayLimit) {
+                                    visibleHtml += badge;
+                                } else {
+                                    hiddenHtml += badge;
+                                }
+                            });
+
+                            if (data.length > displayLimit) {
+                                const remainingCount = data.length - displayLimit;
+                                visibleHtml += `<div id="hidden-${uniqueId}" style="display: none; margin-top: 5px;">${hiddenHtml}</div>`;
+                                visibleHtml += `<a href="javascript:void(0);" class="show-more-depts badge badge-round badge-lg badge-warning" data-target="#hidden-${uniqueId}">+${remainingCount} more</a>`;
+                            }
+
+                            return `<div class="department-list">${visibleHtml}</div>`;
                         }
                     },
 
@@ -575,6 +593,24 @@
                 const itemName = $(this).data('item-name');
                 $('#delete-vendor-name').text(itemName);
                 $('#confirmDeleteVendorBtn').data('item-id', itemId);
+            });
+
+            // Status switch handler
+            // Handle "Show more" for departments
+            $('#vendorsDataTable tbody').on('click', '.show-more-depts', function(e) {
+                e.preventDefault();
+                const $this = $(this);
+                const targetSelector = $this.data('target');
+                const $target = $(targetSelector);
+
+                $target.slideToggle(200); // A bit of animation
+
+                if ($this.text().includes('more')) {
+                    $this.text('Show less');
+                } else {
+                    const remainingCount = $target.children().length;
+                    $this.text(`+${remainingCount} more`);
+                }
             });
 
             // Status switch handler
