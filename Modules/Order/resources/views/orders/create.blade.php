@@ -582,6 +582,8 @@
                                 'X-Country-Code': countryCode
                             },
                             success: function(response) {
+                                console.log('Products loaded:', response);
+
                                 if (response.data) {
                                     allProducts = response.data;
                                     console.log('Products loaded:', allProducts.length);
@@ -682,8 +684,10 @@
                                             const variantKey = variant.variant_key;
                                             const variantValue = variant.variant_value;
                                             const variantName = variantKey ?
-                                                `${variantKey}: ${variantValue}` : (variant
-                                                    .variant_name || 'Default');
+                                                (variantValue ?
+                                                    `${variantKey}: ${variantValue}` :
+                                                    variantKey) :
+                                                (variant.variant_name || 'Default');
                                             const variantSku = variant.sku || product.sku ||
                                                 'N/A';
                                             const variantStock = variant.stock ?? 0;
@@ -1208,11 +1212,11 @@
                     // Alert function
                     function showAlert(type, message) {
                         const alertHtml = `
-                    <div class="alert alert-${type} alert-dismissible fade show" role="alert">
-                        <i class="uil uil-info-circle me-2"></i>${message}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                    </div>
-                `;
+                            <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+                                <i class="uil uil-info-circle me-2"></i>${message}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        `;
                         $('#alertContainer').html(alertHtml);
                         $('html, body').animate({
                             scrollTop: 0

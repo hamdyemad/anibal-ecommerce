@@ -169,19 +169,20 @@ class OrderController extends Controller
      */
     public function store($lang, $countryCode, StoreOrderRequest $request)
     {
+        \Log::info($request->validated());
         try {
             $order = $this->orderService->createOrder($request->validated());
 
-            return response()->json([
-                'status' => true,
-                'message' => trans('order::order.order_created'),
-                'data' => [
-                    'id' => $order->id,
-                    'customer_name' => $order->customer_name,
-                    'total_price' => $order->total_price,
-                    'created_at' => $order->created_at,
-                ],
-            ], 201);
+            // return response()->json([
+            //     'status' => true,
+            //     'message' => trans('order::order.order_created'),
+            //     'data' => [
+            //         'id' => $order->id,
+            //         'customer_name' => $order->customer_name,
+            //         'total_price' => $order->total_price,
+            //         'created_at' => $order->created_at,
+            //     ],
+            // ], 201);
         } catch (\Exception $e) {
             return response()->json([
                 'status' => false,
