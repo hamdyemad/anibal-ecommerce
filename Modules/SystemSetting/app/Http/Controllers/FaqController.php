@@ -30,7 +30,7 @@ class FaqController extends Controller
 
     public function datatable(Request $request)
     {
-        $query = Faq::with('translations');
+        $query = Faq::with('translations')->latest();
 
         if ($request->filled('search')) {
             $search = $request->search;
