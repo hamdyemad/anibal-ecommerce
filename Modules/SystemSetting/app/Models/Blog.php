@@ -19,6 +19,7 @@ class Blog extends Model
         'blog_category_id',
         'image',
         'active',
+        'views_count',
         'slug',
     ];
 
@@ -43,6 +44,14 @@ class Blog extends Model
     public function blogCategory()
     {
         return $this->belongsTo(BlogCategory::class);
+    }
+
+    /**
+     * Get the comments for the blog.
+     */
+    public function comments()
+    {
+        return $this->hasMany(BlogComment::class);
     }
 
     /**

@@ -14,6 +14,7 @@ use Modules\SystemSetting\app\Http\Controllers\Api\BlogApiController;
 
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::apiResource('systemsettings', SystemSettingController::class)->names('systemsetting');
+    
 
 });
 
@@ -30,4 +31,7 @@ Route::post('messages/send', [MessageApiController::class, 'sendMessage']);
 
 // Blog APIs
 Route::resource('blog-categories', BlogCategoryApiController::class);
+Route::get('blogs/host-topics', [BlogApiController::class, 'hostTopics']);
+// Auth protected Blog routes
+Route::post('blogs/{id}/comments', [BlogApiController::class, 'addComment'])->middleware('auth:sanctum');
 Route::resource('blogs', BlogApiController::class);

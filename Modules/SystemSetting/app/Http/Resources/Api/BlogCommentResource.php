@@ -4,8 +4,9 @@ namespace Modules\SystemSetting\app\Http\Resources\Api;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Modules\Customer\app\Transformers\CustomerApiResource;
 
-class BlogCategoryResource extends JsonResource
+class BlogCommentResource extends JsonResource
 {
     /**
      * Transform the resource into an array.
@@ -16,13 +17,8 @@ class BlogCategoryResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'slug' => $this->slug,
-            'title' => $this->title,
-            'blogs_count' => $this->blogs_count,
-            'image' => $this->mainImage ? asset('storage/' . $this->mainImage->path) : null,
-            'meta_title' => $this->meta_title,
-            'meta_description' => $this->meta_description,
-            'meta_keywords' => $this->getMetaKeywordsArray(),
+            'comment' => $this->comment,
+            'customer' => new CustomerApiResource($this->customer),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

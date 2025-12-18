@@ -22,4 +22,14 @@ class BlogApiService
     {
         return $this->blogRepository->find($id);
     }
+
+    public function getHostTopics($filters = [])
+    {
+        return $this->blogRepository->getHostTopics($filters);
+    }
+
+    public function addComment($blog, $data)
+    {
+        return $this->blogRepository->addComment($blog, $data);
+    }
 }

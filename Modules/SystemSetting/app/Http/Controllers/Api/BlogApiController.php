@@ -5,6 +5,7 @@ namespace Modules\SystemSetting\app\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Modules\SystemSetting\app\Services\Api\BlogApiService;
 use Modules\SystemSetting\app\Http\Resources\Api\BlogResource;
+use Modules\SystemSetting\app\Http\Resources\Api\BlogCommentResource;
 use Illuminate\Http\Request;
 use App\Traits\Res;
 
@@ -30,5 +31,22 @@ class BlogApiController extends Controller
     {
         $blog = $this->blogService->find($id);
         return $this->sendRes(__('main.success'), true, new BlogResource($blog));
+    }
+
+    public function hostTopics(Request $request)
+    {
+        $blogs = $this->blogService->getHostTopics($request->all());
+        return $this->sendRes(__('main.success'), true, BlogResource::collection($blogs));
+    }
+
+    public function addComment(Request $request, $id)
+    {
+        $blog = $this->blogService->find($id);
+        $request->validate([
+            'comment' => 'required|string|max:1000',
+        ]);
+
+        $comment = $this->blogService->addComment($blog, $request->only('comment'));
+        return $this->sendRes(__('main.success'), true, new BlogCommentResource($comment));
     }
 }

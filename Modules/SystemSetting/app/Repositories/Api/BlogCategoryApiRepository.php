@@ -9,7 +9,8 @@ class BlogCategoryApiRepository implements BlogCategoryApiRepositoryInterface
 {
     public function all($filters = [])
     {
-        $query = BlogCategory::with(['translations', 'attachments'])->active()
+        $query = BlogCategory::with(['translations', 'attachments'])
+        ->withCount('blogs')->active()
         ->filter($filters)->latest();
         if(isset($filters['per_page'])) {
             return ($filters['per_page'] == 0) ? $query->get() : $query->paginate($filters['per_page']);
