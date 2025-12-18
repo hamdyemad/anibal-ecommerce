@@ -53,6 +53,24 @@
                                         </div>
                                     </div>
 
+                                    {{-- Type --}}
+                                    <div class="col-md-3">
+                                        <div class="form-group">
+                                            <label for="type" class="il-gray fs-14 fw-500 mb-10">
+                                                <i class="uil uil-layers me-1"></i>
+                                                {{ __('systemsetting::ads.type') }}
+                                            </label>
+                                            <select
+                                                class="form-control ih-medium ip-gray radius-xs b-light px-15 form-select"
+                                                id="type">
+                                                <option value="">
+                                                    {{ __('systemsetting::ads.all_types') ?? 'All Types' }}</option>
+                                                <option value="mobile">{{ __('systemsetting::ads.mobile') }}</option>
+                                                <option value="website">{{ __('systemsetting::ads.website') }}</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
                                     {{-- Position --}}
                                     <div class="col-md-3">
                                         <div class="form-group">
@@ -61,9 +79,10 @@
                                                 {{ __('systemsetting::ads.position') }}
                                             </label>
                                             <select
-                                                class="select2 form-control ih-medium ip-gray radius-xs b-light px-15 form-select"
+                                                class="form-control ih-medium ip-gray radius-xs b-light px-15 form-select"
                                                 id="position">
-                                                <option value="">{{ __('systemsetting::ads.all_positions') }}</option>
+                                                <option value="">{{ __('systemsetting::ads.all_positions') }}
+                                                </option>
                                                 @foreach ($positions as $key => $value)
                                                     <option value="{{ $key }}">{{ $value }}</option>
                                                 @endforeach
@@ -79,7 +98,7 @@
                                                 {{ __('systemsetting::ads.status') }}
                                             </label>
                                             <select
-                                                class="select2 form-control ih-medium ip-gray radius-xs b-light px-15 form-select"
+                                                class="form-control ih-medium ip-gray radius-xs b-light px-15 form-select"
                                                 id="active">
                                                 <option value="">{{ __('systemsetting::ads.all_status') }}</option>
                                                 <option value="1">{{ __('systemsetting::ads.active') }}</option>
@@ -157,12 +176,16 @@
                                     <th><span class="userDatatable-title">{{ __('systemsetting::ads.title') }}</span></th>
                                     <th><span class="userDatatable-title">{{ __('systemsetting::ads.position') }}</span>
                                     </th>
+                                    <th><span class="userDatatable-title">{{ __('systemsetting::ads.type') }}</span>
+                                    </th>
                                     <th><span class="userDatatable-title">{{ __('systemsetting::ads.ad_image') }}</span>
                                     </th>
-                                    <th><span class="userDatatable-title">{{ __('systemsetting::ads.status') }}</span></th>
+                                    <th><span class="userDatatable-title">{{ __('systemsetting::ads.status') }}</span>
+                                    </th>
                                     <th><span class="userDatatable-title">{{ __('systemsetting::ads.created_at') }}</span>
                                     </th>
-                                    <th><span class="userDatatable-title">{{ __('systemsetting::ads.action') }}</span></th>
+                                    <th><span class="userDatatable-title">{{ __('systemsetting::ads.action') }}</span>
+                                    </th>
                                 </tr>
                             </thead>
                             <tbody></tbody>
@@ -198,6 +221,9 @@
             if (urlParams.has('active')) {
                 $('#active').val(urlParams.get('active'));
             }
+            if (urlParams.has('type')) {
+                $('#type').val(urlParams.get('type'));
+            }
             if (urlParams.has('created_date_from')) {
                 $('#created_date_from').val(urlParams.get('created_date_from'));
             }
@@ -212,6 +238,7 @@
                     url: '{{ route('admin.system-settings.ads.datatable') }}',
                     type: 'GET',
                     data: function(d) {
+                        d.type = $('#type').val();
                         d.position = $('#position').val();
                         d.active = $('#active').val();
                         d.search = $('#search').val();
@@ -233,6 +260,11 @@
                     {
                         data: 'position_badge',
                         name: 'position_badge',
+                        orderable: false
+                    },
+                    {
+                        data: 'type_badge',
+                        name: 'type_badge',
                         orderable: false
                     },
                     {
@@ -295,7 +327,7 @@
 
             // Initialize Select2
             if ($.fn.select2) {
-                $('#entriesSelect, #position, #active').select2({
+                $('#entriesSelect, #type, #position, #active').select2({
                     theme: 'bootstrap-5',
                     minimumResultsForSearch: Infinity,
                     width: '100%'
@@ -310,12 +342,14 @@
             function updateUrlWithFilters() {
                 const params = new URLSearchParams();
                 const search = $('#search').val();
+                const type = $('#type').val();
                 const position = $('#position').val();
                 const active = $('#active').val();
                 const createdDateFrom = $('#created_date_from').val();
                 const createdDateTo = $('#created_date_to').val();
 
                 if (search) params.set('search', search);
+                if (type) params.set('type', type);
                 if (position) params.set('position', position);
                 if (active) params.set('active', active);
                 if (createdDateFrom) params.set('created_date_from', createdDateFrom);
@@ -344,7 +378,7 @@
             });
 
             // Filter change handlers
-            $('#position, #active, #created_date_from, #created_date_to').on('change', function() {
+            $('#position, #type, #active, #created_date_from, #created_date_to').on('change', function() {
                 updateUrlWithFilters();
                 table.draw();
             });

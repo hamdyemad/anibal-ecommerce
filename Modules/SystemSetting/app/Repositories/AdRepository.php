@@ -24,6 +24,7 @@ class AdRepository implements AdRepositoryInterface
         return DB::transaction(function () use ($data) {
             $ad = Ad::create([
                 'position' => $data['position'],
+                'type' => $data['type'],
                 'link' => $data['link'] ?? null,
                 'active' => $data['active'] ?? 1,
             ]);
@@ -69,6 +70,7 @@ class AdRepository implements AdRepositoryInterface
 
             $ad->update([
                 'position' => $data['position'],
+                'type' => $data['type'],
                 'link' => $data['link'] ?? null,
                 'active' => $data['active'] ?? 1,
             ]);

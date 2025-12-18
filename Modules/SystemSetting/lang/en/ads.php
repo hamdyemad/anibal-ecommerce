@@ -26,8 +26,13 @@ return [
     'active' => 'Active',
     'inactive' => 'Inactive',
     'status' => 'Status',
+    'type' => 'Type',
+    'ad_type' => 'Ad Type',
+    'mobile' => 'Mobile',
+    'website' => 'Website',
     'all_status' => 'All Status',
     'all_positions' => 'All Positions',
+    'all_types' => 'All Types',
     'created_at' => 'Created At',
     'updated_at' => 'Updated At',
 
@@ -47,8 +52,10 @@ return [
     'link_placeholder' => 'https://example.com',
     'title_placeholder' => 'Enter ad title',
     'subtitle_placeholder' => 'Enter ad subtitle (optional)',
+    'select_type' => 'Select platform...',
 
     // Messages
+    'visit_link' => 'Visit Link',
     'created_successfully' => 'Ad created successfully',
     'updated_successfully' => 'Ad updated successfully',
     'deleted_successfully' => 'Ad deleted successfully',

@@ -54,6 +54,10 @@ class AdController extends Controller
             $query->where('position', $request->position);
         }
 
+        if ($request->filled('type')) {
+            $query->whereJsonContains('type', $request->type);
+        }
+
         if ($request->filled('active') && $request->active !== '') {
             $query->where('active', $request->active);
         }
@@ -76,6 +80,16 @@ class AdController extends Controller
                 }
                 $html .= '</div>';
                 return $html;
+            })
+            ->addColumn('type_badge', function ($ad) {
+                $html = '';
+                if ($ad->type && is_array($ad->type)) {
+                    foreach ($ad->type as $type) {
+                        $color = $type == 'mobile' ? 'primary' : 'secondary';
+                        $html .= '<span class="badge badge-round badge-sm badge-' . $color . ' me-1">' . __('systemsetting::ads.' . $type) . '</span>';
+                    }
+                }
+                return $html ?: '-';
             })
             ->addColumn('position_badge', function ($ad) {
                 return '<span class="badge badge-round badge-lg badge-info">' . $ad->position_label . '</span>';
@@ -109,7 +123,7 @@ class AdController extends Controller
                 $actions .= '</div>';
                 return $actions;
             })
-            ->rawColumns(['title_subtitle', 'position_badge', 'image_preview', 'status_badge', 'action'])
+            ->rawColumns(['title_subtitle', 'type_badge', 'position_badge', 'image_preview', 'status_badge', 'action'])
             ->make(true);
     }
 

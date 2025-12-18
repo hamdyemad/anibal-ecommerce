@@ -26,8 +26,13 @@ return [
     'active' => 'نشط',
     'inactive' => 'غير نشط',
     'status' => 'الحالة',
+    'type' => 'النوع',
+    'ad_type' => 'نوع الإعلان',
+    'mobile' => 'جوال',
+    'website' => 'موقع إلكتروني',
     'all_status' => 'كل الحالات',
     'all_positions' => 'كل المواضع',
+    'all_types' => 'كل الأنواع',
     'created_at' => 'تاريخ الإنشاء',
     'updated_at' => 'تاريخ التحديث',
 
@@ -47,8 +52,10 @@ return [
     'link_placeholder' => 'https://example.com',
     'title_placeholder' => 'أدخل عنوان الإعلان',
     'subtitle_placeholder' => 'أدخل العنوان الفرعي للإعلان (اختياري)',
+    'select_type' => 'اختر المنصة...',
 
     // Messages
+    'visit_link' => 'زيارة الرابط',
     'created_successfully' => 'تم إنشاء الإعلان بنجاح',
     'updated_successfully' => 'تم تحديث الإعلان بنجاح',
     'deleted_successfully' => 'تم حذف الإعلان بنجاح',

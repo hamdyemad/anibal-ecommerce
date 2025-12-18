@@ -23,6 +23,8 @@ class AdRequest extends FormRequest
     {
         $rules = [
             'position' => 'required|in:header,footer,sidebar,home_banner,product_page,category_page',
+            'type' => 'required|array',
+            'type.*' => 'in:mobile,website',
             'link' => 'nullable|url|max:500',
             'translations' => 'required|array',
             'translations.*.title' => 'required|string|max:255',

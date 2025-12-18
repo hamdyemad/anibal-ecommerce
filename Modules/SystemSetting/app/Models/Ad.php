@@ -20,6 +20,7 @@ class Ad extends Model
 
     protected $casts = [
         'active' => 'boolean',
+        'type' => 'array',
     ];
 
     /**
