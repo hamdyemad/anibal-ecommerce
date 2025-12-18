@@ -56,7 +56,7 @@
                                                 {{ __('common.status') }}
                                             </label>
                                             <select
-                                                class="select2 form-control ih-medium ip-gray radius-xs b-light px-15 form-select"
+                                                class="form-control ih-medium ip-gray radius-xs b-light px-15 form-select"
                                                 id="status">
                                                 <option value="">{{ __('common.all') }}</option>
                                                 <option value="pending">{{ __('common.pending') }}</option>
