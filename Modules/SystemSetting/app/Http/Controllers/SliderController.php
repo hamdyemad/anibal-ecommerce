@@ -58,10 +58,10 @@ class SliderController extends Controller
                 return '<span class="text-muted">-</span>';
             })
             ->addColumn('link_display', function ($slider) {
-                $html = '<div class="userDatatable-content">';
+                $html = '<div class="userDatatable-content d-flex justify-content-center">';
                 if ($slider->slider_link) {
-                    $html .= '<a href="' . $slider->slider_link . '" target="_blank" class="text-primary">';
-                    $html .= '<i class="uil uil-external-link-alt me-1"></i>' . Str::limit($slider->slider_link, 50);
+                    $html .= '<a href="' . $slider->slider_link . '" target="_blank" class="btn btn-outline-primary btn-sm rounded-pill px-3">';
+                    $html .= '<i class="uil uil-external-link-alt me-1"></i>' . __('systemsetting::sliders.visit_link');
                     $html .= '</a>';
                 } else {
                     $html .= '<span class="text-muted">-</span>';

@@ -59,4 +59,5 @@ return [
     // Placeholders
     'slider_link_placeholder' => 'https://example.com',
     'recommended_size' => 'Recommended size: 340×150px',
+    'visit_link' => 'Visit Link',
 ];

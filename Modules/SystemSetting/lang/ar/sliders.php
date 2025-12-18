@@ -59,4 +59,5 @@ return [
     // Placeholders
     'slider_link_placeholder' => 'https://example.com',
     'recommended_size' => 'الحجم الموصى به: 340×150 بكسل',
+    'visit_link' => 'زيارة الرابط',
 ];
