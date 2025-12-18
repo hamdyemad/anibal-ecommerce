@@ -111,8 +111,7 @@
                                             </label>
                                             <input type="text"
                                                 class="form-control ih-medium ip-gray radius-xs b-light px-15"
-                                                id="search" placeholder="{{ __('vendor::vendor.search_placeholder') }}"
-                                                autocomplete="off">
+                                                id="search" placeholder="{{ __('common.search') }}" autocomplete="off">
                                         </div>
                                     </div>
 
@@ -387,7 +386,8 @@
                             const uniqueId = `depts-${row.id}`;
 
                             data.forEach((d, index) => {
-                                const badge = `<span class="badge badge-round badge-lg badge-primary mb-1 me-1">${d.name || '-'}</span>`;
+                                const badge =
+                                    `<span class="badge badge-round badge-lg badge-primary mb-1 me-1">${d.name || '-'}</span>`;
                                 if (index < displayLimit) {
                                     visibleHtml += badge;
                                 } else {
@@ -397,8 +397,10 @@
 
                             if (data.length > displayLimit) {
                                 const remainingCount = data.length - displayLimit;
-                                visibleHtml += `<div id="hidden-${uniqueId}" style="display: none; margin-top: 5px;">${hiddenHtml}</div>`;
-                                visibleHtml += `<a href="javascript:void(0);" class="show-more-depts badge badge-round badge-lg badge-success" data-target="#hidden-${uniqueId}">+${remainingCount} more</a>`;
+                                visibleHtml +=
+                                    `<div id="hidden-${uniqueId}" style="display: none; margin-top: 5px;">${hiddenHtml}</div>`;
+                                visibleHtml +=
+                                    `<a href="javascript:void(0);" class="show-more-depts badge badge-round badge-lg badge-success" data-target="#hidden-${uniqueId}">+${remainingCount} more</a>`;
                             }
 
                             return `<div class="department-list">${visibleHtml}</div>`;
