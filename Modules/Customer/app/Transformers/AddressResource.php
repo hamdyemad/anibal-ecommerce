@@ -7,7 +7,7 @@ use Illuminate\Http\Resources\Json\JsonResource;
 use Modules\AreaSettings\app\Resources\CountryResource;
 use Modules\AreaSettings\app\Resources\CityResource;
 use Modules\AreaSettings\app\Resources\RegionResource;
-use Modules\AreaSettings\app\Resources\SubregionResource;
+use Modules\AreaSettings\app\Resources\SubRegionResource;
 
 class AddressResource extends JsonResource
 {
@@ -25,7 +25,7 @@ class AddressResource extends JsonResource
             "country" => CountryResource::make($this->whenLoaded('country')),
             "city" => CityResource::make($this->whenLoaded('city')),
             "region" => RegionResource::make($this->whenLoaded('region')),
-            "subregion" => SubregionResource::make($this->whenLoaded('subregion')),
+            "subregion" => SubRegionResource::make($this->whenLoaded('subregion')),
         ];
     }
 }
