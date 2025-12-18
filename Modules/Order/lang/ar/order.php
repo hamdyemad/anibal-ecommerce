@@ -124,6 +124,7 @@ return [
     'invoice' => 'الفاتورة',
     'reg_number' => 'رقم التسجيل',
     'product' => 'المنتج',
+    'quantity' => 'الكمية',
     'price_per_unit' => 'السعر لكل وحدة',
     'actions' => 'الإجراءات',
 

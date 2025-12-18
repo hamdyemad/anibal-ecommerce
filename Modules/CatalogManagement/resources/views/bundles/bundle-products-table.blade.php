@@ -12,7 +12,7 @@
         </h3>
     </div>
     <div class="card-body">
-        @if(($bundle && $bundle->bundleProducts->count() > 0) || count($products) > 0)
+        @if (($bundle && $bundle->bundleProducts->count() > 0) || count($products) > 0)
             <div class="table-responsive">
                 <table class="table table-hover table-bordered" id="bundleProductsTable">
                     <thead>
@@ -22,21 +22,23 @@
                             <th>{{ trans('catalogmanagement::bundle.price') }}</th>
                             <th>{{ trans('catalogmanagement::bundle.min_quantity') }}</th>
                             <th>{{ trans('catalogmanagement::bundle.limitation_quantity') }}</th>
-                            @if($showActions)
+                            @if ($showActions)
                                 <th>{{ __('common.actions') }}</th>
                             @endif
                         </tr>
                     </thead>
                     <tbody id="bundleProductsBody" class="sortable-tbody">
-                        @foreach(($bundle ? $bundle->bundleProducts : $products) as $index => $product)
-                            <tr class="draggable-row" data-product-id="{{ $product->id }}" data-bundle-id="{{ $bundle?->id }}" data-position="{{ $product->position ?? $index }}" draggable="{{ $showDragHandle ? 'true' : 'false' }}">
+                        @foreach ($bundle ? $bundle->bundleProducts : $products as $index => $product)
+                            <tr class="draggable-row" data-product-id="{{ $product->id }}"
+                                data-bundle-id="{{ $bundle?->id }}" data-position="{{ $product->position ?? $index }}"
+                                draggable="{{ $showDragHandle ? 'true' : 'false' }}">
                                 <td>{{ $index + 1 }}</td>
                                 <td>
                                     <div>
-                                        <strong>{{ $product->vendorProductVariant->vendorProduct->product->name }}</strong>
-                                        @if($product->vendorProductVariant->variantConfiguration)
+                                        <strong>{{ $product->vendorProductVariant?->vendorProduct?->product?->name ?? 'N/A' }}</strong>
+                                        @if ($product->vendorProductVariant?->variantConfiguration)
                                             @php
-                                                $variant = $product->vendorProductVariant->variantConfiguration;
+                                                $variant = $product->vendorProductVariant?->variantConfiguration;
                                                 $path = [];
                                                 $current = $variant;
                                                 while ($current) {
@@ -45,7 +47,7 @@
                                                 }
                                             @endphp
                                             <div class="text-muted small mt-1">
-                                                @foreach($path as $item)
+                                                @foreach ($path as $item)
                                                     <strong>{{ $item->key->name }}</strong>
                                                     ->
                                                     <strong>{{ $item->name }}</strong>
@@ -55,19 +57,22 @@
                                     </div>
                                 </td>
                                 <td>
-                                    <span class="badge badge-lg badge-round badge-info">{{ number_format($product->price ?? 0, 2) }} {{ currency() }}</span>
+                                    <span
+                                        class="badge badge-lg badge-round badge-info">{{ number_format($product->price ?? 0, 2) }}
+                                        {{ currency() }}</span>
                                 </td>
                                 <td>
-                                    <span class="badge badge-lg badge-round badge-primary">{{ $product->min_quantity }}</span>
+                                    <span
+                                        class="badge badge-lg badge-round badge-primary">{{ $product->min_quantity }}</span>
                                 </td>
                                 <td>
-                                    <span class="badge badge-lg badge-round badge-secondary">{{ $product->limitation_quantity ?? trans('catalogmanagement::bundle.unlimited') }}</span>
+                                    <span
+                                        class="badge badge-lg badge-round badge-secondary">{{ $product->limitation_quantity ?? trans('catalogmanagement::bundle.unlimited') }}</span>
                                 </td>
-                                @if($showActions)
+                                @if ($showActions)
                                     <td>
                                         <div class="d-flex gap-2 justify-content-center">
-                                            <button type="button"
-                                                class="btn btn-sm btn-danger delete-bundle-product"
+                                            <button type="button" class="btn btn-sm btn-danger delete-bundle-product"
                                                 data-product-id="{{ $product->id }}"
                                                 data-bundle-id="{{ $bundle?->id }}"
                                                 title="{{ __('common.delete') }}">
@@ -78,14 +83,15 @@
                                 @endif
                             </tr>
                         @endforeach
-                        @if(($bundle && $bundle->bundleProducts->count() > 0) || count($products) > 0)
+                        @if (($bundle && $bundle->bundleProducts->count() > 0) || count($products) > 0)
                             <tr class="table-active fw-bold" style="background-color: #f8f9fa;">
                                 <td colspan="{{ $showDragHandle ? 3 : 2 }}">
                                     <strong>{{ trans('catalogmanagement::bundle.totals') }}</strong>
                                 </td>
                                 <td class="text-center">
                                     <span class="badge badge-lg badge-round badge-info">
-                                        {{ number_format(($bundle ? $bundle->bundleProducts->sum('price') : collect($products)->sum('price')) ?? 0, 2) }} {{ currency() }}
+                                        {{ number_format(($bundle ? $bundle->bundleProducts->sum('price') : collect($products)->sum('price')) ?? 0, 2) }}
+                                        {{ currency() }}
                                     </span>
                                 </td>
                                 <td class="text-center">
@@ -98,10 +104,11 @@
                                         {{ ($bundle ? $bundle->bundleProducts->sum('limitation_quantity') : collect($products)->sum('limitation_quantity')) ?? 0 }}
                                     </span>
                                 </td>
-                                @if($showActions)
+                                @if ($showActions)
                                     <td class="text-center">
                                         <span class="badge badge-lg badge-round badge-success">
-                                            {{ number_format(($bundle ? $bundle->bundleTotalPrice() : 0) ?? 0, 2) }} {{ currency() }}
+                                            {{ number_format(($bundle ? $bundle->bundleTotalPrice() : 0) ?? 0, 2) }}
+                                            {{ currency() }}
                                         </span>
                                     </td>
                                 @endif
@@ -173,7 +180,8 @@
                 $('#delete-bundle-product-name').text(productName);
 
                 // Store IDs in data attributes for use in confirm handler
-                $('#confirmDeleteBundleProductBtn').data('product-id', productId).data('bundle-id', bundleId);
+                $('#confirmDeleteBundleProductBtn').data('product-id', productId).data('bundle-id',
+                    bundleId);
 
                 // Show the modal
                 const modal = new bootstrap.Modal(document.getElementById('modal-delete-bundle-product'));
@@ -189,18 +197,19 @@
 
                 if (!productId || !bundleId) {
                     console.error('Product ID or Bundle ID not found');
-                    toastr.error('{{ trans("catalogmanagement::bundle.error_deleting_product") }}');
+                    toastr.error('{{ trans('catalogmanagement::bundle.error_deleting_product') }}');
                     return;
                 }
 
                 // Show loading
                 LoadingOverlay.show({
-                    text: '{{ __("main.deleting") }}',
-                    subtext: '{{ __("main.please wait") }}'
+                    text: '{{ __('main.deleting') }}',
+                    subtext: '{{ __('main.please wait') }}'
                 });
 
                 // Send delete request
-                let route = "{{ route('admin.bundles.products.destroy', ['bundle' => ':bundle', 'product' => ':product']) }}"
+                let route =
+                    "{{ route('admin.bundles.products.destroy', ['bundle' => ':bundle', 'product' => ':product']) }}"
                     .replace(':bundle', bundleId)
                     .replace(':product', productId);
                 $.ajax({
@@ -212,9 +221,12 @@
                     success: function(response) {
                         LoadingOverlay.hide();
                         if (response.status) {
-                            toastr.success(response.message || '{{ trans("catalogmanagement::bundle.product_deleted_successfully") }}');
+                            toastr.success(response.message ||
+                                '{{ trans('catalogmanagement::bundle.product_deleted_successfully') }}'
+                                );
                             // Close modal
-                            const modal = bootstrap.Modal.getInstance(document.getElementById('modal-delete-bundle-product'));
+                            const modal = bootstrap.Modal.getInstance(document.getElementById(
+                                'modal-delete-bundle-product'));
                             if (modal) {
                                 modal.hide();
                             }
@@ -223,12 +235,15 @@
                                 location.reload();
                             }, 1000);
                         } else {
-                            toastr.error(response.message || '{{ trans("catalogmanagement::bundle.error_deleting_product") }}');
+                            toastr.error(response.message ||
+                                '{{ trans('catalogmanagement::bundle.error_deleting_product') }}'
+                                );
                         }
                     },
                     error: function(xhr) {
                         LoadingOverlay.hide();
-                        const message = xhr.responseJSON?.message || '{{ trans("catalogmanagement::bundle.error_deleting_product") }}';
+                        const message = xhr.responseJSON?.message ||
+                            '{{ trans('catalogmanagement::bundle.error_deleting_product') }}';
                         toastr.error(message);
                     }
                 });
@@ -254,7 +269,8 @@
 @endpush
 
 {{-- Delete Product Modal --}}
-<div class="modal fade" id="modal-delete-bundle-product" tabindex="-1" role="dialog" aria-labelledby="modal-delete-bundle-productLabel" aria-hidden="true">
+<div class="modal fade" id="modal-delete-bundle-product" tabindex="-1" role="dialog"
+    aria-labelledby="modal-delete-bundle-productLabel" aria-hidden="true">
     <div class="modal-dialog modal-sm modal-info" role="document">
         <div class="modal-content">
             <div class="modal-header">

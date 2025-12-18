@@ -124,6 +124,7 @@ return [
     'invoice' => 'Invoice',
     'reg_number' => 'Reg. Number',
     'product' => 'Product',
+    'quantity' => 'Quantity',
     'price_per_unit' => 'Price Per Unit',
     'actions' => 'Actions',
 
