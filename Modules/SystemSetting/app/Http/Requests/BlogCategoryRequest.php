@@ -28,6 +28,7 @@ class BlogCategoryRequest extends FormRequest
         $languages = \App\Models\Language::all();
         foreach ($languages as $language) {
             $rules["translations.{$language->id}.title"] = 'required|string|max:255';
+            $rules["translations.{$language->id}.description"] = 'nullable|string';
             $rules["translations.{$language->id}.meta_title"] = 'nullable|string|max:255';
             $rules["translations.{$language->id}.meta_description"] = 'nullable|string|max:500';
             $rules["translations.{$language->id}.meta_keywords"] = 'nullable|array';
@@ -47,6 +48,7 @@ class BlogCategoryRequest extends FormRequest
         $languages = \App\Models\Language::all();
         foreach ($languages as $language) {
             $attributes["translations.{$language->id}.title"] = __('systemsetting::blog_categories.title') . ' (' . $language->name . ')';
+            $attributes["translations.{$language->id}.description"] = __('systemsetting::blog_categories.description') . ' (' . $language->name . ')';
             $attributes["translations.{$language->id}.meta_title"] = __('systemsetting::blog_categories.meta_title') . ' (' . $language->name . ')';
             $attributes["translations.{$language->id}.meta_description"] = __('systemsetting::blog_categories.meta_description') . ' (' . $language->name . ')';
             $attributes["translations.{$language->id}.meta_keywords"] = __('systemsetting::blog_categories.meta_keywords') . ' (' . $language->name . ')';

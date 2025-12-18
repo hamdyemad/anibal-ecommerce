@@ -16,6 +16,7 @@ return [
 
     // Form Fields
     'title' => 'Title',
+    'description' => 'Description',
     'image' => 'Image',
     'active' => 'Active',
     'inactive' => 'Inactive',

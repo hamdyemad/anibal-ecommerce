@@ -16,6 +16,7 @@ return [
 
     // Form Fields
     'title' => 'العنوان',
+    'description' => 'الوصف',
     'image' => 'الصورة',
     'active' => 'نشط',
     'inactive' => 'غير نشط',

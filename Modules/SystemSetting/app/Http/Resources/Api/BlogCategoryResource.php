@@ -18,6 +18,7 @@ class BlogCategoryResource extends JsonResource
             'id' => $this->id,
             'slug' => $this->slug,
             'title' => $this->title,
+            'description' => $this->description,
             'blogs_count' => $this->blogs_count,
             'image' => $this->mainImage ? asset('storage/' . $this->mainImage->path) : null,
             'meta_title' => $this->meta_title,

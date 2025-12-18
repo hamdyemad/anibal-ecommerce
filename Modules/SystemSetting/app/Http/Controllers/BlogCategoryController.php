@@ -60,7 +60,10 @@ class BlogCategoryController extends Controller
             ->addIndexColumn()
             ->addColumn('title_display', function ($blogCategory) {
                 $html = '<div class="userDatatable-content">';
-                $html .= '<div class="mb-2"><strong>' . ($blogCategory->title ?? '-') . '</strong></div>';
+                $html .= '<div class="mb-1"><strong>' . ($blogCategory->title ?? '-') . '</strong></div>';
+                if ($blogCategory->description) {
+                    $html .= '<div class="text-muted small">' . Str::limit($blogCategory->description, 50) . '</div>';
+                }
                 $html .= '</div>';
                 return $html;
             })

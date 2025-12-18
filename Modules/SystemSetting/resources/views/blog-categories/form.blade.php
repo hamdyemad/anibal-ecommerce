@@ -71,12 +71,18 @@
                                         <x-multilingual-input name="title" :label="'Title'" :labelAr="'العنوان'"
                                             :placeholder="'Category title'" :placeholderAr="'عنوان الفئة'" :languages="$languages" :model="isset($blogCategory) ? $blogCategory : null"
                                             :required=true />
+
+                                        {{-- Description --}}
+                                        <x-multilingual-input name="description" :label="'Description'" :labelAr="'الوصف'"
+                                            :placeholder="'Category description'" :placeholderAr="'وصف الفئة'" :languages="$languages" :model="isset($blogCategory) ? $blogCategory : null"
+                                            type="textarea" :rows="3" />
                                         {{-- Blog Category Image --}}
                                         <div class="col-md-6">
                                             <x-image-upload id="image" name="image" :label="__('systemsetting::blog_categories.image')"
                                                 :existingImage="isset($blogCategory) && $blogCategory->mainImage
                                                     ? $blogCategory->mainImage->path
-                                                    : null" :placeholder="__('systemsetting::blog_categories.upload_image')" :recommendedSize="__('systemsetting::blog_categories.recommended_size')" aspectRatio="wide" />
+                                                    : null" :placeholder="__('systemsetting::blog_categories.upload_image')" :recommendedSize="__('systemsetting::blog_categories.recommended_size')"
+                                                aspectRatio="wide" />
                                         </div>
 
                                         {{-- Status --}}

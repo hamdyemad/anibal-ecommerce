@@ -54,6 +54,9 @@
                                             {{-- Title --}}
                                             <x-translation-display :label="__('systemsetting::blog_categories.title')" :model="$blogCategory" fieldName="title"
                                                 :languages="$languages" />
+                                            {{-- Description --}}
+                                            <x-translation-display :label="__('systemsetting::blog_categories.description')" :model="$blogCategory"
+                                                fieldName="description" :languages="$languages" />
                                             {{-- Status --}}
                                             <div class="col-md-6">
                                                 <div class="view-item">

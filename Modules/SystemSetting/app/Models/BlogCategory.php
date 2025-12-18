@@ -30,6 +30,7 @@ class BlogCategory extends Model
      */
     protected $translatable = [
         'title',
+        'description',
         'meta_title',
         'meta_description',
         'meta_keywords',
@@ -66,6 +67,14 @@ class BlogCategory extends Model
     public function getTitleAttribute($value)
     {
         return $this->getTranslation('title', app()->getLocale()) ?? $value;
+    }
+
+    /**
+     * Get the description attribute (translation fallback).
+     */
+    public function getDescriptionAttribute($value)
+    {
+        return $this->getTranslation('description', app()->getLocale()) ?? $value;
     }
 
     /**
