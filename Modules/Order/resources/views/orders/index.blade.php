@@ -384,7 +384,8 @@
                         orderable: false,
                         searchable: false,
                         render: function(data) {
-                            return data ? ` ${parseFloat(data).toFixed(2)}` : '-';
+                            return data ? ` ${parseFloat(data).toFixed(2)} {{ currency() }}` :
+                                '-';
                         }
                     },
                     {
@@ -412,7 +413,7 @@
                         searchable: false,
                         render: function(data, type, row) {
                             let showUrl =
-                                "{{ route('admin.orders.show', ['order' => ':id', 'lang' => app()->getLocale(), 'countryCode' => session('country_code')]) }}"
+                                "{{ route('admin.orders.show', ':id') }}"
                                 .replace(':id', row.id);
                             // Check if stage is delivered, cancelled, or refund
                             const finalStages = ['deliver', 'cancel', 'refund'];
@@ -426,16 +427,16 @@
                                         <i class="uil uil-eye table_action_icon"></i>
                                     </a>
                                     ${!isFinalStage ? `
-                                                <button type="button"
-                                                class="change-stage btn btn-info table_action_father"
-                                                data-bs-toggle="modal"
-                                                data-bs-target="#changeStageModal"
-                                                data-id="${row.id}"
-                                                data-stage-id="${row.stage?.id || ''}"
-                                                title="{{ trans('order::order.change_order_stage') }}">
-                                                    <i class="uil uil-exchange-alt table_action_icon"></i>
-                                                </button>
-                                                ` : ''}
+                                                                <button type="button"
+                                                                class="change-stage btn btn-info table_action_father"
+                                                                data-bs-toggle="modal"
+                                                                data-bs-target="#changeStageModal"
+                                                                data-id="${row.id}"
+                                                                data-stage-id="${row.stage?.id || ''}"
+                                                                title="{{ trans('order::order.change_order_stage') }}">
+                                                                    <i class="uil uil-exchange-alt table_action_icon"></i>
+                                                                </button>
+                                                                ` : ''}
                                 </div>
                             `;
                         }
