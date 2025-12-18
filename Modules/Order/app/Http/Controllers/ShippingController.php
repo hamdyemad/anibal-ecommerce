@@ -11,7 +11,9 @@ use Illuminate\Http\Request;
 class ShippingController extends Controller
 {
     public function __construct(
-        protected ShippingService $shippingService
+        protected ShippingService $shippingService,
+        protected \Modules\AreaSettings\app\Services\CityService $cityService,
+        protected \Modules\CategoryManagment\app\Services\CategoryService $categoryService
     )
     {}
 
@@ -36,7 +38,7 @@ class ShippingController extends Controller
         ];
 
         $shippings = $this->shippingService->getAllShippings($filters);
-        
+
         // Format data with index for DataTables using Resource
         $data = [];
         $startIndex = ($shippings->currentPage() - 1) * $shippings->perPage() + 1;
@@ -60,7 +62,17 @@ class ShippingController extends Controller
     public function create($lang, $countryCode)
     {
         $languages = \App\Models\Language::all();
-        return view('order::shippings.form', compact('languages'));
+
+        // Get country ID from country code in URL or session
+        $country = \Modules\AreaSettings\app\Models\Country::where('code', strtoupper($countryCode))->first();
+        if (!$country) {
+            abort(404, 'Country not found');
+        }
+
+        $cities = $this->cityService->getCitiesByCountry($country->id);
+        $categories = $this->categoryService->getActiveCategories();
+
+        return view('order::shippings.form', compact('languages', 'cities', 'categories'));
     }
 
     /**
@@ -70,7 +82,7 @@ class ShippingController extends Controller
     {
         try {
             $shipping = $this->shippingService->createShipping($request->validated());
-            
+
             // Return JSON for AJAX requests
             if ($request->expectsJson()) {
                 return response()->json([
@@ -80,7 +92,7 @@ class ShippingController extends Controller
                     'data' => $shipping
                 ], 201);
             }
-            
+
             return redirect()->route('admin.shippings.index')
                            ->with('success', trans('shipping.created_successfully'));
         } catch (\Exception $e) {
@@ -92,7 +104,7 @@ class ShippingController extends Controller
                     'errors' => []
                 ], 500);
             }
-            
+
             return back()->with('error', trans('shipping.error_creating'));
         }
     }
@@ -113,7 +125,17 @@ class ShippingController extends Controller
     {
         $shipping = $this->shippingService->getShippingById($id);
         $languages = \App\Models\Language::all();
-        return view('order::shippings.form', compact('shipping', 'languages'));
+
+        // Get country ID from country code in URL
+        $country = \Modules\AreaSettings\app\Models\Country::where('code', strtoupper($countryCode))->first();
+        if (!$country) {
+            abort(404, 'Country not found');
+        }
+
+        $cities = $this->cityService->getCitiesByCountry($country->id);
+        $categories = $this->categoryService->getActiveCategories();
+
+        return view('order::shippings.form', compact('shipping', 'languages', 'cities', 'categories'));
     }
 
     /**
@@ -123,7 +145,7 @@ class ShippingController extends Controller
     {
         try {
             $shipping = $this->shippingService->updateShipping($id, $request->validated());
-            
+
             // Return JSON for AJAX requests
             if ($request->expectsJson()) {
                 return response()->json([
@@ -133,7 +155,7 @@ class ShippingController extends Controller
                     'data' => $shipping
                 ], 200);
             }
-            
+
             return redirect()->route('admin.shippings.index')
                            ->with('success', trans('shipping.updated_successfully'));
         } catch (\Exception $e) {
@@ -145,7 +167,7 @@ class ShippingController extends Controller
                     'errors' => []
                 ], 500);
             }
-            
+
             return back()->with('error', trans('shipping.error_updating'));
         }
     }

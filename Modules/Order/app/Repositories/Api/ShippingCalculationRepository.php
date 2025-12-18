@@ -17,23 +17,28 @@ class ShippingCalculationRepository implements ShippingCalculationRepositoryInte
     {
         // Get customer address
         $address = CustomerAddress::with('city')->findOrFail($customerAddressId);
-        
+
         if ($address->customer_id != $customerId) {
             throw new OrderException(trans('shipping.address_not_found'));
         }
 
         // Group cart items by category_id
         $itemsByCategory = $this->groupItemsByCategory($cartItems);
-        
+
         // Calculate shipping for each category-city combination
         $shippingBreakdown = [];
         $totalShippingCost = 0;
 
         foreach ($itemsByCategory as $categoryId => $items) {
-            // Get shipping for this category and city
-            $shipping = Shipping::where('category_id', $categoryId)
-                ->where('city_id', $address->city_id)
-                ->where('active', 1)
+            // Get shipping for this category and city using many-to-many relationships
+            $shipping = Shipping::where('active', 1)
+                ->where(function ($query) use ($address, $categoryId) {
+                    $query->whereHas('cities', function($q) use ($address) {
+                        $q->where('cities.id', $address->city_id);
+                    })->whereHas('categories', function($q) use ($categoryId) {
+                        $q->where('categories.id', $categoryId);
+                    });
+                })
                 ->first();
 
             if ($shipping) {
@@ -72,7 +77,7 @@ class ShippingCalculationRepository implements ShippingCalculationRepositoryInte
 
         foreach ($cartItems as $item) {
             $categoryId = $item['category_id'] ?? null;
-            
+
             if (!$categoryId) {
                 continue;
             }

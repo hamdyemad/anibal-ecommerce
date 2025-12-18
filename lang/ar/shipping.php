@@ -13,8 +13,13 @@ return [
     'cost' => 'التكلفة',
     'status' => 'الحالة',
     'city' => 'المدينة',
+    'cities' => 'المدن',
+    'select_cities' => 'اختر المدن...',
     'category' => 'الفئة',
+    'categories' => 'الفئات',
+    'select_categories' => 'اختر الفئات...',
     'country' => 'الدولة',
+    'hold_ctrl_to_select_multiple' => 'اضغط Ctrl (Cmd على Mac) لاختيار عناصر متعددة',
     'active' => 'نشط',
     'inactive' => 'غير نشط',
 
@@ -25,7 +30,13 @@ return [
     'cost_required' => 'التكلفة مطلوبة',
     'status_required' => 'الحالة مطلوبة',
     'city_id_required' => 'المدينة مطلوبة',
+    'city_ids_required' => 'مدينة واحدة على الأقل مطلوبة',
+    'city_ids_min' => 'الرجاء اختيار مدينة واحدة على الأقل',
+    'city_id_not_exist' => 'المدينة المحددة غير موجودة',
     'category_id_required' => 'الفئة مطلوبة',
+    'category_ids_required' => 'فئة واحدة على الأقل مطلوبة',
+    'category_ids_min' => 'الرجاء اختيار فئة واحدة على الأقل',
+    'category_id_not_exist' => 'الفئة المحددة غير موجودة',
     'country_id_required' => 'الدولة مطلوبة',
 
     // Success messages

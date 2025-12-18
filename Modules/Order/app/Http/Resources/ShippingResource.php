@@ -22,14 +22,18 @@ class ShippingResource extends JsonResource
             'name_ar' => $this->getTranslation('name', "ar"),
             'cost' => $this->cost,
             'active' => $this->active,
-            'city' => [
-                'id' => $this->city?->id,
-                'name' => $this->city?->name,
-            ],
-            'category' => [
-                'id' => $this->category?->id,
-                'name' => $this->category?->name,
-            ],
+            'cities' => $this->cities->map(function($city) {
+                return [
+                    'id' => $city->id,
+                    'name' => $city->getTranslation('name', app()->getLocale()),
+                ];
+            }) ?? [],
+            'categories' => $this->categories->map(function($category) {
+                return [
+                    'id' => $category->id,
+                    'name' => $category->getTranslation('name', app()->getLocale()),
+                ];
+            }) ?? [],
             'country' => [
                 'id' => $this->country?->id,
                 'name' => $this->country?->name,

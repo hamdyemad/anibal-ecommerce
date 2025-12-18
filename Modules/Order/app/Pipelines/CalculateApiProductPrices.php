@@ -73,13 +73,8 @@ class CalculateApiProductPrices
             $taxNameAr = $vendorProduct['tax']['name_ar'] ?? $vendorProduct['tax']['name'] ?? '';
             $limitation = (int) ($vendorProduct['max_per_order'] ?? 0);
 
-            // Calculate total commission from all vendor activities
-            $totalCommissionRate = 0;
-            if (isset($vendorProduct['vendor']['activities']) && is_array($vendorProduct['vendor']['activities'])) {
-                foreach ($vendorProduct['vendor']['activities'] as $activity) {
-                    $totalCommissionRate += (float) ($activity['commission'] ?? 0);
-                }
-            }
+            // Get commission from product's department
+            $totalCommissionRate = (float) ($vendorProduct['product']['department']['commission'] ?? 0);
 
             // Calculate totals
             $productTotal = $price * $quantity;

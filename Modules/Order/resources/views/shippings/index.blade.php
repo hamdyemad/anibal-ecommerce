@@ -136,8 +136,8 @@
                                     <th class="text-center"><span class="userDatatable-title">#</span></th>
                                     <th><span class="userDatatable-title">{{ trans('shipping.name') }}</span></th>
                                     <th><span class="userDatatable-title">{{ trans('shipping.cost') }}</span></th>
-                                    <th><span class="userDatatable-title">{{ trans('shipping.city') }}</span></th>
-                                    <th><span class="userDatatable-title">{{ trans('shipping.category') }}</span></th>
+                                    <th><span class="userDatatable-title">{{ trans('shipping.cities') }}</span></th>
+                                    <th><span class="userDatatable-title">{{ trans('shipping.categories') }}</span></th>
                                     <th><span class="userDatatable-title">{{ trans('shipping.status') }}</span></th>
                                     <th><span class="userDatatable-title">{{ trans('shipping.created_at') }}</span></th>
                                     <th><span class="userDatatable-title">{{ __('common.actions') }}</span></th>
@@ -207,21 +207,45 @@
                         }
                     },
                     {
-                        data: 'city.name',
-                        name: 'city',
+                        data: 'cities',
+                        name: 'cities',
                         orderable: false,
                         searchable: false,
                         render: function(data, type, row) {
-                            return row.city && row.city.name ? row.city.name : '-';
+                            if (row.cities && row.cities.length > 0) {
+                                let badges = row.cities.slice(0, 3).map(city => 
+                                    `<span class="badge badge-sm" style="background-color: #0056B7; color: white; margin: 2px; padding: 4px 8px; border-radius: 4px; font-size: 11px;">${city.name}</span>`
+                                ).join(' ');
+                                
+                                if (row.cities.length > 3) {
+                                    let remainingCities = row.cities.slice(3).map(city => city.name).join(', ');
+                                    badges += ` <span class="badge badge-sm" style="background-color: #6c757d; color: white; margin: 2px; padding: 4px 8px; border-radius: 4px; font-size: 11px;"  data-bs-toggle="tooltip" data-bs-placement="top" title="${remainingCities}">+${row.cities.length - 3}</span>`;
+                                }
+                                
+                                return badges;
+                            }
+                            return '<span style="color: #999;">-</span>';
                         }
                     },
                     {
-                        data: 'category.name',
-                        name: 'category',
+                        data: 'categories',
+                        name: 'categories',
                         orderable: false,
                         searchable: false,
                         render: function(data, type, row) {
-                            return row.category && row.category.name ? row.category.name : '-';
+                            if (row.categories && row.categories.length > 0) {
+                                let badges = row.categories.slice(0, 3).map(category => 
+                                    `<span class="badge badge-sm" style="background-color: #9C27B0; color: white; margin: 2px; padding: 4px 8px; border-radius: 4px; font-size: 11px;">${category.name}</span>`
+                                ).join(' ');
+                                
+                                if (row.categories.length > 3) {
+                                    let remainingCategories = row.categories.slice(3).map(category => category.name).join(', ');
+                                    badges += ` <span class="badge badge-sm" style="background-color: #6c757d; color: white; margin: 2px; padding: 4px 8px; border-radius: 4px; font-size: 11px;" data-bs-toggle="tooltip" data-bs-placement="top" title="${remainingCategories}">+${row.categories.length - 3}</span>`;
+                                }
+                                
+                                return badges;
+                            }
+                            return '<span style="color: #999;">-</span>';
                         }
                     },
                     {

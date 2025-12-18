@@ -89,5 +89,13 @@ class Category extends BaseModel
         return $this->getTranslation('description', app()->getLocale()) ?? '-';
     }
 
+    /**
+     * Get the shippings associated with the category.
+     */
+    public function shippings()
+    {
+        return $this->belongsToMany(\Modules\Order\app\Models\Shipping::class, 'shipping_categories', 'category_id', 'shipping_id')
+            ->withTimestamps();
+    }
 
 }

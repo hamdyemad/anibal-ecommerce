@@ -68,19 +68,41 @@
                         </div>
 
                         <div class="row">
-                            <div class="col-md-4 mb-4">
+                            <div class="col-md-12 mb-4">
                                 <label class="form-label fw-bold">{{ trans('shipping.country') }}</label>
                                 <p class="text-muted">{{ $shipping->country->name ?? '-' }}</p>
                             </div>
+                        </div>
 
-                            <div class="col-md-4 mb-4">
-                                <label class="form-label fw-bold">{{ trans('shipping.city') }}</label>
-                                <p class="text-muted">{{ $shipping->city->name ?? '-' }}</p>
+                        <div class="row">
+                            <div class="col-md-6 mb-4">
+                                <label class="form-label fw-bold">{{ trans('shipping.cities') }}</label>
+                                @if($shipping->cities && $shipping->cities->count() > 0)
+                                    <ul class="list-unstyled">
+                                        @foreach($shipping->cities as $city)
+                                            <li class="mb-1">
+                                                <span class="badge badge-info">{{ $city->name }}</span>
+                                            </li>
+                                        @endforeach
+                                    </ul>
+                                @else
+                                    <p class="text-muted">-</p>
+                                @endif
                             </div>
 
-                            <div class="col-md-4 mb-4">
-                                <label class="form-label fw-bold">{{ trans('shipping.category') }}</label>
-                                <p class="text-muted">{{ $shipping->category->name ?? '-' }}</p>
+                            <div class="col-md-6 mb-4">
+                                <label class="form-label fw-bold">{{ trans('shipping.categories') }}</label>
+                                @if($shipping->categories && $shipping->categories->count() > 0)
+                                    <ul class="list-unstyled">
+                                        @foreach($shipping->categories as $category)
+                                            <li class="mb-1">
+                                                <span class="badge badge-primary">{{ $category->name }}</span>
+                                            </li>
+                                        @endforeach
+                                    </ul>
+                                @else
+                                    <p class="text-muted">-</p>
+                                @endif
                             </div>
                         </div>
 

@@ -103,9 +103,7 @@ class ProductApiRepository implements ProductApiRepositoryInterface
                         'translations'
                     ]);
                 },
-                'vendor' => function ($q) {
-                    $q->with('activities');
-                },
+                'vendor',
                 'tax' => function ($q) {
                     $q->with('translations');
                 },
@@ -138,6 +136,7 @@ class ProductApiRepository implements ProductApiRepositoryInterface
                 'translations' => $vendorProduct?->product?->translations->toArray(),
                 'department' => [
                     'id' => $vendorProduct?->product?->department?->id,
+                    'commission' => $vendorProduct?->product?->department?->commission,
                 ],
                 'brand' => $vendorProduct?->product?->brand,
                 'category' => $vendorProduct?->product?->category,
@@ -146,7 +145,7 @@ class ProductApiRepository implements ProductApiRepositoryInterface
             'vendor' => [
                 'id' => $vendorProduct?->vendor?->id,
                 'name' => $vendorProduct?->vendor?->name,
-                'activities' => $vendorProduct?->vendor?->activities->toArray(),
+                // 'activities' => $vendorProduct?->vendor?->activities->toArray(),
             ],
             'price' => $vendorProduct->price,
             'tax' => [

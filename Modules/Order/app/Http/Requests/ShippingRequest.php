@@ -24,9 +24,10 @@ class ShippingRequest extends FormRequest
             'translations.*.name' => 'required|string|max:255',
             'cost' => 'required|numeric|min:0',
             'active' => 'nullable|boolean',
-            'city_id' => 'required|exists:cities,id',
-            'category_id' => 'required|exists:categories,id',
-            'country_id' => 'required|exists:countries,id',
+            'city_ids' => 'required|array|min:1',
+            'city_ids.*' => 'required|exists:cities,id',
+            'category_ids' => 'required|array|min:1',
+            'category_ids.*' => 'required|exists:categories,id',
         ];
     }
 
@@ -40,9 +41,12 @@ class ShippingRequest extends FormRequest
             'translations.*.name.required' => trans('shipping.name_required'),
             'translations.*.name.max' => trans('shipping.name_max_255'),
             'cost.required' => trans('shipping.cost_required'),
-            'city_id.required' => trans('shipping.city_id_required'),
-            'category_id.required' => trans('shipping.category_id_required'),
-            'country_id.required' => trans('shipping.country_id_required'),
+            'city_ids.required' => trans('shipping.city_ids_required'),
+            'city_ids.min' => trans('shipping.city_ids_min'),
+            'city_ids.*.exists' => trans('shipping.city_id_not_exist'),
+            'category_ids.required' => trans('shipping.category_ids_required'),
+            'category_ids.min' => trans('shipping.category_ids_min'),
+            'category_ids.*.exists' => trans('shipping.category_id_not_exist'),
         ];
     }
 }

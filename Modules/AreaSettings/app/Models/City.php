@@ -41,6 +41,15 @@ class City extends BaseModel
     }
 
     /**
+     * Get the shippings associated with the city.
+     */
+    public function shippings()
+    {
+        return $this->belongsToMany(\Modules\Order\app\Models\Shipping::class, 'shipping_cities', 'city_id', 'shipping_id')
+            ->withTimestamps();
+    }
+
+    /**
      * Override filter scope to add city-specific filters
      * Calls parent filter from HasFilterScopes trait and adds custom filters
      */

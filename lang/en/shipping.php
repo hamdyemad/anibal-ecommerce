@@ -13,8 +13,13 @@ return [
     'cost' => 'Cost',
     'status' => 'Status',
     'city' => 'City',
+    'cities' => 'Cities',
+    'select_cities' => 'Select cities...',
     'category' => 'Category',
+    'categories' => 'Categories',
+    'select_categories' => 'Select categories...',
     'country' => 'Country',
+    'hold_ctrl_to_select_multiple' => 'Hold Ctrl (Cmd on Mac) to select multiple items',
     'active' => 'Active',
     'inactive' => 'Inactive',
 
@@ -25,7 +30,13 @@ return [
     'cost_required' => 'Cost is required',
     'status_required' => 'Status is required',
     'city_id_required' => 'City is required',
+    'city_ids_required' => 'At least one city is required',
+    'city_ids_min' => 'Please select at least one city',
+    'city_id_not_exist' => 'Selected city does not exist',
     'category_id_required' => 'Category is required',
+    'category_ids_required' => 'At least one category is required',
+    'category_ids_min' => 'Please select at least one category',
+    'category_id_not_exist' => 'Selected category does not exist',
     'country_id_required' => 'Country is required',
 
     // Success messages

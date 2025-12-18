@@ -322,22 +322,6 @@
                             <input type="hidden" id="productsData" name="products" value="[]">
                         </div>
 
-                        {{-- Form Actions --}}
-                        <div class="row mt-30">
-                            <div class="col-12">
-                                <div class="d-flex justify-content-end gap-2" style="margin: 15px;">
-                                    <a href="{{ route('admin.orders.index') }}"
-                                        class="btn btn-light btn-default btn-squared">
-                                        <i class="uil uil-arrow-left me-1"></i>
-                                        {{ trans('main.cancel') }}
-                                    </a>
-                                    <button type="submit" class="btn btn-primary btn-squared" id="submitBtn">
-                                        <i class="uil uil-check me-1"></i>
-                                        {{ trans('order.create_order') }}
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
 
                         {{-- Hidden inputs for fees, discounts, and shipping --}}
                         <input type="hidden" id="feesData" name="feesData" value="[]">
@@ -414,13 +398,26 @@
                     </div>
 
                     {{-- Grand Total --}}
-                    <div class="d-flex justify-content-between align-items-center pt-15">
+                    <div class="d-flex justify-content-between align-items-center pt-15 mb-20 pb-15 border-bottom">
                         <div class="d-flex align-items-center">
                             <i class="uil uil-receipt text-primary me-2" style="font-size: 18px;"></i>
                             <span class="fw-500 fs-16">{{ trans('order.total') }}</span>
                         </div>
                         <span class="fw-bold fs-16 text-primary" id="grandTotal">0.00
                             {{ __('common.currency') }}</span>
+                    </div>
+
+                    {{-- Form Actions --}}
+                    <div class="d-flex justify-content-end gap-2">
+                        <a href="{{ route('admin.orders.index') }}"
+                            class="btn btn-light btn-default btn-squared">
+                            <i class="uil uil-arrow-left me-1"></i>
+                            {{ trans('main.cancel') }}
+                        </a>
+                        <button type="submit" form="createOrderForm" class="btn btn-primary btn-squared" id="submitBtn">
+                            <i class="uil uil-check me-1"></i>
+                            {{ trans('order.create_order') }}
+                        </button>
                     </div>
                 </div>
             </div>
@@ -565,6 +562,9 @@
         @push('scripts')
             <script>
                 $(document).ready(function() {
+                    // Get country code from session
+                    const countryCode = '{{ strtoupper(session("country_code", "EG")) }}';
+
                     let feeCounter = 0;
                     let discountCounter = 0;
                     let fees = [];
@@ -580,6 +580,11 @@
                             url: '/api/products/variants-all', // Products API endpoint
                             type: 'GET',
                             dataType: 'json',
+                            headers: {
+                                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
+                                'Accept': 'application/json',
+                                'X-Country-Code': countryCode
+                            },
                             success: function(response) {
                                 if (response.data) {
                                     allProducts = response.data;
@@ -605,6 +610,11 @@
                             url: '/api/customers', // Customers API endpoint
                             type: 'GET',
                             dataType: 'json',
+                            headers: {
+                                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
+                                'Accept': 'application/json',
+                                'X-Country-Code': countryCode
+                            },
                             success: function(response) {
                                 if (response.data) {
                                     allCustomers = response.data;
@@ -650,16 +660,16 @@
                                     const limitation = product.limitation || 0;
                                     const taxRate = product.tax && product.tax.tax_rate ? product
                                         .tax.tax_rate : 0;
-                                    
+
                                     // Extract category from product
                                     let categoryId = null;
                                     let categoryName = null;
-                                    
+
                                     if (product.category) {
                                         categoryId = product.category.id;
                                         categoryName = product.category.name;
                                     }
-                                    
+
                                     console.log('Product category:', {
                                         productName,
                                         categoryId,
@@ -863,20 +873,31 @@
                         const email = $(this).data('email');
                         const phone = $(this).data('phone');
 
+                        console.log('Customer selected:', { id, name, email, phone });
+
                         $('#customer_search').val(name);
                         $('#selected_customer_id').val(id);
                         $('#customer_suggestions').hide();
 
+                        // Immediately populate email and phone fields
+                        $('#customer_email').val(email || '');
+                        $('#customer_phone').val(phone || '');
+
                         // Load customer addresses
-                        loadCustomerAddresses(id, email, phone);
+                        loadCustomerAddresses(id);
                     });
 
                     // Load customer addresses
-                    function loadCustomerAddresses(customerId, email, phone) {
+                    function loadCustomerAddresses(customerId) {
                         $.ajax({
                             url: `/api/customers/${customerId}/addresses`,
                             type: 'GET',
                             dataType: 'json',
+                            headers: {
+                                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
+                                'Accept': 'application/json',
+                                'X-Country-Code': countryCode
+                            },
                             success: function(response) {
                                 const addressSelect = $('#customer_address_select');
                                 addressSelect.empty();
@@ -896,12 +917,15 @@
                                     $('#no_address_section').show();
                                 }
 
-                                $('#customer_email').val(email);
-                                $('#customer_phone').val(phone);
+                                // Clear address field until user selects one
                                 $('#customer_address').val('');
 
                                 // Store current customer ID for address creation
                                 $('#addAddressForm').data('customer-id', customerId);
+                            },
+                            error: function(xhr) {
+                                console.error('Failed to load addresses:', xhr);
+                                showAlert('danger', 'Failed to load customer addresses');
                             }
                         });
                     }
@@ -1366,8 +1390,8 @@
                             <td>${product.name}</td>
                             <td class="text-center">${product.price.toFixed(2)} {{ currency() }}</td>
                             <td class="text-center">${product.quantity}</td>
-                            <td class="text-center">${product.total.toFixed(2)} {{ currency() }}</td>
                             <td class="text-center">${taxRate > 0 ? taxRate.toFixed(2) + '%' : '-'}</td>
+                            <td class="text-center">${product.total.toFixed(2)} {{ currency() }}</td>
                             <td class="text-center">
                                 <button type="button" class="btn btn-sm btn-danger remove-product" data-product-id="${product.id}">
                                     <i class="uil uil-trash"></i>
@@ -1768,7 +1792,7 @@
         <style>
             .responsive-grid {
                 display: grid !important;
-                grid-template-columns: 1fr 1fr !important;
+                grid-template-columns: 1fr !important;
                 gap: 1.5rem !important;
                 margin-top: 20px !important;
             }
@@ -1789,6 +1813,7 @@
             }
         </style>
     @endpush
+
 
     {{-- Include Loading Overlay Component --}}
     @push('after-body')
