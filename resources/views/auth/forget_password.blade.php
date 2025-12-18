@@ -40,7 +40,7 @@
 
         .auth-image {
             flex: 1;
-            /* background: url('https://services2.bnaia.com/_next/image?url=%2Fassets%2Fservices%2Felectrical.png&w=1080&q=85') center center/cover no-repeat; */
+            background: url("{{ asset('assets/img/electrical.avif') }}") center center/cover no-repeat;
             display: flex;
             flex-direction: column;
             justify-content: flex-end;

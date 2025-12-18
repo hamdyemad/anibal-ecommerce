@@ -40,7 +40,7 @@
 
         .auth-image {
             flex: 1;
-            background: url('https://services2.bnaia.com/_next/image?url=%2Fassets%2Fservices%2Felectrical.png&w=1080&q=85') center center/cover no-repeat;
+            background: url("{{ asset('assets/img/electrical.avif') }}") center center/cover no-repeat;
             display: flex;
             flex-direction: column;
             justify-content: flex-end;
@@ -209,21 +209,25 @@
 
                 <form action="{{ route('authenticate') }}" method="POST">
                     @csrf
-                    <div class="mb-3 position-relative">
-                        <i class="uil uil-envelope input-icon"></i>
-                        <input type="text" class="form-control" name="email" value="{{ old('email') }}"
-                            placeholder="Email Address">
+                    <div class="mb-3">
+                        <div class="position-relative">
+                            <i class="uil uil-envelope input-icon"></i>
+                            <input type="text" class="form-control" name="email" value="{{ old('email') }}"
+                                placeholder="Email Address">
+                        </div>
                         @error('email')
                             <p class="text-danger small mt-1">{{ $message }}</p>
                         @enderror
                     </div>
 
-                    <div class="mb-3 position-relative">
-                        <i class="uil uil-lock-alt input-icon"></i>
-                        <input type="password" class="form-control" id="password-field" name="password"
-                            placeholder="Password">
-                        <span toggle="#password-field" class="uil uil-eye-slash input-eye-icon toggle-password"
-                            style="position: absolute; right: 15px; top: 50%; transform: translateY(-50%); cursor: pointer;"></span>
+                    <div class="mb-3">
+                        <div class="position-relative">
+                            <i class="uil uil-lock-alt input-icon"></i>
+                            <input type="password" class="form-control" id="password-field" name="password"
+                                placeholder="Password">
+                            <span toggle="#password-field" class="uil uil-eye-slash input-eye-icon toggle-password"
+                                style="position: absolute; right: 15px; top: 50%; transform: translateY(-50%); cursor: pointer;"></span>
+                        </div>
                         @error('password')
                             <p class="text-danger small mt-1">{{ $message }}</p>
                         @enderror
