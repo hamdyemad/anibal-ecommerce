@@ -48,7 +48,9 @@ class CustomerAddressRepository implements CustomerAddressRepositoryInterface
 
     public function getAddressById($addressId, Customer $customer): ?CustomerAddress
     {
-        return $customer->addresses()->find($addressId);
+        return $customer->addresses()
+        ->with('country', 'city', 'region', 'subregion')
+        ->find($addressId);
     }
 
     public function deleteAddress($addressId, Customer $customer): bool
