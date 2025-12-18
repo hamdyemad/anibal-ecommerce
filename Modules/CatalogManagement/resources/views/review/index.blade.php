@@ -4,6 +4,96 @@
 
 @push('styles')
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css">
+    <style>
+        .review-modal-content {
+            border-radius: 20px;
+            overflow: hidden;
+        }
+
+        .review-header {
+            background: linear-gradient(135deg, #6e8efb 0%, #a777e3 100%);
+            padding: 25px;
+            border: none;
+        }
+
+        .review-header .modal-title {
+            color: #fff;
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .review-header .btn-close {
+            filter: brightness(0) invert(1);
+            opacity: 0.8;
+        }
+
+        .detail-group {
+            margin-bottom: 25px;
+            padding: 0 10px;
+        }
+
+        .detail-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #868eae;
+            font-size: 13px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 10px;
+        }
+
+        .detail-value {
+            color: #272b41;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .rating-glass-badge {
+            background: #f8f9fb;
+            border: 1px solid #edf0f5;
+            padding: 12px 20px;
+            border-radius: 12px;
+            display: inline-flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .review-text-bubble {
+            background: #fdfdfd;
+            border-left: 4px solid #a777e3;
+            padding: 20px;
+            border-radius: 0 12px 12px 0;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02);
+            font-style: italic;
+            color: #5a5f7d;
+            line-height: 1.6;
+        }
+
+        .rejection-notice {
+            background: #fff5f5;
+            border: 1px dashed #feb2b2;
+            border-radius: 12px;
+            padding: 15px;
+            margin-top: 10px;
+        }
+
+        .rating-badge {
+            background: #fff;
+            border: 1px solid #f1f2f6;
+            padding: 4px 10px;
+            border-radius: 50px;
+            display: inline-flex;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+        }
+
+        .text-warning {
+            color: #ffb300 !important;
+        }
+    </style>
 @endpush
 
 @section('content')
@@ -11,8 +101,12 @@
         <div class="row">
             <div class="col-lg-12">
                 <x-breadcrumb :items="[
-                    ['title' => trans('dashboard.title'), 'url' => route('admin.dashboard'), 'icon' => 'uil uil-estate'],
-                    ['title' => __('catalogmanagement::review.product_reviews')]
+                    [
+                        'title' => trans('dashboard.title'),
+                        'url' => route('admin.dashboard'),
+                        'icon' => 'uil uil-estate',
+                    ],
+                    ['title' => __('catalogmanagement::review.product_reviews')],
                 ]" />
             </div>
         </div>
@@ -117,9 +211,15 @@
                             <thead>
                                 <tr class="userDatatable-header">
                                     <th class="text-center"><span class="userDatatable-title">#</span></th>
-                                    <th><span class="userDatatable-title">{{ __('catalogmanagement::review.product') }}</span></th>
-                                    <th><span class="userDatatable-title">{{ __('catalogmanagement::review.customer') }}</span></th>
-                                    <th><span class="userDatatable-title">{{ __('catalogmanagement::review.rating') }}</span></th>
+                                    <th><span
+                                            class="userDatatable-title">{{ __('catalogmanagement::review.product') }}</span>
+                                    </th>
+                                    <th><span
+                                            class="userDatatable-title">{{ __('catalogmanagement::review.customer') }}</span>
+                                    </th>
+                                    <th><span
+                                            class="userDatatable-title">{{ __('catalogmanagement::review.rating') }}</span>
+                                    </th>
                                     <th><span class="userDatatable-title">{{ __('common.status') }}</span></th>
                                     <th><span class="userDatatable-title">{{ __('common.created_at') }}</span></th>
                                     <th><span class="userDatatable-title">{{ __('common.actions') }}</span></th>
@@ -135,13 +235,15 @@
 
     {{-- View Review Modal Template --}}
     <div class="modal fade" id="viewModal" tabindex="-1">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">{{ __('catalogmanagement::review.review_details') }}</h5>
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content review-modal-content border-0 shadow-2xl">
+                <div class="modal-header review-header">
+                    <h5 class="modal-title">
+                        <i class="uil uil-comment-alt-notes me-2"></i>{{ __('catalogmanagement::review.review_details') }}
+                    </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
-                <div class="modal-body" id="viewModalBody"></div>
+                <div class="modal-body p-40" id="viewModalBody"></div>
             </div>
         </div>
     </div>
@@ -170,7 +272,10 @@
                             <label for="rejection_reason" class="form-label fw-500">
                                 {{ __('catalogmanagement::review.rejection_reason') }} <span class="text-danger">*</span>
                             </label>
-                            <textarea class="form-control form-control-lg nockeditor" id="rejection_reason" name="rejection_reason" rows="5" placeholder="{{ __('catalogmanagement::review.rejection_reason_placeholder') ?? 'Enter the reason for rejection...' }}" required></textarea>
+                            <textarea class="form-control form-control-lg nockeditor" id="rejection_reason" name="rejection_reason"
+                                rows="5"
+                                placeholder="{{ __('catalogmanagement::review.rejection_reason_placeholder') ?? 'Enter the reason for rejection...' }}"
+                                required></textarea>
                             <small class="text-muted d-block mt-2">
                                 <i class="uil uil-info-circle me-1"></i>
                                 {{ __('catalogmanagement::review.rejection_reason_help') ?? 'This reason will be visible to the customer.' }}
@@ -178,7 +283,8 @@
                         </div>
                     </div>
                     <div class="modal-footer border-top">
-                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">{{ __('common.cancel') }}</button>
+                        <button type="button" class="btn btn-light"
+                            data-bs-dismiss="modal">{{ __('common.cancel') }}</button>
                         <button type="submit" class="btn btn-danger" id="submitRejectBtn">
                             <i class="uil uil-check me-1"></i>{{ __('common.reject') }}
                         </button>
@@ -213,7 +319,7 @@
                 processing: true,
                 serverSide: true,
                 ajax: {
-                    url: '{{ route("admin.reviews.datatable") }}',
+                    url: '{{ route('admin.reviews.datatable') }}',
                     data: function(d) {
                         d.status = $('#status_filter').val();
                         d.star = $('#rating_filter').val();
@@ -222,16 +328,52 @@
                         d.created_date_to = $('#created_date_to').val();
                     }
                 },
-                columns: [
-                    { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false },
-                    { data: 'product_title', name: 'product_title', orderable: false, searchable: true },
-                    { data: 'customer_name', name: 'customer_name', orderable: false, searchable: true },
-                    { data: 'stars', name: 'stars', orderable: false, searchable: false },
-                    { data: 'status_info', name: 'status_info', orderable: false, searchable: false },
-                    { data: 'created_date', name: 'created_at', orderable: false, searchable: false },
-                    { data: 'actions', name: 'actions', orderable: false, searchable: false }
+                columns: [{
+                        data: 'DT_RowIndex',
+                        name: 'DT_RowIndex',
+                        orderable: false,
+                        searchable: false
+                    },
+                    {
+                        data: 'product_title',
+                        name: 'product_title',
+                        orderable: false,
+                        searchable: true
+                    },
+                    {
+                        data: 'customer_name',
+                        name: 'customer_name',
+                        orderable: false,
+                        searchable: true
+                    },
+                    {
+                        data: 'stars',
+                        name: 'stars',
+                        orderable: false,
+                        searchable: false
+                    },
+                    {
+                        data: 'status_info',
+                        name: 'status_info',
+                        orderable: false,
+                        searchable: false
+                    },
+                    {
+                        data: 'created_date',
+                        name: 'created_at',
+                        orderable: false,
+                        searchable: false
+                    },
+                    {
+                        data: 'actions',
+                        name: 'actions',
+                        orderable: false,
+                        searchable: false
+                    }
                 ],
-                order: [[5, 'desc']],
+                order: [
+                    [5, 'desc']
+                ],
                 language: {
                     lengthMenu: "{{ __('common.show') }} _MENU_",
                     info: "{{ __('common.showing') }} _START_ {{ __('common.to') }} _END_ {{ __('common.of') }} _TOTAL_ {{ __('common.entries') }}",
@@ -248,7 +390,10 @@
                     }
                 },
                 dom: 'lrtip',
-                lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]],
+                lengthMenu: [
+                    [10, 25, 50, 100],
+                    [10, 25, 50, 100]
+                ],
                 pageLength: 10
             });
 
@@ -267,7 +412,8 @@
                 if (fromVal) params.append('created_date_from', fromVal);
                 if (toVal) params.append('created_date_to', toVal);
 
-                const newUrl = params.toString() ? `${window.location.pathname}?${params.toString()}` : window.location.pathname;
+                const newUrl = params.toString() ? `${window.location.pathname}?${params.toString()}` : window
+                    .location.pathname;
                 window.history.replaceState({}, '', newUrl);
             }
 
@@ -292,32 +438,56 @@
             $(document).on('click', '.btn-view-review', function() {
                 const review = $(this).data('review');
 
+                let starsHtml = '';
+                for (let i = 0; i < 5; i++) {
+                    starsHtml +=
+                        `<i class="uil uil-star ${i < review.star ? 'text-warning' : 'text-muted'}" style="font-size: 24px;"></i>`;
+                }
+
                 let html = `
-                    <div class="mb-3">
-                        <label class="form-label fw-500">{{ __('catalogmanagement::review.product') }}</label>
-                        <p>${review.product_title}</p>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="detail-group">
+                                <label class="detail-label"><i class="uil uil-box"></i> {{ __('catalogmanagement::review.product') }}</label>
+                                <div class="detail-value">${review.product_title}</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="detail-group">
+                                <label class="detail-label"><i class="uil uil-user"></i> {{ __('catalogmanagement::review.customer') }}</label>
+                                <div class="detail-value">${review.customer_name || '-'}</div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-500">{{ __('catalogmanagement::review.customer') }}</label>
-                        <p>${review.customer_name || '-'}</p>
+
+                    <div class="detail-group">
+                        <label class="detail-label"><i class="uil uil-award"></i> {{ __('catalogmanagement::review.rating') }}</label>
+                        <div class="rating-glass-badge">
+                            <div class="d-flex gap-1">
+                                ${starsHtml}
+                            </div>
+                            <div class="h-100 border-start ps-3 ms-2">
+                                <span class="fw-bold text-dark fs-20">${review.star}.0</span>
+                                <small class="text-muted ms-1">/ 5.0</small>
+                            </div>
+                        </div>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-500">{{ __('catalogmanagement::review.rating') }}</label>
-                        <p>
-                            ${'⭐'.repeat(review.star)}<span class="ms-2">${review.star}/5</span>
-                        </p>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-500">{{ __('catalogmanagement::review.review') }}</label>
-                        <p>${review.review}</p>
+
+                    <div class="detail-group">
+                        <label class="detail-label"><i class="uil uil-align-left"></i> {{ __('catalogmanagement::review.review') }}</label>
+                        <div class="review-text-bubble">
+                            "${review.review}"
+                        </div>
                     </div>
                 `;
 
                 if (review.status === 'rejected' && review.rejection_reason) {
                     html += `
-                        <div class="mb-3">
-                            <label class="form-label fw-500">{{ __('catalogmanagement::review.rejection_reason') }}</label>
-                            <p class="text-danger">${review.rejection_reason}</p>
+                        <div class="detail-group mb-0">
+                            <label class="detail-label text-danger"><i class="uil uil-info-circle"></i> {{ __('catalogmanagement::review.rejection_reason') }}</label>
+                            <div class="rejection-notice">
+                                <p class="m-0 fs-14 fw-500 text-danger">${review.rejection_reason}</p>
+                            </div>
                         </div>
                     `;
                 }
@@ -332,7 +502,8 @@
                 const review = $(this).data('review');
                 let url = "{{ route('admin.reviews.reject', ':id') }}".replace(':id', reviewId);
                 $('#rejectForm').attr('action', url);
-                $('#rejectProductName').text('{{ __("catalogmanagement::review.product") }}: ' + (review.product_title || '-'));
+                $('#rejectProductName').text('{{ __('catalogmanagement::review.product') }}: ' + (review
+                    .product_title || '-'));
                 $('#rejection_reason').val('');
 
                 const rejectModal = new bootstrap.Modal(document.getElementById('rejectModal'));
@@ -347,14 +518,18 @@
                 const submitBtn = $('#submitRejectBtn');
 
                 if (!reason.trim()) {
-                    toastr.warning('{{ __("catalogmanagement::review.rejection_reason_required") ?? "Please enter a rejection reason" }}');
+                    toastr.warning(
+                        '{{ __('catalogmanagement::review.rejection_reason_required') ?? 'Please enter a rejection reason' }}'
+                    );
                     return;
                 }
 
                 // Disable button and show loading
                 submitBtn.prop('disabled', true);
                 const originalBtnHtml = submitBtn.html();
-                submitBtn.html('<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>{{ __("common.processing") }}');
+                submitBtn.html(
+                    '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>{{ __('common.processing') }}'
+                );
 
                 $.ajax({
                     url: url,
@@ -364,7 +539,8 @@
                         rejection_reason: reason
                     },
                     success: function(response) {
-                        const rejectModalInstance = bootstrap.Modal.getInstance(document.getElementById('rejectModal'));
+                        const rejectModalInstance = bootstrap.Modal.getInstance(document
+                            .getElementById('rejectModal'));
                         if (rejectModalInstance) {
                             rejectModalInstance.hide();
                         }
@@ -373,17 +549,18 @@
                         table.ajax.reload();
 
                         // Show success toastr
-                        toastr.success('{{ __("catalogmanagement::review.review_rejected") }}', '{{ __("common.success") }}', {
-                            timeOut: 3000,
-                            progressBar: true
-                        });
+                        toastr.success('{{ __('catalogmanagement::review.review_rejected') }}',
+                            '{{ __('common.success') }}', {
+                                timeOut: 3000,
+                                progressBar: true
+                            });
                     },
                     error: function(xhr) {
-                        let errorMsg = '{{ __("common.error_occurred") }}';
+                        let errorMsg = '{{ __('common.error_occurred') }}';
                         if (xhr.responseJSON && xhr.responseJSON.message) {
                             errorMsg = xhr.responseJSON.message;
                         }
-                        toastr.error(errorMsg, '{{ __("common.error") }}', {
+                        toastr.error(errorMsg, '{{ __('common.error') }}', {
                             timeOut: 3000,
                             progressBar: true
                         });
@@ -405,7 +582,9 @@
                 // Disable button and show loading
                 $btn.prop('disabled', true);
                 const originalBtnHtml = $btn.html();
-                $btn.html('<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>{{ __("common.processing") }}');
+                $btn.html(
+                    '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>{{ __('common.processing') }}'
+                );
 
                 let url = "{{ route('admin.reviews.approve', ':id') }}".replace(':id', reviewId);
                 $.ajax({
@@ -418,17 +597,18 @@
                         table.ajax.reload();
 
                         // Show success toastr
-                        toastr.success('{{ __("catalogmanagement::review.review_approved") }}', '{{ __("common.success") }}', {
-                            timeOut: 3000,
-                            progressBar: true
-                        });
+                        toastr.success('{{ __('catalogmanagement::review.review_approved') }}',
+                            '{{ __('common.success') }}', {
+                                timeOut: 3000,
+                                progressBar: true
+                            });
                     },
                     error: function(xhr) {
-                        let errorMsg = '{{ __("common.error_occurred") }}';
+                        let errorMsg = '{{ __('common.error_occurred') }}';
                         if (xhr.responseJSON && xhr.responseJSON.message) {
                             errorMsg = xhr.responseJSON.message;
                         }
-                        toastr.error(errorMsg, '{{ __("common.error") }}', {
+                        toastr.error(errorMsg, '{{ __('common.error') }}', {
                             timeOut: 3000,
                             progressBar: true
                         });

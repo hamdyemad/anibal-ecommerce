@@ -31,7 +31,7 @@ class ReviewController extends Controller
         $createdFrom = $request->input('created_date_from');
         $createdTo = $request->input('created_date_to');
 
-        $query = Review::with(['vendorProduct.product', 'customer'])
+        $query = Review::with(['vendorProduct.product', 'customer'])->latest()
             ->where('reviewable_type', VendorProduct::class);
 
         // Filter by status
@@ -70,14 +70,20 @@ class ReviewController extends Controller
                 return truncateString($review->customer->full_name ?? '-');
             })
             ->addColumn('stars', function ($review) {
-                $html = '';
-                for ($i = 0; $i < $review->star; $i++) {
-                    $html .= '<i class="uil uil-star-fill" style="color: #ffc107; font-size: 14px;"></i>';
+                $html = '<div class="d-flex align-items-center justify-content-center">';
+                $html .= '<div class="rating-badge">';
+                $html .= '<div class="d-flex">';
+                for ($i = 0; $i < 5; $i++) {
+                    if ($i < $review->star) {
+                        $html .= '<i class="uil uil-star text-warning" style="font-size: 16px;"></i>';
+                    } else {
+                        $html .= '<i class="uil uil-star text-muted opacity-50" style="font-size: 16px;"></i>';
+                    }
                 }
-                for ($i = $review->star; $i < 5; $i++) {
-                    $html .= '<i class="uil uil-star" style="color: #ddd; font-size: 14px;"></i>';
-                }
-                $html .= '<span class="ms-2 fw-500">' . $review->star . '/5</span>';
+                $html .= '</div>';
+                $html .= '<span class="ms-2 fw-bold text-dark fs-13">' . $review->star . '.0</span>';
+                $html .= '</div>';
+                $html .= '</div>';
                 return $html;
             })
             ->addColumn('status_info', function ($review) {
