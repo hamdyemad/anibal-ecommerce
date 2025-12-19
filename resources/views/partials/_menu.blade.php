@@ -867,20 +867,44 @@
                 <li class="menu-title mt-30">
                     <span>{{ trans('menu.sections.reports') }}</span>
                 </li>
-                <li class="has-child">
-                    <a href="#" class="">
+                <li class="has-child {{ isParentMenuOpen(['admin.reports.index', 'admin.reports.registered-users', 'admin.reports.area-users', 'admin.reports.orders', 'admin.reports.products', 'admin.reports.points'], ['admin/reports*']) ? 'open' : '' }}">
+                    <a href="#"
+                        class="{{ isParentMenuOpen(['admin.reports.index', 'admin.reports.registered-users', 'admin.reports.area-users', 'admin.reports.orders', 'admin.reports.products', 'admin.reports.points'], ['admin/reports*']) ? 'active' : '' }}">
                         <span class="nav-icon uil uil-chart-line"></span>
                         <span class="menu-text">{{ trans('menu.reports.title') }}</span>
                         <span class="toggle-icon"></span>
                     </a>
                     <ul class="px-0">
-                        <li><a href="{{ route('admin.dashboard') }}">{{ trans('menu.reports.registerd users') }}</a>
+                        <li class="l_sidebar">
+                            <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive('admin.reports.registered-users', $currentRoute) ? 'active' : '' }}"
+                                href="{{ route('admin.reports.registered-users') }}">
+                                {{ trans('menu.reports.registerd users') }}
+                            </a>
                         </li>
-                        <li><a href="{{ route('admin.dashboard') }}">{{ trans('menu.reports.area users') }}</a></li>
-                        <li><a href="{{ route('admin.dashboard') }}">{{ trans('menu.reports.orders report') }}</a></li>
-                        <li><a href="{{ route('admin.dashboard') }}">{{ trans('menu.reports.product report') }}</a>
+                        <li class="l_sidebar">
+                            <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive('admin.reports.area-users', $currentRoute) ? 'active' : '' }}"
+                                href="{{ route('admin.reports.area-users') }}">
+                                {{ trans('menu.reports.area users') }}
+                            </a>
                         </li>
-                        <li><a href="{{ route('admin.dashboard') }}">{{ trans('menu.reports.points report') }}</a></li>
+                        <li class="l_sidebar">
+                            <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive('admin.reports.orders', $currentRoute) ? 'active' : '' }}"
+                                href="{{ route('admin.reports.orders') }}">
+                                {{ trans('menu.reports.orders report') }}
+                            </a>
+                        </li>
+                        <li class="l_sidebar">
+                            <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive('admin.reports.products', $currentRoute) ? 'active' : '' }}"
+                                href="{{ route('admin.reports.products') }}">
+                                {{ trans('menu.reports.product report') }}
+                            </a>
+                        </li>
+                        <li class="l_sidebar">
+                            <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive('admin.reports.points', $currentRoute) ? 'active' : '' }}"
+                                href="{{ route('admin.reports.points') }}">
+                                {{ trans('menu.reports.points report') }}
+                            </a>
+                        </li>
                     </ul>
                 </li>
             @endcan

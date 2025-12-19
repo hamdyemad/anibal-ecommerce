@@ -8,5 +8,6 @@
     "Order": true,
     "Withdraw": true,
     "Customer": true,
-    "Promocodes": true
+    "Promocodes": true,
+    "Report": true
 }

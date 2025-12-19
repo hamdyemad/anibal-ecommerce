@@ -213,8 +213,8 @@
         ],
         'reports' => [
             'title' => 'التقارير',
-            'registerd users' => 'المستخدمين المسجلين',
-            'area users' => 'مستخدمي المنطقة',
+            'registerd users' => 'العملاء المسجلين',
+            'area users' => 'عملاء المنطقة',
             'orders report' => 'تقرير الطلبات',
             'product report' => 'تقرير المنتجات',
             'points report' => 'تقرير النقاط',

@@ -221,8 +221,8 @@
         ],
         'reports' => [
             'title' => 'reports',
-            'registerd users' => 'registered users',
-            'area users' => 'area users',
+            'registerd users' => 'registered customers',
+            'area users' => 'area customers',
             'orders report' => 'orders report',
             'product report' => 'product report',
             'points report' => 'points report',
