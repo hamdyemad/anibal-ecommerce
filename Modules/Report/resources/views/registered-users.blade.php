@@ -38,7 +38,7 @@
                             <h1 class="ap-po-details__title" style="color: {{ config('branding.colors.primary') }};">
                                 <span id="record-count">0</span>
                             </h1>
-                            <p class="ap-po-details__text">{{ __('Customers in Report') }}</p>
+                            <p class="ap-po-details__text">{{ trans('report.customers_in_report') }}</p>
                         </div>
                     </div>
                 </div>
@@ -51,7 +51,7 @@
                             <h1 class="ap-po-details__title" style="color: {{ config('branding.colors.secondary') }};">
                                 <span id="total-count">0</span>
                             </h1>
-                            <p class="ap-po-details__text">{{ __('Total Customers') }}</p>
+                            <p class="ap-po-details__text">{{ trans('report.total_customers') }}</p>
                         </div>
                     </div>
                 </div>
@@ -63,7 +63,7 @@
                             <h1 class="ap-po-details__title" style="color: #28a745;">
                                 <span id="active-count">0</span>
                             </h1>
-                            <p class="ap-po-details__text">{{ __('Active Customers') }}</p>
+                            <p class="ap-po-details__text">{{ trans('report.active_customers') }}</p>
                         </div>
                     </div>
                 </div>
@@ -75,7 +75,7 @@
                             <h1 class="ap-po-details__title" style="color: #ffc107;">
                                 <span id="inactive-count">0</span>
                             </h1>
-                            <p class="ap-po-details__text">{{ __('Inactive Customers') }}</p>
+                            <p class="ap-po-details__text">{{ trans('report.inactive_customers') }}</p>
                         </div>
                     </div>
                 </div>
@@ -88,7 +88,7 @@
                 <div class="card radius-xl p-25 h-100">
                     <div class="card__header pb-20" style="border-bottom: 2px solid #f0f0f0;">
                         <h5 style="color: {{ config('branding.colors.primary') }};">
-                            {{ __('Customers Registration Trend') }}</h5>
+                            {{ trans('report.customers_registration_trend') }}</h5>
                     </div>
                     <div class="card__body pt-20" style="min-height: 350px; display: flex; align-items: center;">
                         <canvas id="registrationChart" style="max-height: 300px; width: 100%;"></canvas>
@@ -98,7 +98,7 @@
             <div class="col-lg-4">
                 <div class="card radius-xl p-25 h-100">
                     <div class="card__header pb-20" style="border-bottom: 2px solid #f0f0f0;">
-                        <h5 style="color: {{ config('branding.colors.primary') }};">{{ __('Gender Distribution') }}</h5>
+                        <h5 style="color: {{ config('branding.colors.primary') }};">{{ trans('report.gender_distribution') }}</h5>
                     </div>
                     <div class="card__body pt-20" style="min-height: 350px; display: flex; align-items: center;">
                         <canvas id="genderChart" style="max-height: 300px; width: 100%;"></canvas>
@@ -112,7 +112,7 @@
             <div class="col-lg-12">
                 <div class="userDatatable global-shadow border-light-0 p-30 bg-white radius-xl w-100 mb-30">
                     <div class="d-flex justify-content-between align-items-center mb-25">
-                        <h4 class="mb-0 fw-500 fw-bold">{{ trans('menu.reports.registerd users') }}</h4>
+                        <h4 class="mb-0 fw-500 fw-bold">{{ trans('report.registered_customers') }}</h4>
                     </div>
 
                     {{-- Search & Filters --}}
@@ -125,11 +125,11 @@
                                     <div class="col-md-3">
                                         <div class="form-group">
                                             <label for="search" class="il-gray fs-14 fw-500 mb-10">
-                                                <i class="uil uil-search me-1"></i> {{ __('common.search') }}
+                                                <i class="uil uil-search me-1"></i> {{ trans('report.search') }}
                                             </label>
                                             <input type="text"
                                                 class="form-control ih-medium ip-gray radius-xs b-light px-15"
-                                                id="search" placeholder="{{ __('common.search') }}..."
+                                                id="search" placeholder="{{ trans('report.search') }}..."
                                                 autocomplete="off">
                                         </div>
                                     </div>
@@ -139,7 +139,7 @@
                                         <div class="form-group">
                                             <label for="from-date" class="il-gray fs-14 fw-500 mb-10">
                                                 <i class="uil uil-calendar-alt me-1"></i>
-                                                {{ __('From Date') }}
+                                                {{ trans('report.from_date') }}
                                             </label>
                                             <input type="date"
                                                 class="form-control ih-medium ip-gray radius-xs b-light px-15"
@@ -152,7 +152,7 @@
                                         <div class="form-group">
                                             <label for="to-date" class="il-gray fs-14 fw-500 mb-10">
                                                 <i class="uil uil-calendar-alt me-1"></i>
-                                                {{ __('To Date') }}
+                                                {{ trans('report.to_date') }}
                                             </label>
                                             <input type="date"
                                                 class="form-control ih-medium ip-gray radius-xs b-light px-15"
@@ -165,14 +165,14 @@
                                         <div class="form-group">
                                             <label for="status-filter" class="il-gray fs-14 fw-500 mb-10">
                                                 <i class="uil uil-check-circle me-1"></i>
-                                                {{ __('Status') }}
+                                                {{ trans('report.status') }}
                                             </label>
                                             <select
                                                 class="form-control ih-medium ip-gray radius-xs b-light px-15 form-select"
                                                 id="status-filter">
-                                                <option value="">{{ __('All') }}</option>
-                                                <option value="active">{{ __('Active') }}</option>
-                                                <option value="inactive">{{ __('Inactive') }}</option>
+                                                <option value="">{{ trans('report.all_status') }}</option>
+                                                <option value="active">{{ trans('report.active') }}</option>
+                                                <option value="inactive">{{ trans('report.inactive') }}</option>
                                             </select>
                                         </div>
                                     </div>
@@ -182,14 +182,14 @@
                                         <div class="form-group">
                                             <label for="gender-filter" class="il-gray fs-14 fw-500 mb-10">
                                                 <i class="uil uil-user me-1"></i>
-                                                {{ __('Gender') }}
+                                                {{ trans('report.gender') }}
                                             </label>
                                             <select
                                                 class="form-control ih-medium ip-gray radius-xs b-light px-15 form-select"
                                                 id="gender-filter">
-                                                <option value="">{{ __('All') }}</option>
-                                                <option value="male">{{ __('Male') }}</option>
-                                                <option value="female">{{ __('Female') }}</option>
+                                                <option value="">{{ trans('report.all_gender') }}</option>
+                                                <option value="male">{{ trans('report.male') }}</option>
+                                                <option value="female">{{ trans('report.female') }}</option>
                                             </select>
                                         </div>
                                     </div>
@@ -197,15 +197,15 @@
                                     <div class="col-md-12 d-flex align-items-center gap-2">
                                         <button type="button" id="searchBtn"
                                             class="btn btn-success btn-default btn-squared me-1"
-                                            title="{{ __('common.search') }}">
+                                            title="{{ trans('report.search_button') }}">
                                             <i class="uil uil-search me-1"></i>
-                                            {{ __('common.search') }}
+                                            {{ trans('report.search_button') }}
                                         </button>
                                         <button type="button" id="resetFilters"
                                             class="btn btn-warning btn-default btn-squared me-1"
                                             title="{{ __('common.reset') }}">
                                             <i class="uil uil-redo me-1"></i>
-                                            {{ __('common.reset_filters') }}
+                                            {{ trans('report.reset_button') }}
                                         </button>
                                     </div>
 
@@ -217,14 +217,14 @@
                     {{-- Entries Per Page --}}
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <div class="d-flex align-items-center">
-                            <label class="me-2 mb-0">{{ __('common.show') }}</label>
+                            <label class="me-2 mb-0">{{ trans('report.show') }}</label>
                             <select id="entriesSelect" class="form-select form-select-sm" style="width: auto;">
                                 <option value="10">10</option>
                                 <option value="15">15</option>
                                 <option value="25">25</option>
                                 <option value="50">50</option>
                             </select>
-                            <label class="ms-2 mb-0">{{ __('common.entries') }}</label>
+                            <label class="ms-2 mb-0">{{ trans('report.entries') }}</label>
                         </div>
                     </div>
 
@@ -234,12 +234,12 @@
                             <thead>
                                 <tr class="userDatatable-header">
                                     <th class="text-center"><span class="userDatatable-title">#</span></th>
-                                    <th><span class="userDatatable-title">{{ __('Name') }}</span></th>
-                                    <th><span class="userDatatable-title">{{ __('Email') }}</span></th>
-                                    <th><span class="userDatatable-title">{{ __('Phone') }}</span></th>
-                                    <th><span class="userDatatable-title">{{ __('Gender') }}</span></th>
-                                    <th><span class="userDatatable-title">{{ __('Status') }}</span></th>
-                                    <th><span class="userDatatable-title">{{ __('Registered Date') }}</span></th>
+                                    <th><span class="userDatatable-title">{{ __('report.name') }}</span></th>
+                                    <th><span class="userDatatable-title">{{ __('report.email') }}</span></th>
+                                    <th><span class="userDatatable-title">{{ __('report.phone') }}</span></th>
+                                    <th><span class="userDatatable-title">{{ __('report.gender') }}</span></th>
+                                    <th><span class="userDatatable-title">{{ __('report.status') }}</span></th>
+                                    <th><span class="userDatatable-title">{{ __('report.registered_date') }}</span></th>
                                 </tr>
                             </thead>
                             <tbody></tbody>
@@ -704,7 +704,7 @@
                 data: {
                     labels: [],
                     datasets: [{
-                        label: '{{ __('New Registrations') }}',
+                        label: '{{ trans('report.new_registrations') }}',
                         data: [],
                         borderColor: primaryColor,
                         backgroundColor: primaryColor + '15',
@@ -759,7 +759,7 @@
             genderChart = new Chart(genderCtx, {
                 type: 'doughnut',
                 data: {
-                    labels: ['{{ __('Male') }}', '{{ __('Female') }}'],
+                    labels: ['{{ trans('report.male') }}', '{{ trans('report.female') }}'],
                     datasets: [{
                         data: [0, 0, 0],
                         backgroundColor: [

@@ -4,7 +4,6 @@ use Illuminate\Support\Facades\Route;
 use Modules\Report\app\Http\Controllers\Web\ReportController;
 
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('reports', [ReportController::class, 'index'])->name('reports.index');
         
         // Registered Users Report
@@ -26,5 +25,4 @@ Route::middleware(['auth', 'verified'])->group(function () {
         // Points Report
         Route::get('reports/points', [ReportController::class, 'points'])->name('reports.points');
         Route::get('reports/data/points', [ReportController::class, 'getPointsData'])->name('reports.data.points');
-    });
 });
