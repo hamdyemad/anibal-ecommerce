@@ -13,6 +13,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         // Area Users Report
         Route::get('reports/area-users', [ReportController::class, 'areaUsers'])->name('reports.area-users');
         Route::get('reports/data/area-users', [ReportController::class, 'getAreaUsersData'])->name('reports.data.area-users');
+        Route::get('reports/get-cities', [ReportController::class, 'getCities'])->name('reports.get-cities');
         
         // Orders Report
         Route::get('reports/orders', [ReportController::class, 'orders'])->name('reports.orders');

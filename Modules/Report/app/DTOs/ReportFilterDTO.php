@@ -13,6 +13,7 @@ class ReportFilterDTO
         public ?string $type = null,    // For Orders Report (pending, completed, etc.)
         public ?string $category = null, // For Product Report
         public ?string $vendor = null,   // For Product Report
+        public ?string $city_id = null,  // For Area Users Report (city/area filter)
         public int $page = 1,
         public int $per_page = 10,
     ) {}
@@ -28,6 +29,7 @@ class ReportFilterDTO
             type: $data['type'] ?? null,
             category: $data['category'] ?? null,
             vendor: $data['vendor'] ?? null,
+            city_id: $data['city_id'] ?? null,
             page: $data['page'] ?? 1,
             per_page: $data['per_page'] ?? 10,
         );

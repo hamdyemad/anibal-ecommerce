@@ -108,7 +108,7 @@ class ReportRepository implements ReportRepositoryInterface
     }
 
     /**
-     * Get area users report (Countries by current country_code session)
+     * Get area users report (Customers by current country_code and selected city)
      */
     public function getAreaUsersReport(ReportFilterDTO $filter): array
     {
@@ -118,11 +118,15 @@ class ReportRepository implements ReportRepositoryInterface
             ? \Modules\AreaSettings\app\Models\Country::where('code', $countryCode)->value('id')
             : null;
 
-        $query = \Modules\AreaSettings\app\Models\Country::query();
+        // Start with customers query
+        $query = Customer::query();
 
-        // Filter by current country if session exists
-        if ($countryId) {
-            $query->where('id', $countryId);
+        // If city is selected, filter by city/area
+        if ($filter->city_id) {
+            $query->where('city_id', $filter->city_id);
+        } elseif ($countryId) {
+            // Otherwise filter by country
+            $query->where('country_id', $countryId);
         }
 
         // Date range filter
@@ -141,16 +145,56 @@ class ReportRepository implements ReportRepositoryInterface
         // Search filter
         if ($filter->search) {
             $query->where(function ($q) use ($filter) {
-                $q->where('name', 'like', '%' . $filter->search . '%');
+                $q->where('first_name', 'like', '%' . $filter->search . '%')
+                  ->orWhere('last_name', 'like', '%' . $filter->search . '%')
+                  ->orWhere('email', 'like', '%' . $filter->search . '%')
+                  ->orWhere('phone', 'like', '%' . $filter->search . '%');
             });
         }
 
         $total = $query->count();
 
-        $data = $query->paginate(
-            perPage: $filter->per_page,
-            page: $filter->page
-        );
+        // Get all data for statistics and charts
+        $allData = $query->with(['city'])->get();
+        
+        // Calculate statistics
+        $activeCount = $allData->where('status', 1)->count();
+        $inactiveCount = $allData->where('status', 0)->count();
+        
+        // Calculate registration trend by date
+        $registrationTrend = [];
+        foreach ($allData as $customer) {
+            if ($customer->created_at) {
+                $date = $customer->created_at;
+                $registrationTrend[$date] = ($registrationTrend[$date] ?? 0) + 1;
+            }
+        }
+        ksort($registrationTrend);
+
+        // Calculate city distribution
+        $cityDistribution = [];
+        foreach ($allData as $customer) {
+            $cityName = $customer->city?->name ?? 'Unknown';
+            $cityDistribution[$cityName] = ($cityDistribution[$cityName] ?? 0) + 1;
+        }
+        arsort($cityDistribution); // Sort by count descending
+
+        // Now paginate for table display
+        $data = $query->with(['city'])
+            ->paginate(
+                perPage: $filter->per_page,
+                page: $filter->page,
+                columns: ['id', 'first_name', 'last_name', 'email', 'phone', 'status', 'created_at', 'city_id']
+            );
+
+        // Add index and city name to each item
+        $items = $data->items();
+        $startIndex = ($filter->page - 1) * $filter->per_page + 1;
+        foreach ($items as $index => $item) {
+            $item->index = $startIndex + $index;
+            $item->name = $item->first_name . ' ' . $item->last_name;
+            $item->city_name = $item->city?->name ?? 'N/A';
+        }
 
         return [
             'total' => $total,
@@ -160,7 +204,14 @@ class ReportRepository implements ReportRepositoryInterface
             'last_page' => $data->lastPage(),
             'from' => $data->firstItem(),
             'to' => $data->lastItem(),
-            'data' => $data->items(),
+            'data' => $items,
+            'statistics' => [
+                'active' => $activeCount,
+                'inactive' => $inactiveCount,
+                'total_filtered' => $total,
+            ],
+            'registration_trend' => $registrationTrend,
+            'city_distribution' => $cityDistribution,
         ];
     }
 

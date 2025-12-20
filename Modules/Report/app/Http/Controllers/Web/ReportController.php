@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Modules\Report\app\Services\ReportService;
 use Modules\Report\app\Http\Requests\ReportFilterRequest;
 use Illuminate\Support\Facades\Log;
+use Modules\AreaSettings\app\Resources\CityResource;
 
 class ReportController extends Controller
 {
@@ -87,6 +88,7 @@ class ReportController extends Controller
      */
     public function getAreaUsersData(ReportFilterRequest $request)
     {
+        // dd($request->all());
         try {
             $reportData = $this->reportService->getAreaUsersReport($request->validated());
             return response()->json([
@@ -100,10 +102,44 @@ class ReportController extends Controller
                     'last_page' => $reportData['last_page'],
                     'from' => $reportData['from'],
                     'to' => $reportData['to'],
+                    'statistics' => $reportData['statistics'] ?? [],
+                    'registration_trend' => $reportData['registration_trend'] ?? [],
+                    'status_distribution' => $reportData['status_distribution'] ?? [],
                 ],
             ], 200, [], JSON_UNESCAPED_SLASHES);
         } catch (\Exception $e) {
             Log::error('Report Error: ' . $e->getMessage(), ['exception' => $e]);
+            return response()->json([
+                'status' => false,
+                'message' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Get cities for current country
+     */
+    public function getCities()
+    {
+        try {
+            $countryCode = session('country_code');
+            $cities = [];
+            
+            if ($countryCode) {
+                $country = \Modules\AreaSettings\app\Models\Country::where('code', $countryCode)->first();
+                if ($country) {
+                    $cities = $country->cities()
+                        ->where('active', 1)->with('translations')
+                        ->get();
+                }
+            }
+            
+            return response()->json([
+                'status' => true,
+                'cities' => CityResource::collection($cities),
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Get Cities Error: ' . $e->getMessage(), ['exception' => $e]);
             return response()->json([
                 'status' => false,
                 'message' => $e->getMessage(),
