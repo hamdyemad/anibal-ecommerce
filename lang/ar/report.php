@@ -8,6 +8,7 @@ return [
     'customers_registration_trend' => 'اتجاه تسجيل العملاء',
     'customer_registration_trend' => 'اتجاه تسجيل العملاء',
     'customers_by_city' => 'العملاء حسب المدينة',
+    'city_distribution' => 'توزيع المدن',
     'monthly_registrations' => 'التسجيلات الشهرية',
     'gender_distribution' => 'توزيع النوع',
     'registered_customers' => 'العملاء المسجلين',

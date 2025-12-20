@@ -8,6 +8,7 @@ return [
     'customers_registration_trend' => 'Customers Registration Trend',
     'customer_registration_trend' => 'Customer Registration Trend',
     'customers_by_city' => 'Customers by City',
+    'city_distribution' => 'City Distribution',
     'monthly_registrations' => 'Monthly Registrations',
     'gender_distribution' => 'Gender Distribution',
     'registered_customers' => 'Registered Customers',

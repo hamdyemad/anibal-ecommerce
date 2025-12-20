@@ -88,7 +88,7 @@
                 <div class="card radius-xl p-25 h-100">
                     <div class="card__header pb-20" style="border-bottom: 2px solid #f0f0f0;">
                         <h5 style="color: {{ config('branding.colors.primary') }};">
-                            {{ __('Customers by City') }}</h5>
+                            {{ __('report.customers_by_city') }}</h5>
                     </div>
                     <div class="card__body pt-20" style="min-height: 350px; display: flex; align-items: center;">
                         <canvas id="cityChart" style="max-height: 300px; width: 100%;"></canvas>
@@ -98,7 +98,7 @@
             <div class="col-lg-6">
                 <div class="card radius-xl p-25 h-100">
                     <div class="card__header pb-20" style="border-bottom: 2px solid #f0f0f0;">
-                        <h5 style="color: {{ config('branding.colors.primary') }};">{{ __('City Distribution') }}</h5>
+                        <h5 style="color: {{ config('branding.colors.primary') }};">{{ __('report.city_distribution') }}</h5>
                     </div>
                     <div class="card__body pt-20" style="min-height: 350px; display: flex; align-items: center;">
                         <canvas id="statusChart" style="max-height: 300px; width: 100%;"></canvas>
