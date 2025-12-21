@@ -62,7 +62,113 @@
 
                             <!-- Step 1: Product Information -->
                             <div class="wizard-step-content active" data-step="1">
-                                <!-- Card 1: Product Information -->
+                                <!-- Card 1: Product Type & Selection -->
+                                <div class="card mb-4">
+                                    <div class="card-body">
+                                        <h5 class="mb-4">
+                                            <i class="uil uil-layers"></i>
+                                            {{ __('catalogmanagement::product.product_type') }}
+                                        </h5>
+                                        <div class="row">
+                                            @if ($isVendorUser)
+                                                <!-- Hidden input for vendor users -->
+                                                <input class="form-control" type="hidden" name="vendor_id" id="vendor_id"
+                                                    value="{{ auth()->user()->vendor->id ?? '' }}">
+                                            @else
+                                                <!-- Vendor select for admin users -->
+                                                <div class="col-md-12 mb-3">
+                                                    <div class="form-group">
+                                                        <label for="vendor_id" class="form-label">
+                                                            {{ __('catalogmanagement::product.vendor') }}
+                                                            <span class="text-danger">*</span>
+                                                        </label>
+                                                        <select name="vendor_id" id="vendor_id"
+                                                            class="form-control select2">
+                                                            <option value="">{{ __('common.select_option') }}
+                                                            </option>
+                                                            @foreach ($vendors as $vendor)
+                                                                <option value="{{ $vendor['id'] }}"
+                                                                    {{ isset($product) && $product->vendor_id == $vendor['id'] ? 'selected' : '' }}>
+                                                                    {{ $vendor['name'] }}
+                                                                </option>
+                                                            @endforeach
+                                                        </select>
+                                                        <div class="error-message text-danger" id="error-vendor_id"
+                                                            style="display: none;"></div>
+                                                    </div>
+                                                </div>
+                                            @endif
+                                        </div>
+
+                                        <div class="row mb-3" id="bank-product-switcher-container" style="display: none;">
+                                            <div class="col-md-12">
+                                                <div class="form-group">
+                                                    <label
+                                                        class="form-label d-block">{{ __('catalogmanagement::product.is_product_from_bank') }}?</label>
+                                                    <div class="form-check form-switch form-switch-lg">
+                                                        <input class="form-check-input" type="checkbox" role="switch"
+                                                            id="is_bank_product" name="is_bank_product" value="1">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Bank Product Search Section -->
+                                        <div class="row" id="bank-product-search-section" style="display: none;">
+                                            <div class="col-md-12 mb-3">
+                                                <div class="selection-step" id="step-products">
+                                                    <div class="form-group">
+                                                        <label for="product-search" class="form-label">
+                                                            {{ trans('catalogmanagement::product.search_products') }}
+                                                            ({{ trans('catalogmanagement::product.bank_products') }})
+                                                        </label>
+                                                        <input type="text" id="product-search"
+                                                            class="form-control ih-medium ip-gray radius-xs b-light px-15"
+                                                            placeholder="{{ trans('catalogmanagement::product.search_products') }}">
+
+                                                        <!-- Search Loading Indicator -->
+                                                        <div id="products-loading" style="display: none;">
+                                                            <div class="text-center py-2">
+                                                                <div class="spinner-border spinner-border-sm text-primary"
+                                                                    role="status">
+                                                                    <span
+                                                                        class="visually-hidden">{{ __('common.loading') }}...</span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        <div id="products-list-container" class="mt-2"
+                                                            style="max-height: 300px; overflow-y: auto; display: none;">
+                                                            <div id="products-list" class="list-group">
+                                                                <!-- Products will be loaded here -->
+                                                            </div>
+                                                        </div>
+
+                                                        <div id="selected-product-summary" class="mt-2"
+                                                            style="display: none;">
+                                                            <div
+                                                                class="alert alert-success d-flex justify-content-between align-items-center mb-0">
+                                                                <span>
+                                                                    <i class="uil uil-check-circle me-1"></i>
+                                                                    <span id="selected-product-name"></span>
+                                                                    {{ trans('catalogmanagement::product.product_selected') }}
+                                                                </span>
+                                                                <button type="button" class="btn btn-sm btn-outline-danger"
+                                                                    id="clear-selected-product">
+                                                                    <i class="uil uil-times m-0"></i>
+                                                                </button>
+                                                            </div>
+                                                            <input type="hidden" name="bank_product_id"
+                                                                id="bank_product_id">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Card 2: Product Details -->
                                 <div class="card mb-4">
                                     <div class="card-body">
                                         <h5 class="mb-4">
@@ -93,7 +199,6 @@
                                                             @if ($language->code == 'ar' && (app()->getLocale() == 'en' || app()->getLocale() == 'ar')) dir="rtl"
                                                     @else
                                                         dir="ltr" @endif
-                                                            {{-- " --}}
                                                             value="{{ isset($product) ? ($product->product && method_exists($product->product, 'getTranslation') ? $product->product->getTranslation('title', $language->code) : (method_exists($product, 'getTranslation') ? $product->getTranslation('title', $language->code) : '')) ?? '' : '' }}">
                                                         <div class="error-message text-danger"
                                                             id="error-translations-{{ $language->id }}-title"
@@ -106,8 +211,8 @@
                                             <div class="col-md-12 mb-3">
                                                 <div class="form-group">
                                                     <label for="sku"
-                                                        class="form-label">{{ __('catalogmanagement::product.sku') }} <span
-                                                            class="text-danger">*</span></label>
+                                                        class="form-label">{{ __('catalogmanagement::product.sku') }}
+                                                        <span class="text-danger">*</span></label>
                                                     <input type="text" name="sku" id="sku"
                                                         class="form-control ih-medium ip-gray radius-xs b-light px-15"
                                                         placeholder="{{ __('catalogmanagement::product.sku') }}"
@@ -144,14 +249,14 @@
                                     </div>
                                 </div>
 
-                                <!-- Card 2: Organization -->
-                                <div class="card mb-4">
+                                <!-- Card 3: Organization -->
+                                <div class="card mb-4" id="organization-section">
                                     <div class="card-body">
                                         <h5 class="mb-4">
                                             <i class="uil uil-sitemap"></i>
                                             {{ __('common.organization') }}
                                         </h5>
-                                        <div class="row">
+                                        <div class="row mt-3">
                                             <div class="col-md-6 mb-3">
                                                 <div class="form-group">
                                                     <label for="brand_id"
@@ -161,43 +266,14 @@
                                                         <option value="">{{ __('common.select_option') }}</option>
                                                         @foreach ($brands as $brand)
                                                             <option value="{{ $brand['id'] }}"
-                                                                {{ isset($product) && $product->product->brand_id == $brand['id'] ? 'selected' : '' }}>
+                                                                {{ isset($product) && isset($product->product) && $product->product->brand_id == $brand['id'] ? 'selected' : '' }}>
                                                                 {{ $brand['name'] }}</option>
                                                         @endforeach
                                                     </select>
+                                                    <div class="error-message text-danger" id="error-brand_id"
+                                                        style="display: none;"></div>
                                                 </div>
                                             </div>
-                                            @if (in_array(auth()->user()->user_type_id, \App\Models\UserType::vendorIds()))
-                                                <!-- Hidden input for vendor users -->
-                                                <input class="form-control" type="hidden" name="vendor_id" id="vendor_id"
-                                                    value="{{ auth()->user()->vendor->id ?? '' }}">
-                                            @else
-                                                <!-- Vendor select for admin users -->
-                                                <div class="col-md-6 mb-3">
-                                                    <div class="form-group">
-                                                        <label for="vendor_id" class="form-label">
-                                                            {{ __('catalogmanagement::product.vendor') }}
-                                                            <span class="text-danger">*</span>
-                                                        </label>
-                                                        <select name="vendor_id" id="vendor_id"
-                                                            class="form-control select2">
-                                                            <option value="">{{ __('common.select_option') }}
-                                                            </option>
-                                                            @foreach ($vendors as $vendor)
-                                                                <option value="{{ $vendor['id'] }}"
-                                                                    {{ isset($product) && $product->vendor_id == $vendor['id'] ? 'selected' : '' }}>
-                                                                    {{ $vendor['name'] }}
-                                                                </option>
-                                                            @endforeach
-                                                        </select>
-                                                        <div class="error-message text-danger" id="error-vendor_id"
-                                                            style="display: none;"></div>
-                                                    </div>
-                                                </div>
-                                            @endif
-
-
-
                                             <div class="col-md-6 mb-3">
                                                 <div class="form-group">
                                                     <label for="department_id"
@@ -207,9 +283,10 @@
                                                         class="form-control select2">
                                                         <option value="">{{ __('common.select_option') }}</option>
                                                     </select>
+                                                    <div class="error-message text-danger" id="error-department_id"
+                                                        style="display: none;"></div>
                                                 </div>
                                             </div>
-
                                             <div class="col-md-6 mb-3">
                                                 <div class="form-group">
                                                     <label for="category_id"
@@ -219,9 +296,10 @@
                                                         class="form-control select2">
                                                         <option value="">{{ __('common.select_option') }}</option>
                                                     </select>
+                                                    <div class="error-message text-danger" id="error-category_id"
+                                                        style="display: none;"></div>
                                                 </div>
                                             </div>
-
                                             <div class="col-md-6 mb-3">
                                                 <div class="form-group">
                                                     <label for="sub_category_id"
@@ -230,13 +308,15 @@
                                                         class="form-control select2">
                                                         <option value="">{{ __('common.select_option') }}</option>
                                                     </select>
+                                                    <div class="error-message text-danger" id="error-sub_category_id"
+                                                        style="display: none;"></div>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
 
-                                <!-- Card 3: Logistics & Taxes -->
+                                <!-- Card 4: Logistics & Taxes -->
                                 <div class="card mb-4">
                                     <div class="card-body">
                                         <h5 class="mb-4">
@@ -337,7 +417,7 @@
                             <div class="wizard-step-content" data-step="2" style="display: none;">
 
                                 <!-- Main Product Image -->
-                                <div class="card mb-4">
+                                <div id="main-image-card" class="card mb-4">
                                     <div class="card-body">
                                         <h5 class="mb-4">
                                             <i class="uil uil-image"></i>
@@ -360,7 +440,7 @@
                                     </div>
                                 </div>
                                 <!-- Additional Images -->
-                                <div class="card mb-4">
+                                <div id="additional-images-card" class="card mb-4">
                                     <div class="card-body">
                                         <h5 class="mb-4">
                                             <i class="uil uil-image"></i>
@@ -370,6 +450,9 @@
                                             <div class="col-md-12 mb-3">
                                                 <input type="file" multiple class="form-control" accept="image/*"
                                                     name="additional_images[]">
+                                                <div id="gallery-preview-container" class="mt-3 d-flex flex-wrap gap-2">
+                                                    <!-- Gallery images dynamically here -->
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -722,7 +805,7 @@
                                 </button>
                                 <div class="d-flex justify-content-end gap-2 w-100">
                                     <a href="#" class="btn btn-light btn-squared">
-                                        <i class="uil uil-times"></i> {{ __('common.cancel') }}
+                                        <i class="uil uil-times m-0"></i> {{ __('common.cancel') }}
                                     </a>
                                     <button type="button" id="nextBtn" class="btn btn-primary btn-squared">
                                         {{ __('common.next') }}
@@ -761,10 +844,10 @@
                                     </div>
                                     <div class="modal-footer">
                                         <button type="button" class="btn-secondary" data-bs-dismiss="modal">
-                                            <i class="uil uil-times me-1"></i>{{ __('common.cancel') }}
+                                            <i class="uil uil-times m-0"></i>{{ __('common.cancel') }}
                                         </button>
                                         <button type="button" class="btn btn-danger" id="confirmDeleteImageBtn">
-                                            <i class="uil uil-trash me-1"></i>{{ __('common.delete') }}
+                                            <i class="uil uil-trash m-0"></i>{{ __('common.delete') }}
                                         </button>
                                     </div>
                                 </div>
@@ -946,7 +1029,8 @@
                                         </div>
                                         <input type="hidden" name="variants[__VARIANT_INDEX__][variant_configuration_id]"
                                             class="selected-variant-id">
-                                        <div class="alert alert-info mt-2 selected-variant-path" style="display: none;">
+                                        <div class="alert alert-info mt-2 selected-variant-path mb-2"
+                                            style="display: none;">
                                             <strong>{{ __('catalogmanagement::product.selected_variant') }}:</strong>
                                             <span class="path-text"></span>
                                         </div>
@@ -991,12 +1075,29 @@
                     selectOption: '{{ __('common.select_option') }}',
                     error: '{{ __('common.error') }}',
                     success: '{{ __('common.success') }}'
-                }
+                },
+                vendorName: '{{ auth()->user()->vendor->name ?? '' }}'
             };
+
+            let currentBankProduct = null;
 
             // ============================================
             // Step Navigation Functions
             // ============================================
+            function getVendorName() {
+                let name = config.vendorName;
+                if (!name) {
+                    name = $('#vendor_id option:selected').text().trim();
+                }
+                return name || 'Vendor';
+            }
+
+            function generateVendorSku(baseSku) {
+                const vendorName = getVendorName().replace(/\s+/g, '-').toLowerCase();
+                const randomNum = Math.floor(10000 + Math.random() * 90000); // 5 digits: 10000 to 99999
+                return `${baseSku}-${vendorName}-${randomNum}`;
+            }
+
             function showStep(stepNumber) {
                 console.log('📍 Showing step:', stepNumber);
 
@@ -1025,13 +1126,17 @@
                 $currentStep.show().addClass('active');
 
                 // Update wizard navigation
-                $('.wizard-step-nav').removeClass('current completed');
+                $('.wizard-step-nav').removeClass('current completed locked');
                 $('.wizard-step-nav').each(function() {
                     const step = parseInt($(this).data('step'));
                     if (step < stepNumber) {
-                        $(this).addClass('completed');
+                        $(this).addClass('completed').css('cursor', 'pointer');
                     } else if (step === stepNumber) {
-                        $(this).addClass('current');
+                        $(this).addClass('current').css('cursor', 'pointer');
+                    } else if (step === stepNumber + 1) {
+                        $(this).css('cursor', 'pointer'); // Next immediate step is clickable
+                    } else if (step > stepNumber + 1) {
+                        $(this).addClass('locked').css('cursor', 'not-allowed');
                     }
                 });
 
@@ -1158,6 +1263,12 @@
 
                     case 2:
                         // Main image validation
+                        const $isBankProduct = $('#is_bank_product');
+                        if ($isBankProduct.is(':checked')) {
+                            console.log('✅ Skipping image validation for bank product');
+                            break;
+                        }
+
                         const mainImageInput = $('#main_image')[0];
                         const hasExistingImage = $('#main_image').data('existing-image');
 
@@ -1242,9 +1353,11 @@
                                         const $variant = $(this);
                                         const variantIndex = $variant.data('variant-index');
 
-                                        // Check if variant key is selected
+                                        // Check if variant key is selected (only if not a bank product)
+                                        const isBankProduct = $('#is_bank_product').is(':checked');
                                         const keySelected = $variant.find('.variant-key-select').val();
-                                        if (!keySelected) {
+
+                                        if (!isBankProduct && !keySelected) {
                                             $variant.find('.variant-key-select').next('.select2').find(
                                                 '.select2-selection').addClass('is-invalid');
                                             errors.push(
@@ -1362,7 +1475,7 @@
             // ============================================
             // Cascading Dropdowns Functions
             // ============================================
-            function loadDepartmentsByVendor(vendorId) {
+            function loadDepartmentsByVendor(vendorId, callback = null) {
                 const $departmentSelect = $('#department_id');
                 const $categorySelect = $('#category_id');
                 const $subCategorySelect = $('#sub_category_id');
@@ -1426,6 +1539,10 @@
                             width: '100%',
                             theme: 'bootstrap-5'
                         });
+
+                        if (typeof callback === 'function') {
+                            callback(departments);
+                        }
                     },
                     error: function(xhr, status, error) {
                         console.error('❌ Error loading departments:', error);
@@ -1437,7 +1554,7 @@
                 });
             }
 
-            function loadCategoriesByDepartment(departmentId) {
+            function loadCategoriesByDepartment(departmentId, callback = null) {
                 const $categorySelect = $('#category_id');
                 const $subCategorySelect = $('#sub_category_id');
 
@@ -1499,6 +1616,10 @@
                             width: '100%',
                             theme: 'bootstrap-5',
                         });
+
+                        if (typeof callback === 'function') {
+                            callback(categories);
+                        }
                     },
                     error: function(xhr, status, error) {
                         console.error('❌ Error loading categories:', error);
@@ -1510,7 +1631,7 @@
                 });
             }
 
-            function loadSubCategoriesByCategory(categoryId) {
+            function loadSubCategoriesByCategory(categoryId, callback = null) {
                 const $subCategorySelect = $('#sub_category_id');
 
                 // Reset dropdown
@@ -1570,6 +1691,10 @@
                             width: '100%',
                             theme: 'bootstrap-5',
                         });
+
+                        if (typeof callback === 'function') {
+                            callback(subcategories);
+                        }
                     },
                     error: function(xhr, status, error) {
                         console.error('❌ Error loading subcategories:', error);
@@ -1774,7 +1899,7 @@
                             } else {
                                 alert(
                                     '{{ __('catalogmanagement::product.contact_support_vendor_regions') }}'
-                                    );
+                                );
                             }
                         }
 
@@ -2055,25 +2180,45 @@
                 // Wizard step click
                 $(document).on('click', '.wizard-step-nav', function(e) {
                     e.preventDefault();
-                    const targetStep = parseInt($(this).data('step'));
-                    console.log('🎯 Wizard step clicked:', targetStep, 'Current:', config.currentStep);
+                    const $step = $(this);
 
-                    // If moving forward, validate current step first
-                    if (targetStep > config.currentStep) {
-                        console.log('⚠️ Moving forward, validating current step...');
-                        if (!validateStep(config.currentStep)) {
-                            console.log('❌ Validation failed, staying on current step');
-                            return;
-                        }
+                    if ($step.hasClass('locked')) {
+                        console.log('🚫 Step is locked');
+                        return;
                     }
 
-                    showStep(targetStep);
+                    const targetStep = parseInt($step.data('step'));
+                    console.log('🎯 Wizard step clicked:', targetStep, 'Current:', config.currentStep);
+
+                    // Allow moving backward freely
+                    if (targetStep < config.currentStep) {
+                        showStep(targetStep);
+                        return;
+                    }
+
+                    // For moving forward
+                    if (targetStep === config.currentStep + 1) {
+                        // Validate current step before moving to immediate next
+                        if (validateStep(config.currentStep)) {
+                            showStep(targetStep);
+                        } else {
+                            console.log('❌ Validation failed for current step');
+                        }
+                    } else if (targetStep > config.currentStep + 1) {
+                        // Block jumping more than one step ahead
+                        console.log('🚫 Sequential navigation required: cannot jump to step',
+                            targetStep);
+                        toastr.warning(
+                            '{{ trans('catalogmanagement::product.please_complete_current_step') ?? 'Please complete the current step first' }}'
+                        );
+                    }
                 });
 
                 // Auto-load departments and regions on page load if vendor is already selected
                 const initialVendorId = $('#vendor_id').val();
                 if (initialVendorId) {
                     console.log('📦 Auto-loading departments and regions for vendor:', initialVendorId);
+                    $('#bank-product-switcher-container').show();
                     loadDepartmentsByVendor(initialVendorId);
                     loadRegions(initialVendorId);
                 } else {
@@ -2085,9 +2230,486 @@
                 $('#vendor_id').on('change', function() {
                     const vendorId = $(this).val();
                     console.log('📦 Vendor changed:', vendorId);
-                    loadDepartmentsByVendor(vendorId);
-                    loadRegions(vendorId);
+
+                    if (vendorId) {
+                        $('#bank-product-switcher-container').fadeIn();
+                        loadDepartmentsByVendor(vendorId);
+                        loadRegions(vendorId);
+                    } else {
+                        $('#bank-product-switcher-container').hide();
+                        $('#is_bank_product').prop('checked', false).trigger('change');
+                        $('#bank-product-search-section').hide();
+                        clearSelectedProduct();
+                    }
                 });
+
+                // Bank Product Switcher Change
+                $('#is_bank_product').on('change', function() {
+                    if ($(this).is(':checked')) {
+                        $('#bank-product-search-section').slideDown();
+                    } else {
+                        $('#bank-product-search-section').slideUp();
+                        clearSelectedProduct();
+                        enableAllFields();
+                    }
+                });
+
+                // Product Search Handler
+                let searchTimeout;
+                $('#product-search').on('input', function() {
+                    const searchTerm = $(this).val();
+                    clearTimeout(searchTimeout);
+
+                    if (searchTerm.length >= 2) {
+                        searchTimeout = setTimeout(() => {
+                            searchProducts(searchTerm);
+                        }, 500);
+                    } else {
+                        $('#products-list-container').hide();
+                        $('#products-list').empty();
+                    }
+                });
+
+                // Clear selected product
+                $('#clear-selected-product').on('click', function() {
+                    clearSelectedProduct();
+                });
+
+                // Product Selection from list
+                $(document).on('click', '.select-bank-product', function(e) {
+                    e.preventDefault();
+                    const productId = $(this).data('product-id');
+                    const productData = $(this).data('product');
+                    selectProduct(productId, productData);
+                });
+
+                function searchProducts(searchTerm) {
+                    const vendorId = $('#vendor_id').val();
+                    if (!vendorId) return;
+
+                    $('#products-loading').show();
+                    $('#products-list-container').hide();
+
+                    $.ajax({
+                        url: '{{ route('admin.products.bank.api.products') }}',
+                        type: 'GET',
+                        data: {
+                            type: 'search',
+                            search: searchTerm,
+                            vendor_id: vendorId
+                        },
+                        success: function(response) {
+                            $('#products-loading').hide();
+                            if (response.success && response.data.products.length > 0) {
+                                displayProducts(response.data.products);
+                            } else {
+                                $('#products-list').html(
+                                    '<div class="list-group-item">{{ trans('catalogmanagement::product.no_results_found') }}</div>'
+                                );
+                                $('#products-list-container').show();
+                            }
+                        },
+                        error: function() {
+                            $('#products-loading').hide();
+                        }
+                    });
+                }
+
+                function displayProducts(products) {
+                    let html = '';
+                    products.forEach(product => {
+                        html += `
+                            <a href="#" class="list-group-item list-group-item-action select-bank-product" 
+                                data-product-id="${product.id}" 
+                                data-product='${JSON.stringify(product).replace(/'/g, "&apos;")}'>
+                                <div class="d-flex w-100 justify-content-between align-items-center">
+                                    <div class="d-flex align-items-center">
+                                        <img src="${product.image || '/assets/img/default.png'}" class="me-2" style="width: 40px; height: 40px; object-fit: cover; border-radius: 4px;">
+                                        <div>
+                                            <h6 class="mb-0">${product.name}</h6>
+                                            <small class="text-muted">${product.brand || ''} | ${product.category || ''}</small>
+                                        </div>
+                                    </div>
+                                    <span class="badge bg-primary rounded-pill"><i class="uil uil-plus"></i></span>
+                                </div>
+                            </a>
+                        `;
+                    });
+                    $('#products-list').html(html);
+                    $('#products-list-container').show();
+                }
+
+                function selectProduct(productId, productData) {
+                    $('#bank_product_id').val(productId);
+                    $('#selected-product-name').text(productData.name);
+                    $('#selected-product-summary').show();
+                    $('#products-list-container').hide();
+                    $('#product-search').val('');
+
+                    // Pre-fill the form
+                    preFillForm(productData);
+                }
+
+                function clearSelectedProduct() {
+                    currentBankProduct = null;
+                    $('#bank_product_id').val('');
+                    $('#selected-product-summary').hide();
+                    $('#product-search').val('');
+
+                    // Re-enable fields
+                    enableAllFields();
+
+                    // Re-enable Step 2
+                    toggleStep2(true);
+
+                    // Clear images
+                    clearImagePreviews();
+
+                    // Clear tags
+                    $('[id^="tags_"], [id^="meta_keywords_"]').each(function() {
+                        const instance = $(this).data('tagsInput') || $(this).data('tags-input');
+                        if (instance) instance.clearTags();
+                    });
+
+                    // Clear variants
+                    $('#variants-container').empty();
+                    $('#variants-empty-state').show();
+                    variantCounter = 0;
+                }
+
+                function preFillForm(product) {
+                    currentBankProduct = product;
+                    console.log('📝 Pre-filling form with product:', product);
+
+                    // Clear any existing validation errors when selecting a bank product
+                    $('.is-invalid').removeClass('is-invalid');
+                    $('.error-message').hide().text('');
+                    $('.invalid-feedback').hide().text('');
+                    $('.select2-selection').removeClass('is-invalid');
+                    $('.select2-container--bootstrap-5 .select2-selection').removeClass('is-invalid');
+
+                    // 1. Fill Titles and Descriptions
+                    if (product.translations) {
+                        Object.keys(product.translations).forEach(langId => {
+                            const fields = product.translations[langId];
+                            console.log('Fields for lang', langId, ':', fields);
+
+                            // Helper to set field content (handles input and textarea)
+                            const setFieldContent = (name, value) => {
+                                const fieldName = `translations[${langId}][${name}]`;
+                                const $field = $(`[name="${fieldName}"]`);
+
+                                if ($field.length) {
+                                    // Set value for regular inputs/textareas
+                                    $field.val(value || '');
+
+                                    // If it's a textarea, check for TinyMCE or CKEditor
+                                    if ($field.is('textarea')) {
+                                        const id = $field.attr('id');
+                                        if (id && typeof tinymce !== 'undefined' && tinymce.get(
+                                                id)) {
+                                            tinymce.get(id).setContent(value || '');
+                                        } else if (id && typeof CKEDITOR !== 'undefined' && CKEDITOR
+                                            .instances[id]) {
+                                            CKEDITOR.instances[id].setData(value || '');
+                                        }
+                                    }
+                                }
+                            };
+
+                            setFieldContent('title', fields.title);
+                            setFieldContent('details', fields.details);
+                            setFieldContent('summary', fields.summary);
+                            setFieldContent('features', fields.features);
+                            setFieldContent('instructions', fields.instructions);
+                            setFieldContent('extra_description', fields.extra_description);
+                            setFieldContent('material', fields.material);
+                            setFieldContent('meta_title', fields.meta_title);
+                            setFieldContent('meta_description', fields.meta_description);
+                            setFieldContent('meta_keywords', fields.meta_keywords);
+
+                            // Handle tags and meta_keywords (tags-input component)
+                            ['tags', 'meta_keywords'].forEach(fieldName => {
+                                if (fields[fieldName]) {
+                                    const $tagsHiddenInput = $(
+                                        `input[name="translations[${langId}][${fieldName}]"]`
+                                    );
+                                    if ($tagsHiddenInput.length) {
+                                        const $container = $tagsHiddenInput.closest(
+                                            '.tags-input-container');
+                                        const tagsInputInstance = $container[0].tagsInput ||
+                                            $container.data('tags-input');
+                                        if (tagsInputInstance) {
+                                            const tagsArray = fields[fieldName].split(',').map(
+                                                t => t.trim()).filter(t => t !== '');
+                                            tagsInputInstance.setTags(tagsArray);
+                                        }
+                                    }
+                                }
+                            });
+                        });
+
+                        // Disable Step 1 restricted fields for Bank Products
+                        $('input[id^="title_"]').prop('readonly', true);
+                        $('[id^="tags_"], [id^="meta_keywords_"]').each(function() {
+                            const $container = $(this);
+                            const instance = $container.data('tagsInput') || $container.data(
+                                'tags-input');
+                            if (instance && typeof instance.setDisabled === 'function') {
+                                instance.setDisabled(true);
+                            } else {
+                                // Fallback for manual disabling if instance not found or method missing
+                                $container.find('input.tags-input').prop('disabled', true);
+                                $container.find('.tag-remove').hide();
+                            }
+                        });
+                    }
+
+                    // 2. Handle SKU
+                    const baseSku = product.sku || 'SKU';
+                    const generatedSku = generateVendorSku(baseSku);
+                    $('#sku').val(generatedSku);
+                    $('#sku').closest('.col-md-12').hide();
+
+                    // Helper to disable and ensure value is sent
+                    const disableAndEnsureValue = ($el, value) => {
+                        $el.val(value).trigger('change').prop('disabled', true);
+                        // Add hidden input if it doesn't exist
+                        const name = $el.attr('name');
+                        if (name && $(`input[type="hidden"][name="${name}"]`).length === 0) {
+                            $el.after(`<input type="hidden" name="${name}" value="${value}">`);
+                        }
+                    };
+
+                    // 3. Fill Organizations
+                    if (product.brand_id) {
+                        disableAndEnsureValue($('#brand_id'), product.brand_id);
+                    }
+
+                    if (product.department_id) {
+                        disableAndEnsureValue($('#department_id'), product.department_id);
+
+                        // Chain category loading
+                        loadCategoriesByDepartment(product.department_id, function() {
+                            if (product.category_id) {
+                                disableAndEnsureValue($('#category_id'), product.category_id);
+
+                                // Chain subcategory loading
+                                loadSubCategoriesByCategory(product.category_id, function() {
+                                    if (product.sub_category_id) {
+                                        disableAndEnsureValue($('#sub_category_id'), product
+                                            .sub_category_id);
+                                    }
+                                });
+                            }
+                        });
+                    }
+
+                    // Fill status/featured (keep enabled as requested)
+                    $('#is_active').prop('checked', product.is_active == 1);
+                    $('#is_featured').prop('checked', product.is_featured == 1);
+
+                    // 4. Configuration Type
+                    if (product.configuration_type) {
+                        disableAndEnsureValue($('#configuration_type'), product.configuration_type);
+                    }
+
+                    // 6. Disable Step 4 (SEO) inputs for Bank Products
+                    const $step4 = $('.wizard-step-content[data-step="4"]');
+                    $step4.find('input, textarea, select, button').each(function() {
+                        const $el = $(this);
+                        $el.prop('disabled', true);
+                        // For tags-input in Step 4
+                        const instance = $el.closest('.tags-input-container').data('tagsInput') || $el
+                            .data('tags-input');
+                        if (instance && typeof instance.setDisabled === 'function') {
+                            instance.setDisabled(true);
+                        }
+                    });
+
+                    // 7. Hide Add Variant button for Bank Products
+                    $('#add-variant-btn').hide();
+
+                    // 5. Load Variants if applicable
+                    if (product.configuration_type === 'variants' && product.variants && product.variants
+                        .length > 0) {
+                        console.log('🚀 Auto-loading variants for bank product...');
+                        $('#variants-container').empty();
+                        $('#variants-empty-state').hide();
+                        variantCounter = 0;
+
+                        product.variants.forEach((variant) => {
+                            addVariantBox();
+                            const currentIdx = variantCounter - 1;
+                            const $variantBox = $(`#variant-${currentIdx}`);
+
+                            // Hide key selection for bank products since they are fixed
+                            $variantBox.find('.variant-key-select').closest('.row').hide();
+
+                            // Directly set configuration and path
+                            $variantBox.find('.selected-variant-id').val(variant
+                                .variant_configuration_id);
+                            const $pathAlert = $variantBox.find('.selected-variant-path');
+                            $pathAlert.find('.path-text').text(variant.name || 'Default');
+                            $pathAlert.show();
+                            $variantBox.find('.variant-tree-container').show();
+
+                            // Create pricing & stock box
+                            createVariantPricingStockBox(currentIdx, variant.name || 'Default');
+
+                            // Handle Variant SKU
+                            const vBaseSku = variant.sku || baseSku;
+                            const vGeneratedSku = generateVendorSku(vBaseSku);
+                            $variantBox.find('.sku-input').val(vGeneratedSku);
+                            $variantBox.find('.variant-sku-field').hide();
+                        });
+                    }
+
+                    // 6. Handle Images and Disable Step 2
+                    if (product.image) {
+                        setMainImagePreview(product.image);
+                    }
+                    if (product.gallery && product.gallery.length > 0) {
+                        setGalleryPreview(product.gallery);
+                    }
+
+                    // Disable all inputs in Step 2
+                    toggleStep2(false);
+                }
+
+                // Global lightbox click handler for delegated triggers
+                $(document).on('click', '.lightbox-trigger', function(e) {
+                    e.preventDefault();
+                    const src = $(this).attr('src');
+                    console.log('🖼️ Opening lightbox for:', src);
+                    $('#lightbox-img').attr('src', src);
+                    $('#bankImageLightboxModal').modal('show');
+                });
+
+                function toggleStep2(enabled) {
+                    const $step2 = $('.wizard-step-content[data-step="2"]');
+                    $step2.find('input, textarea, select, button').prop('disabled', !enabled);
+
+                    // Ensure standard Media cards are visible
+                    $('#main-image-card, #additional-images-card').show();
+
+                    // Special handling for the custom image upload buttons and overlays
+                    if (!enabled) {
+                        $step2.find('.image-overlay').hide();
+                        $step2.find('.image-preview-container, .logo-preview-container').css('cursor',
+                            'default');
+                    } else {
+                        $step2.find('.image-overlay').show();
+                        $step2.find('.image-preview-container, .logo-preview-container').css('cursor',
+                            'pointer');
+                    }
+
+                    // Handle TinyMCE/CKEditor instances in Step 2
+                    $step2.find('textarea').each(function() {
+                        const id = $(this).attr('id');
+                        if (!id) return;
+
+                        if (typeof tinymce !== 'undefined' && tinymce.get(id)) {
+                            tinymce.get(id).mode.set(!enabled ? 'readonly' : 'design');
+                        }
+                        if (typeof CKEDITOR !== 'undefined' && CKEDITOR.instances[id]) {
+                            CKEDITOR.instances[id].setReadOnly(!enabled);
+                        }
+                    });
+                }
+
+                function setMainImagePreview(url) {
+                    const $input = $('#main_image');
+                    const previewId = $input.data('preview');
+                    if (previewId) {
+                        const $container = $(`#${previewId}-preview-container`);
+                        const $placeholder = $(`#${previewId}-placeholder`);
+
+                        let $img = $(`#${previewId}-preview-img`);
+                        if ($img.length === 0) {
+                            $img = $('<img>', {
+                                id: `${previewId}-preview-img`,
+                                class: 'preview-image lightbox-trigger',
+                                src: url,
+                                style: 'cursor: pointer;'
+                            });
+                            $container.prepend($img);
+                        } else {
+                            $img.attr('src', url).addClass('lightbox-trigger').css('cursor', 'pointer');
+                        }
+
+                        $placeholder.hide();
+                    }
+                }
+
+                function setGalleryPreview(urls) {
+                    const $container = $('#gallery-preview-container');
+                    $container.empty();
+                    urls.forEach(url => {
+                        $container.append(`
+                            <div class="gallery-item" style="width: 100px; height: 100px; border: 1px solid #ddd; border-radius: 4px; overflow: hidden; cursor: pointer;">
+                                <img src="${url}" class="lightbox-trigger" style="width: 100%; height: 100%; object-fit: cover;">
+                            </div>
+                        `);
+                    });
+                }
+
+                function clearImagePreviews() {
+                    const $input = $('#main_image');
+                    const previewId = $input.data('preview');
+                    if (previewId) {
+                        $(`#${previewId}-preview-img`).remove();
+                        $(`#${previewId}-placeholder`).show();
+                    }
+                    $('#gallery-preview-container').empty();
+                }
+
+                function enableAllFields() {
+                    $('#sku').prop('readonly', false).closest('.col-md-12').show();
+                    $('#brand_id, #department_id, #category_id, #sub_category_id').prop('disabled', false);
+                    $('#is_active, #is_featured, #configuration_type').prop('disabled', false);
+                    $('input[id^="title_"], textarea[id^="details_"], .tinymce-editor').prop('readonly', false);
+
+                    // Remove hidden inputs added for bank products to ensure value is sent
+                    $('input[type="hidden"][name="brand_id"], input[type="hidden"][name="department_id"], input[type="hidden"][name="category_id"], input[type="hidden"][name="sub_category_id"], input[type="hidden"][name="configuration_type"]')
+                        .remove();
+
+                    // Re-enable tags & keywords
+                    $('[id^="tags_"], [id^="meta_keywords_"]').each(function() {
+                        const $container = $(this);
+                        const instance = $container.data('tagsInput') || $container.data('tags-input');
+                        if (instance && typeof instance.setDisabled === 'function') {
+                            instance.setDisabled(false);
+                        } else {
+                            $container.find('input.tags-input').prop('disabled', false);
+                            $container.find('.tag-remove').show();
+                        }
+                    });
+
+                    // Re-enable Step 4 (SEO)
+                    const $step4 = $('.wizard-step-content[data-step="4"]');
+                    $step4.find('input, textarea, select, button').prop('disabled', false);
+                    $step4.find('[id^="meta_keywords_"]').each(function() {
+                        const instance = $(this).data('tagsInput') || $(this).data('tags-input');
+                        if (instance && typeof instance.setDisabled === 'function') {
+                            instance.setDisabled(false);
+                        }
+                    });
+
+                    // Reset Step 2 (Media)
+                    toggleStep2(true);
+
+                    // Show Add Variant button
+                    $('#add-variant-btn').show();
+
+                    // Re-enable TinyMCE if needed
+                    if (typeof tinymce !== 'undefined') {
+                        tinymce.editors.forEach(editor => {
+                            editor.mode.set('design');
+                        });
+                    }
+                }
+
 
                 // Department change event - Load categories based on department
                 $('#department_id').on('change', function() {
@@ -2149,6 +2771,24 @@
                     if ($(this).val()) {
                         $(this).next('.select2').find('.select2-selection').removeClass('is-invalid');
                         $('#error-vendor_id').hide();
+                    }
+
+                    // Regenerate SKUs if a bank product is selected and vendor changes
+                    if (currentBankProduct) {
+                        const baseSku = currentBankProduct.sku || 'SKU';
+                        $('#sku').val(generateVendorSku(baseSku));
+
+                        if (currentBankProduct.configuration_type === 'variants' && currentBankProduct
+                            .variants) {
+                            currentBankProduct.variants.forEach((variant, index) => {
+                                const $variantBox = $(`#variant-${index}`);
+                                if ($variantBox.length) {
+                                    const vBaseSku = variant.sku || baseSku;
+                                    $variantBox.find('.sku-input').val(generateVendorSku(
+                                        vBaseSku));
+                                }
+                            });
+                        }
                     }
                 });
 

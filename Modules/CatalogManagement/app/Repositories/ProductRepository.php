@@ -37,17 +37,20 @@ class ProductRepository implements ProductInterface
             'department.translations',
             'category.translations',
             'subCategory.translations',
+            'attachments',
             'mainImage',
+            'additionalImages',
             'variants.variantConfiguration.key.translations',
-            'variants.variantConfiguration.translations'
+            'variants.variantConfiguration.translations',
+            'vendorProduct'
         ];
 
-        \Log::info('bankFilters', $filters);
         // Add bank-specific filters
         $bankFilters = array_merge($filters, [
             'type' => Product::TYPE_BANK,
             'is_active' => true,
         ]);
+        \Log::info('bankFilters', $bankFilters);
 
         $query = Product::with($with)->filter($bankFilters);
         return ($perPage == 0) ? $query->get() : $query->latest()->paginate($perPage);
@@ -83,25 +86,41 @@ class ProductRepository implements ProductInterface
             // Get current user
             $currentUser = Auth::user();
 
-            // Create product
-            $product = Product::create([
-                'slug' => \Str::uuid(),
-                'is_active' => $data['is_active'] ?? true,
-                'configuration_type' => $data['configuration_type'],
-                'vendor_id' => $vendorId,
-                'brand_id' => $data['brand_id'] ?? null,
-                'department_id' => $data['department_id'] ?? null,
-                'category_id' => $data['category_id'] ?? null,
-                'sub_category_id' => $data['sub_category_id'] ?? null,
-                'created_by_user_id' => $currentUser->id,
-            ]);
+            // Check if we are creating from a bank product
+            if (isset($data['bank_product_id']) && !empty($data['bank_product_id'])) {
+                $product = Product::findOrFail($data['bank_product_id']);
+                Log::info('Linking vendor product to existing bank product', ['bank_product_id' => $product->id]);
+            } else {
+                // Create new product
+                $product = Product::create([
+                    'slug' => \Str::uuid(),
+                    'is_active' => $data['is_active'] ?? true,
+                    'configuration_type' => $data['configuration_type'],
+                    'vendor_id' => $vendorId,
+                    'brand_id' => $data['brand_id'] ?? null,
+                    'department_id' => $data['department_id'] ?? null,
+                    'category_id' => $data['category_id'] ?? null,
+                    'sub_category_id' => $data['sub_category_id'] ?? null,
+                    'created_by_user_id' => $currentUser->id,
+                ]);
 
-            // Get or create VendorProduct (handles both create and update)
-            $vendorProduct = VendorProduct::firstOrCreate(
+                // Store translations only for new products
+                $this->storeTranslations($product, $data);
+                
+                // Handle main image only for new products
+                $this->handleMainImage($product, $data);
+
+                // Handle additional images only for new products
+                $this->handleAdditionalImages($product, $data);
+            }
+
+            // Get or create VendorProduct
+            $vendorProduct = VendorProduct::updateOrCreate(
                 ['vendor_id' => $vendorId, 'product_id' => $product->id],
                 [
                     'tax_id' => $data['tax_id'],
                     'sku' => $data['sku'] ?? null,
+                    'video_link' => $data['video_link'] ?? null,
                     'max_per_order' => $data['max_per_order'],
                     'is_active' => $data['is_active'] ?? false,
                     'is_featured' => $data['is_featured'] ?? false,
@@ -111,15 +130,6 @@ class ProductRepository implements ProductInterface
 
             // Ensure product relationship is loaded
             $vendorProduct->setRelation('product', $product);
-
-            // Store translations
-            $this->storeTranslations($product, $data);
-
-            // Handle main image
-            $this->handleMainImage($product, $data);
-
-            // Handle additional images
-            $this->handleAdditionalImages($product, $data);
 
             // Handle variants or simple product
             $this->handleProductVariants($vendorProduct, $data);
@@ -171,6 +181,7 @@ class ProductRepository implements ProductInterface
             $vendorProduct->update([
                 'tax_id' => $data['tax_id'],
                 'sku' => $data['sku'] ?? null,
+                'video_link' => $data['video_link'] ?? null,
                 'max_per_order' => $data['max_per_order'],
                 'is_active' => $data['is_active'] ?? false,
                 'is_featured' => $data['is_featured'] ?? false,
@@ -184,7 +195,7 @@ class ProductRepository implements ProductInterface
             $this->handleMainImage($product, $data, true);
 
             // Handle additional images
-            $this->handleAdditionalImages($product, $data);
+            $this->handleAdditionalImages($product, $data, true);
 
             // Handle variants (unified method for both create and update)
             $this->handleProductVariants($vendorProduct, $data);
@@ -311,9 +322,25 @@ class ProductRepository implements ProductInterface
     /**
      * Handle additional images upload
      */
-    protected function handleAdditionalImages(Product $product, array $data): void
+    protected function handleAdditionalImages(Product $product, array $data, bool $isUpdate = false): void
     {
-        if (isset($data['additional_images']) && is_array($data['additional_images'])) {
+        if (isset($data['additional_images']) && is_array($data['additional_images']) && count($data['additional_images']) > 0) {
+            // If updating and new images are provided, delete old additional images first
+            if ($isUpdate) {
+                $oldAdditionalImages = $product->additionalImages;
+                if ($oldAdditionalImages && $oldAdditionalImages->count() > 0) {
+                    foreach ($oldAdditionalImages as $oldImage) {
+                        // Delete the file from storage
+                        if (Storage::disk('public')->exists($oldImage->path)) {
+                            Storage::disk('public')->delete($oldImage->path);
+                        }
+                        // Delete the database record
+                        $oldImage->delete();
+                    }
+                }
+            }
+
+            // Store new additional images
             foreach ($data['additional_images'] as $image) {
                 if ($image) {
                     $imagePath = $image->store('products/images', 'public');
@@ -506,8 +533,8 @@ class ProductRepository implements ProductInterface
                         $vendorProductVariant = $existingProductVariant;
                     } else {
                         // Create new global variant if it doesn't exist (for regular product creation/update)
-                        // Skip this only for bank imports where global variants should already exist
-                        $isBankImport = isset($data['is_bank_import']) && $data['is_bank_import'];
+                        // Skip this for bank products or bank imports where global variants already exist
+                        $isBankImport = (isset($data['is_bank_import']) && $data['is_bank_import']) || (isset($data['bank_product_id']) && !empty($data['bank_product_id']));
 
                         if (!$existingProductVariant && !$isBankImport) {
                             $vendorProduct->product->variants()->create([

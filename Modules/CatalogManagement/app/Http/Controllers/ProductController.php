@@ -116,7 +116,8 @@ class ProductController extends Controller
             $vendors = $vendorsData->map(function($vendor) {
                 return [
                     'id' => $vendor->id,
-                    'name' => $vendor->getTranslation('name', app()->getLocale())
+                    'name' => $vendor->getTranslation('name', app()->getLocale()),
+                    'name_en' => $vendor->getTranslation('name', 'en')
                 ];
             })->toArray();
         } elseif (in_array($userType, UserType::vendorIds())) {
@@ -125,7 +126,8 @@ class ProductController extends Controller
             if ($vendor) {
                 $vendors = [[
                     'id' => $vendor->id,
-                    'name' => $vendor->getTranslation('name', app()->getLocale())
+                    'name' => $vendor->getTranslation('name', app()->getLocale()),
+                    'name_en' => $vendor->getTranslation('name', 'en')
                 ]];
             }
         }
@@ -134,7 +136,11 @@ class ProductController extends Controller
         $variantKeys = VariantsConfigurationKeyResource::collection(
             $variantKeys->map(fn ($v) => $v->setAttribute('select2', true))
         )->resolve();
-        return view('catalogmanagement::product.create', compact('languages', 'brands', 'taxes', 'vendors', 'variantKeys'));
+        
+        // Determine if current user is a vendor
+        $isVendorUser = in_array($userType, UserType::vendorIds());
+
+        return view('catalogmanagement::product.create', compact('languages', 'brands', 'taxes', 'vendors', 'variantKeys', 'isVendorUser'));
     }
 
     /**

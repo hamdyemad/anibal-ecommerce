@@ -225,6 +225,15 @@ class UpdateProductRequest extends FormRequest
             'is_featured' => filter_var($this->input('is_featured', false), FILTER_VALIDATE_BOOLEAN),
             'has_discount' => filter_var($this->input('has_discount', false), FILTER_VALIDATE_BOOLEAN),
         ]);
+
+        // Handle variant discount booleans
+        if ($this->has('variants')) {
+            $variants = $this->input('variants', []);
+            foreach ($variants as $index => $variant) {
+                $variants[$index]['has_discount'] = filter_var($variant['has_discount'] ?? false, FILTER_VALIDATE_BOOLEAN);
+            }
+            $this->merge(['variants' => $variants]);
+        }
     }
 
     /**

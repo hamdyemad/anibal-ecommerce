@@ -1555,13 +1555,17 @@
                 $currentStep.show().addClass('active');
 
                 // Update wizard navigation
-                $('.wizard-step-nav').removeClass('current completed');
+                $('.wizard-step-nav').removeClass('current completed locked');
                 $('.wizard-step-nav').each(function() {
                     const step = parseInt($(this).data('step'));
                     if (step < stepNumber) {
-                        $(this).addClass('completed');
+                        $(this).addClass('completed').css('cursor', 'pointer');
                     } else if (step === stepNumber) {
-                        $(this).addClass('current');
+                        $(this).addClass('current').css('cursor', 'pointer');
+                    } else if (step === stepNumber + 1) {
+                        $(this).css('cursor', 'pointer'); // Next immediate step is clickable
+                    } else if (step > stepNumber + 1) {
+                        $(this).addClass('locked').css('cursor', 'not-allowed');
                     }
                 });
 

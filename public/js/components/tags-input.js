@@ -15,6 +15,7 @@ class TagsInput {
         };
 
         this.tags = [];
+        this.container.tagsInput = this; // Store instance on the DOM element for access
         this.init();
     }
 
