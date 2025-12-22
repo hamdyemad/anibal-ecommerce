@@ -3,6 +3,7 @@
 namespace Modules\Customer\app\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Modules\Customer\app\Services\CustomerService;
@@ -20,6 +21,7 @@ class CustomerController extends Controller
 
     public function index()
     {
+        Gate::authorize('customers.view');
         return view('customer::customer.index', [
             'title' => __('customer::customer.customers_management'),
         ]);
@@ -27,6 +29,7 @@ class CustomerController extends Controller
 
     public function datatable(Request $request)
     {
+        Gate::authorize('customers.view');
         $filters = $request->all();
         $query = $this->customerService->getCustomersQuery($filters);
 
