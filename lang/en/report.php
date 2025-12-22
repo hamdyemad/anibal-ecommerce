@@ -40,4 +40,21 @@ return [
     'new_registrations' => 'New Registrations',
     'all_status' => 'All Status',
     'all_gender' => 'All Gender',
+    
+    // Orders Report
+    'orders_in_report' => 'Orders in Report',
+    'total_orders' => 'Total Orders',
+    'completed_orders' => 'Completed Orders',
+    'pending_orders' => 'Pending Orders',
+    'todays_orders' => "Today's Orders",
+    'average_order_value' => 'Average Order Value',
+    'orders_trend' => 'Orders Trend',
+    'daily_orders' => 'Daily Orders',
+    'order_status_distribution' => 'Order Stage Distribution',
+    'order_number' => 'Order Number',
+    'customer_name' => 'Customer Name',
+    'stage' => 'Stage',
+    'all_stages' => 'All Stages',
+    'total' => 'Total',
+    'order_date' => 'Order Date',
 ];

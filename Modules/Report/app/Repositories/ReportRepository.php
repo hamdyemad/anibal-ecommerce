@@ -220,7 +220,16 @@ class ReportRepository implements ReportRepositoryInterface
      */
     public function getOrdersReport(ReportFilterDTO $filter): array
     {
-        $query = Order::query();
+        $query = Order::withoutCountryFilter();
+
+        // Apply country filter manually with qualified table name
+        $countryCode = session('country_code') ?? request('country_code') ?? config('app.default_country_code');
+        if ($countryCode) {
+            $countryId = \Modules\AreaSettings\app\Models\Country::where('code', $countryCode)->value('id');
+            if ($countryId) {
+                $query->where('orders.country_id', $countryId);
+            }
+        }
 
         // Date range filter
         if ($filter->from) {
@@ -230,9 +239,9 @@ class ReportRepository implements ReportRepositoryInterface
             $query->whereDate('created_at', '<=', $filter->to);
         }
 
-        // Type/Status filter
+        // Stage filter - use stage_id instead of status
         if ($filter->type) {
-            $query->where('status', $filter->type);
+            $query->where('stage_id', $filter->type);
         }
 
         // Search filter (by order number or customer name)
@@ -248,11 +257,74 @@ class ReportRepository implements ReportRepositoryInterface
 
         $total = $query->count();
 
-        $data = $query->with('customer')
+        // Get all data for charts before pagination
+        $allData = clone $query;
+        
+        // Calculate stage distribution
+        $stageDistribution = $allData->clone()
+            ->join('order_stages', 'orders.stage_id', '=', 'order_stages.id')
+            ->leftJoin('translations as stage_trans', function($join) {
+                $join->on('order_stages.id', '=', 'stage_trans.translatable_id')
+                     ->where('stage_trans.translatable_type', '=', 'Modules\\Order\\app\\Models\\OrderStage')
+                     ->where('stage_trans.lang_key', '=', 'name');
+            })
+            ->leftJoin('languages', function($join) {
+                $join->on('stage_trans.lang_id', '=', 'languages.id')
+                     ->where('languages.code', '=', app()->getLocale());
+            })
+            ->select(
+                'order_stages.type',
+                \DB::raw('COALESCE(stage_trans.lang_value, order_stages.slug) as stage_name'), 
+                \DB::raw('COUNT(orders.id) as count')
+            )
+            ->groupBy('order_stages.type', 'order_stages.id', 'stage_trans.lang_value', 'order_stages.slug')
+            ->get()
+            ->groupBy('type')
+            ->map(function($stages) {
+                return $stages->sum('count');
+            })
+            ->toArray();
+
+        // Calculate orders trend (by date)
+        $ordersTrend = $allData->clone()
+            ->selectRaw('DATE(created_at) as date, COUNT(id) as count')
+            ->groupByRaw('DATE(created_at)')
+            ->orderBy('date')
+            ->get()
+            ->pluck('count', 'date')
+            ->toArray();
+
+        // Calculate completed and pending counts
+        $completedCount = $allData->clone()
+            ->join('order_stages', 'orders.stage_id', '=', 'order_stages.id')
+            ->where('order_stages.type', 'deliver')
+            ->count();
+
+        $pendingCount = $allData->clone()
+            ->join('order_stages', 'orders.stage_id', '=', 'order_stages.id')
+            ->whereIn('order_stages.type', ['new', 'in_progress'])
+            ->count();
+
+        $data = $query->with(['customer', 'stage'])
             ->paginate(
                 perPage: $filter->per_page,
                 page: $filter->page
             );
+
+        // Transform data for frontend
+        $items = $data->items();
+        $transformedItems = [];
+        foreach ($items as $index => $order) {
+            $transformedItems[] = [
+                'index' => ($filter->page - 1) * $filter->per_page + $index + 1,
+                'order_number' => $order->order_number,
+                'customer_name' => $order->customer ? ($order->customer->first_name . ' ' . $order->customer->last_name) : 'N/A',
+                'stage' => $order->stage ? $order->stage->name : 'N/A',
+                'stage_type' => $order->stage ? $order->stage->type : null,
+                'total' => $order->total_price,
+                'created_at' => $order->created_at,
+            ];
+        }
 
         return [
             'total' => $total,
@@ -262,7 +334,14 @@ class ReportRepository implements ReportRepositoryInterface
             'last_page' => $data->lastPage(),
             'from' => $data->firstItem(),
             'to' => $data->lastItem(),
-            'data' => $data->items(),
+            'data' => $transformedItems,
+            'statistics' => [
+                'stage_distribution' => $stageDistribution,
+                'orders_trend' => $ordersTrend,
+                'completed' => $completedCount,
+                'pending' => $pendingCount,
+                'total_filtered' => $total,
+            ],
         ];
     }
 
