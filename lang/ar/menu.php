@@ -179,6 +179,8 @@
             'send notification' => 'إرسال إشعار',
             'all notification' => 'جميع الإشعارات',
         ],
+        'no_notifications' => 'لا توجد إشعارات',
+        'see_all_notifications' => 'عرض جميع الإشعارات',
         'system log' => [
             'title' => 'سجل النظام',
         ],
@@ -190,6 +192,13 @@
             'contact us' => 'اتصل بنا',
             'messages' => 'الرسائل',
         ],
+        'messages' => 'الرسائل',
+        'no_messages' => 'لا توجد رسائل',
+        'see_all_messages' => 'عرض جميع الرسائل',
+        'latest_orders' => 'أحدث الطلبات',
+        'no_orders' => 'لا توجد طلبات بعد',
+        'see_all_orders' => 'عرض جميع الطلبات',
+        'order' => 'طلب',
         'sections' => [
             'catalog management' => 'إدارة الكتالوج',
             'user management' => 'إدارة المستخدمين',

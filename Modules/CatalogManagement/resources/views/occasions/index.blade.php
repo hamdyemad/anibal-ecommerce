@@ -28,12 +28,6 @@
                     <div class="d-flex justify-content-between align-items-center mb-25">
                         <h4 class="mb-0 fw-500 fw-bold">{{ trans('catalogmanagement::occasion.occasions_management') }}</h4>
                         <div class="d-flex gap-2">
-                            @can('occasions.index')
-                                <button type="button" id="exportExcel"
-                                    class="btn btn-secondary btn-default btn-squared text-capitalize">
-                                    <i class="uil uil-file-download"></i> {{ trans('common.export_excel') }}
-                                </button>
-                            @endcan
                             @can('occasions.create')
                                 <a href="{{ route('admin.occasions.create') }}"
                                     class="btn btn-primary btn-default btn-squared text-capitalize">

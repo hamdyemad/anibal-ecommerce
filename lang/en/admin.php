@@ -12,6 +12,7 @@ return [
     'create_vendor_user' => 'Create Vendor User',
     'add_vendor_user' => 'Add Vendor User',
     'edit_vendor_user' => 'Edit Vendor User',
+    'view_vendor_user' => 'View Vendor User',
     'vendor_user_details' => 'Vendor User Details',
     'edit_user' => 'Edit User',
     'update_user' => 'Update User',
@@ -48,6 +49,7 @@ return [
     'all_status' => 'All Status',
     'image' => 'Image',
     'admin_image' => 'Admin Image',
+    'vendor_user_image' => 'Vendor User Image',
     'click_to_upload_image' => 'Click to upload image',
     'information' => 'Information',
     

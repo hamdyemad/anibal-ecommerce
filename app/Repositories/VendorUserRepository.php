@@ -18,6 +18,7 @@ class VendorUserRepository
     {
         $query = User::with(['roles', 'translations', 'vendorById'])
             ->where('user_type_id', UserType::VENDOR_USER_TYPE)
+            ->where('id', '!=', Auth::id()) // Exclude current user
             ->filter($filters);
 
         $currentUser = Auth::user();
@@ -55,6 +56,7 @@ class VendorUserRepository
                 'vendor_id' => $data['vendor_id'],
                 'active' => $data['active'] ?? true,
                 'block' => $data['block'] ?? false,
+                'image' => isset($data['image']) ? $data['image']->store('vendor_users', 'public') : null,
             ]);
 
             // Assign roles to user
@@ -77,9 +79,9 @@ class VendorUserRepository
         return DB::transaction(function () use ($id, $data) {
             $user = User::where('user_type_id', UserType::VENDOR_USER_TYPE)->findOrFail($id);
 
-            $updateData = [
-                'vendor_id' => $data['vendor_id']
-            ];
+            $updateData = [];
+
+            (isset($data['vendor_id'])) ? $updateData['vendor_id'] = $data['vendor_id'] : null;
             
             // Update email if provided
             if (!empty($data['email'])) {
@@ -96,6 +98,15 @@ class VendorUserRepository
             
             // Update block status
             $updateData['block'] = $data['block'] ?? false;
+            
+            // Update image
+            if (isset($data['image'])) {
+                // Delete old image if exists
+                if ($user->image) {
+                    \Storage::disk('public')->delete($user->image);
+                }
+                $updateData['image'] = $data['image']->store('vendor_users', 'public');
+            }
             
             // Update user
             $user->update($updateData);
@@ -154,8 +165,8 @@ class VendorUserRepository
      */
     protected function storeTranslations(User $user, array $data)
     {
-        // Delete existing translations
-        $user->translations()->delete();
+        // Delete existing name translations
+        $user->translations()->where('lang_key', 'name')->delete();
 
         // Handle translations array from form
         if (!empty($data['translations'])) {
@@ -167,8 +178,10 @@ class VendorUserRepository
                 }
 
                 // Store name translation
-                if (!empty($fields['name'])) {
+                if (isset($fields['name']) && $fields['name'] !== '') {
                     $user->translations()->create([
+                        'translatable_type' => 'App\Models\User',
+                        'translatable_id' => $user->id,
                         'lang_id' => $language->id,
                         'lang_key' => 'name',
                         'lang_value' => $fields['name'],

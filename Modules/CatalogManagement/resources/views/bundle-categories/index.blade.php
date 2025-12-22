@@ -29,12 +29,6 @@
                         <h4 class="mb-0 fw-500 fw-bold">
                             {{ trans('catalogmanagement::bundle_category.bundle_categories_management') }}</h4>
                         <div class="d-flex gap-2">
-                            @can('bundle-categories.index')
-                                <button type="button" id="exportExcel"
-                                    class="btn btn-secondary btn-default btn-squared text-capitalize">
-                                    <i class="uil uil-file-download"></i> {{ trans('common.export_excel') }}
-                                </button>
-                            @endcan
                             @can('bundle-categories.create')
                                 <a href="{{ route('admin.bundle-categories.create') }}"
                                     class="btn btn-primary btn-default btn-squared text-capitalize">

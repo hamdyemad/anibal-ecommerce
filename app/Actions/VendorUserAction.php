@@ -88,7 +88,7 @@ class VendorUserAction
             // ID
             $row['id'] = $user->id;
 
-            // Names for each language
+            // Names for each language with code
             $row['names'] = [];
             foreach ($languages as $language) {
                 $translation = $user->translations()
@@ -98,7 +98,8 @@ class VendorUserAction
 
                 $row['names'][$language->id] = [
                     'value' => $translation ? $translation->lang_value : '-',
-                    'rtl' => $language->rtl
+                    'rtl' => $language->rtl,
+                    'code' => $language->code
                 ];
             }
 
@@ -108,21 +109,29 @@ class VendorUserAction
             // Vendor
             $row['vendor'] = $user->vendorById ? $user->vendorById->getTranslation('name', app()->getLocale()) : '-';
 
-            // Role Name Only
+            // Roles as Badges
             if ($user->roles->isNotEmpty()) {
-                $role = $user->roles->first();
-                $roleName = $role->getTranslation('name', app()->getLocale());
-                $row['role'] = '<span class="fw-500 color-dark">' . e($roleName) . '</span>';
+                $rolesHtml = '';
+                foreach ($user->roles as $role) {
+                    $roleName = $role->getTranslation('name', app()->getLocale());
+                    $rolesHtml .= '<span class="badge badge-info badge-round badge-sm me-1 mb-1">' . e($roleName) . '</span>';
+                }
+                $row['role'] = '<div class="userDatatable-content">' . $rolesHtml . '</div>';
             } else {
                 $row['role'] = '<span class="color-gray">-</span>';
             }
 
             // Active Status
             $row['active'] = $user->active ?? true;
+            
+            // Block Status
             $row['block'] = $user->block ?? false;
 
+            // Image
+            $row['image'] = $user->image;
+
             // Created At
-            $row['created_at'] = $user->created_at ? $user->created_at->format('Y-m-d H:i') : '-';
+            $row['created_at'] = $user->created_at ? $user->created_at : '-';
 
             // Display name for delete modal
             $nameTranslation = $user->translations()->where('lang_key', 'name')->first();

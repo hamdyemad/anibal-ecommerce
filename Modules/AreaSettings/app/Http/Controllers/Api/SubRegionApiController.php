@@ -27,7 +27,7 @@ class SubRegionApiController extends Controller
 
     public function getSubRegionsByRegions(Request $request, $id)
     {
-        $regions = $this->RegionService->getSubRegionsByRegions($request->all(), $id);
+        $regions = $this->RegionService->getSubRegionsByRegions($id, $request->all());
 
         return $this->sendRes(config('responses.success')[app()->getLocale()], true, SubRegionResource::collection($regions));
     }

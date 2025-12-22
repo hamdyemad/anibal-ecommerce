@@ -39,6 +39,9 @@ return [
     'non_primary' => 'Non-Primary',
     'addresses' => 'Addresses',
     'action' => 'Action',
+    'created_by_vendor' => 'Created By Vendor',
+    'all_vendors' => 'All Vendors',
+    'no_vendor' => 'No Vendor',
 
     // Status values
     'active' => 'Active',

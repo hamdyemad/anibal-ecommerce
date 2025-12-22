@@ -24,7 +24,7 @@
                         <h4 class="mb-0 fw-500">{{ __('admin.vendor_users_management') }}</h4>
                         <div class="d-flex gap-2">
                             @can('vendor-users.create')
-                                <a href="{{ route('admin.admin-management.vendor-users.create') }}"
+                                <a href="{{ route('admin.vendor-users-management.vendor-users.create') }}"
                                     class="btn btn-primary btn-default btn-squared text-capitalize">
                                     <i class="uil uil-plus"></i> {{ __('admin.add_vendor_user') }}
                                 </a>
@@ -106,13 +106,6 @@
                                     </div>
 
                                     <div class="col-md-12 d-flex">
-                                        @can('vendor-users.index')
-                                            <button type="button" id="exportExcel"
-                                                class="btn btn-primary btn-default btn-squared me-1"
-                                                title="{{ __('common.excel') }}">
-                                                <i class="uil uil-file-download-alt me-1"></i> {{ __('common.export_excel') }}
-                                            </button>
-                                        @endcan
                                         <button type="button" id="resetFilters"
                                             class="btn btn-warning btn-default btn-squared"
                                             title="{{ __('common.reset') }}">
@@ -144,16 +137,7 @@
                             <thead>
                                 <tr class="userDatatable-header">
                                     <th><span class="userDatatable-title">#</span></th>
-
-                                    @foreach ($languages as $language)
-                                        <th>
-                                            <span class="userDatatable-title"
-                                                @if ($language->rtl) dir="rtl" @endif>
-                                                {{ trans('admin.name') }} ({{ $language->name }})
-                                            </span>
-                                        </th>
-                                    @endforeach
-
+                                    <th><span class="userDatatable-title">{{ trans('admin.information') }}</span></th>
                                     <th><span class="userDatatable-title">{{ trans('admin.email') }}</span></th>
                                     <th><span class="userDatatable-title">{{ trans('admin.vendor') }}</span></th>
                                     <th><span class="userDatatable-title">{{ trans('admin.role') }}</span></th>
@@ -172,7 +156,7 @@
     </div>
     {{-- Delete Confirmation Modal Component --}}
     <x-delete-modal modalId="modal-delete-vendor-user" :title="__('admin.confirm_delete')" :message="__('admin.delete_confirmation')"
-        itemNameId="delete-vendor-user-name" confirmBtnId="confirmDeleteVendorUserBtn" :deleteRoute="route('admin.admin-management.vendor-users.index')" :cancelText="__('admin.cancel')"
+        itemNameId="delete-vendor-user-name" confirmBtnId="confirmDeleteVendorUserBtn" :deleteRoute="route('admin.vendor-users-management.vendor-users.index')" :cancelText="__('admin.cancel')"
         :deleteText="__('admin.delete_user')" />
 @endsection
 
@@ -190,7 +174,7 @@
                 processing: true,
                 serverSide: true,
                 ajax: {
-                    url: '{{ route('admin.admin-management.vendor-users.datatable') }}',
+                    url: '{{ route('admin.vendor-users-management.vendor-users.datatable') }}',
                     type: 'GET',
                     data: function(d) {
                         d.per_page = d.length;
@@ -202,27 +186,63 @@
                         return d;
                     },
                     dataSrc: function(json) {
+                        // Use the correct total from backend
+                        json.recordsTotal = json.recordsTotal || 0;
+                        json.recordsFiltered = json.recordsFiltered || 0;
+
+                        if (json.error) {
+                            console.error('❌ Server returned error:', json.error);
+                            alert('Error: ' + json.error);
+                            return [];
+                        }
                         return json.data || [];
+                    },
+                    error: function(xhr, error, code) {
+                        console.error('❌ DataTables AJAX Error:', {
+                            xhr: xhr,
+                            error: error,
+                            code: code
+                        });
+                        alert('Error loading data. Status: ' + xhr.status);
                     }
                 },
                 columns: [{
                         data: 'id',
                         name: 'id',
-                        orderable: true
+                        orderable: false,
                     },
-                    @foreach ($languages as $language)
-                        {
-                            data: 'names.{{ $language->id }}.value',
-                            name: 'name_{{ $language->code }}',
-                            orderable: true,
-                            render: function(data, type, row) {
-                                const nameData = row.names[{{ $language->id }}];
-                                const rtlAttr = nameData.rtl ? ' dir="rtl"' : '';
-                                return '<div class="userDatatable-content"' + rtlAttr + '>' + (
-                                    nameData.value || '-') + '</div>';
+                    {
+                        data: 'image',
+                        name: 'information',
+                        orderable: false,
+                        render: function(data, type, row) {
+                            let img;
+                            if (data) {
+                                img =
+                                    `<img src="{{ asset('storage') }}/${data}" class="rounded-circle" style="width: 40px; height: 40px; object-fit: cover;">`;
+                            } else {
+                                img =
+                                    `<div class="bg-light rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;"><i class="uil uil-user text-muted"></i></div>`;
                             }
-                        },
-                    @endforeach {
+
+                            let names = '';
+                            Object.values(row.names).forEach(name => {
+                                const badgeClass = name.code === 'ar' ? 'bg-info' :
+                                    'bg-primary';
+                                names += `
+                                    <div class="d-flex align-items-center mb-1">
+                                        <span class="badge ${badgeClass} text-white px-1 py-0 me-1" style="font-size: 10px; text-transform: uppercase;">${name.code}</span>
+                                        <div class="userDatatable-content" ${name.rtl ? 'dir="rtl"' : ''} style="font-size: 13px; line-height: 1.2;">${name.value || '-'}</div>
+                                    </div>`;
+                            });
+
+                            return `
+                                <div class="d-flex align-items-center gap-10">
+                                    ${img}
+                                    <div>${names}</div>
+                                </div>`;
+                        }
+                    }, {
                         data: 'email',
                         name: 'email',
                         orderable: true,
@@ -250,45 +270,47 @@
                     {
                         data: 'active',
                         name: 'active',
-                        orderable: true,
+                        orderable: false,
                         render: function(data, type, row) {
                             const checked = data ? 'checked' : '';
-                            const disabled =
-                                @can('vendor-users.change-status')
-                                    ''
-                                @else
-                                    'disabled'
-                                @endcan ;
-                            return `
-                                <div class="userDatatable-content">
-                                    <div class="form-check form-switch">
-                                        <input class="form-check-input status-toggle" type="checkbox" 
-                                            data-id="${row.id}" data-type="active" ${checked} ${disabled}>
-                                    </div>
-                                </div>
-                            `;
+                            const field = `
+                                    <div class="userDatatable-content">
+                                        <div class="form-check form-switch form-switch-primary form-switch-md">
+                                            <input class="form-check-input status-toggle" type="checkbox" 
+                                                data-id="${row.id}" data-type="active" ${checked}>
+                                        </div>
+                                    </div>`;
+                            @can('vendor-users.change-status')
+                                return field
+                            @else
+                                const badge = data 
+                                    ? '<span class="badge badge-round badge-lg badge-success">{{ __("admin.active") }}</span>' 
+                                    : '<span class="badge badge-round badge-lg badge-danger">{{ __("admin.inactive") }}</span>';
+                                return `<div class="userDatatable-content">${badge}</div>`;
+                            @endcan
                         }
                     },
                     {
                         data: 'block',
                         name: 'block',
-                        orderable: true,
+                        orderable: false,
                         render: function(data, type, row) {
                             const checked = data ? 'checked' : '';
-                            const disabled =
-                                @can('vendor-users.change-status')
-                                    ''
-                                @else
-                                    'disabled'
-                                @endcan ;
-                            return `
-                                <div class="userDatatable-content">
-                                    <div class="form-check form-switch">
-                                        <input class="form-check-input status-toggle" type="checkbox" 
-                                            data-id="${row.id}" data-type="block" ${checked} ${disabled}>
-                                    </div>
-                                </div>
-                            `;
+                            const field = `
+                                    <div class="userDatatable-content">
+                                        <div class="form-check form-switch form-switch-danger form-switch-md">
+                                            <input class="form-check-input status-toggle" type="checkbox" 
+                                                data-id="${row.id}" data-type="block" ${checked}>
+                                        </div>
+                                    </div>`;
+                            @can('vendor-users.change-status')
+                                return field
+                            @else
+                                const badge = data 
+                                    ? '<span class="badge badge-round badge-lg badge-danger">{{ __("admin.blocked") }}</span>' 
+                                    : '<span class="badge badge-round badge-lg badge-success">{{ __("admin.not_blocked") }}</span>';
+                                return `<div class="userDatatable-content">${badge}</div>`;
+                            @endcan
                         }
                     },
                     {
@@ -306,9 +328,9 @@
                         searchable: false,
                         render: function(data, type, row) {
                             return `
-                                <div class="orderDatatable_actions d-inline-flex gap-1">
-                                    @can('vendor-users.index')
-                                    <a href="{{ route('admin.admin-management.vendor-users.index') }}/${row.id}"
+                                <div class="orderDatatable_actions d-inline-flex gap-1 justify-content-center">
+                                    @can('vendor-users.show')
+                                    <a href="{{ route('admin.vendor-users-management.vendor-users.index') }}/${row.id}"
                                     class="view btn btn-primary table_action_father"
                                     title="{{ trans('common.view') }}">
                                         <i class="uil uil-eye table_action_icon"></i>
@@ -316,7 +338,7 @@
                                     @endcan
 
                                     @can('vendor-users.edit')
-                                    <a href="{{ route('admin.admin-management.vendor-users.index') }}/${row.id}/edit"
+                                    <a href="{{ route('admin.vendor-users-management.vendor-users.index') }}/${row.id}/edit"
                                     class="edit btn btn-warning table_action_father"
                                     title="{{ trans('common.edit') }}">
                                         <i class="uil uil-edit table_action_icon"></i>
@@ -378,7 +400,7 @@
                 const status = $(this).is(':checked') ? 1 : 0;
 
                 $.ajax({
-                    url: `{{ route('admin.admin-management.vendor-users.index') }}/${id}/change-status`,
+                    url: `{{ route('admin.vendor-users-management.vendor-users.index') }}/${id}/change-status`,
                     type: 'POST',
                     data: {
                         _token: '{{ csrf_token() }}',
@@ -432,7 +454,7 @@
 
             $('#confirmDeleteVendorUserBtn').on('click', function() {
                 $.ajax({
-                    url: `{{ route('admin.admin-management.vendor-users.index') }}/${deleteItemId}`,
+                    url: `{{ route('admin.vendor-users-management.vendor-users.index') }}/${deleteItemId}`,
                     type: 'DELETE',
                     data: {
                         _token: '{{ csrf_token() }}'

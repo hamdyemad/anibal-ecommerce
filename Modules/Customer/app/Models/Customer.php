@@ -120,6 +120,14 @@ class Customer extends Authenticatable
     }
 
     /**
+     * Get vendor for this customer (if created by vendor)
+     */
+    public function vendor()
+    {
+        return $this->belongsTo(\Modules\Vendor\app\Models\Vendor::class);
+    }
+
+    /**
      * Scope to get active customers only
      */
     public function scopeActive($query)
@@ -137,6 +145,7 @@ class Customer extends Authenticatable
      */
     public function scopeFilter($query, array $filters)
     {
+
         // Search filter
         if (!empty($filters['search'])) {
             $search = $filters['search'];
@@ -151,6 +160,11 @@ class Customer extends Authenticatable
         if (isset($filters['active'])) {
             $query->where('status', $filters['active']);
         }
+
+         if (isset($filters['vendor_id'])) {
+            $query->where('vendor_id', $filters['vendor_id']);
+        }
+
 
         // Date range filters
         if (!empty($filters['created_date_from'])) {

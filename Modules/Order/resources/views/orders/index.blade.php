@@ -171,23 +171,25 @@
                                         </div>
                                     </div>
 
-                                    {{-- Vendor --}}
-                                    <div class="col-md-2">
-                                        <div class="form-group">
-                                            <label for="vendor" class="il-gray fs-14 fw-500 mb-10">
-                                                <i class="uil uil-store me-1"></i>
-                                                {{ trans('order::order.vendor') }}
-                                            </label>
-                                            <select
-                                                class="select2 form-control ih-medium ip-gray radius-xs b-light px-15 form-select"
-                                                id="vendor">
-                                                <option value="">{{ trans('order::order.all_vendors') }}</option>
-                                                @foreach ($vendors as $vendor)
-                                                    <option value="{{ $vendor->id }}">{{ $vendor->name }}</option>
-                                                @endforeach
-                                            </select>
+                                    @if(isAdmin())
+                                        {{-- Vendor --}}
+                                        <div class="col-md-2">
+                                            <div class="form-group">
+                                                <label for="vendor" class="il-gray fs-14 fw-500 mb-10">
+                                                    <i class="uil uil-store me-1"></i>
+                                                    {{ trans('order::order.vendor') }}
+                                                </label>
+                                                <select
+                                                    class="select2 form-control ih-medium ip-gray radius-xs b-light px-15 form-select"
+                                                    id="vendor">
+                                                    <option value="">{{ trans('order::order.all_vendors') }}</option>
+                                                    @foreach ($vendors as $vendor)
+                                                        <option value="{{ $vendor->id }}">{{ $vendor->name }}</option>
+                                                    @endforeach
+                                                </select>
+                                            </div>
                                         </div>
-                                    </div>
+                                    @endif
 
                                     {{-- Created From --}}
                                     <div class="col-md-3">
@@ -421,22 +423,28 @@
 
                             return `
                                 <div class="orderDatatable_actions d-inline-flex gap-1 justify-content-center">
-                                    <a href="${showUrl}"
-                                    class="view btn btn-primary table_action_father"
-                                    title="{{ trans('order::order.view_order') }}">
-                                        <i class="uil uil-eye table_action_icon"></i>
-                                    </a>
-                                    ${!isFinalStage ? `
-                                                                        <button type="button"
-                                                                        class="change-stage btn btn-info table_action_father"
-                                                                        data-bs-toggle="modal"
-                                                                        data-bs-target="#changeStageModal"
-                                                                        data-id="${row.id}"
-                                                                        data-stage-id="${row.stage?.id || ''}"
-                                                                        title="{{ trans('order::order.change_order_stage') }}">
-                                                                            <i class="uil uil-exchange-alt table_action_icon"></i>
-                                                                        </button>
-                                                                        ` : ''}
+                                    @can('orders.show')
+                                        <a href="${showUrl}"
+                                        class="view btn btn-primary table_action_father"
+                                        title="{{ trans('order::order.view_order') }}">
+                                            <i class="uil uil-eye table_action_icon"></i>
+                                        </a>
+                                    @endcan
+                                    @if(isAdmin())
+                                        @can('orders.change-stage')
+                                            ${!isFinalStage ? `
+                                            <button type="button"
+                                            class="change-stage btn btn-info table_action_father"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#changeStageModal"
+                                            data-id="${row.id}"
+                                            data-stage-id="${row.stage?.id || ''}"
+                                            title="{{ trans('order::order.change_order_stage') }}">
+                                                <i class="uil uil-exchange-alt table_action_icon"></i>
+                                            </button>
+                                            ` : ''}
+                                        @endcan
+                                    @endif
                                 </div>
                             `;
                         }

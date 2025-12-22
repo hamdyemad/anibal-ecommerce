@@ -28,12 +28,6 @@
                     <div class="d-flex justify-content-between align-items-center mb-25">
                         <h4 class="mb-0 fw-500 fw-bold">{{ trans('catalogmanagement::bundle.bundles_management') }}</h4>
                         <div class="d-flex gap-2">
-                            @can('bundles.index')
-                                <button type="button" id="exportExcel"
-                                    class="btn btn-secondary btn-default btn-squared text-capitalize">
-                                    <i class="uil uil-file-download"></i> {{ trans('common.export_excel') }}
-                                </button>
-                            @endcan
                             @can('bundles.create')
                                 <a href="{{ route('admin.bundles.create') }}"
                                     class="btn btn-primary btn-default btn-squared text-capitalize">
@@ -448,22 +442,24 @@
                                 row.id);
                             let approvalBtn = '';
 
-                            // Only show approval button if bundle is not approved
-                            @can('bundles.change-approval')
-                                approvalBtn = `<a href="javascript:void(0);"
-                                    class="approve-bundle btn btn-info table_action_father"
-                                    data-bs-toggle="modal"
-                                    data-bs-target="#modal-approve-bundle"
-                                    data-id="${row.id}"
-                                    data-name="${row.bundle_information.name_en && row.bundle_information.name_en ? row.bundle_information.name_en : ''}"
-                                    title="{{ trans('catalogmanagement::bundle.approve_bundle') }}">
-                                        <i class="uil uil-check-circle table_action_icon"></i>
-                                    </a>`;
-                            @endcan
+                            @if(isAdmin())
+                                // Only show approval button if bundle is not approved
+                                @can('bundles.change-approval')
+                                    approvalBtn = `<a href="javascript:void(0);"
+                                        class="approve-bundle btn btn-info table_action_father"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#modal-approve-bundle"
+                                        data-id="${row.id}"
+                                        data-name="${row.bundle_information.name_en && row.bundle_information.name_en ? row.bundle_information.name_en : ''}"
+                                        title="{{ trans('catalogmanagement::bundle.approve_bundle') }}">
+                                            <i class="uil uil-check-circle table_action_icon"></i>
+                                        </a>`;
+                                @endcan
+                            @endif
 
                             return `
                                 <div class="orderDatatable_actions d-inline-flex gap-1 justify-content-center">
-                                    @can('bundles.show')
+                                    @can('bundles.index')
                                     <a href="${showUrl}"
                                     class="view btn btn-primary table_action_father"
                                     title="{{ trans('catalogmanagement::bundle.view_bundle') }}">

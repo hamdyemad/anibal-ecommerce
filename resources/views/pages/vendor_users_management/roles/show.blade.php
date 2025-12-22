@@ -12,8 +12,8 @@
                         'icon' => 'uil uil-estate',
                     ],
                     [
-                        'title' => trans('menu.admin managment.roles managment'),
-                        'url' => route('admin.admin-management.roles.index'),
+                        'title' => trans('menu.admin managment.vendor users roles management'),
+                        'url' => route('admin.vendor-users-management.roles.index'),
                     ],
                     ['title' => trans('roles.view_role')],
                 ]" />
@@ -26,11 +26,11 @@
                     <div class="card-header bg-white border-bottom py-20 d-flex justify-content-between align-items-center">
                         <h5 class="mb-0 fw-500">{{ trans('roles.role_details') }}</h5>
                         <div class="d-flex gap-10">
-                            <a href="{{ route('admin.admin-management.roles.index') }}" class="btn btn-light btn-sm">
+                            <a href="{{ route('admin.vendor-users-management.roles.index') }}" class="btn btn-light btn-sm">
                                 <i class="uil uil-arrow-left me-2"></i>{{ trans('roles.back_to_list') }}
                             </a>
                             @if (!$role->is_system_protected && $role->is_system_protected != 1)
-                                <a href="{{ route('admin.admin-management.roles.edit', $role->id) }}"
+                                <a href="{{ route('admin.vendor-users-management.roles.edit', $role->id) }}"
                                     class="btn btn-primary btn-sm">
                                     <i class="uil uil-edit me-2"></i>{{ trans('roles.edit_role') }}
                                 </a>

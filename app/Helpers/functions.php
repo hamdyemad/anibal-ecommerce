@@ -180,10 +180,24 @@ function roles_reset()
             ]
         ],
         [
+            'type' => 'admin',
+            'is_system_protected' => true,
+            'translations' => [
+                'name' => ['en' => 'Admin', 'ar' => 'مسؤول'],
+            ],
+        ],
+        [
             'type' => 'vendor',
             'is_system_protected' => true,
             'translations' => [
                 'name' => ['en' => 'Vendor', 'ar' => 'تاجر'],
+            ],
+        ],
+        [
+            'type' => 'vendor_user',
+            'is_system_protected' => true,
+            'translations' => [
+                'name' => ['en' => 'Vendor User', 'ar' => 'مستخدم مورد'],
             ],
         ],
     ];
@@ -203,20 +217,30 @@ function roles_reset()
         }
 
         // Assign permissions based on role type
-        if (isset($roleData['type']) && $roleData['type'] == 'super_admin') {
-            // Super admin gets all permissions
-            $permissions = Permession::all();
-            $role->permessions()->sync($permissions->pluck('id'));
+        if (isset($roleData['type'])) {
+            if ($roleData['type'] == 'super_admin') {
+                // Super admin gets all permissions
+                $permissions = Permession::all();
+                $role->permessions()->sync($permissions->pluck('id'));
 
-            // Assign role to super admin user
-            $super_admin = User::where('user_type_id', UserType::SUPER_ADMIN_TYPE)->first();
-            if ($super_admin) {
-                $super_admin->roles()->sync([$role->id]);
+                // Assign role to super admin user
+                $super_admin = User::where('user_type_id', UserType::SUPER_ADMIN_TYPE)->first();
+                if ($super_admin) {
+                    $super_admin->roles()->sync([$role->id]);
+                }
+            } else if ($roleData['type'] == 'admin') {
+                // Admin gets all permissions with type = 'admin' or 'all'
+                $permissions = Permession::whereIn('type', ['admin', 'all'])->get();
+                $role->permessions()->sync($permissions->pluck('id'));
+            } else if ($roleData['type'] == 'vendor') {
+                // Vendor gets all permissions with type = 'all'
+                $permissions = Permession::where('type', 'all')->get();
+                $role->permessions()->sync($permissions->pluck('id'));
+            } else if ($roleData['type'] == 'vendor_user') {
+                // Vendor User gets all permissions with type = 'all'
+                $permissions = Permession::where('type', 'all')->get();
+                $role->permessions()->sync($permissions->pluck('id'));
             }
-        } else if ($roleData['type'] == 'vendor') {
-            // Vendor gets all permissions with type = 'all'
-            $permissions = Permession::where('type', 'all')->get();
-            $role->permessions()->sync($permissions->pluck('id'));
         }
     }
 }

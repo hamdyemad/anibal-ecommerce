@@ -128,8 +128,8 @@
                         'icon' => 'uil uil-estate',
                     ],
                     [
-                        'title' => trans('menu.admin managment.roles managment'),
-                        'url' => route('admin.admin-management.roles.index'),
+                        'title' => trans('menu.admin managment.vendor users roles management'),
+                        'url' => route('admin.vendor-users-management.roles.index'),
                     ],
                     [
                         'title' => isset($role) ? __('roles.edit_role') : __('roles.create_role'),
@@ -146,7 +146,7 @@
                     </div>
                     <div class="card-body p-25">
                         <form id="roleForm"
-                            action="{{ isset($role) ? route('admin.admin-management.roles.update', $role->id) : route('admin.admin-management.roles.store') }}"
+                            action="{{ isset($role) ? route('admin.vendor-users-management.roles.update', $role->id) : route('admin.vendor-users-management.roles.store') }}"
                             method="POST">
                             @csrf
                             @if (isset($role))
@@ -158,27 +158,28 @@
                             <!-- Alert Container -->
                             <div id="alertContainer"></div>
 
+                            {{-- Role Names --}}
                             <div class="row">
                                 @foreach ($languages as $language)
                                     <div class="col-md-6 mb-25">
                                         <div class="form-group">
-                                            <label for="name_{{ $language->id }}"
+                                            <label for="name_{{ $language->code }}"
                                                 class="il-gray fs-14 fw-500 align-center mb-10"
-                                                @if ($language->code == 'ar') dir="rtl" @endif>
+                                                @if ($language->rtl) dir="rtl" @endif>
                                                 @if ($language->code == 'ar')
                                                     اسم الدور ({{ $language->name }}) <span class="text-danger">*</span>
                                                 @else
-                                                    {{ __('roles.name') }} ({{ $language->name }}) <span
-                                                        class="text-danger">*</span>
+                                                    {{ __('roles.name') }} ({{ $language->name }}) <span class="text-danger">*</span>
                                                 @endif
                                             </label>
                                             <input type="text"
-                                                class="form-control ih-medium ip-gray radius-xs b-light px-15 @error('translations.' . $language->id . '.name') is-invalid @enderror"
-                                                id="name_{{ $language->id }}" name="translations[{{ $language->id }}][name]"
-                                                value="{{ isset($role) ? $role->getTranslation('name', $language->code) ?? '' : old('translations.' . $language->id . '.name') }}"
-                                                placeholder="@if ($language->code == 'ar') أدخل اسم الدور بالعربية@else{{ __('roles.enter_role_name_in') }} {{ $language->name }} @endif"
-                                                @if ($language->code == 'ar') dir="rtl" @endif>
-                                            @error('translations.' . $language->id . '.name')
+                                                class="form-control ih-medium ip-gray radius-xs b-light px-15 @error('name_' . $language->code) is-invalid @enderror"
+                                                id="name_{{ $language->code }}" 
+                                                name="name_{{ $language->code }}"
+                                                value="{{ isset($role) ? $role->getTranslation('name', $language->code) ?? '' : old('name_' . $language->code) }}"
+                                                placeholder="@if ($language->code == 'ar') أدخل اسم الدور بالعربية @else {{ __('roles.enter_role_name_in') }} {{ $language->name }} @endif"
+                                                @if ($language->rtl) dir="rtl" @endif>
+                                            @error('name_' . $language->code)
                                                 <div class="invalid-feedback">{{ $message }}</div>
                                             @enderror
                                         </div>
@@ -288,7 +289,7 @@
                             <div class="row">
                                 <div class="col-12">
                                     <div class="button-group d-flex pt-25 justify-content-end" style="gap: 10px;">
-                                        <a href="{{ route('admin.admin-management.roles.index') }}"
+                                        <a href="{{ route('admin.vendor-users-management.roles.index') }}"
                                             class="btn btn-light btn-default btn-squared fw-400 text-capitalize"
                                             style="white-space: nowrap;">
                                             <i class="uil uil-angle-left"></i> {{ __('common.cancel') }}
@@ -426,7 +427,7 @@
                                 // Redirect after 1.5 seconds
                                 setTimeout(() => {
                                     window.location.href = data.redirect ||
-                                        '{{ route('admin.admin-management.roles.index') }}';
+                                        '{{ route('admin.vendor-users-management.roles.index') }}';
                                 }, 1500);
                             });
                         })

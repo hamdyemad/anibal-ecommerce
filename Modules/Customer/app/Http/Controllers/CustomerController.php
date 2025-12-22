@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Modules\Customer\app\Services\CustomerService;
+use Modules\Vendor\app\Services\VendorService;
 use Modules\Customer\app\Interfaces\CustomerRepositoryInterface;
 use Modules\Customer\app\Http\Requests\Dashboard\CustomerRequest;
 use Modules\SystemSetting\app\Models\PointsSetting;
@@ -17,19 +18,35 @@ class CustomerController extends Controller
 {
     public function __construct(
         protected CustomerService $customerService,
-    ) {}
+        protected VendorService $vendorService,
+    ) {
+        $this->middleware('can:customers.index')->only(['index', 'datatable']);
+        $this->middleware('can:customers.show')->only(['show']);
+        $this->middleware('can:customers.create')->only(['create', 'store']);
+        $this->middleware('can:customers.edit')->only(['edit', 'update', 'changeStatus', 'changeVerification']);
+        $this->middleware('can:customers.delete')->only(['destroy']);
+    }
 
     public function index()
     {
-        Gate::authorize('customers.view');
+        $vendors = [];
+        if (isAdmin()) {
+            $vendors = \Modules\Vendor\app\Models\Vendor::select('id')->get()->map(function($vendor) {
+                return [
+                    'id' => $vendor->id,
+                    'name' => $vendor->name ?? "Vendor #{$vendor->id}"
+                ];
+            });
+        }
+
         return view('customer::customer.index', [
             'title' => __('customer::customer.customers_management'),
+            'vendors' => $vendors,
         ]);
     }
 
     public function datatable(Request $request)
     {
-        Gate::authorize('customers.view');
         $filters = $request->all();
         $query = $this->customerService->getCustomersQuery($filters);
 
@@ -38,7 +55,7 @@ class CustomerController extends Controller
         $perPage = $filters['per_page'] ?? 10;
         $page = $filters['page'] ?? 1;
 
-        $customers = $query->paginate($perPage, ['*'], 'page', $page);
+        $customers = $query->with('vendor')->paginate($perPage, ['*'], 'page', $page);
 
         $data = $customers->map(function ($customer, $index) use ($page, $perPage) {
             return [
@@ -51,6 +68,7 @@ class CustomerController extends Controller
                 'phone' => $customer->phone,
                 'city_name' => $customer->city?->name ?? '-',
                 'region_name' => $customer->region?->name ?? '-',
+                'vendor_name' => $customer->vendor?->name ?? null,
                 'status' => $customer->status,
                 'email_verified_at' => $customer->email_verified_at,
                 'created_at' => $customer->created_at,

@@ -40,6 +40,11 @@ class CustomerRepository implements CustomerRepositoryInterface
     public function createCustomer(array $data)
     {
         return DB::transaction(function () use ($data) {
+            // Add vendor_id if user is vendor
+            if (!isAdmin() && !isset($data['vendor_id'])) {
+                $data['vendor_id'] = auth()->user()->vendor_id ?? auth()->id();
+            }
+
             $customer = Customer::create([
                 'first_name' => $data['first_name'],
                 'last_name' => $data['last_name'],
@@ -52,6 +57,7 @@ class CustomerRepository implements CustomerRepositoryInterface
                 'city_id' => $data['city_id'],
                 'region_id' => $data['region_id'],
                 'lang' => $data['lang'] ?? 'en',
+                'vendor_id' => $data['vendor_id'] ?? null,
                 'email_verified_at' => Carbon::now(),
             ]);
 
@@ -84,6 +90,11 @@ class CustomerRepository implements CustomerRepositoryInterface
                 'region_id' => $data['region_id'] ?? $customer->region_id,
                 'email_verified_at' => Carbon::now(),
             ];
+
+            // Preserve vendor_id (don't allow changing it)
+            if (isset($data['vendor_id'])) {
+                $updateData['vendor_id'] = $data['vendor_id'];
+            }
 
             // Only update password if provided
             if (!empty($data['password'])) {
@@ -126,6 +137,11 @@ class CustomerRepository implements CustomerRepositoryInterface
 
     public function create(array $data): Customer
     {
+        // Add vendor_id if user is vendor
+        if (!isAdmin() && !isset($data['vendor_id'])) {
+            $data['vendor_id'] = auth()->user()->vendor_id ?? auth()->id();
+        }
+        
         return Customer::create($data);
     }
 

@@ -15,7 +15,13 @@ class ShippingController extends Controller
         protected \Modules\AreaSettings\app\Services\CityService $cityService,
         protected \Modules\CategoryManagment\app\Services\CategoryService $categoryService
     )
-    {}
+    {
+        $this->middleware('can:shipping_methods.index')->only(['index', 'datatable']);
+        $this->middleware('can:shipping_methods.create')->only(['create', 'store']);
+        $this->middleware('can:shipping_methods.view')->only(['show']);
+        $this->middleware('can:shipping_methods.edit')->only(['edit', 'update', 'changeStatus']);
+        $this->middleware('can:shipping_methods.delete')->only(['destroy']);
+    }
 
     /**
      * Display a listing of shippings (datatable)

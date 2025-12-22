@@ -39,6 +39,9 @@ return [
     'non_primary' => 'غير أساسي',
     'addresses' => 'العناوين',
     'action' => 'الإجراء',
+    'created_by_vendor' => 'تم الإنشاء بواسطة البائع',
+    'all_vendors' => 'جميع البائعين',
+    'no_vendor' => 'لا يوجد بائع',
 
     // Status values
     'active' => 'نشط',

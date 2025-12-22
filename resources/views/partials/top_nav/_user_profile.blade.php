@@ -24,14 +24,20 @@
                             {{ truncateString(auth()->user()->getTranslation('name', app()->getLocale()),10) }}
                         </h6>
                     @endif
-                    @if (count(auth()->user()->roles) > 0)
-                        <div class="d-flex flex-wrap gap-1 mt-1">
+                    <div class="d-flex flex-wrap gap-1 mt-1">
+                        @if(!isAdmin() && auth()->user()->vendor)
+                            <span class="badge badge-round badge-success" style="font-size: 10px;">
+                                <i class="uil uil-store me-1"></i>{{ auth()->user()->vendor->name }}
+                            </span>
+                        @endif
+                        @if (count(auth()->user()->roles) > 0)
                             @foreach (auth()->user()->roles as $role)
-                                <span class="badge badge-round badge-info"
-                                    style="font-size: 10px;">{{ $role->getTranslation('name', app()->getLocale()) }}</span>
+                                <span class="badge badge-round badge-info" style="font-size: 10px;">
+                                    <i class="uil uil-shield-check me-1"></i>{{ $role->getTranslation('name', app()->getLocale()) }}
+                                </span>
                             @endforeach
-                        </div>
-                    @endif
+                        @endif
+                    </div>
                 </div>
             </div>
             <div class="nav-author__options">

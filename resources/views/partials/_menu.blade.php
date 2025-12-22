@@ -93,6 +93,7 @@
 @endphp
 <div class="sidebar__menu-group">
     <ul class="sidebar_nav">
+        @can('dashboard.view')
         <li>
             <a href="{{ route('admin.dashboard') }}"
                 class="{{ isMenuActive('admin.dashboard', $currentRoute) ? 'active' : '' }}">
@@ -100,126 +101,131 @@
                 <span class="menu-text">{{ trans('menu.dashboard.title') }}</span>
             </a>
         </li>
+        @endcan
 
 
-        <li class="menu-title mt-30">
-            <span>{{ trans('menu.sections.withdraw module') }}</span>
-        </li>
-        <li
-            class="has-child {{ isParentMenuOpen(['admin.sendMoney', 'admin.allTransactions', 'admin.allVendorsTransactions', 'admin.sendMoneyRequest', 'admin.transactionsRequests'], ['admin/send-money*', 'admin/transactions*', 'admin/withdraw*', 'admin/vendors-transactions*']) ? 'open' : '' }}">
-            <a href="#"
-                class="{{ isParentMenuOpen(['admin.sendMoney', 'admin.allTransactions', 'admin.allVendorsTransactions', 'admin.sendMoneyRequest', 'admin.transactionsRequests'], ['admin/send-money*', 'admin/transactions*', 'admin/withdraw*', 'admin/vendors-transactions*']) ? 'active' : '' }}">
-                <span class="nav-icon uil uil-sitemap"></span>
-                <span class="menu-text">{{ trans('menu.withdraw module.title') }}</span>
-                <span class="toggle-icon"></span>
-            </a>
-            <ul class="px-0">
-                @can('withdraw.send_money.create')
-                    <li>
-                        <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive('admin.sendMoney', $currentRoute) ? 'active' : '' }}"
-                            href="{{ route('admin.sendMoney') }}">
-                            {{ trans('menu.withdraw module.send money') }}
-                        </a>
-                    </li>
-                @endcan
+        @canany(['withdraw.send_money.create', 'withdraw.transactions.view'])
+            <li class="menu-title mt-30">
+                <span>{{ trans('menu.sections.withdraw module') }}</span>
+            </li>
+            <li
+                class="has-child {{ isParentMenuOpen(['admin.sendMoney', 'admin.allTransactions', 'admin.allVendorsTransactions', 'admin.sendMoneyRequest', 'admin.transactionsRequests'], ['admin/send-money*', 'admin/transactions*', 'admin/withdraw*', 'admin/vendors-transactions*']) ? 'open' : '' }}">
+                <a href="#"
+                    class="{{ isParentMenuOpen(['admin.sendMoney', 'admin.allTransactions', 'admin.allVendorsTransactions', 'admin.sendMoneyRequest', 'admin.transactionsRequests'], ['admin/send-money*', 'admin/transactions*', 'admin/withdraw*', 'admin/vendors-transactions*']) ? 'active' : '' }}">
+                    <span class="nav-icon uil uil-sitemap"></span>
+                    <span class="menu-text">{{ trans('menu.withdraw module.title') }}</span>
+                    <span class="toggle-icon"></span>
+                </a>
+                <ul class="px-0">
+                    @can('withdraw.send_money.create')
+                        <li>
+                            <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive('admin.sendMoney', $currentRoute) ? 'active' : '' }}"
+                                href="{{ route('admin.sendMoney') }}">
+                                {{ trans('menu.withdraw module.send money') }}
+                            </a>
+                        </li>
+                    @endcan
 
-                @can('withdraw.transactions.view')
-                    <li>
-                        <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive('admin.allVendorsTransactions', $currentRoute) ? 'active' : '' }}"
-                            href="{{ route('admin.allVendorsTransactions') }}">
-                            {{ trans('dashboard.vendors_transactions_overview') }}
-                        </a>
-                    </li>
+                    @can('withdraw.transactions.view')
+                        <li>
+                            <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive('admin.allVendorsTransactions', $currentRoute) ? 'active' : '' }}"
+                                href="{{ route('admin.allVendorsTransactions') }}">
+                                {{ trans('dashboard.vendors_transactions_overview') }}
+                            </a>
+                        </li>
 
-                    <li>
-                        <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive('admin.allTransactions', $currentRoute) ? 'active' : '' }}"
-                            href="{{ route('admin.allTransactions') }}">
-                            {{ trans('menu.withdraw module.all transactions') }}
-                            <span class="badge badge-round ms-1"
-                                style="{{ getBadgeStyle(isMenuActive('admin.allTransactions', $currentRoute)) }}">{{ $all_transactions }}</span>
-                        </a>
-                    </li>
-                @endcan
+                        <li>
+                            <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive('admin.allTransactions', $currentRoute) ? 'active' : '' }}"
+                                href="{{ route('admin.allTransactions') }}">
+                                {{ trans('menu.withdraw module.all transactions') }}
+                                <span class="badge badge-round ms-1"
+                                    style="{{ getBadgeStyle(isMenuActive('admin.allTransactions', $currentRoute)) }}">{{ $all_transactions }}</span>
+                            </a>
+                        </li>
+                    @endcan
 
-                @can('withdraw.send_money.create')
-                    <li>
-                        <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive('admin.sendMoneyRequest', $currentRoute) ? 'active' : '' }}"
-                            href="{{ route('admin.sendMoneyRequest') }}">
-                            {{ trans('menu.withdraw module.send money request') }}
-                        </a>
-                    </li>
-                @endcan
+                    @can('withdraw.send_money.create')
+                        <li>
+                            <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive('admin.sendMoneyRequest', $currentRoute) ? 'active' : '' }}"
+                                href="{{ route('admin.sendMoneyRequest') }}">
+                                {{ trans('menu.withdraw module.send money request') }}
+                            </a>
+                        </li>
+                    @endcan
 
-                @can('withdraw.vendor_requests.new.view')
-                    <li>
-                        <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive('admin.transactionsRequests', $currentRoute) && request()->route('status') === 'new' ? 'active' : '' }}"
-                            href="{{ route('admin.transactionsRequests', ['status' => 'new']) }}">
-                            {{ trans('menu.withdraw module.new transaction requests') }}
-                            <span class="badge badge-round ms-1"
-                                style="{{ getBadgeStyle(isMenuActive('admin.transactionsRequests', $currentRoute) && request()->route('status') === 'new') }}">{{ $new_transactions }}</span>
-                        </a>
-                    </li>
-                @endcan
+                    @can('withdraw.vendor_requests.new.view')
+                        <li>
+                            <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive('admin.transactionsRequests', $currentRoute) && request()->route('status') === 'new' ? 'active' : '' }}"
+                                href="{{ route('admin.transactionsRequests', ['status' => 'new']) }}">
+                                {{ trans('menu.withdraw module.new transaction requests') }}
+                                <span class="badge badge-round ms-1"
+                                    style="{{ getBadgeStyle(isMenuActive('admin.transactionsRequests', $currentRoute) && request()->route('status') === 'new') }}">{{ $new_transactions }}</span>
+                            </a>
+                        </li>
+                    @endcan
 
-                @can('withdraw.vendor_requests.accepted.view')
-                    <li>
-                        <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive('admin.transactionsRequests', $currentRoute) && request()->route('status') === 'accepted' ? 'active' : '' }}"
-                            href="{{ route('admin.transactionsRequests', ['status' => 'accepted']) }}">
-                            {{ trans('menu.withdraw module.accepted transaction requests') }}
-                            <span class="badge badge-round ms-1"
-                                style="{{ getBadgeStyle(isMenuActive('admin.transactionsRequests', $currentRoute) && request()->route('status') === 'accepted') }}">{{ $accepted_transactions }}</span>
-                        </a>
-                    </li>
-                @endcan
+                    @can('withdraw.vendor_requests.accepted.view')
+                        <li>
+                            <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive('admin.transactionsRequests', $currentRoute) && request()->route('status') === 'accepted' ? 'active' : '' }}"
+                                href="{{ route('admin.transactionsRequests', ['status' => 'accepted']) }}">
+                                {{ trans('menu.withdraw module.accepted transaction requests') }}
+                                <span class="badge badge-round ms-1"
+                                    style="{{ getBadgeStyle(isMenuActive('admin.transactionsRequests', $currentRoute) && request()->route('status') === 'accepted') }}">{{ $accepted_transactions }}</span>
+                            </a>
+                        </li>
+                    @endcan
 
-                @can('withdraw.vendor_requests.rejected.view')
-                    <li>
-                        <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive('admin.transactionsRequests', $currentRoute) && request()->route('status') === 'rejected' ? 'active' : '' }}"
-                            href="{{ route('admin.transactionsRequests', ['status' => 'rejected']) }}">
-                            {{ trans('menu.withdraw module.rejected transaction requests') }}
-                            <span class="badge badge-round ms-1"
-                                style="{{ getBadgeStyle(isMenuActive('admin.transactionsRequests', $currentRoute) && request()->route('status') === 'rejected', 'secondary') }}">{{ $rejected_transactions }}</span>
-                        </a>
-                    </li>
-                @endcan
+                    @can('withdraw.vendor_requests.rejected.view')
+                        <li>
+                            <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive('admin.transactionsRequests', $currentRoute) && request()->route('status') === 'rejected' ? 'active' : '' }}"
+                                href="{{ route('admin.transactionsRequests', ['status' => 'rejected']) }}">
+                                {{ trans('menu.withdraw module.rejected transaction requests') }}
+                                <span class="badge badge-round ms-1"
+                                    style="{{ getBadgeStyle(isMenuActive('admin.transactionsRequests', $currentRoute) && request()->route('status') === 'rejected', 'secondary') }}">{{ $rejected_transactions }}</span>
+                            </a>
+                        </li>
+                    @endcan
 
-            </ul>
-        </li>
+                </ul>
+            </li>
+        @endcanany
 
-        <li class="menu-title mt-30">
-            <span>{{ trans('menu.sections.financials') }}</span>
-        </li>
-        <li
-            class="has-child {{ isParentMenuOpen(['admin.accounting.overview', 'admin.accounting.balance', 'admin.accounting.expenses'], ['admin/accounting*']) ? 'open' : '' }}">
-            <a href="#"
-                class="{{ isParentMenuOpen(['admin.accounting.overview', 'admin.accounting.balance', 'admin.accounting.expenses'], ['admin/accounting*']) ? 'active' : '' }}">
-                <span class="nav-icon uil uil-invoice"></span>
-                <span class="menu-text">{{ trans('menu.accounting module.title') }}</span>
-                <span class="toggle-icon"></span>
-            </a>
-            <ul class="px-0">
-                @can('accounting.overview.view')
-                    <li><a class="d-flex align-items-center justify-content-between fw-bold"
-                            href="{{ route('admin.dashboard') }}">{{ trans('menu.accounting module.overview') }}</a>
-                    </li>
-                @endcan
-                @can('accounting.balance.view')
-                    <li><a class="d-flex align-items-center justify-content-between fw-bold"
-                            href="{{ route('admin.dashboard') }}">{{ trans('menu.accounting module.balance') }}</a>
-                    </li>
-                @endcan
-                @can('accounting.expenses_keys.view')
-                    <li><a class="d-flex align-items-center justify-content-between fw-bold"
-                            href="{{ route('admin.dashboard') }}">{{ trans('menu.accounting module.expenses keys') }}</a>
-                    </li>
-                @endcan
-                @can('accounting.expenses.view')
-                    <li><a class="d-flex align-items-center justify-content-between fw-bold"
-                            href="{{ route('admin.dashboard') }}">{{ trans('menu.accounting module.expenses') }}</a>
-                    </li>
-                @endcan
-            </ul>
-        </li>
+        @canany(['accounting.overview.view', 'accounting.balance.view', 'accounting.expenses_keys.view', 'accounting.expenses.view'])
+            <li class="menu-title mt-30">
+                <span>{{ trans('menu.sections.financials') }}</span>
+            </li>
+            <li
+                class="has-child {{ isParentMenuOpen(['admin.accounting.overview', 'admin.accounting.balance', 'admin.accounting.expenses'], ['admin/accounting*']) ? 'open' : '' }}">
+                <a href="#"
+                    class="{{ isParentMenuOpen(['admin.accounting.overview', 'admin.accounting.balance', 'admin.accounting.expenses'], ['admin/accounting*']) ? 'active' : '' }}">
+                    <span class="nav-icon uil uil-invoice"></span>
+                    <span class="menu-text">{{ trans('menu.accounting module.title') }}</span>
+                    <span class="toggle-icon"></span>
+                </a>
+                <ul class="px-0">
+                    @can('accounting.overview.view')
+                        <li><a class="d-flex align-items-center justify-content-between fw-bold"
+                                href="{{ route('admin.dashboard') }}">{{ trans('menu.accounting module.overview') }}</a>
+                        </li>
+                    @endcan
+                    @can('accounting.balance.view')
+                        <li><a class="d-flex align-items-center justify-content-between fw-bold"
+                                href="{{ route('admin.dashboard') }}">{{ trans('menu.accounting module.balance') }}</a>
+                        </li>
+                    @endcan
+                    @can('accounting.expenses_keys.view')
+                        <li><a class="d-flex align-items-center justify-content-between fw-bold"
+                                href="{{ route('admin.dashboard') }}">{{ trans('menu.accounting module.expenses keys') }}</a>
+                        </li>
+                    @endcan
+                    @can('accounting.expenses.view')
+                        <li><a class="d-flex align-items-center justify-content-between fw-bold"
+                                href="{{ route('admin.dashboard') }}">{{ trans('menu.accounting module.expenses') }}</a>
+                        </li>
+                    @endcan
+                </ul>
+            </li>
+        @endcanany
         @canany(['departments.index', 'categories.index', 'sub_categories.index'])
             <li class="menu-title mt-30">
                 <span>{{ trans('menu.sections.catalog management') }}</span>
@@ -276,111 +282,121 @@
             </li>
         @endcanany
 
-        <li
-            class="has-child {{ isParentMenuOpen(['admin.products.index', 'admin.products.pending', 'admin.products.rejected', 'admin.products.accepted', 'admin.products.create', 'admin.products.show', 'admin.products.edit', 'admin.products.bank', 'admin.products.stock-setup', 'admin.variant-keys.index', 'admin.variants-configurations.index'], ['admin/products*', 'admin/variant*']) ? 'open' : '' }}">
-            <a href="#"
-                class="{{ isParentMenuOpen(['admin.products.index', 'admin.products.pending', 'admin.products.rejected', 'admin.products.accepted', 'admin.products.create', 'admin.products.show', 'admin.products.edit', 'admin.products.bank', 'admin.products.stock-setup', 'admin.variant-keys.index', 'admin.variants-configurations.index'], ['admin/products*', 'admin/variant*']) ? 'active' : '' }}">
-                <span class="nav-icon uil uil-box"></span>
-                <span class="menu-text">{{ trans('menu.products.title') }}</span>
-                <span class="toggle-icon"></span>
-            </a>
-            <ul class="px-0">
-                @can('products.index')
-                    <li>
-                        <a class="fw-bold {{ isMenuActive('admin.products.stock-setup', $currentRoute) ? 'active' : '' }}"
-                            href="{{ route('admin.products.stock-setup') }}">
-                            {{ trans('menu.products.stock_setup') }}
-                        </a>
-                    </li>
-                    <li>
-                        <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive('admin.products.bank', $currentRoute) ? 'active' : '' }}"
-                            href="{{ route('admin.products.bank') }}">
-                            {{ trans('menu.products.bank_products') }}
-                            <span class="badge badge-round ms-1"
-                                style="{{ getBadgeStyle(isMenuActive('admin.products.bank', $currentRoute)) }}">
-                                {{ \Modules\CatalogManagement\app\Models\Product::where('type', 'bank')->count() }}
-                            </span>
-                        </a>
-                    </li>
+        @canany([
+            'products.index', 'products.bank',
+            'variant-keys.view', 'variant-keys.create',
+        ])
+            <li
+                class="has-child {{ isParentMenuOpen(['admin.products.index', 'admin.products.pending', 'admin.products.rejected', 'admin.products.accepted', 'admin.products.create', 'admin.products.show', 'admin.products.edit', 'admin.products.bank', 'admin.products.stock-setup', 'admin.variant-keys.index', 'admin.variants-configurations.index'], ['admin/products*', 'admin/variant*']) ? 'open' : '' }}">
+                <a href="#"
+                    class="{{ isParentMenuOpen(['admin.products.index', 'admin.products.pending', 'admin.products.rejected', 'admin.products.accepted', 'admin.products.create', 'admin.products.show', 'admin.products.edit', 'admin.products.bank', 'admin.products.stock-setup', 'admin.variant-keys.index', 'admin.variants-configurations.index'], ['admin/products*', 'admin/variant*']) ? 'active' : '' }}">
+                    <span class="nav-icon uil uil-box"></span>
+                    <span class="menu-text">{{ trans('menu.products.title') }}</span>
+                    <span class="toggle-icon"></span>
+                </a>
+                <ul class="px-0">
+                    @can('products.stock-setup')
+                        <li>
+                            <a class="fw-bold {{ isMenuActive('admin.products.stock-setup', $currentRoute) ? 'active' : '' }}"
+                                href="{{ route('admin.products.stock-setup') }}">
+                                {{ trans('menu.products.stock_setup') }}
+                            </a>
+                        </li>
+                    @endcan
+                    
+                    @can('products.bank')
+                        <li>
+                            <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive('admin.products.bank', $currentRoute) ? 'active' : '' }}"
+                                href="{{ route('admin.products.bank') }}">
+                                {{ trans('menu.products.bank_products') }}
+                                <span class="badge badge-round ms-1"
+                                    style="{{ getBadgeStyle(isMenuActive('admin.products.bank', $currentRoute)) }}">
+                                    {{ \Modules\CatalogManagement\app\Models\Product::where('type', 'bank')->count() }}
+                                </span>
+                            </a>
+                        </li>
+                    @endcan
 
-                    <li>
-                        <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive(['admin.products.index', 'admin.products.create', 'admin.products.show', 'admin.products.edit'], $currentRoute) ? 'active' : '' }}"
-                            href="{{ route('admin.products.index') }}">
-                            {{ trans('menu.products.all_products') }}
-                            <span class="badge badge-round ms-1"
-                                style="{{ getBadgeStyle(isMenuActive(['admin.products.index', 'admin.products.create', 'admin.products.show', 'admin.products.edit'], $currentRoute)) }}">
-                                @if (in_array($user_type_id, \App\Models\UserType::adminIds()))
-                                    {{ \Modules\CatalogManagement\app\Models\Product::count() }}
-                                @else
-                                    {{ \Modules\CatalogManagement\app\Models\VendorProduct::where('vendor_id', auth()->user()->vendor->id ?? 0)->count() }}
-                                @endif
-                            </span>
-                        </a>
-                    </li>
-                    <li>
-                        <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive('admin.products.pending', $currentRoute) ? 'active' : '' }}"
-                            href="{{ route('admin.products.pending') }}">
-                            {{ trans('menu.products.pending_products') }}
-                            <span class="badge badge-round ms-1"
-                                style="{{ getBadgeStyle(isMenuActive('admin.products.pending', $currentRoute)) }}">
-                                @if (in_array($user_type_id, \App\Models\UserType::adminIds()))
-                                    {{ \Modules\CatalogManagement\app\Models\VendorProduct::where('status', 'pending')->count() }}
-                                @else
-                                    {{ \Modules\CatalogManagement\app\Models\VendorProduct::where('status', 'pending')->where('vendor_id', auth()->user()->vendor->id ?? 0)->count() }}
-                                @endif
-                            </span>
-                        </a>
-                    </li>
-                    <li>
-                        <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive('admin.products.rejected', $currentRoute) ? 'active' : '' }}"
-                            href="{{ route('admin.products.rejected') }}">
-                            {{ trans('menu.products.rejected_products') }}
-                            <span class="badge badge-round ms-1"
-                                style="{{ getBadgeStyle(isMenuActive('admin.products.rejected', $currentRoute), 'secondary') }}">
-                                @if (in_array($user_type_id, \App\Models\UserType::adminIds()))
-                                    {{ \Modules\CatalogManagement\app\Models\VendorProduct::where('status', 'rejected')->count() }}
-                                @else
-                                    {{ \Modules\CatalogManagement\app\Models\VendorProduct::where('status', 'rejected')->where('vendor_id', auth()->user()->vendor->id ?? 0)->count() }}
-                                @endif
-                            </span>
-                        </a>
-                    </li>
-                    <li>
-                        <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive('admin.products.accepted', $currentRoute) ? 'active' : '' }}"
-                            href="{{ route('admin.products.accepted') }}">
-                            {{ trans('menu.products.accepted_products') }}
-                            <span class="badge badge-round ms-1"
-                                style="{{ getBadgeStyle(isMenuActive('admin.products.accepted', $currentRoute)) }}">
-                                @if (in_array($user_type_id, \App\Models\UserType::adminIds()))
-                                    {{ \Modules\CatalogManagement\app\Models\VendorProduct::where('status', 'approved')->count() }}
-                                @else
-                                    {{ \Modules\CatalogManagement\app\Models\VendorProduct::where('status', 'approved')->where('vendor_id', auth()->user()->vendor->id ?? 0)->count() }}
-                                @endif
-                            </span>
-                        </a>
-                    </li>
-                @endcan
+                    @can('products.index')
+                        <li>
+                            <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive(['admin.products.index', 'admin.products.create', 'admin.products.show', 'admin.products.edit'], $currentRoute) ? 'active' : '' }}"
+                                href="{{ route('admin.products.index') }}">
+                                {{ trans('menu.products.all_products') }}
+                                <span class="badge badge-round ms-1"
+                                    style="{{ getBadgeStyle(isMenuActive(['admin.products.index', 'admin.products.create', 'admin.products.show', 'admin.products.edit'], $currentRoute)) }}">
+                                    @if (in_array($user_type_id, \App\Models\UserType::adminIds()))
+                                        {{ \Modules\CatalogManagement\app\Models\Product::count() }}
+                                    @else
+                                        {{ \Modules\CatalogManagement\app\Models\VendorProduct::where('vendor_id', auth()->user()->vendor->id ?? 0)->count() }}
+                                    @endif
+                                </span>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive('admin.products.pending', $currentRoute) ? 'active' : '' }}"
+                                href="{{ route('admin.products.pending') }}">
+                                {{ trans('menu.products.pending_products') }}
+                                <span class="badge badge-round ms-1"
+                                    style="{{ getBadgeStyle(isMenuActive('admin.products.pending', $currentRoute)) }}">
+                                    @if (in_array($user_type_id, \App\Models\UserType::adminIds()))
+                                        {{ \Modules\CatalogManagement\app\Models\VendorProduct::where('status', 'pending')->count() }}
+                                    @else
+                                        {{ \Modules\CatalogManagement\app\Models\VendorProduct::where('status', 'pending')->where('vendor_id', auth()->user()->vendor->id ?? 0)->count() }}
+                                    @endif
+                                </span>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive('admin.products.rejected', $currentRoute) ? 'active' : '' }}"
+                                href="{{ route('admin.products.rejected') }}">
+                                {{ trans('menu.products.rejected_products') }}
+                                <span class="badge badge-round ms-1"
+                                    style="{{ getBadgeStyle(isMenuActive('admin.products.rejected', $currentRoute), 'secondary') }}">
+                                    @if (in_array($user_type_id, \App\Models\UserType::adminIds()))
+                                        {{ \Modules\CatalogManagement\app\Models\VendorProduct::where('status', 'rejected')->count() }}
+                                    @else
+                                        {{ \Modules\CatalogManagement\app\Models\VendorProduct::where('status', 'rejected')->where('vendor_id', auth()->user()->vendor->id ?? 0)->count() }}
+                                    @endif
+                                </span>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive('admin.products.accepted', $currentRoute) ? 'active' : '' }}"
+                                href="{{ route('admin.products.accepted') }}">
+                                {{ trans('menu.products.accepted_products') }}
+                                <span class="badge badge-round ms-1"
+                                    style="{{ getBadgeStyle(isMenuActive('admin.products.accepted', $currentRoute)) }}">
+                                    @if (in_array($user_type_id, \App\Models\UserType::adminIds()))
+                                        {{ \Modules\CatalogManagement\app\Models\VendorProduct::where('status', 'approved')->count() }}
+                                    @else
+                                        {{ \Modules\CatalogManagement\app\Models\VendorProduct::where('status', 'approved')->where('vendor_id', auth()->user()->vendor->id ?? 0)->count() }}
+                                    @endif
+                                </span>
+                            </a>
+                        </li>
+                    @endcan
 
-                @canany(['variant-keys.view', 'variant-keys.create'])
-                    <li>
-                        <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive('admin.variant-keys.index', $currentRoute) ? 'active' : '' }}"
-                            href="{{ route('admin.variant-keys.index') }}">
-                            {{ trans('menu.variant configurations.variant config keys') }}
-                            <span class="badge badge-round ms-1"
-                                style="{{ getBadgeStyle(isMenuActive('admin.variant-keys.index', $currentRoute)) }}">{{ \Modules\CatalogManagement\app\Models\VariantConfigurationKey::count() }}</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive('admin.variants-configurations.index', $currentRoute) ? 'active' : '' }}"
-                            href="{{ route('admin.variants-configurations.index') }}">
-                            {{ trans('menu.variant configurations.variant config') }}
-                            <span class="badge badge-round ms-1"
-                                style="{{ getBadgeStyle(isMenuActive('admin.variants-configurations.index', $currentRoute)) }}">{{ \Modules\CatalogManagement\app\Models\VariantsConfiguration::count() }}</span>
-                        </a>
-                    </li>
-                @endcanany
-            </ul>
-        </li>
+                    @canany(['variant-keys.view', 'variant-keys.create'])
+                        <li>
+                            <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive('admin.variant-keys.index', $currentRoute) ? 'active' : '' }}"
+                                href="{{ route('admin.variant-keys.index') }}">
+                                {{ trans('menu.variant configurations.variant config keys') }}
+                                <span class="badge badge-round ms-1"
+                                    style="{{ getBadgeStyle(isMenuActive('admin.variant-keys.index', $currentRoute)) }}">{{ \Modules\CatalogManagement\app\Models\VariantConfigurationKey::count() }}</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive('admin.variants-configurations.index', $currentRoute) ? 'active' : '' }}"
+                                href="{{ route('admin.variants-configurations.index') }}">
+                                {{ trans('menu.variant configurations.variant config') }}
+                                <span class="badge badge-round ms-1"
+                                    style="{{ getBadgeStyle(isMenuActive('admin.variants-configurations.index', $currentRoute)) }}">{{ \Modules\CatalogManagement\app\Models\VariantsConfiguration::count() }}</span>
+                            </a>
+                        </li>
+                    @endcanany
+                </ul>
+            </li>
+        @endcanany
 
         {{-- Bundles Menu --}}
         @canany(['bundle_categories.index', 'bundles.index'])
@@ -594,67 +610,74 @@
             </li>
         @endcan
 
+        @canany(['admin-roles.index', 'admins.index', 'vendor-user-roles.index', 'vendor-users.index'])
+            <li class="menu-title mt-30">
+                <span>{{ trans('menu.sections.user management') }}</span>
+            </li>
+        @endcanany
+        {{-- Admin Management --}}
+        @canany(['admin-roles.index', 'admins.index'])
+            <li
+                class="has-child {{ isParentMenuOpen(['admin.admin-management.roles.index', 'admin.admin-management.admins.index'], ['admin/admin-management*']) ? 'open' : '' }}">
+                <a href="#"
+                    class="{{ isParentMenuOpen(['admin.admin-management.roles.index', 'admin.admin-management.admins.index'], ['admin/admin-management*']) ? 'active' : '' }}">
+                    <span class="nav-icon uil uil-user-check"></span>
+                    <span class="menu-text">{{ trans('menu.admin managment.title') }}</span>
+                    <span class="toggle-icon"></span>
+                </a>
+                <ul class="px-0">
+                    @can('admin-roles.index')
+                        <li>
+                            <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive(['admin.admin-management.roles.index', 'admin.admin-management.roles.create', 'admin.admin-management.roles.show', 'admin.admin-management.roles.edit'], $currentRoute) ? 'active' : '' }}"
+                                href="{{ route('admin.admin-management.roles.index') }}">
+                                {{ trans('menu.admin managment.roles managment') }}
+                            </a>
+                        </li>
+                    @endcan
 
-        <li class="menu-title mt-30">
-            <span>{{ trans('menu.sections.user management') }}</span>
-        </li>
-        <li
-            class="has-child {{ isParentMenuOpen(['admin.admin-management.roles.index', 'admin.admin-management.admins.index'], ['admin/admin-management*']) ? 'open' : '' }}">
-            <a href="#"
-                class="{{ isParentMenuOpen(['admin.admin-management.roles.index', 'admin.admin-management.admins.index'], ['admin/admin-management*']) ? 'active' : '' }}">
-                <span class="nav-icon uil uil-user-check"></span>
-                <span class="menu-text">{{ trans('menu.admin managment.title') }}</span>
-                <span class="toggle-icon"></span>
-            </a>
-            <ul class="px-0">
-                @can('roles.index')
-                    <li>
-                        <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive(['admin.admin-management.roles.index', 'admin.admin-management.roles.create', 'admin.admin-management.roles.show', 'admin.admin-management.roles.edit'], $currentRoute) ? 'active' : '' }}"
-                            href="{{ route('admin.admin-management.roles.index') }}">
-                            {{ trans('menu.admin managment.roles managment') }}
-                        </a>
-                    </li>
-                @endcan
+                    @can('admins.index')
+                        <li>
+                            <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive(['admin.admin-management.admins.index', 'admin.admin-management.admins.create', 'admin.admin-management.admins.show', 'admin.admin-management.admins.edit'], $currentRoute) ? 'active' : '' }}"
+                                href="{{ route('admin.admin-management.admins.index') }}">
+                                {{ trans('menu.admin managment.admin managment') }}
+                            </a>
+                        </li>
+                    @endcan
+                </ul>
+            </li>
+        @endcanany
+        {{-- Vendor Users Management --}}
+        @canany(['vendor-user-roles.index', 'vendor-users.index'])
+            <li
+                class="has-child {{ isParentMenuOpen(['admin.vendor-users-management.roles.index', 'admin.vendor-users-management.vendor-users.index'], ['admin/vendor-users-management*']) ? 'open' : '' }}">
+                <a href="#"
+                    class="{{ isParentMenuOpen(['admin.vendor-users-management.roles.index', 'admin.vendor-users-management.vendor-users.index'], ['admin/vendor-users-management*']) ? 'active' : '' }}">
+                    <span class="nav-icon uil uil-users-alt"></span>
+                    <span class="menu-text">{{ trans('menu.admin managment.vendor users management') }}</span>
+                    <span class="toggle-icon"></span>
+                </a>
+                <ul class="px-0">
+                    @can('vendor-user-roles.index')
+                        <li>
+                            <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive(['admin.vendor-users-management.roles.index', 'admin.vendor-users-management.roles.create', 'admin.vendor-users-management.roles.show', 'admin.vendor-users-management.roles.edit'], $currentRoute) ? 'active' : '' }}"
+                                href="{{ route('admin.vendor-users-management.roles.index') }}">
+                                {{ trans('menu.admin managment.vendor users roles management') }}
+                            </a>
+                        </li>
+                    @endcan
 
-                @can('admins.index')
-                    <li>
-                        <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive(['admin.admin-management.admins.index', 'admin.admin-management.admins.create', 'admin.admin-management.admins.show', 'admin.admin-management.admins.edit'], $currentRoute) ? 'active' : '' }}"
-                            href="{{ route('admin.admin-management.admins.index') }}">
-                            {{ trans('menu.admin managment.admin managment') }}
-                        </a>
-                    </li>
-                @endcan
-            </ul>
-        </li>
+                    @can('vendor-users.index')
+                        <li>
+                            <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive(['admin.vendor-users-management.vendor-users.index', 'admin.vendor-users-management.vendor-users.create', 'admin.vendor-users-management.vendor-users.show', 'admin.vendor-users-management.vendor-users.edit'], $currentRoute) ? 'active' : '' }}"
+                                href="{{ route('admin.vendor-users-management.vendor-users.index') }}">
+                                {{ trans('menu.admin managment.vendor users management') }}
+                            </a>
+                        </li>
+                    @endcan
+                </ul>
+            </li>
+        @endcanany
 
-        <li
-            class="has-child {{ isParentMenuOpen(['admin.vendor-users-management.roles.index', 'admin.vendor-users-management.vendor-users.index'], ['admin/vendor-users-management*']) ? 'open' : '' }}">
-            <a href="#"
-                class="{{ isParentMenuOpen(['admin.vendor-users-management.roles.index', 'admin.vendor-users-management.vendor-users.index'], ['admin/vendor-users-management*']) ? 'active' : '' }}">
-                <span class="nav-icon uil uil-users-alt"></span>
-                <span class="menu-text">{{ trans('menu.admin managment.vendor users management') }}</span>
-                <span class="toggle-icon"></span>
-            </a>
-            <ul class="px-0">
-                @can('roles.index')
-                    <li>
-                        <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive(['admin.vendor-users-management.roles.index', 'admin.vendor-users-management.roles.create', 'admin.vendor-users-management.roles.show', 'admin.vendor-users-management.roles.edit'], $currentRoute) ? 'active' : '' }}"
-                            href="{{ route('admin.vendor-users-management.roles.index') }}">
-                            {{ trans('menu.admin managment.vendor users roles management') }}
-                        </a>
-                    </li>
-                @endcan
-
-                @can('vendor-users.index')
-                    <li>
-                        <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive(['admin.vendor-users-management.vendor-users.index', 'admin.vendor-users-management.vendor-users.create', 'admin.vendor-users-management.vendor-users.show', 'admin.vendor-users-management.vendor-users.edit'], $currentRoute) ? 'active' : '' }}"
-                            href="{{ route('admin.vendor-users-management.vendor-users.index') }}">
-                            {{ trans('menu.admin managment.vendor users management') }}
-                        </a>
-                    </li>
-                @endcan
-            </ul>
-        </li>
 
         @canany(['vendors.index', 'vendors.create'])
             <li
@@ -753,75 +776,87 @@
                             href="{{ route('admin.customers.index') }}">
                             {{ trans('menu.customers.all') }}
                             <span class="badge badge-round ms-1"
-                                style="{{ getBadgeStyle(isMenuActive('admin.customers.index', $currentRoute)) }}">{{ \Modules\Customer\app\Models\Customer::count() }}</span>
+                                style="{{ getBadgeStyle(isMenuActive('admin.customers.index', $currentRoute)) }}">
+                                {{ isAdmin() ? \Modules\Customer\app\Models\Customer::count() : \Modules\Customer\app\Models\Customer::where('vendor_id', auth()->user()->vendor_id ?? auth()->id())->count() }}
+                            </span>
                         </a>
                     </li>
                 </ul>
             </li>
         @endcan
 
-        <li class="menu-title mt-30">
-            <span>{{ trans('menu.sections.order and fulfillment') }}</span>
-        </li>
-        @can('orders.new')
-            <li
-                class="has-child {{ isParentMenuOpen(['admin.orders.index', 'admin.orders.create'], ['admin/orders*']) ? 'open' : '' }}">
-                <a href="#"
-                    class="{{ isParentMenuOpen(['admin.orders.index', 'admin.orders.create'], ['admin/orders*']) ? 'active' : '' }}">
-                    <span class="nav-icon uil uil-shopping-cart"></span>
-                    <span class="menu-text">{{ trans('menu.orders.title') }}</span>
-                    <span class="toggle-icon"></span>
-                </a>
-                <ul class="px-0">
-                    <li class="l_sidebar">
-                        <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive('admin.orders.index', $currentRoute) && !request()->has('stage') ? 'active' : '' }}"
-                            href="{{ route('admin.orders.index') }}">
-                            {{ trans('menu.orders.all') }}
-                            <span class="badge badge-round ms-1"
-                                style="{{ getBadgeStyle(isMenuActive('admin.orders.index', $currentRoute) && !request()->has('stage')) }}">{{ \Modules\Order\app\Models\Order::count() }}</span>
-                        </a>
-                    </li>
-                    @can('orders.create')
+            <li class="menu-title mt-30">
+                <span>{{ trans('menu.sections.order and fulfillment') }}</span>
+            </li>
+            @canany(['orders.index', 'orders.create'])
+                <li
+                    class="has-child {{ isParentMenuOpen(['admin.orders.index', 'admin.orders.create'], ['admin/orders*']) ? 'open' : '' }}">
+                    <a href="#"
+                        class="{{ isParentMenuOpen(['admin.orders.index', 'admin.orders.create'], ['admin/orders*']) ? 'active' : '' }}">
+                        <span class="nav-icon uil uil-shopping-cart"></span>
+                        <span class="menu-text">{{ trans('menu.orders.title') }}</span>
+                        <span class="toggle-icon"></span>
+                    </a>
+                    <ul class="px-0">
                         <li class="l_sidebar">
-                            <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive('admin.orders.create', $currentRoute) ? 'active' : '' }}"
-                                href="{{ route('admin.orders.create') }}">
-                                {{ trans('menu.orders.create') }}
-                            </a>
-                        </li>
-                    @endcan
-
-                    {{-- Order Stages --}}
-                    @php
-                        $countryCode = session('country_code');
-                        $countryId = $countryCode
-                            ? \Modules\AreaSettings\app\Models\Country::where('code', $countryCode)->value('id')
-                            : null;
-
-                        $orderStages = \Modules\Order\app\Models\OrderStage::where(function ($q) use ($countryId) {
-                            $q->where(function ($sub) {
-                                $sub->whereNull('country_id')->where('is_system', 1);
-                            });
-
-                            if ($countryId) {
-                                $q->orWhere('country_id', $countryId);
-                            }
-                        })
-                            ->orderBy('sort_order')
-                            ->get();
-                    @endphp
-                    @foreach ($orderStages as $stage)
-                        <li class="l_sidebar">
-                            <a class="d-flex align-items-center justify-content-between fw-bold {{ request()->get('stage') == $stage->id ? 'active' : '' }}"
-                                href="{{ route('admin.orders.index', ['stage' => $stage->id]) }}">
-                                {{ $stage->translations->where('lang_key', 'name')->first()?->lang_value ?? $stage->slug }}
+                            <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive('admin.orders.index', $currentRoute) && !request()->has('stage') ? 'active' : '' }}"
+                                href="{{ route('admin.orders.index') }}">
+                                {{ trans('menu.orders.all') }}
                                 <span class="badge badge-round ms-1"
-                                    style="{{ getBadgeStyle(request()->get('stage') == $stage->id) }}">{{ \Modules\Order\app\Models\Order::where('stage_id', $stage->id)->count() }}</span>
+                                    style="{{ getBadgeStyle(isMenuActive('admin.orders.index', $currentRoute) && !request()->has('stage')) }}">
+                                    {{ isAdmin() ? \Modules\Order\app\Models\Order::count() : \Modules\Order\app\Models\Order::whereHas('products', function($q) { $q->where('vendor_id', auth()->user()->vendor_id ?? auth()->id()); })->count() }}
+                                </span>
                             </a>
                         </li>
-                    @endforeach
-                </ul>
-            </li>
-        @endcan
+                        @can('orders.create')
+                            <li class="l_sidebar">
+                                <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive('admin.orders.create', $currentRoute) ? 'active' : '' }}"
+                                    href="{{ route('admin.orders.create') }}">
+                                    {{ trans('menu.orders.create') }}
+                                </a>
+                            </li>
+                        @endcan
+
+                        {{-- Order Stages --}}
+                        @php
+                            $countryCode = session('country_code');
+                            $countryId = $countryCode
+                                ? \Modules\AreaSettings\app\Models\Country::where('code', $countryCode)->value('id')
+                                : null;
+
+                            $currentLocale = app()->getLocale();
+                            $currentLangId = \App\Models\Language::where('code', $currentLocale)->value('id');
+
+                            $orderStages = \Modules\Order\app\Models\OrderStage::with(['translations' => function($query) use ($currentLangId) {
+                                $query->where('lang_id', $currentLangId);
+                            }])
+                            ->where(function ($q) use ($countryId) {
+                                $q->where(function ($sub) {
+                                    $sub->whereNull('country_id')->where('is_system', 1);
+                                });
+
+                                if ($countryId) {
+                                    $q->orWhere('country_id', $countryId);
+                                }
+                            })
+                                ->orderBy('sort_order')
+                                ->get();
+                        @endphp
+                        @foreach ($orderStages as $stage)
+                            <li class="l_sidebar">
+                                <a class="d-flex align-items-center justify-content-between fw-bold {{ request()->get('stage') == $stage->id ? 'active' : '' }}"
+                                    href="{{ route('admin.orders.index', ['stage' => $stage->id]) }}">
+                                    {{ $stage->translations->where('lang_key', 'name')->first()?->lang_value ?? $stage->slug }}
+                                    <span class="badge badge-round ms-1"
+                                        style="{{ getBadgeStyle(request()->get('stage') == $stage->id) }}">
+                                        {{ isAdmin() ? \Modules\Order\app\Models\Order::where('stage_id', $stage->id)->count() : \Modules\Order\app\Models\Order::where('stage_id', $stage->id)->whereHas('products', function($q) { $q->where('vendor_id', auth()->user()->vendor_id ?? auth()->id()); })->count() }}
+                                    </span>
+                                </a>
+                            </li>
+                        @endforeach
+                    </ul>
+                </li>
+            @endcan
 
         @can('order_stages.index')
             <li>

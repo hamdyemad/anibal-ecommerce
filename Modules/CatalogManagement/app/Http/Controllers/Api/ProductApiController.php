@@ -492,7 +492,15 @@ class ProductApiController extends Controller
             );
         }
 
-        $products = $this->productService->getVariantsWithProduct($dto->toArray());
+        $filters = $dto->toArray();
+        
+        // Filter by vendor if user is not admin
+        if (!isAdmin()) {
+            $vendorId = auth()->user()->vendor_id ?? auth()->id();
+            $filters['vendor_id'] = $vendorId;
+        }
+
+        $products = $this->productService->getVariantsWithProduct($filters);
 
         return $this->sendRes(
             config('responses.success')[app()->getLocale()],

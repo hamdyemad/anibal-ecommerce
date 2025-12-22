@@ -31,6 +31,10 @@ class OrderController extends Controller
     )
     {
         $this->orderService = $orderService;
+        $this->middleware('can:orders.index')->only(['index', 'datatable']);
+        $this->middleware('can:orders.create')->only(['create', 'store']);
+        $this->middleware('can:orders.show')->only(['show']);
+        $this->middleware('can:orders.edit')->only(['edit', 'update', 'changeStage']);
     }
 
     /**
@@ -41,8 +45,24 @@ class OrderController extends Controller
         $orderStages = $this->orderStageService->getOrderStagesQuery()->get();
         $orderStages = OrderStageResource::collection($orderStages)->resolve();
         $languages = Language::all();
-        $total_price =  number_format(OrderProduct::sum(\DB::raw('price * quantity')), 2);
-        $orders_count = Order::latest()->count();
+        
+        // Filter statistics by vendor if user is not admin
+        if (isAdmin()) {
+            // Admin sees all orders
+            $total_price = number_format(OrderProduct::sum(\DB::raw('price * quantity')), 2);
+            $orders_count = Order::latest()->count();
+        } else {
+            // Vendor sees only their orders
+            $vendorId = auth()->user()->vendor_id ?? auth()->id();
+            $total_price = number_format(
+                OrderProduct::where('vendor_id', $vendorId)->sum(\DB::raw('price * quantity')), 
+                2
+            );
+            $orders_count = Order::whereHas('products', function($q) use ($vendorId) {
+                $q->where('vendor_id', $vendorId);
+            })->count();
+        }
+        
         $vendors = $this->vendorService->getAllVendors([]);
         $data = [
             'languages' => $languages,
@@ -202,10 +222,52 @@ class OrderController extends Controller
             if (!$order) {
                 return abort(404, trans('order::order.order_not_found'));
             }
-
             return view('order::orders.show', compact('order'));
         } catch (\Exception $e) {
             return abort(500, trans('order::order.error_loading_order'));
+        }
+    }
+
+    /**
+     * Show edit order form
+     */
+    public function edit($lang, $countryCode, $id)
+    {
+        try {
+            $order = $this->orderService->getOrderById($id);
+            if (!$order) {
+                return abort(404, trans('order::order.order_not_found'));
+            }
+            return view('order::orders.edit', compact('order'));
+        } catch (\Exception $e) {
+            return abort(500, trans('order::order.error_loading_order'));
+        }
+    }
+
+    /**
+     * Update the specified order
+     */
+    public function update($lang, $countryCode, $id, UpdateOrderRequest $request)
+    {
+        try {
+            $order = $this->orderService->updateOrder($id, $request->validated());
+
+            return response()->json([
+                'status' => true,
+                'message' => trans('order::order.order_updated'),
+                'data' => [
+                    'id' => $order->id,
+                    'customer_name' => $order->customer_name,
+                    'total_price' => $order->total_price,
+                    'updated_at' => $order->updated_at,
+                ],
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => false,
+                'message' => trans('order::order.error_updating_order'),
+                'errors' => [$e->getMessage()],
+            ], 422);
         }
     }
 

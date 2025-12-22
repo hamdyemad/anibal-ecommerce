@@ -20,11 +20,10 @@ class BundleController extends Controller
         protected VendorService $vendorService,
         protected LanguageService $languageService,
     ) {
-        $this->middleware('can:bundles.index')->only(['index', 'datatable']);
+        $this->middleware('can:bundles.index')->only(['index', 'show', 'datatable']);
         $this->middleware('can:bundles.create')->only(['create', 'store']);
         $this->middleware('can:bundles.edit')->only(['edit', 'update']);
         $this->middleware('can:bundles.delete')->only(['destroy', 'destroyProduct']);
-        $this->middleware('can:bundles.show')->only(['show']);
         $this->middleware('can:bundles.toggle-status')->only(['toggleStatus']);
         $this->middleware('can:bundles.change-approval')->only(['changeApproval']);
     }

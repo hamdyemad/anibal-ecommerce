@@ -21,6 +21,7 @@ class OrderFulfillmentController extends Controller
     ) {
         $this->fulfillmentService = $fulfillmentService;
         $this->stageTransitionService = $stageTransitionService;
+        $this->middleware('can:orders.edit')->only(['show', 'allocate']);
     }
 
     /**

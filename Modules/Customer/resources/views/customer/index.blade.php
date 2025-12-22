@@ -86,6 +86,26 @@
                                         </div>
                                     </div>
 
+                                    @if(isAdmin())
+                                    {{-- Vendor Filter --}}
+                                    <div class="col-md-3">
+                                        <div class="form-group">
+                                            <label for="vendor_filter" class="il-gray fs-14 fw-500 mb-10">
+                                                <i class="uil uil-store me-1"></i>
+                                                {{ __('customer::customer.created_by_vendor') }}
+                                            </label>
+                                            <select
+                                                class="select2 form-control ih-medium ip-gray radius-xs b-light px-15 form-select"
+                                                id="vendor_filter">
+                                                <option value="">{{ __('customer::customer.all_vendors') }}</option>
+                                                @foreach($vendors as $vendor)
+                                                    <option value="{{ $vendor['id'] }}">{{ $vendor['name'] }}</option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                    </div>
+                                    @endif
+
                                     {{-- City Filter --}}
                                     <div class="col-md-3">
                                         <div class="form-group">
@@ -183,6 +203,9 @@
                                 <tr class="userDatatable-header">
                                     <th class="text-center"><span class="userDatatable-title">#</span></th>
                                     <th><span class="userDatatable-title">{{ __('customer::customer.customer_information') }}</span></th>
+                                    @if(isAdmin())
+                                    <th><span class="userDatatable-title">{{ __('customer::customer.created_by_vendor') }}</span></th>
+                                    @endif
                                     <th><span class="userDatatable-title">{{ __('customer::customer.city') }}</span></th>
                                     <th><span class="userDatatable-title">{{ __('customer::customer.region') }}</span></th>
                                     <th><span class="userDatatable-title">{{ __('customer::customer.status') }}</span></th>
@@ -317,6 +340,7 @@
                         d.search = $('#search').val();
                         d.city_id = $('#city_filter').val();
                         d.region_id = $('#region_filter').val();
+                        d.vendor_id = $('#vendor_filter').val();
                         d.created_date_from = $('#created_date_from').val();
                         d.created_date_to = $('#created_date_to').val();
                         if (d.order && d.order.length > 0) {
@@ -374,6 +398,20 @@
                             return info;
                         }
                     },
+                    @if(isAdmin())
+                    {
+                        data: 'vendor_name',
+                        name: 'vendor_name',
+                        orderable: false,
+                        render: function(data, type, row) {
+                            if (data) {
+                                return '<div class="userDatatable-content"><span class="badge badge-primary badge-round">' + data + '</span></div>';
+                            } else {
+                                return '<div class="userDatatable-content"><span class="badge badge-light badge-round">{{ __("customer::customer.no_vendor") }}</span></div>';
+                            }
+                        }
+                    },
+                    @endif
                     {
                         data: 'city_name',
                         name: 'city_name',
@@ -482,7 +520,7 @@
 
             // Initialize Select2 on all select elements
             if ($.fn.select2) {
-                $('#entriesSelect, #active, #email_verified, #city_filter, #region_filter').select2({
+                $('#entriesSelect, #active, #email_verified, #city_filter, #region_filter, #vendor_filter').select2({
                     theme: 'bootstrap-5',
                     minimumResultsForSearch: Infinity,
                     width: '100%'
@@ -510,6 +548,7 @@
                 const emailVerified = $('#email_verified').val();
                 const cityId = $('#city_filter').val();
                 const regionId = $('#region_filter').val();
+                const vendorId = $('#vendor_filter').val();
                 const createdDateFrom = $('#created_date_from').val();
                 const createdDateTo = $('#created_date_to').val();
 
@@ -518,6 +557,7 @@
                 if (emailVerified) params.set('email_verified', emailVerified);
                 if (cityId) params.set('city_id', cityId);
                 if (regionId) params.set('region_id', regionId);
+                if (vendorId) params.set('vendor_id', vendorId);
                 if (createdDateFrom) params.set('created_date_from', createdDateFrom);
                 if (createdDateTo) params.set('created_date_to', createdDateTo);
 
@@ -532,6 +572,7 @@
                 $('#email_verified').val(getUrlParameter('email_verified'));
                 $('#city_filter').val(getUrlParameter('city_id'));
                 $('#region_filter').val(getUrlParameter('region_id'));
+                $('#vendor_filter').val(getUrlParameter('vendor_id'));
                 $('#created_date_from').val(getUrlParameter('created_date_from'));
                 $('#created_date_to').val(getUrlParameter('created_date_to'));
             }
@@ -558,7 +599,7 @@
             });
 
             // Filter change handlers
-            $('#active, #email_verified, #city_filter, #region_filter, #created_date_from, #created_date_to').on('change', function() {
+            $('#active, #email_verified, #city_filter, #region_filter, #vendor_filter, #created_date_from, #created_date_to').on('change', function() {
                 updateUrlWithFilters();
                 table.draw();
             });
@@ -570,6 +611,7 @@
                 $('#search').val('');
                 $('#active').val('').trigger('change');
                 $('#email_verified').val('').trigger('change');
+                $('#vendor_filter').val('').trigger('change');
 
                 // Reset city and region
                 $('#city_filter').val('');

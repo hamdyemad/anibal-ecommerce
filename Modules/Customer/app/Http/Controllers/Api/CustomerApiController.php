@@ -77,12 +77,23 @@ class CustomerApiController extends Controller
      */
     public function index(Request $request)
     {
+        // Debug: Log authentication status
+        \Log::info($request->all());
+
         $filters = [
             'search' => $request->query('search'),
+            'vendor_id' => $request->query('vendor_id'),
             'active' => true,
+            'per_page' => 100,
         ];
 
-        $customers = $this->repository->getAllCustomers($filters, 100);
+        $customers = $this->repository->getAllCustomers($filters);
+
+        // Debug: Log query results
+        \Log::info('Customer API - Results', [
+            'count' => $customers->count(),
+            'total' => $customers->total(),
+        ]);
 
         return $this->sendRes(
             'Customers retrieved successfully',

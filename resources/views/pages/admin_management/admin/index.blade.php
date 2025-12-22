@@ -189,8 +189,9 @@
                         return d;
                     },
                     dataSrc: function(json) {
-                        json.recordsTotal = json.total || json.recordsTotal || 0;
-                        json.recordsFiltered = json.recordsFiltered || json.total || 0;
+                        // Use the correct total from backend
+                        json.recordsTotal = json.recordsTotal || 0;
+                        json.recordsFiltered = json.recordsFiltered || 0;
 
                         if (json.error) {
                             console.error('❌ Server returned error:', json.error);

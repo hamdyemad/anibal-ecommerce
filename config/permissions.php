@@ -15,24 +15,6 @@ return [
         ]
     ],
 
-    'Roles' => [
-        'name' => ['en' => 'Roles', 'ar' => 'الأدوار'],
-        'icon' => 'uil-shield-check',
-        'type' => 'all',
-        'sub_modules' => [
-            'Roles' => [
-                'name' => ['en' => 'Roles', 'ar' => 'الأدوار'],
-                'permissions' => [
-                    'read' => ['name' => ['en' => 'Read', 'ar' => 'قراءة'], 'key' => 'roles.index', 'type' => 'all'],
-                    'create' => ['name' => ['en' => 'Create', 'ar' => 'إنشاء'], 'key' => 'roles.create', 'type' => 'all'],
-                    'edit' => ['name' => ['en' => 'Edit', 'ar' => 'تعديل'], 'key' => 'roles.edit', 'type' => 'all'],
-                    'delete' => ['name' => ['en' => 'Delete', 'ar' => 'حذف'], 'key' => 'roles.delete', 'type' => 'all'],
-                    'show' => ['name' => ['en' => 'View', 'ar' => 'عرض'], 'key' => 'roles.show', 'type' => 'all'],
-                ]
-            ],
-        ]
-    ],
-
     'Admins' => [
         'name' => ['en' => 'Admins', 'ar' => 'المسؤولين'],
         'icon' => 'uil-users-alt',
@@ -46,18 +28,30 @@ return [
                     'edit' => ['name' => ['en' => 'Edit', 'ar' => 'تعديل'], 'key' => 'admins.edit', 'type' => 'admin'],
                     'delete' => ['name' => ['en' => 'Delete', 'ar' => 'حذف'], 'key' => 'admins.delete', 'type' => 'admin'],
                     'show' => ['name' => ['en' => 'View', 'ar' => 'عرض'], 'key' => 'admins.show', 'type' => 'admin'],
+                    'status' => ['name' => ['en' => 'Change Status', 'ar' => 'تغيير الحالة'], 'key' => 'admins.change-status', 'type' => 'admin'],
+                ]
+            ],
+            'Admin Roles' => [
+                'name' => ['en' => 'Admin Roles', 'ar' => 'أدوار المسؤولين'],
+                'permissions' => [
+                    'read' => ['name' => ['en' => 'Read', 'ar' => 'قراءة'], 'key' => 'admin-roles.index', 'type' => 'admin'],
+                    'create' => ['name' => ['en' => 'Create', 'ar' => 'إنشاء'], 'key' => 'admin-roles.create', 'type' => 'admin'],
+                    'edit' => ['name' => ['en' => 'Edit', 'ar' => 'تعديل'], 'key' => 'admin-roles.edit', 'type' => 'admin'],
+                    'delete' => ['name' => ['en' => 'Delete', 'ar' => 'حذف'], 'key' => 'admin-roles.delete', 'type' => 'admin'],
+                    'show' => ['name' => ['en' => 'View', 'ar' => 'عرض'], 'key' => 'admin-roles.show', 'type' => 'admin'],
                 ]
             ],
         ]
     ],
 
+
     'Vendor Users' => [
-        'name' => ['en' => 'Vendor Users', 'ar' => 'مستخدمي الموردين'],
+        'name' => ['en' => 'Vendor Users', 'ar' => 'مستخدمي التجار'],
         'icon' => 'uil-user-check',
         'type' => 'all',
         'sub_modules' => [
             'Vendor Users' => [
-                'name' => ['en' => 'Vendor Users', 'ar' => 'مستخدمي الموردين'],
+                'name' => ['en' => 'Vendor Users', 'ar' => 'مستخدمي التجار'],
                 'permissions' => [
                     'read' => ['name' => ['en' => 'Read', 'ar' => 'قراءة'], 'key' => 'vendor-users.index', 'type' => 'all'],
                     'create' => ['name' => ['en' => 'Create', 'ar' => 'إنشاء'], 'key' => 'vendor-users.create', 'type' => 'all'],
@@ -67,8 +61,55 @@ return [
                     'status' => ['name' => ['en' => 'Change Status', 'ar' => 'تغيير الحالة'], 'key' => 'vendor-users.change-status', 'type' => 'all'],
                 ]
             ],
+            'Vendor User Roles' => [
+                'name' => ['en' => 'Vendor User Roles', 'ar' => 'أدوار مستخدمي التجار'],
+                'permissions' => [
+                    'read' => ['name' => ['en' => 'Read', 'ar' => 'قراءة'], 'key' => 'vendor-user-roles.index', 'type' => 'all'],
+                    'create' => ['name' => ['en' => 'Create', 'ar' => 'إنشاء'], 'key' => 'vendor-user-roles.create', 'type' => 'all'],
+                    'edit' => ['name' => ['en' => 'Edit', 'ar' => 'تعديل'], 'key' => 'vendor-user-roles.edit', 'type' => 'all'],
+                    'delete' => ['name' => ['en' => 'Delete', 'ar' => 'حذف'], 'key' => 'vendor-user-roles.delete', 'type' => 'all'],
+                    'show' => ['name' => ['en' => 'View', 'ar' => 'عرض'], 'key' => 'vendor-user-roles.show', 'type' => 'all'],
+                ]
+            ],
         ]
     ],
+
+        'Vendors' => [
+        'name' => ['en' => 'Vendors', 'ar' => 'الموردين'],
+        'icon' => 'uil-store',
+        'type' => 'admin',
+        'sub_modules' => [
+            'Vendors' => [
+                'name' => ['en' => 'Vendors', 'ar' => 'الموردين'],
+                'permissions' => [
+                    'read' => ['name' => ['en' => 'Read', 'ar' => 'قراءة'], 'key' => 'vendors.index', 'type' => 'admin'],
+                    'create' => ['name' => ['en' => 'Create', 'ar' => 'إنشاء'], 'key' => 'vendors.create', 'type' => 'admin'],
+                    'edit' => ['name' => ['en' => 'Edit', 'ar' => 'تعديل'], 'key' => 'vendors.edit', 'type' => 'admin'],
+                    'delete' => ['name' => ['en' => 'Delete', 'ar' => 'حذف'], 'key' => 'vendors.delete', 'type' => 'admin'],
+                    'show' => ['name' => ['en' => 'View', 'ar' => 'عرض'], 'key' => 'vendors.show', 'type' => 'admin'],
+                    'status' => ['name' => ['en' => 'Change Status', 'ar' => 'تغيير الحالة'], 'key' => 'vendors.change-status', 'type' => 'admin'],
+                ]
+            ],
+        ]
+    ],
+
+    'Vendor Requests' => [
+        'name' => ['en' => 'Vendor Requests', 'ar' => 'طلبات الموردين'],
+        'icon' => 'uil-clipboard-notes',
+        'type' => 'admin',
+        'sub_modules' => [
+            'Vendor Requests' => [
+                'name' => ['en' => 'Vendor Requests', 'ar' => 'طلبات الموردين'],
+                'permissions' => [
+                    'read' => ['name' => ['en' => 'Read', 'ar' => 'قراءة'], 'key' => 'vendor-requests.index', 'type' => 'admin'],
+                    'approve' => ['name' => ['en' => 'Approve', 'ar' => 'قبول'], 'key' => 'vendor-requests.approve', 'type' => 'admin'],
+                    'reject' => ['name' => ['en' => 'Reject', 'ar' => 'رفض'], 'key' => 'vendor-requests.reject', 'type' => 'admin'],
+                    'delete' => ['name' => ['en' => 'Delete', 'ar' => 'حذف'], 'key' => 'vendor-requests.delete', 'type' => 'admin'],
+                ]
+            ],
+        ]
+    ],
+
 
     'Products' => [
         'name' => ['en' => 'Products', 'ar' => 'المنتجات'],
@@ -88,24 +129,17 @@ return [
                     'stock-setup' => ['name' => ['en' => 'Stock Setup', 'ar' => 'إعداد المخزون'], 'key' => 'products.stock-setup', 'type' => 'all'],
                 ]
             ],
-        ]
-    ],
-
-    'Product Bank' => [
-        'name' => ['en' => 'Product Bank', 'ar' => 'بنك المنتجات'],
-        'icon' => 'uil-estate',
-        'type' => 'all',
-        'sub_modules' => [
-            'Product Bank' => [
-                'name' => ['en' => 'Product Bank', 'ar' => 'بنك المنتجات'],
+            'Products Bank' => [
+                'name' => ['en' => 'Products Bank', 'ar' => 'بنك المنتجات'],
                 'permissions' => [
                     'read' => ['name' => ['en' => 'Read', 'ar' => 'قراءة'], 'key' => 'products.bank', 'type' => 'all'],
-                    'activation' => ['name' => ['en' => 'Change Activation', 'ar' => 'تغيير التنشيط'], 'key' => 'products.bank.change-activation', 'type' => 'all'],
-                    'trash' => ['name' => ['en' => 'Trash Vendor Product', 'ar' => 'نقل لسلة المهملات'], 'key' => 'products.bank.vendor-product.trash', 'type' => 'all'],
+                    'activation' => ['name' => ['en' => 'Change Activation', 'ar' => 'تغيير التنشيط'], 'key' => 'products.bank.change-activation', 'type' => 'admin'],
+                    'trash' => ['name' => ['en' => 'Trash Vendor Product', 'ar' => 'نقل لسلة المهملات'], 'key' => 'products.bank.vendor-product.trash', 'type' => 'admin'],
                 ]
             ],
         ]
     ],
+
 
     'Brands' => [
         'name' => ['en' => 'Brands', 'ar' => 'العلامات التجارية'],
@@ -247,7 +281,7 @@ return [
                     'edit' => ['name' => ['en' => 'Edit', 'ar' => 'تعديل'], 'key' => 'bundles.edit', 'type' => 'all'],
                     'delete' => ['name' => ['en' => 'Delete', 'ar' => 'حذف'], 'key' => 'bundles.delete', 'type' => 'all'],
                     'status' => ['name' => ['en' => 'Toggle Status', 'ar' => 'تبديل الحالة'], 'key' => 'bundles.toggle-status', 'type' => 'all'],
-                    'approval' => ['name' => ['en' => 'Change Approval', 'ar' => 'تغيير الموافقة'], 'key' => 'bundles.change-approval', 'type' => 'all'],
+                    'approval' => ['name' => ['en' => 'Change Approval', 'ar' => 'تغيير الموافقة'], 'key' => 'bundles.change-approval', 'type' => 'admin'],
                 ]
             ],
         ]
@@ -415,7 +449,7 @@ return [
                     'edit' => ['name' => ['en' => 'Edit', 'ar' => 'تعديل'], 'key' => 'orders.edit', 'type' => 'all'],
                     'delete' => ['name' => ['en' => 'Delete', 'ar' => 'حذف'], 'key' => 'orders.delete', 'type' => 'all'],
                     'show' => ['name' => ['en' => 'View', 'ar' => 'عرض'], 'key' => 'orders.show', 'type' => 'all'],
-                    'stage' => ['name' => ['en' => 'Change Stage', 'ar' => 'تغيير المرحلة'], 'key' => 'orders.change-stage', 'type' => 'all'],
+                    'stage' => ['name' => ['en' => 'Change Stage', 'ar' => 'تغيير المرحلة'], 'key' => 'orders.change-stage', 'type' => 'admin'],
                 ]
             ],
         ]
@@ -461,58 +495,23 @@ return [
     'Customers' => [
         'name' => ['en' => 'Customers', 'ar' => 'العملاء'],
         'icon' => 'uil-user-circle',
-        'type' => 'admin',
+        'type' => 'all',
         'sub_modules' => [
             'Customers' => [
                 'name' => ['en' => 'Customers', 'ar' => 'العملاء'],
                 'permissions' => [
-                    'read' => ['name' => ['en' => 'Read', 'ar' => 'قراءة'], 'key' => 'customers.index', 'type' => 'admin'],
-                    'create' => ['name' => ['en' => 'Create', 'ar' => 'إنشاء'], 'key' => 'customers.create', 'type' => 'admin'],
-                    'edit' => ['name' => ['en' => 'Edit', 'ar' => 'تعديل'], 'key' => 'customers.edit', 'type' => 'admin'],
-                    'delete' => ['name' => ['en' => 'Delete', 'ar' => 'حذف'], 'key' => 'customers.delete', 'type' => 'admin'],
-                    'show' => ['name' => ['en' => 'View', 'ar' => 'عرض'], 'key' => 'customers.show', 'type' => 'admin'],
-                    'status' => ['name' => ['en' => 'Change Status', 'ar' => 'تغيير الحالة'], 'key' => 'customers.change-status', 'type' => 'admin'],
-                    'verification' => ['name' => ['en' => 'Change Verification', 'ar' => 'تغيير التحقق'], 'key' => 'customers.change-verification', 'type' => 'admin'],
+                    'read' => ['name' => ['en' => 'Read', 'ar' => 'قراءة'], 'key' => 'customers.index', 'type' => 'all'],
+                    'create' => ['name' => ['en' => 'Create', 'ar' => 'إنشاء'], 'key' => 'customers.create', 'type' => 'all'],
+                    'edit' => ['name' => ['en' => 'Edit', 'ar' => 'تعديل'], 'key' => 'customers.edit', 'type' => 'all'],
+                    'delete' => ['name' => ['en' => 'Delete', 'ar' => 'حذف'], 'key' => 'customers.delete', 'type' => 'all'],
+                    'show' => ['name' => ['en' => 'View', 'ar' => 'عرض'], 'key' => 'customers.show', 'type' => 'all'],
+                    'status' => ['name' => ['en' => 'Change Status', 'ar' => 'تغيير الحالة'], 'key' => 'customers.change-status', 'type' => 'all'],
+                    'verification' => ['name' => ['en' => 'Change Verification', 'ar' => 'تغيير التحقق'], 'key' => 'customers.change-verification', 'type' => 'all'],
                 ]
             ],
         ]
     ],
 
-    'Vendors' => [
-        'name' => ['en' => 'Vendors', 'ar' => 'الموردين'],
-        'icon' => 'uil-store',
-        'type' => 'admin',
-        'sub_modules' => [
-            'Vendors' => [
-                'name' => ['en' => 'Vendors', 'ar' => 'الموردين'],
-                'permissions' => [
-                    'read' => ['name' => ['en' => 'Read', 'ar' => 'قراءة'], 'key' => 'vendors.index', 'type' => 'admin'],
-                    'create' => ['name' => ['en' => 'Create', 'ar' => 'إنشاء'], 'key' => 'vendors.create', 'type' => 'admin'],
-                    'edit' => ['name' => ['en' => 'Edit', 'ar' => 'تعديل'], 'key' => 'vendors.edit', 'type' => 'admin'],
-                    'delete' => ['name' => ['en' => 'Delete', 'ar' => 'حذف'], 'key' => 'vendors.delete', 'type' => 'admin'],
-                    'show' => ['name' => ['en' => 'View', 'ar' => 'عرض'], 'key' => 'vendors.show', 'type' => 'admin'],
-                    'status' => ['name' => ['en' => 'Change Status', 'ar' => 'تغيير الحالة'], 'key' => 'vendors.change-status', 'type' => 'admin'],
-                ]
-            ],
-        ]
-    ],
-
-    'Vendor Requests' => [
-        'name' => ['en' => 'Vendor Requests', 'ar' => 'طلبات الموردين'],
-        'icon' => 'uil-clipboard-notes',
-        'type' => 'admin',
-        'sub_modules' => [
-            'Vendor Requests' => [
-                'name' => ['en' => 'Vendor Requests', 'ar' => 'طلبات الموردين'],
-                'permissions' => [
-                    'read' => ['name' => ['en' => 'Read', 'ar' => 'قراءة'], 'key' => 'vendor-requests.index', 'type' => 'admin'],
-                    'approve' => ['name' => ['en' => 'Approve', 'ar' => 'قبول'], 'key' => 'vendor-requests.approve', 'type' => 'admin'],
-                    'reject' => ['name' => ['en' => 'Reject', 'ar' => 'رفض'], 'key' => 'vendor-requests.reject', 'type' => 'admin'],
-                    'delete' => ['name' => ['en' => 'Delete', 'ar' => 'حذف'], 'key' => 'vendor-requests.delete', 'type' => 'admin'],
-                ]
-            ],
-        ]
-    ],
 
     'Withdraws' => [
         'name' => ['en' => 'Withdraws', 'ar' => 'السحوبات'],

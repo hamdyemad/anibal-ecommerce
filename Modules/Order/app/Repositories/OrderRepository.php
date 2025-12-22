@@ -20,6 +20,15 @@ class OrderRepository implements OrderRepositoryInterface
         $query = Order::query();
 
         $query->with(['stage', 'customer', 'products'])->filter($filters)->latest('order_number');
+        
+        // Filter by vendor if user is not admin
+        if (!isAdmin()) {
+            $vendorId = auth()->user()->vendor_id ?? auth()->id();
+            $query->whereHas('products', function($q) use ($vendorId) {
+                $q->where('vendor_id', $vendorId);
+            });
+        }
+        
         return $query;
     }
 
@@ -28,8 +37,13 @@ class OrderRepository implements OrderRepositoryInterface
      */
     public function getOrderById($id)
     {
-        return Order::with(['stage', 'customer', 'products', 'extraFeesDiscounts'])
-            ->findOrFail($id);
+        return Order::with([
+            'stage', 
+            'customer', 
+            'products.vendorProduct.product', 
+            'products.vendorProductVariant.variantConfiguration.key', 
+            'extraFeesDiscounts'
+        ])->findOrFail($id);
     }
 
     /**

@@ -51,7 +51,6 @@ class Order extends BaseModel
         'total_fees',
         'total_discounts',
         'stage_id',
-        'country_id',
         'city_id',
         'region_id',
         'refunded_amount',

@@ -41,8 +41,12 @@ class VendorUserRequest extends FormRequest
             'translations' => 'required|array|min:1',
             'translations.*.name' => 'required|string|max:255',
             
+            // Image
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
+            
             // Status
             'active' => 'nullable|boolean',
+            'block' => 'nullable|boolean',
             
             // Roles
             'role_ids' => 'required|array|min:1',
@@ -79,6 +83,7 @@ class VendorUserRequest extends FormRequest
     {
         return [
             'translations.*.name' => __('admin.name'),
+            'image' => __('admin.image'),
             'email' => __('admin.email'),
             'password' => __('admin.password'),
             'role_ids' => __('admin.roles'),

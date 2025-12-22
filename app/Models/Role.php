@@ -81,6 +81,11 @@ class Role extends Model
             $query->whereDate('created_at', '<=', $filter['created_date_to']);
         }
 
+        // Filter by type
+        if (isset($filter['type']) && !empty($filter['type'])) {
+            $query->where('type', $filter['type']);
+        }
+
         // Exclude system-protected roles
         if (isset($filter['exclude_system']) && $filter['exclude_system'] === true) {
             $query->where(function($q) {

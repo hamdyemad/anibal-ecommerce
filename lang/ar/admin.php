@@ -12,6 +12,7 @@ return [
     'create_vendor_user' => 'إنشاء مستخدم مورد',
     'add_vendor_user' => 'إضافة مستخدم مورد',
     'edit_vendor_user' => 'تعديل مستخدم مورد',
+    'view_vendor_user' => 'عرض مستخدم المورد',
     'vendor_user_details' => 'تفاصيل مستخدم المورد',
     'edit_user' => 'تعديل المستخدم',
     'update_user' => 'تحديث المستخدم',
@@ -48,6 +49,7 @@ return [
     'all_status' => 'كل الحالات',
     'image' => 'الصورة',
     'admin_image' => 'صورة المسؤول',
+    'vendor_user_image' => 'صورة مستخدم المورد',
     'click_to_upload_image' => 'انقر لتحميل الصورة',
     'information' => 'المعلومات',
     

@@ -68,6 +68,35 @@ class OrderService
     }
 
     /**
+     * Update an existing order
+     */
+    public function updateOrder($id, array $data)
+    {
+        return DB::transaction(function () use ($id, $data) {
+            $result = app(Pipeline::class)
+                ->send([
+                    'data' => $data,
+                    'context' => ['order_id' => $id],
+                ])
+                ->through([
+                    ValidateProducts::class,
+                    FetchUserData::class,
+                    CalculateProductPrices::class,
+                    CalculateExtras::class,
+                    CalculateShipping::class,
+                    CalculateFinalTotal::class,
+                    \Modules\Order\app\Pipelines\UpdateOrder::class,
+                    SyncOrderProducts::class,
+                    SyncExtras::class,
+                    UpdateProductSales::class,
+                ])
+                ->thenReturn();
+
+            return $result['context']['order'];
+        });
+    }
+
+    /**
      * Change order stage and update fulfillments
      */
     public function changeOrderStage($id, $stageId)

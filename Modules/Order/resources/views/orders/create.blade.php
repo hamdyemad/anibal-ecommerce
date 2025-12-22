@@ -104,7 +104,7 @@
                                                 </select>
                                                 <button type="button" class="btn btn-primary" id="addNewAddressBtn"
                                                     title="Add new address">
-                                                    <i class="uil uil-plus"></i>
+                                                    <i class="uil uil-plus m-0"></i>
                                                 </button>
                                             </div>
                                         </div>
@@ -258,7 +258,7 @@
                                             <input type="text"
                                                 class="form-control ih-medium ip-gray radius-xs b-light px-15"
                                                 id="product_search"
-                                                placeholder="{{ __('common.search') }} {{ trans('order.product_name') }}..."
+                                                placeholder="{{ __('common.search') }}"
                                                 autocomplete="off">
                                             <div class="position-absolute w-100 bg-white border rounded-bottom shadow-sm"
                                                 id="product_suggestions"
@@ -444,29 +444,17 @@
                                         </label>
                                         <input type="text"
                                             class="form-control ih-medium ip-gray radius-xs b-light px-15 address-required"
-                                            id="address_title" name="address_title" placeholder="e.g., Home, Office"
+                                            id="address_title" name="address_title" placeholder="{{ __('order.address_title') }}"
                                             data-field="title">
                                         <small class="text-danger d-none error-message"></small>
                                     </div>
                                 </div>
                             </div>
 
-                            <div class="row">
-                                <div class="col-md-6 mb-25">
-                                    <div class="form-group">
-                                        <label class="il-gray fs-14 fw-500 mb-10 d-block">
-                                            {{ trans('order.country') }}
-                                            <span class="text-danger">*</span>
-                                        </label>
-                                        <select
-                                            class="form-control ih-medium ip-gray radius-xs b-light px-15 form-select address-required"
-                                            id="address_country_id" name="address_country_id" data-field="country_id">
-                                            <option value="">{{ __('common.select') }}</option>
-                                        </select>
-                                        <small class="text-danger d-none error-message"></small>
-                                    </div>
-                                </div>
+                            {{-- Hidden country field - automatically set from session --}}
+                            <input type="hidden" id="address_country_id" name="address_country_id" data-field="country_id">
 
+                            <div class="row">
                                 <div class="col-md-6 mb-25">
                                     <div class="form-group">
                                         <label class="il-gray fs-14 fw-500 mb-10 d-block">
@@ -475,15 +463,12 @@
                                         </label>
                                         <select
                                             class="form-control ih-medium ip-gray radius-xs b-light px-15 form-select address-required"
-                                            id="address_city_id" name="address_city_id" disabled data-field="city_id">
+                                            id="address_city_id" name="address_city_id" data-field="city_id">
                                             <option value="">{{ __('common.select') }}</option>
                                         </select>
                                         <small class="text-danger d-none error-message"></small>
                                     </div>
                                 </div>
-                            </div>
-
-                            <div class="row">
                                 <div class="col-md-6 mb-25">
                                     <div class="form-group">
                                         <label class="il-gray fs-14 fw-500 mb-10 d-block">
@@ -512,10 +497,7 @@
                                         </select>
                                     </div>
                                 </div>
-                            </div>
-
-                            <div class="row">
-                                <div class="col-md-12 mb-25">
+                                <div class="col-md-6 mb-25">
                                     <div class="form-group">
                                         <label class="il-gray fs-14 fw-500 mb-10 d-block">
                                             {{ trans('order.customer_address') }}
@@ -523,14 +505,11 @@
                                         </label>
                                         <input type="text"
                                             class="form-control ih-medium ip-gray radius-xs b-light px-15 address-required"
-                                            id="address_address" name="address_address" placeholder="Enter full address"
+                                            id="address_address" name="address_address" placeholder="{{ __('order.add_new_address') }}"
                                             data-field="address">
                                         <small class="text-danger d-none error-message"></small>
                                     </div>
                                 </div>
-                            </div>
-
-                            <div class="row">
                                 <div class="col-md-12 mb-25">
                                     <div class="form-check">
                                         <input class="form-check-input" type="checkbox" id="address_is_primary"
@@ -567,8 +546,9 @@
                     let discounts = [];
                     let products = [];
                     let productCounter = 0;
-                    let allProducts = [];
                     let allCustomers = [];
+
+                    // Note: Products are now loaded via direct AJAX search, not pre-loaded
 
                     // Load all products
                     function loadAllProducts() {
@@ -579,7 +559,8 @@
                             headers: {
                                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
                                 'Accept': 'application/json',
-                                'X-Country-Code': countryCode
+                                'X-Country-Code': countryCode,
+                                'lang': "{{ app()->getLocale() }}",
                             },
                             success: function(response) {
                                 console.log('Products loaded:', response);
@@ -605,16 +586,22 @@
 
                     // Load all customers
                     function loadAllCustomers() {
+                        let vendor_id = "{{ auth()->user()->vendor?->id }}";
                         $.ajax({
                             url: '/api/customers', // Customers API endpoint
                             type: 'GET',
+                            data: {
+                                vendor_id
+                            },
                             dataType: 'json',
                             headers: {
                                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
                                 'Accept': 'application/json',
-                                'X-Country-Code': countryCode
+                                'X-Country-Code': countryCode,
+                                'lang': "{{ app()->getLocale() }}",
                             },
                             success: function(response) {
+                                console.log(response)
                                 if (response.data) {
                                     allCustomers = response.data;
                                     console.log('Customers loaded:', allCustomers.length);
@@ -630,116 +617,148 @@
                         });
                     }
 
-                    // Live product search
+                    // Live product search with direct AJAX
                     let searchTimeout;
                     $('#product_search').on('keyup', function() {
                         clearTimeout(searchTimeout);
-                        const searchTerm = $(this).val().toLowerCase();
+                        const searchTerm = $(this).val().trim();
                         const suggestions = $('#product_suggestions');
 
-                        if (searchTerm.length < 1) {
+                        if (searchTerm.length < 2) {
                             suggestions.hide();
                             return;
                         }
 
                         searchTimeout = setTimeout(function() {
-                            // Filter products by name or SKU
-                            const filteredProducts = allProducts.filter(product => {
-                                const name = (product.name || product.title || '').toLowerCase();
-                                const sku = (product.sku || '').toLowerCase();
-                                return name.includes(searchTerm) || sku.includes(searchTerm);
-                            }).slice(0, 10);
+                            // Show loading state
+                            suggestions.html('<div class="p-2 text-muted"><i class="uil uil-spinner-alt spin"></i> {{ trans('order::order.searching') }}...</div>').show();
 
-                            if (filteredProducts.length > 0) {
-                                let html = '';
+                            // Make AJAX request to search products
+                            $.ajax({
+                                url: '/api/products/variants-all',
+                                type: 'GET',
+                                dataType: 'json',
+                                data: {
+                                    search: searchTerm,
+                                    per_page: 10,
+                                    paginated: false
+                                },
+                                headers: {
+                                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
+                                    'Accept': 'application/json',
+                                    'X-Country-Code': countryCode,
+                                    'lang': "{{ app()->getLocale() }}"
+                                },
+                                success: function(response) {
+                                    const products = response.data || [];
 
-                                // For each product, show all its variants
-                                filteredProducts.forEach(product => {
-                                    const productName = product.name || product.title || 'N/A';
-                                    const limitation = product.limitation || 0;
-                                    const taxRate = product.tax && product.tax.tax_rate ? product
-                                        .tax.tax_rate : 0;
-                                    const productStock = product.stock || 0;
+                                    if (products.length > 0) {
+                                        let html = '';
 
-                                    // Extract category from product
-                                    let categoryId = null;
-                                    let categoryName = null;
+                                        // For each product, show all its variants
+                                        products.forEach(product => {
+                                            const productName = product.name || product.title || 'N/A';
+                                            const limitation = product.limitation || 0;
+                                            const taxRate = product.tax && product.tax.tax_rate ? product.tax.tax_rate : 0;
+                                            const productStock = product.stock || 0;
+                                            const productImage = product.image || '';
+                                            const vendorId = product.vendor_id || null;
 
-                                    if (product.category) {
-                                        categoryId = product.category.id;
-                                        categoryName = product.category.name;
-                                    }
+                                            // Extract category from product
+                                            let categoryId = null;
+                                            let categoryName = null;
 
-                                    console.log('Product category:', {
-                                        productName,
-                                        categoryId,
-                                        categoryName,
-                                        fullCategory: product.category
-                                    });
+                                            if (product.category) {
+                                                categoryId = product.category.id;
+                                                categoryName = product.category.name;
+                                            }
 
-                                    if (product.variants && product.variants.length > 0) {
-                                        product.variants.forEach(variant => {
-                                            const price = parseFloat(variant.real_price) ||
-                                                0;
-                                            const variantKey = variant.variant_key;
-                                            const variantValue = variant.variant_value;
-                                            const variantName = variantKey ?
-                                                (variantValue ?
-                                                    `${variantKey}: ${variantValue}` :
-                                                    variantKey) :
-                                                (variant.variant_name || 'Default');
-                                            const variantSku = variant.sku || product.sku ||
-                                                'N/A';
-                                            const variantStock = variant.stock ?? 0;
+                                            if (product.variants && product.variants.length > 0) {
+                                                product.variants.forEach(variant => {
+                                                    const price = parseFloat(variant.real_price) || 0;
+                                                    const variantKey = variant.variant_key;
+                                                    const variantValue = variant.variant_value;
+                                                    const variantName = variantKey ?
+                                                        (variantValue ?
+                                                            `${variantKey}: ${variantValue}` :
+                                                            variantKey) :
+                                                        (variant.variant_name || 'Default');
+                                                    const variantSku = variant.sku || product.sku || 'N/A';
+                                                    const variantStock = variant.stock ?? 0;
+                                                    const vendorName = variant.vendor_name || 'N/A';
 
-                                            html += `
-                                        <div class="p-2 border-bottom cursor-pointer product-suggestion"
-                                             data-id="${variant.id}"
-                                             data-product-id="${product.id}"
-                                             data-name="${productName} - ${variantName}"
-                                             data-price="${price}"
-                                             data-limitation="${limitation}"
-                                             data-tax-rate="${taxRate}"
-                                             data-category-id="${categoryId}"
-                                             data-category-name="${categoryName}"
-                                             style="cursor: pointer;">
-                                            <div class="d-flex justify-content-between">
-                                                <span class="fw-500">${productName}</span>
-                                                <span class="text-muted">${price.toFixed(2)} {{ currency() }}</span>
+                                                    html += `
+                                                <div class="p-2 border-bottom cursor-pointer product-suggestion"
+                                                     data-id="${variant.id}"
+                                                     data-product-id="${product.id}"
+                                                     data-name="${productName} - ${variantName}"
+                                                     data-price="${price}"
+                                                     data-limitation="${limitation}"
+                                                     data-tax-rate="${taxRate}"
+                                                     data-category-id="${categoryId}"
+                                                     data-category-name="${categoryName}"
+                                                     style="cursor: pointer;">
+                                                    <div class="d-flex align-items-center gap-2">
+                                                        ${productImage ? 
+                                                            `<img src="${productImage}" alt="${productName}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px; border: 1px solid #dee2e6;">` : 
+                                                            `<div class="bg-light rounded d-flex align-items-center justify-content-center" style="width: 50px; height: 50px; border: 1px solid #dee2e6;"><i class="uil uil-image text-muted"></i></div>`
+                                                        }
+                                                        <div class="flex-grow-1">
+                                                            <div class="d-flex justify-content-between">
+                                                                <span class="fw-500">${productName}</span>
+                                                                <span class="text-muted">${price.toFixed(2)} {{ currency() }}</span>
+                                                            </div>
+                                                            <small class="text-muted d-block">${variantName} (SKU: ${variantSku} | Stock: ${variantStock}) ${limitation > 0 ? `- Max: ${limitation}` : ''}</small>
+                                                            <small class="text-primary d-block"><i class="uil uil-store me-1"></i>${vendorName}</small>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            `;
+                                                });
+                                            } else {
+                                                // Fallback if no variants
+                                                html += `
+                                            <div class="p-2 border-bottom cursor-pointer product-suggestion"
+                                                 data-id="${product.id}"
+                                                 data-product-id="${product.id}"
+                                                 data-name="${productName}"
+                                                 data-price="0"
+                                                 data-limitation="${limitation}"
+                                                 data-tax-rate="${taxRate}"
+                                                 data-category-id="${categoryId}"
+                                                 data-category-name="${categoryName}"
+                                                 style="cursor: pointer;">
+                                                <div class="d-flex align-items-center gap-2">
+                                                    ${productImage ? 
+                                                        `<img src="${productImage}" alt="${productName}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px; border: 1px solid #dee2e6;">` : 
+                                                        `<div class="bg-light rounded d-flex align-items-center justify-content-center" style="width: 50px; height: 50px; border: 1px solid #dee2e6;"><i class="uil uil-image text-muted"></i></div>`
+                                                    }
+                                                    <div class="flex-grow-1">
+                                                        <div class="d-flex justify-content-between">
+                                                            <span class="fw-500">${productName}</span>
+                                                            <span class="text-muted">No variants</span>
+                                                        </div>
+                                                        <small class="text-muted d-block">SKU: ${product.sku || 'N/A'} | Stock: ${productStock} ${limitation > 0 ? `- Max: ${limitation}` : ''}</small>
+                                                    </div>
+                                                </div>
                                             </div>
-                                            <small class="text-muted">${variantName} (SKU: ${variantSku} | Stock: ${variantStock}) ${limitation > 0 ? `- Max: ${limitation}` : ''}</small>
-                                        </div>
-                                    `;
+                                        `;
+                                            }
                                         });
+                                        suggestions.html(html).show();
                                     } else {
-                                        // Fallback if no variants - should not happen with current API
-                                        // but if it does, use product.id as both product and variant ID
-                                        html += `
-                                    <div class="p-2 border-bottom cursor-pointer product-suggestion"
-                                         data-id="${product.id}"
-                                         data-product-id="${product.id}"
-                                         data-name="${productName}"
-                                         data-price="0"
-                                         data-limitation="${limitation}"
-                                         data-tax-rate="${taxRate}"
-                                         data-category-id="${categoryId}"
-                                         data-category-name="${categoryName}"
-                                         style="cursor: pointer;">
-                                        <div class="d-flex justify-content-between">
-                                            <span class="fw-500">${productName}</span>
-                                            <span class="text-muted">No variants</span>
-                                        </div>
-                                        <small class="text-muted">SKU: ${product.sku || 'N/A'} | Stock: ${productStock} ${limitation > 0 ? `- Max: ${limitation}` : ''}</small>
-                                    </div>
-                                `;
+                                        suggestions.html(
+                                            '<div class="p-2 text-muted">{{ trans('order::order.no_products_found') }}</div>'
+                                        ).show();
                                     }
-                                });
-                                suggestions.html(html).show();
-                            } else {
-                                suggestions.html(
-                                    '<div class="p-2 text-muted">{{ trans('order.no_products_found') }}</div>'
-                                ).show();
-                            }
+                                },
+                                error: function(xhr) {
+                                    console.error('Product search error:', xhr);
+                                    suggestions.html(
+                                        '<div class="p-2 text-danger">{{ trans('order::order.error_searching_products') }}</div>'
+                                    ).show();
+                                }
+                            });
                         }, 300);
                     });
 
@@ -907,7 +926,8 @@
                             headers: {
                                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
                                 'Accept': 'application/json',
-                                'X-Country-Code': countryCode
+                                'X-Country-Code': countryCode,
+                                'lang': "{{ app()->getLocale() }}",
                             },
                             success: function(response) {
                                 const addressSelect = $('#customer_address_select');
@@ -947,43 +967,31 @@
                         $('#customer_address').val(address);
                     });
 
-                    // Load countries for address modal
-                    function loadCountries() {
-                        $.ajax({
-                            url: '/api/area/countries',
-                            type: 'GET',
-                            dataType: 'json',
-                            success: function(response) {
-                                const countrySelect = $('#address_country_id');
-                                if (response.data && response.data.length > 0) {
-                                    response.data.forEach(country => {
-                                        countrySelect.append(
-                                            `<option value="${country.id}">${country.name || country.title}</option>`
-                                        );
-                                    });
-                                }
-                            }
-                        });
-                    }
+                    // Load cities for the current country (from session)
+                    function loadCitiesForCurrentCountry() {
+                        const countryId = $("meta[name='current_country_id']").attr('content');
+                        
+                        if (!countryId) {
+                            console.error('No country ID found in meta tag');
+                            return;
+                        }
 
-                    // Load cities based on country
-                    $('#address_country_id').on('change', function() {
-                        const countryId = $(this).val();
+                        // Set the hidden country field
+                        $('#address_country_id').val(countryId);
+
                         const citySelect = $('#address_city_id');
-
-                        citySelect.empty().append('<option value="">{{ __('common.select') }}</option>').prop(
-                            'disabled', true);
-                        $('#address_region_id').empty().append(
-                            '<option value="">{{ __('common.select') }}</option>').prop('disabled', true);
-                        $('#address_subregion_id').empty().append(
-                            '<option value="">{{ __('common.select') }}</option>').prop('disabled', true);
-
-                        if (!countryId) return;
+                        citySelect.empty().append('<option value="">{{ __('common.select') }}</option>');
 
                         $.ajax({
                             url: `/api/area/countries/${countryId}/cities`,
                             type: 'GET',
                             dataType: 'json',
+                            headers: {
+                                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
+                                'Accept': 'application/json',
+                                'X-Country-Code': countryCode,
+                                'lang': "{{ app()->getLocale() }}",
+                            },
                             success: function(response) {
                                 if (response.data && response.data.length > 0) {
                                     response.data.forEach(city => {
@@ -991,11 +999,10 @@
                                             `<option value="${city.id}">${city.name || city.title}</option>`
                                         );
                                     });
-                                    citySelect.prop('disabled', false);
                                 }
                             }
                         });
-                    });
+                    }
 
                     // Load regions based on city
                     $('#address_city_id').on('change', function() {
@@ -1013,6 +1020,12 @@
                             url: `/api/area/cities/${cityId}/regions`,
                             type: 'GET',
                             dataType: 'json',
+                            headers: {
+                                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
+                                'Accept': 'application/json',
+                                'X-Country-Code': countryCode,
+                                'lang': "{{ app()->getLocale() }}",
+                            },
                             success: function(response) {
                                 if (response.data && response.data.length > 0) {
                                     response.data.forEach(region => {
@@ -1040,6 +1053,12 @@
                             url: `/api/area/regions/${regionId}/subregions`,
                             type: 'GET',
                             dataType: 'json',
+                            headers: {
+                                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
+                                'Accept': 'application/json',
+                                'X-Country-Code': countryCode,
+                                'lang': "{{ app()->getLocale() }}",
+                            },
                             success: function(response) {
                                 if (response.data && response.data.length > 0) {
                                     response.data.forEach(subregion => {
@@ -1060,6 +1079,10 @@
                             showAlert('warning', '{{ trans('order.please_select_customer') }}');
                             return;
                         }
+
+                        // Set country from session
+                        const countryId = $("meta[name='current_country_id']").attr('content');
+                        $('#address_country_id').val(countryId);
 
                         // Pre-fill email and phone if available
                         const email = $('#customer_email').val();
@@ -1088,7 +1111,7 @@
                                 isValid = false;
                                 $(this).addClass('is-invalid');
                                 $(this).closest('.form-group').find('.error-message').removeClass('d-none').text(
-                                    'This field is required');
+                                    translations.fieldRequired);
                             }
                         });
 
@@ -1108,7 +1131,7 @@
                     $('#saveAddressBtn').off('click').on('click', function() {
                         // Validate form first
                         if (!validateAddressForm()) {
-                            showAlert('warning', 'Please fill in all required fields');
+                            showAlert('warning', translations.fillRequiredFields);
                             return;
                         }
 
@@ -1132,7 +1155,10 @@
                             contentType: 'application/json',
                             data: JSON.stringify(formData),
                             headers: {
-                                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
+                                'Accept': 'application/json',
+                                'X-Country-Code': countryCode,
+                                'lang': "{{ app()->getLocale() }}",
                             },
                             success: function(response) {
                                 if (response.status && response.data) {
@@ -1162,6 +1188,10 @@
 
                                     // Select the new address in dropdown
                                     addressSelect.val(newAddress.id);
+
+                                    // Show address select section and hide no address message
+                                    $('#customer_address_section').show();
+                                    $('#no_address_section').hide();
 
                                     // Show success message
                                     showAlert('success',
@@ -1223,9 +1253,9 @@
                         }, 'slow');
                     }
 
-                    loadAllProducts();
+                    // No longer need to pre-load all products - using direct AJAX search
                     loadAllCustomers();
-                    loadCountries();
+                    loadCitiesForCurrentCountry();
 
                     // Add Fee
                     $('#addFeeBtn').on('click', function() {
@@ -1529,7 +1559,9 @@
                             type: 'POST',
                             headers: {
                                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
-                                'Content-Type': 'application/json'
+                                'Accept': 'application/json',
+                                'X-Country-Code': countryCode,
+                                'lang': "{{ app()->getLocale() }}",
                             },
                             data: JSON.stringify({
                                 customer_id: customerId,
@@ -1681,7 +1713,10 @@
                             processData: false,
                             contentType: false,
                             headers: {
-                                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
+                                'Accept': 'application/json',
+                                'X-Country-Code': countryCode,
+                                'lang': "{{ app()->getLocale() }}",
                             },
                             success: function(response) {
                                 if (response.status) {

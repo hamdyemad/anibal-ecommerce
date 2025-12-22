@@ -162,23 +162,39 @@
                                         <tr>
                                             <td class="fw-bold">{{ $key + 1 }}</td>
                                             <td>
-                                                <p class="fw-bold mb-2">
-                                                    {{ $product->vendorProduct->product->name ?? 'N/A' }}</p>
-                                                <small class="text-muted d-block mb-1">SKU:
-                                                    {{ $product->vendorProduct?->sku ?? 'N/A' }}</small>
-                                                @if ($product->vendorProductVariant)
-                                                    <small class="text-muted d-block mb-1">
-                                                        <i class="uil uil-tag me-1"></i>
-                                                        <strong>{{ trans('order::order.variant') }}:</strong>
-                                                        @if ($product->vendorProductVariant->variantKey && $product->vendorProductVariant->variantValue)
-                                                            {{ $product->vendorProductVariant->variantKey->getTranslation('name', app()->getLocale()) ?? ($product->vendorProductVariant->variantKey->name ?? 'N/A') }}
-                                                            -
-                                                            {{ $product->vendorProductVariant->variantValue->getTranslation('name', app()->getLocale()) ?? ($product->vendorProductVariant->variantValue->name ?? 'N/A') }}
-                                                        @else
-                                                            {{ trans('order::order.no_variant') }}
+                                                <div class="d-flex align-items-center gap-3">
+                                                    @php
+                                                        $productImage = $product->vendorProduct?->product?->mainImage?->path;
+                                                    @endphp
+                                                    @if($productImage)
+                                                        <img src="{{ asset('storage/' . $productImage) }}" 
+                                                             alt="{{ $product->vendorProduct->product->name ?? 'Product' }}"
+                                                             class="rounded"
+                                                             style="width: 60px; height: 60px; object-fit: cover; border: 1px solid #dee2e6;">
+                                                    @else
+                                                        <div class="bg-light rounded d-flex align-items-center justify-content-center" 
+                                                             style="width: 60px; height: 60px; border: 1px solid #dee2e6;">
+                                                            <i class="uil uil-image text-muted" style="font-size: 24px;"></i>
+                                                        </div>
+                                                    @endif
+                                                    <div>
+                                                        <p class="fw-bold mb-2">
+                                                            {{ $product->vendorProduct->product->name ?? 'N/A' }}</p>
+                                                        <small class="text-muted d-block mb-1">SKU:
+                                                            {{ $product->vendorProduct?->sku ?? 'N/A' }}</small>
+                                                        @if ($product->vendorProductVariant->variantConfiguration)
+                                                            <small class="text-muted d-block mb-1">
+                                                                <i class="uil uil-tag me-1"></i>
+                                                                <strong>{{ trans('order::order.variant') }}:</strong>
+                                                                @if ($product->vendorProductVariant->variantConfiguration)
+                                                                    {{ app()->getLocale() === 'ar' ? $product->vendorProductVariant->variant_path_ar : $product->vendorProductVariant->variant_path_en }}
+                                                                @else
+                                                                    {{ trans('order::order.no_variant') }}
+                                                                @endif
+                                                            </small>
                                                         @endif
-                                                    </small>
-                                                @endif
+                                                    </div>
+                                                </div>
                                             </td>
                                             <td class="text-end">{{ number_format($product->price, 2) }}
                                                 {{ currency() }}</td>
@@ -192,7 +208,7 @@
                                             <td colspan="5" class="text-center text-muted py-20">
                                                 {{ trans('common.no_data') }}
                                             </td>
-                                        </tr>
+                                        </tr
                                     @endforelse
                                 </tbody>
                             </table>

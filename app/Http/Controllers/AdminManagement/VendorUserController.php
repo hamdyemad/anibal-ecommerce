@@ -34,7 +34,7 @@ class VendorUserController extends Controller
     public function index(Request $request)
     {
         $languages = $this->languageService->getAll();
-        return view('pages.admin_management.vendor_user.index', compact('languages'));
+        return view('pages.vendor_users_management.vendor_user.index', compact('languages'));
     }
 
     /**
@@ -51,9 +51,9 @@ class VendorUserController extends Controller
     public function create()
     {
         $languages = $this->languageService->getAll();
-        $roles = $this->roleService->getAllRoles();
+        $roles = $this->roleService->getRolesQuery(['type' => 'vendor_user'])->get();
         $vendors = $this->vendorService->getAllVendors();
-        return view('pages.admin_management.vendor_user.form', compact('languages', 'roles', 'vendors'));
+        return view('pages.vendor_users_management.vendor_user.form', compact('languages', 'roles', 'vendors'));
     }
 
     /**
@@ -70,11 +70,11 @@ class VendorUserController extends Controller
                 return response()->json([
                     'success' => true,
                     'message' => __('admin.vendor_user_created_successfully'),
-                    'redirect' => route('admin.admin-management.vendor-users.index')
+                    'redirect' => route('admin.vendor-users-management.vendor-users.index')
                 ]);
             }
 
-            return redirect()->route('admin.admin-management.vendor-users.index')
+            return redirect()->route('admin.vendor-users-management.vendor-users.index')
                 ->with('success', __('admin.vendor_user_created_successfully'));
         } catch (\Exception $e) {
             if ($request->ajax() || $request->wantsJson()) {
@@ -98,9 +98,9 @@ class VendorUserController extends Controller
         try {
             $languages = $this->languageService->getAll();
             $user = $this->vendorUserService->getVendorUserById((int) $id);
-            return view('pages.admin_management.vendor_user.view', compact('user', 'languages'));
+            return view('pages.vendor_users_management.vendor_user.view', compact('user', 'languages'));
         } catch (\Exception $e) {
-            return redirect()->route('admin.admin-management.vendor-users.index')
+            return redirect()->route('admin.vendor-users-management.vendor-users.index')
                 ->with('error', __('admin.vendor_user_not_found'));
         }
     }
@@ -112,12 +112,12 @@ class VendorUserController extends Controller
     {
         try {
             $languages = $this->languageService->getAll();
-            $roles = $this->roleService->getAllRoles();
+            $roles = $this->roleService->getRolesQuery(['type' => 'vendor_user'])->get();
             $vendors = $this->vendorService->getAllVendors();
             $user = $this->vendorUserService->getVendorUserById((int) $id);
-            return view('pages.admin_management.vendor_user.form', compact('user', 'languages', 'roles', 'vendors'));
+            return view('pages.vendor_users_management.vendor_user.form', compact('user', 'languages', 'roles', 'vendors'));
         } catch (\Exception $e) {
-            return redirect()->route('admin.admin-management.vendor-users.index')
+            return redirect()->route('admin.vendor-users-management.vendor-users.index')
                 ->with('error', __('admin.vendor_user_not_found'));
         }
     }
@@ -136,11 +136,11 @@ class VendorUserController extends Controller
                 return response()->json([
                     'success' => true,
                     'message' => __('admin.vendor_user_updated_successfully'),
-                    'redirect' => route('admin.admin-management.vendor-users.index')
+                    'redirect' => route('admin.vendor-users-management.vendor-users.index')
                 ]);
             }
 
-            return redirect()->route('admin.admin-management.vendor-users.index')
+            return redirect()->route('admin.vendor-users-management.vendor-users.index')
                 ->with('success', __('admin.vendor_user_updated_successfully'));
         } catch (\Exception $e) {
             if ($request->ajax() || $request->wantsJson()) {
@@ -168,11 +168,11 @@ class VendorUserController extends Controller
                 return response()->json([
                     'success' => true,
                     'message' => __('admin.vendor_user_deleted_successfully'),
-                    'redirect' => route('admin.admin-management.vendor-users.index')
+                    'redirect' => route('admin.vendor-users-management.vendor-users.index')
                 ]);
             }
 
-            return redirect()->route('admin.admin-management.vendor-users.index')
+            return redirect()->route('admin.vendor-users-management.vendor-users.index')
                 ->with('success', __('admin.vendor_user_deleted_successfully'));
         } catch (\Exception $e) {
             if ($request->ajax() || $request->wantsJson()) {
@@ -182,7 +182,7 @@ class VendorUserController extends Controller
                 ], 422);
             }
 
-            return redirect()->route('admin.admin-management.vendor-users.index')
+            return redirect()->route('admin.vendor-users-management.vendor-users.index')
                 ->with('error', __('admin.error_deleting_vendor_user') . ': ' . $e->getMessage());
         }
     }

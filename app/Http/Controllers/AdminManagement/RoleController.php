@@ -24,18 +24,18 @@ class RoleController extends Controller
         protected LanguageService $languageService)
     {
         // Admin roles middleware
-        $this->middleware('can:roles.index')->only(['index', 'datatable']);
-        $this->middleware('can:roles.show')->only(['show']);
-        $this->middleware('can:roles.create')->only(['create', 'store']);
-        $this->middleware('can:roles.edit')->only(['edit', 'update']);
-        $this->middleware('can:roles.delete')->only(['destroy']);
+        $this->middleware('can:admin-roles.index')->only(['index', 'datatable']);
+        $this->middleware('can:admin-roles.show')->only(['show']);
+        $this->middleware('can:admin-roles.create')->only(['create', 'store']);
+        $this->middleware('can:admin-roles.edit')->only(['edit', 'update']);
+        $this->middleware('can:admin-roles.delete')->only(['destroy']);
 
         // Vendor user roles middleware
-        $this->middleware('can:roles.index')->only(['vendorUserRolesIndex', 'vendorUserRolesDatatable']);
-        $this->middleware('can:roles.show')->only(['vendorUserRolesShow']);
-        $this->middleware('can:roles.create')->only(['vendorUserRolesCreate', 'vendorUserRolesStore']);
-        $this->middleware('can:roles.edit')->only(['vendorUserRolesEdit', 'vendorUserRolesUpdate']);
-        $this->middleware('can:roles.delete')->only(['vendorUserRolesDestroy']);
+        $this->middleware('can:vendor-user-roles.index')->only(['vendorUserRolesIndex', 'vendorUserRolesDatatable']);
+        $this->middleware('can:vendor-user-roles.show')->only(['vendorUserRolesShow']);
+        $this->middleware('can:vendor-user-roles.create')->only(['vendorUserRolesCreate', 'vendorUserRolesStore']);
+        $this->middleware('can:vendor-user-roles.edit')->only(['vendorUserRolesEdit', 'vendorUserRolesUpdate']);
+        $this->middleware('can:vendor-user-roles.delete')->only(['vendorUserRolesDestroy']);
     }
 
     /**
@@ -66,6 +66,7 @@ class RoleController extends Controller
             'search' => $request->get('search'),
             'created_date_from' => $request->get('created_date_from'),
             'created_date_to' => $request->get('created_date_to'),
+            'type' => 'admin', // Filter for admin roles only
         ];
 
         // $response = $this->roleService->getDataTable($data);
@@ -89,7 +90,7 @@ class RoleController extends Controller
     public function create()
     {
         $languages = $this->languageService->getAll();
-        $type = request('type');
+        $type = 'admin'; // Default type for admin management
         $groupedPermissions = $this->roleService->getGroupedPermissions($type);
         // return auth()->user()->roles;
         // return $groupedPermissions;
@@ -149,12 +150,14 @@ class RoleController extends Controller
         }
         $role = $this->roleService->getRoleById($role->id);
         $languages = $this->languageService->getAll();
-        $groupedPermissions = $this->roleService->getGroupedPermissions();
+        $type = $role->type ?? 'admin'; // Use role's type or default to admin
+        $groupedPermissions = $this->roleService->getGroupedPermissions($type);
         $data = [
             'role' => $role,
             'languages' => $languages,
             'groupedPermissions' => $groupedPermissions,
             'title' => __('roles.edit_role'),
+            'type' => $type,
         ];
         return view('pages.admin_management.roles.form', $data);
     }

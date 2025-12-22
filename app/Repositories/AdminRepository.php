@@ -19,7 +19,9 @@ class AdminRepository
      */
     public function getAdminsQuery(array $filters = [])
     {
-        $query = User::with(['roles', 'translations'])->filter($filters);
+        $query = User::with(['roles', 'translations'])
+            ->where('id', '!=', Auth::id()) // Exclude current user
+            ->filter($filters);
         return $query;
     }
 

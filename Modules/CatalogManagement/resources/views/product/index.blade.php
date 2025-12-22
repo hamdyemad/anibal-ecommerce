@@ -271,14 +271,6 @@
                                             <i class="uil uil-search me-1"></i>
                                             {{ __('common.search') }}
                                         </button>
-                                        @can('products.index')
-                                        <button type="button" id="exportExcel"
-                                            class="btn btn-primary btn-default btn-squared me-1"
-                                            title="{{ __('common.excel') }}">
-                                            <i class="uil uil-file-download-alt me-1"></i>
-                                            {{ __('common.excel') }}
-                                        </button>
-                                        @endcan
                                         <button type="button" id="resetFilters"
                                             class="btn btn-warning btn-default btn-squared me-1"
                                             title="{{ __('common.reset') }}">
@@ -537,7 +529,7 @@
                         },
                         className: 'text-start'
                     },
-                    @if(auth()->user() && in_array(auth()->user()->user_type_id, \App\Models\UserType::adminIds()))
+                    @if(isAdmin())
                     {
                         data: 'vendor',
                         name: 'vendor',
@@ -625,7 +617,7 @@
                             const stockPricingUrl = "{{ route('admin.products.stock-management', ':id') }}".replace(':id', data.vendor_product_id);
 
                             let actions = `
-                            <div class="orderDatatable_actions d-inline-flex gap-1">
+                            <div class="orderDatatable_actions d-inline-flex gap-1 justify-content-center">
                                 @can('products.show')
                                 <a href="${showUrl}" class="view btn btn-primary table_action_father" title="{{ trans('common.view') }}">
                                     <i class="uil uil-eye table_action_icon"></i>
@@ -636,27 +628,31 @@
                             actions += `
                                 <a href="${editUrl}" class="edit btn btn-warning table_action_father" title="{{ trans('common.edit') }}">
                                     <i class="uil uil-edit table_action_icon"></i>
-                                </a>
-                                <a href="${stockPricingUrl}" class="stock-management btn btn-info table_action_father" title="{{ trans('catalogmanagement::product.stock_management') }}">
-                                    <i class="uil uil-box table_action_icon"></i>
                                 </a>`;
+                            @endcan
+                            @can('products.stock-setup')
+                                actions += `<a href="${stockPricingUrl}" class="stock-management btn btn-info table_action_father" title="{{ trans('catalogmanagement::product.stock_management') }}">
+                                        <i class="uil uil-box table_action_icon"></i>
+                                    </a>`;
                             @endcan
 
                             // Add approve/reject button and move to bank for admin users only
-                            @can('products.change-status')
-                                if(data.product_type == 'product') {
-                                    actions += `
-                                        <a href="javascript:void(0);" class="change-status btn btn-success table_action_father"
-                                        data-bs-toggle="modal" data-bs-target="#modal-change-status"
-                                        data-item-id="${data.vendor_product_id}"
-                                        data-item-status="${data.status || ''}"
-                                        data-item-name="${data.product_information?.name_en || 'Product'}"
-                                        data-item-type="${data.product_type || ''}"
-                                        title="{{ trans('catalogmanagement::product.change_status') }}">
-                                            <i class="uil uil-check-circle table_action_icon"></i>
-                                        </a>`;
-                                }
-                            @endcan
+                            @if(isAdmin())
+                                @can('products.change-status')
+                                    if(data.product_type == 'product') {
+                                        actions += `
+                                            <a href="javascript:void(0);" class="change-status btn btn-success table_action_father"
+                                            data-bs-toggle="modal" data-bs-target="#modal-change-status"
+                                            data-item-id="${data.vendor_product_id}"
+                                            data-item-status="${data.status || ''}"
+                                            data-item-name="${data.product_information?.name_en || 'Product'}"
+                                            data-item-type="${data.product_type || ''}"
+                                            title="{{ trans('catalogmanagement::product.change_status') }}">
+                                                <i class="uil uil-check-circle table_action_icon"></i>
+                                            </a>`;
+                                    }
+                                @endcan
+                            @endif
 
                             @can('products.delete')
                             actions += `

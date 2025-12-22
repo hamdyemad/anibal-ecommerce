@@ -13,7 +13,7 @@
                     ],
                     [
                         'title' => __('admin.vendor_users_management'),
-                        'url' => route('admin.admin-management.vendor-users.index'),
+                        'url' => route('admin.vendor-users-management.vendor-users.index'),
                     ],
                     ['title' => isset($user) ? __('admin.edit_vendor_user') : __('admin.create_vendor_user')],
                 ]" />
@@ -32,8 +32,21 @@
                         <!-- Alert Container -->
                         <div id="alertContainer"></div>
 
-                        <form id="vendorUserForm" method="POST"
-                            action="{{ isset($user) ? route('admin.admin-management.vendor-users.update', $user->id) : route('admin.admin-management.vendor-users.store') }}">
+                        @if ($errors->any())
+                            <div class="alert alert-danger alert-dismissible fade show d-block" role="alert">
+                                <strong>{{ __('admin.validation_errors') }}</strong>
+                                <ul class="mb-0 mt-2">
+                                    @foreach ($errors->all() as $error)
+                                        <li>{{ $error }}</li>
+                                    @endforeach
+                                </ul>
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"
+                                    aria-label="Close"></button>
+                            </div>
+                        @endif
+
+                        <form id="vendorUserForm" method="POST" enctype="multipart/form-data"
+                            action="{{ isset($user) ? route('admin.vendor-users-management.vendor-users.update', $user->id) : route('admin.vendor-users-management.vendor-users.store') }}">
                             @csrf
                             @if (isset($user))
                                 @method('PUT')
@@ -41,20 +54,42 @@
 
                             <div class="row">
                                 <!-- Translation Fields - Names -->
-                                @foreach ($languages as $language)
-                                    <div class="col-md-6">
-                                        <div class="form-group mb-3">
-                                            <label for="name_{{ $language->id }}" class="form-label">
-                                                {{ __('admin.name') }} ({{ $language->name }})
-                                                <span class="text-danger">*</span>
-                                            </label>
-                                            <input type="text" class="form-control" id="name_{{ $language->id }}"
-                                                name="translations[{{ $language->id }}][name]"
-                                                value="{{ old('translations.' . $language->id . '.name', isset($user) ? $user->translations->where('lang_id', $language->id)->where('lang_key', 'name')->first()->lang_value ?? '' : '') }}"
-                                                @if ($language->rtl) dir="rtl" @endif>
-                                        </div>
-                                    </div>
-                                @endforeach
+                                @php
+                                    // Prepare the model data for multilingual-input component
+                                    $userModel = null;
+                                    if (isset($user)) {
+                                        $userModel = new class ($user) {
+                                            private $user;
+
+                                            public function __construct($user)
+                                            {
+                                                $this->user = $user;
+                                            }
+
+                                            public function getTranslation($key, $langCode)
+                                            {
+                                                $language = \App\Models\Language::where('code', $langCode)->first();
+                                                if (!$language) {
+                                                    return '';
+                                                }
+
+                                                return $this->user->translations
+                                                    ->where('lang_id', $language->id)
+                                                    ->where('lang_key', $key)
+                                                    ->first()->lang_value ?? '';
+                                            }
+                                        };
+                                    }
+                                @endphp
+
+                                <x-multilingual-input name="name" :label="'Name'" :labelAr="'الأسم'" type="text"
+                                    :placeholder="'Name'" :placeholderAr="'الأسم'" :required="true" :languages="$languages"
+                                    :model="$userModel" oldPrefix="translations" :cols="6" />
+
+                                <div class="col-md-12 mb-20">
+                                    <x-image-upload id="image" name="image" :label="__('admin.vendor_user_image') ?? 'Vendor User Image'" :existingImage="isset($user) ? $user->image : null"
+                                        :placeholder="__('admin.click_to_upload_image') ?? 'Click to upload image'" aspectRatio="square" />
+                                </div>
 
                                 <!-- Email -->
                                 <div class="col-md-6">
@@ -63,8 +98,13 @@
                                             {{ __('admin.email') }}
                                             <span class="text-danger">*</span>
                                         </label>
-                                        <input type="email" class="form-control text-lowercase" id="email"
+                                        <input autocomplete="new-email"  type="email" class="form-control text-lowercase" id="email"
                                             name="email" value="{{ old('email', isset($user) ? $user->email : '') }}">
+                                        <div id="email-error-container">
+                                            @error('email')
+                                                <div class="text-danger small mt-1">{{ $message }}</div>
+                                            @enderror
+                                        </div>
                                     </div>
                                 </div>
 
@@ -76,7 +116,7 @@
                                                 {{ __('admin.vendor') }}
                                                 <span class="text-danger">*</span>
                                             </label>
-                                            <select class="form-control select2" id="vendor_id" name="vendor_id">
+                                            <select class="form-control select2" id="vendor_id" name="vendor_id" autocomplete="off">
                                                 <option value="">{{ __('admin.select_vendor') }}</option>
                                                 @foreach ($vendors as $vendor)
                                                     <option value="{{ $vendor->id }}"
@@ -85,6 +125,11 @@
                                                     </option>
                                                 @endforeach
                                             </select>
+                                            <div id="vendor_id-error-container">
+                                                @error('vendor_id')
+                                                    <div class="text-danger small mt-1">{{ $message }}</div>
+                                                @enderror
+                                            </div>
                                         </div>
                                     </div>
                                 @else
@@ -94,20 +139,22 @@
 
                                 <!-- Roles -->
                                 <div class="col-md-6">
-                                    <div class="form-group mb-3">
-                                        <label for="role_ids" class="form-label">
-                                            {{ __('admin.roles') }}
-                                            <span class="text-danger">*</span>
-                                        </label>
-                                        <select class="form-control select2" id="role_ids" name="role_ids[]"
-                                            multiple="multiple">
-                                            @foreach ($roles as $role)
-                                                <option value="{{ $role->id }}"
-                                                    {{ (is_array(old('role_ids')) && in_array($role->id, old('role_ids'))) || (isset($user) && $user->roles->contains($role->id)) ? 'selected' : '' }}>
-                                                    {{ $role->getTranslation('name', app()->getLocale()) }}
-                                                </option>
-                                            @endforeach
-                                        </select>
+                                    <x-searchable-tags name="role_ids[]" :label="__('admin.roles')" :options="$roles
+                                        ->map(
+                                            fn($role) => [
+                                                'id' => $role->id,
+                                                'name' => $role->getTranslation('name', app()->getLocale()),
+                                            ],
+                                        )
+                                        ->toArray()"
+                                        :selected="old(
+                                            'role_ids',
+                                            isset($user) ? $user->roles->pluck('id')->toArray() : [],
+                                        )" :placeholder="__('admin.select_roles')" :required="true" :multiple="true" />
+                                    <div id="role_ids-error-container">
+                                        @error('role_ids')
+                                            <div class="text-danger small mt-1">{{ $message }}</div>
+                                        @enderror
                                     </div>
                                 </div>
 
@@ -120,8 +167,27 @@
                                                 <span class="text-danger">*</span>
                                             @endif
                                         </label>
-                                        <input type="password" class="form-control" id="password" name="password"
-                                            placeholder="{{ isset($user) ? __('admin.leave_empty_to_keep_password') : __('admin.enter_password') }}">
+                                        <div class="position-relative">
+                                            <input type="password" class="form-control" id="password" name="password"
+                                                placeholder="{{ isset($user) ? __('admin.leave_empty_to_keep_password') : __('admin.enter_password') }}"
+                                                autocomplete="new-password">
+                                            <span toggle="#password"
+                                                class="uil uil-eye-slash text-lighten fs-15 field-icon toggle-password2"></span>
+                                        </div>
+                                        <div id="password-error-container">
+                                            @error('password')
+                                                <div class="text-danger small mt-1">{{ $message }}</div>
+                                            @enderror
+                                        </div>
+                                        @if (!isset($user))
+                                            <small class="text-muted helper-text">
+                                                {{ __('admin.password_min_8') }}
+                                            </small>
+                                        @else
+                                            <small class="text-muted helper-text">
+                                                {{ __('admin.leave_empty_to_keep_password') }}
+                                            </small>
+                                        @endif
                                     </div>
                                 </div>
 
@@ -134,8 +200,19 @@
                                                 <span class="text-danger">*</span>
                                             @endif
                                         </label>
-                                        <input type="password" class="form-control" id="password_confirmation"
-                                            name="password_confirmation" placeholder="{{ __('admin.confirm_password') }}">
+                                        <div class="position-relative">
+                                            <input type="password" class="form-control" id="password_confirmation"
+                                                name="password_confirmation"
+                                                placeholder="{{ __('admin.confirm_password') }}"
+                                                autocomplete="new-password">
+                                            <span toggle="#password_confirmation"
+                                                class="uil uil-eye-slash text-lighten fs-15 field-icon toggle-password2"></span>
+                                        </div>
+                                        <div id="password_confirmation-error-container">
+                                            @error('password_confirmation')
+                                                <div class="text-danger small mt-1">{{ $message }}</div>
+                                            @enderror
+                                        </div>
                                     </div>
                                 </div>
 
@@ -154,6 +231,9 @@
                                                 <label class="form-check-label" for="active"></label>
                                             </div>
                                         </div>
+                                        @error('active')
+                                            <div class="text-danger fs-12 mt-1">{{ $message }}</div>
+                                        @enderror
                                     </div>
                                 </div>
 
@@ -172,12 +252,15 @@
                                                 <label class="form-check-label" for="block"></label>
                                             </div>
                                         </div>
+                                        @error('block')
+                                            <div class="text-danger fs-12 mt-1">{{ $message }}</div>
+                                        @enderror
                                     </div>
                                 </div>
 
                                 <div class="col-md-12">
                                     <div class="form-group mt-4 d-flex align-items-center justify-content-end">
-                                        <a href="{{ route('admin.admin-management.vendor-users.index') }}"
+                                        <a href="{{ route('admin.vendor-users-management.vendor-users.index') }}"
                                             class="btn btn-light btn-default btn-squared text-capitalize">
                                             <i class="uil uil-arrow-left"></i> {{ __('admin.back_to_list') }}
                                         </a>
@@ -269,7 +352,7 @@
 
                             setTimeout(() => {
                                 window.location.href = data.redirect ||
-                                    '{{ route('admin.admin-management.vendor-users.index') }}';
+                                    '{{ route('admin.vendor-users-management.vendor-users.index') }}';
                             }, 1500);
                         });
                     })
@@ -308,6 +391,228 @@
                                     } else {
                                         input.parentNode.appendChild(feedback);
                                     }
+                                }
+                            });
+
+                            // Scroll to first error
+                            const firstError = document.querySelector('.is-invalid');
+                            if (firstError) {
+                                firstError.scrollIntoView({
+                                    behavior: 'smooth',
+                                    block: 'center'
+                                });
+                            }
+                        }
+
+                        // Show error message
+                        const errorMessage = error.message || '{{ __('admin.error_occurred') }}';
+                        alertContainer.innerHTML = `
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <strong>${errorMessage}</strong>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            `;
+
+                        // Re-enable button
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = originalBtnHtml;
+                    });
+            });
+        });
+    </script>
+@endpush
+
+
+@push('scripts')
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize Select2
+            $('.select2').select2({
+                width: '100%'
+            });
+
+            const vendorUserForm = document.getElementById('vendorUserForm');
+            const submitBtn = vendorUserForm.querySelector('button[type="submit"]');
+            const alertContainer = document.getElementById('alertContainer');
+            let originalBtnHtml = '';
+
+            // Handle clearing errors on focus/input
+            vendorUserForm.addEventListener('focusin', function(e) {
+                clearFieldError(e.target);
+            });
+
+            vendorUserForm.addEventListener('input', function(e) {
+                clearFieldError(e.target);
+            });
+
+            function clearFieldError(target) {
+                const group = target.closest('.form-group') ||
+                    target.closest('.searchable-tags-wrapper') ||
+                    target.closest('.row');
+
+                if (group) {
+                    // Remove is-invalid class from input or specialized container
+                    const invalidElements = group.querySelectorAll('.is-invalid');
+                    invalidElements.forEach(el => el.classList.remove('is-invalid'));
+
+                    // Remove error messages
+                    const errorMessages = group.querySelectorAll('.text-danger.small, .invalid-feedback');
+                    errorMessages.forEach(msg => msg.remove());
+
+                    // Show helper text again
+                    const helperText = group.querySelector('.helper-text');
+                    if (helperText) helperText.classList.remove('d-none');
+                }
+            }
+
+            vendorUserForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+
+                // Disable submit button and show loading
+                submitBtn.disabled = true;
+                originalBtnHtml = submitBtn.innerHTML;
+                submitBtn.innerHTML =
+                    '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>{{ __('common.processing') ?? 'Processing...' }}';
+
+                // Update loading text
+                const loadingText = @json(isset($user) ? trans('loading.updating') : trans('loading.creating'));
+                const loadingSubtext = '{{ trans('loading.please_wait') }}';
+                const overlay = document.getElementById('loadingOverlay');
+                if (overlay) {
+                    overlay.querySelector('.loading-text').textContent = loadingText;
+                    overlay.querySelector('.loading-subtext').textContent = loadingSubtext;
+                }
+
+                // Show loading overlay
+                LoadingOverlay.show();
+
+                // Clear previous alerts
+                alertContainer.innerHTML = '';
+
+                // Remove previous validation errors
+                document.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+                document.querySelectorAll('.text-danger.small, .invalid-feedback').forEach(el => el
+                    .remove());
+                document.querySelectorAll('.helper-text').forEach(el => el.classList.remove('d-none'));
+
+                // Start progress bar
+                LoadingOverlay.animateProgressBar(30, 300).then(() => {
+                        const formData = new FormData(vendorUserForm);
+
+                        return fetch(vendorUserForm.action, {
+                            method: 'POST',
+                            body: formData,
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest',
+                                'Accept': 'application/json',
+                            }
+                        });
+                    })
+                    .then(response => {
+                        LoadingOverlay.animateProgressBar(60, 200);
+
+                        if (!response.ok) {
+                            return response.json().then(data => {
+                                throw data;
+                            });
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        return LoadingOverlay.animateProgressBar(90, 200).then(() => data);
+                    })
+                    .then(data => {
+                        return LoadingOverlay.animateProgressBar(100, 200).then(() => {
+                            const successMessage = @json(isset($user) ? trans('loading.updated_successfully') : trans('loading.created_successfully'));
+                            LoadingOverlay.showSuccess(
+                                successMessage,
+                                '{{ trans('loading.redirecting') }}'
+                            );
+
+                            setTimeout(() => {
+                                window.location.href = data.redirect ||
+                                    '{{ route('admin.vendor-users-management.vendor-users.index') }}';
+                            }, 1500);
+                        });
+                    })
+                    .catch(error => {
+                        LoadingOverlay.hide();
+
+                        // Handle validation errors
+                        if (error.errors) {
+                            console.log('Validation errors:', error.errors);
+
+                            Object.keys(error.errors).forEach(key => {
+                                let input = null;
+
+                                // Try direct match first
+                                input = document.querySelector(`[name="${key}"]`) ||
+                                    document.querySelector(`[name="${key}[]"]`) ||
+                                    document.querySelector(
+                                        `.searchable-tags-wrapper[data-name="${key}[]"]`);
+
+                                // Convert dot notation to bracket notation
+                                if (!input && key.includes('.')) {
+                                    // Split by dots and rebuild with brackets
+                                    const parts = key.split('.');
+                                    const bracketKey = parts[0] + parts.slice(1).map(part =>
+                                        `[${part}]`).join('');
+                                    input = document.querySelector(`[name="${bracketKey}"]`);
+                                }
+
+                                // Special case for role_ids.*
+                                if (!input && key.startsWith('role_ids.')) {
+                                    input = document.querySelector(`[name="role_ids[]"]`) ||
+                                        document.querySelector(
+                                            `.searchable-tags-wrapper[data-name="role_ids[]"]`);
+                                }
+
+                                // Special case for vendor_id (select2)
+                                if (!input && key === 'vendor_id') {
+                                    input = document.querySelector('#vendor_id');
+                                }
+
+                                if (input) {
+                                    console.log(`Found input for ${key}:`, input);
+
+                                    // Handle searchable tags specifically
+                                    if (input.classList.contains('searchable-tags-wrapper')) {
+                                        const container = input.querySelector(
+                                            '.tag-input-container');
+                                        if (container) container.classList.add('is-invalid');
+                                    } else if (input.classList.contains('select2-hidden-accessible')) {
+                                        // Handle select2
+                                        const select2Container = input.nextElementSibling;
+                                        if (select2Container) select2Container.classList.add('is-invalid');
+                                    } else {
+                                        input.classList.add('is-invalid');
+                                    }
+
+                                    // Hide helper text if error exists
+                                    const formGroup = input.closest('.form-group');
+                                    if (formGroup) {
+                                        const helperText = formGroup.querySelector(
+                                            '.helper-text');
+                                        if (helperText) helperText.classList.add('d-none');
+                                    }
+
+                                    // Append error message to a dedicated container if it exists, otherwise to parent
+                                    const safeKey = key.replace(/\./g, '_').replace(/\[|\]/g,
+                                        '_');
+                                    const errorContainer = document.getElementById(
+                                            `${safeKey}-error-container`) ||
+                                        (formGroup ? formGroup : null) ||
+                                        input.closest('.searchable-tags-wrapper') ||
+                                        input.parentNode;
+
+                                    if (errorContainer) {
+                                        const feedback = document.createElement('div');
+                                        feedback.className = 'text-danger small mt-1 py-1';
+                                        feedback.textContent = error.errors[key][0];
+                                        errorContainer.appendChild(feedback);
+                                    }
+                                } else {
+                                    console.warn(`Could not find input for error key: ${key}`);
                                 }
                             });
 

@@ -18,12 +18,15 @@ class WithdrawController extends Controller
     public function __construct(
         protected WithdrawService $withdrawService,
         protected LanguageService $languageService,
-    ) {}
+    ) {
+        $this->middleware('can:withdraw.send_money.view')->only(['sendMoney', 'allVendorsTransactions', 'allVendorsTransactionsDatatable']);
+        $this->middleware('can:withdraw.send_money.create')->only(['sendMoneyToVendorAction']);
+        $this->middleware('can:withdraw.transactions.view')->only(['allTransactions', 'allTransactionsDatabase']);
+        // For transactionsRequests and changeTransactionRequestsStatus, permissions depend on status parameter, so we keep Gate::authorize in the methods.
+    }
 
     public function sendMoney()
     {
-        Gate::authorize('withdraw.send_money.view');
-
         if (isVendor()) {
             abort(404);
         }
@@ -35,8 +38,6 @@ class WithdrawController extends Controller
 
     public function allTransactionsDatabase(Request $request)
     {
-        Gate::authorize('withdraw.transactions.view');
-
         if (isVendor()) {
             abort(404);
         }
@@ -149,8 +150,6 @@ class WithdrawController extends Controller
 
     public function allTransactions()
     {
-        Gate::authorize('withdraw.transactions.view');
-
         if (isVendor()) {
             abort(404);
         }
@@ -190,8 +189,6 @@ class WithdrawController extends Controller
 
     public function allVendorsTransactionsDatatable(Request $request)
     {
-        Gate::authorize('withdraw.send_money.view');
-
         if (isVendor()) {
             abort(404);
         }
@@ -272,8 +269,6 @@ class WithdrawController extends Controller
 
     public function allVendorsTransactions()
     {
-        Gate::authorize('withdraw.send_money.view');
-
         if (isVendor()) {
             abort(404);
         }
@@ -302,8 +297,6 @@ class WithdrawController extends Controller
 
     public function sendMoneyToVendorAction(Request $request)
     {
-        Gate::authorize('withdraw.send_money.create');
-
         if (isVendor()) {
             abort(404);
         }
