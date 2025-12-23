@@ -26,8 +26,23 @@ class CalculateFinalTotal
         $tax = $context['total_tax'] ?? 0;
         $fees = $context['total_fees'] ?? 0;
         $discounts = $context['total_discounts'] ?? 0;
+        $pointsCost = $context['points_cost'] ?? 0; // Add points cost
 
-        $totalPrice = $subtotal + $shipping + $fees + $tax - $discounts - $promoDiscount;
+        \Log::info('CalculateFinalTotal: Before calculation', [
+            'subtotal' => $subtotal,
+            'shipping' => $shipping,
+            'tax' => $tax,
+            'fees' => $fees,
+            'discounts' => $discounts,
+            'promo_discount' => $promoDiscount,
+            'points_cost' => $pointsCost
+        ]);
+
+        $totalPrice = $subtotal + $shipping + $fees + $tax - $discounts - $promoDiscount - $pointsCost;
+
+        \Log::info('CalculateFinalTotal: After calculation', [
+            'total_price' => $totalPrice
+        ]);
 
         $context['subtotal'] = $subtotal;
         $context['shipping'] = $shipping;

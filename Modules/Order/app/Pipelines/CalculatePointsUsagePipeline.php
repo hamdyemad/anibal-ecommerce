@@ -3,6 +3,7 @@
 namespace Modules\Order\app\Pipelines;
 
 use Modules\SystemSetting\app\Models\UserPoints;
+use Modules\SystemSetting\app\Models\UserPointsTransaction;
 
 class CalculatePointsUsagePipeline
 {
@@ -13,7 +14,16 @@ class CalculatePointsUsagePipeline
         $data = $payload['data'];
         $customerId = $data['selected_customer_id'] ?? null;
         $usePoints = $data['use_point'] ? true : false;
-        $pointsToUse = $data['points_to_use'] ?? $data['point_amount'] ?? 10; // Default to 10 points if not specified
+        $pointsToUse = $data['points_to_use'] ?? $data['point_amount'] ?? $data['points_amount'] ?? 0;
+        
+        // If user wants to use points but didn't specify amount, use available points up to order total
+        if ($usePoints && $pointsToUse == 0 && $customerId) {
+            $userPoints = UserPoints::where('user_id', $customerId)->first();
+            if ($userPoints) {
+                $totalPrice = $payload['context']['total_product_price'] ?? 100;
+                $pointsToUse = min($userPoints->total_points, $totalPrice); // Use available points up to order total
+            }
+        }
         
         \Log::info('CalculatePointsUsagePipeline: Data extracted', [
             'customer_id' => $customerId,
@@ -39,7 +49,8 @@ class CalculatePointsUsagePipeline
                 ]);
 
                 // Calculate how much can be paid with points (1 point = 1 currency unit)
-                $pointsValue = $pointsToUse;
+                $pointsUsed = $pointsToUse; // Number of points
+                $pointsCost = $pointsToUse * 1; // Monetary value (1 point = 1 currency unit)
                 
                 // Get total from context - use product price as base
                 $totalPrice = $payload['context']['total_product_price'] ?? 100;
@@ -47,25 +58,45 @@ class CalculatePointsUsagePipeline
                 $totalBeforeShipping = $totalPrice - $shipping;
                 
                 // Points can only be used for product cost, not shipping
-                $maxPointsUsable = min($pointsValue, $totalBeforeShipping);
+                $maxPointsCost = min($pointsCost, $totalBeforeShipping);
+                $maxPointsUsed = $maxPointsCost / 1; // Convert back to points
 
-                $payload['data']['points_used'] = $maxPointsUsable;
-                $payload['data']['points_cost'] = $maxPointsUsable;
+                $payload['data']['points_used'] = $maxPointsUsed;
+                $payload['data']['points_cost'] = $maxPointsCost;
                 
                 // Store the total price in data for later pipelines
                 if (!isset($payload['data']['total_price'])) {
                     $payload['data']['total_price'] = $totalPrice + $shipping;
                 }
-                // Reduce total_price by points used
-                $payload['data']['total_price'] -= $maxPointsUsable;
+                // Reduce total_price by points_cost (not points_used)
+                $payload['data']['total_price'] -= $maxPointsCost;
+
+                // Update context as well for CreateOrder pipeline
+                $payload['context']['total_price'] = $payload['data']['total_price'];
+                $payload['context']['points_used'] = $maxPointsUsed;
+                $payload['context']['points_cost'] = $maxPointsCost;
 
                 // Deduct points from user's account
-                $userPoints->total_points -= $maxPointsUsable;
-                $userPoints->redeemed_points += $maxPointsUsable;
+                $userPoints->total_points -= $maxPointsUsed;
+                $userPoints->redeemed_points += $maxPointsUsed;
                 $userPoints->save();
 
+                // Create transaction record
+                $transaction = UserPointsTransaction::create([
+                    'user_id' => $customerId,
+                    'points' => -$maxPointsUsed, // Negative for redemption
+                    'type' => 'redeemed',
+                    'transactionable_type' => 'order_checkout',
+                    'transactionable_id' => 0, // Temporary value, will be updated after order creation
+                ]);
+
+                // Set transaction descriptions
+                $transaction->setTranslation('description', 'en', "Points redeemed for order checkout");
+                $transaction->setTranslation('description', 'ar', "نقاط مستردة لإتمام الطلب");
+
                 \Log::info('CalculatePointsUsagePipeline: Points processed successfully', [
-                    'points_used' => $maxPointsUsable,
+                    'points_used' => $maxPointsUsed,
+                    'points_cost' => $maxPointsCost,
                     'new_total' => $payload['data']['total_price']
                 ]);
             } else {

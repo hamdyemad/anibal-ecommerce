@@ -48,7 +48,9 @@ class CreateOrder
             'customer_promo_code_title' => $promoCode?->code,
             'customer_promo_code_value' => $promoCode?->discount_value,
             'customer_promo_code_type' => $promoCode?->discount_type,
-            'customer_promo_code_amount' => $context['promo_code_discount']
+            'customer_promo_code_amount' => $context['promo_code_discount'],
+            'points_used' => $context['points_used'] ?? 0,
+            'points_cost' => $context['points_cost'] ?? 0,
         ];
 
         // Store order using repository
