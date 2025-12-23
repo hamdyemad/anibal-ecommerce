@@ -510,11 +510,7 @@ class ReportRepository implements ReportRepositoryInterface
         // Search filter
         if ($filter->search) {
             $query->whereHas('user', function ($q) use ($filter) {
-                $q->whereHas('translations', function ($transQ) use ($filter) {
-                    $transQ->where('lang_key', 'name')
-                           ->where('lang_value', 'like', '%' . $filter->search . '%');
-                })
-                ->orWhere('email', 'like', '%' . $filter->search . '%');
+                $q->where('email', 'like', '%' . $filter->search . '%');
             });
         }
 
