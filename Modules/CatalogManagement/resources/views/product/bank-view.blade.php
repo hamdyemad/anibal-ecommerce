@@ -540,7 +540,7 @@
         </div>
 
         {{-- Vendor Products Management --}}
-        @if (auth()->user() && in_array(auth()->user()->user_type_id, \App\Models\UserType::adminIds()))
+        @canany(['products.bank.vendor-product.trash', 'products.bank.vendor-product.restore'])
             <div class="row mt-4">
                 <div class="col-lg-12">
                     <div class="card border-0 shadow-sm">
@@ -602,75 +602,79 @@
                                 </div>
                             </div>
 
-                            <div class="table-responsive">
-                                <table id="productsDataTable" class="table mb-0 table-bordered table-hover">
-                                    <thead class="userDatatable-header">
-                                        <tr>
-                                            <th class="text-center" width="80">#</th>
-                                            <th>{{ __('catalogmanagement::product.vendor') }}</th>
-                                            <th class="text-center" width="150">{{ __('common.actions') }}</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="vendor-products-tbody">
-                                        @php
-                                            $vendorProducts = $product
-                                                ->vendorProducts()
-                                                ->with('vendor')
-                                                ->withTrashed()
-                                                ->get();
-                                        @endphp
-                                        @forelse($vendorProducts as $index => $vendorProduct)
-                                            <tr class="{{ $vendorProduct->trashed() ? 'table-secondary' : '' }} vendor-product-row"
-                                                data-vendor-id="{{ $vendorProduct->vendor_id ?? '' }}"
-                                                data-status="{{ $vendorProduct->trashed() ? 'trashed' : 'active' }}">
-                                                <td class="text-center row-index">{{ $index + 1 }}</td>
-                                                <td>
-                                                    <div class="d-flex align-items-center justify-content-center">
-                                                        <span
-                                                            class="me-2">{{ $vendorProduct->vendor->name ?? 'N/A' }}</span>
-                                                        @if ($vendorProduct->trashed())
-                                                            <span
-                                                                class="badge badge-danger badge-lg badge-round">{{ __('common.trashed') }}</span>
-                                                        @endif
-                                                    </div>
-                                                </td>
-                                                <td class="text-center">
-                                                    <div class="d-flex gap-1 justify-content-center">
-                                                        @if ($vendorProduct->trashed())
-                                                            <button type="button"
-                                                                class="btn btn-success btn-sm restore-vendor-product"
-                                                                data-vendor-product-id="{{ $vendorProduct->id }}"
-                                                                data-vendor-name="{{ $vendorProduct->vendor->name ?? 'Vendor' }}"
-                                                                title="{{ __('common.restore') }}">
-                                                                <i class="uil uil-redo m-0"></i>
-                                                            </button>
-                                                        @else
-                                                            <button type="button"
-                                                                class="btn btn-danger btn-sm trash-vendor-product"
-                                                                data-vendor-product-id="{{ $vendorProduct->id }}"
-                                                                data-vendor-name="{{ $vendorProduct->vendor->name ?? 'Vendor' }}"
-                                                                title="{{ __('common.delete') }}">
-                                                                <i class="uil uil-trash-alt m-0"></i>
-                                                            </button>
-                                                        @endif
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        @empty
+                            @if(isAdmin())
+                                <div class="table-responsive">
+                                    <table id="productsDataTable" class="table mb-0 table-bordered table-hover">
+                                        <thead class="userDatatable-header">
                                             <tr>
-                                                <td colspan="3" class="text-center text-muted py-4">
-                                                    {{ __('catalogmanagement::product.no_vendors_found') ?? 'No vendors found for this product' }}
-                                                </td>
+                                                <th class="text-center" width="80">#</th>
+                                                <th>{{ __('catalogmanagement::product.vendor') }}</th>
+                                                <th class="text-center" width="150">{{ __('common.actions') }}</th>
                                             </tr>
-                                        @endforelse
-                                    </tbody>
-                                </table>
-                            </div>
+                                        </thead>
+                                        <tbody id="vendor-products-tbody">
+                                            @php
+                                                $vendorProducts = $product
+                                                    ->vendorProducts()
+                                                    ->with('vendor')
+                                                    ->withTrashed()
+                                                    ->get();
+                                            @endphp
+                                            @forelse($vendorProducts as $index => $vendorProduct)
+                                                <tr class="{{ $vendorProduct->trashed() ? 'table-secondary' : '' }} vendor-product-row"
+                                                    data-vendor-id="{{ $vendorProduct->vendor_id ?? '' }}"
+                                                    data-status="{{ $vendorProduct->trashed() ? 'trashed' : 'active' }}">
+                                                    <td class="text-center row-index">{{ $index + 1 }}</td>
+                                                    <td>
+                                                        <div class="d-flex align-items-center justify-content-center">
+                                                            <span
+                                                                class="me-2">{{ $vendorProduct->vendor->name ?? 'N/A' }}</span>
+                                                            @if ($vendorProduct->trashed())
+                                                                <span
+                                                                    class="badge badge-danger badge-lg badge-round">{{ __('common.trashed') }}</span>
+                                                            @endif
+                                                        </div>
+                                                    </td>
+                                                    <td class="text-center">
+                                                        <div class="d-flex gap-1 justify-content-center">
+                                                            @if ($vendorProduct->trashed())
+                                                                <button type="button"
+                                                                    class="btn btn-success btn-sm restore-vendor-product"
+                                                                    data-vendor-product-id="{{ $vendorProduct->id }}"
+                                                                    data-vendor-name="{{ $vendorProduct->vendor->name ?? 'Vendor' }}"
+                                                                    title="{{ __('common.restore') }}">
+                                                                    <i class="uil uil-redo m-0"></i>
+                                                                </button>
+                                                            @else
+                                                                @can('products.bank.vendor-product.trash')
+                                                                    <button type="button"
+                                                                        class="btn btn-danger btn-sm trash-vendor-product"
+                                                                        data-vendor-product-id="{{ $vendorProduct->id }}"
+                                                                        data-vendor-name="{{ $vendorProduct->vendor->name ?? 'Vendor' }}"
+                                                                        title="{{ __('common.delete') }}">
+                                                                        <i class="uil uil-trash-alt m-0"></i>
+                                                                    </button>
+                                                                @endcan
+                                                            @endif
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            @empty
+                                                <tr>
+                                                    <td colspan="3" class="text-center text-muted py-4">
+                                                        {{ __('catalogmanagement::product.no_vendors_found') ?? 'No vendors found for this product' }}
+                                                    </td>
+                                                </tr>
+                                            @endforelse
+                                        </tbody>
+                                    </table>
+                                </div>
+                            @endif
                         </div>
                     </div>
                 </div>
             </div>
-        @endif
+        @endcanany
     </div>
 
 @endsection

@@ -49,7 +49,8 @@ Route::middleware(['auth:sanctum', 'check.customer.auth'])->prefix('addresses')-
     Route::delete('{addressId}', [CustomerAddressController::class, 'destroy']);
 });
 
-Route::prefix('customers')->group(function () {
+// Customer endpoints for order creation (supports both web and API authentication)
+Route::middleware(['auth.optional:web,sanctum'])->prefix('customers')->group(function () {
     Route::get('', [CustomerApiController::class, 'index']);
     Route::get('{customerId}/addresses', [CustomerApiController::class, 'getAddresses']);
     Route::post('{customerId}/addresses', [CustomerAddressController::class, 'storeAddress']);

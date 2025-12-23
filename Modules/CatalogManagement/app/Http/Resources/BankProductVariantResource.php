@@ -27,6 +27,10 @@ class BankProductVariantResource extends JsonResource
         return [
             'id' => $this->id,
             'name' => $variant,
+            'sku' => $this->sku ?? \Modules\CatalogManagement\app\Models\VendorProductVariant::whereHas('vendorProduct', function($q) {
+                $q->where('product_id', $this->product_id)
+                  ->where('vendor_id', $this->product->vendor_id);
+            })->where('variant_configuration_id', $this->variant_configuration_id)->first()?->sku,
             'key' => [
                 'id' => $this->variantConfiguration->key->id ?? null,
                 'name' => $this->variantConfiguration->key->name ?? null,

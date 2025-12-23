@@ -31,11 +31,12 @@ class StoreProductRequest extends FormRequest
             'is_featured' => 'nullable|boolean',
             'max_per_order' => 'required|integer|min:1',
             'video_link' => 'nullable|url',
+            'bank_product_id' => 'nullable|exists:products,id',
 
             // Relations
-            'brand_id' => 'required|exists:brands,id',
-            'department_id' => 'required|exists:departments,id',
-            'category_id' => 'required|exists:categories,id',
+            'brand_id' => 'required_without:bank_product_id|exists:brands,id',
+            'department_id' => 'required_without:bank_product_id|exists:departments,id',
+            'category_id' => 'required_without:bank_product_id|exists:categories,id',
             'sub_category_id' => 'nullable|exists:sub_categories,id',
             'tax_id' => 'required|exists:taxes,id',
 
@@ -43,12 +44,12 @@ class StoreProductRequest extends FormRequest
             'vendor_id' => $this->getVendorValidationRule(),
 
             // Images
-            'main_image' => 'required|image|max:5120',
+            'main_image' => 'required_without:bank_product_id|image|max:5120',
             'additional_images.*' => 'nullable|image|max:5120',
 
             // Translations
-            'translations' => 'required|array|min:1',
-            'translations.*.title' => 'required|string|max:255',
+            'translations' => 'required_without:bank_product_id|array|min:1',
+            'translations.*.title' => 'required_with:translations|string|max:255',
             'translations.*.details' => 'nullable|string',
             'translations.*.summary' => 'nullable|string',
             'translations.*.features' => 'nullable|string',
@@ -84,7 +85,7 @@ class StoreProductRequest extends FormRequest
                 'variants.*.sku' => 'required|string',
                 'variants.*.price' => 'required|numeric|min:0',
                 'variants.*.has_discount' => 'nullable|boolean',
-                'variants.*.discount_price' => 'nullable|numeric|min:0',
+                'variants.*.price_before_discount' => 'nullable|numeric|min:0',
                 'variants.*.discount_end_date' => 'nullable|date|after:today',
 
                 // Variant configuration (standardized field name)
@@ -159,6 +160,15 @@ class StoreProductRequest extends FormRequest
             'is_featured' => filter_var($this->input('is_featured', false), FILTER_VALIDATE_BOOLEAN),
             'has_discount' => filter_var($this->input('has_discount', false), FILTER_VALIDATE_BOOLEAN),
         ]);
+
+        // Handle variant discount booleans
+        if ($this->has('variants')) {
+            $variants = $this->input('variants', []);
+            foreach ($variants as $index => $variant) {
+                $variants[$index]['has_discount'] = filter_var($variant['has_discount'] ?? false, FILTER_VALIDATE_BOOLEAN);
+            }
+            $this->merge(['variants' => $variants]);
+        }
     }
 
     /**

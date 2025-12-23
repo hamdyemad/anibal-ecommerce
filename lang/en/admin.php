@@ -8,6 +8,30 @@ return [
     'edit_admin' => 'Edit Admin',
     'view_admin' => 'View Admin',
     'admin_details' => 'Admin Details',
+    'vendor_users_management' => 'Vendor Users Management',
+    'create_vendor_user' => 'Create Vendor User',
+    'add_vendor_user' => 'Add Vendor User',
+    'edit_vendor_user' => 'Edit Vendor User',
+    'view_vendor_user' => 'View Vendor User',
+    'vendor_user_details' => 'Vendor User Details',
+    'edit_user' => 'Edit User',
+    'update_user' => 'Update User',
+    'delete_user' => 'Delete User',
+    'vendor' => 'Vendor',
+    'select_vendor' => 'Select Vendor',
+    'all_vendors' => 'All Vendors',
+    'vendor_required' => 'Vendor is required',
+    'vendor_invalid' => 'The selected vendor is invalid',
+    'vendor_user_created_successfully' => 'Vendor user created successfully',
+    'vendor_user_updated_successfully' => 'Vendor user updated successfully',
+    'vendor_user_deleted_successfully' => 'Vendor user deleted successfully',
+    'vendor_user_not_found' => 'Vendor user not found',
+    'no_users_found' => 'No users found',
+    'error_creating_vendor_user' => 'Error creating vendor user',
+    'error_updating_vendor_user' => 'Error updating vendor user',
+    'error_deleting_vendor_user' => 'Error deleting vendor user',
+    'status_changed_successfully' => 'Status changed successfully',
+    'not_blocked' => 'Not Blocked',
     
     // Form Labels
     'name' => 'Name',
@@ -23,6 +47,11 @@ return [
     'unblocked' => 'Unblocked',
     'status' => 'Status',
     'all_status' => 'All Status',
+    'image' => 'Image',
+    'admin_image' => 'Admin Image',
+    'vendor_user_image' => 'Vendor User Image',
+    'click_to_upload_image' => 'Click to upload image',
+    'information' => 'Information',
     
     // Table Headers
     'created_at' => 'Created At',
@@ -34,6 +63,7 @@ return [
     'leave_empty_to_keep_password' => 'Leave empty to keep current password',
     'select_role' => 'Select Role',
     'select_roles' => 'Select Roles',
+    'select_vendor_first_to_load_roles' => 'Please select a vendor first to load available roles',
     
     // Messages
     'admin_created_successfully' => 'Admin created successfully',
@@ -60,6 +90,7 @@ return [
     'permissions' => 'Permissions',
     'validation_errors' => 'Validation Errors',
     'error_occurred' => 'An error occurred',
+    'please_check_form_errors' => 'Please check the form for errors',
     
     // Validation Messages
     'at_least_one_translation_required' => 'At least one translation is required',
@@ -75,4 +106,14 @@ return [
     'roles_required' => 'At least one role is required',
     'roles_must_be_array' => 'Roles must be an array',
     'at_least_one_role_required' => 'At least one role must be selected',
+    'edit_profile' => 'Edit Profile',
+    'terms_and_conditions' => 'Terms and Conditions',
+    'sign_out' => 'Sign Out',
+    'profile_information' => 'Profile Information',
+    'change_password' => 'Change Password',
+    'profile_updated_successfully' => 'Profile updated successfully',
+    'password_updated_successfully' => 'Password updated successfully',
+    'my_profile' => 'My Profile',
+    'current_password' => 'Current Password',
+    'new_password' => 'New Password',
 ];

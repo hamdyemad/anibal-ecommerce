@@ -19,7 +19,8 @@ class OrderRepository implements OrderRepositoryInterface
     {
         $query = Order::query();
 
-        $query->with(['stage', 'customer', 'products'])->filter($filters)->latest('order_number');
+        $query->with(['stage', 'customer', 'products'])->filter($filters)->latest('created_at');
+        
         return $query;
     }
 
@@ -28,8 +29,28 @@ class OrderRepository implements OrderRepositoryInterface
      */
     public function getOrderById($id)
     {
-        return Order::with(['stage', 'customer', 'products', 'extraFeesDiscounts'])
-            ->findOrFail($id);
+        $query = Order::with([
+            'stage', 
+            'customer', 
+            'products.vendorProduct.product.category',
+            'products.vendorProduct.product.mainImage',
+            'products.vendorProduct.vendor',
+            'products.vendorProductVariant.variantConfiguration.key', 
+            'products.taxes',
+            'extraFeesDiscounts'
+        ]);
+        
+        // If current user is a vendor, only allow access to orders that have products from their vendor
+        if (auth()->check() && auth()->user()->isVendor()) {
+            $vendor = auth()->user()->vendorByUser ?? auth()->user()->vendorById;
+            if ($vendor) {
+                $query->whereHas('products', function($q) use ($vendor) {
+                    $q->where('vendor_id', $vendor->id);
+                });
+            }
+        }
+        
+        return $query->findOrFail($id);
     }
 
     /**
@@ -38,7 +59,19 @@ class OrderRepository implements OrderRepositoryInterface
     public function changeOrderStage($id, $stageId)
     {
         return DB::transaction(function () use ($id, $stageId) {
-            $order = Order::with('stage')->findOrFail($id);
+            $query = Order::with('stage');
+            
+            // If current user is a vendor, only allow access to orders that have products from their vendor
+            if (auth()->check() && auth()->user()->isVendor()) {
+                $vendor = auth()->user()->vendorByUser ?? auth()->user()->vendorById;
+                if ($vendor) {
+                    $query->whereHas('products', function($q) use ($vendor) {
+                        $q->where('vendor_id', $vendor->id);
+                    });
+                }
+            }
+            
+            $order = $query->findOrFail($id);
 
             // Fetch the new stage
             $newStage = OrderStage::findOrFail($stageId);
@@ -186,5 +219,45 @@ class OrderRepository implements OrderRepositoryInterface
         // DB::table('pricing')
         //     ->where('id', $priceId)
         //     ->update(['status' => 'reserved']);
+    }
+
+    /**
+     * Delete an order and its related data
+     *
+     * @param int $id
+     * @return bool
+     */
+    public function deleteOrder($id): bool
+    {
+        return DB::transaction(function () use ($id) {
+            $query = Order::query();
+            
+            // If current user is a vendor, only allow access to orders that have products from their vendor
+            if (auth()->check() && auth()->user()->isVendor()) {
+                $vendor = auth()->user()->vendorByUser ?? auth()->user()->vendorById;
+                if ($vendor) {
+                    $query->whereHas('products', function($q) use ($vendor) {
+                        $q->where('vendor_id', $vendor->id);
+                    });
+                }
+            }
+            
+            $order = $query->findOrFail($id);
+            
+            // Delete related order products and their taxes
+            foreach ($order->products as $product) {
+                $product->taxes()->delete();
+            }
+            $order->products()->delete();
+            
+            // Delete related fulfillments
+            $order->fulfillments()->delete();
+            
+            // Delete related extra fees and discounts
+            $order->extraFeesDiscounts()->delete();
+            
+            // Delete the order
+            return $order->delete();
+        });
     }
 }

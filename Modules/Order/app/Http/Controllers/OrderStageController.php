@@ -16,6 +16,11 @@ class OrderStageController extends Controller
     public function __construct(OrderStageService $orderStageService)
     {
         $this->orderStageService = $orderStageService;
+        $this->middleware('can:order_stages.index')->only(['index', 'datatable']);
+        $this->middleware('can:order_stages.create')->only(['create', 'store']);
+        $this->middleware('can:order_stages.view')->only(['show']);
+        $this->middleware('can:order_stages.edit')->only(['edit', 'update', 'toggleStatus']);
+        $this->middleware('can:order_stages.delete')->only(['destroy']);
     }
 
     /**

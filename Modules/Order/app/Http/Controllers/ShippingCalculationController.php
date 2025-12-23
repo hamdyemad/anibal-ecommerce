@@ -11,7 +11,9 @@ class ShippingCalculationController extends Controller
 {
     public function __construct(
         protected ShippingCalculationService $shippingCalculationService
-    ) {}
+    ) {
+        $this->middleware('can:orders.create')->only(['calculate']);
+    }
 
     /**
      * Calculate shipping cost for cart items (Dashboard)

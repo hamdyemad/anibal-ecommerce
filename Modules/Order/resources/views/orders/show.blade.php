@@ -159,26 +159,57 @@
                                 </thead>
                                 <tbody>
                                     @forelse($order->products as $key => $product)
+                                        @php
+                                            $productImage = $product->vendorProduct?->product?->mainImage?->path;
+                                            $vendorName = $product->vendorProduct?->vendor?->getTranslation('name', app()->getLocale()) ?? 'N/A';
+                                            
+                                            // Build variant path: Key → Value
+                                            $variantConfig = $product->vendorProductVariant?->variantConfiguration;
+                                            $variantKey = $variantConfig?->key?->getTranslation('name', app()->getLocale()) ?? null;
+                                            $variantValue = $variantConfig?->getTranslation('name', app()->getLocale()) ?? null;
+                                            $variantPath = null;
+                                            if ($variantKey && $variantValue) {
+                                                $variantPath = $variantKey . ' → ' . $variantValue;
+                                            } elseif ($variantValue) {
+                                                $variantPath = $variantValue;
+                                            }
+                                        @endphp
                                         <tr>
                                             <td class="fw-bold">{{ $key + 1 }}</td>
                                             <td>
-                                                <p class="fw-bold mb-2">
-                                                    {{ $product->vendorProduct->product->name ?? 'N/A' }}</p>
-                                                <small class="text-muted d-block mb-1">SKU:
-                                                    {{ $product->vendorProduct?->sku ?? 'N/A' }}</small>
-                                                @if ($product->vendorProductVariant)
-                                                    <small class="text-muted d-block mb-1">
-                                                        <i class="uil uil-tag me-1"></i>
-                                                        <strong>{{ trans('order::order.variant') }}:</strong>
-                                                        @if ($product->vendorProductVariant->variantKey && $product->vendorProductVariant->variantValue)
-                                                            {{ $product->vendorProductVariant->variantKey->getTranslation('name', app()->getLocale()) ?? ($product->vendorProductVariant->variantKey->name ?? 'N/A') }}
-                                                            -
-                                                            {{ $product->vendorProductVariant->variantValue->getTranslation('name', app()->getLocale()) ?? ($product->vendorProductVariant->variantValue->name ?? 'N/A') }}
-                                                        @else
-                                                            {{ trans('order::order.no_variant') }}
+                                                <div class="d-flex align-items-center gap-3">
+                                                    @if($productImage)
+                                                        <img src="{{ asset('storage/' . $productImage) }}" 
+                                                             alt="{{ $product->vendorProduct->product->name ?? 'Product' }}"
+                                                             class="rounded"
+                                                             style="width: 60px; height: 60px; object-fit: cover; border: 1px solid #dee2e6;">
+                                                    @else
+                                                        <div class="bg-light rounded d-flex align-items-center justify-content-center" 
+                                                             style="width: 60px; height: 60px; border: 1px solid #dee2e6;">
+                                                            <i class="uil uil-image text-muted" style="font-size: 24px;"></i>
+                                                        </div>
+                                                    @endif
+                                                    <div>
+                                                        <p class="fw-bold mb-2">
+                                                            {{ $product->vendorProduct->product->name ?? 'N/A' }}</p>
+                                                        <small class="text-muted d-block mb-1">
+                                                            <strong>{{ trans('order::order.sku') }}:</strong>
+                                                            {{ $product->vendorProductVariant?->sku ?? $product->vendorProduct?->sku ?? 'N/A' }}
+                                                        </small>
+                                                        @if ($variantPath)
+                                                            <small class="text-muted d-block mb-1">
+                                                                <i class="uil uil-tag me-1"></i>
+                                                                <strong>{{ trans('order::order.variant') }}:</strong>
+                                                                {{ $variantPath }}
+                                                            </small>
                                                         @endif
-                                                    </small>
-                                                @endif
+                                                        <small class="text-muted d-block">
+                                                            <i class="uil uil-store me-1"></i>
+                                                            <strong>{{ trans('order::order.vendor') }}:</strong>
+                                                            {{ $vendorName }}
+                                                        </small>
+                                                    </div>
+                                                </div>
                                             </td>
                                             <td class="text-end">{{ number_format($product->price, 2) }}
                                                 {{ currency() }}</td>

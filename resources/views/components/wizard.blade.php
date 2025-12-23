@@ -124,20 +124,28 @@
             }
 
             /* Hover Effect */
-            .wizard-step-nav:hover:not(.completed) {
+            .wizard-step-nav:hover:not(.completed):not(.locked) {
                 background: #e8e9ff;
                 transform: translateY(-3px);
                 box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
                 border-color: var(--color-primary);
             }
 
-            .wizard-step-nav:hover:not(.completed) .step-number {
+            .wizard-step-nav:hover:not(.completed):not(.locked) .step-number {
                 background: var(--color-primary);
                 color: white;
             }
 
-            .wizard-step-nav:hover:not(.completed) .step-label {
+            .wizard-step-nav:hover:not(.completed):not(.locked) .step-label {
                 color: var(--color-primary);
+            }
+
+            /* Locked Step */
+            .wizard-step-nav.locked {
+                opacity: 0.5;
+                cursor: not-allowed !important;
+                pointer-events: none;
+                filter: grayscale(1);
             }
 
             /* Wizard Separator */
@@ -152,16 +160,19 @@
                 transition: all 0.3s ease;
             }
 
-            .wizard-step-nav.completed + .wizard-separator svg path {
+            .wizard-step-nav.completed+.wizard-separator svg path {
                 stroke: #28a745;
                 opacity: 1;
             }
 
             /* Pulse Animation */
             @keyframes pulse {
-                0%, 100% {
+
+                0%,
+                100% {
                     transform: scale(1);
                 }
+
                 50% {
                     transform: scale(1.05);
                 }
@@ -361,20 +372,29 @@
     @endpush
 @endonce
 
-<div class="checkout-progress-indicator content-center" @if($isRtl) dir="rtl" @endif>
+<div class="checkout-progress-indicator content-center" @if ($isRtl) dir="rtl" @endif>
     <div class="checkout-progress">
-        @foreach($steps as $index => $step)
-            @if($index > 0)
+        @foreach ($steps as $index => $step)
+            @if ($index > 0)
                 <div class="wizard-separator">
-                    <svg width="30" height="20" viewBox="0 0 30 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M0 10H25M25 10L18 3M25 10L18 17" stroke="#ddd" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <svg width="30" height="20" viewBox="0 0 30 20" fill="none"
+                        xmlns="http://www.w3.org/2000/svg">
+                        <path d="M0 10H25M25 10L18 3M25 10L18 17" stroke="#ddd" stroke-width="2" stroke-linecap="round"
+                            stroke-linejoin="round" />
                     </svg>
                 </div>
             @endif
 
-            <div class="wizard-step-nav {{ $index + 1 <= $currentStep ? 'current' : '' }} {{ $index + 1 < $currentStep ? 'completed' : '' }}" data-step="{{ $index + 1 }}" style="cursor: pointer;">
+            @php
+                $isCompleted = $index + 1 < $currentStep;
+                $isCurrent = $index + 1 == $currentStep;
+                $isNext = $index + 1 == $currentStep + 1;
+                $isLocked = $index + 1 > $currentStep + 1;
+            @endphp
+            <div class="wizard-step-nav {{ $isCurrent ? 'current' : '' }} {{ $isCompleted ? 'completed' : '' }} {{ $isLocked ? 'locked' : '' }}"
+                data-step="{{ $index + 1 }}" style="cursor: {{ $isLocked ? 'not-allowed' : 'pointer' }};">
                 <span class="step-number">
-                    @if($index + 1 < $currentStep)
+                    @if ($isCompleted)
                         <i class="uil uil-check"></i>
                     @else
                         {{ $index + 1 }}

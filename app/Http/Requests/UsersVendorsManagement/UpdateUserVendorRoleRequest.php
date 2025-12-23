@@ -1,0 +1,57 @@
+<?php
+
+namespace App\Http\Requests\UsersVendorsManagement;
+
+use Illuminate\Foundation\Http\FormRequest;
+use App\Models\Language;
+
+class UpdateUserVendorRoleRequest extends FormRequest
+{
+    /**
+     * Determine if the user is authorized to make this request.
+     */
+    public function authorize(): bool
+    {
+        return true;
+    }
+
+    /**
+     * Get the validation rules that apply to the request.
+     */
+    public function rules(): array
+    {
+        $rules = [
+            'permissions' => 'required|array',
+            'permissions.*' => 'exists:permessions,id',
+        ];
+
+        foreach (Language::all() as $language) {
+            $rules['name_' . $language->code] = 'nullable|string|max:255';
+        }
+
+        return $rules;
+    }
+
+    /**
+     * Get custom attributes for validator errors.
+     */
+    public function attributes(): array
+    {
+        $attributes = [
+            'translations.*.name' => __('Role Name')
+        ];
+
+        return $attributes;
+    }
+
+    /**
+     * Get custom messages for validator errors.
+     */
+    public function messages(): array
+    {
+        return [
+            'permissions.array' => __('Permissions must be an array'),
+            'permissions.*.exists' => __('Selected permission is invalid'),
+        ];
+    }
+}

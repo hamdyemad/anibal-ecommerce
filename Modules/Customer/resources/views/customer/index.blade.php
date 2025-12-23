@@ -86,6 +86,26 @@
                                         </div>
                                     </div>
 
+                                    @if(isAdmin())
+                                    {{-- Vendor Filter --}}
+                                    <div class="col-md-3">
+                                        <div class="form-group">
+                                            <label for="vendor_filter" class="il-gray fs-14 fw-500 mb-10">
+                                                <i class="uil uil-store me-1"></i>
+                                                {{ __('customer::customer.created_by_vendor') }}
+                                            </label>
+                                            <select
+                                                class="select2 form-control ih-medium ip-gray radius-xs b-light px-15 form-select"
+                                                id="vendor_filter">
+                                                <option value="">{{ __('customer::customer.all_vendors') }}</option>
+                                                @foreach($vendors as $vendor)
+                                                    <option value="{{ $vendor['id'] }}">{{ $vendor['name'] }}</option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                    </div>
+                                    @endif
+
                                     {{-- City Filter --}}
                                     <div class="col-md-3">
                                         <div class="form-group">
@@ -183,8 +203,9 @@
                                 <tr class="userDatatable-header">
                                     <th class="text-center"><span class="userDatatable-title">#</span></th>
                                     <th><span class="userDatatable-title">{{ __('customer::customer.customer_information') }}</span></th>
-                                    <th><span class="userDatatable-title">{{ __('customer::customer.city') }}</span></th>
-                                    <th><span class="userDatatable-title">{{ __('customer::customer.region') }}</span></th>
+                                    @if(isAdmin())
+                                    <th><span class="userDatatable-title">{{ __('customer::customer.created_by_vendor') }}</span></th>
+                                    @endif
                                     <th><span class="userDatatable-title">{{ __('customer::customer.status') }}</span></th>
                                     <th><span class="userDatatable-title">{{ __('customer::customer.email_verified') }}</span></th>
                                     <th><span class="userDatatable-title">{{ __('customer::customer.created_at') }}</span></th>
@@ -317,6 +338,7 @@
                         d.search = $('#search').val();
                         d.city_id = $('#city_filter').val();
                         d.region_id = $('#region_filter').val();
+                        d.vendor_id = $('#vendor_filter').val();
                         d.created_date_from = $('#created_date_from').val();
                         d.created_date_to = $('#created_date_to').val();
                         if (d.order && d.order.length > 0) {
@@ -367,37 +389,50 @@
                         render: function(data, type, row) {
                             let info = '<div class="userDatatable-content">';
                             info += '<div class="mb-2"><strong>' + (row.full_name || '-') + '</strong></div>';
-                            info += '<div class="mb-2"  style="text-transform: lowercase;"><strong>{{ __("customer::customer.email") }}:</strong> ' + (row.email || '-') + '</div>';
-                            (row.phone) ? info += '<div><strong>{{ __("customer::customer.phone") }}:</strong> ' + (row.phone) + '</div>' : '';
-                            ;
+                            info += '<div class="mb-2" style="text-transform: lowercase;"><strong>{{ __("customer::customer.email") }}:</strong> ' + (row.email || '-') + '</div>';
+                            if (row.phone) {
+                                info += '<div class="mb-2"><strong>{{ __("customer::customer.phone") }}:</strong> ' + row.phone + '</div>';
+                            }
+                            if (row.city_name && row.city_name !== '-') {
+                                info += '<div class="mb-2"><strong>{{ __("customer::customer.city") }}:</strong> ' + row.city_name + '</div>';
+                            }
+                            if (row.region_name && row.region_name !== '-') {
+                                info += '<div class="mb-2"><strong>{{ __("customer::customer.region") }}:</strong> ' + row.region_name + '</div>';
+                            }
                             info += '</div>';
                             return info;
                         }
                     },
+                    @if(isAdmin())
                     {
-                        data: 'city_name',
-                        name: 'city_name',
+                        data: 'vendor_name',
+                        name: 'vendor_name',
                         orderable: false,
                         render: function(data, type, row) {
-                            return '<div class="userDatatable-content">' + (data || '-') + '</div>';
+                            if (data) {
+                                return '<div class="userDatatable-content"><span class="badge badge-primary badge-round">' + data + '</span></div>';
+                            } else {
+                                return '<div class="userDatatable-content"><span class="badge badge-light badge-round">{{ __("customer::customer.no_vendor") }}</span></div>';
+                            }
                         }
                     },
-                    {
-                        data: 'region_name',
-                        name: 'region_name',
-                        orderable: false,
-                        render: function(data, type, row) {
-                            return '<div class="userDatatable-content">' + (data || '-') + '</div>';
-                        }
-                    },
+                    @endif
                     {
                         data: 'status',
                         name: 'status',
                         orderable: false,
                         render: function(data, type, row) {
+                            if (!row.can_manage) {
+                                // Show status badge only (no toggle) for customers vendor cannot manage
+                                if (data) {
+                                    return '<div class="userDatatable-content"><span class="badge badge-success badge-round">{{ __("customer::customer.active") }}</span></div>';
+                                } else {
+                                    return '<div class="userDatatable-content"><span class="badge badge-danger badge-round">{{ __("customer::customer.inactive") }}</span></div>';
+                                }
+                            }
                             let checked = data ? 'checked' : '';
                             return `<div class="userDatatable-content">
-                                <div class="form-check form-switch">
+                                <div class="form-check form-switch d-flex justify-content-center">
                                     <input class="form-check-input status-switch" type="checkbox"
                                         data-id="${row.id}" ${checked} style="cursor: pointer; width: 40px; height: 20px;">
                                 </div>
@@ -409,9 +444,17 @@
                         name: 'email_verified_at',
                         orderable: false,
                         render: function(data, type, row) {
+                            if (!row.can_manage) {
+                                // Show verification badge only (no toggle) for customers vendor cannot manage
+                                if (data) {
+                                    return '<div class="userDatatable-content"><span class="badge badge-success badge-round">{{ __("customer::customer.verified") }}</span></div>';
+                                } else {
+                                    return '<div class="userDatatable-content"><span class="badge badge-warning badge-round">{{ __("customer::customer.not_verified") }}</span></div>';
+                                }
+                            }
                             let checked = data ? 'checked' : '';
                             return `<div class="userDatatable-content">
-                                <div class="form-check form-switch">
+                                <div class="form-check form-switch d-flex justify-content-center">
                                     <input class="form-check-input verification-switch" type="checkbox"
                                         data-id="${row.id}" ${checked} style="cursor: pointer; width: 40px; height: 20px;">
                                 </div>
@@ -437,12 +480,14 @@
                             actions += '<a href="' + '{{ route("admin.customers.show", "__id__") }}'.replace('__id__', data) + '" class="btn btn-outline-info btn-sm" title="{{ __('customer::customer.view') }}">';
                             actions += '<i class="uil uil-eye m-0"></i>';
                             actions += '</a>';
-                            actions += '<a href="' + '{{ route("admin.customers.edit", "__id__") }}'.replace('__id__', data) + '" class="btn btn-outline-primary btn-sm" title="{{ __('customer::customer.edit') }}">';
-                            actions += '<i class="uil uil-edit m-0"></i>';
-                            actions += '</a>';
-                            actions += '<a href="javascript:void(0);" class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#modal-delete-customer" data-item-id="' + data + '" data-item-name="' + row.full_name + '" title="{{ __('customer::customer.delete') }}">';
-                            actions += '<i class="uil uil-trash m-0"></i>';
-                            actions += '</a>';
+                            if (row.can_manage) {
+                                actions += '<a href="' + '{{ route("admin.customers.edit", "__id__") }}'.replace('__id__', data) + '" class="btn btn-outline-primary btn-sm" title="{{ __('customer::customer.edit') }}">';
+                                actions += '<i class="uil uil-edit m-0"></i>';
+                                actions += '</a>';
+                                actions += '<a href="javascript:void(0);" class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#modal-delete-customer" data-item-id="' + data + '" data-item-name="' + row.full_name + '" title="{{ __('customer::customer.delete') }}">';
+                                actions += '<i class="uil uil-trash m-0"></i>';
+                                actions += '</a>';
+                            }
                             actions += '</div>';
                             actions += '</div>';
                             return actions;
@@ -482,7 +527,7 @@
 
             // Initialize Select2 on all select elements
             if ($.fn.select2) {
-                $('#entriesSelect, #active, #email_verified, #city_filter, #region_filter').select2({
+                $('#entriesSelect, #active, #email_verified, #city_filter, #region_filter, #vendor_filter').select2({
                     theme: 'bootstrap-5',
                     minimumResultsForSearch: Infinity,
                     width: '100%'
@@ -510,6 +555,7 @@
                 const emailVerified = $('#email_verified').val();
                 const cityId = $('#city_filter').val();
                 const regionId = $('#region_filter').val();
+                const vendorId = $('#vendor_filter').val();
                 const createdDateFrom = $('#created_date_from').val();
                 const createdDateTo = $('#created_date_to').val();
 
@@ -518,6 +564,7 @@
                 if (emailVerified) params.set('email_verified', emailVerified);
                 if (cityId) params.set('city_id', cityId);
                 if (regionId) params.set('region_id', regionId);
+                if (vendorId) params.set('vendor_id', vendorId);
                 if (createdDateFrom) params.set('created_date_from', createdDateFrom);
                 if (createdDateTo) params.set('created_date_to', createdDateTo);
 
@@ -532,6 +579,7 @@
                 $('#email_verified').val(getUrlParameter('email_verified'));
                 $('#city_filter').val(getUrlParameter('city_id'));
                 $('#region_filter').val(getUrlParameter('region_id'));
+                $('#vendor_filter').val(getUrlParameter('vendor_id'));
                 $('#created_date_from').val(getUrlParameter('created_date_from'));
                 $('#created_date_to').val(getUrlParameter('created_date_to'));
             }
@@ -558,7 +606,7 @@
             });
 
             // Filter change handlers
-            $('#active, #email_verified, #city_filter, #region_filter, #created_date_from, #created_date_to').on('change', function() {
+            $('#active, #email_verified, #city_filter, #region_filter, #vendor_filter, #created_date_from, #created_date_to').on('change', function() {
                 updateUrlWithFilters();
                 table.draw();
             });
@@ -570,6 +618,7 @@
                 $('#search').val('');
                 $('#active').val('').trigger('change');
                 $('#email_verified').val('').trigger('change');
+                $('#vendor_filter').val('').trigger('change');
 
                 // Reset city and region
                 $('#city_filter').val('');

@@ -246,7 +246,7 @@ class ProductApiRepository implements ProductApiRepositoryInterface
                 $subQ->with(['brand', 'department', 'category', 'subCategory']);
             },
             'variants' => function ($subQ) {
-                $subQ->with(['variantConfiguration', 'stocks']);
+                $subQ->with(['variantConfiguration', 'stocks', 'vendorProduct.vendor']);
             },
             'tax'
         ]);

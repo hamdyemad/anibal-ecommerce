@@ -51,25 +51,18 @@ class AdminAction
         // Get languages
         $languages = $this->languageService->getAll();
 
-        // Get total records before filtering
-        $totalRecords = $this->adminService->getAdminsQuery([])->count();
-
-        // Get admins with filters
-        $baseQuery = $this->adminService->getAdminsQuery($filters);
-        $filteredRecords = clone($baseQuery);
-        $filteredRecords = $filteredRecords->count();
-
         // Prepare sorting parameters
         $orderBy = $this->determineSorting($request, $languages, $orderColumnIndex);
 
-        // Get admins with sorting applied
+        // Get admins with filters
         $query = $this->adminService->getAdminsQuery($filters, $orderBy, $orderDirection);
 
-        // Apply pagination
-        $perPage = $request->get('per_page', 10);
-        $page = $request->get('page', 1);
+        // Get current country_id from route parameter (more reliable when switching countries)
+        $countryCode = request()->route('countryCode') ?? session('country_code');
+        $countryCode = strtoupper($countryCode);
+        $currentCountryId = \Modules\AreaSettings\app\Models\Country::where('code', $countryCode)->value('id');
 
-        // Start Permessions for roles
+        // Apply user type permissions scope
         switch (auth()->user()->user_type_id) {
             case UserType::SUPER_ADMIN_TYPE:
                 $query->superAdminShow();
@@ -84,7 +77,49 @@ class AdminAction
                 $query->otherShow();
                 break;
         }
-        // End Permessions for roles
+
+        // Filter by country: show admins for current country OR system admins (null country_id)
+        if ($currentCountryId) {
+            $query->where(function($q) use ($currentCountryId) {
+                $q->where('country_id', $currentCountryId)
+                  ->orWhereNull('country_id');
+            });
+        }
+
+        // Get total records (with permission scope, without filters)
+        $totalQuery = $this->adminService->getAdminsQuery([]);
+        switch (auth()->user()->user_type_id) {
+            case UserType::SUPER_ADMIN_TYPE:
+                $totalQuery->superAdminShow();
+                break;
+            case UserType::ADMIN_TYPE:
+                $totalQuery->adminShow();
+                break;
+            case UserType::VENDOR_TYPE:
+                $totalQuery->vendorShow();
+                break;
+            case UserType::VENDOR_USER_TYPE:
+                $totalQuery->otherShow();
+                break;
+        }
+        
+        // Apply country filter to total query as well
+        if ($currentCountryId) {
+            $totalQuery->where(function($q) use ($currentCountryId) {
+                $q->where('country_id', $currentCountryId)
+                  ->orWhereNull('country_id');
+            });
+        }
+        
+        $totalRecords = $totalQuery->count();
+
+        // Get filtered records count
+        $filteredRecords = clone $query;
+        $filteredRecords = $filteredRecords->count();
+
+        // Apply pagination
+        $perPage = $request->get('per_page', $length);
+        $page = $request->get('page', 1);
 
         $admins = $query->paginate($perPage, ['*'], 'page', $page);
 
@@ -120,21 +155,25 @@ class AdminAction
                 $orderBy = $sortBy;
             }
         } else {
-            if ($orderColumnIndex >= 1 && $orderColumnIndex <= count($languages)) {
-                $languageIndex = $orderColumnIndex - 1;
-                $language = $languages[$languageIndex];
-                $orderBy = ['lang_id' => $language->id];
-            } else {
-                $orderColumns = [
-                    0 => 'id',
-                    (count($languages) + 1) => 'email',
-                    (count($languages) + 2) => 'active',
-                    (count($languages) + 3) => 'created_at',
-                ];
+            // Updated mapping logic:
+            // 0: ID
+            // 1: Information (Image + Names) (not sortable)
+            // 2: Email
+            // 3: Role (not sortable)
+            // 4: Active
+            // 5: Block
+            // 6: Created At
 
-                if (isset($orderColumns[$orderColumnIndex])) {
-                    $orderBy = $orderColumns[$orderColumnIndex];
-                }
+            $orderColumns = [
+                0 => 'id',
+                2 => 'email',
+                4 => 'active',
+                5 => 'block',
+                6 => 'created_at',
+            ];
+
+            if (isset($orderColumns[$orderColumnIndex])) {
+                $orderBy = $orderColumns[$orderColumnIndex];
             }
         }
 
@@ -164,20 +203,34 @@ class AdminAction
 
                 $row['names'][$language->id] = [
                     'value' => $translation ? $translation->lang_value : '-',
-                    'rtl' => $language->rtl
+                    'rtl' => $language->rtl,
+                    'code' => $language->code
                 ];
             }
 
             // Email
             $row['email'] = $admin->email;
 
-            // Role
-            $row['role'] = $admin->roles->isNotEmpty()
-                ? $admin->roles->first()->getTranslation('name', app()->getLocale())
-                : '-';
+            // Roles as Badges
+            if ($admin->roles->isNotEmpty()) {
+                $rolesHtml = '';
+                foreach ($admin->roles as $role) {
+                    $roleName = $role->getTranslation('name', app()->getLocale());
+                    $rolesHtml .= '<span class="badge badge-info badge-round badge-sm me-1 mb-1">' . e($roleName) . '</span>';
+                }
+                $row['role'] = '<div class="userDatatable-content">' . $rolesHtml . '</div>';
+            } else {
+                $row['role'] = '<span class="color-gray">-</span>';
+            }
 
             // Active Status
             $row['active'] = $admin->active ?? true;
+            
+            // Block Status
+            $row['block'] = $admin->block ?? false;
+
+            // Image
+            $row['image'] = $admin->image;
 
             // Created At
             $row['created_at'] = $admin->created_at ? $admin->created_at : '-';

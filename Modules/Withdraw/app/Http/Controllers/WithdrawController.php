@@ -5,6 +5,7 @@ namespace Modules\Withdraw\app\Http\Controllers;
 use App\Http\Controllers\Controller;
 use App\Models\UserType;
 use App\Services\LanguageService;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Http\Request;
 use Modules\Order\app\Models\OrderProduct;
 use Modules\SystemSetting\app\Resources\VendorResource;
@@ -17,7 +18,12 @@ class WithdrawController extends Controller
     public function __construct(
         protected WithdrawService $withdrawService,
         protected LanguageService $languageService,
-    ) {}
+    ) {
+        $this->middleware('can:withdraw.send_money.view')->only(['sendMoney', 'allVendorsTransactions', 'allVendorsTransactionsDatatable']);
+        $this->middleware('can:withdraw.send_money.create')->only(['sendMoneyToVendorAction']);
+        $this->middleware('can:withdraw.transactions.view')->only(['allTransactions', 'allTransactionsDatabase']);
+        // For transactionsRequests and changeTransactionRequestsStatus, permissions depend on status parameter, so we keep Gate::authorize in the methods.
+    }
 
     public function sendMoney()
     {
@@ -39,7 +45,7 @@ class WithdrawController extends Controller
         $perPage = $request->input('length', 10);
         $page = ($request->input('start', 0) / $perPage) + 1;
         $searchValue = $request->input('search', '');
-
+        
         try {
             $query = Withdraw::with([
                 'vendor.translations' => function ($q) {
@@ -284,6 +290,7 @@ class WithdrawController extends Controller
 
     public function getVendorBalance($lang, $codeContry, $vendor_id)
     {
+        // Maybe authorize?
         return $this->withdrawService->getVendorBalance($vendor_id);
         // return response()->json($this->withdrawService->getVendorBalance($vendor_id));
     }
@@ -425,6 +432,14 @@ class WithdrawController extends Controller
 
     public function transactionsRequestsDatatable($lang, $countryCode, Request $request, $status)
     {
+        if ($status == 'new') {
+            Gate::authorize('withdraw.vendor_requests.new.view');
+        } elseif ($status == 'accepted') {
+            Gate::authorize('withdraw.vendor_requests.accepted.view');
+        } elseif ($status == 'rejected') {
+            Gate::authorize('withdraw.vendor_requests.rejected.view');
+        }
+
         $perPage = $request->input('length', 10);
         $page = ($request->input('start', 0) / $perPage) + 1;
         $searchValue = $request->input('search.value', '');
@@ -517,6 +532,14 @@ class WithdrawController extends Controller
 
     public function transactionsRequests($lang, $countryCode, $status)
     {
+        if ($status == 'new') {
+            Gate::authorize('withdraw.vendor_requests.new.view');
+        } elseif ($status == 'accepted') {
+            Gate::authorize('withdraw.vendor_requests.accepted.view');
+        } elseif ($status == 'rejected') {
+            Gate::authorize('withdraw.vendor_requests.rejected.view');
+        }
+
         $languages = $this->languageService->getAll();
         $vendors = [];
 
@@ -546,6 +569,13 @@ class WithdrawController extends Controller
         $data = [
             'status' => $requestData['status']
         ];
+        
+        if ($requestData['status'] == 'accepted') {
+            Gate::authorize('withdraw.vendor_requests.accept');
+        } elseif ($requestData['status'] == 'rejected') {
+            Gate::authorize('withdraw.vendor_requests.reject');
+        }
+        
         $withdraw = Withdraw::find($requestData["request_id"]);
         if ($requestData["status"] == "accepted") {
             $data["sender_id"] = auth()->user()->id;

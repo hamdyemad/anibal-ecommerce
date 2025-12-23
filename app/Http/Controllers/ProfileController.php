@@ -23,24 +23,74 @@ class ProfileController extends Controller
      */
     public function update(Request $request)
     {
-        $user = Auth::user();
+        try {
+            $user = Auth::user();
 
-        $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email,' . $user->id],
-        ]);
+            $validated = $request->validate([
+                'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email,' . $user->id],
+                'image' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif', 'max:2048'],
+                'translations' => ['required', 'array', 'min:1'],
+                'translations.*.name' => ['required', 'string', 'max:255'],
+            ]);
 
-        // Update user information
-        $user->email = $validated['email'];
-        $user->save();
+            // Update user information
+            $user->email = $validated['email'];
+            
+            // Handle image upload
+            if ($request->hasFile('image')) {
+                // Delete old image if exists
+                if ($user->image) {
+                    \Storage::disk('public')->delete($user->image);
+                }
+                $imagePath = $request->file('image')->store('admins', 'public');
+                $user->image = $imagePath;
+                
+                // If user is a vendor owner, also update the vendor's logo
+                if ($user->isVendor()) {
+                    $vendor = $user->vendorByUser;
+                    if ($vendor) {
+                        // Delete old logo attachment if exists
+                        if ($vendor->logo) {
+                            \Storage::disk('public')->delete($vendor->logo->path);
+                            $vendor->logo()->delete();
+                        }
+                        
+                        // Create new logo attachment with the same image path
+                        $vendor->attachments()->create([
+                            'path' => $imagePath,
+                            'type' => 'logo',
+                        ]);
+                    }
+                }
+            }
 
-        // Update name translation
-        $user->translations()->updateOrCreate(
-            ['lang_key' => 'name', 'lang' => app()->getLocale()],
-            ['lang_value' => $validated['name']]
-        );
+            $user->save();
 
-        return redirect()->route('profile.index')->with('success', __('Profile updated successfully'));
+            // Update name translations
+            foreach ($validated['translations'] as $langId => $data) {
+                $user->translations()->updateOrCreate(
+                    ['lang_key' => 'name', 'lang_id' => $langId],
+                    ['lang_value' => $data['name']]
+                );
+            }
+            
+            // If user is a vendor owner, also update the vendor's name translations
+            if ($user->isVendor()) {
+                $vendor = $user->vendorByUser;
+                if ($vendor) {
+                    foreach ($validated['translations'] as $langId => $data) {
+                        $vendor->translations()->updateOrCreate(
+                            ['lang_key' => 'name', 'lang_id' => $langId],
+                            ['lang_value' => $data['name']]
+                        );
+                    }
+                }
+            }
+
+            return redirect()->route('admin.profile.index')->with('success', __('admin.profile_updated_successfully'));
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', __('admin.error_occurred') . ': ' . $e->getMessage())->withInput();
+        }
     }
 
     /**
@@ -57,6 +107,6 @@ class ProfileController extends Controller
         $user->password = Hash::make($validated['password']);
         $user->save();
 
-        return redirect()->route('profile.index')->with('success', __('Password updated successfully'));
+        return redirect()->route('admin.profile.index')->with('success', __('admin.password_updated_successfully'));
     }
 }

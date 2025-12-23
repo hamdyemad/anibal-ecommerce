@@ -492,7 +492,14 @@ class ProductApiController extends Controller
             );
         }
 
-        $products = $this->productService->getVariantsWithProduct($dto->toArray());
+        $filters = $dto->toArray();
+        
+        // Filter by vendor - use request param if provided
+        if ($request->filled('vendor_id')) {
+            $filters['vendor_id'] = $request->vendor_id;
+        }
+
+        $products = $this->productService->getVariantsWithProduct($filters);
 
         return $this->sendRes(
             config('responses.success')[app()->getLocale()],

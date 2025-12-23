@@ -6,12 +6,17 @@ use App\Models\Traits\HumanDates;
 use Illuminate\Database\Eloquent\Model;
 use App\Traits\Translation;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Models\Traits\AutoStoreCountryId;
 
 class Role extends Model
 {
-    use Translation, SoftDeletes, HumanDates;
+    use Translation, SoftDeletes, HumanDates, AutoStoreCountryId;
 
     protected $guarded = [];
+    
+    protected $casts = [
+        'is_system_protected' => 'boolean',
+    ];
 
 
     const SUPER_ADMIN_ROLE_TYPE = 'super_admin';
@@ -47,14 +52,22 @@ class Role extends Model
                     ->withTimestamps();
     }
 
+    /**
+     * Get the vendor that owns this role.
+     */
+    public function vendor()
+    {
+        return $this->belongsTo(\Modules\Vendor\app\Models\Vendor::class);
+    }
+
     public function scopeSuperAdminShowRoles($query) {
-        return $query->whereIn('type', [Role::ADMIN_ROLE_TYPE, Role::VENDOR_ROLE_TYPE, Role::OTHER_ROLE_TYPE]);
+        return $query->whereIn('type', [Role::SUPER_ADMIN_ROLE_TYPE, Role::ADMIN_ROLE_TYPE, Role::VENDOR_ROLE_TYPE, Role::OTHER_ROLE_TYPE, 'vendor_user']);
     }
     public function scopeAdminShowRoles($query) {
-        return $query->whereIn('type', [Role::ADMIN_ROLE_TYPE,Role::VENDOR_ROLE_TYPE, Role::OTHER_ROLE_TYPE]);
+        return $query->whereIn('type', [Role::ADMIN_ROLE_TYPE,Role::VENDOR_ROLE_TYPE, Role::OTHER_ROLE_TYPE, 'vendor_user']);
     }
     public function scopeVendorShowRoles($query) {
-        return $query->whereIn('type', [Role::OTHER_ROLE_TYPE]);
+        return $query->whereIn('type', [Role::OTHER_ROLE_TYPE, 'vendor_user']);
     }
 
 
@@ -76,6 +89,24 @@ class Role extends Model
         if (isset($filter['created_date_to']) && !empty($filter['created_date_to'])) {
             $query->whereDate('created_at', '<=', $filter['created_date_to']);
         }
+
+        // Filter by type (supports single type or array of types)
+        if (isset($filter['type']) && !empty($filter['type'])) {
+            if (is_array($filter['type'])) {
+                $query->whereIn('type', $filter['type']);
+            } else {
+                $query->where('type', $filter['type']);
+            }
+        }
+
+        // Exclude system-protected roles
+        if (isset($filter['exclude_system']) && $filter['exclude_system'] === true) {
+            $query->where(function($q) {
+                $q->where('is_system_protected', '!=', 1)
+                  ->orWhereNull('is_system_protected');
+            });
+        }
+
         return $query;
     }
 }

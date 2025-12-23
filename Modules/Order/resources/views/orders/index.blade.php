@@ -171,23 +171,25 @@
                                         </div>
                                     </div>
 
-                                    {{-- Vendor --}}
-                                    <div class="col-md-2">
-                                        <div class="form-group">
-                                            <label for="vendor" class="il-gray fs-14 fw-500 mb-10">
-                                                <i class="uil uil-store me-1"></i>
-                                                {{ trans('order::order.vendor') }}
-                                            </label>
-                                            <select
-                                                class="select2 form-control ih-medium ip-gray radius-xs b-light px-15 form-select"
-                                                id="vendor">
-                                                <option value="">{{ trans('order::order.all_vendors') }}</option>
-                                                @foreach ($vendors as $vendor)
-                                                    <option value="{{ $vendor->id }}">{{ $vendor->name }}</option>
-                                                @endforeach
-                                            </select>
+                                    @if(isAdmin())
+                                        {{-- Vendor --}}
+                                        <div class="col-md-2">
+                                            <div class="form-group">
+                                                <label for="vendor" class="il-gray fs-14 fw-500 mb-10">
+                                                    <i class="uil uil-store me-1"></i>
+                                                    {{ trans('order::order.vendor') }}
+                                                </label>
+                                                <select
+                                                    class="select2 form-control ih-medium ip-gray radius-xs b-light px-15 form-select"
+                                                    id="vendor">
+                                                    <option value="">{{ trans('order::order.all_vendors') }}</option>
+                                                    @foreach ($vendors as $vendor)
+                                                        <option value="{{ $vendor->id }}">{{ $vendor->name }}</option>
+                                                    @endforeach
+                                                </select>
+                                            </div>
                                         </div>
-                                    </div>
+                                    @endif
 
                                     {{-- Created From --}}
                                     <div class="col-md-3">
@@ -278,6 +280,17 @@
 
     {{-- Include Change Stage Modal Component --}}
     <x-order::change-stage-modal :order-id="null" :order-stages="$orderStages" />
+
+    {{-- Delete Confirmation Modal --}}
+    <x-delete-modal 
+        modalId="modal-delete-order" 
+        :title="trans('order::order.delete_order')" 
+        :message="trans('order::order.delete_order_confirm')" 
+        itemNameId="delete-order-name"
+        confirmBtnId="confirmDeleteOrderBtn" 
+        deleteRoute="{{ rtrim(route('admin.orders.index'), '/') }}"
+        :cancelText="trans('main.cancel')" 
+        :deleteText="trans('order::order.delete_order')" />
 @endsection
 
 @push('after-body')
@@ -415,28 +428,63 @@
                             let showUrl =
                                 "{{ route('admin.orders.show', ':id') }}"
                                 .replace(':id', row.id);
+                            let editUrl =
+                                "{{ route('admin.orders.edit', ':id') }}"
+                                .replace(':id', row.id);
                             // Check if stage is delivered, cancelled, or refund
                             const finalStages = ['deliver', 'cancel', 'refund'];
                             const isFinalStage = row.stage && finalStages.includes(row.stage.slug);
+                            
+                            // For vendors: check if order belongs exclusively to them
+                            const isVendor = {{ !isAdmin() ? 'true' : 'false' }};
+                            const canEditDelete = isVendor ? row.is_exclusive_to_vendor : true;
 
                             return `
                                 <div class="orderDatatable_actions d-inline-flex gap-1 justify-content-center">
-                                    <a href="${showUrl}"
-                                    class="view btn btn-primary table_action_father"
-                                    title="{{ trans('order::order.view_order') }}">
-                                        <i class="uil uil-eye table_action_icon"></i>
-                                    </a>
-                                    ${!isFinalStage ? `
-                                                                        <button type="button"
-                                                                        class="change-stage btn btn-info table_action_father"
-                                                                        data-bs-toggle="modal"
-                                                                        data-bs-target="#changeStageModal"
-                                                                        data-id="${row.id}"
-                                                                        data-stage-id="${row.stage?.id || ''}"
-                                                                        title="{{ trans('order::order.change_order_stage') }}">
-                                                                            <i class="uil uil-exchange-alt table_action_icon"></i>
-                                                                        </button>
-                                                                        ` : ''}
+                                    @can('orders.show')
+                                        <a href="${showUrl}"
+                                        class="view btn btn-primary table_action_father"
+                                        title="{{ trans('order::order.view_order') }}">
+                                            <i class="uil uil-eye table_action_icon"></i>
+                                        </a>
+                                    @endcan
+                                    @can('orders.edit')
+                                        ${!isFinalStage && canEditDelete ? `
+                                        <a href="${editUrl}"
+                                        class="edit btn btn-warning table_action_father"
+                                        title="{{ trans('order::order.edit_order') }}">
+                                            <i class="uil uil-edit table_action_icon"></i>
+                                        </a>
+                                        ` : ''}
+                                    @endcan
+                                    @if(isAdmin())
+                                        @can('orders.change-stage')
+                                            ${!isFinalStage ? `
+                                            <button type="button"
+                                            class="change-stage btn btn-info table_action_father"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#changeStageModal"
+                                            data-id="${row.id}"
+                                            data-stage-id="${row.stage?.id || ''}"
+                                            title="{{ trans('order::order.change_order_stage') }}">
+                                                <i class="uil uil-exchange-alt table_action_icon"></i>
+                                            </button>
+                                            ` : ''}
+                                        @endcan
+                                    @endif
+                                    @can('orders.delete')
+                                        ${!isFinalStage && canEditDelete ? `
+                                        <button type="button"
+                                        class="btn btn-danger table_action_father"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#modal-delete-order"
+                                        data-item-id="${row.id}"
+                                        data-item-name="${row.order_number}"
+                                        title="{{ trans('order::order.delete_order') }}">
+                                            <i class="uil uil-trash-alt table_action_icon"></i>
+                                        </button>
+                                        ` : ''}
+                                    @endcan
                                 </div>
                             `;
                         }
@@ -511,7 +559,6 @@
                 theme: 'bootstrap-5',
                 width: '100%'
             });
-
 
         });
     </script>

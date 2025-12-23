@@ -125,6 +125,8 @@
             'title' => 'admin management',
             'roles managment' => 'roles management',
             'admin managment' => 'admin management',
+            'vendor users management' => 'vendor users management',
+            'vendor users roles management' => 'vendor users roles management',
         ],
         'category managment' => [
             'title' => 'category management',
@@ -185,6 +187,8 @@
             'send notification' => 'send notification',
             'all notification' => 'all notifications',
         ],
+        'no_notifications' => 'No notifications',
+        'see_all_notifications' => 'See All Notifications',
         'system log' => [
             'title' => 'system log',
         ],
@@ -196,6 +200,13 @@
             'contact us' => 'contact us',
             'messages' => 'messages',
         ],
+        'messages' => 'Messages',
+        'no_messages' => 'No messages',
+        'see_all_messages' => 'See All Messages',
+        'latest_orders' => 'Latest Orders',
+        'no_orders' => 'No orders yet',
+        'see_all_orders' => 'See All Orders',
+        'order' => 'Order',
         'sections' => [
             'catalog management' => 'Catalog Management',
             'user management' => 'User Management',

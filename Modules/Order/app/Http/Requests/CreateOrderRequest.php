@@ -32,7 +32,6 @@ class CreateOrderRequest extends FormRequest
             'customer_promo_code_type' => 'nullable|in:percentage,fixed',
             'shipping' => 'required|numeric|min:0',
             'stage_id' => 'nullable|exists:order_stages,id',
-            'country_id' => 'nullable|exists:countries,id',
             'city_id' => 'nullable|exists:cities,id',
             'region_id' => 'nullable|exists:regions,id',
             'products' => 'required|array|min:1',

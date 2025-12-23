@@ -8,6 +8,30 @@ return [
     'edit_admin' => 'تعديل مسؤول',
     'view_admin' => 'عرض مسؤول',
     'admin_details' => 'تفاصيل المسؤول',
+    'vendor_users_management' => 'إدارة مستخدمي الموردين',
+    'create_vendor_user' => 'إنشاء مستخدم مورد',
+    'add_vendor_user' => 'إضافة مستخدم مورد',
+    'edit_vendor_user' => 'تعديل مستخدم مورد',
+    'view_vendor_user' => 'عرض مستخدم المورد',
+    'vendor_user_details' => 'تفاصيل مستخدم المورد',
+    'edit_user' => 'تعديل المستخدم',
+    'update_user' => 'تحديث المستخدم',
+    'delete_user' => 'حذف المستخدم',
+    'vendor' => 'المورد',
+    'select_vendor' => 'اختر المورد',
+    'all_vendors' => 'كل الموردين',
+    'vendor_required' => 'المورد مطلوب',
+    'vendor_invalid' => 'المورد المختار غير صالح',
+    'vendor_user_created_successfully' => 'تم إنشاء مستخدم المورد بنجاح',
+    'vendor_user_updated_successfully' => 'تم تحديث مستخدم المورد بنجاح',
+    'vendor_user_deleted_successfully' => 'تم حذف مستخدم المورد بنجاح',
+    'vendor_user_not_found' => 'مستخدم المورد غير موجود',
+    'no_users_found' => 'لم يتم العثور على مستخدمين',
+    'error_creating_vendor_user' => 'خطأ في إنشاء مستخدم المورد',
+    'error_updating_vendor_user' => 'خطأ في تحديث مستخدم المورد',
+    'error_deleting_vendor_user' => 'خطأ في حذف مستخدم المورد',
+    'status_changed_successfully' => 'تم تغيير الحالة بنجاح',
+    'not_blocked' => 'غير محظور',
     
     // Form Labels
     'name' => 'الاسم',
@@ -23,6 +47,11 @@ return [
     'unblocked' => 'غير محظور',
     'status' => 'الحالة',
     'all_status' => 'كل الحالات',
+    'image' => 'الصورة',
+    'admin_image' => 'صورة المسؤول',
+    'vendor_user_image' => 'صورة مستخدم المورد',
+    'click_to_upload_image' => 'انقر لتحميل الصورة',
+    'information' => 'المعلومات',
     
     // Table Headers
     'created_at' => 'تاريخ الإنشاء',
@@ -34,6 +63,7 @@ return [
     'leave_empty_to_keep_password' => 'اتركه فارغاً للحفاظ على كلمة المرور الحالية',
     'select_role' => 'اختر الدور',
     'select_roles' => 'اختر الأدوار',
+    'select_vendor_first_to_load_roles' => 'يرجى اختيار البائع أولاً لتحميل الأدوار المتاحة',
     
     // Messages
     'admin_created_successfully' => 'تم إنشاء المسؤول بنجاح',
@@ -60,6 +90,7 @@ return [
     'permissions' => 'الصلاحيات',
     'validation_errors' => 'أخطاء التحقق',
     'error_occurred' => 'حدث خطأ',
+    'please_check_form_errors' => 'يرجى التحقق من أخطاء النموذج',
     
     // Validation Messages
     'at_least_one_translation_required' => 'مطلوب ترجمة واحدة على الأقل',
@@ -75,4 +106,14 @@ return [
     'roles_required' => 'مطلوب دور واحد على الأقل',
     'roles_must_be_array' => 'يجب أن تكون الأدوار مصفوفة',
     'at_least_one_role_required' => 'يجب اختيار دور واحد على الأقل',
+    'edit_profile' => 'تعديل الملف الشخصي',
+    'terms_and_conditions' => 'الشروط والأحكام',
+    'sign_out' => 'تسجيل الخروج',
+    'profile_information' => 'معلومات الملف الشخصي',
+    'change_password' => 'تغيير كلمة المرور',
+    'profile_updated_successfully' => 'تم تحديث الملف الشخصي بنجاح',
+    'password_updated_successfully' => 'تم تحديث كلمة المرور بنجاح',
+    'my_profile' => 'ملفي الشخصي',
+    'current_password' => 'كلمة المرور الحالية',
+    'new_password' => 'كلمة المرور الجديدة',
 ];

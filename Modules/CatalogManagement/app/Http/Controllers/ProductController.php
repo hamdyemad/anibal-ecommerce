@@ -54,6 +54,26 @@ class ProductController extends Controller
         protected ProductAction $productAction,
         protected BankService $productBankService,
     ) {
+        $this->middleware('can:products.index')->only(['index', 'datatable', 'pending', 'rejected', 'accepted']);
+        $this->middleware('can:products.create')->only(['create', 'store']);
+        $this->middleware('can:products.edit')->only(['edit', 'update', 'moveToBank']);
+        $this->middleware('can:products.stock-setup')->only(['stockManagement', 'updateStockPricing']);
+        $this->middleware('can:products.delete')->only(['destroy']);
+        $this->middleware(function ($request, $next) {
+            // Allow viewing if user has products.show OR products.bank permission
+            if (auth()->user()->can('products.show') || auth()->user()->can('products.bank')) {
+                return $next($request);
+            }
+            abort(403, 'Unauthorized action.');
+        })->only(['show']);
+        $this->middleware('can:products.change-status')->only(['changeStatus']);
+        $this->middleware('can:products.change-activation')->only(['changeActivation']);
+        
+        // Product Bank Permissions
+        $this->middleware('can:products.bank')->only(['bankProducts', 'bankDatatable', 'bankView']);
+        $this->middleware('can:products.bank.change-activation')->only(['changeBankActivation']);
+        $this->middleware('can:products.bank.vendor-product.trash')->only(['trashVendorProduct']);
+        $this->middleware('can:products.bank.vendor-product.restore')->only(['restoreVendorProduct']);
     }
     /**
      * Display a listing of the resource.
@@ -116,7 +136,8 @@ class ProductController extends Controller
             $vendors = $vendorsData->map(function($vendor) {
                 return [
                     'id' => $vendor->id,
-                    'name' => $vendor->getTranslation('name', app()->getLocale())
+                    'name' => $vendor->getTranslation('name', app()->getLocale()),
+                    'name_en' => $vendor->getTranslation('name', 'en')
                 ];
             })->toArray();
         } elseif (in_array($userType, UserType::vendorIds())) {
@@ -125,7 +146,8 @@ class ProductController extends Controller
             if ($vendor) {
                 $vendors = [[
                     'id' => $vendor->id,
-                    'name' => $vendor->getTranslation('name', app()->getLocale())
+                    'name' => $vendor->getTranslation('name', app()->getLocale()),
+                    'name_en' => $vendor->getTranslation('name', 'en')
                 ]];
             }
         }
@@ -134,7 +156,11 @@ class ProductController extends Controller
         $variantKeys = VariantsConfigurationKeyResource::collection(
             $variantKeys->map(fn ($v) => $v->setAttribute('select2', true))
         )->resolve();
-        return view('catalogmanagement::product.create', compact('languages', 'brands', 'taxes', 'vendors', 'variantKeys'));
+        
+        // Determine if current user is a vendor
+        $isVendorUser = in_array($userType, UserType::vendorIds());
+
+        return view('catalogmanagement::product.create', compact('languages', 'brands', 'taxes', 'vendors', 'variantKeys', 'isVendorUser'));
     }
 
     /**
@@ -507,17 +533,6 @@ class ProductController extends Controller
             $product = Product::with(['brand', 'variants', 'category', 'subCategory', 'department', 'createdByUser', 'mainImage', 'additionalImages', 'variants.variantConfiguration.key', 'variants.variantConfiguration.parent_data'])
                 ->where('type', Product::TYPE_BANK)
                 ->findOrFail($id);
-            // Check vendor access for vendor users
-            if (in_array(Auth::user()->user_type_id, UserType::vendorIds())) {
-                $vendor = Auth::user()->vendor;
-                if ($vendor) {
-                    // Check if vendor has access to this bank product
-                    $hasAccess = $product->vendors()->where('vendor_id', $vendor->id)->exists();
-                    if (!$hasAccess) {
-                        return abort(403, 'Unauthorized access to this bank product');
-                    }
-                }
-            }
 
             $languages = $this->languageService->getAll();
 

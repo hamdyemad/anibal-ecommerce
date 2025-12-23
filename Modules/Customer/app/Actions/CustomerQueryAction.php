@@ -13,6 +13,17 @@ class CustomerQueryAction
     {
         $query = Customer::query()->with('country');
 
+        // Filter by vendor if user is not admin - include vendor's customers AND customers with no vendor
+        if (!isAdmin() && auth()->check() && auth()->user()->isVendor()) {
+            $vendor = auth()->user()->vendorByUser ?? auth()->user()->vendorById;
+            if ($vendor) {
+                $query->where(function ($q) use ($vendor) {
+                    $q->where('vendor_id', $vendor->id)
+                      ->orWhereNull('vendor_id');
+                });
+            }
+        }
+
         // Search filter
         if (!empty($filters['search'])) {
             $search = $filters['search'];
@@ -42,6 +53,10 @@ class CustomerQueryAction
             $query->where('region_id', intval($filters['region_id']));
         }
 
+        // Vendor filter (for admins only)
+        if (isAdmin() && !empty($filters['vendor_id'])) {
+            $query->where('vendor_id', intval($filters['vendor_id']));
+        }
 
         // Email verification filter
         if (isset($filters['email_verified']) && $filters['email_verified'] !== '') {

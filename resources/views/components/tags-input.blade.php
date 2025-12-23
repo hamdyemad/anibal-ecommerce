@@ -69,8 +69,8 @@
     @push('styles')
         <style>
             /**
-                                     * Tags Input Component Styles
-                                     */
+                                                     * Tags Input Component Styles
+                                                     */
 
             /* Tags Input Container */
             .tags-input-wrapper {
@@ -369,26 +369,32 @@
     @push('scripts')
         <script src="{{ asset('js/components/tags-input.js') }}"></script>
         <script>
-            document.addEventListener('DOMContentLoaded', function() {
-                // Auto-initialize all tags input components
-                $('.tags-input-wrapper').each(function() {
+            function initializeTagsInputs() {
+                $('.tags-input-wrapper:not(.initialized)').each(function() {
                     const wrapper = $(this);
                     const container = wrapper.find('.tags-input-container');
-                    const hiddenInput = wrapper.find('input[type="hidden"]');
 
-                    // Get options from data attributes or defaults
-                    const options = {
-                        placeholder: container.find('.tags-input').attr('placeholder'),
-                        language: container.data('language') || 'en',
-                        allowDuplicates: {{ $allowDuplicates ? 'true' : 'false' }},
-                        maxTags: {{ $maxTags ? $maxTags : 'null' }},
-                        delimiter: '{{ $delimiter }}'
-                    };
+                    if (container.length > 0 && !container[0].tagsInput) {
+                        const options = {
+                            placeholder: container.find('.tags-input').attr('placeholder'),
+                            language: container.data('language') || 'en',
+                            allowDuplicates: {{ $allowDuplicates ? 'true' : 'false' }},
+                            maxTags: {{ $maxTags ? $maxTags : 'null' }},
+                            delimiter: '{{ $delimiter }}'
+                        };
 
-                    // Initialize the tags input
-                    new TagsInput(container[0], options);
+                        const instance = new TagsInput(container[0], options);
+                        container.data('tags-input', instance);
+                        wrapper.addClass('initialized');
+                    }
                 });
-            });
+            }
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initializeTagsInputs);
+            } else {
+                initializeTagsInputs();
+            }
         </script>
     @endpush
 @endonce

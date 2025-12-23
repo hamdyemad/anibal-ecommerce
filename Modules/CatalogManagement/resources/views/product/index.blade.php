@@ -36,7 +36,7 @@
         </div>
 
         {{-- Bank Products Card (Admin Only) --}}
-        @if(auth()->user() && in_array(auth()->user()->user_type_id, \App\Models\UserType::adminIds()))
+        @can('products.bank')
         <div class="row mb-4">
             <div class="col-lg-12">
                 <a href="{{ route('admin.products.bank') }}" class="text-decoration-none">
@@ -61,7 +61,7 @@
                 </a>
             </div>
         </div>
-        @endif
+        @endcan
 
         <div class="row">
             <div class="col-lg-12">
@@ -79,10 +79,12 @@
                                 {{ trans('catalogmanagement::product.products_management') }}
                             @endif
                         </h4>
+                        @can('products.create')
                         <a href="{{ route('admin.products.create') }}"
                             class="btn btn-primary btn-squared shadow-sm px-4">
                             <i class="uil uil-plus"></i> {{ trans('catalogmanagement::product.add_product') }}
                         </a>
+                        @endcan
                     </div>
                     {{-- Search & Filters --}}
                     <div class="mb-25">
@@ -219,6 +221,22 @@
                                         </div>
                                     </div>
 
+                                    <div class="col-md-3">
+                                        <div class="form-group">
+                                            <label for="stock_filter" class="il-gray fs-14 fw-500 mb-10">
+                                                <i class="uil uil-box me-1"></i>
+                                                {{ __('catalogmanagement::product.stock_status') ?? 'Stock Status' }}
+                                            </label>
+                                            <select
+                                                class="form-control ih-medium ip-gray radius-xs b-light px-15 form-select"
+                                                id="stock_filter">
+                                                <option value="">{{ __('common.all') }}</option>
+                                                <option value="instock" @if(request('stock') == 'instock') selected @endif>{{ __('dashboard.instock') }}</option>
+                                                <option value="outofstock" @if(request('stock') == 'outofstock') selected @endif>{{ __('dashboard.out_of_stock') }}</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
                                     @if(!isset($statusFilter))
                                     <div class="col-md-3">
                                         <div class="form-group">
@@ -291,6 +309,7 @@
                                     @if(auth()->user() && in_array(auth()->user()->user_type_id, \App\Models\UserType::adminIds()))
                                         <th><span class="userDatatable-title">{{ __('catalogmanagement::product.vendor') }}</span></th>
                                     @endif
+                                    <th><span class="userDatatable-title">{{ __('catalogmanagement::product.total_stock') ?? 'Total Stock' }}</span></th>
                                     <th><span class="userDatatable-title">{{ __('catalogmanagement::product.approval_status') }}</span></th>
                                     <th><span class="userDatatable-title">{{ __('common.activation') }}</span></th>
                                     <th><span class="userDatatable-title">{{ __('common.created_at') }}</span></th>
@@ -420,6 +439,7 @@
             }
             if (urlParams.has('active')) $('#active').val(urlParams.get('active')).trigger('change');
             if (urlParams.has('status')) $('#status').val(urlParams.get('status')).trigger('change');
+            if (urlParams.has('stock')) $('#stock_filter').val(urlParams.get('stock')).trigger('change');
             if (urlParams.has('created_date_from')) $('#created_date_from').val(urlParams.get('created_date_from'));
             if (urlParams.has('created_date_to')) $('#created_date_to').val(urlParams.get('created_date_to'));
 
@@ -439,6 +459,7 @@
                         d.configuration = $('#configuration_filter').length ? $('#configuration_filter').val() : '';
                         d.active = $('#active').val();
                         d.status = $('#status').val();
+                        d.stock = $('#stock_filter').val();
                         @if(isset($statusFilter) && $statusFilter)
                         d.status = '{{ $statusFilter }}';
                         @endif
@@ -527,7 +548,7 @@
                         },
                         className: 'text-start'
                     },
-                    @if(auth()->user() && in_array(auth()->user()->user_type_id, \App\Models\UserType::adminIds()))
+                    @if(isAdmin())
                     {
                         data: 'vendor',
                         name: 'vendor',
@@ -541,6 +562,21 @@
                         }
                     },
                     @endif
+                    {
+                        data: 'total_stock',
+                        name: 'total_stock',
+                        searchable: false,
+                        orderable: false,
+                        className: 'text-center',
+                        render: function(data, type, row) {
+                            const stock = data || 0;
+                            if (stock > 0) {
+                                return `<span class="badge badge-success badge-round badge-lg">${stock}</span>`;
+                            } else {
+                                return `<span class="badge badge-danger badge-round badge-lg">{{ __('dashboard.out_of_stock') }}</span>`;
+                            }
+                        }
+                    },
                     {
                         data: 'status',
                         name: 'status',
@@ -577,6 +613,7 @@
                             const isChecked = data ? 'checked' : '';
                             const switchId = 'activation-switch-' + row.id;
                             const productName = row.product_information?.name_en || row.product_information?.name_ar || 'Product #' + row.id;
+                            const isDisabled = @can('products.change-activation') '' @else 'disabled' @endcan;
 
                             return `<div class="userDatatable-content">
                                 <div class="form-switch">
@@ -586,6 +623,7 @@
                                            data-product-id="${row.vendor_product_id}"
                                            data-product-name="${$('<div>').text(productName).html()}"
                                            ${isChecked}
+                                           ${isDisabled}
                                            style="cursor: pointer;">
                                     <label class="form-check-label" for="${switchId}"></label>
                                 </div>
@@ -613,35 +651,44 @@
                             const stockPricingUrl = "{{ route('admin.products.stock-management', ':id') }}".replace(':id', data.vendor_product_id);
 
                             let actions = `
-                            <div class="orderDatatable_actions d-inline-flex gap-1">
+                            <div class="orderDatatable_actions d-inline-flex gap-1 justify-content-center">
+                                @can('products.show')
                                 <a href="${showUrl}" class="view btn btn-primary table_action_father" title="{{ trans('common.view') }}">
                                     <i class="uil uil-eye table_action_icon"></i>
-                                </a>`;
+                                </a>
+                                @endcan`;
 
+                            @can('products.edit')
                             actions += `
                                 <a href="${editUrl}" class="edit btn btn-warning table_action_father" title="{{ trans('common.edit') }}">
                                     <i class="uil uil-edit table_action_icon"></i>
-                                </a>
-                                <a href="${stockPricingUrl}" class="stock-management btn btn-info table_action_father" title="{{ trans('catalogmanagement::product.stock_management') }}">
-                                    <i class="uil uil-box table_action_icon"></i>
                                 </a>`;
+                            @endcan
+                            @can('products.stock-setup')
+                                actions += `<a href="${stockPricingUrl}" class="stock-management btn btn-info table_action_father" title="{{ trans('catalogmanagement::product.stock_management') }}">
+                                        <i class="uil uil-box table_action_icon"></i>
+                                    </a>`;
+                            @endcan
 
                             // Add approve/reject button and move to bank for admin users only
-                            @if(auth()->user() && in_array(auth()->user()->user_type_id, \App\Models\UserType::adminIds()))
-                                if(data.product_type == 'product') {
-                                    actions += `
-                                        <a href="javascript:void(0);" class="change-status btn btn-success table_action_father"
-                                        data-bs-toggle="modal" data-bs-target="#modal-change-status"
-                                        data-item-id="${data.vendor_product_id}"
-                                        data-item-status="${data.status || ''}"
-                                        data-item-name="${data.product_information?.name_en || 'Product'}"
-                                        data-item-type="${data.product_type || ''}"
-                                        title="{{ trans('catalogmanagement::product.change_status') }}">
-                                            <i class="uil uil-check-circle table_action_icon"></i>
-                                        </a>`;
-                                }
+                            @if(isAdmin())
+                                @can('products.change-status')
+                                    if(data.product_type == 'product') {
+                                        actions += `
+                                            <a href="javascript:void(0);" class="change-status btn btn-success table_action_father"
+                                            data-bs-toggle="modal" data-bs-target="#modal-change-status"
+                                            data-item-id="${data.vendor_product_id}"
+                                            data-item-status="${data.status || ''}"
+                                            data-item-name="${data.product_information?.name_en || 'Product'}"
+                                            data-item-type="${data.product_type || ''}"
+                                            title="{{ trans('catalogmanagement::product.change_status') }}">
+                                                <i class="uil uil-check-circle table_action_icon"></i>
+                                            </a>`;
+                                    }
+                                @endcan
                             @endif
 
+                            @can('products.delete')
                             actions += `
                                 <a href="javascript:void(0);" class="remove delete-product btn btn-danger table_action_father"
                                    data-bs-toggle="modal" data-bs-target="#modal-delete-product"
@@ -650,8 +697,10 @@
                                    data-url="${destroyUrl}"
                                    title="{{ trans('common.delete') }}">
                                     <i class="uil uil-trash-alt table_action_icon"></i>
-                                </a>
-                            </div>`;
+                                </a>`;
+                            @endcan
+                            
+                            actions += `</div>`;
 
                             return actions;
                         }
@@ -661,9 +710,9 @@
                 lengthMenu: [10, 25, 50, 100],
                 order: [
                     @if(auth()->user() && in_array(auth()->user()->user_type_id, [\App\Models\UserType::SUPER_ADMIN_TYPE, \App\Models\UserType::ADMIN_TYPE]))
-                        [4, 'desc'] // Created at column for admin users (with vendor column)
+                        [6, 'desc'] // Created at column for admin users (with vendor column + total_stock)
                     @else
-                        [3, 'desc'] // Created at column for vendor users (without vendor column)
+                        [5, 'desc'] // Created at column for vendor users (without vendor column, with total_stock)
                     @endif
                 ],
                 language: {
@@ -725,6 +774,7 @@
                 const configuration = $('#configuration_filter').val();
                 const active = $('#active').val();
                 const status = $('#status').val();
+                const stock = $('#stock_filter').val();
                 const dateFrom = $('#created_date_from').val();
                 const dateTo = $('#created_date_to').val();
 
@@ -740,6 +790,7 @@
                 if (configuration) params.set('configuration', configuration);
                 if (active) params.set('active', active);
                 if (status) params.set('status', status);
+                if (stock) params.set('stock', stock);
                 if (dateFrom) params.set('created_date_from', dateFrom);
                 if (dateTo) params.set('created_date_to', dateTo);
 
@@ -757,7 +808,7 @@
             });
 
             // Filters - Use 'select2:select' and 'select2:clear' events for Select2 dropdowns
-            $('#department_filter, #vendor_filter, #brand_filter, #category_filter, #product_type, #configuration_filter, #active, #status').on('select2:select select2:clear change', function() {
+            $('#department_filter, #vendor_filter, #brand_filter, #category_filter, #product_type, #configuration_filter, #active, #status, #stock_filter').on('select2:select select2:clear change', function() {
                 table.ajax.reload();
             });
 
@@ -783,6 +834,7 @@
                 $('#configuration_filter').val('').trigger('change');
                 $('#active').val('').trigger('change');
                 $('#status').val('').trigger('change');
+                $('#stock_filter').val('').trigger('change');
 
                 // Reload table
                 table.ajax.reload();

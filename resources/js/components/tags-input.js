@@ -163,8 +163,14 @@ class TagsInput {
             tagElement.find('.tag-remove').on('click', (e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                this.removeTag(index);
+                if (!this.disabled) {
+                    this.removeTag(index);
+                }
             });
+
+            if (this.disabled) {
+                tagElement.find('.tag-remove').hide();
+            }
 
             this.tagsDisplay.append(tagElement);
         });
@@ -206,6 +212,18 @@ class TagsInput {
         this.renderTags();
         this.updateHiddenInput();
         this.triggerChange();
+    }
+
+    setDisabled(disabled) {
+        this.disabled = disabled;
+        if (this.input) {
+            this.input.prop('disabled', disabled);
+        }
+        if (disabled) {
+            this.container.find('.tag-remove').hide();
+        } else {
+            this.container.find('.tag-remove').show();
+        }
     }
 
     destroy() {
