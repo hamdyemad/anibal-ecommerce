@@ -82,6 +82,12 @@ class SystemSettingServiceProvider extends ServiceProvider
             \Modules\SystemSetting\app\Repositories\BlogRepository::class
         );
 
+        // Push Notification Repository Binding
+        $this->app->bind(
+            \Modules\SystemSetting\app\Interfaces\PushNotificationRepositoryInterface::class,
+            \Modules\SystemSetting\app\Repositories\PushNotificationRepository::class
+        );
+
         // Bind Services
         $this->app->bind(
             \Modules\SystemSetting\app\Services\CurrencyService::class
@@ -105,6 +111,10 @@ class SystemSettingServiceProvider extends ServiceProvider
 
         $this->app->bind(
             \Modules\SystemSetting\app\Services\AdService::class
+        );
+
+        $this->app->bind(
+            \Modules\SystemSetting\app\Services\PushNotificationService::class
         );
 
         $this->app->bind(

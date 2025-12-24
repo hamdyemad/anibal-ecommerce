@@ -15,7 +15,7 @@ use Modules\AreaSettings\app\Models\Country;
 
 class OrderStage extends BaseModel
 {
-    use HasFactory, SoftDeletes, Translation, HumanDates, HasSlug, AutoStoreCountryId;
+    use HasFactory, SoftDeletes, Translation, HumanDates, HasSlug, AutoStoreCountryId, CountryCheckIdTrait;
 
     protected $guarded = [];
 

@@ -91,14 +91,6 @@
                                     </div>
 
                                     <div class="col-md-12 d-flex align-items-center">
-                                        @can('variant-keys.index')
-                                            <button type="button" id="exportExcel"
-                                                class="btn btn-primary btn-default btn-squared me-1"
-                                                title="{{ __('common.excel') }}">
-                                                <i class="uil uil-file-download-alt me-1"></i>
-                                                {{ __('common.export_excel') }}
-                                            </button>
-                                        @endcan
                                         <button type="button" id="resetFilters"
                                             class="btn btn-warning btn-default btn-squared"
                                             title="{{ __('common.reset') }}">

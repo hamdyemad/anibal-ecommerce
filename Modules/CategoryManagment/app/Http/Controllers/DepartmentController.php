@@ -20,10 +20,10 @@ class DepartmentController extends Controller
         protected DepartmentAction $departmentAction
     )
     {
-        $this->middleware('can:departments.index')->only(['index']);
-        $this->middleware('can:departments.show')->only(['show']);
+        $this->middleware('can:departments.index')->only(['index', 'show']);
         $this->middleware('can:departments.create')->only(['create', 'store']);
-        $this->middleware('can:departments.edit')->only(['edit', 'update', 'changeStatus']);
+        $this->middleware('can:departments.edit')->only(['edit', 'update']);
+        $this->middleware('can:departments.change-status')->only(['changeStatus']);
         $this->middleware('can:departments.delete')->only(['destroy']);
     }
 

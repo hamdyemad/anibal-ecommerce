@@ -15,6 +15,8 @@ class ReturnPolicyController extends Controller
     public function __construct(ReturnPolicyService $returnPolicyService)
     {
         $this->returnPolicyService = $returnPolicyService;
+        
+        $this->middleware('can:return-policy.index')->only(['index', 'update']);
     }
 
     public function index()

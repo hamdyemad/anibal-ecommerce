@@ -25,7 +25,14 @@ class VendorController extends Controller {
         protected CountryService $countryService,
         protected DepartmentService $departmentService,
         protected LanguageService $languageService,
-    ) {}
+    ) {
+        $this->middleware('can:vendors.index')->only(['index', 'datatable']);
+        $this->middleware('can:vendors.create')->only(['create', 'store']);
+        $this->middleware('can:vendors.show')->only(['show']);
+        $this->middleware('can:vendors.edit')->only(['edit', 'update']);
+        $this->middleware('can:vendors.delete')->only(['destroy', 'destroyDocument']);
+        $this->middleware('can:vendors.change-status')->only(['changeStatus']);
+    }
 
     public function index() {
         $languages = $this->languageService->getAll();

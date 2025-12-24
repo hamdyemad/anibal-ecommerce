@@ -23,9 +23,11 @@
                             <a href="{{ route('admin.area-settings.subregions.index') }}" class="btn btn-light btn-sm">
                                 <i class="uil uil-arrow-left me-2"></i>{{ __('areasettings::subregion.back_to_list') }}
                             </a>
-                            <a href="{{ route('admin.area-settings.subregions.edit', $subregion->id) }}" class="btn btn-primary btn-sm">
-                                <i class="uil uil-edit me-2"></i>{{ __('areasettings::subregion.edit_subregion') }}
-                            </a>
+                            @can('area.subregion.edit')
+                                <a href="{{ route('admin.area-settings.subregions.edit', $subregion->id) }}" class="btn btn-primary btn-sm">
+                                    <i class="uil uil-edit me-2"></i>{{ __('areasettings::subregion.edit_subregion') }}
+                                </a>
+                            @endcan
                         </div>
                     </div>
                     <div class="card-body">

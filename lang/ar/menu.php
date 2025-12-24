@@ -167,6 +167,11 @@
             'order stages' => 'مراحل الطلب',
             'shipping methods' => 'طرق الشحن',
         ],
+        'request_quotations' => [
+            'title' => 'طلبات عروض الأسعار',
+            'all_requests' => 'جميع الطلبات',
+            'archived_requests' => 'الطلبات المؤرشفة',
+        ],
         'point managment' => [
             'title' => 'إدارة النقاط',
             'users points' => 'نقاط المستخدمين',
@@ -184,6 +189,11 @@
             'title' => 'الإشعارات',
             'send notification' => 'إرسال إشعار',
             'all notification' => 'جميع الإشعارات',
+        ],
+        'push_notifications' => [
+            'title' => 'الإشعارات',
+            'send_notification' => 'إرسال إشعار',
+            'all_notifications' => 'جميع الإشعارات',
         ],
         'no_notifications' => 'لا توجد إشعارات',
         'see_all_notifications' => 'عرض جميع الإشعارات',
@@ -216,6 +226,8 @@
             'settings' => 'الإعدادات',
             'business activities' => 'الأنشطة التجارية',
             'withdraw module' => 'وحدة السحب',
+            'request_quotations' => 'طلبات عروض الأسعار',
+            'push_notifications' => 'الإشعارات',
         ],
         'activities' => [
             'title' => 'الأنشطة',

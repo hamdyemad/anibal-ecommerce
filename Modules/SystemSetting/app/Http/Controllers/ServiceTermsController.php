@@ -15,6 +15,8 @@ class ServiceTermsController extends Controller
     public function __construct(ServiceTermsService $serviceTermsService)
     {
         $this->serviceTermsService = $serviceTermsService;
+        
+        $this->middleware('can:service-terms.index')->only(['index', 'update']);
     }
 
     public function index()

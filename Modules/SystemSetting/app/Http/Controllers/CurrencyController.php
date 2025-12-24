@@ -18,8 +18,7 @@ class CurrencyController extends Controller
         protected CurrencyAction $currencyAction
     )
     {
-        $this->middleware('can:system.currency.index')->only(['index']);
-        $this->middleware('can:system.currency.show')->only(['show']);
+        $this->middleware('can:system.currency.index')->only(['index', 'datatable', 'show']);
         $this->middleware('can:system.currency.create')->only(['create', 'store']);
         $this->middleware('can:system.currency.edit')->only(['edit', 'update']);
         $this->middleware('can:system.currency.delete')->only(['destroy']);

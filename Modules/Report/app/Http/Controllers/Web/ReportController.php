@@ -12,7 +12,13 @@ class ReportController extends Controller
 {
     public function __construct(
         protected ReportService $reportService
-    ) {}
+    ) {
+        $this->middleware('can:reports.registered_users.view')->only(['registeredUsers', 'getRegisteredUsersData']);
+        $this->middleware('can:reports.area_users.view')->only(['areaUsers', 'getAreaUsersData', 'getCities']);
+        $this->middleware('can:reports.orders.view')->only(['orders', 'getOrdersData']);
+        $this->middleware('can:reports.products.view')->only(['products', 'getProductsData']);
+        $this->middleware('can:reports.points.view')->only(['points', 'getPointsData']);
+    }
 
     /**
      * Show reports dashboard

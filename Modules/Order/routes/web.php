@@ -7,6 +7,7 @@ use Modules\Order\app\Http\Controllers\ShippingController;
 use Modules\Order\app\Http\Controllers\ShippingCalculationController;
 use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
 use Modules\Order\app\Http\Controllers\OrderFulfillmentController;
+use Modules\Order\app\Http\Controllers\RequestQuotationController;
 
 // Order Stages Management
 // Custom routes (must be defined before resource routes)
@@ -38,3 +39,12 @@ Route::resource('shippings', ShippingController::class);
 
 // Shipping Calculation
 Route::post('shipping/calculate', [ShippingCalculationController::class, 'calculate'])->name('shipping.calculate');
+
+// Request Quotations Management
+Route::prefix('request-quotations')->name('request-quotations.')->group(function () {
+    Route::get('/', [RequestQuotationController::class, 'index'])->name('index');
+    Route::get('/archived', [RequestQuotationController::class, 'archived'])->name('archived');
+    Route::get('/datatable', [RequestQuotationController::class, 'datatable'])->name('datatable');
+    Route::post('/{id}/archive', [RequestQuotationController::class, 'archive'])->name('archive');
+    Route::delete('/{id}', [RequestQuotationController::class, 'destroy'])->name('destroy');
+});

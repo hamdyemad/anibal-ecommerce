@@ -25,10 +25,12 @@
                     <div class="d-flex justify-content-between align-items-center mb-25">
                         <h4 class="mb-0 fw-500 fw-bold">{{ __('systemsetting::faqs.faqs_management') }}</h4>
                         <div class="d-flex gap-2">
+                            @can('faqs.create')
                             <a href="{{ route('admin.system-settings.faqs.create') }}"
                                 class="btn btn-primary btn-default btn-squared text-capitalize">
                                 <i class="uil uil-plus"></i> {{ __('systemsetting::faqs.create_faq') }}
                             </a>
+                            @endcan
                         </div>
                     </div>
 

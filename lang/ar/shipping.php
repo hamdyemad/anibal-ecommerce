@@ -7,6 +7,10 @@ return [
     'create_shipping' => 'إنشاء شحنة',
     'edit_shipping' => 'تعديل الشحنة',
     'view_shipping' => 'عرض الشحنة',
+    'shipping_details' => 'تفاصيل الشحنة',
+    'basic_information' => 'المعلومات الأساسية',
+    'coverage' => 'التغطية',
+    'shipping_cost' => 'تكلفة الشحن',
 
     // Form labels
     'name' => 'الاسم',

@@ -600,7 +600,7 @@
                                 genderClass = 'bg-danger';
                                 genderLabel = '{{ __('Other') }}';
                             }
-                            return '<span class="badge ' + genderClass + ' text-white">' +
+                            return '<span class="badge badge-lg badge-round ' + genderClass + ' text-white">' +
                                 genderLabel + '</span>';
                         }
                     },
@@ -611,8 +611,8 @@
                         searchable: false,
                         render: function(data) {
                             return data ?
-                                '<span class="badge bg-success">{{ __('Active') }}</span>' :
-                                '<span class="badge bg-danger">{{ __('Inactive') }}</span>';
+                                '<span class="badge badge-lg badge-round bg-success">{{ trans('report.active') }}</span>' :
+                                '<span class="badge badge-lg badge-round bg-danger">{{ trans('report.inactive') }}</span>';
                         }
                     },
                     {
@@ -621,12 +621,7 @@
                         orderable: false,
                         searchable: false,
                         render: function(data) {
-                            if (!data) return '--';
-                            const date = new Date(data);
-                            return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], {
-                                hour: '2-digit',
-                                minute: '2-digit'
-                            });
+                            return data;
                         }
                     }
                 ],

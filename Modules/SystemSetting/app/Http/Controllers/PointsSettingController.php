@@ -16,7 +16,11 @@ class PointsSettingController extends Controller
         protected PointsSettingService $pointsSettingService,
         protected PointsSettingRepositoryInterface $pointsSettingRepository,
         protected CurrencyService $currencyService
-    ) {}
+    ) {
+        $this->middleware('can:points-settings.index')->only(['index']);
+        $this->middleware('can:points-settings.update')->only(['store', 'update']);
+        $this->middleware('can:points-settings.points-system.toggle-enabled')->only(['togglePointsSystemEnabled']);
+    }
 
     /**
      * Display points settings form (single form for all currencies)

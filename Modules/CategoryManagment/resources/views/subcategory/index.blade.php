@@ -22,7 +22,7 @@
                 <div class="userDatatable global-shadow border-light-0 p-30 bg-white radius-xl w-100 mb-30">
                     <div class="d-flex justify-content-between align-items-center mb-25">
                         <h4 class="mb-0 fw-500">{{ trans('categorymanagment::subcategory.subcategories_management') }}</h4>
-                        @can('sub_categories.create')
+                        @can('sub-categories.create')
                             <div class="d-flex gap-2">
                                 <a href="{{ route('admin.category-management.subcategories.create') }}"
                                     class="btn btn-primary btn-default btn-squared text-capitalize">
@@ -310,8 +310,8 @@
                                 return data ? 1 : 0;
                             }
 
-                            // For display, return formatted HTML with switcher (for users with edit permission)
-                            @can('sub_categories.edit')
+                            // For display, return formatted HTML with switcher (for users with change-status permission)
+                            @can('sub-categories.change-status')
                             const isChecked = data ? 'checked' : '';
                             const switchId = 'status-switch-' + row.id;
                             const subcategoryName = row.translations && row.translations['en'] ? row.translations['en'].name : (row.translations && row.translations['ar'] ? row.translations['ar'].name : 'Subcategory #' + row.id);
@@ -352,16 +352,14 @@
                                 destroyUrl = "{{ route('admin.category-management.subcategories.destroy', ':id') }}".replace(':id',row.id);
 
                             return `
-                                <div class="orderDatatable_actions d-inline-flex gap-1">
-                                    @can('sub_categories.show')
+                                <div class="orderDatatable_actions d-inline-flex gap-1 justify-content-center">
                                     <a href="${showUrl}"
                                     class="view btn btn-primary table_action_father"
                                     title="{{ trans('common.view') }}">
                                         <i class="uil uil-eye table_action_icon"></i>
                                     </a>
-                                    @endcan
 
-                                    @can('sub_categories.edit')
+                                    @can('sub-categories.edit')
                                     <a href="${editUrl}"
                                     class="edit btn btn-warning table_action_father"
                                     title="{{ trans('common.edit') }}">
@@ -369,7 +367,7 @@
                                     </a>
                                     @endcan
 
-                                    @can('sub_categories.delete')
+                                    @can('sub-categories.delete')
                                     <a href="javascript:void(0);"
                                     class="remove delete-subcategory btn btn-danger table_action_father"
                                     data-bs-toggle="modal"

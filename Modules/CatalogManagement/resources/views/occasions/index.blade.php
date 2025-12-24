@@ -393,14 +393,11 @@
                                 ':id', row.id);
                             return `
                                 <div class="orderDatatable_actions d-inline-flex gap-1 justify-content-center">
-                                    @can('occasions.show')
                                     <a href="${showUrl}"
                                     class="view btn btn-primary table_action_father"
                                     title="{{ trans('catalogmanagement::occasion.view_occasion') }}">
                                         <i class="uil uil-eye table_action_icon"></i>
                                     </a>
-                                    @endcan
-
                                     @can('occasions.edit')
                                     <a href="${editUrl}"
                                     class="edit btn btn-warning table_action_father"

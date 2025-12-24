@@ -15,6 +15,8 @@ class TermsConditionsController extends Controller
     public function __construct(TermsConditionsService $termsConditionsService)
     {
         $this->termsConditionsService = $termsConditionsService;
+        
+        $this->middleware('can:terms-conditions.index')->only(['index', 'update']);
     }
 
     public function index()

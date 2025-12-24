@@ -89,10 +89,12 @@
                     <div class="d-flex justify-content-between align-items-center mb-25">
                         <h4 class="mb-0 fw-500">{{ __('vendor::vendor.vendors_management') }}</h4>
                         <div class="d-flex gap-2">
+                            @can('vendors.create')
                             <a href="{{ route('admin.vendors.create') }}"
                                 class="btn btn-primary btn-default btn-squared text-capitalize">
                                 <i class="uil uil-plus"></i> {{ __('vendor::vendor.add_vendor') }}
                             </a>
+                            @endcan
                         </div>
                     </div>
 
@@ -425,12 +427,18 @@
                         orderable: false,
                         render: function(data, type, row) {
                             let checked = data ? 'checked' : '';
+                            @can('vendors.change-status')
                             return `<div class="userDatatable-content">
                                 <div class="form-check form-switch d-flex justify-content-center">
                                     <input class="form-check-input status-switch" type="checkbox"
                                         data-id="${row.id}" ${checked} style="cursor: pointer; width: 40px; height: 20px;">
                                 </div>
                             </div>`;
+                            @else
+                            return data 
+                                ? '<span class="badge badge-round bg-success">{{ trans("vendor::vendor.active") }}</span>'
+                                : '<span class="badge badge-round bg-danger">{{ trans("vendor::vendor.inactive") }}</span>';
+                            @endcan
                         }
                     },
                     // Actions column

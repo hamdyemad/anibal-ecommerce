@@ -25,11 +25,13 @@
                             {{ trans('catalogmanagement::product.bank_products_management') }}
                         </h4>
                         <div class="d-flex gap-2">
+                            @can('products.bank.import')
                             <a href="{{ route('admin.products.bank.stock-management') }}"
                                 class="btn btn-success btn-squared shadow-sm px-4">
                                 <i class="uil uil-import"></i>
                                 {{ trans('catalogmanagement::product.import_product_from_bank') }}
                             </a>
+                            @endcan
                             <a href="{{ route('admin.products.index') }}"
                                 class="btn btn-secondary btn-squared shadow-sm px-4">
                                 <i class="uil uil-arrow-left"></i> {{ trans('common.back') ?? 'Back' }}
@@ -163,9 +165,7 @@
                                     <th><span
                                             class="userDatatable-title">{{ __('catalogmanagement::product.category') }}</span>
                                     </th>
-                                    @can('products.bank.change-activation')
-                                        <th><span class="userDatatable-title">{{ __('common.activation') }}</span></th>
-                                    @endcan
+                                    <th><span class="userDatatable-title">{{ __('common.activation') }}</span></th>
                                     <th><span class="userDatatable-title">{{ __('common.created_at') }}</span></th>
                                     @can('products.bank')
                                         <th><span class="userDatatable-title">{{ __('common.actions') }}</span></th>
@@ -308,6 +308,19 @@
                                         <label class="form-check-label" for="${switchId}"></label>
                                     </div>
                                 </div>`;
+                            }
+                        });
+                    @else
+                        columns.push({
+                            data: 'active',
+                            name: 'active',
+                            orderable: false,
+                            searchable: false,
+                            className: 'text-center',
+                            render: function(data, type, row) {
+                                return data 
+                                    ? '<span class="badge badge-round bg-success">{{ trans("common.active") }}</span>'
+                                    : '<span class="badge badge-round bg-danger">{{ trans("common.inactive") }}</span>';
                             }
                         });
                     @endcan

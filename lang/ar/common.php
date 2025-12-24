@@ -55,6 +55,8 @@ return [
     'error' => 'خطأ',
     'warning' => 'تحذير',
     'info' => 'معلومات',
+    'type' => 'النوع',
+    'name' => 'الاسم',
     'available' => 'متاح',
     'total' => 'الإجمالي',
     'date_from' => 'من تاريخ',

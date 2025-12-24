@@ -335,10 +335,10 @@
                         searchable: false
                     },
                     {
-                        data: 'product_title',
-                        name: 'product_title',
+                        data: 'product_info',
+                        name: 'product_info',
                         orderable: false,
-                        searchable: true
+                        searchable: false
                     },
                     {
                         data: 'customer_name',

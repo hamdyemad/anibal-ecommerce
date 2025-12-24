@@ -52,6 +52,8 @@ return [
     'error' => 'Error',
     'warning' => 'Warning',
     'info' => 'Info',
+    'type' => 'Type',
+    'name' => 'Name',
     'available' => 'Available',
     'total' => 'Total',
     'date_from' => 'Date From',

@@ -125,7 +125,7 @@ class DashboardService
                 $q->where('type', 'deliver');
             })->whereDate('created_at', $today)->sum('total_price'),
             'today_orders' => Order::whereDate('created_at', $today)->count(),
-            'total_order_stages' => OrderStage::count(),
+            'total_order_stages' => OrderStage::withoutCountryFilter()->count(),
             
             // Taxes
             'total_taxes' => Tax::count(),
@@ -301,7 +301,7 @@ class DashboardService
 
     private function getOrdersOverview()
     {
-        $stages = OrderStage::all()->keyBy('type');
+        $stages = OrderStage::withoutCountryFilter()->get()->keyBy('type');
         
         if ($this->isVendor && $this->vendorId) {
             // Vendor-specific orders overview

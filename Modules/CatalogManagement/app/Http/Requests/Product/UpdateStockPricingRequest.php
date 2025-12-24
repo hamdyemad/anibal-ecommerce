@@ -47,7 +47,7 @@ class UpdateStockPricingRequest extends FormRequest
             $rules = array_merge($rules, [
                 'variants' => 'required|array|min:1',
                 'variants.*.id' => 'nullable|integer|exists:vendor_product_variants,id',
-                'variants.*.sku' => 'nullable|string',
+                'variants.*.sku' => 'nullable|string|distinct',
                 'variants.*.price' => 'required|numeric|min:0',
                 'variants.*.has_discount' => 'nullable|boolean',
                 'variants.*.price_before_discount' => 'nullable|numeric|min:0',
@@ -61,6 +61,35 @@ class UpdateStockPricingRequest extends FormRequest
         }
 
         return $rules;
+    }
+
+    /**
+     * Configure the validator instance.
+     */
+    public function withValidator($validator)
+    {
+        $validator->after(function ($validator) {
+            $variants = $this->input('variants', []);
+            
+            foreach ($variants as $index => $variant) {
+                if (!empty($variant['sku'])) {
+                    $variantId = $variant['id'] ?? null;
+                    
+                    // Check if SKU exists in database (excluding current variant)
+                    $query = \Modules\CatalogManagement\app\Models\VendorProductVariant::where('sku', $variant['sku']);
+                    if ($variantId) {
+                        $query->where('id', '!=', $variantId);
+                    }
+                    
+                    if ($query->exists()) {
+                        $validator->errors()->add(
+                            "variants.{$index}.sku",
+                            __('catalogmanagement::product.sku_unique')
+                        );
+                    }
+                }
+            }
+        });
     }
 
     /**

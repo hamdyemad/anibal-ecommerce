@@ -633,7 +633,7 @@
                         orderable: false,
                         searchable: false,
                         render: function(data) {
-                            return '<span class="badge bg-info text-white">' + (data || '--') + '</span>';
+                            return '<span class="badge badge-round badge-lg bg-info text-white">' + (data || '--') + '</span>';
                         }
                     },
                     {
@@ -643,8 +643,8 @@
                         searchable: false,
                         render: function(data) {
                             return data ?
-                                '<span class="badge bg-success">{{ __('Active') }}</span>' :
-                                '<span class="badge bg-danger">{{ __('Inactive') }}</span>';
+                                '<span class="badge badge-round badge-lg bg-success">{{ trans('report.active') }}</span>' :
+                                '<span class="badge badge-round badge-lg bg-danger">{{ trans('report.inactive') }}</span>';
                         }
                     },
                     {
@@ -653,12 +653,7 @@
                         orderable: false,
                         searchable: false,
                         render: function(data) {
-                            if (!data) return '--';
-                            const date = new Date(data);
-                            return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], {
-                                hour: '2-digit',
-                                minute: '2-digit'
-                            });
+                            return data;
                         }
                     }
                 ],

@@ -13,9 +13,9 @@ class VendorReviewController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('can:vendor_reviews.index')->only(['index', 'datatable']);
-        $this->middleware('can:vendor_reviews.approve')->only(['approve']);
-        $this->middleware('can:vendor_reviews.reject')->only(['reject']);
+        $this->middleware('can:vendor-reviews.index')->only(['index', 'datatable']);
+        $this->middleware('can:vendor-reviews.approve')->only(['approve']);
+        $this->middleware('can:vendor-reviews.reject')->only(['reject']);
     }
 
     /**
@@ -38,8 +38,7 @@ class VendorReviewController extends Controller
         $createdFrom = $request->input('created_date_from');
         $createdTo = $request->input('created_date_to');
 
-        $query = Review::withoutCountryFilter()
-            ->with(['customer'])
+        $query = Review::with(['customer'])
             ->latest()
             ->where('reviewable_type', Vendor::class);
 
@@ -73,9 +72,14 @@ class VendorReviewController extends Controller
 
         return DataTables::of($query)
             ->addIndexColumn()
-            ->addColumn('vendor_name', function ($review) {
-                $vendor = Vendor::withoutCountryFilter()->find($review->reviewable_id);
-                return truncateString($vendor->name ?? '-');
+            ->addColumn('vendor_info', function ($review) {
+                $vendor = Vendor::withoutCountryFilter()->with('logo')->find($review->reviewable_id);
+                $logoUrl = $vendor && $vendor->logo ? asset('storage/' . $vendor->logo->path) : asset('assets/img/default.png');
+                $vendorName = truncateString($vendor->name ?? '-');
+                return '<div class="d-flex align-items-center gap-2">
+                    <img src="' . $logoUrl . '" alt="' . ($vendor->name ?? 'Vendor') . '" class="rounded-circle" style="width: 40px; height: 40px; object-fit: cover;">
+                    <span>' . $vendorName . '</span>
+                </div>';
             })
             ->addColumn('customer_name', function ($review) {
                 return truncateString($review->customer->full_name ?? '-');
@@ -129,12 +133,16 @@ class VendorReviewController extends Controller
 
                 $html = '<div class="d-flex gap-2 justify-content-center">';
                 if ($review->status === 'pending') {
-                    $html .= '<button type="button" class="btn btn-sm btn-success btn-approve-review" data-review-id="' . $review->id . '" title="' . __('common.approve') . '">
-                        <i class="uil uil-check m-0"></i>
-                    </button>';
-                    $html .= '<button type="button" class="btn btn-sm btn-danger btn-reject-review" data-review-id="' . $review->id . '" data-review=\'' . json_encode($reviewData) . '\' title="' . __('common.reject') . '">
-                        <i class="uil uil-times m-0"></i>
-                    </button>';
+                    if (auth()->user()->can('vendor-reviews.approve')) {
+                        $html .= '<button type="button" class="btn btn-sm btn-success btn-approve-review" data-review-id="' . $review->id . '" title="' . __('common.approve') . '">
+                            <i class="uil uil-check m-0"></i>
+                        </button>';
+                    }
+                    if (auth()->user()->can('vendor-reviews.reject')) {
+                        $html .= '<button type="button" class="btn btn-sm btn-danger btn-reject-review" data-review-id="' . $review->id . '" data-review=\'' . json_encode($reviewData) . '\' title="' . __('common.reject') . '">
+                            <i class="uil uil-times m-0"></i>
+                        </button>';
+                    }
                 }
 
                 $html .= '<button type="button" class="btn btn-sm btn-info btn-view-review" data-review-id="' . $review->id . '" data-review=\'' . json_encode($reviewData) . '\' title="' . __('common.view') . '">
@@ -143,7 +151,7 @@ class VendorReviewController extends Controller
                 $html .= '</div>';
                 return $html;
             })
-            ->rawColumns(['stars', 'status_info', 'actions'])
+            ->rawColumns(['vendor_info', 'stars', 'status_info', 'actions'])
             ->make(true);
     }
 

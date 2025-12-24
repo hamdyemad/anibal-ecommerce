@@ -21,10 +21,10 @@ class CategoryController extends Controller
         protected CategoryAction $categoryAction
     )
     {
-        $this->middleware('can:categories.index')->only(['index']);
-        $this->middleware('can:categories.show')->only(['show']);
+        $this->middleware('can:categories.index')->only(['index', 'show']);
         $this->middleware('can:categories.create')->only(['create', 'store']);
-        $this->middleware('can:categories.edit')->only(['edit', 'update', 'changeStatus']);
+        $this->middleware('can:categories.edit')->only(['edit', 'update']);
+        $this->middleware('can:categories.change-status')->only(['changeStatus']);
         $this->middleware('can:categories.delete')->only(['destroy']);
     }
 

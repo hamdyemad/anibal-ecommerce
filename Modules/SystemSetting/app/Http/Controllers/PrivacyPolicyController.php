@@ -15,6 +15,8 @@ class PrivacyPolicyController extends Controller
     public function __construct(PrivacyPolicyService $privacyPolicyService)
     {
         $this->privacyPolicyService = $privacyPolicyService;
+        
+        $this->middleware('can:privacy-policy.index')->only(['index', 'update']);
     }
 
     public function index()

@@ -20,6 +20,12 @@ class SliderController extends Controller
     {
         $this->sliderService = $sliderService;
         $this->sliderAction = $sliderAction;
+        
+        $this->middleware('can:sliders.index')->only(['index', 'datatable']);
+        $this->middleware('can:sliders.create')->only(['create', 'store']);
+        $this->middleware('can:sliders.show')->only(['show']);
+        $this->middleware('can:sliders.edit')->only(['edit', 'update']);
+        $this->middleware('can:sliders.delete')->only(['destroy']);
     }
 
     public function index()
@@ -80,15 +86,21 @@ class SliderController extends Controller
             })
             ->addColumn('action', function ($slider) {
                 $actions = '<div class="orderDatatable_actions d-inline-flex gap-1 justify-content-center">';
-                $actions .= '<a href="' . route('admin.system-settings.sliders.show', $slider->id) . '" class="view btn btn-primary table_action_father" title="' . __('systemsetting::sliders.view') . '">';
-                $actions .= '<i class="uil uil-eye table_action_icon"></i>';
-                $actions .= '</a>';
-                $actions .= '<a href="' . route('admin.system-settings.sliders.edit', $slider->id) . '" class="edit btn btn-warning table_action_father" title="' . __('systemsetting::sliders.edit') . '">';
-                $actions .= '<i class="uil uil-edit table_action_icon"></i>';
-                $actions .= '</a>';
-                $actions .= '<a href="javascript:void(0);" class="remove btn btn-danger table_action_father" data-bs-toggle="modal" data-bs-target="#modal-delete-slider" data-item-id="' . $slider->id . '" data-item-name="Slider" title="' . __('systemsetting::sliders.delete') . '">';
-                $actions .= '<i class="uil uil-trash-alt table_action_icon"></i>';
-                $actions .= '</a>';
+                if (auth()->user()->can('sliders.show')) {
+                    $actions .= '<a href="' . route('admin.system-settings.sliders.show', $slider->id) . '" class="view btn btn-primary table_action_father" title="' . __('systemsetting::sliders.view') . '">';
+                    $actions .= '<i class="uil uil-eye table_action_icon"></i>';
+                    $actions .= '</a>';
+                }
+                if (auth()->user()->can('sliders.edit')) {
+                    $actions .= '<a href="' . route('admin.system-settings.sliders.edit', $slider->id) . '" class="edit btn btn-warning table_action_father" title="' . __('systemsetting::sliders.edit') . '">';
+                    $actions .= '<i class="uil uil-edit table_action_icon"></i>';
+                    $actions .= '</a>';
+                }
+                if (auth()->user()->can('sliders.delete')) {
+                    $actions .= '<a href="javascript:void(0);" class="remove btn btn-danger table_action_father" data-bs-toggle="modal" data-bs-target="#modal-delete-slider" data-item-id="' . $slider->id . '" data-item-name="Slider" title="' . __('systemsetting::sliders.delete') . '">';
+                    $actions .= '<i class="uil uil-trash-alt table_action_icon"></i>';
+                    $actions .= '</a>';
+                }
                 $actions .= '</div>';
                 return $actions;
             })

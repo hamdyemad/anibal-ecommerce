@@ -23,12 +23,14 @@
                 <div class="userDatatable global-shadow border-light-0 p-30 bg-white radius-xl w-100 mb-30">
                     <div class="d-flex justify-content-between align-items-center mb-25">
                         <h4 class="mb-0 fw-500 fw-bold">{{ trans('shipping.shipping_management') }}</h4>
+                        @can('shippings.create')
                         <div class="d-flex gap-2">
                             <a href="{{ route('admin.shippings.create') }}"
                                 class="btn btn-primary btn-default btn-squared text-capitalize">
                                 <i class="uil uil-plus"></i> {{ trans('shipping.create_shipping') }}
                             </a>
                         </div>
+                        @endcan
                     </div>
 
                     {{-- Search & Filters --}}
@@ -254,6 +256,7 @@
                         orderable: false,
                         searchable: false,
                         render: function(data, type, row) {
+                            @can('shippings.change-status')
                             const isChecked = data === 1 || data === true ? 'checked' : '';
                             const switchId = 'status-switch-' + row.id;
                             return `
@@ -263,6 +266,13 @@
                                     <label class="form-check-label" for="${switchId}"></label>
                                 </div>
                             `;
+                            @else
+                            if (data === 1 || data === true) {
+                                return '<span class="badge badge-success badge-round badge-lg">{{ trans('shipping.active') }}</span>';
+                            } else {
+                                return '<span class="badge badge-danger badge-round badge-lg">{{ trans('shipping.inactive') }}</span>';
+                            }
+                            @endcan
                         }
                     },
                     {
@@ -284,17 +294,28 @@
                             let showUrl = "{{ route('admin.shippings.show', ':id') }}".replace(':id', row.id);
                             return `
                                 <div class="orderDatatable_actions d-inline-flex gap-1 justify-content-center">
+                                    @can('shippings.show')
+                                    <a href="${showUrl}"
+                                    class="view btn btn-primary table_action_father"
+                                    title="{{ trans('common.view') }}">
+                                        <i class="uil uil-eye table_action_icon"></i>
+                                    </a>
+                                    @endcan
+                                    @can('shippings.edit')
                                     <a href="${editUrl}"
                                     class="edit btn btn-warning table_action_father"
                                     title="{{ trans('shipping.edit') }}">
                                         <i class="uil uil-edit table_action_icon"></i>
                                     </a>
+                                    @endcan
+                                    @can('shippings.delete')
                                     <button type="button"
                                     class="delete-btn btn btn-danger table_action_father"
                                     data-id="${row.id}"
                                     title="{{ trans('shipping.delete') }}">
                                         <i class="uil uil-trash table_action_icon"></i>
                                     </button>
+                                    @endcan
                                 </div>
                             `;
                         }

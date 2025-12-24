@@ -21,11 +21,11 @@ class SubCategoryController extends Controller
         protected SubCategoryAction $subCategoryAction
     )
     {
-        $this->middleware('can:sub_categories.index')->only(['index']);
-        $this->middleware('can:sub_categories.show')->only(['show']);
-        $this->middleware('can:sub_categories.create')->only(['create', 'store']);
-        $this->middleware('can:sub_categories.edit')->only(['edit', 'update', 'changeStatus']);
-        $this->middleware('can:sub_categories.delete')->only(['destroy']);
+        $this->middleware('can:sub-categories.index')->only(['index', 'datatable', 'show']);
+        $this->middleware('can:sub-categories.create')->only(['create', 'store']);
+        $this->middleware('can:sub-categories.edit')->only(['edit', 'update']);
+        $this->middleware('can:sub-categories.delete')->only(['destroy']);
+        $this->middleware('can:sub-categories.change-status')->only(['changeStatus']);
     }
 
     /**

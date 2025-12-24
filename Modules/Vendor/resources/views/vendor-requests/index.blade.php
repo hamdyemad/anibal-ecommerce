@@ -134,8 +134,6 @@
                                     <th><span
                                             class="userDatatable-title">{{ trans('vendor::vendor.company_information') }}</span>
                                     </th>
-                                    <th><span class="userDatatable-title">{{ trans('common.email') }}</span></th>
-                                    <th><span class="userDatatable-title">{{ trans('common.phone') }}</span></th>
                                     <th><span class="userDatatable-title">{{ trans('common.status') }}</span></th>
                                     <th><span
                                             class="userDatatable-title">{{ trans('vendor::vendor.rejection_reason') }}</span>
@@ -399,7 +397,7 @@
                             return row.row_number
                         }
                     },
-                    // Company Information column
+                    // Company Information column (with email and phone)
                     {
                         data: null,
                         name: 'company_info',
@@ -407,51 +405,23 @@
                         render: function(data, type, row) {
                             let logoHtml = '';
                             if (row.company_logo) {
-                                logoHtml =
-                                    `<img src="${row.company_logo}" alt="Company Logo" style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px; margin-right: 12px;">`;
+                                logoHtml = `<img src="${row.company_logo}" alt="Company Logo" class="rounded-circle" style="width: 50px; height: 50px; object-fit: cover;">`;
                             } else {
-                                logoHtml =
-                                    `<div style="width: 60px; height: 60px; background-color: #e9ecef; border-radius: 8px; margin-right: 12px; display: flex; align-items: center; justify-content: center;"><i class="uil uil-image" style="font-size: 24px; color: #999;"></i></div>`;
+                                logoHtml = `<div class="rounded-circle d-flex align-items-center justify-content-center bg-primary text-white" style="width: 50px; height: 50px; font-size: 20px; font-weight: bold;">${row.company_name ? row.company_name.charAt(0).toUpperCase() : 'V'}</div>`;
                             }
 
                             let html = `
-                                <div class="vendor-card p-2 bg-light-subtle rounded-3">
-                                    <div class="d-flex align-items-center">
-                                        ${logoHtml}
-                                        <div style="width: 100%;">
-                                            <div class="mb-2">
-                                                <small class="text-muted d-block">{{ trans('common.company_name') }}:</small>
-                                                <div class="fw-semibold text-dark text-capitalize">
-                                                    ${$('<div>').text(row.company_name).html()}
-                                                </div>
-                                            </div>
-                                            <div>
-                                                <small class="text-muted d-block">{{ trans('common.manager_name') }}:</small>
-                                                <small class="text-dark">${row.manager_name ? $('<div>').text(row.manager_name).html() : '-'}</small>
-                                            </div>
-                                        </div>
+                                <div class="d-flex align-items-center gap-3">
+                                    ${logoHtml}
+                                    <div>
+                                        <div class="fw-semibold text-dark mb-1">${$('<div>').text(row.company_name).html()}</div>
+                                        ${row.manager_name ? `<div class="text-muted small"><i class="uil uil-user me-1"></i>${$('<div>').text(row.manager_name).html()}</div>` : ''}
+                                        <div class="small text-muted"><i class="uil uil-envelope me-1"></i>${$('<div>').text(row.email).html()}</div>
+                                        <div class="small text-muted"><i class="uil uil-phone me-1"></i>${row.phone || '-'}</div>
                                     </div>
+                                </div>
                             `;
-                            html += `</div></div>`;
                             return html;
-                        }
-                    },
-                    // Email column
-                    {
-                        data: 'email',
-                        name: 'email',
-                        orderable: false,
-                        render: function(data, type, row) {
-                            return `<span class="text-dark">${$('<div>').text(row.email).html()}</span>`;
-                        }
-                    },
-                    // Phone column
-                    {
-                        data: 'phone',
-                        name: 'phone',
-                        orderable: false,
-                        render: function(data, type, row) {
-                            return `<span class="text-dark">${row.phone}</span>`;
                         }
                     },
                     // Status column
@@ -533,15 +503,23 @@
                             if (row.status === 'pending') {
                                 // Build query params for vendor creation
                                 const params = new URLSearchParams({
-                                    vendor_request_id: row.id
+                                    vendor_request_id: row.id,
+                                    email: row.email || '',
+                                    phone: row.phone || '',
+                                    company_name: row.company_name || ''
                                 });
 
+                                @can('vendor-requests.approve')
                                 actions += `
                                 <a href="{{ route('admin.vendors.create') }}?${params.toString()}"
                                 class="create-vendor btn btn-primary table_action_father"
                                 title="{{ trans('vendor::vendor.create_vendor') }}">
                                     <i class="uil uil-plus table_action_icon"></i>
                                 </a>
+                                `;
+                                @endcan
+                                @can('vendor-requests.reject')
+                                actions += `
                                 <a href="javascript:void(0);"
                                 class="reject btn btn-danger table_action_father reject-btn"
                                 data-id="${row.id}"
@@ -549,6 +527,7 @@
                                     <i class="uil uil-times table_action_icon"></i>
                                 </a>
                                 `;
+                                @endcan
                             }
                             // Approved: Show Reject and Archive buttons
                             else if (row.status === 'approved') {

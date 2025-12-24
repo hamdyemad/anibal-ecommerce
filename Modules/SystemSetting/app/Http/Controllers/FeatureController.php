@@ -20,6 +20,8 @@ class FeatureController extends Controller
     {
         $this->featureService = $featureService;
         $this->featureAction = $featureAction;
+        
+        $this->middleware('can:features.index')->only(['index', 'store', 'update', 'destroy']);
     }
 
     /**

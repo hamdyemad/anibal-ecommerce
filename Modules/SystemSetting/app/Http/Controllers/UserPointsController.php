@@ -14,7 +14,10 @@ class UserPointsController extends Controller
     public function __construct(
         protected CustomerService $customerService,
         protected LanguageService $languageService
-    ) {}
+    ) {
+        $this->middleware('can:points-settings.user-points.index')->only(['index', 'datatable', 'transactionsView', 'transactions']);
+        $this->middleware('can:points-settings.user-points.adjust')->only(['adjustPoints']);
+    }
     /**
      * Display user points list
      */

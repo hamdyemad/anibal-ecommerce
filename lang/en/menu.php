@@ -175,6 +175,11 @@
             'order stages' => 'order stages',
             'shipping methods' => 'shipping methods',
         ],
+        'request_quotations' => [
+            'title' => 'Request Quotations',
+            'all_requests' => 'All Requests',
+            'archived_requests' => 'Archived Requests',
+        ],
         'point managment' => [
             'title' => 'point managment',
             'users points' => 'users points',
@@ -192,6 +197,11 @@
             'title' => 'notifications',
             'send notification' => 'send notification',
             'all notification' => 'all notifications',
+        ],
+        'push_notifications' => [
+            'title' => 'Push Notifications',
+            'send_notification' => 'Send Notification',
+            'all_notifications' => 'All Notifications',
         ],
         'no_notifications' => 'No notifications',
         'see_all_notifications' => 'See All Notifications',
@@ -224,6 +234,8 @@
             'settings' => 'Settings',
             'business activities' => 'Business Activities',
             'withdraw module' => 'Withdraw Module',
+            'request_quotations' => 'Request Quotations',
+            'push_notifications' => 'Push Notifications',
         ],
         'activities' => [
             'title' => 'Activities',

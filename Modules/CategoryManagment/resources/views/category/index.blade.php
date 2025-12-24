@@ -256,12 +256,10 @@
                                 .replace(':id', data.id);
 
                             return `
-                            <div class="orderDatatable_actions d-inline-flex gap-1">
-                                @can('categories.show')
+                            <div class="orderDatatable_actions d-inline-flex gap-1 justify-content-center">
                                 <a href="${showUrl}" class="view btn btn-primary table_action_father" title="{{ trans('common.view') }}">
                                     <i class="uil uil-eye table_action_icon"></i>
                                 </a>
-                                @endcan
                                 @can('categories.edit')
                                 <a href="${editUrl}" class="edit btn btn-warning table_action_father" title="{{ trans('common.edit') }}">
                                     <i class="uil uil-edit table_action_icon"></i>

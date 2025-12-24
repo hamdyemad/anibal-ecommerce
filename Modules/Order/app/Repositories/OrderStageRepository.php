@@ -17,6 +17,7 @@ class OrderStageRepository implements OrderStageRepositoryInterface
     public function getOrderStagesQuery(array $filters = [], $orderBy = null, $orderDirection = 'desc')
     {
         $query = OrderStage::with(['translations', 'country'])
+            ->withoutCountryFilter() // Bypass the global country filter
             ->where(function ($q) {
                 // Include stages with no country (System/Global)
                 $q->whereNull('country_id');
@@ -112,7 +113,23 @@ class OrderStageRepository implements OrderStageRepositoryInterface
      */
     public function getActiveOrderStages()
     {
-        return OrderStage::active()->with(['translations'])->orderBy('sort_order')->get();
+        return OrderStage::withoutCountryFilter()
+            ->where(function ($q) {
+                // Include stages with no country (System/Global)
+                $q->whereNull('country_id');
+
+                // Include stages for the current country
+                $countryCode = session('country_code');
+                if ($countryCode) {
+                    $q->orWhereHas('country', function ($sq) use ($countryCode) {
+                        $sq->where('code', $countryCode);
+                    });
+                }
+            })
+            ->active()
+            ->with(['translations'])
+            ->orderBy('sort_order')
+            ->get();
     }
 
     /**

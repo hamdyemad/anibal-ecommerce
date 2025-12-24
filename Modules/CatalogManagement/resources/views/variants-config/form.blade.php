@@ -1,4 +1,7 @@
 @extends('layout.app')
+@section('title')
+    {{ isset($variantsConfig) ? trans('catalogmanagement::variantsconfig.edit_variants_config') : trans('catalogmanagement::variantsconfig.add_variants_config') }} | Bnaia
+@endsection
 
 @push('styles')
 <style>

@@ -21,6 +21,13 @@ class AdController extends Controller
     {
         $this->adService = $adService;
         $this->adAction = $adAction;
+        
+        $this->middleware('can:ads.index')->only(['index', 'datatable']);
+        $this->middleware('can:ads.create')->only(['create', 'store']);
+        $this->middleware('can:ads.show')->only(['show']);
+        $this->middleware('can:ads.edit')->only(['edit', 'update']);
+        $this->middleware('can:ads.delete')->only(['destroy']);
+        $this->middleware('can:ads.toggle-status')->only(['toggleStatus']);
     }
 
     /**
@@ -111,15 +118,21 @@ class AdController extends Controller
             })
             ->addColumn('action', function ($ad) {
                 $actions = '<div class="orderDatatable_actions d-inline-flex gap-1 justify-content-center">';
-                $actions .= '<a href="' . route('admin.system-settings.ads.show', $ad->id) . '" class="view btn btn-primary table_action_father" title="' . __('systemsetting::ads.view') . '">';
-                $actions .= '<i class="uil uil-eye table_action_icon"></i>';
-                $actions .= '</a>';
-                $actions .= '<a href="' . route('admin.system-settings.ads.edit', $ad->id) . '" class="edit btn btn-warning table_action_father" title="' . __('systemsetting::ads.edit') . '">';
-                $actions .= '<i class="uil uil-edit table_action_icon"></i>';
-                $actions .= '</a>';
-                $actions .= '<a href="javascript:void(0);" class="remove btn btn-danger table_action_father" data-bs-toggle="modal" data-bs-target="#modal-delete-ad" data-item-id="' . $ad->id . '" data-item-name="' . ($ad->title ?? 'Ad') . '" title="' . __('systemsetting::ads.delete') . '">';
-                $actions .= '<i class="uil uil-trash-alt table_action_icon"></i>';
-                $actions .= '</a>';
+                if (auth()->user()->can('ads.show')) {
+                    $actions .= '<a href="' . route('admin.system-settings.ads.show', $ad->id) . '" class="view btn btn-primary table_action_father" title="' . __('systemsetting::ads.view') . '">';
+                    $actions .= '<i class="uil uil-eye table_action_icon"></i>';
+                    $actions .= '</a>';
+                }
+                if (auth()->user()->can('ads.edit')) {
+                    $actions .= '<a href="' . route('admin.system-settings.ads.edit', $ad->id) . '" class="edit btn btn-warning table_action_father" title="' . __('systemsetting::ads.edit') . '">';
+                    $actions .= '<i class="uil uil-edit table_action_icon"></i>';
+                    $actions .= '</a>';
+                }
+                if (auth()->user()->can('ads.delete')) {
+                    $actions .= '<a href="javascript:void(0);" class="remove btn btn-danger table_action_father" data-bs-toggle="modal" data-bs-target="#modal-delete-ad" data-item-id="' . $ad->id . '" data-item-name="' . ($ad->title ?? 'Ad') . '" title="' . __('systemsetting::ads.delete') . '">';
+                    $actions .= '<i class="uil uil-trash-alt table_action_icon"></i>';
+                    $actions .= '</a>';
+                }
                 $actions .= '</div>';
                 return $actions;
             })

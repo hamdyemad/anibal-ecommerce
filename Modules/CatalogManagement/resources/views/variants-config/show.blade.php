@@ -1,5 +1,7 @@
 @extends('layout.app')
-@section('title', trans('catalogmanagement::variantsconfig.view_variants_config'))
+@section('title')
+    {{ trans('catalogmanagement::variantsconfig.view_variants_config') }} | Bnaia
+@endsection
 
 @section('content')
     <div class="container-fluid">
@@ -22,9 +24,11 @@
                             <a href="{{ route('admin.variants-configurations.index') }}" class="btn btn-light btn-sm">
                                 <i class="uil uil-arrow-left me-2"></i>{{ trans('common.back_to_list') }}
                             </a>
+                            @can('variants-configurations.edit')
                             <a href="{{ route('admin.variants-configurations.edit', $variantsConfig->id) }}" class="btn btn-primary btn-sm">
                                 <i class="uil uil-edit me-2"></i>{{ trans('common.edit') }}
                             </a>
+                            @endcan
                         </div>
                     </div>
                     <div class="card-body">
@@ -38,25 +42,13 @@
                                     </div>
                                     <div class="card-body">
                                         <div class="row">
-                                            {{-- Dynamic Language Translations for Name --}}
-                                            @foreach($languages as $language)
-                                                <div class="col-md-6">
-                                                    <div class="view-item">
-                                                        <label class="il-gray fs-14 fw-500 mb-10" @if($language->rtl) dir="rtl" style="text-align: right; display: block;" @endif>
-                                                            @if($language->code == 'ar')
-                                                                الاسم بالعربية
-                                                            @elseif($language->code == 'en')
-                                                                {{ trans('catalogmanagement::variantsconfig.name') }}
-                                                            @else
-                                                                {{ trans('catalogmanagement::variantsconfig.name') }} ({{ $language->name }})
-                                                            @endif
-                                                        </label>
-                                                        <p class="fs-15 color-dark fw-500" @if($language->rtl) dir="rtl" style="text-align: right;" @endif>
-                                                            {{ $variantsConfig->getTranslation('name', $language->code) ?? '-' }}
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                            @endforeach
+                                            {{-- Name Translations using component --}}
+                                            <x-translation-display 
+                                                :label="trans('catalogmanagement::variantsconfig.name')" 
+                                                :model="$variantsConfig" 
+                                                fieldName="name" 
+                                                :languages="$languages" 
+                                            />
 
                                             {{-- Type --}}
                                             <div class="col-md-6">

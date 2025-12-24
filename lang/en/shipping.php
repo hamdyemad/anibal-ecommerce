@@ -7,6 +7,10 @@ return [
     'create_shipping' => 'Create Shipping',
     'edit_shipping' => 'Edit Shipping',
     'view_shipping' => 'View Shipping',
+    'shipping_details' => 'Shipping Details',
+    'basic_information' => 'Basic Information',
+    'coverage' => 'Coverage',
+    'shipping_cost' => 'Shipping Cost',
 
     // Form labels
     'name' => 'Name',

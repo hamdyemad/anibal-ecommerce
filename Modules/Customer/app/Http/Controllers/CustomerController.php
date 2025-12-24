@@ -23,8 +23,10 @@ class CustomerController extends Controller
         $this->middleware('can:customers.index')->only(['index', 'datatable']);
         $this->middleware('can:customers.show')->only(['show']);
         $this->middleware('can:customers.create')->only(['create', 'store']);
-        $this->middleware('can:customers.edit')->only(['edit', 'update', 'changeStatus', 'changeVerification']);
+        $this->middleware('can:customers.edit')->only(['edit', 'update']);
         $this->middleware('can:customers.delete')->only(['destroy']);
+        $this->middleware('can:customers.change-status')->only(['changeStatus']);
+        $this->middleware('can:customers.change-verification')->only(['changeVerification']);
     }
 
     /**

@@ -27,12 +27,14 @@
                 <div class="userDatatable global-shadow border-light-0 p-30 bg-white radius-xl w-100 mb-30">
                     <div class="d-flex justify-content-between align-items-center mb-25">
                         <h4 class="mb-0 fw-500 fw-bold">{{ trans('order::order_stage.order_stages_management') }}</h4>
+                        @can('order-stages.create')
                         <div class="d-flex gap-2">
                             <a href="{{ route('admin.order-stages.create') }}"
                                 class="btn btn-primary btn-default btn-squared text-capitalize">
                                 <i class="uil uil-plus"></i> {{ trans('order::order_stage.add_order_stage') }}
                             </a>
                         </div>
+                        @endcan
                     </div>
 
                     {{-- Search & Filters --}}
@@ -247,6 +249,7 @@
                         orderable: false,
                         searchable: false,
                         render: function(data, type, row) {
+                            @can('order-stages.toggle-status')
                             const isChecked = data ? 'checked' : '';
                             const switchId = 'status-switch-' + row.id;
                             const isDisabled = row.is_system ? 'disabled' : '';
@@ -262,6 +265,13 @@
                                     <label class="form-check-label" for="${switchId}"></label>
                                 </div>
                             </div>`;
+                            @else
+                            if (data) {
+                                return '<span class="badge badge-success badge-round badge-lg">{{ trans('order::order_stage.active') }}</span>';
+                            } else {
+                                return '<span class="badge badge-danger badge-round badge-lg">{{ trans('order::order_stage.inactive') }}</span>';
+                            }
+                            @endcan
                         }
                     },
                     {
@@ -290,13 +300,17 @@
                                     title="{{ trans('order::order_stage.view_order_stage') }}">
                                         <i class="uil uil-eye table_action_icon"></i>
                                     </a>
+                                    @can('order-stages.edit')
                                     ${!row.is_system ? `
                                         <a href="${editUrl}"
                                         class="edit btn btn-warning table_action_father"
                                         title="{{ trans('order::order_stage.edit_order_stage') }}">
                                             <i class="uil uil-edit table_action_icon"></i>
                                         </a>
-
+                                        ` : ''}
+                                    @endcan
+                                    @can('order-stages.delete')
+                                    ${!row.is_system ? `
                                         <a href="javascript:void(0);"
                                         class="remove delete-order-stage btn btn-danger table_action_father"
                                         data-bs-toggle="modal"
@@ -308,6 +322,7 @@
                                             <i class="uil uil-trash-alt table_action_icon"></i>
                                         </a>
                                         ` : ''}
+                                    @endcan
                                 </div>
                             `;
                         }

@@ -295,6 +295,8 @@
 
     <script>
         const isAdmin = @json(in_array(auth()->user()->user_type_id, \App\Models\UserType::adminIds()));
+        const canAccept = @json(auth()->user()->can('withdraw.vendor_requests.accept'));
+        const canReject = @json(auth()->user()->can('withdraw.vendor_requests.reject'));
     </script>
     <script>
         $(document).ready(function() {
@@ -420,16 +422,20 @@
                         orderable: false,
                         searchable: false,
                         render: function(data, type, row) {
-                            if (row.status === 'new' && isAdmin) {
-                                return `
-                                    <div class="d-inline-flex gap-1">
-                                        <button class="btn btn-success approve-withdraw" data-id="${row.id}">
+                            if (row.status === 'new') {
+                                let buttons = '<div class="d-inline-flex gap-1">';
+                                if (canAccept) {
+                                    buttons += `<button class="btn btn-success approve-withdraw" data-id="${row.id}">
                                             <i class="uil uil-check"></i> {{ __('withdraw::withdraw.approve') }}
-                                        </button>
-                                        <button class="btn btn-danger reject-withdraw" data-id="${row.id}">
+                                        </button>`;
+                                }
+                                if (canReject) {
+                                    buttons += `<button class="btn btn-danger reject-withdraw" data-id="${row.id}">
                                             <i class="uil uil-times"></i> {{ __('withdraw::withdraw.reject') }}
-                                        </button>
-                                    </div>`;
+                                        </button>`;
+                                }
+                                buttons += '</div>';
+                                return (canAccept || canReject) ? buttons : '-';
                             }
                             return '-';
                         }

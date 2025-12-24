@@ -24,7 +24,9 @@ class BankController extends Controller
         protected LanguageService $languageService,
         protected VendorService $vendorService,
         protected TaxService $taxService
-    ) {}
+    ) {
+        $this->middleware('can:products.bank.import')->only(['stockManagement', 'getProducts', 'getTaxes', 'saveStock']);
+    }
 
     /**
      * Show the bank stock management page

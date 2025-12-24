@@ -453,6 +453,7 @@ return [
     // Vendor Product Management
     'vendor_products' => 'منتجات التجار',
     'no_vendors_found' => 'لم يتم العثور على تجار لهذا المنتج',
+    'orders_count' => 'الطلبات',
     'filter_by_vendor' => 'تصفية حسب التاجر',
     'confirm_trash_vendor_product' => 'هل أنت متأكد من أنك تريد حذف منتج التاجر هذا؟',
     'trash_vendor_product_note' => 'يمكنك استعادته لاحقًا إذا لزم الأمر.',

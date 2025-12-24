@@ -461,6 +461,7 @@ return [
     // Vendor Product Management
     'vendor_products' => 'Vendor Products',
     'no_vendors_found' => 'No vendors found for this product',
+    'orders_count' => 'Orders',
     'filter_by_vendor' => 'Filter by Vendor',
     'confirm_trash_vendor_product' => 'Are you sure you want to trash this vendor product?',
     'trash_vendor_product_note' => 'You can restore it later if needed.',

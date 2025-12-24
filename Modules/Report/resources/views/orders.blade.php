@@ -520,12 +520,7 @@
                         orderable: false,
                         searchable: false,
                         render: function(data) {
-                            if (!data) return '--';
-                            const date = new Date(data);
-                            return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], {
-                                hour: '2-digit',
-                                minute: '2-digit'
-                            });
+                            return data;
                         }
                     }
                 ],

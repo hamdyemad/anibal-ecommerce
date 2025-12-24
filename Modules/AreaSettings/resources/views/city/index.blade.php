@@ -316,7 +316,7 @@
                         name: 'active',
                         orderable: true,
                         render: function(data, type, row) {
-                            @can('area.city.edit')
+                            @can('area.city.change-status')
                             const isChecked = data ? 'checked' : '';
                             const switchId = 'status-switch-' + row.id;
 

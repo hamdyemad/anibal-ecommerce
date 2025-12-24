@@ -25,10 +25,12 @@
                     <div class="d-flex justify-content-between align-items-center mb-25">
                         <h4 class="mb-0 fw-500 fw-bold">{{ __('systemsetting::ads.ads_management') }}</h4>
                         <div class="d-flex gap-2">
+                            @can('ads.create')
                             <a href="{{ route('admin.system-settings.ads.create') }}"
                                 class="btn btn-primary btn-default btn-squared text-capitalize">
                                 <i class="uil uil-plus"></i> {{ __('systemsetting::ads.add_ad') }}
                             </a>
+                            @endcan
                         </div>
                     </div>
 
@@ -210,6 +212,9 @@
 @push('scripts')
     <script>
         $(document).ready(function() {
+            // Permission flags
+            const canToggleStatus = @json(auth()->user()->can('ads.toggle-status'));
+            
             // Get URL parameters and populate filters
             const urlParams = new URLSearchParams(window.location.search);
             if (urlParams.has('search')) {
@@ -278,15 +283,22 @@
                         name: 'active',
                         orderable: false,
                         render: function(data, type, row) {
-                            const isChecked = data === 1 || data === true ? 'checked' : '';
-                            const switchId = 'status-switch-' + row.id;
-                            return `
-                        <div class="form-check form-switch form-switch-primary form-switch-sm d-flex justify-content-center">
-                            <input type="checkbox" class="form-check-input status-switcher" 
-                                id="${switchId}" data-id="${row.id}" ${isChecked}>
-                            <label class="form-check-label" for="${switchId}"></label>
-                        </div>
-                    `;
+                            if (canToggleStatus) {
+                                const isChecked = data === 1 || data === true ? 'checked' : '';
+                                const switchId = 'status-switch-' + row.id;
+                                return `
+                            <div class="form-check form-switch form-switch-primary form-switch-sm d-flex justify-content-center">
+                                <input type="checkbox" class="form-check-input status-switcher" 
+                                    id="${switchId}" data-id="${row.id}" ${isChecked}>
+                                <label class="form-check-label" for="${switchId}"></label>
+                            </div>
+                        `;
+                            } else {
+                                if (data === 1 || data === true) {
+                                    return '<span class="badge badge-round badge-lg badge-success">{{ __('systemsetting::ads.active') }}</span>';
+                                }
+                                return '<span class="badge badge-round badge-lg badge-danger">{{ __('systemsetting::ads.inactive') }}</span>';
+                            }
                         }
                     },
                     {

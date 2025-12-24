@@ -98,10 +98,12 @@
                                 <i class="uil uil-arrow-left me-2"></i>{{ __('common.back_to_list') }}
                             </a>
                             @if (!$orderStage->is_system)
-                                <a href="{{ route('admin.order-stages.edit', $orderStage->id) }}"
-                                    class="btn btn-primary btn-sm">
-                                    <i class="uil uil-edit me-2"></i>{{ __('common.edit') }}
-                                </a>
+                                @can('order-stages.edit')
+                                    <a href="{{ route('admin.order-stages.edit', $orderStage->id) }}"
+                                        class="btn btn-primary btn-sm">
+                                        <i class="uil uil-edit me-2"></i>{{ __('common.edit') }}
+                                    </a>
+                                @endcan
                             @endif
                         </div>
                     </div>

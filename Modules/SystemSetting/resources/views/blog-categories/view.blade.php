@@ -32,10 +32,12 @@
                                 <i
                                     class="uil uil-arrow-left me-2"></i>{{ __('systemsetting::blog_categories.back_to_list') }}
                             </a>
-                            <a href="{{ route('admin.system-settings.blog-categories.edit', $blogCategory->id) }}"
-                                class="btn btn-primary btn-sm">
-                                <i class="uil uil-edit me-2"></i>{{ __('systemsetting::blog_categories.edit') }}
-                            </a>
+                            @can('blog-categories.edit')
+                                <a href="{{ route('admin.system-settings.blog-categories.edit', $blogCategory->id) }}"
+                                    class="btn btn-primary btn-sm">
+                                    <i class="uil uil-edit me-2"></i>{{ __('systemsetting::blog_categories.edit') }}
+                                </a>
+                            @endcan
                         </div>
                     </div>
                     <div class="card-body">

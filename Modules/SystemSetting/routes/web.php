@@ -18,8 +18,14 @@ use Modules\SystemSetting\app\Http\Controllers\PrivacyPolicyController;
 use Modules\SystemSetting\app\Http\Controllers\TermsConditionsController;
 use Modules\SystemSetting\app\Http\Controllers\BlogCategoryController;
 use Modules\SystemSetting\app\Http\Controllers\BlogController;
+use Modules\SystemSetting\app\Http\Controllers\PushNotificationController;
 
 Route::group(['prefix' => 'system-settings', 'as' => 'system-settings.'], function() {
+    // Push Notifications
+    Route::get('push-notifications/datatable', [PushNotificationController::class, 'datatable'])->name('push-notifications.datatable');
+    Route::get('push-notifications/{id}/customers-datatable', [PushNotificationController::class, 'customersDatatable'])->name('push-notifications.customers-datatable');
+    Route::resource('push-notifications', PushNotificationController::class)->except(['edit', 'update']);
+
     // Currencies
     Route::get('currencies/datatable', [CurrencyController::class, 'datatable'])->name('currencies.datatable');
     Route::resource('currencies', CurrencyController::class);

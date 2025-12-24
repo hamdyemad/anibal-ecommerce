@@ -11,6 +11,9 @@ class VendorRequestController extends Controller
 {
     public function __construct(protected VendorRequestService $vendorRequestService)
     {
+        $this->middleware('can:vendor-requests.index')->only(['index', 'datatable', 'show']);
+        $this->middleware('can:vendor-requests.approve')->only(['approve']);
+        $this->middleware('can:vendor-requests.reject')->only(['reject']);
     }
 
     /**

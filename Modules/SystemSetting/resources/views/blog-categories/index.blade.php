@@ -26,10 +26,12 @@
                         <h4 class="mb-0 fw-500 fw-bold">{{ __('systemsetting::blog_categories.blog_categories_management') }}
                         </h4>
                         <div class="d-flex gap-2">
+                            @can('blog-categories.create')
                             <a href="{{ route('admin.system-settings.blog-categories.create') }}"
                                 class="btn btn-primary btn-default btn-squared text-capitalize">
                                 <i class="uil uil-plus"></i> {{ __('systemsetting::blog_categories.add_blog_category') }}
                             </a>
+                            @endcan
                         </div>
                     </div>
 

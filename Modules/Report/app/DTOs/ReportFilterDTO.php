@@ -21,8 +21,8 @@ class ReportFilterDTO
     public static function fromRequest(array $data): self
     {
         return new self(
-            from: $data['from'] ?? null,
-            to: $data['to'] ?? null,
+            from: $data['from'] ?? $data['from_date'] ?? null,
+            to: $data['to'] ?? $data['to_date'] ?? null,
             search: $data['search'] ?? null,
             status: $data['status'] ?? null,
             gender: $data['gender'] ?? null,

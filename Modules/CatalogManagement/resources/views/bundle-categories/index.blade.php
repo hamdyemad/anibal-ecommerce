@@ -231,12 +231,7 @@
                         render: function(data, type, row) {
                             const isChecked = data ? 'checked' : '';
                             const switchId = 'status-switch-' + row.id;
-                            const isDisabled =
-                                @can('bundle-categories.toggle-status')
-                                    ''
-                                @else
-                                    'disabled'
-                                @endcan ;
+                            @can('bundle-categories.toggle-status')
                             return `<div class="userDatatable-content">
                                 <div class="form-switch">
                                     <input class="form-check-input status-switcher"
@@ -244,11 +239,17 @@
                                            id="${switchId}"
                                            data-id="${row.id}"
                                            ${isChecked}
-                                           ${isDisabled}
                                            style="cursor: pointer;">
                                     <label class="form-check-label" for="${switchId}"></label>
                                 </div>
                             </div>`;
+                            @else
+                            if (data) {
+                                return `<span class="badge badge-success badge-round badge-lg">{{ trans('catalogmanagement::bundle_category.active') }}</span>`;
+                            } else {
+                                return `<span class="badge badge-secondary badge-round badge-lg">{{ trans('catalogmanagement::bundle_category.inactive') }}</span>`;
+                            }
+                            @endcan
                         }
                     },
                     {
@@ -272,14 +273,11 @@
                                 .replace(':id', row.id)
                             return `
                                 <div class="orderDatatable_actions d-inline-flex gap-1">
-                                    @can('bundle-categories.show')
                                     <a href="${viewUrl}"
                                     class="view btn btn-primary table_action_father"
                                     title="{{ trans('catalogmanagement::bundle_category.view_bundle_category') }}">
                                         <i class="uil uil-eye table_action_icon"></i>
                                     </a>
-                                    @endcan
-
                                     @can('bundle-categories.edit')
                                     <a href="${editUrl}"
                                     class="edit btn btn-warning table_action_father"

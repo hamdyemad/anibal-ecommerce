@@ -21,6 +21,11 @@ class FaqController extends Controller
     {
         $this->faqService = $faqService;
         $this->faqAction = $faqAction;
+        
+        $this->middleware('can:faqs.index')->only(['index', 'datatable', 'show']);
+        $this->middleware('can:faqs.create')->only(['create', 'store']);
+        $this->middleware('can:faqs.edit')->only(['edit', 'update']);
+        $this->middleware('can:faqs.delete')->only(['destroy']);
     }
 
     public function index()
@@ -78,12 +83,16 @@ class FaqController extends Controller
                 // $actions .= '<a href="' . route('admin.system-settings.faqs.show', $faq->id) . '" class="view btn btn-primary table_action_father" title="' . __('systemsetting::faqs.view') . '">';
                 // $actions .= '<i class="uil uil-eye table_action_icon"></i>';
                 // $actions .= '</a>';
-                $actions .= '<a href="' . route('admin.system-settings.faqs.edit', $faq->id) . '" class="edit btn btn-warning table_action_father" title="' . __('systemsetting::faqs.edit') . '">';
-                $actions .= '<i class="uil uil-edit table_action_icon"></i>';
-                $actions .= '</a>';
-                $actions .= '<a href="javascript:void(0);" class="remove btn btn-danger table_action_father" data-bs-toggle="modal" data-bs-target="#modal-delete-faq" data-item-id="' . $faq->id . '" data-item-name="' . ($faq->question ?? 'FAQ') . '" title="' . __('systemsetting::faqs.delete') . '">';
-                $actions .= '<i class="uil uil-trash-alt table_action_icon"></i>';
-                $actions .= '</a>';
+                if (auth()->user()->can('faqs.edit')) {
+                    $actions .= '<a href="' . route('admin.system-settings.faqs.edit', $faq->id) . '" class="edit btn btn-warning table_action_father" title="' . __('systemsetting::faqs.edit') . '">';
+                    $actions .= '<i class="uil uil-edit table_action_icon"></i>';
+                    $actions .= '</a>';
+                }
+                if (auth()->user()->can('faqs.delete')) {
+                    $actions .= '<a href="javascript:void(0);" class="remove btn btn-danger table_action_father" data-bs-toggle="modal" data-bs-target="#modal-delete-faq" data-item-id="' . $faq->id . '" data-item-name="' . ($faq->question ?? 'FAQ') . '" title="' . __('systemsetting::faqs.delete') . '">';
+                    $actions .= '<i class="uil uil-trash-alt table_action_icon"></i>';
+                    $actions .= '</a>';
+                }
                 $actions .= '</div>';
                 return $actions;
             })

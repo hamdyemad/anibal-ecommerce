@@ -25,10 +25,12 @@
                     <div class="d-flex justify-content-between align-items-center mb-25">
                         <h4 class="mb-0 fw-500 fw-bold">{{ __('systemsetting::sliders.sliders_management') }}</h4>
                         <div class="d-flex gap-2">
+                            @can('sliders.create')
                             <a href="{{ route('admin.system-settings.sliders.create') }}"
                                 class="btn btn-primary btn-default btn-squared text-capitalize">
                                 <i class="uil uil-plus"></i> {{ __('systemsetting::sliders.create_slider') }}
                             </a>
+                            @endcan
                         </div>
                     </div>
 

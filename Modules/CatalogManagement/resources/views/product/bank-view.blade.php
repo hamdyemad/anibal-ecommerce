@@ -540,111 +540,133 @@
         </div>
 
         {{-- Vendor Products Management --}}
-        @canany(['products.bank.vendor-product.trash', 'products.bank.vendor-product.restore'])
-            <div class="row mt-4">
-                <div class="col-lg-12">
-                    <div class="card border-0 shadow-sm">
-                        <div class="card-header bg-white border-bottom py-20">
-                            <h5 class="mb-0 fw-500">
-                                <i
-                                    class="uil uil-store me-2"></i>{{ __('catalogmanagement::product.vendor_products') ?? 'Vendor Products' }}
-                                <span class="badge badge-primary badge-round badge-lg ms-2 text-white"
-                                    id="vendor-products-counter">
-                                    @php
-                                        $totalVendorProducts = $product->vendorProducts()->withTrashed()->count();
-                                    @endphp
-                                    {{ $totalVendorProducts }}
-                                </span>
-                            </h5>
-                        </div>
-                        <div class="card-body">
-                            {{-- Filter Section --}}
-                            <div class="row mb-3">
-                                <div class="col-md-4">
-                                    <div class="form-group">
-                                        <label for="vendor-filter" class="il-gray fs-14 fw-500 mb-10">
-                                            <i class="uil uil-filter me-1"></i>
-                                            {{ __('catalogmanagement::product.filter_by_vendor') ?? 'Filter by Vendor' }}
-                                        </label>
-                                        <select id="vendor-filter" class="form-control select2">
-                                            <option value="">{{ __('common.all') }}</option>
-                                            @php
-                                                $allVendorProducts = $product
-                                                    ->vendorProducts()
-                                                    ->with('vendor')
-                                                    ->withTrashed()
-                                                    ->get();
-                                                $uniqueVendors = $allVendorProducts
-                                                    ->pluck('vendor')
-                                                    ->unique('id')
-                                                    ->filter();
-                                            @endphp
-                                            @foreach ($uniqueVendors as $vendor)
-                                                @if ($vendor)
-                                                    <option value="{{ $vendor->id }}">{{ $vendor->name }}</option>
-                                                @endif
-                                            @endforeach
-                                        </select>
-                                    </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="form-group">
-                                        <label for="status-filter" class="il-gray fs-14 fw-500 mb-10">
-                                            <i class="uil uil-filter me-1"></i>
-                                            {{ __('common.status') }}
-                                        </label>
-                                        <select id="status-filter" class="form-control select2">
-                                            <option value="">{{ __('common.all') }}</option>
-                                            <option value="active">{{ __('common.active') }}</option>
-                                            <option value="trashed">{{ __('common.trashed') }}</option>
-                                        </select>
-                                    </div>
+        <div class="row mt-4">
+            <div class="col-lg-12">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-white border-bottom py-20">
+                        <h5 class="mb-0 fw-500">
+                            <i
+                                class="uil uil-store me-2"></i>{{ __('catalogmanagement::product.vendor_products') ?? 'Vendor Products' }}
+                            <span class="badge badge-primary badge-round badge-lg ms-2 text-white"
+                                id="vendor-products-counter">
+                                @php
+                                    $totalVendorProducts = $product->vendorProducts()->withTrashed()->count();
+                                @endphp
+                                {{ $totalVendorProducts }}
+                            </span>
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        {{-- Filter Section --}}
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="vendor-filter" class="il-gray fs-14 fw-500 mb-10">
+                                        <i class="uil uil-filter me-1"></i>
+                                        {{ __('catalogmanagement::product.filter_by_vendor') ?? 'Filter by Vendor' }}
+                                    </label>
+                                    <select id="vendor-filter" class="form-control select2">
+                                        <option value="">{{ __('common.all') }}</option>
+                                        @php
+                                            $allVendorProducts = $product
+                                                ->vendorProducts()
+                                                ->with('vendor')
+                                                ->withTrashed()
+                                                ->get();
+                                            $uniqueVendors = $allVendorProducts
+                                                ->pluck('vendor')
+                                                ->unique('id')
+                                                ->filter();
+                                        @endphp
+                                        @foreach ($uniqueVendors as $vendor)
+                                            @if ($vendor)
+                                                <option value="{{ $vendor->id }}">{{ $vendor->name }}</option>
+                                            @endif
+                                        @endforeach
+                                    </select>
                                 </div>
                             </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="status-filter" class="il-gray fs-14 fw-500 mb-10">
+                                        <i class="uil uil-filter me-1"></i>
+                                        {{ __('common.status') }}
+                                    </label>
+                                    <select id="status-filter" class="form-control select2">
+                                        <option value="">{{ __('common.all') }}</option>
+                                        <option value="active">{{ __('common.active') }}</option>
+                                        <option value="trashed">{{ __('common.trashed') }}</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
 
-                            @if(isAdmin())
-                                <div class="table-responsive">
-                                    <table id="productsDataTable" class="table mb-0 table-bordered table-hover">
-                                        <thead class="userDatatable-header">
-                                            <tr>
-                                                <th class="text-center" width="80">#</th>
-                                                <th>{{ __('catalogmanagement::product.vendor') }}</th>
+                        @if(isAdmin())
+                            <div class="table-responsive">
+                                <table id="productsDataTable" class="table mb-0 table-bordered table-hover text-center">
+                                    <thead class="userDatatable-header">
+                                        <tr>
+                                            <th class="text-center" width="80">#</th>
+                                            <th class="text-center">{{ __('catalogmanagement::product.vendor') }}</th>
+                                            <th class="text-center">{{ __('catalogmanagement::product.orders_count') ?? 'Orders' }}</th>
+                                            @canany(['products.bank.vendor-product.trash', 'products.bank.vendor-product.restore'])
                                                 <th class="text-center" width="150">{{ __('common.actions') }}</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody id="vendor-products-tbody">
-                                            @php
-                                                $vendorProducts = $product
-                                                    ->vendorProducts()
-                                                    ->with('vendor')
-                                                    ->withTrashed()
-                                                    ->get();
-                                            @endphp
-                                            @forelse($vendorProducts as $index => $vendorProduct)
-                                                <tr class="{{ $vendorProduct->trashed() ? 'table-secondary' : '' }} vendor-product-row"
-                                                    data-vendor-id="{{ $vendorProduct->vendor_id ?? '' }}"
-                                                    data-status="{{ $vendorProduct->trashed() ? 'trashed' : 'active' }}">
-                                                    <td class="text-center row-index">{{ $index + 1 }}</td>
-                                                    <td>
-                                                        <div class="d-flex align-items-center justify-content-center">
-                                                            <span
-                                                                class="me-2">{{ $vendorProduct->vendor->name ?? 'N/A' }}</span>
+                                            @endcanany
+                                        </tr>
+                                    </thead>
+                                    <tbody id="vendor-products-tbody">
+                                        @php
+                                            $vendorProducts = $product
+                                                ->vendorProducts()
+                                                ->with(['vendor.logo'])
+                                                ->withTrashed()
+                                                ->withCount('orderProducts')
+                                                ->get();
+                                        @endphp
+                                        @forelse($vendorProducts as $index => $vendorProduct)
+                                            <tr class="{{ $vendorProduct->trashed() ? 'table-secondary' : '' }} vendor-product-row"
+                                                data-vendor-id="{{ $vendorProduct->vendor_id ?? '' }}"
+                                                data-status="{{ $vendorProduct->trashed() ? 'trashed' : 'active' }}">
+                                                <td class="text-center row-index">{{ $index + 1 }}</td>
+                                                <td class="text-center">
+                                                    <div class="d-flex align-items-center justify-content-center gap-3">
+                                                        @if($vendorProduct->vendor && $vendorProduct->vendor->logo)
+                                                            <img src="{{ asset('storage/' . $vendorProduct->vendor->logo->path) }}" 
+                                                                alt="{{ $vendorProduct->vendor->name }}" 
+                                                                class="rounded-circle" 
+                                                                style="width: 45px; height: 45px; object-fit: cover;">
+                                                        @else
+                                                            <div class="rounded-circle d-flex align-items-center justify-content-center bg-primary text-white" 
+                                                                style="width: 45px; height: 45px; font-size: 18px; font-weight: bold;">
+                                                                {{ $vendorProduct->vendor ? strtoupper(substr($vendorProduct->vendor->name, 0, 1)) : 'V' }}
+                                                            </div>
+                                                        @endif
+                                                        <div>
+                                                            <span class="fw-semibold">{{ $vendorProduct->vendor->name ?? 'N/A' }}</span>
                                                             @if ($vendorProduct->trashed())
-                                                                <span
-                                                                    class="badge badge-danger badge-lg badge-round">{{ __('common.trashed') }}</span>
+                                                                <span class="badge badge-danger badge-sm badge-round ms-2">{{ __('common.trashed') }}</span>
                                                             @endif
                                                         </div>
-                                                    </td>
+                                                    </div>
+                                                </td>
+                                                <td class="text-center">
+                                                    <span class="badge badge-info badge-round badge-lg">
+                                                        {{ $vendorProduct->order_products_count ?? 0 }}
+                                                    </span>
+                                                </td>
+                                                @canany(['products.bank.vendor-product.trash', 'products.bank.vendor-product.restore'])
                                                     <td class="text-center">
                                                         <div class="d-flex gap-1 justify-content-center">
                                                             @if ($vendorProduct->trashed())
-                                                                <button type="button"
-                                                                    class="btn btn-success btn-sm restore-vendor-product"
-                                                                    data-vendor-product-id="{{ $vendorProduct->id }}"
-                                                                    data-vendor-name="{{ $vendorProduct->vendor->name ?? 'Vendor' }}"
-                                                                    title="{{ __('common.restore') }}">
-                                                                    <i class="uil uil-redo m-0"></i>
-                                                                </button>
+                                                                @can('products.bank.vendor-product.restore')
+                                                                    <button type="button"
+                                                                        class="btn btn-success btn-sm restore-vendor-product"
+                                                                        data-vendor-product-id="{{ $vendorProduct->id }}"
+                                                                        data-vendor-name="{{ $vendorProduct->vendor->name ?? 'Vendor' }}"
+                                                                        title="{{ __('common.restore') }}">
+                                                                        <i class="uil uil-redo m-0"></i>
+                                                                    </button>
+                                                                @endcan
                                                             @else
                                                                 @can('products.bank.vendor-product.trash')
                                                                     <button type="button"
@@ -658,23 +680,23 @@
                                                             @endif
                                                         </div>
                                                     </td>
-                                                </tr>
-                                            @empty
-                                                <tr>
-                                                    <td colspan="3" class="text-center text-muted py-4">
-                                                        {{ __('catalogmanagement::product.no_vendors_found') ?? 'No vendors found for this product' }}
-                                                    </td>
-                                                </tr>
-                                            @endforelse
-                                        </tbody>
-                                    </table>
-                                </div>
-                            @endif
-                        </div>
+                                                @endcanany
+                                            </tr>
+                                        @empty
+                                            <tr>
+                                                <td colspan="{{ auth()->user()->canany(['products.bank.vendor-product.trash', 'products.bank.vendor-product.restore']) ? '4' : '3' }}" class="text-center text-muted py-4">
+                                                    {{ __('catalogmanagement::product.no_vendors_found') ?? 'No vendors found for this product' }}
+                                                </td>
+                                            </tr>
+                                        @endforelse
+                                    </tbody>
+                                </table>
+                            </div>
+                        @endif
                     </div>
                 </div>
             </div>
-        @endcanany
+        </div>
     </div>
 
 @endsection

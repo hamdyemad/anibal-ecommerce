@@ -28,9 +28,11 @@
                                 <i class="uil uil-arrow-left me-2"></i>{{ __('customer::customer.back_to_list') }}
                             </a>
                             @if($canManage)
+                            @can('customers.edit')
                             <a href="{{ route('admin.customers.edit', $customer->id) }}" class="btn btn-primary btn-sm">
                                 <i class="uil uil-edit me-2"></i>{{ __('customer::customer.edit_customer') }}
                             </a>
+                            @endcan
                             @endif
                         </div>
                     </div>

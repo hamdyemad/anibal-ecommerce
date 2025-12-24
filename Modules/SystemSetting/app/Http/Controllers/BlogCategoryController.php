@@ -19,6 +19,11 @@ class BlogCategoryController extends Controller
         protected BlogCategoryService $blogCategoryService,
         protected LanguageService $languageService
     ) {
+        $this->middleware('can:blog-categories.index')->only(['index', 'datatable']);
+        $this->middleware('can:blog-categories.create')->only(['create', 'store']);
+        $this->middleware('can:blog-categories.edit')->only(['edit', 'update']);
+        $this->middleware('can:blog-categories.delete')->only(['destroy']);
+        $this->middleware('can:blog-categories.toggle-status')->only(['toggleStatus']);
     }
 
     /**
@@ -75,34 +80,42 @@ class BlogCategoryController extends Controller
                 return '<div class="text-center"><i class="uil uil-image-slash text-muted" style="font-size: 24px;"></i></div>';
             })
             ->addColumn('status_badge', function ($blogCategory) {
-                $isChecked = $blogCategory->active ? 'checked' : '';
-                $switchId = 'status-switch-' . $blogCategory->id;
-                return '<div class="userDatatable-content">
-                    <div class="form-switch">
-                        <input class="form-check-input status-switcher"
-                               type="checkbox"
-                               id="' . $switchId . '"
-                               data-id="' . $blogCategory->id . '"
-                               ' . $isChecked . '
-                               style="cursor: pointer; width: 40px; height: 20px;">
-                        <label class="form-check-label" for="' . $switchId . '"></label>
-                    </div>
-                </div>';
+                if (auth()->user()->can('blog-categories.toggle-status')) {
+                    $isChecked = $blogCategory->active ? 'checked' : '';
+                    $switchId = 'status-switch-' . $blogCategory->id;
+                    return '<div class="userDatatable-content">
+                        <div class="form-switch">
+                            <input class="form-check-input status-switcher"
+                                   type="checkbox"
+                                   id="' . $switchId . '"
+                                   data-id="' . $blogCategory->id . '"
+                                   ' . $isChecked . '
+                                   style="cursor: pointer; width: 40px; height: 20px;">
+                            <label class="form-check-label" for="' . $switchId . '"></label>
+                        </div>
+                    </div>';
+                } else {
+                    if ($blogCategory->active) {
+                        return '<span class="badge badge-round badge-lg badge-success">' . __('systemsetting::blog_categories.active') . '</span>';
+                    }
+                    return '<span class="badge badge-round badge-lg badge-danger">' . __('systemsetting::blog_categories.inactive') . '</span>';
+                }
             })
             ->addColumn('created_date', function ($blogCategory) {
                 return $blogCategory->created_at;
             })
             ->addColumn('action', function ($blogCategory) {
                 $actions = '<div class="orderDatatable_actions d-inline-flex gap-1 justify-content-center">';
-                $actions .= '<a href="' . route('admin.system-settings.blog-categories.show', $blogCategory->id) . '" class="view btn btn-primary table_action_father" title="' . __('systemsetting::blog_categories.view') . '">';
-                $actions .= '<i class="uil uil-eye table_action_icon"></i>';
-                $actions .= '</a>';
-                $actions .= '<a href="' . route('admin.system-settings.blog-categories.edit', $blogCategory->id) . '" class="edit btn btn-warning table_action_father" title="' . __('systemsetting::blog_categories.edit') . '">';
-                $actions .= '<i class="uil uil-edit table_action_icon"></i>';
-                $actions .= '</a>';
-                $actions .= '<a href="javascript:void(0);" class="remove btn btn-danger table_action_father" data-bs-toggle="modal" data-bs-target="#modal-delete-blog-category" data-item-id="' . $blogCategory->id . '" data-item-name="' . ($blogCategory->title ?? 'Blog Category') . '" title="' . __('systemsetting::blog_categories.delete') . '">';
-                $actions .= '<i class="uil uil-trash-alt table_action_icon"></i>';
-                $actions .= '</a>';
+                if (auth()->user()->can('blog-categories.edit')) {
+                    $actions .= '<a href="' . route('admin.system-settings.blog-categories.edit', $blogCategory->id) . '" class="edit btn btn-warning table_action_father" title="' . __('systemsetting::blog_categories.edit') . '">';
+                    $actions .= '<i class="uil uil-edit table_action_icon"></i>';
+                    $actions .= '</a>';
+                }
+                if (auth()->user()->can('blog-categories.delete')) {
+                    $actions .= '<a href="javascript:void(0);" class="remove btn btn-danger table_action_father" data-bs-toggle="modal" data-bs-target="#modal-delete-blog-category" data-item-id="' . $blogCategory->id . '" data-item-name="' . ($blogCategory->title ?? 'Blog Category') . '" title="' . __('systemsetting::blog_categories.delete') . '">';
+                    $actions .= '<i class="uil uil-trash-alt table_action_icon"></i>';
+                    $actions .= '</a>';
+                }
                 $actions .= '</div>';
                 return $actions;
             })

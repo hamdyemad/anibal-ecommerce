@@ -59,13 +59,7 @@ class ProductController extends Controller
         $this->middleware('can:products.edit')->only(['edit', 'update', 'moveToBank']);
         $this->middleware('can:products.stock-setup')->only(['stockManagement', 'updateStockPricing']);
         $this->middleware('can:products.delete')->only(['destroy']);
-        $this->middleware(function ($request, $next) {
-            // Allow viewing if user has products.show OR products.bank permission
-            if (auth()->user()->can('products.show') || auth()->user()->can('products.bank')) {
-                return $next($request);
-            }
-            abort(403, 'Unauthorized action.');
-        })->only(['show']);
+        $this->middleware('can:products.show')->only(['show']);
         $this->middleware('can:products.change-status')->only(['changeStatus']);
         $this->middleware('can:products.change-activation')->only(['changeActivation']);
         

@@ -21,6 +21,12 @@ class BlogController extends Controller
     {
         $this->blogService = $blogService;
         $this->blogCategoryService = $blogCategoryService;
+        
+        $this->middleware('can:blogs.index')->only(['index', 'datatable', 'show']);
+        $this->middleware('can:blogs.create')->only(['create', 'store']);
+        $this->middleware('can:blogs.edit')->only(['edit', 'update']);
+        $this->middleware('can:blogs.delete')->only(['destroy']);
+        $this->middleware('can:blogs.toggle-status')->only(['toggleStatus']);
     }
 
     /**
@@ -87,19 +93,26 @@ class BlogController extends Controller
                 return '<div class="text-center"><i class="uil uil-image-slash text-muted" style="font-size: 24px;"></i></div>';
             })
             ->addColumn('status_badge', function ($blog) {
-                $isChecked = $blog->active ? 'checked' : '';
-                $switchId = 'status-switch-' . $blog->id;
-                return '<div class="userDatatable-content">
-                    <div class="form-switch">
-                        <input class="form-check-input status-switcher"
-                               type="checkbox"
-                               id="' . $switchId . '"
-                               data-id="' . $blog->id . '"
-                               ' . $isChecked . '
-                               style="cursor: pointer; width: 40px; height: 20px;">
-                        <label class="form-check-label" for="' . $switchId . '"></label>
-                    </div>
-                </div>';
+                if (auth()->user()->can('blogs.toggle-status')) {
+                    $isChecked = $blog->active ? 'checked' : '';
+                    $switchId = 'status-switch-' . $blog->id;
+                    return '<div class="userDatatable-content">
+                        <div class="form-switch">
+                            <input class="form-check-input status-switcher"
+                                   type="checkbox"
+                                   id="' . $switchId . '"
+                                   data-id="' . $blog->id . '"
+                                   ' . $isChecked . '
+                                   style="cursor: pointer; width: 40px; height: 20px;">
+                            <label class="form-check-label" for="' . $switchId . '"></label>
+                        </div>
+                    </div>';
+                } else {
+                    if ($blog->active) {
+                        return '<span class="badge badge-round badge-lg badge-success">' . __('systemsetting::blogs.active') . '</span>';
+                    }
+                    return '<span class="badge badge-round badge-lg badge-danger">' . __('systemsetting::blogs.inactive') . '</span>';
+                }
             })
             ->addColumn('created_date', function ($blog) {
                 return $blog->created_at;
@@ -109,12 +122,16 @@ class BlogController extends Controller
                 $actions .= '<a href="' . route('admin.system-settings.blogs.show', $blog->id) . '" class="view btn btn-primary table_action_father" title="' . __('systemsetting::blogs.view') . '">';
                 $actions .= '<i class="uil uil-eye table_action_icon"></i>';
                 $actions .= '</a>';
-                $actions .= '<a href="' . route('admin.system-settings.blogs.edit', $blog->id) . '" class="edit btn btn-warning table_action_father" title="' . __('systemsetting::blogs.edit') . '">';
-                $actions .= '<i class="uil uil-edit table_action_icon"></i>';
-                $actions .= '</a>';
-                $actions .= '<a href="javascript:void(0);" class="remove btn btn-danger table_action_father" data-bs-toggle="modal" data-bs-target="#modal-delete-blog" data-item-id="' . $blog->id . '" data-item-name="' . ($blog->title ?? 'Blog') . '" title="' . __('systemsetting::blogs.delete') . '">';
-                $actions .= '<i class="uil uil-trash-alt table_action_icon"></i>';
-                $actions .= '</a>';
+                if (auth()->user()->can('blogs.edit')) {
+                    $actions .= '<a href="' . route('admin.system-settings.blogs.edit', $blog->id) . '" class="edit btn btn-warning table_action_father" title="' . __('systemsetting::blogs.edit') . '">';
+                    $actions .= '<i class="uil uil-edit table_action_icon"></i>';
+                    $actions .= '</a>';
+                }
+                if (auth()->user()->can('blogs.delete')) {
+                    $actions .= '<a href="javascript:void(0);" class="remove btn btn-danger table_action_father" data-bs-toggle="modal" data-bs-target="#modal-delete-blog" data-item-id="' . $blog->id . '" data-item-name="' . ($blog->title ?? 'Blog') . '" title="' . __('systemsetting::blogs.delete') . '">';
+                    $actions .= '<i class="uil uil-trash-alt table_action_icon"></i>';
+                    $actions .= '</a>';
+                }
                 $actions .= '</div>';
                 return $actions;
             })

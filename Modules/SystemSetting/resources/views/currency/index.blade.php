@@ -114,11 +114,6 @@
                                     </div>
 
                                     <div class="col-md-12 d-flex">
-                                        <button type="button" id="exportExcel"
-                                            class="btn btn-primary btn-default btn-squared me-1"
-                                            title="{{ __('common.excel') }}">
-                                            <i class="uil uil-file-download-alt me-1"></i> {{ __('common.export_excel') }}
-                                        </button>
                                         <button type="button" id="resetFilters"
                                             class="btn btn-warning btn-default btn-squared"
                                             title="{{ __('common.reset') }}">
@@ -292,7 +287,7 @@
                             let deleteUrl = "{{ route('admin.system-settings.currencies.destroy', ':id') }}".replace(':id', row.id);
                             return `
                                 <div class="orderDatatable_actions d-inline-flex gap-1">
-                                    @can('system.currency.show')
+                                    @can('system.currency.index')
                                     <a href="${viewUrl}"
                                     class="view btn btn-primary table_action_father"
                                     title="{{ trans('common.view') }}">

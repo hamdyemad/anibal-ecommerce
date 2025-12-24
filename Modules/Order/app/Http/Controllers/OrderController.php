@@ -71,19 +71,26 @@ class OrderController extends Controller
         
         // Filter statistics by vendor if user is not admin
         if (isAdmin()) {
-            // Admin sees all orders
-            $total_price = number_format(OrderProduct::sum(\DB::raw('price * quantity')), 2);
-            $orders_count = Order::latest()->count();
-        } else {
-            // Vendor sees only their orders
-            $vendorId = auth()->user()->vendor_id ?? auth()->id();
+            // Admin sees all orders - filtered by country through Order model's CountryCheckIdTrait
+            $orderIds = Order::pluck('id');
             $total_price = number_format(
-                OrderProduct::where('vendor_id', $vendorId)->sum(\DB::raw('price * quantity')), 
+                OrderProduct::whereIn('order_id', $orderIds)->sum(\DB::raw('price * quantity')), 
                 2
             );
-            $orders_count = Order::whereHas('products', function($q) use ($vendorId) {
+            $orders_count = Order::latest()->count();
+        } else {
+            // Vendor sees only their orders - filtered by country through Order model's CountryCheckIdTrait
+            $vendorId = auth()->user()->vendor_id ?? auth()->id();
+            $orderIds = Order::whereHas('products', function($q) use ($vendorId) {
                 $q->where('vendor_id', $vendorId);
-            })->count();
+            })->pluck('id');
+            $total_price = number_format(
+                OrderProduct::whereIn('order_id', $orderIds)
+                    ->where('vendor_id', $vendorId)
+                    ->sum(\DB::raw('price * quantity')), 
+                2
+            );
+            $orders_count = $orderIds->count();
         }
         
         $vendors = $this->vendorService->getAllVendors([]);
@@ -223,13 +230,40 @@ class OrderController extends Controller
     public function store($lang, $countryCode, StoreOrderRequest $request)
     {
         try {
-            // Prepare data - decode JSON fields
+            // Prepare data - fields are already decoded by prepareForValidation in the request
             $data = $request->validated();
-            $data['products'] = json_decode($data['products'], true) ?? [];
-            $data['feesData'] = json_decode($data['feesData'] ?? '[]', true) ?? [];
-            $data['discountsData'] = json_decode($data['discountsData'] ?? '[]', true) ?? [];
+            
+            // Handle products - may be string or array depending on how it was sent
+            if (is_string($data['products'])) {
+                $data['products'] = json_decode($data['products'], true) ?? [];
+            }
+            
+            // Handle feesData - may be string or array
+            if (isset($data['feesData']) && is_string($data['feesData'])) {
+                $data['feesData'] = json_decode($data['feesData'], true) ?? [];
+            } else {
+                $data['feesData'] = $data['feesData'] ?? [];
+            }
+            
+            // Handle discountsData - may be string or array
+            if (isset($data['discountsData']) && is_string($data['discountsData'])) {
+                $data['discountsData'] = json_decode($data['discountsData'], true) ?? [];
+            } else {
+                $data['discountsData'] = $data['discountsData'] ?? [];
+            }
 
             $order = $this->orderService->createOrder($data);
+
+            // Update request quotation status and link order if quotation_id is provided
+            if ($request->filled('quotation_id')) {
+                $quotation = \Modules\Order\app\Models\RequestQuotation::find($request->input('quotation_id'));
+                if ($quotation) {
+                    $quotation->update([
+                        'status' => \Modules\Order\app\Models\RequestQuotation::STATUS_CREATED,
+                        'order_id' => $order->id,
+                    ]);
+                }
+            }
 
             return response()->json([
                 'status' => true,
@@ -306,11 +340,27 @@ class OrderController extends Controller
                 ], 403);
             }
 
-            // Prepare data - decode JSON fields
+            // Prepare data - handle fields that may be string or array
             $data = $request->validated();
-            $data['products'] = json_decode($data['products'], true) ?? [];
-            $data['feesData'] = json_decode($data['feesData'] ?? '[]', true) ?? [];
-            $data['discountsData'] = json_decode($data['discountsData'] ?? '[]', true) ?? [];
+            
+            // Handle products - may be string or array depending on how it was sent
+            if (is_string($data['products'])) {
+                $data['products'] = json_decode($data['products'], true) ?? [];
+            }
+            
+            // Handle feesData - may be string or array
+            if (isset($data['feesData']) && is_string($data['feesData'])) {
+                $data['feesData'] = json_decode($data['feesData'], true) ?? [];
+            } else {
+                $data['feesData'] = $data['feesData'] ?? [];
+            }
+            
+            // Handle discountsData - may be string or array
+            if (isset($data['discountsData']) && is_string($data['discountsData'])) {
+                $data['discountsData'] = json_decode($data['discountsData'], true) ?? [];
+            } else {
+                $data['discountsData'] = $data['discountsData'] ?? [];
+            }
 
             $order = $this->orderService->updateOrder($id, $data);
 

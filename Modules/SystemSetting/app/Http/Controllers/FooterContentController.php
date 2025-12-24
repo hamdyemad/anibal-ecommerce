@@ -15,6 +15,8 @@ class FooterContentController extends Controller
     public function __construct(FooterContentService $footerContentService)
     {
         $this->footerContentService = $footerContentService;
+        
+        $this->middleware('can:footer-content.index')->only(['index', 'store']);
     }
 
     /**

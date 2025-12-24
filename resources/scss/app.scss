@@ -6,6 +6,15 @@
 
 /* Bootstrap-styled pagination - smaller and cleaner */
 
+
+.bg-primary {
+    background-color: var(--color-primary) !important;
+}
+
+.orderDatatable_actions {
+    justify-content: center !important;
+}
+
 .dt-column-order {
     display: none !important;
 }

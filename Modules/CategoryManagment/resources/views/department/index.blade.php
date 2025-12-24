@@ -276,8 +276,8 @@
                                 return data ? 1 : 0;
                             }
 
-                            // For display, return formatted HTML with switcher (for users with edit permission)
-                            @can('departments.edit')
+                            // For display, return formatted HTML with switcher (for users with change-status permission)
+                            @can('departments.change-status')
                                 const isChecked = data ? 'checked' : '';
                                 const switchId = 'status-switch-' + row.department_id;
                                 const departmentName = row.translations && row.translations['en'] ?
@@ -328,8 +328,7 @@
                                 "{{ route('admin.category-management.departments.edit', ':id') }}"
                                 .replace(':id', row.department_id);
                             return `
-                            <ul class="mb-0 d-flex flex-wrap justify-content-start">
-                                @can('departments.view')
+                            <ul class="mb-0 d-flex flex-wrap justify-content-center">
                                 <li>
                                     <a href="${viewUrl}"
                                     class="btn btn-primary table_action_father me-1"
@@ -337,7 +336,6 @@
                                         <i class="uil uil-eye table_action_icon"></i>
                                     </a>
                                 </li>
-                                @endcan
                                 @can('departments.edit')
                                 <li>
                                     <a href="${editUrl}"

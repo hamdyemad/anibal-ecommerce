@@ -2,16 +2,21 @@
 
 namespace Modules\SystemSetting\app\Http\Controllers;
 
+use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Modules\SystemSetting\app\Services\MessageService;
 
-class MessageController
+class MessageController extends Controller
 {
     protected $messageService;
 
     public function __construct(MessageService $messageService)
     {
         $this->messageService = $messageService;
+        
+        $this->middleware('can:messages.index')->only(['index', 'datatable', 'show']);
+        $this->middleware('can:messages.mark-read')->only(['markAsRead']);
+        $this->middleware('can:messages.delete')->only(['destroy', 'archive']);
     }
 
     /**
@@ -71,7 +76,7 @@ class MessageController
                 $actions .= '<i class="uil uil-eye table_action_icon"></i>';
                 $actions .= '</a>';
 
-                if ($message->status === 'pending') {
+                if ($message->status === 'pending' && auth()->user()->can('messages.mark-read')) {
                     $actions .= '<a href="javascript:void(0);" 
                         data-url="' . route('admin.messages.mark-read', $message->id) . '" 
                         class="mark-read-message btn btn-success table_action_father" 

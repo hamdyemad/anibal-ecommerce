@@ -26,7 +26,7 @@ class StoreProductRequest extends FormRequest
 
         $rules = [
             // Basic Product Information
-            'sku' => 'required|string|max:255',
+            'sku' => 'required|string|max:255|unique:vendor_products,sku',
             'is_active' => 'nullable|boolean',
             'is_featured' => 'nullable|boolean',
             'max_per_order' => 'required|integer|min:1',
@@ -82,7 +82,7 @@ class StoreProductRequest extends FormRequest
         if ($configurationType === 'variants') {
             $rules = array_merge($rules, [
                 'variants' => 'required|array|min:1',
-                'variants.*.sku' => 'required|string',
+                'variants.*.sku' => 'required|string|unique:vendor_product_variants,sku',
                 'variants.*.price' => 'required|numeric|min:0',
                 'variants.*.has_discount' => 'nullable|boolean',
                 'variants.*.price_before_discount' => 'nullable|numeric|min:0',

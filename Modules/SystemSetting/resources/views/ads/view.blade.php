@@ -30,9 +30,11 @@
                             <a href="{{ route('admin.system-settings.ads.index') }}" class="btn btn-light btn-sm">
                                 <i class="uil uil-arrow-left me-2"></i>{{ __('systemsetting::ads.back_to_list') }}
                             </a>
-                            <a href="{{ route('admin.system-settings.ads.edit', $ad->id) }}" class="btn btn-primary btn-sm">
-                                <i class="uil uil-edit me-2"></i>{{ __('systemsetting::ads.edit') }}
-                            </a>
+                            @can('ads.edit')
+                                <a href="{{ route('admin.system-settings.ads.edit', $ad->id) }}" class="btn btn-primary btn-sm">
+                                    <i class="uil uil-edit me-2"></i>{{ __('systemsetting::ads.edit') }}
+                                </a>
+                            @endcan
                         </div>
                     </div>
                     <div class="card-body">

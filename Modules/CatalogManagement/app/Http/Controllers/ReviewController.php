@@ -13,9 +13,9 @@ class ReviewController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('can:reviews.index')->only(['index', 'datatable']);
-        $this->middleware('can:reviews.approve')->only(['approve']);
-        $this->middleware('can:reviews.reject')->only(['reject']);
+        $this->middleware('can:product-reviews.index')->only(['index', 'datatable']);
+        $this->middleware('can:product-reviews.approve')->only(['approve']);
+        $this->middleware('can:product-reviews.reject')->only(['reject']);
     }
     /**
      * Display a listing of product reviews
@@ -37,7 +37,7 @@ class ReviewController extends Controller
         $createdFrom = $request->input('created_date_from');
         $createdTo = $request->input('created_date_to');
 
-        $query = Review::with(['vendorProduct.product', 'customer'])->latest()
+        $query = Review::with(['vendorProduct.product.mainImage', 'customer'])->latest()
             ->where('reviewable_type', VendorProduct::class);
 
         // Filter by status
@@ -71,8 +71,14 @@ class ReviewController extends Controller
 
         return DataTables::of($query)
             ->addIndexColumn()
-            ->addColumn('product_title', function ($review) {
-                return truncateString($review->vendorProduct->product->name ?? '-');
+            ->addColumn('product_info', function ($review) {
+                $mainImage = $review->vendorProduct?->product?->mainImage;
+                $imageUrl = $mainImage ? asset('storage/' . $mainImage->path) : asset('assets/img/default.png');
+                $productName = truncateString($review->vendorProduct->product->name ?? '-');
+                return '<div class="d-flex align-items-center gap-2">
+                    <img src="' . $imageUrl . '" alt="' . ($review->vendorProduct?->product?->name ?? 'Product') . '" class="rounded" style="width: 40px; height: 40px; object-fit: cover;">
+                    <span>' . $productName . '</span>
+                </div>';
             })
             ->addColumn('customer_name', function ($review) {
                 return truncateString($review->customer->full_name ?? '-');
@@ -125,12 +131,16 @@ class ReviewController extends Controller
 
                 $html = '<div class="d-flex gap-2 justify-content-center">';
                 if ($review->status === 'pending') {
-                    $html .= '<button type="button" class="btn btn-sm btn-success btn-approve-review" data-review-id="' . $review->id . '" title="' . __('common.approve') . '">
-                        <i class="uil uil-check m-0"></i>
-                    </button>';
-                    $html .= '<button type="button" class="btn btn-sm btn-danger btn-reject-review" data-review-id="' . $review->id . '" data-review=\'' . json_encode($reviewData) . '\' title="' . __('common.reject') . '">
-                        <i class="uil uil-times m-0"></i>
-                    </button>';
+                    if (auth()->user()->can('product-reviews.approve')) {
+                        $html .= '<button type="button" class="btn btn-sm btn-success btn-approve-review" data-review-id="' . $review->id . '" title="' . __('common.approve') . '">
+                            <i class="uil uil-check m-0"></i>
+                        </button>';
+                    }
+                    if (auth()->user()->can('product-reviews.reject')) {
+                        $html .= '<button type="button" class="btn btn-sm btn-danger btn-reject-review" data-review-id="' . $review->id . '" data-review=\'' . json_encode($reviewData) . '\' title="' . __('common.reject') . '">
+                            <i class="uil uil-times m-0"></i>
+                        </button>';
+                    }
                 }
 
                 $html .= '<button type="button" class="btn btn-sm btn-info btn-view-review" data-review-id="' . $review->id . '" data-review=\'' . json_encode($reviewData) . '\' title="' . __('common.view') . '">
@@ -139,7 +149,7 @@ class ReviewController extends Controller
                 $html .= '</div>';
                 return $html;
             })
-            ->rawColumns(['stars', 'status_info', 'actions'])
+            ->rawColumns(['product_info', 'stars', 'status_info', 'actions'])
             ->make(true);
     }
 

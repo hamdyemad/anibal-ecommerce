@@ -40,12 +40,10 @@ class ReportRepository implements ReportRepositoryInterface
         // Search filter
         if ($filter->search) {
             $query->where(function ($q) use ($filter) {
-                $q->whereHas('translations', function ($transQ) use ($filter) {
-                    $transQ->where('lang_key', 'name')
-                           ->where('lang_value', 'like', '%' . $filter->search . '%');
-                })
-                ->orWhere('email', 'like', '%' . $filter->search . '%')
-                ->orWhere('phone', 'like', '%' . $filter->search . '%');
+                $q->where('first_name', 'like', '%' . $filter->search . '%')
+                  ->orWhere('last_name', 'like', '%' . $filter->search . '%')
+                  ->orWhere('email', 'like', '%' . $filter->search . '%')
+                  ->orWhere('phone', 'like', '%' . $filter->search . '%');
             });
         }
 
@@ -53,7 +51,7 @@ class ReportRepository implements ReportRepositoryInterface
         \Log::info('ReportRepository::Total count', ['total' => $total, 'sql' => $query->toSql()]);
 
         // Get statistics and chart data for ALL matching records (not just current page)
-        $allData = $query->get(['id', 'email', 'phone', 'gender', 'status', 'created_at']);
+        $allData = $query->get(['id', 'first_name', 'last_name', 'email', 'phone', 'gender', 'status', 'created_at']);
 
         // Calculate statistics
         $activeCount = $allData->where('status', 1)->count();
@@ -78,7 +76,7 @@ class ReportRepository implements ReportRepositoryInterface
         $data = $query->paginate(
             perPage: $filter->per_page,
             page: $filter->page,
-            columns: ['id', 'email', 'phone', 'gender', 'status', 'created_at']
+            columns: ['id', 'first_name', 'last_name', 'email', 'phone', 'gender', 'status', 'created_at']
         );
 
         // Add index to each item
@@ -86,7 +84,6 @@ class ReportRepository implements ReportRepositoryInterface
         $startIndex = ($filter->page - 1) * $filter->per_page + 1;
         foreach ($items as $index => $item) {
             $item->index = $startIndex + $index;
-            $item->name = $item->name ?? 'N/A';
         }
 
         \Log::info('ReportRepository::Data retrieved', ['count' => count($items), 'items' => $items]);
@@ -148,12 +145,10 @@ class ReportRepository implements ReportRepositoryInterface
         // Search filter
         if ($filter->search) {
             $query->where(function ($q) use ($filter) {
-                $q->whereHas('translations', function ($transQ) use ($filter) {
-                    $transQ->where('lang_key', 'name')
-                           ->where('lang_value', 'like', '%' . $filter->search . '%');
-                })
-                ->orWhere('email', 'like', '%' . $filter->search . '%')
-                ->orWhere('phone', 'like', '%' . $filter->search . '%');
+                $q->where('first_name', 'like', '%' . $filter->search . '%')
+                  ->orWhere('last_name', 'like', '%' . $filter->search . '%')
+                  ->orWhere('email', 'like', '%' . $filter->search . '%')
+                  ->orWhere('phone', 'like', '%' . $filter->search . '%');
             });
         }
 
@@ -189,7 +184,7 @@ class ReportRepository implements ReportRepositoryInterface
             ->paginate(
                 perPage: $filter->per_page,
                 page: $filter->page,
-                columns: ['id', 'email', 'phone', 'status', 'created_at', 'city_id']
+                columns: ['id', 'first_name', 'last_name', 'email', 'phone', 'status', 'created_at', 'city_id']
             );
 
         // Add index and city name to each item
@@ -197,7 +192,7 @@ class ReportRepository implements ReportRepositoryInterface
         $startIndex = ($filter->page - 1) * $filter->per_page + 1;
         foreach ($items as $index => $item) {
             $item->index = $startIndex + $index;
-            $item->name = $item->name ?? 'N/A';
+            $item->name = trim(($item->first_name ?? '') . ' ' . ($item->last_name ?? '')) ?: 'N/A';
             $item->city_name = $item->city?->name ?? 'N/A';
         }
 
@@ -254,10 +249,10 @@ class ReportRepository implements ReportRepositoryInterface
             $query->where(function ($q) use ($filter) {
                 $q->where('order_number', 'like', '%' . $filter->search . '%')
                   ->orWhereHas('customer', function ($customerQ) use ($filter) {
-                      $customerQ->whereHas('translations', function ($transQ) use ($filter) {
-                          $transQ->where('lang_key', 'name')
-                                 ->where('lang_value', 'like', '%' . $filter->search . '%');
-                      });
+                      $customerQ->where('first_name', 'like', '%' . $filter->search . '%')
+                                ->orWhere('last_name', 'like', '%' . $filter->search . '%')
+                                ->orWhere('email', 'like', '%' . $filter->search . '%')
+                                ->orWhere('phone', 'like', '%' . $filter->search . '%');
                   });
             });
         }
@@ -322,10 +317,14 @@ class ReportRepository implements ReportRepositoryInterface
         $items = $data->items();
         $transformedItems = [];
         foreach ($items as $index => $order) {
+            $customerName = 'N/A';
+            if ($order->customer) {
+                $customerName = trim(($order->customer->first_name ?? '') . ' ' . ($order->customer->last_name ?? '')) ?: 'N/A';
+            }
             $transformedItems[] = [
                 'index' => ($filter->page - 1) * $filter->per_page + $index + 1,
                 'order_number' => $order->order_number,
-                'customer_name' => $order->customer?->name ?? 'N/A',
+                'customer_name' => $customerName,
                 'stage' => $order->stage ? $order->stage->name : 'N/A',
                 'stage_type' => $order->stage ? $order->stage->type : null,
                 'total' => $order->total_price,
@@ -434,7 +433,7 @@ class ReportRepository implements ReportRepositoryInterface
         $activeCount = $allData->clone()->where('is_active', 1)->count();
         $inactiveCount = $allData->clone()->where('is_active', 0)->count();
 
-        $data = $query->with(['product.category', 'vendor'])
+        $data = $query->with(['product.category', 'product.mainImage', 'vendor.logo'])
             ->paginate(
                 perPage: $filter->per_page,
                 page: $filter->page
@@ -444,12 +443,24 @@ class ReportRepository implements ReportRepositoryInterface
         $items = $data->items();
         $transformedItems = [];
         foreach ($items as $index => $vendorProduct) {
+            $productImage = null;
+            if ($vendorProduct->product && $vendorProduct->product->mainImage) {
+                $productImage = asset('storage/' . $vendorProduct->product->mainImage->path);
+            }
+            
+            $vendorImage = null;
+            if ($vendorProduct->vendor && $vendorProduct->vendor->logo) {
+                $vendorImage = asset('storage/' . $vendorProduct->vendor->logo->path);
+            }
+            
             $transformedItems[] = [
                 'index' => ($filter->page - 1) * $filter->per_page + $index + 1,
                 'name' => $vendorProduct->product ? $vendorProduct->product->name : 'N/A',
+                'product_image' => $productImage,
                 'sku' => $vendorProduct->sku,
                 'category' => $vendorProduct->product?->category ? $vendorProduct->product->category->name : 'N/A',
                 'vendor' => $vendorProduct->vendor ? $vendorProduct->vendor->name : 'N/A',
+                'vendor_image' => $vendorImage,
                 'status' => $vendorProduct->status,
                 'is_active' => $vendorProduct->is_active,
                 'sales' => $vendorProduct->sales,

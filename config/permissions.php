@@ -101,9 +101,9 @@ return [
             'Vendor Reviews' => [
                 'name' => ['en' => 'Vendor Reviews', 'ar' => 'تقييمات البائعين'],
                 'permissions' => [
-                    'read' => ['name' => ['en' => 'Read', 'ar' => 'قراءة'], 'key' => 'vendor_reviews.index', 'type' => 'admin'],
-                    'approve' => ['name' => ['en' => 'Approve', 'ar' => 'موافقة'], 'key' => 'vendor_reviews.approve', 'type' => 'admin'],
-                    'reject' => ['name' => ['en' => 'Reject', 'ar' => 'رفض'], 'key' => 'vendor_reviews.reject', 'type' => 'admin'],
+                    'read' => ['name' => ['en' => 'Read', 'ar' => 'قراءة'], 'key' => 'vendor-reviews.index', 'type' => 'admin'],
+                    'approve' => ['name' => ['en' => 'Approve', 'ar' => 'موافقة'], 'key' => 'vendor-reviews.approve', 'type' => 'admin'],
+                    'reject' => ['name' => ['en' => 'Reject', 'ar' => 'رفض'], 'key' => 'vendor-reviews.reject', 'type' => 'admin'],
                 ]
             ],
         ]
@@ -120,7 +120,6 @@ return [
                     'read' => ['name' => ['en' => 'Read', 'ar' => 'قراءة'], 'key' => 'vendor-requests.index', 'type' => 'admin'],
                     'approve' => ['name' => ['en' => 'Approve', 'ar' => 'قبول'], 'key' => 'vendor-requests.approve', 'type' => 'admin'],
                     'reject' => ['name' => ['en' => 'Reject', 'ar' => 'رفض'], 'key' => 'vendor-requests.reject', 'type' => 'admin'],
-                    'delete' => ['name' => ['en' => 'Delete', 'ar' => 'حذف'], 'key' => 'vendor-requests.delete', 'type' => 'admin'],
                 ]
             ],
         ]
@@ -149,13 +148,28 @@ return [
                 'name' => ['en' => 'Products Bank', 'ar' => 'بنك المنتجات'],
                 'permissions' => [
                     'read' => ['name' => ['en' => 'Read', 'ar' => 'قراءة'], 'key' => 'products.bank', 'type' => 'all'],
+                    'import' => ['name' => ['en' => 'Import', 'ar' => 'استيراد'], 'key' => 'products.bank.import', 'type' => 'admin'],
                     'activation' => ['name' => ['en' => 'Change Activation', 'ar' => 'تغيير التنشيط'], 'key' => 'products.bank.change-activation', 'type' => 'admin'],
                     'trash' => ['name' => ['en' => 'Trash Vendor Product', 'ar' => 'نقل لسلة المهملات'], 'key' => 'products.bank.vendor-product.trash', 'type' => 'admin'],
                 ]
             ],
         ]
     ],
-
+    'Product Reviews' => [
+        'name' => ['en' => 'Product Reviews', 'ar' => 'تقييمات المنتجات'],
+        'icon' => 'uil-star',
+        'type' => 'admin',
+        'sub_modules' => [
+            'Product Reviews' => [
+                'name' => ['en' => 'Product Reviews', 'ar' => 'تقييمات المنتجات'],
+                'permissions' => [
+                    'read' => ['name' => ['en' => 'Read', 'ar' => 'قراءة'], 'key' => 'product-reviews.index', 'type' => 'admin'],
+                    'approve' => ['name' => ['en' => 'Approve', 'ar' => 'قبول'], 'key' => 'product-reviews.approve', 'type' => 'admin'],
+                    'reject' => ['name' => ['en' => 'Reject', 'ar' => 'رفض'], 'key' => 'product-reviews.reject', 'type' => 'admin'],
+                ]
+            ],
+        ]
+    ],
 
     'Brands' => [
         'name' => ['en' => 'Brands', 'ar' => 'العلامات التجارية'],
@@ -265,25 +279,6 @@ return [
             ],
         ]
     ],
-
-    'Occasions' => [
-        'name' => ['en' => 'Occasions', 'ar' => 'المناسبات'],
-        'icon' => 'uil-calender',
-        'type' => 'all',
-        'sub_modules' => [
-            'Occasions' => [
-                'name' => ['en' => 'Occasions', 'ar' => 'المناسبات'],
-                'permissions' => [
-                    'read' => ['name' => ['en' => 'Read', 'ar' => 'قراءة'], 'key' => 'occasions.index', 'type' => 'all'],
-                    'create' => ['name' => ['en' => 'Create', 'ar' => 'إنشاء'], 'key' => 'occasions.create', 'type' => 'all'],
-                    'edit' => ['name' => ['en' => 'Edit', 'ar' => 'تعديل'], 'key' => 'occasions.edit', 'type' => 'all'],
-                    'delete' => ['name' => ['en' => 'Delete', 'ar' => 'حذف'], 'key' => 'occasions.delete', 'type' => 'all'],
-                    'status' => ['name' => ['en' => 'Toggle Status', 'ar' => 'تبديل الحالة'], 'key' => 'occasions.toggle-status', 'type' => 'all'],
-                ]
-            ],
-        ]
-    ],
-
     'Bundles' => [
         'name' => ['en' => 'Bundles', 'ar' => 'الحزم'],
         'icon' => 'uil-box',
@@ -303,21 +298,27 @@ return [
         ]
     ],
 
-    'Reviews' => [
-        'name' => ['en' => 'Reviews', 'ar' => 'التقييمات'],
-        'icon' => 'uil-star',
-        'type' => 'admin',
+    'Occasions' => [
+        'name' => ['en' => 'Occasions', 'ar' => 'المناسبات'],
+        'icon' => 'uil-calender',
+        'type' => 'all',
         'sub_modules' => [
-            'Reviews' => [
-                'name' => ['en' => 'Reviews', 'ar' => 'التقييمات'],
+            'Occasions' => [
+                'name' => ['en' => 'Occasions', 'ar' => 'المناسبات'],
                 'permissions' => [
-                    'read' => ['name' => ['en' => 'Read', 'ar' => 'قراءة'], 'key' => 'reviews.index', 'type' => 'admin'],
-                    'approve' => ['name' => ['en' => 'Approve', 'ar' => 'قبول'], 'key' => 'reviews.approve', 'type' => 'admin'],
-                    'reject' => ['name' => ['en' => 'Reject', 'ar' => 'رفض'], 'key' => 'reviews.reject', 'type' => 'admin'],
+                    'read' => ['name' => ['en' => 'Read', 'ar' => 'قراءة'], 'key' => 'occasions.index', 'type' => 'all'],
+                    'create' => ['name' => ['en' => 'Create', 'ar' => 'إنشاء'], 'key' => 'occasions.create', 'type' => 'all'],
+                    'edit' => ['name' => ['en' => 'Edit', 'ar' => 'تعديل'], 'key' => 'occasions.edit', 'type' => 'all'],
+                    'delete' => ['name' => ['en' => 'Delete', 'ar' => 'حذف'], 'key' => 'occasions.delete', 'type' => 'all'],
+                    'status' => ['name' => ['en' => 'Toggle Status', 'ar' => 'تبديل الحالة'], 'key' => 'occasions.toggle-status', 'type' => 'all'],
                 ]
             ],
         ]
     ],
+
+
+
+
 
     'Departments' => [
         'name' => ['en' => 'Departments', 'ar' => 'الأقسام'],
@@ -331,7 +332,6 @@ return [
                     'create' => ['name' => ['en' => 'Create', 'ar' => 'إنشاء'], 'key' => 'departments.create', 'type' => 'admin'],
                     'edit' => ['name' => ['en' => 'Edit', 'ar' => 'تعديل'], 'key' => 'departments.edit', 'type' => 'admin'],
                     'delete' => ['name' => ['en' => 'Delete', 'ar' => 'حذف'], 'key' => 'departments.delete', 'type' => 'admin'],
-                    'show' => ['name' => ['en' => 'View', 'ar' => 'عرض'], 'key' => 'departments.show', 'type' => 'admin'],
                     'status' => ['name' => ['en' => 'Change Status', 'ar' => 'تغيير الحالة'], 'key' => 'departments.change-status', 'type' => 'admin'],
                 ]
             ],
@@ -350,7 +350,6 @@ return [
                     'create' => ['name' => ['en' => 'Create', 'ar' => 'إنشاء'], 'key' => 'categories.create', 'type' => 'admin'],
                     'edit' => ['name' => ['en' => 'Edit', 'ar' => 'تعديل'], 'key' => 'categories.edit', 'type' => 'admin'],
                     'delete' => ['name' => ['en' => 'Delete', 'ar' => 'حذف'], 'key' => 'categories.delete', 'type' => 'admin'],
-                    'show' => ['name' => ['en' => 'View', 'ar' => 'عرض'], 'key' => 'categories.show', 'type' => 'admin'],
                     'status' => ['name' => ['en' => 'Change Status', 'ar' => 'تغيير الحالة'], 'key' => 'categories.change-status', 'type' => 'admin'],
                 ]
             ],
@@ -365,12 +364,11 @@ return [
             'Sub Categories' => [
                 'name' => ['en' => 'Sub Categories', 'ar' => 'التصنيفات الفرعية'],
                 'permissions' => [
-                    'read' => ['name' => ['en' => 'Read', 'ar' => 'قراءة'], 'key' => 'subcategories.index', 'type' => 'admin'],
-                    'create' => ['name' => ['en' => 'Create', 'ar' => 'إنشاء'], 'key' => 'subcategories.create', 'type' => 'admin'],
-                    'edit' => ['name' => ['en' => 'Edit', 'ar' => 'تعديل'], 'key' => 'subcategories.edit', 'type' => 'admin'],
-                    'delete' => ['name' => ['en' => 'Delete', 'ar' => 'حذف'], 'key' => 'subcategories.delete', 'type' => 'admin'],
-                    'show' => ['name' => ['en' => 'View', 'ar' => 'عرض'], 'key' => 'subcategories.show', 'type' => 'admin'],
-                    'status' => ['name' => ['en' => 'Change Status', 'ar' => 'تغيير الحالة'], 'key' => 'subcategories.change-status', 'type' => 'admin'],
+                    'read' => ['name' => ['en' => 'Read', 'ar' => 'قراءة'], 'key' => 'sub-categories.index', 'type' => 'admin'],
+                    'create' => ['name' => ['en' => 'Create', 'ar' => 'إنشاء'], 'key' => 'sub-categories.create', 'type' => 'admin'],
+                    'edit' => ['name' => ['en' => 'Edit', 'ar' => 'تعديل'], 'key' => 'sub-categories.edit', 'type' => 'admin'],
+                    'delete' => ['name' => ['en' => 'Delete', 'ar' => 'حذف'], 'key' => 'sub-categories.delete', 'type' => 'admin'],
+                    'status' => ['name' => ['en' => 'Change Status', 'ar' => 'تغيير الحالة'], 'key' => 'sub-categories.change-status', 'type' => 'admin'],
                 ]
             ],
         ]
@@ -508,6 +506,38 @@ return [
         ]
     ],
 
+    'Request Quotations' => [
+        'name' => ['en' => 'Request Quotations', 'ar' => 'طلبات عروض الأسعار'],
+        'icon' => 'uil-file-question-alt',
+        'type' => 'admin',
+        'sub_modules' => [
+            'Request Quotations' => [
+                'name' => ['en' => 'Request Quotations', 'ar' => 'طلبات عروض الأسعار'],
+                'permissions' => [
+                    'read' => ['name' => ['en' => 'Read', 'ar' => 'قراءة'], 'key' => 'request-quotations.index', 'type' => 'admin'],
+                    'archive' => ['name' => ['en' => 'Archive', 'ar' => 'أرشفة'], 'key' => 'request-quotations.archive', 'type' => 'admin'],
+                ]
+            ],
+        ]
+    ],
+
+    'Push Notifications' => [
+        'name' => ['en' => 'Push Notifications', 'ar' => 'الإشعارات'],
+        'icon' => 'uil-bell',
+        'type' => 'admin',
+        'sub_modules' => [
+            'Push Notifications' => [
+                'name' => ['en' => 'Push Notifications', 'ar' => 'الإشعارات'],
+                'permissions' => [
+                    'read' => ['name' => ['en' => 'Read', 'ar' => 'قراءة'], 'key' => 'push-notifications.index', 'type' => 'admin'],
+                    'create' => ['name' => ['en' => 'Create', 'ar' => 'إنشاء'], 'key' => 'push-notifications.create', 'type' => 'admin'],
+                    'show' => ['name' => ['en' => 'View', 'ar' => 'عرض'], 'key' => 'push-notifications.show', 'type' => 'admin'],
+                    'delete' => ['name' => ['en' => 'Delete', 'ar' => 'حذف'], 'key' => 'push-notifications.delete', 'type' => 'admin'],
+                ]
+            ],
+        ]
+    ],
+
     'Customers' => [
         'name' => ['en' => 'Customers', 'ar' => 'العملاء'],
         'icon' => 'uil-user-circle',
@@ -534,19 +564,27 @@ return [
         'icon' => 'uil-wallet',
         'type' => 'all',
         'sub_modules' => [
-            'Withdraws' => [
-                'name' => ['en' => 'Withdraws', 'ar' => 'السحوبات'],
+            'Send Money' => [
+                'name' => ['en' => 'Send Money', 'ar' => 'إرسال أموال'],
                 'permissions' => [
-                    'read' => ['name' => ['en' => 'Read', 'ar' => 'قراءة'], 'key' => 'withdraw.index', 'type' => 'all'],
-                    'create' => ['name' => ['en' => 'Create', 'ar' => 'إنشاء'], 'key' => 'withdraw.create', 'type' => 'all'],
-                    'edit' => ['name' => ['en' => 'Edit', 'ar' => 'تعديل'], 'key' => 'withdraw.edit', 'type' => 'all'],
-                    'delete' => ['name' => ['en' => 'Delete', 'ar' => 'حذف'], 'key' => 'withdraw.delete', 'type' => 'all'],
-                    'show' => ['name' => ['en' => 'View', 'ar' => 'عرض'], 'key' => 'withdraw.show', 'type' => 'all'],
-                    'sendMoney' => ['name' => ['en' => 'Send Money', 'ar' => 'إرسال أموال'], 'key' => 'withdraw.sendMoney', 'type' => 'all'],
-                    'transactions' => ['name' => ['en' => 'Transactions Database', 'ar' => 'قاعدة بيانات المعاملات'], 'key' => 'withdraw.allTransactionsDatabase', 'type' => 'all'],
-                    'all_transactions' => ['name' => ['en' => 'All Transactions', 'ar' => 'كل المعاملات'], 'key' => 'withdraw.allTransactions', 'type' => 'all'],
-                    'requests' => ['name' => ['en' => 'Transaction Requests', 'ar' => 'طلبات المعاملات'], 'key' => 'withdraw.transactionsRequests', 'type' => 'all'],
-                    'change_status' => ['name' => ['en' => 'Change Status', 'ar' => 'تغيير الحالة'], 'key' => 'withdraw.changeTransactionRequestsStatus', 'type' => 'all'],
+                    'view' => ['name' => ['en' => 'View Send Money', 'ar' => 'عرض إرسال الأموال'], 'key' => 'withdraw.send_money.view', 'type' => 'admin'],
+                    'create' => ['name' => ['en' => 'Send Money', 'ar' => 'إرسال أموال'], 'key' => 'withdraw.send_money.create', 'type' => 'admin'],
+                ]
+            ],
+            'Transactions' => [
+                'name' => ['en' => 'Transactions', 'ar' => 'المعاملات'],
+                'permissions' => [
+                    'view' => ['name' => ['en' => 'View Transactions', 'ar' => 'عرض المعاملات'], 'key' => 'withdraw.transactions.view', 'type' => 'all'],
+                ]
+            ],
+            'Vendor Requests' => [
+                'name' => ['en' => 'Vendor Requests', 'ar' => 'طلبات الموردين'],
+                'permissions' => [
+                    'view_new' => ['name' => ['en' => 'View New Requests', 'ar' => 'عرض الطلبات الجديدة'], 'key' => 'withdraw.vendor_requests.new.view', 'type' => 'admin'],
+                    'view_accepted' => ['name' => ['en' => 'View Accepted Requests', 'ar' => 'عرض الطلبات المقبولة'], 'key' => 'withdraw.vendor_requests.accepted.view', 'type' => 'admin'],
+                    'view_rejected' => ['name' => ['en' => 'View Rejected Requests', 'ar' => 'عرض الطلبات المرفوضة'], 'key' => 'withdraw.vendor_requests.rejected.view', 'type' => 'admin'],
+                    'accept' => ['name' => ['en' => 'Accept Requests', 'ar' => 'قبول الطلبات'], 'key' => 'withdraw.vendor_requests.accept', 'type' => 'admin'],
+                    'reject' => ['name' => ['en' => 'Reject Requests', 'ar' => 'رفض الطلبات'], 'key' => 'withdraw.vendor_requests.reject', 'type' => 'admin'],
                 ]
             ],
         ]
@@ -593,7 +631,6 @@ return [
                 'name' => ['en' => 'Messages', 'ar' => 'الرسائل'],
                 'permissions' => [
                     'read' => ['name' => ['en' => 'Read', 'ar' => 'قراءة'], 'key' => 'messages.index', 'type' => 'admin'],
-                    'delete' => ['name' => ['en' => 'Delete', 'ar' => 'حذف'], 'key' => 'messages.delete', 'type' => 'admin'],
                     'mark_read' => ['name' => ['en' => 'Mark as Read', 'ar' => 'تم القراءة'], 'key' => 'messages.mark-read', 'type' => 'admin'],
                 ]
             ],
@@ -673,6 +710,16 @@ return [
         'icon' => 'uil-document-layout-left',
         'type' => 'admin',
         'sub_modules' => [
+            'Blog Categories' => [
+                'name' => ['en' => 'Blog Categories', 'ar' => 'تصنيفات المدونات'],
+                'permissions' => [
+                    'read' => ['name' => ['en' => 'Read', 'ar' => 'قراءة'], 'key' => 'blog-categories.index', 'type' => 'admin'],
+                    'create' => ['name' => ['en' => 'Create', 'ar' => 'إنشاء'], 'key' => 'blog-categories.create', 'type' => 'admin'],
+                    'edit' => ['name' => ['en' => 'Edit', 'ar' => 'تعديل'], 'key' => 'blog-categories.edit', 'type' => 'admin'],
+                    'delete' => ['name' => ['en' => 'Delete', 'ar' => 'حذف'], 'key' => 'blog-categories.delete', 'type' => 'admin'],
+                    'status' => ['name' => ['en' => 'Toggle Status', 'ar' => 'تبديل الحالة'], 'key' => 'blog-categories.toggle-status', 'type' => 'admin'],
+                ]
+            ],
             'Blogs' => [
                 'name' => ['en' => 'Blogs', 'ar' => 'المدونات'],
                 'permissions' => [
@@ -680,7 +727,6 @@ return [
                     'create' => ['name' => ['en' => 'Create', 'ar' => 'إنشاء'], 'key' => 'blogs.create', 'type' => 'admin'],
                     'edit' => ['name' => ['en' => 'Edit', 'ar' => 'تعديل'], 'key' => 'blogs.edit', 'type' => 'admin'],
                     'delete' => ['name' => ['en' => 'Delete', 'ar' => 'حذف'], 'key' => 'blogs.delete', 'type' => 'admin'],
-                    'show' => ['name' => ['en' => 'View', 'ar' => 'عرض'], 'key' => 'blogs.show', 'type' => 'admin'],
                     'status' => ['name' => ['en' => 'Toggle Status', 'ar' => 'تبديل الحالة'], 'key' => 'blogs.toggle-status', 'type' => 'admin'],
                 ]
             ],
@@ -699,7 +745,6 @@ return [
                     'create' => ['name' => ['en' => 'Create', 'ar' => 'إنشاء'], 'key' => 'faqs.create', 'type' => 'admin'],
                     'edit' => ['name' => ['en' => 'Edit', 'ar' => 'تعديل'], 'key' => 'faqs.edit', 'type' => 'admin'],
                     'delete' => ['name' => ['en' => 'Delete', 'ar' => 'حذف'], 'key' => 'faqs.delete', 'type' => 'admin'],
-                    'show' => ['name' => ['en' => 'View', 'ar' => 'عرض'], 'key' => 'faqs.show', 'type' => 'admin'],
                 ]
             ],
         ]
@@ -732,7 +777,6 @@ return [
                 'name' => ['en' => 'Features', 'ar' => 'المميزات'],
                 'permissions' => [
                     'read' => ['name' => ['en' => 'Read', 'ar' => 'قراءة'], 'key' => 'features.index', 'type' => 'admin'],
-                    'create' => ['name' => ['en' => 'Create/Update', 'ar' => 'إنشاء/تحديث'], 'key' => 'features.store', 'type' => 'admin'],
                 ]
             ],
         ]
@@ -747,7 +791,6 @@ return [
                 'name' => ['en' => 'Footer Content', 'ar' => 'محتوى التذييل'],
                 'permissions' => [
                     'read' => ['name' => ['en' => 'Read', 'ar' => 'قراءة'], 'key' => 'footer-content.index', 'type' => 'admin'],
-                    'create' => ['name' => ['en' => 'Create/Update', 'ar' => 'إنشاء/تحديث'], 'key' => 'footer-content.store', 'type' => 'admin'],
                 ]
             ],
         ]

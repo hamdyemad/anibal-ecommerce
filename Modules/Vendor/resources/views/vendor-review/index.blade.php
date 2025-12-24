@@ -323,7 +323,7 @@
                 },
                 columns: [
                     { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false },
-                    { data: 'vendor_name', name: 'vendor_name', orderable: false, searchable: true },
+                    { data: 'vendor_info', name: 'vendor_info', orderable: false, searchable: false },
                     { data: 'customer_name', name: 'customer_name', orderable: false, searchable: true },
                     { data: 'stars', name: 'stars', orderable: false, searchable: false },
                     { data: 'status_info', name: 'status_info', orderable: false, searchable: false },

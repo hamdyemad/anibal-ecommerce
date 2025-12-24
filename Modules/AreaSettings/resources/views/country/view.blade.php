@@ -23,9 +23,11 @@
                             <a href="{{ route('admin.area-settings.countries.index') }}" class="btn btn-light btn-sm">
                                 <i class="uil uil-arrow-left me-2"></i>{{ __('areasettings::country.back_to_list') }}
                             </a>
-                            <a href="{{ route('admin.area-settings.countries.edit', $country->id) }}" class="btn btn-primary btn-sm">
-                                <i class="uil uil-edit me-2"></i>{{ __('areasettings::country.edit_country') }}
-                            </a>
+                            @can('countries.edit')
+                                <a href="{{ route('admin.area-settings.countries.edit', $country->id) }}" class="btn btn-primary btn-sm">
+                                    <i class="uil uil-edit me-2"></i>{{ __('areasettings::country.edit_country') }}
+                                </a>
+                            @endcan
                         </div>
                     </div>
                     <div class="card-body">

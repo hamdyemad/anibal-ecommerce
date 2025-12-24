@@ -90,6 +90,14 @@ class VendorProduct extends BaseModel
         return $this->hasMany(Wishlist::class);
     }
 
+    /**
+     * Get order products for this vendor product
+     */
+    public function orderProducts()
+    {
+        return $this->hasMany(\Modules\Order\app\Models\OrderProduct::class);
+    }
+
     public function highestDiscountVariant()
     {
         return $this->hasOne(VendorProductVariant::class)

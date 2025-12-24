@@ -15,6 +15,8 @@ class SiteInformationController extends Controller
     public function __construct(SiteInformationService $siteInformationService)
     {
         $this->siteInformationService = $siteInformationService;
+        
+        $this->middleware('can:site-information.index')->only(['index', 'update']);
     }
 
     public function index()

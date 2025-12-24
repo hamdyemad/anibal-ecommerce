@@ -321,6 +321,76 @@
             </li>
         @endcanany
 
+        @can('request-quotations.index')
+            <li class="menu-title mt-30">
+                <span>{{ trans('menu.sections.request_quotations') }}</span>
+            </li>
+            <li
+                class="has-child {{ isParentMenuOpen(['admin.request-quotations.index', 'admin.request-quotations.archived'], ['admin/request-quotations*']) ? 'open' : '' }}">
+                <a href="#"
+                    class="{{ isParentMenuOpen(['admin.request-quotations.index', 'admin.request-quotations.archived'], ['admin/request-quotations*']) ? 'active' : '' }}">
+                    <span class="nav-icon uil uil-file-question-alt"></span>
+                    <span class="menu-text">{{ trans('menu.request_quotations.title') }}</span>
+                    <span class="toggle-icon"></span>
+                </a>
+                <ul class="px-0">
+                    <li class="l_sidebar">
+                        <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive('admin.request-quotations.index', $currentRoute) ? 'active' : '' }}"
+                            href="{{ route('admin.request-quotations.index') }}">
+                            {{ trans('menu.request_quotations.all_requests') }}
+                            <span class="badge badge-round ms-1"
+                                style="{{ getBadgeStyle(isMenuActive('admin.request-quotations.index', $currentRoute)) }}">
+                                {{ \Modules\Order\app\Models\RequestQuotation::notArchived()->count() }}
+                            </span>
+                        </a>
+                    </li>
+                    <li class="l_sidebar">
+                        <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive('admin.request-quotations.archived', $currentRoute) ? 'active' : '' }}"
+                            href="{{ route('admin.request-quotations.archived') }}">
+                            {{ trans('menu.request_quotations.archived_requests') }}
+                            <span class="badge badge-round ms-1"
+                                style="{{ getBadgeStyle(isMenuActive('admin.request-quotations.archived', $currentRoute)) }}">
+                                {{ \Modules\Order\app\Models\RequestQuotation::archived()->count() }}
+                            </span>
+                        </a>
+                    </li>
+                </ul>
+            </li>
+        @endcan
+
+        @canany(['push-notifications.index', 'push-notifications.create'])
+            <li class="menu-title mt-30">
+                <span>{{ trans('menu.sections.push_notifications') }}</span>
+            </li>
+            <li
+                class="has-child {{ isParentMenuOpen(['admin.system-settings.push-notifications.index', 'admin.system-settings.push-notifications.create'], ['admin/system-settings/push-notifications*']) ? 'open' : '' }}">
+                <a href="#"
+                    class="{{ isParentMenuOpen(['admin.system-settings.push-notifications.index', 'admin.system-settings.push-notifications.create'], ['admin/system-settings/push-notifications*']) ? 'active' : '' }}">
+                    <span class="nav-icon uil uil-bell"></span>
+                    <span class="menu-text">{{ trans('menu.push_notifications.title') }}</span>
+                    <span class="toggle-icon"></span>
+                </a>
+                <ul class="px-0">
+                    @can('push-notifications.create')
+                    <li class="l_sidebar">
+                        <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive('admin.system-settings.push-notifications.create', $currentRoute) ? 'active' : '' }}"
+                            href="{{ route('admin.system-settings.push-notifications.create') }}">
+                            {{ trans('menu.push_notifications.send_notification') }}
+                        </a>
+                    </li>
+                    @endcan
+                    @can('push-notifications.index')
+                    <li class="l_sidebar">
+                        <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive('admin.system-settings.push-notifications.index', $currentRoute) ? 'active' : '' }}"
+                            href="{{ route('admin.system-settings.push-notifications.index') }}">
+                            {{ trans('menu.push_notifications.all_notifications') }}
+                        </a>
+                    </li>
+                    @endcan
+                </ul>
+            </li>
+        @endcanany
+
         @canany(['accounting.overview.view', 'accounting.balance.view', 'accounting.expenses_keys.view', 'accounting.expenses.view'])
             <li class="menu-title mt-30">
                 <span>{{ trans('menu.sections.financials') }}</span>
@@ -357,7 +427,7 @@
                 </ul>
             </li>
         @endcanany
-        @canany(['departments.index', 'categories.index', 'sub_categories.index'])
+        @canany(['departments.index', 'categories.index', 'sub-categories.index'])
             <li class="menu-title mt-30">
                 <span>{{ trans('menu.sections.catalog management') }}</span>
             </li>
@@ -397,7 +467,7 @@
                         </li>
                     @endcan
 
-                    @can('sub_categories.index')
+                    @can('sub-categories.index')
                         <li>
                             <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive('admin.category-management.subcategories.index', $currentRoute) ? 'active' : '' }}"
                                 href="{{ route('admin.category-management.subcategories.index') }}">
@@ -415,7 +485,8 @@
 
         @canany([
             'products.index', 'products.bank',
-            'variant-keys.view', 'variant-keys.create',
+            'variant-keys.index', 'variant-keys.create',
+            'variants-configurations.index', 'variants-configurations.create',
         ])
             <li
                 class="has-child {{ isParentMenuOpen(['admin.products.index', 'admin.products.pending', 'admin.products.rejected', 'admin.products.accepted', 'admin.products.create', 'admin.products.show', 'admin.products.edit', 'admin.products.bank', 'admin.products.stock-setup', 'admin.variant-keys.index', 'admin.variants-configurations.index'], ['admin/products*', 'admin/variant*']) ? 'open' : '' }}">
@@ -507,7 +578,7 @@
                         </li>
                     @endcan
 
-                    @canany(['variant-keys.view', 'variant-keys.create'])
+                    @canany(['variant-keys.index', 'variant-keys.create'])
                         <li>
                             <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive('admin.variant-keys.index', $currentRoute) ? 'active' : '' }}"
                                 href="{{ route('admin.variant-keys.index') }}">
@@ -516,6 +587,8 @@
                                     style="{{ getBadgeStyle(isMenuActive('admin.variant-keys.index', $currentRoute)) }}">{{ \Modules\CatalogManagement\app\Models\VariantConfigurationKey::count() }}</span>
                             </a>
                         </li>
+                    @endcanany
+                    @canany(['variants-configurations.index', 'variants-configurations.create'])
                         <li>
                             <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive('admin.variants-configurations.index', $currentRoute) ? 'active' : '' }}"
                                 href="{{ route('admin.variants-configurations.index') }}">
@@ -530,7 +603,7 @@
         @endcanany
 
         {{-- Bundles Menu --}}
-        @canany(['bundle_categories.index', 'bundles.index'])
+        @canany(['bundle-categories.index', 'bundles.index'])
             <li
                 class="has-child {{ isParentMenuOpen(['admin.bundle-categories.index', 'admin.bundle-categories.create', 'admin.bundle-categories.show', 'admin.bundle-categories.edit', 'admin.bundles.index', 'admin.bundles.create', 'admin.bundles.show', 'admin.bundles.edit'], ['admin/bundle-categories*', 'admin/bundles*']) ? 'open' : '' }}">
                 <a href="#"
@@ -540,7 +613,7 @@
                     <span class="toggle-icon"></span>
                 </a>
                 <ul class="px-0">
-                    @can('bundle_categories.index')
+                    @can('bundle-categories.index')
                         <li>
                             <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive(['admin.bundle-categories.index', 'admin.bundle-categories.create', 'admin.bundle-categories.show', 'admin.bundle-categories.edit'], $currentRoute) ? 'active' : '' }}"
                                 href="{{ route('admin.bundle-categories.index') }}">
@@ -600,15 +673,15 @@
                 </a>
             </li>
         @endcan
-        @can('reviews.view')
+        @can('product-reviews.index')
             @php
                 try {
-                    $reviews_all = Modules\CatalogManagement\app\Models\Review::count();
-                    $reviews_accepted = Modules\CatalogManagement\app\Models\Review::where(
+                    $reviews_all = Modules\CatalogManagement\app\Models\Review::where('reviewable_type', Modules\CatalogManagement\app\Models\VendorProduct::class)->count();
+                    $reviews_accepted = Modules\CatalogManagement\app\Models\Review::where('reviewable_type', Modules\CatalogManagement\app\Models\VendorProduct::class)->where(
                         'status',
                         'approved',
                     )->count();
-                    $reviews_rejected = Modules\CatalogManagement\app\Models\Review::where(
+                    $reviews_rejected = Modules\CatalogManagement\app\Models\Review::where('reviewable_type', Modules\CatalogManagement\app\Models\VendorProduct::class)->where(
                         'status',
                         'rejected',
                     )->count();
@@ -698,7 +771,7 @@
             </li>
         @endcan
 
-        @can('promocodes.view')
+        @can('promocodes.index')
             <li>
                 <a href="{{ route('admin.promocodes.index') }}"
                     class="{{ isMenuActive(['admin.promocodes.index', 'admin.promocodes.create', 'admin.promocodes.edit', 'admin.promocodes.show'], $currentRoute) ? 'active' : '' }}">
@@ -714,7 +787,7 @@
             </li>
         @endcan
 
-        @can('points.index')
+        @canany(['points-settings.index', 'points-settings.user-points.index'])
             <li class="menu-title mt-30">
                 <span>{{ trans('menu.sections.points system') }}</span>
             </li>
@@ -727,21 +800,25 @@
                     <span class="toggle-icon"></span>
                 </a>
                 <ul class="px-0">
+                    @can('points-settings.index')
                     <li>
                         <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive(['admin.points-settings.index'], $currentRoute) ? 'active' : '' }}"
                             href="{{ route('admin.points-settings.index') }}">
                             {{ trans('menu.point managment.title') }}
                         </a>
                     </li>
+                    @endcan
+                    @can('points-settings.user-points.index')
                     <li>
                         <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive(['admin.points-settings.user-points.index', 'admin.points-settings.user-points.transactions'], $currentRoute) ? 'active' : '' }}"
                             href="{{ route('admin.points-settings.user-points.index') }}">
                             {{ trans('menu.point managment.users points') }}
                         </a>
                     </li>
+                    @endcan
                 </ul>
             </li>
-        @endcan
+        @endcanany
 
         @canany(['admin-roles.index', 'admins.index', 'vendor-user-roles.index', 'vendor-users.index'])
             <li class="menu-title mt-30">
@@ -863,7 +940,7 @@
             </li>
         @endcanany
 
-        @can('vendor_reviews.index')
+        @can('vendor-reviews.index')
             @php
                 try {
                     $vendor_reviews_all = Modules\CatalogManagement\app\Models\Review::where('reviewable_type', Modules\Vendor\app\Models\Vendor::class)->count();
@@ -910,7 +987,7 @@
         @endcan
 
 
-        @can('vendor_requests.new')
+        @can('vendor-requests.index')
             <li
                 class="has-child {{ Request::is(LaravelLocalization::getCurrentLocale() . '/admin/vendor-requests*') ? 'open' : '' }}">
                 <a href="#"
@@ -991,10 +1068,10 @@
             </li>
         @endcan
 
-            <li class="menu-title mt-30">
-                <span>{{ trans('menu.sections.order and fulfillment') }}</span>
-            </li>
-            @canany(['orders.index', 'orders.create'])
+        @canany(['orders.index', 'orders.create'])
+                <li class="menu-title mt-30">
+                    <span>{{ trans('menu.sections.order and fulfillment') }}</span>
+                </li>
                 <li
                     class="has-child {{ isParentMenuOpen(['admin.orders.index', 'admin.orders.create'], ['admin/orders*']) ? 'open' : '' }}">
                     <a href="#"
@@ -1046,7 +1123,8 @@
                             $currentLocale = app()->getLocale();
                             $currentLangId = \App\Models\Language::where('code', $currentLocale)->value('id');
 
-                            $orderStages = \Modules\Order\app\Models\OrderStage::with(['translations' => function($query) use ($currentLangId) {
+                            $orderStages = \Modules\Order\app\Models\OrderStage::withoutCountryFilter()
+                            ->with(['translations' => function($query) use ($currentLangId) {
                                 $query->where('lang_id', $currentLangId);
                             }])
                             ->where(function ($q) use ($countryId) {
@@ -1092,9 +1170,37 @@
                         @endforeach
                     </ul>
                 </li>
-            @endcan
+        @endcanany
 
-        @can('order_stages.index')
+        @can('order-stages.index')
+            @php
+                // Define orderStages if not already defined (when orders.index permission is not granted)
+                if (!isset($orderStages)) {
+                    $countryCode = session('country_code');
+                    $countryId = $countryCode
+                        ? \Modules\AreaSettings\app\Models\Country::where('code', $countryCode)->value('id')
+                        : null;
+
+                    $currentLocale = app()->getLocale();
+                    $currentLangId = \App\Models\Language::where('code', $currentLocale)->value('id');
+
+                    $orderStages = \Modules\Order\app\Models\OrderStage::withoutCountryFilter()
+                    ->with(['translations' => function($query) use ($currentLangId) {
+                        $query->where('lang_id', $currentLangId);
+                    }])
+                    ->where(function ($q) use ($countryId) {
+                        $q->where(function ($sub) {
+                            $sub->whereNull('country_id')->where('is_system', 1);
+                        });
+
+                        if ($countryId) {
+                            $q->orWhere('country_id', $countryId);
+                        }
+                    })
+                        ->orderBy('sort_order')
+                        ->get();
+                }
+            @endphp
             <li>
                 <a href="{{ route('admin.order-stages.index') }}"
                     class="{{ isMenuActive('admin.order-stages.index', $currentRoute) ? 'active' : '' }}">
@@ -1110,7 +1216,7 @@
             </li>
         @endcan
 
-        @can('shipping_methods.index')
+        @can('shippings.index')
             <li>
                 <a href="{{ route('admin.shippings.index') }}"
                     class="{{ isMenuActive('admin.shippings.index', $currentRoute) ? 'active' : '' }}">
@@ -1126,29 +1232,7 @@
             </li>
         @endcan
 
-        @canany(['notifications.send', 'notifications.view'])
-            <li class="has-child">
-                <a href="#" class="">
-                    <span class="nav-icon uil uil-bell"></span>
-                    <span class="menu-text">{{ trans('menu.notifications.title') }}</span>
-                    <span class="toggle-icon"></span>
-                </a>
-                <ul class="px-0">
-                    @can('notifications.send')
-                        <li><a
-                                href="{{ route('admin.dashboard') }}">{{ trans('menu.notifications.send notification') }}</a>
-                        </li>
-                    @endcan
-
-                    @can('notifications.view')
-                        <li><a href="{{ route('admin.dashboard') }}">{{ trans('menu.notifications.all notification') }}</a>
-                        </li>
-                    @endcan
-                </ul>
-            </li>
-        @endcanany
-
-        @canany(['blog.categories.view', 'blog.posts.view'])
+        @canany(['blog-categories.index', 'blogs.index'])
             <li class="menu-title mt-30">
                 <span>{{ trans('menu.sections.content and engagement') }}</span>
             </li>
@@ -1161,7 +1245,7 @@
                     <span class="toggle-icon"></span>
                 </a>
                 <ul class="px-0">
-                    @can('blog.categories.view')
+                    @can('blog-categories.index')
                         <li>
                             <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive('admin.system-settings.blog-categories.index', $currentRoute) ? 'active' : '' }}"
                                 href="{{ route('admin.system-settings.blog-categories.index') }}">
@@ -1180,7 +1264,7 @@
                             </a>
                         </li>
                     @endcan
-                    @can('blog.posts.view')
+                    @can('blogs.index')
                         <li>
                             <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive('admin.system-settings.blogs.index', $currentRoute) ? 'active' : '' }}"
                                 href="{{ route('admin.system-settings.blogs.index') }}">
@@ -1203,7 +1287,7 @@
             </li>
         @endcanany
 
-        @can('settings.messages.view')
+        @can('messages.index')
             <li class="{{ isMenuActive('admin.messages.index', $currentRoute) ? 'active' : '' }}">
                 <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive('admin.messages.index', $currentRoute) ? 'active' : '' }}"
                     href="{{ route('admin.messages.index') }}">
@@ -1219,7 +1303,7 @@
             </li>
         @endcan
 
-        @can('reports.view')
+        @canany(['reports.registered_users.view', 'reports.area_users.view', 'reports.orders.view', 'reports.products.view', 'reports.points.view'])
             <li class="menu-title mt-30">
                 <span>{{ trans('menu.sections.reports') }}</span>
             </li>
@@ -1231,80 +1315,60 @@
                     <span class="toggle-icon"></span>
                 </a>
                 <ul class="px-0">
+                    @can('reports.registered_users.view')
                     <li class="l_sidebar">
                         <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive('admin.reports.registered-users', $currentRoute) ? 'active' : '' }}"
                             href="{{ route('admin.reports.registered-users') }}">
                             {{ trans('menu.reports.registerd users') }}
                         </a>
                     </li>
+                    @endcan
+                    @can('reports.area_users.view')
                     <li class="l_sidebar">
                         <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive('admin.reports.area-users', $currentRoute) ? 'active' : '' }}"
                             href="{{ route('admin.reports.area-users') }}">
                             {{ trans('menu.reports.area users') }}
                         </a>
                     </li>
+                    @endcan
+                    @can('reports.orders.view')
                     <li class="l_sidebar">
                         <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive('admin.reports.orders', $currentRoute) ? 'active' : '' }}"
                             href="{{ route('admin.reports.orders') }}">
                             {{ trans('menu.reports.orders report') }}
                         </a>
                     </li>
+                    @endcan
+                    @can('reports.products.view')
                     <li class="l_sidebar">
                         <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive('admin.reports.products', $currentRoute) ? 'active' : '' }}"
                             href="{{ route('admin.reports.products') }}">
                             {{ trans('menu.reports.product report') }}
                         </a>
                     </li>
+                    @endcan
+                    @can('reports.points.view')
                     <li class="l_sidebar">
                         <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive('admin.reports.points', $currentRoute) ? 'active' : '' }}"
                             href="{{ route('admin.reports.points') }}">
                             {{ trans('menu.reports.points report') }}
                         </a>
                     </li>
-                </ul>
-            </li>
-        @endcan
-        @canany(['reports.registered_users.view', 'reports.area_users.view', 'reports.orders.view',
-            'reports.products.view', 'reports.points.view'])
-            <li class="menu-title mt-30">
-                <span>{{ trans('menu.sections.reports') }}</span>
-            </li>
-            <li class="has-child">
-                <a href="#" class="">
-                    <span class="nav-icon uil uil-chart-line"></span>
-                    <span class="menu-text">{{ trans('menu.reports.title') }}</span>
-                    <span class="toggle-icon"></span>
-                </a>
-                <ul class="px-0">
-                    @can('reports.registered_users.view')
-                        <li><a href="{{ route('admin.dashboard') }}">{{ trans('menu.reports.registerd users') }}</a></li>
-                    @endcan
-                    @can('reports.area_users.view')
-                        <li><a href="{{ route('admin.dashboard') }}">{{ trans('menu.reports.area users') }}</a></li>
-                    @endcan
-                    @can('reports.orders.view')
-                        <li><a href="{{ route('admin.dashboard') }}">{{ trans('menu.reports.orders report') }}</a></li>
-                    @endcan
-                    @can('reports.products.view')
-                        <li><a href="{{ route('admin.dashboard') }}">{{ trans('menu.reports.product report') }}</a></li>
-                    @endcan
-                    @can('reports.points.view')
-                        <li><a href="{{ route('admin.dashboard') }}">{{ trans('menu.reports.points report') }}</a></li>
                     @endcan
                 </ul>
             </li>
         @endcanany
 
-        @canany(['advertisements.index', 'frontend.features.index', 'frontend.footer.index', 'frontend.faqs.index',
-            'frontend.sliders.index', 'settings.contact.view', 'settings.return_policy.view', 'settings.service_terms.view',
-            'settings.privacy.view', 'settings.terms.view', 'area.country.index', 'system.currencies.index',
+        @canany(['ads.index', 'features.index', 'footer-content.index', 'faqs.index',
+            'sliders.index', 'site-information.index', 'return-policy.index', 'service-terms.index',
+            'privacy-policy.index', 'terms-conditions.index', 'area.country.index', 'system.currency.index',
             'system_log.view'])
             <li class="menu-title mt-30">
                 <span>{{ trans('menu.sections.settings') }}</span>
             </li>
         @endcanany
 
-        @can('advertisements.index')
+        @can('ads.index')
             <li
                 class="has-child {{ isParentMenuOpen(['admin.system-settings.ads.index'], ['*/system-settings/ads*']) ? 'open' : '' }}">
                 <a href="#"
@@ -1329,7 +1393,7 @@
         @endcan
 
         {{-- Frontend Settings --}}
-        @canany(['frontend.features.index', 'frontend.footer.index', 'frontend.faqs.index', 'frontend.sliders.index'])
+        @canany(['features.index', 'footer-content.index', 'faqs.index', 'sliders.index'])
             <li
                 class="has-child {{ isParentMenuOpen(['admin.system-settings.features.index', 'admin.system-settings.footer-content.index', 'admin.system-settings.faqs.index', 'admin.system-settings.sliders.index', 'admin.system-settings.site-information.index'], ['*/system-settings/features*', '*/system-settings/footer-content*', '*/system-settings/faqs*', '*/system-settings/sliders*', '*/system-settings/site-information*']) ? 'open' : '' }}">
                 <a href="#"
@@ -1339,7 +1403,7 @@
                     <span class="toggle-icon"></span>
                 </a>
                 <ul class="px-0">
-                    @can('frontend.features.index')
+                    @can('features.index')
                         <li>
                             <a href="{{ route('admin.system-settings.features.index') }}"
                                 class="{{ isMenuActive('admin.system-settings.features.index', $currentRoute) ? 'active' : '' }}">
@@ -1348,7 +1412,7 @@
                             </a>
                         </li>
                     @endcan
-                    @can('frontend.footer.index')
+                    @can('footer-content.index')
                         <li>
                             <a href="{{ route('admin.system-settings.footer-content.index') }}"
                                 class="{{ isMenuActive('admin.system-settings.footer-content.index', $currentRoute) ? 'active' : '' }}">
@@ -1357,7 +1421,7 @@
                             </a>
                         </li>
                     @endcan
-                    @can('frontend.faqs.index')
+                    @can('faqs.index')
                         <li>
                             <a href="{{ route('admin.system-settings.faqs.index') }}"
                                 class="{{ isMenuActive(['admin.system-settings.faqs.index', 'admin.system-settings.faqs.create', 'admin.system-settings.faqs.edit', 'admin.system-settings.faqs.show'], $currentRoute) ? 'active' : '' }}">
@@ -1366,7 +1430,7 @@
                             </a>
                         </li>
                     @endcan
-                    @can('frontend.sliders.index')
+                    @can('sliders.index')
                         <li>
                             <a href="{{ route('admin.system-settings.sliders.index') }}"
                                 class="{{ isMenuActive(['admin.system-settings.sliders.index', 'admin.system-settings.sliders.create', 'admin.system-settings.sliders.edit', 'admin.system-settings.sliders.show'], $currentRoute) ? 'active' : '' }}">
@@ -1381,8 +1445,8 @@
         @endcanany
 
         {{-- Site Information --}}
-        @canany(['settings.contact.view', 'settings.return_policy.view', 'settings.service_terms.view',
-            'settings.privacy.view', 'settings.terms.view'])
+        @canany(['site-information.index', 'return-policy.index', 'service-terms.index',
+            'privacy-policy.index', 'terms-conditions.index'])
             <li class="has-child">
                 <a href="#"
                     class="{{ isMenuActive(['admin.system-settings.site-information.index'], $currentRoute) ? 'active' : '' }}">
@@ -1391,7 +1455,7 @@
                     <span class="toggle-icon"></span>
                 </a>
                 <ul class="px-0">
-                    @can('settings.contact.view')
+                    @can('site-information.index')
                         <li>
                             <a href="{{ route('admin.system-settings.site-information.index') }}"
                                 class="{{ isMenuActive('admin.system-settings.site-information.index', $currentRoute) ? 'active' : '' }}">
@@ -1399,7 +1463,7 @@
                             </a>
                         </li>
                     @endcan
-                    @can('settings.return_policy.view')
+                    @can('return-policy.index')
                         <li>
                             <a href="{{ route('admin.system-settings.return-policy.index') }}"
                                 class="{{ isMenuActive('admin.system-settings.return-policy.index', $currentRoute) ? 'active' : '' }}">
@@ -1407,7 +1471,7 @@
                             </a>
                         </li>
                     @endcan
-                    @can('settings.service_terms.view')
+                    @can('service-terms.index')
                         <li>
                             <a href="{{ route('admin.system-settings.service-terms.index') }}"
                                 class="{{ isMenuActive('admin.system-settings.service-terms.index', $currentRoute) ? 'active' : '' }}">
@@ -1415,7 +1479,7 @@
                             </a>
                         </li>
                     @endcan
-                    @can('settings.privacy.view')
+                    @can('privacy-policy.index')
                         <li>
                             <a href="{{ route('admin.system-settings.privacy-policy.index') }}"
                                 class="{{ isMenuActive('admin.system-settings.privacy-policy.index', $currentRoute) ? 'active' : '' }}">
@@ -1423,7 +1487,7 @@
                             </a>
                         </li>
                     @endcan
-                    @can('settings.terms.view')
+                    @can('terms-conditions.index')
                         <li>
                             <a href="{{ route('admin.system-settings.terms-conditions.index') }}"
                                 class="{{ isMenuActive('admin.system-settings.terms-conditions.index', $currentRoute) ? 'active' : '' }}">
@@ -1492,15 +1556,17 @@
             </li>
         @endcanany
 
-        @can('system.currencies.index')
+        @can('system.currency.index')
             <li>
                 <a href="{{ route('admin.system-settings.currencies.index') }}"
-                    class="{{ isMenuActive(['admin.system-settings.currencies.index', 'admin.system-settings.currencies.create', 'admin.system-settings.currencies.show', 'admin.system-settings.currencies.edit'], $currentRoute) ? 'active' : '' }}">
-                    <span class="d-flex align-items-center justify-content-between fw-bold w-100">
-                        <span class="d-flex align-items-center">
-                            <span class="nav-icon uil uil-dollar-alt"></span>
-                            <span class="menu-text">{{ trans('menu.currencies.title') }}</span>
-                        </span>
+                    class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive(['admin.system-settings.currencies.index', 'admin.system-settings.currencies.create', 'admin.system-settings.currencies.show', 'admin.system-settings.currencies.edit'], $currentRoute) ? 'active' : '' }}">
+                    <span class="d-flex align-items-center">
+                        <span class="nav-icon uil uil-dollar-alt"></span>
+                        <span class="menu-text">{{ trans('menu.currencies.title') }}</span>
+                    </span>
+                    <span class="badge badge-round ms-1"
+                        style="{{ getBadgeStyle(isMenuActive(['admin.system-settings.currencies.index', 'admin.system-settings.currencies.create', 'admin.system-settings.currencies.show', 'admin.system-settings.currencies.edit'], $currentRoute)) }}">
+                        {{ \Modules\SystemSetting\app\Models\Currency::count() }}
                     </span>
                 </a>
             </li>

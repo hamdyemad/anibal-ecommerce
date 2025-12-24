@@ -258,10 +258,12 @@
                                 <i class="uil uil-arrow-left me-1"></i>
                                 {{ __('common.back') }}
                             </a>
+                            @can('points-settings.user-points.adjust')
                             <button type="button" class="btn btn-primary btn-default" data-bs-toggle="modal" data-bs-target="#adjustPointsModal">
                                 <i class="uil uil-edit me-1"></i>
                                 {{ trans('systemsetting::points.adjust_points') }}
                             </button>
+                            @endcan
                         </div>
                     </div>
 

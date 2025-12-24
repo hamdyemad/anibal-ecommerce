@@ -23,9 +23,11 @@
                             <a href="{{ route('admin.category-management.categories.index') }}" class="btn btn-light btn-sm">
                                 <i class="uil uil-arrow-left me-2"></i>{{ trans('common.back_to_list') }}
                             </a>
-                            <a href="{{ route('admin.category-management.categories.edit', $category->id) }}" class="btn btn-primary btn-sm">
-                                <i class="uil uil-edit me-2"></i>{{ trans('common.edit') }}
-                            </a>
+                            @can('categories.edit')
+                                <a href="{{ route('admin.category-management.categories.edit', $category->id) }}" class="btn btn-primary btn-sm">
+                                    <i class="uil uil-edit me-2"></i>{{ trans('common.edit') }}
+                                </a>
+                            @endcan
                         </div>
                     </div>
                     <div class="card-body">

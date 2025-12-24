@@ -39,6 +39,9 @@ class StoreOrderRequest extends FormRequest
             // Fees and Discounts
             'feesData' => 'nullable|array',
             'discountsData' => 'nullable|array',
+
+            // Request Quotation
+            'quotation_id' => 'nullable|exists:request_quotations,id',
         ];
     }
 

@@ -6,6 +6,7 @@ use Modules\Order\app\Http\Controllers\Api\CartApiController;
 use Modules\Order\app\Http\Controllers\Api\OrderApiController;
 use Modules\Order\app\Http\Controllers\Api\OrderStageApiController;
 use Modules\Order\app\Http\Controllers\Api\ShippingCalculationController;
+use Modules\Order\app\Http\Controllers\Api\RequestQuotationApiController;
 
 // Public API routes (no authentication required)
 Route::prefix('order-stages')->group(function () {
@@ -17,6 +18,9 @@ Route::prefix('order-stages')->group(function () {
 Route::prefix('orders')->group(function () {
     Route::get('{orderId}/allowed-stages', [OrderStageApiController::class, 'allowedStages'])->name('orders.allowed-stages');
 });
+
+// Request Quotation API (public - no auth required)
+Route::post('/request-quotations', [RequestQuotationApiController::class, 'store'])->name('request-quotations.store');
 
 Route::middleware(['auth:sanctum'])->group(function () {
     // Wishlist API routes

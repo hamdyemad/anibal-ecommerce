@@ -24,10 +24,12 @@
                     <div class="d-flex justify-content-between align-items-center mb-25">
                         <h4 class="mb-0 fw-500 fw-bold">{{ __('customer::customer.customers_management') }}</h4>
                         <div class="d-flex gap-2">
+                            @can('customers.create')
                             <a href="{{ route('admin.customers.create') }}"
                                 class="btn btn-primary btn-default btn-squared text-capitalize">
                                 <i class="uil uil-plus"></i> {{ __('customer::customer.add_customer') }}
                             </a>
+                            @endcan
                         </div>
                     </div>
 
@@ -323,6 +325,13 @@
         $(document).ready(function() {
             console.log('Customers page loaded, initializing DataTable...');
 
+            // Permission flags
+            const canChangeStatus = @json(auth()->user()->can('customers.change-status'));
+            const canChangeVerification = @json(auth()->user()->can('customers.change-verification'));
+            const canShow = @json(auth()->user()->can('customers.show'));
+            const canEdit = @json(auth()->user()->can('customers.edit'));
+            const canDelete = @json(auth()->user()->can('customers.delete'));
+
             let per_page = 10;
             let table = $('#customersDataTable').DataTable({
                 processing: true,
@@ -422,8 +431,8 @@
                         name: 'status',
                         orderable: false,
                         render: function(data, type, row) {
-                            if (!row.can_manage) {
-                                // Show status badge only (no toggle) for customers vendor cannot manage
+                            if (!row.can_manage || !canChangeStatus) {
+                                // Show status badge only (no toggle) for customers vendor cannot manage or no permission
                                 if (data) {
                                     return '<div class="userDatatable-content"><span class="badge badge-success badge-round">{{ __("customer::customer.active") }}</span></div>';
                                 } else {
@@ -444,8 +453,8 @@
                         name: 'email_verified_at',
                         orderable: false,
                         render: function(data, type, row) {
-                            if (!row.can_manage) {
-                                // Show verification badge only (no toggle) for customers vendor cannot manage
+                            if (!row.can_manage || !canChangeVerification) {
+                                // Show verification badge only (no toggle) for customers vendor cannot manage or no permission
                                 if (data) {
                                     return '<div class="userDatatable-content"><span class="badge badge-success badge-round">{{ __("customer::customer.verified") }}</span></div>';
                                 } else {
@@ -477,17 +486,25 @@
                         render: function(data, type, row) {
                             let actions = '<div class="userDatatable-content">';
                             actions += '<div class="btn-group">';
-                            actions += '<a href="' + '{{ route("admin.customers.show", "__id__") }}'.replace('__id__', data) + '" class="btn btn-outline-info btn-sm" title="{{ __('customer::customer.view') }}">';
-                            actions += '<i class="uil uil-eye m-0"></i>';
-                            actions += '</a>';
-                            if (row.can_manage) {
+                            
+                            if (canShow) {
+                                actions += '<a href="' + '{{ route("admin.customers.show", "__id__") }}'.replace('__id__', data) + '" class="btn btn-outline-info btn-sm" title="{{ __('customer::customer.view') }}">';
+                                actions += '<i class="uil uil-eye m-0"></i>';
+                                actions += '</a>';
+                            }
+                            
+                            if (row.can_manage && canEdit) {
                                 actions += '<a href="' + '{{ route("admin.customers.edit", "__id__") }}'.replace('__id__', data) + '" class="btn btn-outline-primary btn-sm" title="{{ __('customer::customer.edit') }}">';
                                 actions += '<i class="uil uil-edit m-0"></i>';
                                 actions += '</a>';
+                            }
+                            
+                            if (row.can_manage && canDelete) {
                                 actions += '<a href="javascript:void(0);" class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#modal-delete-customer" data-item-id="' + data + '" data-item-name="' + row.full_name + '" title="{{ __('customer::customer.delete') }}">';
                                 actions += '<i class="uil uil-trash m-0"></i>';
                                 actions += '</a>';
                             }
+                            
                             actions += '</div>';
                             actions += '</div>';
                             return actions;

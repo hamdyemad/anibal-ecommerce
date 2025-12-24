@@ -269,6 +269,7 @@
                         orderable: false,
                         render: function(data, type, row) {
                             const checked = data ? 'checked' : '';
+                            @can('admins.change-status')
                             return `
                                 <div class="userDatatable-content">
                                     <div class="form-check form-switch form-switch-primary">
@@ -276,6 +277,11 @@
                                             data-id="${row.id}" data-type="active" ${checked}>
                                     </div>
                                 </div>`;
+                            @else
+                            return data 
+                                ? '<span class="badge badge-round bg-success">{{ trans("admin.active") }}</span>'
+                                : '<span class="badge badge-round bg-danger">{{ trans("admin.inactive") }}</span>';
+                            @endcan
                         }
                     },
                     {
@@ -284,6 +290,7 @@
                         orderable: false,
                         render: function(data, type, row) {
                             const checked = data ? 'checked' : '';
+                            @can('admins.change-status')
                             return `
                                 <div class="userDatatable-content">
                                     <div class="form-check form-switch form-switch-danger">
@@ -291,6 +298,11 @@
                                             data-id="${row.id}" data-type="block" ${checked}>
                                     </div>
                                 </div>`;
+                            @else
+                            return data 
+                                ? '<span class="badge badge-round bg-danger">{{ trans("admin.blocked") }}</span>'
+                                : '<span class="badge badge-round bg-success">{{ trans("admin.not_blocked") }}</span>';
+                            @endcan
                         }
                     },
                     {

@@ -26,7 +26,7 @@
                 <div class="userDatatable global-shadow border-light-0 p-30 bg-white radius-xl w-100 mb-30">
                     <div class="d-flex justify-content-between align-items-center mb-25">
                         <h4 class="mb-0 fw-500">{{ trans('roles.roles_management') }}</h4>
-                        @can('roles.create')
+                        @can('admin-roles.create')
                             <div class="d-flex gap-2">
                                 <a href="{{ route('admin.admin-management.roles.create') }}"
                                     class="btn btn-primary btn-default btn-squared text-capitalize">
@@ -337,7 +337,7 @@
                                 '<div class="orderDatatable_actions d-inline-flex gap-1 justify-content-center">';
 
                             // View
-                            @can('roles.show')
+                            @can('admin-roles.show')
                                 actions +=
                                     `<a href="${viewUrl}" class="view btn btn-primary table_action_father" title="{{ trans('common.view') }}"><i class="uil uil-eye table_action_icon"></i></a>`;
                             @endcan
@@ -346,11 +346,11 @@
                             // Delete - Only if NOT system protected
                             if (!row.is_system_protected && row.is_system_protected != 1) {
                                 // Edit
-                                @can('roles.edit')
+                                @can('admin-roles.edit')
                                     actions +=
                                         `<a href="${editUrl}" class="edit btn btn-warning table_action_father" title="{{ __('common.edit') }}"><i class="uil uil-edit table_action_icon"></i></a>`;
                                 @endcan
-                                @can('roles.delete')
+                                @can('admin-roles.delete')
                                     actions +=
                                         `<a href="javascript:void(0);" class="remove delete-role btn btn-danger table_action_father" data-bs-toggle="modal" data-bs-target="#modal-delete-role" data-item-id="${row.id}" data-item-name="${row.name}" title="{{ __('common.delete') }}"><i class="uil uil-trash-alt table_action_icon"></i></a>`;
                                 @endcan

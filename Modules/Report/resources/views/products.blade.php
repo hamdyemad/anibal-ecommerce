@@ -221,8 +221,6 @@
                                     <th><span class="userDatatable-title">{{ __('report.category') }}</span></th>
                                     <th><span class="userDatatable-title">{{ __('report.vendor') }}</span></th>
                                     <th><span class="userDatatable-title">{{ __('report.product_status') }}</span></th>
-                                    <th><span class="userDatatable-title">{{ __('report.sales') }}</span></th>
-                                    <th><span class="userDatatable-title">{{ __('report.views') }}</span></th>
                                     <th><span class="userDatatable-title">{{ __('report.product_date') }}</span></th>
                                 </tr>
                             </thead>
@@ -382,8 +380,11 @@
                         name: 'name',
                         orderable: false,
                         searchable: false,
-                        render: function(data) {
-                            return '<strong>' + (data || '') + '</strong>';
+                        render: function(data, type, row) {
+                            let img = row.product_image 
+                                ? '<img src="' + row.product_image + '" class="rounded me-2" style="width: 40px; height: 40px; object-fit: cover;">' 
+                                : '<div class="bg-light rounded me-2 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;"><i class="uil uil-image text-muted"></i></div>';
+                            return '<div class="d-flex align-items-center">' + img + '<strong>' + (data || '') + '</strong></div>';
                         }
                     },
                     {
@@ -409,8 +410,11 @@
                         name: 'vendor',
                         orderable: false,
                         searchable: false,
-                        render: function(data) {
-                            return data || '--';
+                        render: function(data, type, row) {
+                            let img = row.vendor_image 
+                                ? '<img src="' + row.vendor_image + '" class="rounded-circle me-2" style="width: 30px; height: 30px; object-fit: cover;">' 
+                                : '<div class="bg-light rounded-circle me-2 d-flex align-items-center justify-content-center" style="width: 30px; height: 30px;"><i class="uil uil-store text-muted" style="font-size: 14px;"></i></div>';
+                            return '<div class="d-flex align-items-center">' + img + '<span>' + (data || '--') + '</span></div>';
                         }
                     },
                     {
@@ -425,26 +429,8 @@
                                 'rejected': 'danger'
                             };
                             const color = statusColors[data] || 'secondary';
-                            const label = data.charAt(0).toUpperCase() + data.slice(1);
+                            const label = data ? data.charAt(0).toUpperCase() + data.slice(1) : '--';
                             return '<span class="badge bg-' + color + ' text-white px-3 py-2 rounded-pill fw-bold">' + label + '</span>';
-                        }
-                    },
-                    {
-                        data: 'sales',
-                        name: 'sales',
-                        orderable: false,
-                        searchable: false,
-                        render: function(data) {
-                            return '<span class="badge bg-info text-white">' + (data || 0) + '</span>';
-                        }
-                    },
-                    {
-                        data: 'views',
-                        name: 'views',
-                        orderable: false,
-                        searchable: false,
-                        render: function(data) {
-                            return '<span class="badge bg-secondary text-white">' + (data || 0) + '</span>';
                         }
                     },
                     {
@@ -453,12 +439,7 @@
                         orderable: false,
                         searchable: false,
                         render: function(data) {
-                            if (!data) return '--';
-                            const date = new Date(data);
-                            return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], {
-                                hour: '2-digit',
-                                minute: '2-digit'
-                            });
+                            return data || '--';
                         }
                     }
                 ],

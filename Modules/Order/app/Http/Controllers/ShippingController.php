@@ -16,11 +16,12 @@ class ShippingController extends Controller
         protected \Modules\CategoryManagment\app\Services\CategoryService $categoryService
     )
     {
-        $this->middleware('can:shipping_methods.index')->only(['index', 'datatable']);
-        $this->middleware('can:shipping_methods.create')->only(['create', 'store']);
-        $this->middleware('can:shipping_methods.view')->only(['show']);
-        $this->middleware('can:shipping_methods.edit')->only(['edit', 'update', 'changeStatus']);
-        $this->middleware('can:shipping_methods.delete')->only(['destroy']);
+        $this->middleware('can:shippings.index')->only(['index', 'datatable']);
+        $this->middleware('can:shippings.create')->only(['create', 'store']);
+        $this->middleware('can:shippings.show')->only(['show']);
+        $this->middleware('can:shippings.edit')->only(['edit', 'update']);
+        $this->middleware('can:shippings.change-status')->only(['changeStatus']);
+        $this->middleware('can:shippings.delete')->only(['destroy']);
     }
 
     /**

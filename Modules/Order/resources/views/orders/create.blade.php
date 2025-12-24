@@ -1310,6 +1310,32 @@
                     loadAllCustomers();
                     loadCitiesForCurrentCountry();
 
+                    // Handle URL parameters from Request Quotation
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const quotationId = urlParams.get('quotation_id');
+                    
+                    if (quotationId) {
+                        // Select external customer type
+                        $('#external_customer').prop('checked', true).trigger('change');
+                        
+                        // Fill in the form fields
+                        const name = urlParams.get('name') || '';
+                        const email = urlParams.get('email') || '';
+                        const phone = urlParams.get('phone') || '';
+                        const address = urlParams.get('address') || '';
+                        const notes = urlParams.get('notes') || '';
+                        
+                        $('#external_customer_name').val(name);
+                        $('#external_customer_email').val(email);
+                        $('#external_customer_phone').val(phone);
+                        $('#external_customer_address').val(address);
+                        
+                        // Store quotation_id for later use when creating order
+                        if (!$('#quotation_id').length) {
+                            $('#createOrderForm').append('<input type="hidden" id="quotation_id" name="quotation_id" value="' + quotationId + '">');
+                        }
+                    }
+
                     // Add Fee
                     $('#addFeeBtn').on('click', function() {
                         const feeId = `fee_${feeCounter++}`;
