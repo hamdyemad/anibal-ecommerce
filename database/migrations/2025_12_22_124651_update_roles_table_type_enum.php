@@ -12,6 +12,13 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // Add vendor_id column if it doesn't exist
+        if (!Schema::hasColumn('roles', 'vendor_id')) {
+            Schema::table('roles', function (Blueprint $table) {
+                $table->string('vendor_id')->nullable()->after('id');
+            });
+        }
+        
         // Check if type column exists before trying to modify it
         if (Schema::hasColumn('roles', 'type')) {
             // For MySQL, we need to use raw SQL to modify ENUM
