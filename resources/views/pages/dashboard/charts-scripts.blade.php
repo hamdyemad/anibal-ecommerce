@@ -1,23 +1,31 @@
 @push('scripts')
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Data from backend
-        const ordersOverviewData = {
-            new: {{ $ordersOverview['new'] ?? 0 }},
-            in_progress: {{ $ordersOverview['in_progress'] ?? 0 }},
-            delivered: {{ $ordersOverview['delivered'] ?? 0 }},
-            cancelled: {{ $ordersOverview['cancelled'] ?? 0 }},
-            want_to_return: {{ $ordersOverview['want_to_return'] ?? 0 }},
-            return_in_progress: {{ $ordersOverview['return_in_progress'] ?? 0 }},
-            refunded: {{ $ordersOverview['refunded'] ?? 0 }}
-        };
+        // Data from backend - dynamic orders overview
+        const ordersOverviewData = {!! json_encode($ordersOverview) !!};
+        const ordersOverviewLabels = ordersOverviewData.map(stage => stage.name);
+        const ordersOverviewCounts = ordersOverviewData.map(stage => stage.count);
+        const ordersOverviewColors = ordersOverviewData.map(stage => stage.color + 'cc'); // Add transparency
 
+        // Total Sales chart data (all orders)
         const salesChartLabels = {!! json_encode($salesChart['labels'] ?? []) !!};
         const salesChartData = {!! json_encode($salesChart['data'] ?? []) !!};
         const salesChartHourly = {!! json_encode($salesChart['hourly'] ?? [0,0,0,0,0,0,0,0]) !!};
         const salesChartWeekly = {!! json_encode($salesChart['weekly'] ?? [0,0,0,0,0,0,0]) !!};
+        const salesChartDaily = {!! json_encode($salesChart['daily'] ?? []) !!};
+        const salesChartMonthly = {!! json_encode($salesChart['monthly'] ?? [0,0,0,0,0,0,0,0,0,0,0,0]) !!};
         const salesChartYearlyLabels = {!! json_encode($salesChart['yearly_labels'] ?? []) !!};
         const salesChartYearlyData = {!! json_encode($salesChart['yearly_data'] ?? []) !!};
+
+        // Earnings chart data (delivered orders only)
+        const earningsChartLabels = {!! json_encode($earningsChart['labels'] ?? []) !!};
+        const earningsChartData = {!! json_encode($earningsChart['data'] ?? []) !!};
+        const earningsChartHourly = {!! json_encode($earningsChart['hourly'] ?? [0,0,0,0,0,0,0,0]) !!};
+        const earningsChartWeekly = {!! json_encode($earningsChart['weekly'] ?? [0,0,0,0,0,0,0]) !!};
+        const earningsChartDaily = {!! json_encode($earningsChart['daily'] ?? []) !!};
+        const earningsChartMonthly = {!! json_encode($earningsChart['monthly'] ?? [0,0,0,0,0,0,0,0,0,0,0,0]) !!};
+        const earningsChartYearlyLabels = {!! json_encode($earningsChart['yearly_labels'] ?? []) !!};
+        const earningsChartYearlyData = {!! json_encode($earningsChart['yearly_data'] ?? []) !!};
 
         const incomeExpenseMonthDaily = {!! json_encode($incomeExpense['month']['daily_data'] ?? []) !!};
         const incomeExpenseYearMonthly = {!! json_encode($incomeExpense['year']['monthly_data'] ?? []) !!};
@@ -28,21 +36,10 @@
             new Chart(ordersOverviewCtx, {
                 type: 'doughnut',
                 data: {
-                    labels: ['{{ trans("dashboard.new") }}', '{{ trans("dashboard.in_progress") }}', '{{ trans("dashboard.delivered") }}', '{{ trans("dashboard.cancelled") }}', '{{ trans("dashboard.want_to_return") }}', '{{ trans("dashboard.return_in_progress") }}', '{{ trans("dashboard.refunded") }}'],
+                    labels: ordersOverviewLabels,
                     datasets: [{
-                        data: [
-                            ordersOverviewData.new,
-                            ordersOverviewData.in_progress,
-                            ordersOverviewData.delivered,
-                            ordersOverviewData.cancelled,
-                            ordersOverviewData.want_to_return,
-                            ordersOverviewData.return_in_progress,
-                            ordersOverviewData.refunded
-                        ],
-                        backgroundColor: [
-                            'rgba(91, 105, 255, 0.8)', 'rgba(255, 193, 7, 0.8)', 'rgba(32, 201, 151, 0.8)',
-                            'rgba(255, 76, 81, 0.8)', 'rgba(255, 152, 0, 0.8)', 'rgba(156, 39, 176, 0.8)', 'rgba(103, 58, 183, 0.8)'
-                        ],
+                        data: ordersOverviewCounts,
+                        backgroundColor: ordersOverviewColors,
                         borderWidth: 2
                     }]
                 },
@@ -60,7 +57,7 @@
             new Chart(totalSalesTodayCtx, {
                 type: 'line',
                 data: {
-                    labels: ['12am', '3am', '6am', '9am', '12pm', '3pm', '6pm', '9pm'],
+                    labels: ['12am', '1am', '2am', '3am', '4am', '5am', '6am', '7am', '8am', '9am', '10am', '11am'],
                     datasets: [{
                         label: '{{ trans("dashboard.total_sales") }}',
                         data: salesChartHourly,
@@ -106,16 +103,18 @@
             });
         }
 
-        // Total Sales Month
+        // Total Sales Month (daily breakdown)
         const totalSalesMonthCtx = document.getElementById('totalSalesMonth');
         if (totalSalesMonthCtx) {
+            const daysInMonth = salesChartDaily.length || 31;
+            const dayLabels = Array.from({length: daysInMonth}, (_, i) => i + 1);
             new Chart(totalSalesMonthCtx, {
                 type: 'line',
                 data: {
-                    labels: salesChartLabels.length ? salesChartLabels : ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                    labels: dayLabels,
                     datasets: [{
                         label: '{{ trans("dashboard.total_sales") }}',
-                        data: salesChartData.length ? salesChartData : Array(12).fill(0),
+                        data: salesChartDaily.length ? salesChartDaily : Array(daysInMonth).fill(0),
                         backgroundColor: 'rgba(130, 49, 211, 0.1)',
                         borderColor: 'rgba(130, 49, 211, 1)',
                         borderWidth: 2,
@@ -132,16 +131,16 @@
             });
         }
 
-        // Total Sales Year
+        // Total Sales Year (monthly breakdown)
         const totalSalesYearCtx = document.getElementById('totalSalesYear');
         if (totalSalesYearCtx) {
             new Chart(totalSalesYearCtx, {
                 type: 'line',
                 data: {
-                    labels: salesChartLabels.length ? salesChartLabels : ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
                     datasets: [{
                         label: '{{ trans("dashboard.total_sales") }}',
-                        data: salesChartData.length ? salesChartData : Array(12).fill(0),
+                        data: salesChartMonthly.length ? salesChartMonthly : Array(12).fill(0),
                         backgroundColor: 'rgba(130, 49, 211, 0.1)',
                         borderColor: 'rgba(130, 49, 211, 1)',
                         borderWidth: 2,
@@ -190,10 +189,10 @@
             new Chart(earningsTodayCtx, {
                 type: 'line',
                 data: {
-                    labels: ['12am', '3am', '6am', '9am', '12pm', '3pm', '6pm', '9pm'],
+                    labels: ['12am', '1am', '2am', '3am', '4am', '5am', '6am', '7am', '8am', '9am', '10am', '11am'],
                     datasets: [{
                         label: 'Earnings',
-                        data: salesChartHourly,
+                        data: earningsChartHourly,
                         backgroundColor: 'rgba(32, 201, 151, 0.1)',
                         borderColor: 'rgba(32, 201, 151, 1)',
                         borderWidth: 2,
@@ -219,7 +218,7 @@
                     labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
                     datasets: [{
                         label: 'Earnings',
-                        data: salesChartWeekly,
+                        data: earningsChartWeekly,
                         backgroundColor: 'rgba(32, 201, 151, 0.1)',
                         borderColor: 'rgba(32, 201, 151, 1)',
                         borderWidth: 2,
@@ -236,16 +235,18 @@
             });
         }
 
-        // Earnings Month
+        // Earnings Month (daily breakdown)
         const earningsMonthCtx = document.getElementById('earningsMonth');
         if (earningsMonthCtx) {
+            const daysInMonth = earningsChartDaily.length || 31;
+            const dayLabels = Array.from({length: daysInMonth}, (_, i) => i + 1);
             new Chart(earningsMonthCtx, {
                 type: 'line',
                 data: {
-                    labels: salesChartLabels.length ? salesChartLabels : ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                    labels: dayLabels,
                     datasets: [{
                         label: 'Earnings',
-                        data: salesChartData.length ? salesChartData : Array(12).fill(0),
+                        data: earningsChartDaily.length ? earningsChartDaily : Array(daysInMonth).fill(0),
                         backgroundColor: 'rgba(32, 201, 151, 0.1)',
                         borderColor: 'rgba(32, 201, 151, 1)',
                         borderWidth: 2,
@@ -262,16 +263,16 @@
             });
         }
 
-        // Earnings Year
+        // Earnings Year (monthly breakdown)
         const earningsYearCtx = document.getElementById('earningsYear');
         if (earningsYearCtx) {
             new Chart(earningsYearCtx, {
                 type: 'line',
                 data: {
-                    labels: salesChartLabels.length ? salesChartLabels : ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
                     datasets: [{
                         label: 'Earnings',
-                        data: salesChartData.length ? salesChartData : Array(12).fill(0),
+                        data: earningsChartMonthly.length ? earningsChartMonthly : Array(12).fill(0),
                         backgroundColor: 'rgba(32, 201, 151, 0.1)',
                         borderColor: 'rgba(32, 201, 151, 1)',
                         borderWidth: 2,
@@ -294,10 +295,10 @@
             new Chart(earnings5YearsCtx, {
                 type: 'line',
                 data: {
-                    labels: salesChartYearlyLabels.length ? salesChartYearlyLabels : [{{ date('Y')-4 }}, {{ date('Y')-3 }}, {{ date('Y')-2 }}, {{ date('Y')-1 }}, {{ date('Y') }}],
+                    labels: earningsChartYearlyLabels.length ? earningsChartYearlyLabels : [{{ date('Y')-4 }}, {{ date('Y')-3 }}, {{ date('Y')-2 }}, {{ date('Y')-1 }}, {{ date('Y') }}],
                     datasets: [{
                         label: 'Earnings',
-                        data: salesChartYearlyData.length ? salesChartYearlyData : [0,0,0,0,0],
+                        data: earningsChartYearlyData.length ? earningsChartYearlyData : [0,0,0,0,0],
                         backgroundColor: 'rgba(32, 201, 151, 0.1)',
                         borderColor: 'rgba(32, 201, 151, 1)',
                         borderWidth: 2,

@@ -13,12 +13,12 @@
                             role="tab" aria-selected="false" style="font-size: 12px">{{ trans('dashboard.week') }}</a>
                     </li>
                     <li>
-                        <a class="active" href="#totalsales-month" data-bs-toggle="tab" id="totalsales-month-tab"
-                            role="tab" aria-selected="true" style="font-size: 12px">{{ trans('dashboard.month') }}</a>
+                        <a href="#totalsales-month" data-bs-toggle="tab" id="totalsales-month-tab"
+                            role="tab" aria-selected="false" style="font-size: 12px">{{ trans('dashboard.month') }}</a>
                     </li>
                     <li>
                         <a href="#totalsales-year" data-bs-toggle="tab" id="totalsales-year-tab"
-                            role="tab" aria-selected="false" style="font-size: 12px">Year</a>
+                            role="tab" aria-selected="true" class="active" style="font-size: 12px">Year</a>
                     </li>
                     <li>
                         <a href="#totalsales-5years" data-bs-toggle="tab" id="totalsales-5years-tab"
@@ -41,13 +41,13 @@
                         <canvas id="totalSalesWeek"></canvas>
                     </div>
                 </div>
-                <div class="tab-pane active show" id="totalsales-month" role="tabpanel"
+                <div class="tab-pane" id="totalsales-month" role="tabpanel"
                     aria-labelledby="totalsales-month-tab">
                     <div class="parentContainer" style="height: 180px;">
                         <canvas id="totalSalesMonth"></canvas>
                     </div>
                 </div>
-                <div class="tab-pane" id="totalsales-year" role="tabpanel"
+                <div class="tab-pane active show" id="totalsales-year" role="tabpanel"
                     aria-labelledby="totalsales-year-tab">
                     <div class="parentContainer" style="height: 180px;">
                         <canvas id="totalSalesYear"></canvas>

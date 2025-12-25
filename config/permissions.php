@@ -574,7 +574,14 @@ return [
             'Transactions' => [
                 'name' => ['en' => 'Transactions', 'ar' => 'المعاملات'],
                 'permissions' => [
-                    'view' => ['name' => ['en' => 'View Transactions', 'ar' => 'عرض المعاملات'], 'key' => 'withdraw.transactions.view', 'type' => 'all'],
+                    'view' => ['name' => ['en' => 'View Transactions', 'ar' => 'عرض المعاملات'], 'key' => 'withdraw.transactions.view', 'type' => 'admin'],
+                ]
+            ],
+            'Vendor Transactions' => [
+                'name' => ['en' => 'Vendor Transactions', 'ar' => 'معاملات المورد'],
+                'permissions' => [
+                    'view' => ['name' => ['en' => 'View My Transactions', 'ar' => 'عرض معاملاتي'], 'key' => 'withdraw.my_transactions.view', 'type' => 'all'],
+                    'request' => ['name' => ['en' => 'Send Withdraw Request', 'ar' => 'إرسال طلب سحب'], 'key' => 'withdraw.request.create', 'type' => 'all'],
                 ]
             ],
             'Vendor Requests' => [
@@ -830,7 +837,7 @@ return [
     'Reports' => [
         'name' => ['en' => 'Reports', 'ar' => 'التقارير'],
         'icon' => 'uil-chart-line',
-        'type' => 'admin',
+        'type' => 'all',
         'sub_modules' => [
             'Registered Users' => [
                 'name' => ['en' => 'Registered Users', 'ar' => 'المستخدمين المسجلين'],
@@ -847,13 +854,13 @@ return [
             'Orders Report' => [
                 'name' => ['en' => 'Orders Report', 'ar' => 'تقرير الطلبات'],
                 'permissions' => [
-                    'view' => ['name' => ['en' => 'View Orders Report', 'ar' => 'عرض تقرير الطلبات'], 'key' => 'reports.orders.view', 'type' => 'admin'],
+                    'view' => ['name' => ['en' => 'View Orders Report', 'ar' => 'عرض تقرير الطلبات'], 'key' => 'reports.orders.view', 'type' => 'all'],
                 ]
             ],
             'Products Report' => [
                 'name' => ['en' => 'Products Report', 'ar' => 'تقرير المنتجات'],
                 'permissions' => [
-                    'view' => ['name' => ['en' => 'View Products Report', 'ar' => 'عرض تقرير المنتجات'], 'key' => 'reports.products.view', 'type' => 'admin'],
+                    'view' => ['name' => ['en' => 'View Products Report', 'ar' => 'عرض تقرير المنتجات'], 'key' => 'reports.products.view', 'type' => 'all'],
                 ]
             ],
             'Points Report' => [

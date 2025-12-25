@@ -231,6 +231,16 @@ class ReportRepository implements ReportRepositoryInterface
             }
         }
 
+        // If user is vendor, filter to show only their orders
+        if (auth()->check() && in_array(auth()->user()->user_type_id, \App\Models\UserType::vendorIds())) {
+            $vendor = auth()->user()->vendor;
+            if ($vendor) {
+                $query->whereHas('orderProducts', function ($q) use ($vendor) {
+                    $q->where('vendor_id', $vendor->id);
+                });
+            }
+        }
+
         // Date range filter
         if ($filter->from) {
             $query->whereDate('created_at', '>=', $filter->from);
@@ -364,6 +374,14 @@ class ReportRepository implements ReportRepositoryInterface
             $countryId = \Modules\AreaSettings\app\Models\Country::where('code', $countryCode)->value('id');
             if ($countryId) {
                 $query->where('vendor_products.country_id', $countryId);
+            }
+        }
+
+        // If user is vendor, filter to show only their products
+        if (auth()->check() && in_array(auth()->user()->user_type_id, \App\Models\UserType::vendorIds())) {
+            $vendor = auth()->user()->vendor;
+            if ($vendor) {
+                $query->where('vendor_id', $vendor->id);
             }
         }
 

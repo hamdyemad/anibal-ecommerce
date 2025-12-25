@@ -22,6 +22,7 @@ class WithdrawController extends Controller
         $this->middleware('can:withdraw.send_money.view')->only(['sendMoney', 'allVendorsTransactions', 'allVendorsTransactionsDatatable']);
         $this->middleware('can:withdraw.send_money.create')->only(['sendMoneyToVendorAction']);
         $this->middleware('can:withdraw.transactions.view')->only(['allTransactions', 'allTransactionsDatabase']);
+        $this->middleware('can:withdraw.request.create')->only(['sendMoneyRequest', 'sendMoneyRequestAction']);
         // For transactionsRequests and changeTransactionRequestsStatus, permissions depend on status parameter, so we keep Gate::authorize in the methods.
     }
 
@@ -432,12 +433,19 @@ class WithdrawController extends Controller
 
     public function transactionsRequestsDatatable($lang, $countryCode, Request $request, $status)
     {
-        if ($status == 'new') {
-            Gate::authorize('withdraw.vendor_requests.new.view');
-        } elseif ($status == 'accepted') {
-            Gate::authorize('withdraw.vendor_requests.accepted.view');
-        } elseif ($status == 'rejected') {
-            Gate::authorize('withdraw.vendor_requests.rejected.view');
+        // Check if user is vendor - use vendor permission
+        $isVendorUser = in_array(auth()->user()->user_type_id, UserType::vendorIds());
+        
+        if ($isVendorUser) {
+            Gate::authorize('withdraw.my_transactions.view');
+        } else {
+            if ($status == 'new') {
+                Gate::authorize('withdraw.vendor_requests.new.view');
+            } elseif ($status == 'accepted') {
+                Gate::authorize('withdraw.vendor_requests.accepted.view');
+            } elseif ($status == 'rejected') {
+                Gate::authorize('withdraw.vendor_requests.rejected.view');
+            }
         }
 
         $perPage = $request->input('length', 10);
@@ -449,7 +457,7 @@ class WithdrawController extends Controller
         $query = Withdraw::where("status", $status);
 
         // If user is vendor, filter to show only their own transactions
-        if (in_array(auth()->user()->user_type_id, UserType::vendorIds())) {
+        if ($isVendorUser) {
             $vendor = auth()->user()->vendor;
             if ($vendor && $vendor->id) {
                 $query->where("reciever_id", $vendor->id);
@@ -532,19 +540,24 @@ class WithdrawController extends Controller
 
     public function transactionsRequests($lang, $countryCode, $status)
     {
-        if ($status == 'new') {
-            Gate::authorize('withdraw.vendor_requests.new.view');
-        } elseif ($status == 'accepted') {
-            Gate::authorize('withdraw.vendor_requests.accepted.view');
-        } elseif ($status == 'rejected') {
-            Gate::authorize('withdraw.vendor_requests.rejected.view');
+        // Check if user is a vendor type (not admin)
+        $isVendorUser = in_array(auth()->user()->user_type_id, UserType::vendorIds());
+        
+        if ($isVendorUser) {
+            Gate::authorize('withdraw.my_transactions.view');
+        } else {
+            if ($status == 'new') {
+                Gate::authorize('withdraw.vendor_requests.new.view');
+            } elseif ($status == 'accepted') {
+                Gate::authorize('withdraw.vendor_requests.accepted.view');
+            } elseif ($status == 'rejected') {
+                Gate::authorize('withdraw.vendor_requests.rejected.view');
+            }
         }
 
         $languages = $this->languageService->getAll();
         $vendors = [];
 
-        // Check if user is a vendor type (not admin)
-        $isVendorUser = in_array(auth()->user()->user_type_id, UserType::vendorIds());
         $vendor = $isVendorUser ? auth()->user()->vendor : null;
 
         // Only get vendors for filter dropdown if user is admin (not vendor)

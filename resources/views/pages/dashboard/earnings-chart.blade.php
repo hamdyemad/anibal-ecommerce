@@ -13,12 +13,12 @@
                             role="tab" aria-selected="false" style="font-size: 12px">{{ trans('dashboard.week') }}</a>
                     </li>
                     <li>
-                        <a class="active" href="#earnings-month" data-bs-toggle="tab" id="earnings-month-tab"
-                            role="tab" aria-selected="true" style="font-size: 12px">{{ trans('dashboard.month') }}</a>
+                        <a href="#earnings-month" data-bs-toggle="tab" id="earnings-month-tab"
+                            role="tab" aria-selected="false" style="font-size: 12px">{{ trans('dashboard.month') }}</a>
                     </li>
                     <li>
                         <a href="#earnings-year" data-bs-toggle="tab" id="earnings-year-tab"
-                            role="tab" aria-selected="false" style="font-size: 12px">Year</a>
+                            role="tab" aria-selected="true" class="active" style="font-size: 12px">Year</a>
                     </li>
                     <li>
                         <a href="#earnings-5years" data-bs-toggle="tab" id="earnings-5years-tab"
@@ -41,13 +41,13 @@
                         <canvas id="earningsWeek"></canvas>
                     </div>
                 </div>
-                <div class="tab-pane active show" id="earnings-month" role="tabpanel"
+                <div class="tab-pane" id="earnings-month" role="tabpanel"
                     aria-labelledby="earnings-month-tab">
                     <div class="parentContainer" style="height: 180px;">
                         <canvas id="earningsMonth"></canvas>
                     </div>
                 </div>
-                <div class="tab-pane" id="earnings-year" role="tabpanel"
+                <div class="tab-pane active show" id="earnings-year" role="tabpanel"
                     aria-labelledby="earnings-year-tab">
                     <div class="parentContainer" style="height: 180px;">
                         <canvas id="earningsYear"></canvas>

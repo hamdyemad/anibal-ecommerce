@@ -235,7 +235,7 @@
         @endcan
 
 
-        @canany(['withdraw.send_money.create', 'withdraw.transactions.view'])
+        @canany(['withdraw.send_money.create', 'withdraw.transactions.view', 'withdraw.my_transactions.view', 'withdraw.request.create'])
             <li class="menu-title mt-30">
                 <span>{{ trans('menu.sections.withdraw module') }}</span>
             </li>
@@ -275,7 +275,7 @@
                         </li>
                     @endcan
 
-                    @can('withdraw.send_money.create')
+                    @can('withdraw.request.create')
                         <li>
                             <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive('admin.sendMoneyRequest', $currentRoute) ? 'active' : '' }}"
                                 href="{{ route('admin.sendMoneyRequest') }}">
@@ -284,6 +284,7 @@
                         </li>
                     @endcan
 
+                    {{-- Admin view: vendor requests management --}}
                     @can('withdraw.vendor_requests.new.view')
                         <li>
                             <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive('admin.transactionsRequests', $currentRoute) && request()->route('status') === 'new' ? 'active' : '' }}"
