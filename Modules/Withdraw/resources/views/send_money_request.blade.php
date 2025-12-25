@@ -117,7 +117,7 @@
                                     </div>
                                     <br>
                                     <div class="col-12">
-                                        <div class="card" style="background-color: #0056b7; color: #fff">
+                                        <div class="card" style="background-color: #0056b7; color: #fff; border-radius:0">
                                             <div class="card-body fw-bold">
                                                 {{ trans('dashboard.vendors_withdraw_transactions') }}
                                             </div>

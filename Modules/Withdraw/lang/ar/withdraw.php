@@ -96,6 +96,8 @@ return [
     'max_amount' => 'الحد الأقصى للمبلغ',
     'amount_cannot_exceed_maximum' => 'لا يمكن أن يتجاوز المبلغ الحد الأقصى',
     'amount_exceeds_maximum' => 'المبلغ يتجاوز الحد الأقصى المسموح به',
+    'balance_not_allowed' => 'رصيدك الحالي لا يسمح بهذا المبلغ',
+    'amount_exceeds_available' => 'المبلغ يتجاوز رصيدك المتاح',
     'amount_placeholder' => 'مثال: 4,000.50',
     'example_amount' => 'مثال: 4,000.50',
 

@@ -96,6 +96,8 @@ return [
     'max_amount' => 'Max amount',
     'amount_cannot_exceed_maximum' => 'The amount cannot exceed the maximum',
     'amount_exceeds_maximum' => 'Amount exceeds the maximum allowed',
+    'balance_not_allowed' => 'Your current balance does not allow this amount',
+    'amount_exceeds_available' => 'Amount exceeds your available balance',
     'amount_placeholder' => 'Example: 4,000.50',
     'example_amount' => 'Example: 4,000.50',
 

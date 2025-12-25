@@ -165,19 +165,56 @@ class Vendor extends BaseModel
     }
 
     /**
-     * Get total balance for this vendor
+     * Get total balance for this vendor (only delivered orders - vendor's product totals)
      */
     public function getTotalBalanceAttribute()
     {
+        // Get the deliver stage ID
+        $deliverStage = \Modules\Order\app\Models\OrderStage::withoutGlobalScopes()
+            ->where('type', 'deliver')
+            ->first();
+        
+        if (!$deliverStage) {
+            return 0;
+        }
+        
+        // Get vendor's order products from delivered orders
+        // Sum the product price * quantity for this vendor's products only
         return OrderProduct::where('vendor_id', $this->id)
-        ->sum(DB::raw('price * quantity'));
+            ->whereHas('order', function($query) use ($deliverStage) {
+                $query->where('stage_id', $deliverStage->id);
+            })
+            ->sum(DB::raw('price * quantity'));
     }
 
     public function getBnaiaCommissionAttribute()
     {
-        return OrderProduct::where('vendor_id', $this->id)
-            ->selectRaw('SUM(price * quantity * (commission / 100)) as total')
-            ->value('total');
+        // Get the deliver stage ID
+        $deliverStage = \Modules\Order\app\Models\OrderStage::withoutGlobalScopes()
+            ->where('type', 'deliver')
+            ->first();
+        
+        if (!$deliverStage) {
+            return 0;
+        }
+        
+        // Get delivered order products for this vendor
+        $orderProducts = OrderProduct::where('vendor_id', $this->id)
+            ->whereHas('order', function($query) use ($deliverStage) {
+                $query->where('stage_id', $deliverStage->id);
+            })
+            ->with('vendorProduct.product.department')
+            ->get();
+        
+        // Calculate commission using department commission
+        $totalCommission = 0;
+        foreach ($orderProducts as $orderProduct) {
+            $productTotal = $orderProduct->price * $orderProduct->quantity;
+            $departmentCommission = $orderProduct->vendorProduct?->product?->department?->commission ?? 0;
+            $totalCommission += $productTotal * ($departmentCommission / 100);
+        }
+        
+        return $totalCommission;
     }
 
     /**

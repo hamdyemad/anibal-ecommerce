@@ -93,47 +93,84 @@
             </div>
         </div>
 
-        {{-- Statistics Cards --}}
+        {{-- Vendor Order Product Details Section --}}
+        @if(isset($vendorOrderStats) && $vendorOrderStats)
         <div class="row mb-25">
-            <div class="col-md-6 col-sm-6">
-                <div class="ap-po-details ap-po-details--2 p-25 radius-xl d-flex justify-content-between h-100">
-                    <div class="overview-content w-100">
-                        <div class="ap-po-details-content h-100">
-                            <div class="ap-po-details__titlebar">
-                                <h1 class="ap-po-details__title" id="totalOrdersCount">{{ $orders_count }}</h1>
-                                <p class="ap-po-details__text text-nowrap">{{ trans('order::order.total_orders') }}</p>
+            <div class="col-12">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-white border-bottom py-3">
+                        <h5 class="mb-0 fw-500">
+                            <i class="uil uil-box me-2"></i>{{ trans('order::order.order_product_details') }}
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        {{-- Summary Cards --}}
+                        <div class="row mb-4">
+                            <div class="col-md-4">
+                                <div class="p-3 border rounded text-center" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                                    <div class="text-white">
+                                        <i class="uil uil-shopping-cart" style="font-size: 28px;"></i>
+                                        <h3 class="mb-0 mt-2 text-white">{{ $vendorOrderStats['total_orders'] }}</h3>
+                                        <small>{{ trans('order::order.vendor_total_orders') }}</small>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="ap-po-details__icon-area">
-                                <div class="ap-po-details__icon ap-po-details__icon--balance d-flex align-items-center justify-content-center rounded-circle"
-                                    style="width: 60px; height: 60px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
-                                    <i class="uil uil-shopping-cart" style="font-size: 24px;"></i>
+                            <div class="col-md-4">
+                                <div class="p-3 border rounded text-center" style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);">
+                                    <div class="text-white">
+                                        <i class="uil uil-package" style="font-size: 28px;"></i>
+                                        <h3 class="mb-0 mt-2 text-white">{{ $vendorOrderStats['total_products'] }}</h3>
+                                        <small>{{ trans('order::order.vendor_total_products') }}</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="p-3 border rounded text-center" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                                    <div class="text-white">
+                                        <i class="uil uil-money-bill" style="font-size: 28px;"></i>
+                                        <h3 class="mb-0 mt-2 text-white">{{ $vendorOrderStats['total_delivery_value'] }} {{ currency() }}</h3>
+                                        <small>{{ trans('order::order.vendor_delivery_total') }}</small>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-6 col-sm-6">
-                <div class="ap-po-details ap-po-details--3 p-25 radius-xl d-flex justify-content-between h-100">
-                    <div class="overview-content w-100">
-                        <div class="ap-po-details-content h-100">
-                            <div class="ap-po-details__titlebar">
-                                <h1 class="ap-po-details__title" id="totalProductPrice">{{ $total_price }}
-                                    {{ currency() }}</h1>
-                                <p class="ap-po-details__text text-nowrap">{{ trans('order::order.total_product_price') }}
-                                </p>
-                            </div>
-                            <div class="ap-po-details__icon-area">
-                                <div class="ap-po-details__icon ap-po-details__icon--sent d-flex align-items-center justify-content-center rounded-circle"
-                                    style="width: 60px; height: 60px; background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white;">
-                                    <i class="uil uil-receipt" style="font-size: 24px;"></i>
+
+                        {{-- Stats by Stage --}}
+                        <h6 class="fw-500 mb-3">
+                            <i class="uil uil-chart-bar me-1"></i>{{ trans('order::order.stats_by_stage') }}
+                        </h6>
+                        <div class="row">
+                            @foreach($vendorOrderStats['stage_stats'] as $stageStat)
+                            <div class="col-md-3 col-sm-6 mb-3">
+                                <div class="p-3 border rounded h-100">
+                                    <div class="d-flex align-items-center mb-2">
+                                        <span class="badge badge-round me-2" style="background-color: {{ $stageStat['stage_color'] }}; color: #fff;">
+                                            {{ $stageStat['stage_name'] }}
+                                        </span>
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <small class="text-muted d-block">{{ trans('order::order.orders') }}</small>
+                                            <span class="fw-bold">{{ $stageStat['orders_count'] }}</span>
+                                        </div>
+                                        <div>
+                                            <small class="text-muted d-block">{{ trans('order::order.products') }}</small>
+                                            <span class="fw-bold">{{ $stageStat['products_count'] }}</span>
+                                        </div>
+                                        <div>
+                                            <small class="text-muted d-block">{{ trans('order::order.value') }}</small>
+                                            <span class="fw-bold text-success">{{ $stageStat['total_value'] }} {{ currency() }}</span>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
+                            @endforeach
                         </div>
                     </div>
                 </div>
             </div>
         </div>
+        @endif
 
         <div class="row">
             <div class="col-lg-12">
@@ -285,7 +322,9 @@
                                     <th><span
                                             class="userDatatable-title">{{ trans('order::order.order_information') }}</span>
                                     </th>
+                                    @if(isAdmin())
                                     <th><span class="userDatatable-title">{{ trans('order::order.vendor') }}</span></th>
+                                    @endif
                                     <th><span class="userDatatable-title">{{ trans('order::order.total_price') }}</span>
                                     </th>
                                     <th><span class="userDatatable-title">{{ trans('order::order.stage') }}</span></th>
@@ -352,6 +391,229 @@
             if (urlParams.has('created_until')) $('#created_until_filter').val(urlParams.get('created_until'));
             
             // Server-side processing with pagination
+            const isVendorUser = {{ !isAdmin() ? 'true' : 'false' }};
+            
+            // Define columns based on user type
+            let tableColumns = [
+                {
+                    data: 'index',
+                    name: 'index',
+                    orderable: false,
+                    searchable: false,
+                    className: 'text-center fw-bold'
+                },
+                {
+                    data: null,
+                    name: 'order_customer',
+                    orderable: false,
+                    searchable: true,
+                    render: function(data, type, row) {
+                        const orderNumber = data.order_number || '-';
+                        const customerName = data.customer_name || '-';
+                        const customerEmail = data.customer_email || '-';
+                        const customerPhone = data.customer_phone || '-';
+
+                        return `
+                            <div class="customer-info">
+                                <div class="fw-bold mb-1">
+                                    <i class="uil uil-receipt me-1"></i><strong>${orderNumber}</strong>
+                                </div>
+                                <div class="small">
+                                    <div class="mb-1">
+                                        <i class="uil uil-user me-1"></i> <strong>${customerName}</strong>
+                                    </div>
+                                    <div class="mb-1">
+                                        <i class="uil uil-envelope me-1"></i> <a href="mailto:${customerEmail}">${customerEmail}</a>
+                                    </div>
+                                    <div>
+                                        <i class="uil uil-phone me-1"></i> ${customerPhone}
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }
+                }
+            ];
+            
+            // Add vendor column only for admin
+            if (!isVendorUser) {
+                tableColumns.push({
+                    data: 'vendor',
+                    name: 'vendor',
+                    orderable: false,
+                    searchable: false,
+                    render: function(data, type, row) {
+                        if (!data || data.length === 0) {
+                            return '-';
+                        }
+
+                        let logosHtml = '<div class="vendor-logos">';
+                        data.forEach(vendor => {
+                            logosHtml += `
+                                <div class="vendor-logo-wrapper">
+                                    <img src="${vendor.logo_url}" alt="${vendor.name}" class="vendor-logo">
+                                    <span class="vendor-name-tooltip">${vendor.name}</span>
+                                </div>
+                            `;
+                        });
+                        logosHtml += '</div>';
+
+                        return logosHtml;
+                    }
+                });
+            }
+            
+            // Add remaining columns
+            tableColumns.push(
+                {
+                    data: 'total_price',
+                    name: 'total_price',
+                    orderable: false,
+                    searchable: false,
+                    render: function(data) {
+                        return data ? ` ${parseFloat(data).toFixed(2)} {{ currency() }}` : '-';
+                    }
+                },
+                {
+                    data: 'stage',
+                    name: 'stage',
+                    orderable: false,
+                    searchable: false,
+                    render: function(data, type, row) {
+                        let html = '';
+                        
+                        // Order Stage
+                        const stageName = data?.name || '-';
+                        const stageColor = data?.color || '#6c757d';
+                        html += `<div class="mb-1"><span class="badge badge-round badge-lg" style="background-color: ${stageColor}; color: white;">{{ trans("order::order.stage") }}: ${stageName}</span></div>`;
+                        
+                        // Payment Type (Online / COD)
+                        const paymentType = row.payment_type || 'cash_on_delivery';
+                        const paymentTypeLabel = paymentType === 'online' ? '{{ trans("order::order.online") }}' : '{{ trans("order::order.cod") }}';
+                        const paymentTypeColor = paymentType === 'online' ? '#17a2b8' : '#6c757d';
+                        html += `<div class="mb-1"><span class="badge badge-round" style="background-color: ${paymentTypeColor}; color: white; font-size: 10px;">{{ trans("order::order.order_type") }}: ${paymentTypeLabel}</span></div>`;
+                        
+                        // Payment Status (only for online payments)
+                        if (paymentType === 'online' && row.payment_visa_status) {
+                            let paymentStatusLabel = '';
+                            let paymentStatusColor = '';
+                            switch(row.payment_visa_status) {
+                                case 'success':
+                                    paymentStatusLabel = '{{ trans("order::order.payment_success") }}';
+                                    paymentStatusColor = '#28a745';
+                                    break;
+                                case 'pending':
+                                    paymentStatusLabel = '{{ trans("order::order.payment_pending") }}';
+                                    paymentStatusColor = '#ffc107';
+                                    break;
+                                case 'fail':
+                                case 'failed':
+                                    paymentStatusLabel = '{{ trans("order::order.payment_failed") }}';
+                                    paymentStatusColor = '#dc3545';
+                                    break;
+                                default:
+                                    paymentStatusLabel = row.payment_visa_status;
+                                    paymentStatusColor = '#6c757d';
+                            }
+                            html += `<div><span class="badge badge-round" style="background-color: ${paymentStatusColor}; color: white; font-size: 10px;">{{ trans("order::order.payment_status") }}: ${paymentStatusLabel}</span></div>`;
+                        }
+                        
+                        return html;
+                    }
+                },
+                {
+                    data: 'created_at',
+                    name: 'created_at',
+                    orderable: false,
+                    searchable: false,
+                    render: function(data) {
+                        return data || '-';
+                    }
+                },
+                {
+                    data: null,
+                    name: 'actions',
+                    orderable: false,
+                    searchable: false,
+                    render: function(data, type, row) {
+                        let showUrl =
+                            "{{ route('admin.orders.show', ':id') }}"
+                            .replace(':id', row.id);
+                        let editUrl =
+                            "{{ route('admin.orders.edit', ':id') }}"
+                            .replace(':id', row.id);
+                        let paymentsUrl =
+                            "{{ route('admin.orders.payments', ':id') }}"
+                            .replace(':id', row.id);
+                        // Check if stage is delivered, cancelled, or refund
+                        const finalStages = ['deliver', 'cancel', 'refund'];
+                        const isFinalStage = row.stage && finalStages.includes(row.stage.slug);
+                        
+                        // For vendors: check if order belongs exclusively to them
+                        const canEditDelete = isVendorUser ? row.is_exclusive_to_vendor : true;
+                        
+                        // Check if order has online payment
+                        const hasOnlinePayment = row.payment_type === 'online';
+
+                        return `
+                            <div class="orderDatatable_actions d-inline-flex gap-1 justify-content-center">
+                                @can('orders.show')
+                                    <a href="${showUrl}"
+                                    class="view btn btn-primary table_action_father"
+                                    title="{{ trans('order::order.view_order') }}">
+                                        <i class="uil uil-eye table_action_icon"></i>
+                                    </a>
+                                @endcan
+                                ${hasOnlinePayment ? `
+                                    <a href="${paymentsUrl}"
+                                    class="btn btn-success table_action_father"
+                                    title="{{ trans('order::order.view_payments') }}">
+                                        <i class="uil uil-credit-card table_action_icon"></i>
+                                    </a>
+                                ` : ''}
+                                @can('orders.edit')
+                                    ${!isFinalStage && canEditDelete ? `
+                                    <a href="${editUrl}"
+                                    class="edit btn btn-warning table_action_father"
+                                    title="{{ trans('order::order.edit_order') }}">
+                                        <i class="uil uil-edit table_action_icon"></i>
+                                    </a>
+                                    ` : ''}
+                                @endcan
+                                @if(isAdmin())
+                                    @can('orders.change-stage')
+                                        ${!isFinalStage ? `
+                                        <button type="button"
+                                        class="change-stage btn btn-info table_action_father"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#changeStageModal"
+                                        data-id="${row.id}"
+                                        data-stage-id="${row.stage?.id || ''}"
+                                        title="{{ trans('order::order.change_order_stage') }}">
+                                            <i class="uil uil-exchange-alt table_action_icon"></i>
+                                        </button>
+                                        ` : ''}
+                                    @endcan
+                                @endif
+                                @can('orders.delete')
+                                    ${!isFinalStage && canEditDelete ? `
+                                    <button type="button"
+                                    class="btn btn-danger table_action_father"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#modal-delete-order"
+                                    data-item-id="${row.id}"
+                                    data-item-name="${row.order_number}"
+                                    title="{{ trans('order::order.delete_order') }}">
+                                        <i class="uil uil-trash-alt table_action_icon"></i>
+                                    </button>
+                                    ` : ''}
+                                @endcan
+                            </div>
+                        `;
+                    }
+                }
+            );
+            
             table = $('#ordersDataTable').DataTable({
                 processing: true,
                 serverSide: true,
@@ -374,218 +636,7 @@
                         return d;
                     }
                 },
-                columns: [{
-                        data: 'index',
-                        name: 'index',
-                        orderable: false,
-                        searchable: false,
-                        className: 'text-center fw-bold'
-                    },
-                    {
-                        data: null,
-                        name: 'order_customer',
-                        orderable: false,
-                        searchable: true,
-                        render: function(data, type, row) {
-                            const orderNumber = data.order_number || '-';
-                            const customerName = data.customer_name || '-';
-                            const customerEmail = data.customer_email || '-';
-                            const customerPhone = data.customer_phone || '-';
-
-                            return `
-                                <div class="customer-info">
-                                    <div class="fw-bold mb-1">
-                                        <i class="uil uil-receipt me-1"></i><strong>${orderNumber}</strong>
-                                    </div>
-                                    <div class="small">
-                                        <div class="mb-1">
-                                            <i class="uil uil-user me-1"></i> <strong>${customerName}</strong>
-                                        </div>
-                                        <div class="mb-1">
-                                            <i class="uil uil-envelope me-1"></i> <a href="mailto:${customerEmail}">${customerEmail}</a>
-                                        </div>
-                                        <div>
-                                            <i class="uil uil-phone me-1"></i> ${customerPhone}
-                                        </div>
-                                    </div>
-                                </div>
-                            `;
-                        }
-                    },
-                    {
-                        data: 'vendor',
-                        name: 'vendor',
-                        orderable: false,
-                        searchable: false,
-                        render: function(data, type, row) {
-                            if (!data || data.length === 0) {
-                                return '-';
-                            }
-
-                            let logosHtml = '<div class="vendor-logos">';
-                            data.forEach(vendor => {
-                                logosHtml += `
-                                    <div class="vendor-logo-wrapper">
-                                        <img src="${vendor.logo_url}" alt="${vendor.name}" class="vendor-logo">
-                                        <span class="vendor-name-tooltip">${vendor.name}</span>
-                                    </div>
-                                `;
-                            });
-                            logosHtml += '</div>';
-
-                            return logosHtml;
-                        }
-                    },
-                    {
-                        data: 'total_price',
-                        name: 'total_price',
-                        orderable: false,
-                        searchable: false,
-                        render: function(data) {
-                            return data ? ` ${parseFloat(data).toFixed(2)} {{ currency() }}` :
-                                '-';
-                        }
-                    },
-                    {
-                        data: 'stage',
-                        name: 'stage',
-                        orderable: false,
-                        searchable: false,
-                        render: function(data, type, row) {
-                            let html = '';
-                            
-                            // Order Stage
-                            const stageName = data?.name || '-';
-                            const stageColor = data?.color || '#6c757d';
-                            html += `<div class="mb-1"><span class="badge badge-round badge-lg" style="background-color: ${stageColor}; color: white;">{{ trans("order::order.stage") }}: ${stageName}</span></div>`;
-                            
-                            // Payment Type (Online / COD)
-                            const paymentType = row.payment_type || 'cash_on_delivery';
-                            const paymentTypeLabel = paymentType === 'online' ? '{{ trans("order::order.online") }}' : '{{ trans("order::order.cod") }}';
-                            const paymentTypeColor = paymentType === 'online' ? '#17a2b8' : '#6c757d';
-                            html += `<div class="mb-1"><span class="badge badge-round" style="background-color: ${paymentTypeColor}; color: white; font-size: 10px;">{{ trans("order::order.order_type") }}: ${paymentTypeLabel}</span></div>`;
-                            
-                            // Payment Status (only for online payments)
-                            if (paymentType === 'online' && row.payment_visa_status) {
-                                let paymentStatusLabel = '';
-                                let paymentStatusColor = '';
-                                switch(row.payment_visa_status) {
-                                    case 'success':
-                                        paymentStatusLabel = '{{ trans("order::order.payment_success") }}';
-                                        paymentStatusColor = '#28a745';
-                                        break;
-                                    case 'pending':
-                                        paymentStatusLabel = '{{ trans("order::order.payment_pending") }}';
-                                        paymentStatusColor = '#ffc107';
-                                        break;
-                                    case 'fail':
-                                    case 'failed':
-                                        paymentStatusLabel = '{{ trans("order::order.payment_failed") }}';
-                                        paymentStatusColor = '#dc3545';
-                                        break;
-                                    default:
-                                        paymentStatusLabel = row.payment_visa_status;
-                                        paymentStatusColor = '#6c757d';
-                                }
-                                html += `<div><span class="badge badge-round" style="background-color: ${paymentStatusColor}; color: white; font-size: 10px;">{{ trans("order::order.payment_status") }}: ${paymentStatusLabel}</span></div>`;
-                            }
-                            
-                            return html;
-                        }
-                    },
-                    {
-                        data: 'created_at',
-                        name: 'created_at',
-                        orderable: false,
-                        searchable: false,
-                        render: function(data) {
-                            return data || '-';
-                        }
-                    },
-                    {
-                        data: null,
-                        name: 'actions',
-                        orderable: false,
-                        searchable: false,
-                        render: function(data, type, row) {
-                            let showUrl =
-                                "{{ route('admin.orders.show', ':id') }}"
-                                .replace(':id', row.id);
-                            let editUrl =
-                                "{{ route('admin.orders.edit', ':id') }}"
-                                .replace(':id', row.id);
-                            let paymentsUrl =
-                                "{{ route('admin.orders.payments', ':id') }}"
-                                .replace(':id', row.id);
-                            // Check if stage is delivered, cancelled, or refund
-                            const finalStages = ['deliver', 'cancel', 'refund'];
-                            const isFinalStage = row.stage && finalStages.includes(row.stage.slug);
-                            
-                            // For vendors: check if order belongs exclusively to them
-                            const isVendor = {{ !isAdmin() ? 'true' : 'false' }};
-                            const canEditDelete = isVendor ? row.is_exclusive_to_vendor : true;
-                            
-                            // Check if order has online payment
-                            const hasOnlinePayment = row.payment_type === 'online';
-
-                            return `
-                                <div class="orderDatatable_actions d-inline-flex gap-1 justify-content-center">
-                                    @can('orders.show')
-                                        <a href="${showUrl}"
-                                        class="view btn btn-primary table_action_father"
-                                        title="{{ trans('order::order.view_order') }}">
-                                            <i class="uil uil-eye table_action_icon"></i>
-                                        </a>
-                                    @endcan
-                                    ${hasOnlinePayment ? `
-                                        <a href="${paymentsUrl}"
-                                        class="btn btn-success table_action_father"
-                                        title="{{ trans('order::order.view_payments') }}">
-                                            <i class="uil uil-credit-card table_action_icon"></i>
-                                        </a>
-                                    ` : ''}
-                                    @can('orders.edit')
-                                        ${!isFinalStage && canEditDelete ? `
-                                        <a href="${editUrl}"
-                                        class="edit btn btn-warning table_action_father"
-                                        title="{{ trans('order::order.edit_order') }}">
-                                            <i class="uil uil-edit table_action_icon"></i>
-                                        </a>
-                                        ` : ''}
-                                    @endcan
-                                    @if(isAdmin())
-                                        @can('orders.change-stage')
-                                            ${!isFinalStage ? `
-                                            <button type="button"
-                                            class="change-stage btn btn-info table_action_father"
-                                            data-bs-toggle="modal"
-                                            data-bs-target="#changeStageModal"
-                                            data-id="${row.id}"
-                                            data-stage-id="${row.stage?.id || ''}"
-                                            title="{{ trans('order::order.change_order_stage') }}">
-                                                <i class="uil uil-exchange-alt table_action_icon"></i>
-                                            </button>
-                                            ` : ''}
-                                        @endcan
-                                    @endif
-                                    @can('orders.delete')
-                                        ${!isFinalStage && canEditDelete ? `
-                                        <button type="button"
-                                        class="btn btn-danger table_action_father"
-                                        data-bs-toggle="modal"
-                                        data-bs-target="#modal-delete-order"
-                                        data-item-id="${row.id}"
-                                        data-item-name="${row.order_number}"
-                                        title="{{ trans('order::order.delete_order') }}">
-                                            <i class="uil uil-trash-alt table_action_icon"></i>
-                                        </button>
-                                        ` : ''}
-                                    @endcan
-                                </div>
-                            `;
-                        }
-                    }
-                ],
+                columns: tableColumns,
                 pageLength: per_page,
                 lengthMenu: [
                     [10, 25, 50, 100],

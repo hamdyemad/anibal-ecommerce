@@ -78,19 +78,39 @@ class OrderController extends Controller
                 2
             );
             $orders_count = Order::latest()->count();
+            
+            // Admin sees stats for all vendors
+            $vendorOrderStats = $this->getVendorOrderStats(null);
         } else {
-            // Vendor sees only their orders - filtered by country through Order model's CountryCheckIdTrait
-            $vendorId = auth()->user()->vendor_id ?? auth()->id();
-            $orderIds = Order::whereHas('products', function($q) use ($vendorId) {
-                $q->where('vendor_id', $vendorId);
-            })->pluck('id');
-            $total_price = number_format(
-                OrderProduct::whereIn('order_id', $orderIds)
-                    ->where('vendor_id', $vendorId)
-                    ->sum(\DB::raw('price * quantity')), 
-                2
-            );
-            $orders_count = $orderIds->count();
+            // Vendor sees only their orders
+            $vendor = auth()->user()->vendor;
+            $vendorId = $vendor ? $vendor->id : null;
+            
+            if ($vendorId) {
+                // Use DB query to avoid global scope issues
+                $orderIds = \DB::table('order_products')
+                    ->join('orders', 'order_products.order_id', '=', 'orders.id')
+                    ->where('order_products.vendor_id', $vendorId)
+                    ->distinct()
+                    ->pluck('order_products.order_id');
+                
+                // Calculate vendor's product totals using DB query
+                $total_price = number_format(
+                    \DB::table('order_products')
+                        ->join('orders', 'order_products.order_id', '=', 'orders.id')
+                        ->where('order_products.vendor_id', $vendorId)
+                        ->sum(\DB::raw('order_products.price * order_products.quantity')), 
+                    2
+                );
+                $orders_count = $orderIds->count();
+                
+                // Calculate vendor order product stats by stage
+                $vendorOrderStats = $this->getVendorOrderStats($vendorId);
+            } else {
+                $total_price = '0.00';
+                $orders_count = 0;
+                $vendorOrderStats = null;
+            }
         }
         
         $vendors = $this->vendorService->getAllVendors([]);
@@ -98,6 +118,7 @@ class OrderController extends Controller
             'languages' => $languages,
             'orders_count' => $orders_count,
             'total_price' => $total_price,
+            'vendorOrderStats' => $vendorOrderStats ?? null,
             'vendors' => $vendors,
             'orderStages' => $orderStages,
         ];
@@ -142,6 +163,7 @@ class OrderController extends Controller
             $data = [];
             $index = $start + 1; // Start index from the correct offset
             $currentVendorId = !isAdmin() ? (auth()->user()->vendor?->id ?? null) : null;
+            $isVendorUser = !isAdmin();
             
             foreach ($orders as $order) {
                 // Count items in this order
@@ -165,6 +187,17 @@ class OrderController extends Controller
                     $isExclusiveToCurrentVendor = count($orderVendorIds) === 1 && in_array($currentVendorId, $orderVendorIds);
                 }
 
+                // For vendors: calculate their product total only
+                $displayTotalPrice = $order->total_price;
+                if ($isVendorUser && $currentVendorId) {
+                    $vendorProductTotal = $order->products
+                        ->where('vendor_id', $currentVendorId)
+                        ->sum(function($product) {
+                            return $product->price * $product->quantity;
+                        });
+                    $displayTotalPrice = $vendorProductTotal;
+                }
+
                 $rowData = [
                     'index' => $index++,
                     'id' => $order->id,
@@ -172,8 +205,8 @@ class OrderController extends Controller
                     'customer_name' => $order->customer_name,
                     'customer_email' => $order->customer_email,
                     'customer_phone' => $order->customer_phone ?? '-',
-                    'vendor' => $vendorsData,
-                    'total_price' => $order->total_price . ' ' . currency(),
+                    'vendor' => $isVendorUser ? [] : $vendorsData, // Hide vendors for vendor users
+                    'total_price' => $displayTotalPrice,
                     'total_product_price' => $order->total_product_price . ' ' . currency(),
                     'items_count' => $itemsCount,
                     'stage' => [
@@ -201,7 +234,8 @@ class OrderController extends Controller
                 'per_page' => $orders->perPage(),
                 'total' => $orders->total(),
                 'from' => $orders->firstItem(),
-                'to' => $orders->lastItem()
+                'to' => $orders->lastItem(),
+                'is_vendor' => $isVendorUser,
             ]);
 
         } catch (\Exception $e) {
@@ -297,7 +331,26 @@ class OrderController extends Controller
             if (!$order) {
                 return abort(404, trans('order::order.order_not_found'));
             }
-            return view('order::orders.show', compact('order'));
+            
+            $isVendorUser = !isAdmin();
+            $currentVendorId = null;
+            $vendorProducts = null;
+            $vendorProductTotal = 0;
+            
+            // For vendors: filter products to show only their products
+            if ($isVendorUser) {
+                $currentVendorId = auth()->user()->vendor?->id;
+                if ($currentVendorId) {
+                    $vendorProducts = $order->products->filter(function($product) use ($currentVendorId) {
+                        return $product->vendor_id == $currentVendorId;
+                    });
+                    $vendorProductTotal = $vendorProducts->sum(function($product) {
+                        return $product->price * $product->quantity;
+                    });
+                }
+            }
+            
+            return view('order::orders.show', compact('order', 'isVendorUser', 'vendorProducts', 'vendorProductTotal'));
         } catch (\Exception $e) {
             return abort(500, trans('order::order.error_loading_order'));
         }
@@ -464,5 +517,92 @@ class OrderController extends Controller
                 'errors' => [$e->getMessage()]
             ], 422);
         }
+    }
+
+    /**
+     * Get vendor order statistics by stage
+     * @param int|null $vendorId - If null, get stats for all vendors (admin view)
+     */
+    private function getVendorOrderStats($vendorId): array
+    {
+        // Get all order stages
+        $stages = OrderStage::withoutGlobalScopes()->get();
+        
+        // Find the deliver stage
+        $deliverStage = $stages->first(function($stage) {
+            return $stage->type === 'deliver';
+        });
+        
+        // Get orders with their total_price and stage info
+        // Use DB query to avoid scope issues
+        $query = \DB::table('orders')
+            ->join('order_products', 'orders.id', '=', 'order_products.order_id');
+        
+        // Filter by vendor if specified
+        if ($vendorId) {
+            $query->where('order_products.vendor_id', $vendorId);
+        }
+        
+        $vendorOrders = $query->select(
+                'orders.id as order_id',
+                'orders.total_price',
+                'orders.stage_id',
+                'order_products.quantity',
+                'order_products.price as product_price'
+            )
+            ->get();
+        
+        // Group by order to avoid counting same order multiple times
+        // For vendors: calculate product total, for admin: use order total
+        $uniqueOrders = $vendorOrders->groupBy('order_id')->map(function($group) use ($vendorId) {
+            // Calculate vendor's product total (sum of price * quantity for their products)
+            $vendorProductTotal = $group->sum(function($item) {
+                return $item->product_price * $item->quantity;
+            });
+            
+            return [
+                'order_id' => $group->first()->order_id,
+                'total_price' => $vendorId ? $vendorProductTotal : $group->first()->total_price,
+                'stage_id' => $group->first()->stage_id,
+                'products_count' => $group->sum('quantity'),
+            ];
+        });
+        
+        // Calculate totals
+        $totalOrders = $uniqueOrders->count();
+        $totalProducts = $uniqueOrders->sum('products_count');
+        
+        // Calculate delivery total only for orders with deliver stage
+        $deliveredOrders = $deliverStage 
+            ? $uniqueOrders->filter(function($order) use ($deliverStage) {
+                return $order['stage_id'] == $deliverStage->id;
+            })
+            : collect([]);
+        
+        $totalDeliveryValue = $deliveredOrders->sum('total_price');
+        
+        // Calculate stats by stage
+        $stageStats = [];
+        foreach ($stages as $stage) {
+            $stageOrders = $uniqueOrders->filter(function($order) use ($stage) {
+                return $order['stage_id'] == $stage->id;
+            });
+            
+            $stageStats[] = [
+                'stage_id' => $stage->id,
+                'stage_name' => $stage->getTranslation('name', app()->getLocale()),
+                'stage_color' => $stage->color,
+                'orders_count' => $stageOrders->count(),
+                'products_count' => $stageOrders->sum('products_count'),
+                'total_value' => number_format($stageOrders->sum('total_price'), 2),
+            ];
+        }
+        
+        return [
+            'total_orders' => $totalOrders,
+            'total_products' => $totalProducts,
+            'total_delivery_value' => number_format($totalDeliveryValue, 2),
+            'stage_stats' => $stageStats,
+        ];
     }
 }

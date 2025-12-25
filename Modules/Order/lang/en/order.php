@@ -135,6 +135,7 @@ return [
     // Order Summary
     'order_summary' => 'Order Summary',
     'subtotal' => 'Subtotal',
+    'your_products_total' => 'Your Products Total',
     'shipping' => 'Shipping',
     'tax' => 'Tax',
     'discount' => 'Discount',
@@ -146,6 +147,11 @@ return [
     'fees_and_discounts' => 'Fees & Discounts',
     'location' => 'Location',
     'commission' => 'Commission',
+    'bnaia_commission' => 'Bnaia Commission',
+    'remaining' => 'Remaining',
+    'total_commission' => 'Total Commission',
+    'final_remaining' => 'Final Remaining',
+    'vendors_remaining' => 'Vendors Remaining',
     'type' => 'Type',
     'reason' => 'Reason',
     'amount' => 'Amount',
@@ -164,6 +170,16 @@ return [
     'total_orders' => 'Total Orders',
     'total_product_price' => 'Total Product Price',
     'income' => 'Income',
+
+    // Vendor Order Product Details
+    'order_product_details' => 'Order Statistics Details',
+    'vendor_total_orders' => 'Total Orders',
+    'vendor_total_products' => 'Total Products',
+    'vendor_delivery_total' => 'Delivery Total',
+    'stats_by_stage' => 'Statistics by Stage',
+    'orders' => 'Orders',
+    'products' => 'Products',
+    'value' => 'Value',
 
     // Form Fields
     'reason' => 'Reason',

@@ -394,6 +394,41 @@ class WithdrawController extends Controller
 
         $vendor_id = $vendor->id;
 
+        // Get vendor balance info
+        $general_info = $this->withdrawService->getVendorBalance($vendor_id);
+        
+        // Get the vendor's credit (total_vendor_balance = total_balance - bnaia_commission)
+        $total_vendor_credit = floatval(str_replace(',', '', $general_info['total_vendor_balance']));
+        
+        // Get remaining after sent money
+        $remaining = floatval(str_replace(',', '', $general_info['remaining']));
+        
+        // Get waiting approve requests
+        $waiting_approve = floatval(str_replace(',', '', $general_info['waiting_approve_requests']));
+        
+        // Final available balance
+        $final_available = $remaining - $waiting_approve;
+
+        // Check if sent amount exceeds vendor's credit
+        if ($data["sent_amount"] > $total_vendor_credit) {
+            return redirect()->back()
+                ->with('error', trans('withdraw::withdraw.balance_not_allowed'));
+        }
+        
+        // Check if sent amount exceeds available balance
+        if ($data["sent_amount"] > $final_available) {
+            return redirect()->back()
+                ->with('error', trans('withdraw::withdraw.amount_exceeds_available'));
+        }
+
+        // Find an admin user to receive the request (get first super admin or admin)
+        $adminUser = \App\Models\User::whereIn('user_type_id', [1, 2])->first();
+
+        if (!$adminUser) {
+            return redirect()->back()
+                ->with('error', "No admin user found to receive the request!");
+        }
+
         $total_vendor_balance = $vendor->total_balance;
 
         $last_withdraw = Withdraw::where(function ($q) use ($vendor_id) {
@@ -404,18 +439,6 @@ class WithdrawController extends Controller
             ->first();
 
         $final_last_before_sending_money = $last_withdraw ? $last_withdraw->after_sending_amount : $total_vendor_balance;
-
-        if ($data["sent_amount"] > $final_last_before_sending_money) {
-            return redirect()->back()
-                ->with('error', "Invalid amount !");
-        }
-        // Find an admin user to receive the request (get first super admin or admin)
-        $adminUser = \App\Models\User::whereIn('user_type_id', [1, 2])->first();
-
-        if (!$adminUser) {
-            return redirect()->back()
-                ->with('error', "No admin user found to receive the request!");
-        }
 
         Withdraw::create([
             "request_from" => "vendor",

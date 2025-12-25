@@ -135,6 +135,7 @@ return [
     // Order Summary
     'order_summary' => 'ملخص الطلب',
     'subtotal' => 'المجموع الفرعي',
+    'your_products_total' => 'إجمالي منتجاتك',
     'shipping' => 'الشحن',
     'tax' => 'الضريبة',
     'discount' => 'الخصم',
@@ -146,6 +147,11 @@ return [
     'fees_and_discounts' => 'الرسوم والخصومات',
     'location' => 'الموقع',
     'commission' => 'العمولة',
+    'bnaia_commission' => 'عمولة بنايا',
+    'remaining' => 'المتبقي',
+    'total_commission' => 'إجمالي العمولة',
+    'final_remaining' => 'المتبقي النهائي',
+    'vendors_remaining' => 'المتبقي للبائعين',
     'type' => 'النوع',
     'reason' => 'السبب',
     'amount' => 'المبلغ',
@@ -164,6 +170,16 @@ return [
     'total_orders' => 'إجمالي الطلبات',
     'total_product_price' => 'إجمالي سعر المنتجات',
     'income' => 'الدخل',
+
+    // Vendor Order Product Details
+    'order_product_details' => 'تفاصيل إحصائيات الطلبات',
+    'vendor_total_orders' => 'إجمالي الطلبات',
+    'vendor_total_products' => 'إجمالي المنتجات',
+    'vendor_delivery_total' => 'إجمالي التوصيل',
+    'stats_by_stage' => 'الإحصائيات حسب المرحلة',
+    'orders' => 'الطلبات',
+    'products' => 'المنتجات',
+    'value' => 'القيمة',
 
     // Form Fields
     'reason' => 'السبب',

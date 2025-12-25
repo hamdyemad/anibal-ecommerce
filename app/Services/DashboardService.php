@@ -927,11 +927,24 @@ class DashboardService
                 ->distinct()
                 ->pluck('order_id');
             
-            return Order::with(['customer', 'stage', 'products.vendorProduct.product'])
+            $orders = Order::with(['customer', 'stage', 'products.vendorProduct.product'])
                 ->whereIn('id', $orderIds)
                 ->latest()
                 ->take($limit)
                 ->get();
+            
+            // Calculate vendor's product total for each order
+            $vendorId = $this->vendorId;
+            foreach ($orders as $order) {
+                $vendorProductTotal = $order->products
+                    ->where('vendor_id', $vendorId)
+                    ->sum(function($product) {
+                        return $product->price * $product->quantity;
+                    });
+                $order->vendor_product_total = $vendorProductTotal;
+            }
+            
+            return $orders;
         }
         
         return Order::with(['customer', 'stage', 'products.vendorProduct.product'])

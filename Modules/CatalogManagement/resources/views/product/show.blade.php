@@ -1015,7 +1015,13 @@
         $(document).ready(function() {
             // Initialize Stock Bookings tables
             $('.stock-bookings-table').each(function() {
-                if (!$.fn.DataTable.isDataTable(this)) {
+                // Only initialize if table has thead and tbody with proper structure
+                var $table = $(this);
+                var hasProperStructure = $table.find('thead tr th').length > 0 && 
+                                         $table.find('tbody tr').length > 0 &&
+                                         $table.find('tbody tr td').length > 0;
+                
+                if (hasProperStructure && !$.fn.DataTable.isDataTable(this)) {
                     $(this).DataTable({
                         paging: true,
                         pageLength: 10,

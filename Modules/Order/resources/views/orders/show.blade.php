@@ -155,10 +155,18 @@
                                         </th>
                                         <th class="text-white fw-bold text-end">{{ trans('order::order.total_price') }}
                                         </th>
+                                        <th class="text-white fw-bold text-end">{{ trans('order::order.bnaia_commission') }}
+                                        </th>
+                                        <th class="text-white fw-bold text-end">{{ trans('order::order.remaining') }}
+                                        </th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @forelse($order->products as $key => $product)
+                                    @php
+                                        // Use vendor-filtered products if available, otherwise use all products
+                                        $displayProducts = isset($vendorProducts) && $vendorProducts !== null ? $vendorProducts : $order->products;
+                                    @endphp
+                                    @forelse($displayProducts as $key => $product)
                                         @php
                                             $productImage = $product->vendorProduct?->product?->mainImage?->path;
                                             $vendorName = $product->vendorProduct?->vendor?->getTranslation('name', app()->getLocale()) ?? 'N/A';
@@ -173,6 +181,14 @@
                                             } elseif ($variantValue) {
                                                 $variantPath = $variantValue;
                                             }
+                                            
+                                            // Calculate commission and remaining
+                                            // Get commission from product's department
+                                            $productTotal = $product->price * $product->quantity;
+                                            $departmentCommission = $product->vendorProduct?->product?->department?->commission ?? 0;
+                                            $commissionPercent = $departmentCommission;
+                                            $bnaiaCommission = $productTotal * ($commissionPercent / 100);
+                                            $remaining = $productTotal - $bnaiaCommission;
                                         @endphp
                                         <tr>
                                             <td class="fw-bold">{{ $key + 1 }}</td>
@@ -215,12 +231,20 @@
                                                 {{ currency() }}</td>
                                             <td class="text-center">{{ $product->quantity }}</td>
                                             <td class="text-end fw-bold">
-                                                {{ number_format($product->price * $product->quantity, 2) }}
+                                                {{ number_format($productTotal, 2) }}
+                                                {{ currency() }}</td>
+                                            <td class="text-end text-danger">
+                                                {{ number_format($bnaiaCommission, 2) }}
+                                                {{ currency() }}
+                                                <small class="d-block text-muted">({{ $commissionPercent }}%)</small>
+                                            </td>
+                                            <td class="text-end fw-bold text-success">
+                                                {{ number_format($remaining, 2) }}
                                                 {{ currency() }}</td>
                                         </tr>
                                     @empty
                                         <tr>
-                                            <td colspan="5" class="text-center text-muted py-20">
+                                            <td colspan="7" class="text-center text-muted py-20">
                                                 {{ trans('common.no_data') }}
                                             </td>
                                         </tr>
@@ -297,6 +321,25 @@
                             </div>
                         @endif
 
+                        @php
+                            // Calculate total commission and remaining for all displayed products
+                            $totalProductsPrice = 0;
+                            $totalCommission = 0;
+                            $totalRemaining = 0;
+                            
+                            $productsToCalculate = isset($vendorProducts) && $vendorProducts !== null ? $vendorProducts : $order->products;
+                            
+                            foreach ($productsToCalculate as $prod) {
+                                $prodTotal = $prod->price * $prod->quantity;
+                                $deptCommission = $prod->vendorProduct?->product?->department?->commission ?? 0;
+                                $commAmount = $prodTotal * ($deptCommission / 100);
+                                
+                                $totalProductsPrice += $prodTotal;
+                                $totalCommission += $commAmount;
+                                $totalRemaining += ($prodTotal - $commAmount);
+                            }
+                        @endphp
+
                         <!-- Order Summary Card -->
                         <div class="col-md-6 mb-3">
                             <div class="card border-0 shadow-sm h-100"
@@ -307,41 +350,78 @@
                                         {{ trans('order::order.order_summary') }}
                                     </h6>
                                     <div class="summary-details">
-                                        <div class="summary-row mb-12">
-                                            <span class="fw-bold">{{ trans('order::order.subtotal') }}</span>
-                                            <span class="fw-bold">{{ number_format($order->total_product_price, 2) }}
-                                                {{ currency() }}</span>
-                                        </div>
-                                        @if ($order->total_discounts > 0)
+                                        @if(isset($isVendorUser) && $isVendorUser && isset($vendorProductTotal))
+                                            {{-- Vendor view: show only their product total --}}
                                             <div class="summary-row mb-12">
-                                                <span class="fw-bold">{{ trans('order::order.discounts') }}</span>
-                                                <span class="fw-bold">-{{ number_format($order->total_discounts, 2) }}
+                                                <span class="fw-bold">{{ trans('order::order.your_products_total') }}</span>
+                                                <span class="fw-bold">{{ number_format($totalProductsPrice, 2) }}
+                                                    {{ currency() }}</span>
+                                            </div>
+                                            <div class="summary-row mb-12">
+                                                <span class="fw-bold">{{ trans('order::order.total_commission') }}</span>
+                                                <span class="fw-bold" style="color: #ffcccc;">-{{ number_format($totalCommission, 2) }}
+                                                    {{ currency() }}</span>
+                                            </div>
+                                            <hr style="border-color: rgba(255,255,255,0.3); margin: 15px 0;">
+                                            <div class="summary-row" style="font-size: 18px;">
+                                                <span class="fw-bold">{{ trans('order::order.final_remaining') }}</span>
+                                                <span class="fw-bold" style="color: #90EE90;">{{ number_format($totalRemaining, 2) }}
+                                                    {{ currency() }}</span>
+                                            </div>
+                                        @else
+                                            {{-- Admin view: show full order summary --}}
+                                            <div class="summary-row mb-12">
+                                                <span class="fw-bold">{{ trans('order::order.subtotal') }}</span>
+                                                <span class="fw-bold">{{ number_format($order->total_product_price, 2) }}
+                                                    {{ currency() }}</span>
+                                            </div>
+                                            <div class="summary-row mb-12">
+                                                <span class="fw-bold">{{ trans('order::order.total_commission') }}</span>
+                                                <span class="fw-bold" style="color: #ffcccc;">-{{ number_format($totalCommission, 2) }}
+                                                    {{ currency() }}</span>
+                                            </div>
+                                            <div class="summary-row mb-12">
+                                                <span class="fw-bold">{{ trans('order::order.vendors_remaining') }}</span>
+                                                <span class="fw-bold" style="color: #90EE90;">{{ number_format($totalRemaining, 2) }}
+                                                    {{ currency() }}</span>
+                                            </div>
+                                            <hr style="border-color: rgba(255,255,255,0.3); margin: 15px 0;">
+                                            <div class="summary-row mb-12">
+                                                <span class="fw-bold">{{ trans('order::order.subtotal') }}</span>
+                                                <span class="fw-bold">{{ number_format($order->total_product_price, 2) }}
+                                                    {{ currency() }}</span>
+                                            </div>
+                                            @if ($order->total_discounts > 0)
+                                                <div class="summary-row mb-12">
+                                                    <span class="fw-bold">{{ trans('order::order.discounts') }}</span>
+                                                    <span class="fw-bold">-{{ number_format($order->total_discounts, 2) }}
+                                                        {{ currency() }}</span>
+                                                </div>
+                                            @endif
+                                            @if ($order->total_fees > 0)
+                                                <div class="summary-row mb-12">
+                                                    <span class="fw-bold">{{ trans('order::order.fees') }}</span>
+                                                    <span class="fw-bold">+{{ number_format($order->total_fees, 2) }}
+                                                        {{ currency() }}</span>
+                                                </div>
+                                            @endif
+                                            <div class="summary-row mb-12">
+                                                <span class="fw-bold">{{ trans('order::order.shipping') }}</span>
+                                                <span class="fw-bold">+{{ number_format($order->shipping, 2) }}
+                                                    {{ currency() }}</span>
+                                            </div>
+                                            <div class="summary-row mb-12">
+                                                <span class="fw-bold">{{ trans('order::order.tax') }}</span>
+                                                <span class="fw-bold">+{{ number_format($order->total_tax, 2) }}
+                                                    {{ currency() }}</span>
+                                            </div>
+                                            <hr style="border-color: rgba(255,255,255,0.3); margin: 15px 0;">
+                                            <div class="summary-row" style="font-size: 18px;">
+                                                <span class="fw-bold">{{ trans('order::order.total') }}</span>
+                                                <span class="fw-bold">{{ number_format($order->total_price, 2) }}
                                                     {{ currency() }}</span>
                                             </div>
                                         @endif
-                                        @if ($order->total_fees > 0)
-                                            <div class="summary-row mb-12">
-                                                <span class="fw-bold">{{ trans('order::order.fees') }}</span>
-                                                <span class="fw-bold">+{{ number_format($order->total_fees, 2) }}
-                                                    {{ currency() }}</span>
-                                            </div>
-                                        @endif
-                                        <div class="summary-row mb-12">
-                                            <span class="fw-bold">{{ trans('order::order.shipping') }}</span>
-                                            <span class="fw-bold">+{{ number_format($order->shipping, 2) }}
-                                                {{ currency() }}</span>
-                                        </div>
-                                        <div class="summary-row mb-12">
-                                            <span class="fw-bold">{{ trans('order::order.tax') }}</span>
-                                            <span class="fw-bold">+{{ number_format($order->total_tax, 2) }}
-                                                {{ currency() }}</span>
-                                        </div>
-                                        <hr style="border-color: rgba(255,255,255,0.3); margin: 15px 0;">
-                                        <div class="summary-row" style="font-size: 18px;">
-                                            <span class="fw-bold">{{ trans('order::order.total') }}</span>
-                                            <span class="fw-bold">{{ number_format($order->total_price, 2) }}
-                                                {{ currency() }}</span>
-                                        </div>
                                     </div>
                                 </div>
                             </div>

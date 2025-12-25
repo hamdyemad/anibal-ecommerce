@@ -38,7 +38,7 @@
                                 <span class="text-muted">-</span>
                             @endif
                         </td>
-                        <td class="fw-bold text-success">{{ number_format($order->total_price ?? 0, 2) }} {{ currency() }}</td>
+                        <td class="fw-bold text-success">{{ number_format($order->vendor_product_total ?? $order->total_price ?? 0, 2) }} {{ currency() }}</td>
                         <td>
                             @if($order->stage)
                                 <span class="badge badge-round badge-lg" style="background-color: {{ $order->stage->color ?? '#6c757d' }}">
