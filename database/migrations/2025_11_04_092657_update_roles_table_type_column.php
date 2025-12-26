@@ -12,8 +12,21 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // Update the type column to include new enum values: super_admin, admin, vendor, other
-        DB::statement("ALTER TABLE roles MODIFY COLUMN type ENUM('super_admin', 'admin', 'vendor', 'other') DEFAULT 'other'");
+        if (Schema::hasTable('roles') && Schema::hasColumn('roles', 'type')) {
+            // SQLite doesn't support MODIFY COLUMN, so we'll recreate the table
+            if (DB::getDriverName() === 'sqlite') {
+                // For SQLite, we need to recreate the table
+                Schema::table('roles', function (Blueprint $table) {
+                    $table->dropColumn('type');
+                });
+                Schema::table('roles', function (Blueprint $table) {
+                    $table->enum('type', ['super_admin', 'admin', 'vendor', 'other'])->default('other');
+                });
+            } else {
+                // For MySQL
+                DB::statement("ALTER TABLE roles MODIFY COLUMN type ENUM('super_admin', 'admin', 'vendor', 'other') DEFAULT 'other'");
+            }
+        }
     }
 
     /**
@@ -21,7 +34,17 @@ return new class extends Migration
      */
     public function down(): void
     {
-        // Revert back to the original enum values
-        DB::statement("ALTER TABLE roles MODIFY COLUMN type ENUM('admin', 'other') DEFAULT 'other'");
+        if (Schema::hasTable('roles') && Schema::hasColumn('roles', 'type')) {
+            if (DB::getDriverName() === 'sqlite') {
+                Schema::table('roles', function (Blueprint $table) {
+                    $table->dropColumn('type');
+                });
+                Schema::table('roles', function (Blueprint $table) {
+                    $table->enum('type', ['admin', 'other'])->default('other');
+                });
+            } else {
+                DB::statement("ALTER TABLE roles MODIFY COLUMN type ENUM('admin', 'other') DEFAULT 'other'");
+            }
+        }
     }
 };

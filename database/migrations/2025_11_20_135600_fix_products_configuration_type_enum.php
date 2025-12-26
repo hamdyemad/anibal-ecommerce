@@ -12,13 +12,29 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // First, update any existing 'with_variants' values to 'variants'
-        DB::table('products')
-            ->where('configuration_type', 'with_variants')
-            ->update(['configuration_type' => 'variants']);
+        if (!Schema::hasTable('products')) {
+            return;
+        }
 
-        // Then modify the enum to use the correct values
-        DB::statement("ALTER TABLE products MODIFY COLUMN configuration_type ENUM('simple', 'variants') DEFAULT 'simple'");
+        // First, update any existing 'with_variants' values to 'variants'
+        if (Schema::hasColumn('products', 'configuration_type')) {
+            DB::table('products')
+                ->where('configuration_type', 'with_variants')
+                ->update(['configuration_type' => 'variants']);
+
+            // SQLite doesn't support MODIFY COLUMN with ENUM, so we recreate the column
+            if (DB::getDriverName() === 'sqlite') {
+                Schema::table('products', function (Blueprint $table) {
+                    $table->dropColumn('configuration_type');
+                });
+                Schema::table('products', function (Blueprint $table) {
+                    $table->enum('configuration_type', ['simple', 'variants'])->default('simple');
+                });
+            } else {
+                // MySQL/PostgreSQL
+                DB::statement("ALTER TABLE products MODIFY COLUMN configuration_type ENUM('simple', 'variants') DEFAULT 'simple'");
+            }
+        }
     }
 
     /**
@@ -26,12 +42,28 @@ return new class extends Migration
      */
     public function down(): void
     {
-        // First, update any existing 'variants' values back to 'with_variants'
-        DB::table('products')
-            ->where('configuration_type', 'variants')
-            ->update(['configuration_type' => 'with_variants']);
+        if (!Schema::hasTable('products')) {
+            return;
+        }
 
-        // Then modify the enum back to the original values
-        DB::statement("ALTER TABLE products MODIFY COLUMN configuration_type ENUM('simple', 'with_variants') DEFAULT 'simple'");
+        // First, update any existing 'variants' values back to 'with_variants'
+        if (Schema::hasColumn('products', 'configuration_type')) {
+            DB::table('products')
+                ->where('configuration_type', 'variants')
+                ->update(['configuration_type' => 'with_variants']);
+
+            // SQLite doesn't support MODIFY COLUMN with ENUM, so we recreate the column
+            if (DB::getDriverName() === 'sqlite') {
+                Schema::table('products', function (Blueprint $table) {
+                    $table->dropColumn('configuration_type');
+                });
+                Schema::table('products', function (Blueprint $table) {
+                    $table->enum('configuration_type', ['simple', 'with_variants'])->default('simple');
+                });
+            } else {
+                // MySQL/PostgreSQL
+                DB::statement("ALTER TABLE products MODIFY COLUMN configuration_type ENUM('simple', 'with_variants') DEFAULT 'simple'");
+            }
+        }
     }
 };

@@ -99,10 +99,10 @@
         $countryCode = request()->route('countryCode') ?? session('country_code');
         $countryCode = strtoupper($countryCode);
         $currentCountryId = \Modules\AreaSettings\app\Models\Country::where('code', $countryCode)->value('id');
-        
+
         // Build query matching exactly what RoleAction does for admin roles
         $rolesQuery = \App\Models\Role::where('type', 'admin');
-        
+
         // Apply user type scope based on current user
         $userTypeId = auth()->user()->user_type_id ?? null;
         switch ($userTypeId) {
@@ -117,7 +117,7 @@
                 $rolesQuery->vendorShowRoles();
                 break;
         }
-        
+
         // Filter by country
         if ($currentCountryId) {
             $rolesQuery->where(function($q) use ($currentCountryId) {
@@ -125,12 +125,12 @@
                   ->orWhereNull('country_id');
             });
         }
-        
+
         $admin_roles_count = $rolesQuery->count();
-            
+
         // Get admins count (filtered by country + system admins)
         $adminsQuery = \App\Models\User::where('id', '!=', auth()->id());
-        
+
         // Apply user type scope based on current user
         switch ($userTypeId) {
             case \App\Models\UserType::SUPER_ADMIN_TYPE:
@@ -146,7 +146,7 @@
                 $adminsQuery->otherShow();
                 break;
         }
-        
+
         // Filter by country
         if ($currentCountryId) {
             $adminsQuery->where(function($q) use ($currentCountryId) {
@@ -154,12 +154,12 @@
                   ->orWhereNull('country_id');
             });
         }
-        
+
         $admins_count = $adminsQuery->count();
-        
+
         // Get vendor user roles count (filtered by country + system roles)
         $vendorUserRolesQuery = \App\Models\Role::where('type', 'vendor_user');
-        
+
         // Apply user type scope based on current user
         switch ($userTypeId) {
             case \App\Models\UserType::SUPER_ADMIN_TYPE:
@@ -183,7 +183,7 @@
                 }
                 break;
         }
-        
+
         // Filter by country
         if ($currentCountryId) {
             $vendorUserRolesQuery->where(function($q) use ($currentCountryId) {
@@ -191,13 +191,13 @@
                   ->orWhereNull('country_id');
             });
         }
-        
+
         $vendor_user_roles_count = $vendorUserRolesQuery->count();
-        
+
         // Get vendor users count (filtered by country)
         $vendorUsersQuery = \App\Models\User::where('user_type_id', \App\Models\UserType::VENDOR_USER_TYPE)
             ->where('id', '!=', auth()->id());
-        
+
         // If current user is vendor, filter by their vendor
         if (auth()->user()->isVendor()) {
             $vendor = auth()->user()->vendorByUser ?? auth()->user()->vendorById;
@@ -205,7 +205,7 @@
                 $vendorUsersQuery->where('vendor_id', $vendor->id);
             }
         }
-        
+
         // Filter by country
         if ($currentCountryId) {
             $vendorUsersQuery->where(function($q) use ($currentCountryId) {
@@ -213,7 +213,7 @@
                   ->orWhereNull('country_id');
             });
         }
-        
+
         $vendor_users_count = $vendorUsersQuery->count();
     } catch (\Exception $e) {
         $admin_roles_count = 0;
@@ -429,34 +429,37 @@
                 <span>{{ trans('menu.sections.financials') }}</span>
             </li>
             <li
-                class="has-child {{ isParentMenuOpen(['admin.accounting.overview', 'admin.accounting.balance', 'admin.accounting.expenses'], ['admin/accounting*']) ? 'open' : '' }}">
+                class="has-child {{ isParentMenuOpen(['admin.accounting.summary', 'admin.accounting.income', 'admin.accounting.balances', 'admin.accounting.expenses', 'admin.accounting.expense-items'], ['admin/accounting*']) ? 'open' : '' }}">
                 <a href="#"
-                    class="{{ isParentMenuOpen(['admin.accounting.overview', 'admin.accounting.balance', 'admin.accounting.expenses'], ['admin/accounting*']) ? 'active' : '' }}">
+                    class="{{ isParentMenuOpen(['admin.accounting.summary', 'admin.accounting.income', 'admin.accounting.balances', 'admin.accounting.expenses', 'admin.accounting.expense-items'], ['admin/accounting*']) ? 'active' : '' }}">
                     <span class="nav-icon uil uil-invoice"></span>
                     <span class="menu-text">{{ trans('menu.accounting module.title') }}</span>
                     <span class="toggle-icon"></span>
                 </a>
                 <ul class="px-0">
                     @can('accounting.overview.view')
-                        <li><a class="d-flex align-items-center justify-content-between fw-bold"
-                                href="{{ route('admin.dashboard') }}">{{ trans('menu.accounting module.overview') }}</a>
+                        <li><a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive('admin.accounting.summary', $currentRoute) ? 'active' : '' }}"
+                                href="{{ route('admin.accounting.summary') }}">{{ trans('menu.accounting module.overview') }}</a>
                         </li>
                     @endcan
                     @can('accounting.balance.view')
-                        <li><a class="d-flex align-items-center justify-content-between fw-bold"
-                                href="{{ route('admin.dashboard') }}">{{ trans('menu.accounting module.balance') }}</a>
+                        <li><a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive('admin.accounting.balances', $currentRoute) ? 'active' : '' }}"
+                                href="{{ route('admin.accounting.balances') }}">Vendor Balances</a>
                         </li>
                     @endcan
                     @can('accounting.expenses_keys.view')
-                        <li><a class="d-flex align-items-center justify-content-between fw-bold"
-                                href="{{ route('admin.dashboard') }}">{{ trans('menu.accounting module.expenses keys') }}</a>
+                        <li><a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive('admin.accounting.expense-items', $currentRoute) ? 'active' : '' }}"
+                                href="{{ route('admin.accounting.expense-items') }}">Expense Categories</a>
                         </li>
                     @endcan
                     @can('accounting.expenses.view')
-                        <li><a class="d-flex align-items-center justify-content-between fw-bold"
-                                href="{{ route('admin.dashboard') }}">{{ trans('menu.accounting module.expenses') }}</a>
+                        <li><a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive('admin.accounting.expenses', $currentRoute) ? 'active' : '' }}"
+                                href="{{ route('admin.accounting.expenses') }}">Expense Records</a>
                         </li>
                     @endcan
+                    <li><a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive('admin.accounting.income', $currentRoute) ? 'active' : '' }}"
+                            href="{{ route('admin.accounting.income') }}">Income Entries</a>
+                    </li>
                 </ul>
             </li>
         @endcanany
@@ -538,7 +541,7 @@
                             </a>
                         </li>
                     @endcan
-                    
+
                     @can('products.bank')
                         <li>
                             <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive('admin.products.bank', $currentRoute) ? 'active' : '' }}"
@@ -1127,8 +1130,8 @@
                                         } else {
                                             $orderVendor = auth()->user()->vendorByUser ?? auth()->user()->vendorById;
                                             if ($orderVendor) {
-                                                $allOrdersCount = \Modules\Order\app\Models\Order::whereHas('products', function($q) use ($orderVendor) { 
-                                                    $q->where('vendor_id', $orderVendor->id); 
+                                                $allOrdersCount = \Modules\Order\app\Models\Order::whereHas('products', function($q) use ($orderVendor) {
+                                                    $q->where('vendor_id', $orderVendor->id);
                                                 })->count();
                                             }
                                         }
@@ -1171,7 +1174,7 @@
                             })
                                 ->orderBy('sort_order')
                                 ->get();
-                            
+
                             // Get vendor for stage counts
                             $stageVendor = null;
                             if (!isAdmin()) {
@@ -1191,8 +1194,8 @@
                                                 $stageOrderCount = \Modules\Order\app\Models\Order::where('stage_id', $stage->id)->count();
                                             } elseif ($stageVendor) {
                                                 $stageOrderCount = \Modules\Order\app\Models\Order::where('stage_id', $stage->id)
-                                                    ->whereHas('products', function($q) use ($stageVendor) { 
-                                                        $q->where('vendor_id', $stageVendor->id); 
+                                                    ->whereHas('products', function($q) use ($stageVendor) {
+                                                        $q->where('vendor_id', $stageVendor->id);
                                                     })->count();
                                             }
                                         @endphp

@@ -30,7 +30,7 @@ class ActivityLogAction
         }
 
         $orderColumnIndex = $request->get('order')[0]['column'] ?? 0;
-        $orderDirection = $request->get('order')[0]['dir'] ?? 'asc';
+        $orderDirection = $request->get('order')[0]['dir'] ?? 'desc';
 
         Log::info('DataTable Order:', [
             'column_index' => $orderColumnIndex,

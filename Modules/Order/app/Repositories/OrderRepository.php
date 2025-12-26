@@ -82,6 +82,7 @@ class OrderRepository implements OrderRepositoryInterface
             }
             
             $order = $query->findOrFail($id);
+            $previousStage = $order->stage;
 
             // Fetch the new stage (without global scopes to avoid country filtering)
             $newStage = OrderStage::withoutGlobalScopes()->findOrFail($stageId);
@@ -92,7 +93,10 @@ class OrderRepository implements OrderRepositoryInterface
             // Update fulfillment statuses based on stage slug
             $this->updateFulfillmentsByStage($order, $newStage);
 
-            return $order->refresh();
+            // Dispatch event for accounting processing
+            event(new \Modules\Order\app\Events\OrderStageChanged($order->refresh(), $newStage, $previousStage));
+
+            return $order;
         });
     }
 

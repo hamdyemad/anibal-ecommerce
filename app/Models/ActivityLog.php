@@ -33,6 +33,18 @@ class ActivityLog extends Model
     ];
 
     /**
+     * Default ordering by latest first
+     */
+    protected static function boot()
+    {
+        parent::boot();
+        
+        static::addGlobalScope('latest', function ($query) {
+            $query->orderBy('created_at', 'desc');
+        });
+    }
+
+    /**
      * Get the user who performed the action
      */
     public function user()

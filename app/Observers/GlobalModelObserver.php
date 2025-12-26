@@ -18,6 +18,7 @@ class GlobalModelObserver
         'App\Models\PasswordReset',
         'App\Models\FailedJob',
         'App\Models\Translation',
+        'Modules\AreaSettings\app\Models\Country',
     ];
 
 
@@ -87,6 +88,22 @@ class GlobalModelObserver
         foreach ($this->excludedModels as $excludedModel) {
             if ($model instanceof $excludedModel || get_class($model) === $excludedModel) {
                 return false;
+            }
+        }
+
+        // Skip Country model queries during filtering operations
+        if (get_class($model) === 'Modules\AreaSettings\app\Models\Country') {
+            // Check if this is a filtering operation by looking at the stack trace
+            $trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 15);
+            foreach ($trace as $frame) {
+                if (isset($frame['class']) && isset($frame['function'])) {
+                    // Skip if called from CountryCheckIdTrait filtering methods
+                    if (str_contains($frame['class'], 'CountryCheckIdTrait') || 
+                        $frame['function'] === 'resolveCountryId' ||
+                        $frame['function'] === 'scopeForCountry') {
+                        return false;
+                    }
+                }
             }
         }
 

@@ -25,7 +25,7 @@ class ActivityLogRepository implements ActivityLogRepositoryInterface
     /**
      * Get activity logs query for DataTables
      */
-    public function getActivityLogsQuery(array $filters = [], $orderBy = null, $orderDirection = 'asc')
+    public function getActivityLogsQuery(array $filters = [], $orderBy = null, $orderDirection = 'desc')
     {
         try {
             $query = ActivityLog::query();

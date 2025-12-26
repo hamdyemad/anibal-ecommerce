@@ -180,6 +180,7 @@
             let table = $('#activityLogsDataTable').DataTable({
                 processing: true,
                 serverSide: true,
+                order: [[6, 'desc']], // Default order by created_at column (index 6) descending
                 ajax: {
                     url: '{{ route('admin.system-settings.activity-logs.datatable') }}',
                     type: 'GET',

@@ -11,13 +11,31 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('product_variants', function (Blueprint $table) {
-            $table->dropColumn('slug');
-            $table->dropColumn('video_link');
-        });
-        Schema::table('vendor_products', function (Blueprint $table) {
-            $table->string('video_link')->after('is_featured')->nullable();
-        });
+        if (Schema::hasTable('product_variants')) {
+            Schema::table('product_variants', function (Blueprint $table) {
+                // Drop unique index first if it exists
+                try {
+                    $table->dropUnique(['slug']);
+                } catch (\Exception $e) {
+                    // Index might not exist, continue
+                }
+                
+                if (Schema::hasColumn('product_variants', 'slug')) {
+                    $table->dropColumn('slug');
+                }
+                if (Schema::hasColumn('product_variants', 'video_link')) {
+                    $table->dropColumn('video_link');
+                }
+            });
+        }
+        
+        if (Schema::hasTable('vendor_products')) {
+            Schema::table('vendor_products', function (Blueprint $table) {
+                if (!Schema::hasColumn('vendor_products', 'video_link')) {
+                    $table->string('video_link')->after('is_featured')->nullable();
+                }
+            });
+        }
     }
 
     /**
@@ -25,12 +43,23 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('product_variants', function (Blueprint $table) {
-            $table->string('slug')->nullable();
-            $table->string('video_link')->nullable();
-        });
-        Schema::table('vendor_products', function (Blueprint $table) {
-            $table->dropColumn('video_link');
-        });
+        if (Schema::hasTable('product_variants')) {
+            Schema::table('product_variants', function (Blueprint $table) {
+                if (!Schema::hasColumn('product_variants', 'slug')) {
+                    $table->string('slug')->nullable();
+                }
+                if (!Schema::hasColumn('product_variants', 'video_link')) {
+                    $table->string('video_link')->nullable();
+                }
+            });
+        }
+        
+        if (Schema::hasTable('vendor_products')) {
+            Schema::table('vendor_products', function (Blueprint $table) {
+                if (Schema::hasColumn('vendor_products', 'video_link')) {
+                    $table->dropColumn('video_link');
+                }
+            });
+        }
     }
 };

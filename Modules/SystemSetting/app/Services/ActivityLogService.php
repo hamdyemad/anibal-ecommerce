@@ -30,7 +30,7 @@ class ActivityLogService
     /**
      * Get activity logs query for DataTables
      */
-    public function getActivityLogsQuery(array $filters = [], $orderBy = null, $orderDirection = 'asc')
+    public function getActivityLogsQuery(array $filters = [], $orderBy = null, $orderDirection = 'desc')
     {
         try {
             return $this->activityLogRepository->getActivityLogsQuery($filters, $orderBy, $orderDirection);

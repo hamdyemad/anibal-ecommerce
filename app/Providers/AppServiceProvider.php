@@ -18,8 +18,6 @@ use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Route as RouteFacade;
 use Illuminate\Database\Eloquent\Model;
 use App\Observers\GlobalModelObserver;
-use App\Observers\CountryGlobalObserver;
-use App\Observers\CountryObserver;
 use App\Models\ActivityLog;
 use Modules\AreaSettings\app\Models\Country;
 

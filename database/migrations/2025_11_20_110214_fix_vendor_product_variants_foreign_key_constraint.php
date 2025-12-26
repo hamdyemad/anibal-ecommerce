@@ -20,23 +20,11 @@ return new class extends Migration
         Schema::table('vendor_product_variants', function (Blueprint $table) {
             // Check if the column exists and has the wrong constraint
             if (Schema::hasColumn('vendor_product_variants', 'variant_configuration_id')) {
-                // Get all foreign keys for this table
-                $foreignKeys = DB::select("
-                    SELECT CONSTRAINT_NAME
-                    FROM information_schema.KEY_COLUMN_USAGE
-                    WHERE TABLE_SCHEMA = DATABASE()
-                    AND TABLE_NAME = 'vendor_product_variants'
-                    AND COLUMN_NAME = 'variant_configuration_id'
-                    AND CONSTRAINT_NAME != 'PRIMARY'
-                ");
-
                 // Drop existing foreign key constraints for this column
-                foreach ($foreignKeys as $fk) {
-                    try {
-                        DB::statement("ALTER TABLE vendor_product_variants DROP FOREIGN KEY {$fk->CONSTRAINT_NAME}");
-                    } catch (\Exception $e) {
-                        // Constraint might not exist, continue
-                    }
+                try {
+                    $table->dropForeign(['variant_configuration_id']);
+                } catch (\Exception $e) {
+                    // Constraint might not exist, continue
                 }
 
                 // Make the column nullable if it isn't already
