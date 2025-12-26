@@ -17,6 +17,7 @@ return [
     'sales_overview_this_month' => 'نظرة عامة على المبيعات هذا الشهر',
     'orders_and_revenue_statistics' => 'إحصائيات الطلبات والإيرادات',
     'expenses' => 'المصروفات',
+    'commission' => 'العمولة',
     'profit' => 'الربح',
     'income' => 'الدخل',
     'net_profit' => 'صافي الربح',

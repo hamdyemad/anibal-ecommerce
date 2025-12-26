@@ -52,7 +52,7 @@ class DashboardService
         $bestCustomers = $this->getBestCustomers();
         $ordersOverview = $this->getOrdersOverview();
         $salesOverview = $this->getSalesOverview();
-        $incomeExpense = $this->getIncomeExpenseData();
+        $incomeExpense = $this->isVendor ? [] : $this->getIncomeExpenseData(); // Hide for vendors
         $recentActivities = $this->isVendor ? [] : $this->getRecentActivities(); // Hide for vendors
 
         return [
@@ -357,26 +357,35 @@ class DashboardService
         $startOfMonth = $now->copy()->startOfMonth();
         $endOfMonth = $now->copy()->endOfMonth();
 
-        $monthlyIncome = $deliveredStage
-            ? Order::where('stage_id', $deliveredStage->id)
-                ->whereBetween('created_at', [$startOfMonth, $endOfMonth])
-                ->sum('total_price')
-            : 0;
-
-        $monthlyExpenses = 0; // Placeholder - implement based on your expense model
+        // Get actual income from accounting entries
+        $monthlyIncome = \Modules\Accounting\app\Models\AccountingEntry::income()
+            ->whereBetween('created_at', [$startOfMonth, $endOfMonth])
+            ->sum('amount');
+        
+        // Get actual expenses from expense records
+        $monthlyExpenses = \Modules\Accounting\app\Models\Expense::whereBetween('expense_date', [$startOfMonth, $endOfMonth])
+            ->sum('amount');
+        
+        // Get commission from accounting entries
+        $monthlyCommission = \Modules\Accounting\app\Models\AccountingEntry::income()
+            ->whereBetween('created_at', [$startOfMonth, $endOfMonth])
+            ->sum('commission_amount');
         $monthlyProfit = $monthlyIncome - $monthlyExpenses;
 
         // This Year data
         $startOfYear = $now->copy()->startOfYear();
         $endOfYear = $now->copy()->endOfYear();
 
-        $yearlyIncome = $deliveredStage
-            ? Order::where('stage_id', $deliveredStage->id)
-                ->whereBetween('created_at', [$startOfYear, $endOfYear])
-                ->sum('total_price')
-            : 0;
-
-        $yearlyExpenses = 0; // Placeholder - implement based on your expense model
+        $yearlyIncome = \Modules\Accounting\app\Models\AccountingEntry::income()
+            ->whereBetween('created_at', [$startOfYear, $endOfYear])
+            ->sum('amount');
+        
+        $yearlyExpenses = \Modules\Accounting\app\Models\Expense::whereBetween('expense_date', [$startOfYear, $endOfYear])
+            ->sum('amount');
+        
+        $yearlyCommission = \Modules\Accounting\app\Models\AccountingEntry::income()
+            ->whereBetween('created_at', [$startOfYear, $endOfYear])
+            ->sum('commission_amount');
         $yearlyProfit = $yearlyIncome - $yearlyExpenses;
 
         // Monthly breakdown for chart (current year)
@@ -385,16 +394,22 @@ class DashboardService
             $monthStart = Carbon::create($now->year, $month, 1)->startOfMonth();
             $monthEnd = Carbon::create($now->year, $month, 1)->endOfMonth();
 
-            $income = $deliveredStage
-                ? Order::where('stage_id', $deliveredStage->id)
-                    ->whereBetween('created_at', [$monthStart, $monthEnd])
-                    ->sum('total_price')
-                : 0;
+            $income = \Modules\Accounting\app\Models\AccountingEntry::income()
+                ->whereBetween('created_at', [$monthStart, $monthEnd])
+                ->sum('amount');
+            
+            $expenses = \Modules\Accounting\app\Models\Expense::whereBetween('expense_date', [$monthStart, $monthEnd])
+                ->sum('amount');
+            
+            $commission = \Modules\Accounting\app\Models\AccountingEntry::income()
+                ->whereBetween('created_at', [$monthStart, $monthEnd])
+                ->sum('commission_amount');
 
             $monthlyData[] = [
                 'month' => $month,
                 'income' => $income,
-                'expenses' => 0, // Placeholder
+                'expenses' => $expenses,
+                'commission' => $commission,
             ];
         }
 
@@ -404,16 +419,22 @@ class DashboardService
         for ($day = 1; $day <= $daysInMonth; $day++) {
             $dayDate = Carbon::create($now->year, $now->month, $day);
 
-            $income = $deliveredStage
-                ? Order::where('stage_id', $deliveredStage->id)
-                    ->whereDate('created_at', $dayDate)
-                    ->sum('total_price')
-                : 0;
+            $income = \Modules\Accounting\app\Models\AccountingEntry::income()
+                ->whereDate('created_at', $dayDate)
+                ->sum('amount');
+            
+            $expenses = \Modules\Accounting\app\Models\Expense::whereDate('expense_date', $dayDate)
+                ->sum('amount');
+            
+            $commission = \Modules\Accounting\app\Models\AccountingEntry::income()
+                ->whereDate('created_at', $dayDate)
+                ->sum('commission_amount');
 
             $dailyData[] = [
                 'day' => $day,
                 'income' => $income,
-                'expenses' => 0, // Placeholder
+                'expenses' => $expenses,
+                'commission' => $commission,
             ];
         }
 
@@ -421,6 +442,7 @@ class DashboardService
             'month' => [
                 'income' => $monthlyIncome,
                 'expenses' => $monthlyExpenses,
+                'commission' => $monthlyCommission,
                 'profit' => $monthlyProfit,
                 'period' => $now->format('m-Y'),
                 'daily_data' => $dailyData,
@@ -428,6 +450,7 @@ class DashboardService
             'year' => [
                 'income' => $yearlyIncome,
                 'expenses' => $yearlyExpenses,
+                'commission' => $yearlyCommission,
                 'profit' => $yearlyProfit,
                 'period' => $now->year,
                 'monthly_data' => $monthlyData,

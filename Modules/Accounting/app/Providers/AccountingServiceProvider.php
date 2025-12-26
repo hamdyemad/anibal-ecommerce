@@ -27,6 +27,9 @@ class AccountingServiceProvider extends ServiceProvider
         $this->registerConfig();
         $this->registerViews();
         $this->loadMigrationsFrom(module_path($this->name, 'database/migrations'));
+        
+        // Register middleware
+        $this->app['router']->aliasMiddleware('admin.only', \Modules\Accounting\app\Http\Middleware\AdminOnlyMiddleware::class);
     }
 
     /**

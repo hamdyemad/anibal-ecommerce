@@ -12,6 +12,8 @@
                 {{ currency() }} |
                 {{ trans('dashboard.expenses') }}: <span style="color: #dc3545; font-weight: 600;">{{ number_format($incomeExpense['month']['expenses'] ?? 0, 1) }}</span>
                 {{ currency() }} |
+                {{ trans('dashboard.commission') }}: <span style="color: #007bff; font-weight: 600;">{{ number_format($incomeExpense['month']['commission'] ?? 0, 1) }}</span>
+                {{ currency() }} |
                 {{ trans('dashboard.profit') }}: <span style="color: {{ ($incomeExpense['month']['profit'] ?? 0) >= 0 ? '#28a745' : '#dc3545' }}; font-weight: 600;">{{ number_format($incomeExpense['month']['profit'] ?? 0, 1) }}</span>
                 {{ currency() }}
             </div>
@@ -47,6 +49,8 @@
                 {{ trans('dashboard.income') }}: <span style="color: #28a745; font-weight: 600;">{{ number_format($incomeExpense['year']['income'] ?? 0, 1) }}</span>
                 {{ currency() }} |
                 {{ trans('dashboard.expenses') }}: <span style="color: #dc3545; font-weight: 600;">{{ number_format($incomeExpense['year']['expenses'] ?? 0, 1) }}</span>
+                {{ currency() }} |
+                {{ trans('dashboard.commission') }}: <span style="color: #007bff; font-weight: 600;">{{ number_format($incomeExpense['year']['commission'] ?? 0, 1) }}</span>
                 {{ currency() }} |
                 {{ trans('dashboard.profit') }}: <span style="color: {{ ($incomeExpense['year']['profit'] ?? 0) >= 0 ? '#28a745' : '#dc3545' }}; font-weight: 600;">{{ number_format($incomeExpense['year']['profit'] ?? 0, 1) }}</span>
                 {{ currency() }}

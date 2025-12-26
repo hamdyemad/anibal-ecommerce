@@ -17,6 +17,7 @@ return [
     'sales_overview_this_month' => 'Sales Overview This Month',
     'orders_and_revenue_statistics' => 'Orders and Revenue Statistics',
     'expenses' => 'Expenses',
+    'commission' => 'Commission',
     'profit' => 'Profit',
     'income' => 'Income',
     'net_profit' => 'Net Profit',
