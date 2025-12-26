@@ -317,5 +317,8 @@ return [
     'promo_code_valid' => 'رمز الترويج صحيح',
     'promo_code_already_used' => 'لقد استخدمت بالفعل رمز الترويج هذا',
     'promo_code_limit_reached' => 'وصل رمز الترويج هذا إلى حد الاستخدام الأقصى',
-    'cannot_change_stage' => 'لا يمكن تغيير مرحلة الطلب'
+    'cannot_change_stage' => 'لا يمكن تغيير مرحلة الطلب',
+    'invalid_stage' => 'مرحلة غير صحيحة',
+    'transition_not_allowed' => 'لا يمكن الانتقال من :from إلى :to',
+    'error_loading_stages' => 'خطأ في تحميل المراحل المتاحة',
 ];

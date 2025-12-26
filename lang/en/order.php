@@ -317,5 +317,8 @@ return [
     'promo_code_valid' => 'Promo code is valid',
     'promo_code_already_used' => 'You have already used this promo code',
     'promo_code_limit_reached' => 'This promo code has reached its usage limit',
-    'cannot_change_stage' => "Cannot change order stage"
+    'cannot_change_stage' => "Cannot change order stage",
+    'invalid_stage' => 'Invalid stage selected',
+    'transition_not_allowed' => 'Cannot transition from :from to :to',
+    'error_loading_stages' => 'Error loading available stages',
 ];
