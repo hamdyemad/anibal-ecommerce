@@ -46,7 +46,7 @@ class WithdrawController extends Controller
         $perPage = $request->input('length', 10);
         $page = ($request->input('start', 0) / $perPage) + 1;
         $searchValue = $request->input('search', '');
-        
+
         try {
             $query = Withdraw::with([
                 'vendor.translations' => function ($q) {
@@ -396,16 +396,16 @@ class WithdrawController extends Controller
 
         // Get vendor balance info
         $general_info = $this->withdrawService->getVendorBalance($vendor_id);
-        
+
         // Get the vendor's credit (total_vendor_balance = total_balance - bnaia_commission)
         $total_vendor_credit = floatval(str_replace(',', '', $general_info['total_vendor_balance']));
-        
+
         // Get remaining after sent money
         $remaining = floatval(str_replace(',', '', $general_info['remaining']));
-        
+
         // Get waiting approve requests
         $waiting_approve = floatval(str_replace(',', '', $general_info['waiting_approve_requests']));
-        
+
         // Final available balance
         $final_available = $remaining - $waiting_approve;
 
@@ -414,7 +414,7 @@ class WithdrawController extends Controller
             return redirect()->back()
                 ->with('error', trans('withdraw::withdraw.balance_not_allowed'));
         }
-        
+
         // Check if sent amount exceeds available balance
         if ($data["sent_amount"] > $final_available) {
             return redirect()->back()
@@ -450,7 +450,7 @@ class WithdrawController extends Controller
     {
         // Check if user is vendor - use vendor permission
         $isVendorUser = in_array(auth()->user()->user_type_id, UserType::vendorIds());
-        
+
         if ($isVendorUser) {
             Gate::authorize('withdraw.my_transactions.view');
         } else {
@@ -517,7 +517,7 @@ class WithdrawController extends Controller
         $data = $query->get()->map(function ($item) {
             return [
                 'id' => $item->id,
-                'vendor_logo' => asset('storage/' . $item->vendor->logo->path),
+                'vendor_logo' => '',
                 'vendor' => $item->vendor
                     ? optional($item->vendor->translations->first())->lang_value ?? $item->vendor->name
                     : '-',
@@ -557,7 +557,7 @@ class WithdrawController extends Controller
     {
         // Check if user is a vendor type (not admin)
         $isVendorUser = in_array(auth()->user()->user_type_id, UserType::vendorIds());
-        
+
         if ($isVendorUser) {
             Gate::authorize('withdraw.my_transactions.view');
         } else {
@@ -597,13 +597,13 @@ class WithdrawController extends Controller
         $data = [
             'status' => $requestData['status']
         ];
-        
+
         if ($requestData['status'] == 'accepted') {
             Gate::authorize('withdraw.vendor_requests.accept');
         } elseif ($requestData['status'] == 'rejected') {
             Gate::authorize('withdraw.vendor_requests.reject');
         }
-        
+
         $withdraw = Withdraw::find($requestData["request_id"]);
         if ($requestData["status"] == "accepted") {
             $data["sender_id"] = auth()->user()->id;

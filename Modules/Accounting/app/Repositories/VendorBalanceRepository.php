@@ -15,7 +15,7 @@ class VendorBalanceRepository implements VendorBalanceRepositoryInterface
 
     public function getVendorBalancesQuery(array $filters = [])
     {
-        $query = VendorBalance::with(['vendor']);
+        $query = VendorBalance::with(['vendor.user', 'withdraws']);
 
         if (!empty($filters['search'])) {
             $search = $filters['search'];

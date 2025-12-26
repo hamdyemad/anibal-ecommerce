@@ -44,6 +44,21 @@ class VendorBalance extends Model
         );
     }
 
+    public function withdraws()
+    {
+        return $this->hasMany(\Modules\Withdraw\app\Models\Withdraw::class, 'reciever_id', 'vendor_id');
+    }
+
+    public function getTotalWithdrawnAttribute()
+    {
+        return $this->withdraws()->where('status', 'accepted')->sum('sent_amount');
+    }
+
+    public function getActualAvailableBalanceAttribute()
+    {
+        return $this->available_balance - $this->total_withdrawn;
+    }
+
     public function updateBalance($earnings, $commission)
     {
         $this->total_earnings += $earnings;

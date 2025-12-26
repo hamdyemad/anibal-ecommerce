@@ -97,10 +97,12 @@
                                 <tr class="userDatatable-header">
                                     <th class="text-center"><span class="userDatatable-title">#</span></th>
                                     <th><span class="userDatatable-title">{{ __('accounting.vendor_name') }}</span></th>
+                                    <th><span class="userDatatable-title">{{ __('accounting.vendor_email') }}</span></th>
                                     <th><span class="userDatatable-title">{{ __('accounting.total_earnings') }}</span></th>
                                     <th><span class="userDatatable-title">{{ __('accounting.commission_deducted') }}</span></th>
                                     <th><span class="userDatatable-title">{{ __('accounting.available_balance') }}</span></th>
-                                    <th><span class="userDatatable-title">{{ __('accounting.withdrawn_amount') }}</span></th>
+                                    <th><span class="userDatatable-title">{{ __('accounting.total_withdrawn') }}</span></th>
+                                    <th><span class="userDatatable-title">{{ __('accounting.actual_available_balance') }}</span></th>
                                     <th><span class="userDatatable-title">{{ __('accounting.last_updated') }}</span></th>
                                 </tr>
                             </thead>
@@ -152,15 +154,17 @@
                         }
                     },
                     { data: 'vendor_name', name: 'vendor_name' },
+                    { data: 'vendor_email', name: 'vendor_email' },
                     { data: 'total_earnings', name: 'total_earnings' },
                     { data: 'commission_deducted', name: 'commission_deducted' },
                     { data: 'available_balance', name: 'available_balance' },
-                    { data: 'withdrawn_amount', name: 'withdrawn_amount' },
+                    { data: 'total_withdrawn', name: 'total_withdrawn' },
+                    { data: 'actual_available_balance', name: 'actual_available_balance' },
                     { data: 'updated_at', name: 'updated_at' }
                 ],
                 pageLength: per_page,
                 lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]],
-                order: [[7, 'desc']],
+                order: [[8, 'desc']],
                 pagingType: 'full_numbers',
                 dom: '<"row"<"col-sm-12"tr>>' +
                      '<"row mt-3"<"col-sm-12 col-md-5"i><"col-sm-12 col-md-7"p>>'

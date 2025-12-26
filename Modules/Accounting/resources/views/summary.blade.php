@@ -20,7 +20,7 @@
         box-shadow: 0 5px 20px rgba(0,0,0,0.1);
         margin-bottom: 20px;
     }
-    
+
     .metric-item {
         display: flex;
         justify-content: space-between;
@@ -28,21 +28,21 @@
         padding: 15px 0;
         border-bottom: 1px solid #eee;
     }
-    
+
     .metric-item:last-child {
         border-bottom: none;
     }
-    
+
     .metric-label {
         font-weight: 600;
         color: #666;
     }
-    
+
     .metric-value {
         font-weight: bold;
         font-size: 1.1em;
     }
-    
+
     .positive { color: #28a745; }
     .negative { color: #dc3545; }
     .neutral { color: #6c757d; }
@@ -111,7 +111,7 @@
                             <div class="overview-content w-100">
                                 <div class="ap-po-details-content d-flex flex-wrap justify-content-between">
                                     <div class="ap-po-details__titlebar">
-                                        <h1 id="total-income">{{ number_format($summary['total_income'], 2) }} {{ config('app.currency', 'EGP') }}</h1>
+                                        <h1 id="total-income">{{ number_format($summary['total_income'], 2) }} {{ currency() }}</h1>
                                         <p>{{ __('accounting.total_income') }}</p>
                                     </div>
                                     <div class="ap-po-details__icon-area">
@@ -130,7 +130,7 @@
                             <div class="overview-content w-100">
                                 <div class="ap-po-details-content d-flex flex-wrap justify-content-between">
                                     <div class="ap-po-details__titlebar">
-                                        <h1 id="total-expenses">{{ number_format($summary['total_expenses'], 2) }} {{ config('app.currency', 'EGP') }}</h1>
+                                        <h1 id="total-expenses">{{ number_format($summary['total_expenses'], 2) }} {{ currency() }}</h1>
                                         <p>{{ __('accounting.total_expenses') }}</p>
                                     </div>
                                     <div class="ap-po-details__icon-area">
@@ -149,7 +149,7 @@
                             <div class="overview-content w-100">
                                 <div class="ap-po-details-content d-flex flex-wrap justify-content-between">
                                     <div class="ap-po-details__titlebar">
-                                        <h1 id="total-commissions">{{ number_format($summary['total_commissions'], 2) }} {{ config('app.currency', 'EGP') }}</h1>
+                                        <h1 id="total-commissions">{{ number_format($summary['total_commissions'], 2) }} {{ currency() }}</h1>
                                         <p>{{ __('accounting.total_commissions') }}</p>
                                     </div>
                                     <div class="ap-po-details__icon-area">
@@ -168,7 +168,7 @@
                             <div class="overview-content w-100">
                                 <div class="ap-po-details-content d-flex flex-wrap justify-content-between">
                                     <div class="ap-po-details__titlebar">
-                                        <h1 id="net-profit">{{ number_format($summary['net_profit'], 2) }} {{ config('app.currency', 'EGP') }}</h1>
+                                        <h1 id="net-profit">{{ number_format($summary['net_profit'], 2) }} {{ currency() }}</h1>
                                         <p>{{ __('accounting.net_profit') }}</p>
                                     </div>
                                     <div class="ap-po-details__icon-area">
@@ -187,27 +187,27 @@
             <div class="col-lg-8">
                 <div class="chart-container">
                     <h5 class="mb-4">{{ __('accounting.financial_breakdown') }}</h5>
-                    
+
                     <div class="metric-item">
                         <span class="metric-label">{{ __('accounting.gross_revenue') }}</span>
-                        <span class="metric-value positive" id="gross-revenue">{{ number_format($summary['total_income'], 2) }} {{ config('app.currency', 'EGP') }}</span>
+                        <span class="metric-value positive" id="gross-revenue">{{ number_format($summary['total_income'], 2) }} {{ currency() }}</span>
                     </div>
-                    
+
                     <div class="metric-item">
                         <span class="metric-label">{{ __('accounting.operating_expenses') }}</span>
-                        <span class="metric-value negative" id="operating-expenses">{{ number_format($summary['total_expenses'], 2) }} {{ config('app.currency', 'EGP') }}</span>
+                        <span class="metric-value negative" id="operating-expenses">{{ number_format($summary['total_expenses'], 2) }} {{ currency() }}</span>
                     </div>
-                    
+
                     <div class="metric-item">
                         <span class="metric-label">{{ __('accounting.commission_earned') }}</span>
-                        <span class="metric-value positive" id="commission-earned">{{ number_format($summary['total_commissions'], 2) }} {{ config('app.currency', 'EGP') }}</span>
+                        <span class="metric-value positive" id="commission-earned">{{ number_format($summary['total_commissions'], 2) }} {{ currency() }}</span>
                     </div>
-                    
+
                     <div class="metric-item">
                         <span class="metric-label">{{ __('accounting.vendor_payouts') }}</span>
-                        <span class="metric-value neutral" id="vendor-payouts">{{ number_format($summary['total_income'] - $summary['total_commissions'], 2) }} {{ config('app.currency', 'EGP') }}</span>
+                        <span class="metric-value neutral" id="vendor-payouts">{{ number_format($summary['total_income'] - $summary['total_commissions'], 2) }} {{ currency() }}</span>
                     </div>
-                    
+
                     <div class="metric-item">
                         <span class="metric-label">{{ __('accounting.profit_margin') }}</span>
                         <span class="metric-value {{ $summary['total_income'] > 0 ? ($summary['net_profit'] > 0 ? 'positive' : 'negative') : 'neutral' }}" id="profit-margin">
@@ -221,14 +221,14 @@
             <div class="col-lg-4">
                 <div class="chart-container">
                     <h5 class="mb-4">{{ __('accounting.quick_insights') }}</h5>
-                    
+
                     <div class="text-center mb-4">
                         <div class="display-6 fw-bold {{ $summary['total_refunds'] > 0 ? 'text-warning' : 'text-success' }}">
-                            {{ number_format($summary['total_refunds'], 2) }} {{ config('app.currency', 'EGP') }}
+                            {{ number_format($summary['total_refunds'], 2) }} {{ currency() }}
                         </div>
                         <small class="text-muted">{{ __('accounting.total_refunds') }}</small>
                     </div>
-                    
+
                     <div class="row text-center">
                         <div class="col-6">
                             <div class="border-end">

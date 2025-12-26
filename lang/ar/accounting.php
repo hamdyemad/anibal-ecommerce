@@ -67,6 +67,8 @@ return [
     'commission_deducted' => 'العمولة المخصومة',
     'available_balance' => 'الرصيد المتاح',
     'withdrawn_amount' => 'المبلغ المسحوب',
+    'total_withdrawn' => 'إجمالي المسحوب',
+    'actual_available_balance' => 'الرصيد المتاح الفعلي',
     'last_updated' => 'آخر تحديث',
     // Income Records
     'income_records' => 'سجلات الدخل',

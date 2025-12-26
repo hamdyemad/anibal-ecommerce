@@ -25,14 +25,27 @@ class VendorBalanceAction
         $dataPaginated = $this->vendorBalanceService->getAllVendorBalances($filters, $perPage, $page, $orderDirection);
 
         $formattedData = $dataPaginated->map(function ($balance) {
+            // Calculate actual values from order_products table
+            $orderProductsData = \Modules\Order\app\Models\OrderProduct::where('vendor_id', $balance->vendor_id)
+                ->selectRaw('SUM(price * quantity) as total_earnings, SUM(commission) as total_commission')
+                ->first();
+
+            $totalEarnings = $orderProductsData->total_earnings ?? 0;
+            $totalCommission = $orderProductsData->total_commission ?? 0;
+            $availableBalance = $totalEarnings - $totalCommission;
+
+            $totalWithdrawn = $balance->withdraws()->where('status', 'accepted')->sum('sent_amount');
+            $actualAvailableBalance = $availableBalance - $totalWithdrawn;
+
             return [
                 'id' => $balance->id,
-                'vendor_name' => $balance->vendor->name ?? 'N/A',
-                'vendor_email' => $balance->vendor->email ?? 'N/A',
-                'total_earnings' => number_format($balance->total_earnings, 2) . ' ' . currency(),
-                'commission_deducted' => number_format($balance->commission_deducted, 2) . ' ' . currency(),
-                'available_balance' => number_format($balance->available_balance, 2) . ' ' . currency(),
-                'withdrawn_amount' => number_format($balance->withdrawn_amount, 2) . ' ' . currency(),
+                'vendor_name' => $balance->vendor->user->name ?? $balance->vendor->name ?? 'N/A',
+                'vendor_email' => $balance->vendor->user->email ?? $balance->vendor->email ?? 'N/A',
+                'total_earnings' => number_format($totalEarnings, 2) . ' ' . currency(),
+                'commission_deducted' => number_format($totalCommission, 2) . ' ' . currency(),
+                'available_balance' => number_format($availableBalance, 2) . ' ' . currency(),
+                'total_withdrawn' => number_format($totalWithdrawn, 2) . ' ' . currency(),
+                'actual_available_balance' => number_format($actualAvailableBalance, 2) . ' ' . currency(),
                 'updated_at' => $balance->updated_at,
             ];
         });

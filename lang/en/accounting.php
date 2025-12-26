@@ -67,6 +67,8 @@ return [
     'commission_deducted' => 'Commission Deducted',
     'available_balance' => 'Available Balance',
     'withdrawn_amount' => 'Withdrawn Amount',
+    'total_withdrawn' => 'Total Withdrawn',
+    'actual_available_balance' => 'Actual Available Balance',
     'last_updated' => 'Last Updated',
     // Income Records
     'income_records' => 'Income Records',
