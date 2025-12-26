@@ -19,4 +19,40 @@ class IncomeRepository implements IncomeRepositoryInterface
                 columns: ['*']
             );
     }
+
+    public function getAllIncomeEntries(array $filters = [], int $perPage = 15, int $page = 1, string $orderDirection = 'desc')
+    {
+        $query = $this->getIncomeEntriesQuery($filters);
+        return $query->orderBy('created_at', $orderDirection)->paginate($perPage, ['*'], 'page', $page);
+    }
+
+    public function getIncomeEntriesQuery(array $filters = [])
+    {
+        $query = AccountingEntry::income()->with(['order', 'vendor.user']);
+
+        if (!empty($filters['search'])) {
+            $search = $filters['search'];
+            $query->where(function ($q) use ($search) {
+                $q->whereHas('order', function ($subQ) use ($search) {
+                    $subQ->where('order_number', 'like', "%{$search}%");
+                })
+                ->orWhereHas('vendor', function ($q) use ($search) {
+                    $q->whereHas('translations', function($subQ) use ($search) {
+                        $subQ->where('lang_value', 'like', "%{$search}%");
+                    });
+                })
+                ->orWhere('description', 'like', "%{$search}%");
+            });
+        }
+
+        if (!empty($filters['date_from'])) {
+            $query->whereDate('created_at', '>=', $filters['date_from']);
+        }
+
+        if (!empty($filters['date_to'])) {
+            $query->whereDate('created_at', '<=', $filters['date_to']);
+        }
+
+        return $query;
+    }
 }

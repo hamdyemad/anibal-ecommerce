@@ -33,6 +33,7 @@ use Modules\Order\app\Observers\OrderObserver;
 use Modules\Customer\app\Services\Api\CustomerAuthService;
 use Modules\Customer\app\Services\Api\CustomerAddressService;
 use Modules\CatalogManagement\app\Services\Api\ProductApiService;
+use Modules\Order\Providers\EventServiceProvider;
 use Nwidart\Modules\Traits\PathNamespace;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
@@ -67,6 +68,7 @@ class OrderServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->register(\Modules\Order\app\Providers\RouteServiceProvider::class);
+        $this->app->register(EventServiceProvider::class);
 
         // Register repository bindings
         $this->app->bind(

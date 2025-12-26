@@ -3,15 +3,15 @@
 namespace Modules\Accounting\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-use Modules\Accounting\Services\IncomeService;
-use Modules\Accounting\Actions\IncomeAction;
+use Modules\Accounting\Services\VendorBalanceService;
+use Modules\Accounting\Actions\VendorBalanceAction;
 use Illuminate\Http\Request;
 
-class IncomeController extends Controller
+class VendorBalanceController extends Controller
 {
     public function __construct(
-        protected IncomeService $incomeService,
-        protected IncomeAction $incomeAction
+        protected VendorBalanceService $vendorBalanceService,
+        protected VendorBalanceAction $vendorBalanceAction
     ) {}
 
     public function datatable(Request $request)
@@ -30,7 +30,7 @@ class IncomeController extends Controller
         ];
 
         try {
-            $response = $this->incomeAction->getDataTable($data);
+            $response = $this->vendorBalanceAction->getDataTable($data);
 
             return response()->json([
                 'draw' => $data['draw'],
@@ -57,6 +57,6 @@ class IncomeController extends Controller
 
     public function index()
     {
-        return view('accounting::income');
+        return view('accounting::vendor-balances');
     }
 }

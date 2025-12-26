@@ -62,6 +62,11 @@ class AccountingServiceProvider extends ServiceProvider
             \Modules\Accounting\Contracts\BalanceRepositoryInterface::class,
             \Modules\Accounting\Repositories\BalanceRepository::class
         );
+        
+        $this->app->bind(
+            \Modules\Accounting\Contracts\VendorBalanceRepositoryInterface::class,
+            \Modules\Accounting\Repositories\VendorBalanceRepository::class
+        );
     }
 
     /**

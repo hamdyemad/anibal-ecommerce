@@ -18,6 +18,17 @@ return [
     'cancel' => 'Cancel',
     'back' => 'Back',
     'search' => 'Search...',
+    
+    // Email notifications
+    'stage_updated_subject' => 'Order :order_number Status Updated',
+    'stage_updated_title' => 'Order Status Update',
+    'dear_customer' => 'Dear :name,',
+    'stage_updated_message' => 'Your order :order_number status has been updated to: :stage',
+    'order_details' => 'Order Details',
+    'order_number' => 'Order Number',
+    'current_stage' => 'Current Status',
+    'total_amount' => 'Total Amount',
+    'thank_you' => 'Thank you for your business!',
     'no_records' => 'No records found',
     'confirm_delete' => 'Are you sure you want to delete this item?',
     'delete_success' => 'Item deleted successfully',

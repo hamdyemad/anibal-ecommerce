@@ -444,21 +444,21 @@
                     @endcan
                     @can('accounting.balance.view')
                         <li><a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive('admin.accounting.balances', $currentRoute) ? 'active' : '' }}"
-                                href="{{ route('admin.accounting.balances') }}">Vendor Balances</a>
+                                href="{{ route('admin.accounting.balances') }}">{{ trans('menu.accounting module.vendor_balances') }}</a>
                         </li>
                     @endcan
                     @can('accounting.expenses_keys.view')
                         <li><a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive('admin.accounting.expense-items', $currentRoute) ? 'active' : '' }}"
-                                href="{{ route('admin.accounting.expense-items') }}">Expense Categories</a>
+                                href="{{ route('admin.accounting.expense-items') }}">{{ trans('menu.accounting module.expense_categories') }}</a>
                         </li>
                     @endcan
                     @can('accounting.expenses.view')
                         <li><a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive('admin.accounting.expenses', $currentRoute) ? 'active' : '' }}"
-                                href="{{ route('admin.accounting.expenses') }}">Expense Records</a>
+                                href="{{ route('admin.accounting.expenses') }}">{{ trans('menu.accounting module.expense_records') }}</a>
                         </li>
                     @endcan
                     <li><a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive('admin.accounting.income', $currentRoute) ? 'active' : '' }}"
-                            href="{{ route('admin.accounting.income') }}">Income Entries</a>
+                            href="{{ route('admin.accounting.income') }}">{{ trans('menu.accounting module.income_entries') }}</a>
                     </li>
                 </ul>
             </li>

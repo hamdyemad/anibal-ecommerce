@@ -2,17 +2,14 @@
 
 namespace Modules\Accounting\app\Models;
 
-use App\Models\BaseModel;
 use App\Models\Traits\HumanDates;
-use App\Models\Traits\AutoStoreCountryId;
-use App\Models\Traits\CountryCheckIdTrait;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Modules\Vendor\app\Models\Vendor;
 
-class VendorBalance extends BaseModel
+class VendorBalance extends Model
 {
-    use HasFactory, SoftDeletes, HumanDates, AutoStoreCountryId, CountryCheckIdTrait;
+    use HasFactory, SoftDeletes, HumanDates;
 
     protected $fillable = [
         'vendor_id',
@@ -32,7 +29,19 @@ class VendorBalance extends BaseModel
 
     public function vendor()
     {
-        return $this->belongsTo(Vendor::class);
+        return $this->belongsTo(\Modules\Vendor\app\Models\Vendor::class);
+    }
+
+    public function user()
+    {
+        return $this->hasOneThrough(
+            \App\Models\User::class,
+            \Modules\Vendor\app\Models\Vendor::class,
+            'id',
+            'id',
+            'vendor_id',
+            'user_id'
+        );
     }
 
     public function updateBalance($earnings, $commission)
@@ -41,31 +50,5 @@ class VendorBalance extends BaseModel
         $this->commission_deducted += $commission;
         $this->available_balance = $this->total_earnings - $this->commission_deducted - $this->withdrawn_amount;
         $this->save();
-    }
-
-    protected function applyCustomSearch(\Illuminate\Database\Eloquent\Builder $query, string $search): \Illuminate\Database\Eloquent\Builder
-    {
-        $query->whereHas('vendor', function($subQ) use ($search) {
-            $subQ->where('name', 'like', "%{$search}%")
-                 ->orWhere('email', 'like', "%{$search}%");
-        });
-        
-        return $query;
-    }
-
-    public function scopeMinBalance($query, $minBalance)
-    {
-        return $query->where('available_balance', '>=', $minBalance);
-    }
-
-    public function scopeFilter($query, array $filters)
-    {
-        parent::scopeFilter($query, $filters);
-        
-        if (!empty($filters['min_balance'])) {
-            $query->minBalance($filters['min_balance']);
-        }
-        
-        return $query;
     }
 }

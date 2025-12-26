@@ -18,6 +18,17 @@ return [
     'cancel' => 'إلغاء',
     'back' => 'رجوع',
     'search' => 'بحث...',
+    
+    // Email notifications
+    'stage_updated_subject' => 'تم تحديث حالة الطلب :order_number',
+    'stage_updated_title' => 'تحديث حالة الطلب',
+    'dear_customer' => 'عزيزي :name،',
+    'stage_updated_message' => 'تم تحديث حالة طلبك :order_number إلى: :stage',
+    'order_details' => 'تفاصيل الطلب',
+    'order_number' => 'رقم الطلب',
+    'current_stage' => 'الحالة الحالية',
+    'total_amount' => 'المبلغ الإجمالي',
+    'thank_you' => 'شكراً لك على ثقتك بنا!',
     'no_records' => 'لا توجد سجلات',
     'confirm_delete' => 'هل أنت متأكد من حذف هذا العنصر؟',
     'delete_success' => 'تم الحذف بنجاح',

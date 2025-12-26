@@ -36,11 +36,12 @@
             'create' => 'create',
         ],
         'accounting module' => [
-            'title' => 'accounting module',
-            'overview' => 'overview',
-            'balance' => 'balance',
-            'expenses keys' => 'expenses keys',
-            'expenses' => 'expenses',
+            'title' => 'Accounting Module',
+            'overview' => 'Overview',
+            'vendor_balances' => 'Vendor Balances',
+            'expense_categories' => 'Expense Categories',
+            'expense_records' => 'Expense Records',
+            'income_entries' => 'Income Entries',
         ],
         'withdraw module' => [
             'title' => 'withdraw module',

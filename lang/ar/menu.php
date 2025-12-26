@@ -38,9 +38,10 @@
         'accounting module' => [
             'title' => 'وحدة المحاسبة',
             'overview' => 'نظرة عامة',
-            'balance' => 'الرصيد',
-            'expenses keys' => 'مفاتيح المصروفات',
-            'expenses' => 'المصروفات',
+            'vendor_balances' => 'أرصدة التجار',
+            'expense_categories' => 'فئات المصروفات',
+            'expense_records' => 'سجلات المصروفات',
+            'income_entries' => 'إدخالات الدخل',
         ],
         'withdraw module' => [
             'title' => 'وحدة السحب',

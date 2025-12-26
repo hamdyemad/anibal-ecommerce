@@ -1,6 +1,6 @@
 @extends('layout.app')
 
-@section('title', __('accounting.income_records'))
+@section('title', __('accounting.vendor_balance_overview'))
 
 @push('styles')
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
@@ -17,7 +17,7 @@
                             <ol class="breadcrumb">
                                 <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}"><i class="uil uil-estate"></i>{{ __('accounting.dashboard') }}</a></li>
                                 <li class="breadcrumb-item"><a href="{{ route('admin.accounting.summary') }}">{{ __('accounting.accounting') }}</a></li>
-                                <li class="breadcrumb-item active">{{ __('accounting.income_records') }}</li>
+                                <li class="breadcrumb-item active">{{ __('accounting.vendor_balance_overview') }}</li>
                             </ol>
                         </nav>
                     </div>
@@ -27,7 +27,7 @@
             <div class="col-12">
                 <div class="userDatatable global-shadow border-light-0 p-30 bg-white radius-xl w-100 mb-30">
                     <div class="d-flex justify-content-between align-items-center mb-25">
-                        <h4 class="mb-0 fw-500 fw-bold">{{ __('accounting.income_records') }}</h4>
+                        <h4 class="mb-0 fw-500 fw-bold">{{ __('accounting.vendor_balance_overview') }}</h4>
                     </div>
                     {{-- Search & Filters --}}
                     <div class="mb-25">
@@ -40,7 +40,7 @@
                                             <label for="search" class="il-gray fs-14 fw-500 mb-10">
                                                 <i class="uil uil-search me-1"></i> {{ __('accounting.search') }}
                                             </label>
-                                            <input type="text" class="form-control ih-medium ip-gray radius-xs b-light px-15" id="search" placeholder="{{ __('accounting.search_income') }}..." autocomplete="off">
+                                            <input type="text" class="form-control ih-medium ip-gray radius-xs b-light px-15" id="search" placeholder="{{ __('accounting.search_vendors') }}..." autocomplete="off">
                                         </div>
                                     </div>
 
@@ -92,17 +92,16 @@
 
                     {{-- DataTable --}}
                     <div class="table-responsive">
-                        <table id="incomeDataTable" class="table mb-0 table-bordered table-hover" style="width:100%">
+                        <table id="vendorBalancesDataTable" class="table mb-0 table-bordered table-hover" style="width:100%">
                             <thead>
                                 <tr class="userDatatable-header">
                                     <th class="text-center"><span class="userDatatable-title">#</span></th>
-                                    <th><span class="userDatatable-title">{{ __('accounting.order_number') }}</span></th>
                                     <th><span class="userDatatable-title">{{ __('accounting.vendor_name') }}</span></th>
-                                    <th><span class="userDatatable-title">{{ __('accounting.total_amount') }}</span></th>
-                                    <th><span class="userDatatable-title">{{ __('accounting.commission_amount') }}</span></th>
-                                    <th><span class="userDatatable-title">{{ __('accounting.vendor_amount') }}</span></th>
-                                    <th><span class="userDatatable-title">{{ __('accounting.description') }}</span></th>
-                                    <th><span class="userDatatable-title">{{ __('accounting.created') }}</span></th>
+                                    <th><span class="userDatatable-title">{{ __('accounting.total_earnings') }}</span></th>
+                                    <th><span class="userDatatable-title">{{ __('accounting.commission_deducted') }}</span></th>
+                                    <th><span class="userDatatable-title">{{ __('accounting.available_balance') }}</span></th>
+                                    <th><span class="userDatatable-title">{{ __('accounting.withdrawn_amount') }}</span></th>
+                                    <th><span class="userDatatable-title">{{ __('accounting.last_updated') }}</span></th>
                                 </tr>
                             </thead>
                             <tbody></tbody>
@@ -126,11 +125,11 @@
         $(document).ready(function() {
             let per_page = 10;
 
-            let table = $('#incomeDataTable').DataTable({
+            let table = $('#vendorBalancesDataTable').DataTable({
                 processing: true,
                 serverSide: true,
                 ajax: {
-                    url: '{{ route('admin.accounting.income.datatable') }}',
+                    url: '{{ route('admin.accounting.vendor-balances.datatable') }}',
                     type: 'GET',
                     data: function(d) {
                         d.per_page = d.length;
@@ -152,13 +151,12 @@
                             return meta.row + meta.settings._iDisplayStart + 1;
                         }
                     },
-                    { data: 'order_number', name: 'order_number' },
                     { data: 'vendor_name', name: 'vendor_name' },
-                    { data: 'amount', name: 'amount' },
-                    { data: 'commission_amount', name: 'commission_amount' },
-                    { data: 'vendor_amount', name: 'vendor_amount' },
-                    { data: 'description', name: 'description' },
-                    { data: 'created_at', name: 'created_at' }
+                    { data: 'total_earnings', name: 'total_earnings' },
+                    { data: 'commission_deducted', name: 'commission_deducted' },
+                    { data: 'available_balance', name: 'available_balance' },
+                    { data: 'withdrawn_amount', name: 'withdrawn_amount' },
+                    { data: 'updated_at', name: 'updated_at' }
                 ],
                 pageLength: per_page,
                 lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]],
