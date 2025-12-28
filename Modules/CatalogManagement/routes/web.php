@@ -72,6 +72,9 @@ Route::group(['prefix' => 'products'], function() {
     Route::get('pending', 'ProductController@pending')->name('products.pending');
     Route::get('rejected', 'ProductController@rejected')->name('products.rejected');
     Route::get('accepted', 'ProductController@accepted')->name('products.accepted');
+    
+    // Search bank products for product creation (accessible with products.create permission)
+    Route::get('search-bank-products', 'ProductController@searchBankProducts')->name('products.search-bank-products');
 
     Route::prefix('bank')->group(function () {
         // Product Bank routes (must be before resource to avoid conflict with {product} parameter)

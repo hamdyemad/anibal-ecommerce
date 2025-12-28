@@ -2301,7 +2301,7 @@
                     $('#products-list-container').hide();
 
                     $.ajax({
-                        url: '{{ route('admin.products.bank.api.products') }}',
+                        url: '{{ route('admin.products.search-bank-products') }}',
                         type: 'GET',
                         data: {
                             type: 'search',

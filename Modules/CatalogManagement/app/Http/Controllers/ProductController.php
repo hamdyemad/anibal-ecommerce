@@ -56,7 +56,7 @@ class ProductController extends Controller
         protected BankService $productBankService,
     ) {
         $this->middleware('can:products.index')->only(['index', 'datatable', 'pending', 'rejected', 'accepted']);
-        $this->middleware('can:products.create')->only(['create', 'store']);
+        $this->middleware('can:products.create')->only(['create', 'store', 'searchBankProducts']);
         $this->middleware('can:products.edit')->only(['edit', 'update', 'moveToBank']);
         $this->middleware('can:products.stock-management')->only(['stockManagement', 'updateStockPricing']);
         $this->middleware('can:products.delete')->only(['destroy']);
@@ -829,6 +829,43 @@ class ProductController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => __('catalogmanagement::product.error_restoring_vendor_product')
+            ], 500);
+        }
+    }
+
+    /**
+     * Search bank products for product creation
+     * This endpoint is accessible to users with products.create permission
+     */
+    public function searchBankProducts(Request $request)
+    {
+        try {
+            $search = $request->get('search', '');
+            $vendorId = $request->get('vendor_id');
+            $perPage = (int) $request->get('per_page', 20);
+
+            $products = $this->productBankService->getAllBankProducts([
+                'search' => $search,
+                'exclude_vendor_id' => $vendorId,
+            ], $perPage);
+
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'products' => \Modules\CatalogManagement\app\Http\Resources\BankProductResource::collection($products->items()),
+                    'current_page' => $products->currentPage(),
+                    'last_page' => $products->lastPage(),
+                    'total' => $products->total()
+                ]
+            ]);
+        } catch (Exception $e) {
+            Log::error('Search bank products error: ' . $e->getMessage(), [
+                'search' => $request->get('search'),
+                'vendor_id' => $request->get('vendor_id'),
+            ]);
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
             ], 500);
         }
     }
