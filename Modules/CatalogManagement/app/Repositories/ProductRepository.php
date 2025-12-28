@@ -978,12 +978,6 @@ class ProductRepository implements ProductInterface
             }
 
             // Normal status update without bank product assignment
-            if ($data['status'] == 'approved') {
-                $vendorProduct->product->update([
-                    'type' => Product::TYPE_BANK
-                ]);
-            }
-
             $vendorProduct->update([
                 'status' => $data['status'],
                 'rejection_reason' => $data['status'] === 'rejected' ? ($data['rejection_reason'] ?? null) : null
