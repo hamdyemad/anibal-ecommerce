@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\Accounting\Providers;
+namespace Modules\Accounting\app\Providers;
 
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
 use Modules\Order\app\Events\OrderStageChanged;

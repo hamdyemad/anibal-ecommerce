@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\Accounting\Http\Requests;
+namespace Modules\Accounting\app\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -20,3 +20,4 @@ class IncomeRequest extends FormRequest
         ];
     }
 }
+

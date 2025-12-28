@@ -1,10 +1,10 @@
 <?php
 
-namespace Modules\Accounting\Http\Controllers;
+namespace Modules\Accounting\app\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-use Modules\Accounting\Http\Requests\BalancesRequest;
-use Modules\Accounting\Services\BalanceService;
+use Modules\Accounting\app\Http\Requests\BalancesRequest;
+use Modules\Accounting\app\Services\BalanceService;
 use Illuminate\Http\Request;
 
 class BalanceController extends Controller
@@ -17,3 +17,5 @@ class BalanceController extends Controller
         return view('accounting::balances', compact('balances'));
     }
 }
+
+

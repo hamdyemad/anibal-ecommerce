@@ -1,8 +1,8 @@
 <?php
 
-namespace Modules\Accounting\Services;
+namespace Modules\Accounting\app\Services;
 
-use Modules\Accounting\Contracts\BalanceRepositoryInterface;
+use Modules\Accounting\app\Contracts\BalanceRepositoryInterface;
 
 class BalanceService
 {
@@ -13,3 +13,5 @@ class BalanceService
         return $this->repository->getVendorBalances($filters);
     }
 }
+
+

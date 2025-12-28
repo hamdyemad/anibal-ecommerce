@@ -1,8 +1,8 @@
 <?php
 
-namespace Modules\Accounting\Services;
+namespace Modules\Accounting\app\Services;
 
-use Modules\Accounting\Contracts\IncomeRepositoryInterface;
+use Modules\Accounting\app\Contracts\IncomeRepositoryInterface;
 
 class IncomeService
 {
@@ -23,3 +23,5 @@ class IncomeService
         return $this->repository->getIncomeEntriesQuery($filters);
     }
 }
+
+

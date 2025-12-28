@@ -1,8 +1,9 @@
 <?php
 
-namespace Modules\Accounting\Services;
+namespace Modules\Accounting\app\Services;
 
-use Modules\Accounting\Contracts\ExpenseItemRepositoryInterface;
+use Modules\Accounting\app\Contracts\ExpenseItemRepositoryInterface;
+use App\Models\Language;
 
 class ExpenseItemService
 {
@@ -26,7 +27,17 @@ class ExpenseItemService
         
         $expenseItem = $this->expenseItemRepository->create($data);
         
-        // Handle translations
+        // Handle translations - new format with translations array
+        if (isset($data['translations']) && is_array($data['translations'])) {
+            foreach ($data['translations'] as $langId => $translation) {
+                $language = Language::find($langId);
+                if ($language && isset($translation['name'])) {
+                    $expenseItem->setTranslation('name', $language->code, $translation['name']);
+                }
+            }
+        }
+        
+        // Legacy format support
         if (isset($data['name_en'])) {
             $expenseItem->setTranslation('name', 'en', $data['name_en']);
         }
@@ -43,7 +54,17 @@ class ExpenseItemService
         
         $expenseItem = $this->expenseItemRepository->update($id, $data);
         
-        // Handle translations
+        // Handle translations - new format with translations array
+        if (isset($data['translations']) && is_array($data['translations'])) {
+            foreach ($data['translations'] as $langId => $translation) {
+                $language = Language::find($langId);
+                if ($language && isset($translation['name'])) {
+                    $expenseItem->setTranslation('name', $language->code, $translation['name']);
+                }
+            }
+        }
+        
+        // Legacy format support
         if (isset($data['name_en'])) {
             $expenseItem->setTranslation('name', 'en', $data['name_en']);
         }
@@ -59,3 +80,5 @@ class ExpenseItemService
         return $this->expenseItemRepository->delete($id);
     }
 }
+
+

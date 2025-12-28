@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\Accounting\Contracts;
+namespace Modules\Accounting\app\Contracts;
 
 interface SummaryRepositoryInterface
 {
@@ -16,3 +16,4 @@ interface BalanceRepositoryInterface
 {
     public function getVendorBalances(array $filters = []);
 }
+

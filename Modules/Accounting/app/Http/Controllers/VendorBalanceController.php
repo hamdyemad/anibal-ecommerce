@@ -1,10 +1,10 @@
 <?php
 
-namespace Modules\Accounting\Http\Controllers;
+namespace Modules\Accounting\app\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-use Modules\Accounting\Services\VendorBalanceService;
-use Modules\Accounting\Actions\VendorBalanceAction;
+use Modules\Accounting\app\Services\VendorBalanceService;
+use Modules\Accounting\app\Actions\VendorBalanceAction;
 use Illuminate\Http\Request;
 
 class VendorBalanceController extends Controller
@@ -60,3 +60,5 @@ class VendorBalanceController extends Controller
         return view('accounting::vendor-balances');
     }
 }
+
+

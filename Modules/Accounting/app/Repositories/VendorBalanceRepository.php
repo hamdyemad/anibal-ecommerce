@@ -1,9 +1,9 @@
 <?php
 
-namespace Modules\Accounting\Repositories;
+namespace Modules\Accounting\app\Repositories;
 
 use Modules\Accounting\app\Models\VendorBalance;
-use Modules\Accounting\Contracts\VendorBalanceRepositoryInterface;
+use Modules\Accounting\app\Contracts\VendorBalanceRepositoryInterface;
 
 class VendorBalanceRepository implements VendorBalanceRepositoryInterface
 {
@@ -37,3 +37,5 @@ class VendorBalanceRepository implements VendorBalanceRepositoryInterface
         return $query;
     }
 }
+
+

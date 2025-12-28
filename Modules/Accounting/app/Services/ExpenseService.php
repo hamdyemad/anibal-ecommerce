@@ -1,8 +1,8 @@
 <?php
 
-namespace Modules\Accounting\Services;
+namespace Modules\Accounting\app\Services;
 
-use Modules\Accounting\Contracts\ExpenseRepositoryInterface;
+use Modules\Accounting\app\Contracts\ExpenseRepositoryInterface;
 
 class ExpenseService
 {
@@ -61,3 +61,5 @@ class ExpenseService
         }
     }
 }
+
+

@@ -1,10 +1,10 @@
 <?php
 
-namespace Modules\Accounting\Services;
+namespace Modules\Accounting\app\Services;
 
-use Modules\Accounting\Contracts\SummaryRepositoryInterface;
-use Modules\Accounting\Contracts\IncomeRepositoryInterface;
-use Modules\Accounting\Contracts\BalanceRepositoryInterface;
+use Modules\Accounting\app\Contracts\SummaryRepositoryInterface;
+use Modules\Accounting\app\Contracts\IncomeRepositoryInterface;
+use Modules\Accounting\app\Contracts\BalanceRepositoryInterface;
 
 class SummaryService
 {
@@ -35,3 +35,5 @@ class BalanceService
         return $this->repository->getVendorBalances($filters);
     }
 }
+
+

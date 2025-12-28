@@ -1,9 +1,9 @@
 <?php
 
-namespace Modules\Accounting\Repositories;
+namespace Modules\Accounting\app\Repositories;
 
 use Modules\Accounting\app\Models\ExpenseItem;
-use Modules\Accounting\Contracts\ExpenseItemRepositoryInterface;
+use Modules\Accounting\app\Contracts\ExpenseItemRepositoryInterface;
 
 class ExpenseItemRepository implements ExpenseItemRepositoryInterface
 {
@@ -45,3 +45,5 @@ class ExpenseItemRepository implements ExpenseItemRepositoryInterface
         return $expenseItem->delete();
     }
 }
+
+

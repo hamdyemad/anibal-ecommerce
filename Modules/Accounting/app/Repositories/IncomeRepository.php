@@ -1,8 +1,8 @@
 <?php
 
-namespace Modules\Accounting\Repositories;
+namespace Modules\Accounting\app\Repositories;
 
-use Modules\Accounting\Contracts\IncomeRepositoryInterface;
+use Modules\Accounting\app\Contracts\IncomeRepositoryInterface;
 use Modules\Accounting\app\Models\AccountingEntry;
 
 class IncomeRepository implements IncomeRepositoryInterface
@@ -56,3 +56,5 @@ class IncomeRepository implements IncomeRepositoryInterface
         return $query;
     }
 }
+
+

@@ -1,8 +1,9 @@
 <?php
 
-namespace Modules\Accounting\Contracts;
+namespace Modules\Accounting\app\Contracts;
 
 interface BalanceRepositoryInterface
 {
     public function getVendorBalances(array $filters = []);
 }
+

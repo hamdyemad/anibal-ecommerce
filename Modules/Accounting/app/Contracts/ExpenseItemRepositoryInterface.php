@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\Accounting\Contracts;
+namespace Modules\Accounting\app\Contracts;
 
 interface ExpenseItemRepositoryInterface
 {
@@ -10,3 +10,4 @@ interface ExpenseItemRepositoryInterface
     public function update(string $id, array $data);
     public function delete(string $id);
 }
+

@@ -1,8 +1,8 @@
 <?php
 
-namespace Modules\Accounting\Actions;
+namespace Modules\Accounting\app\Actions;
 
-use Modules\Accounting\Services\VendorBalanceService;
+use Modules\Accounting\app\Services\VendorBalanceService;
 
 class VendorBalanceAction
 {
@@ -58,3 +58,5 @@ class VendorBalanceAction
         ];
     }
 }
+
+

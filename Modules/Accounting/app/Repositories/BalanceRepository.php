@@ -1,8 +1,8 @@
 <?php
 
-namespace Modules\Accounting\Repositories;
+namespace Modules\Accounting\app\Repositories;
 
-use Modules\Accounting\Contracts\BalanceRepositoryInterface;
+use Modules\Accounting\app\Contracts\BalanceRepositoryInterface;
 use Modules\Accounting\app\Models\VendorBalance;
 
 class BalanceRepository implements BalanceRepositoryInterface
@@ -19,3 +19,5 @@ class BalanceRepository implements BalanceRepositoryInterface
             );
     }
 }
+
+

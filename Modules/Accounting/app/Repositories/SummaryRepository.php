@@ -1,8 +1,8 @@
 <?php
 
-namespace Modules\Accounting\Repositories;
+namespace Modules\Accounting\app\Repositories;
 
-use Modules\Accounting\Contracts\SummaryRepositoryInterface;
+use Modules\Accounting\app\Contracts\SummaryRepositoryInterface;
 use Modules\Accounting\app\Models\AccountingEntry;
 use Modules\Accounting\app\Models\Expense;
 
@@ -35,3 +35,5 @@ class SummaryRepository implements SummaryRepositoryInterface
         ];
     }
 }
+
+

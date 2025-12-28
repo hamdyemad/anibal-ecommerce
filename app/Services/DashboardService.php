@@ -357,36 +357,59 @@ class DashboardService
         $startOfMonth = $now->copy()->startOfMonth();
         $endOfMonth = $now->copy()->endOfMonth();
 
-        // Get actual income from accounting entries
-        $monthlyIncome = \Modules\Accounting\app\Models\AccountingEntry::income()
-            ->whereBetween('created_at', [$startOfMonth, $endOfMonth])
-            ->sum('amount');
+        // Get income from delivered orders (total_price after delivery)
+        $monthlyIncome = $deliveredStage 
+            ? Order::withoutGlobalScopes()
+                ->where('stage_id', $deliveredStage->id)
+                ->whereBetween('created_at', [$startOfMonth, $endOfMonth])
+                ->sum('total_price')
+            : 0;
         
         // Get actual expenses from expense records
-        $monthlyExpenses = \Modules\Accounting\app\Models\Expense::whereBetween('expense_date', [$startOfMonth, $endOfMonth])
+        $monthlyExpenses = \Modules\Accounting\app\Models\Expense::withoutGlobalScopes()
+            ->whereBetween('expense_date', [$startOfMonth, $endOfMonth])
             ->sum('amount');
         
-        // Get commission from accounting entries
-        $monthlyCommission = \Modules\Accounting\app\Models\AccountingEntry::income()
-            ->whereBetween('created_at', [$startOfMonth, $endOfMonth])
-            ->sum('commission_amount');
-        $monthlyProfit = $monthlyIncome - $monthlyExpenses;
+        // Get commission from delivered order products
+        $monthlyCommission = $deliveredStage 
+            ? \Modules\Order\app\Models\OrderProduct::withoutGlobalScopes()
+                ->whereHas('order', function($q) use ($deliveredStage, $startOfMonth, $endOfMonth) {
+                    $q->withoutGlobalScopes()
+                      ->where('stage_id', $deliveredStage->id)
+                      ->whereBetween('created_at', [$startOfMonth, $endOfMonth]);
+                })
+                ->sum('commission')
+            : 0;
+        
+        // Profit = Commission earned - Expenses
+        $monthlyProfit = $monthlyCommission - $monthlyExpenses;
 
         // This Year data
         $startOfYear = $now->copy()->startOfYear();
         $endOfYear = $now->copy()->endOfYear();
 
-        $yearlyIncome = \Modules\Accounting\app\Models\AccountingEntry::income()
-            ->whereBetween('created_at', [$startOfYear, $endOfYear])
+        $yearlyIncome = $deliveredStage 
+            ? Order::withoutGlobalScopes()
+                ->where('stage_id', $deliveredStage->id)
+                ->whereBetween('created_at', [$startOfYear, $endOfYear])
+                ->sum('total_price')
+            : 0;
+        
+        $yearlyExpenses = \Modules\Accounting\app\Models\Expense::withoutGlobalScopes()
+            ->whereBetween('expense_date', [$startOfYear, $endOfYear])
             ->sum('amount');
         
-        $yearlyExpenses = \Modules\Accounting\app\Models\Expense::whereBetween('expense_date', [$startOfYear, $endOfYear])
-            ->sum('amount');
+        $yearlyCommission = $deliveredStage 
+            ? \Modules\Order\app\Models\OrderProduct::withoutGlobalScopes()
+                ->whereHas('order', function($q) use ($deliveredStage, $startOfYear, $endOfYear) {
+                    $q->withoutGlobalScopes()
+                      ->where('stage_id', $deliveredStage->id)
+                      ->whereBetween('created_at', [$startOfYear, $endOfYear]);
+                })
+                ->sum('commission')
+            : 0;
         
-        $yearlyCommission = \Modules\Accounting\app\Models\AccountingEntry::income()
-            ->whereBetween('created_at', [$startOfYear, $endOfYear])
-            ->sum('commission_amount');
-        $yearlyProfit = $yearlyIncome - $yearlyExpenses;
+        $yearlyProfit = $yearlyCommission - $yearlyExpenses;
 
         // Monthly breakdown for chart (current year)
         $monthlyData = [];
@@ -394,16 +417,26 @@ class DashboardService
             $monthStart = Carbon::create($now->year, $month, 1)->startOfMonth();
             $monthEnd = Carbon::create($now->year, $month, 1)->endOfMonth();
 
-            $income = \Modules\Accounting\app\Models\AccountingEntry::income()
-                ->whereBetween('created_at', [$monthStart, $monthEnd])
+            $income = $deliveredStage 
+                ? Order::withoutGlobalScopes()
+                    ->where('stage_id', $deliveredStage->id)
+                    ->whereBetween('created_at', [$monthStart, $monthEnd])
+                    ->sum('total_price')
+                : 0;
+            
+            $expenses = \Modules\Accounting\app\Models\Expense::withoutGlobalScopes()
+                ->whereBetween('expense_date', [$monthStart, $monthEnd])
                 ->sum('amount');
             
-            $expenses = \Modules\Accounting\app\Models\Expense::whereBetween('expense_date', [$monthStart, $monthEnd])
-                ->sum('amount');
-            
-            $commission = \Modules\Accounting\app\Models\AccountingEntry::income()
-                ->whereBetween('created_at', [$monthStart, $monthEnd])
-                ->sum('commission_amount');
+            $commission = $deliveredStage 
+                ? \Modules\Order\app\Models\OrderProduct::withoutGlobalScopes()
+                    ->whereHas('order', function($q) use ($deliveredStage, $monthStart, $monthEnd) {
+                        $q->withoutGlobalScopes()
+                          ->where('stage_id', $deliveredStage->id)
+                          ->whereBetween('created_at', [$monthStart, $monthEnd]);
+                    })
+                    ->sum('commission')
+                : 0;
 
             $monthlyData[] = [
                 'month' => $month,
@@ -419,16 +452,26 @@ class DashboardService
         for ($day = 1; $day <= $daysInMonth; $day++) {
             $dayDate = Carbon::create($now->year, $now->month, $day);
 
-            $income = \Modules\Accounting\app\Models\AccountingEntry::income()
-                ->whereDate('created_at', $dayDate)
+            $income = $deliveredStage 
+                ? Order::withoutGlobalScopes()
+                    ->where('stage_id', $deliveredStage->id)
+                    ->whereDate('created_at', $dayDate)
+                    ->sum('total_price')
+                : 0;
+            
+            $expenses = \Modules\Accounting\app\Models\Expense::withoutGlobalScopes()
+                ->whereDate('expense_date', $dayDate)
                 ->sum('amount');
             
-            $expenses = \Modules\Accounting\app\Models\Expense::whereDate('expense_date', $dayDate)
-                ->sum('amount');
-            
-            $commission = \Modules\Accounting\app\Models\AccountingEntry::income()
-                ->whereDate('created_at', $dayDate)
-                ->sum('commission_amount');
+            $commission = $deliveredStage 
+                ? \Modules\Order\app\Models\OrderProduct::withoutGlobalScopes()
+                    ->whereHas('order', function($q) use ($deliveredStage, $dayDate) {
+                        $q->withoutGlobalScopes()
+                          ->where('stage_id', $deliveredStage->id)
+                          ->whereDate('created_at', $dayDate);
+                    })
+                    ->sum('commission')
+                : 0;
 
             $dailyData[] = [
                 'day' => $day,

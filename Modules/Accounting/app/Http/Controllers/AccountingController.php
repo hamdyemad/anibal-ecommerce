@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\Accounting\Http\Controllers;
+namespace Modules\Accounting\app\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Modules\Accounting\app\Services\AccountingService;
@@ -8,18 +8,18 @@ use Modules\Accounting\app\Models\AccountingEntry;
 use Modules\Accounting\app\Models\VendorBalance;
 use Modules\Accounting\app\Models\ExpenseItem;
 use Modules\Accounting\app\Models\Expense;
-use Modules\Accounting\Http\Requests\StoreExpenseItemRequest;
-use Modules\Accounting\Http\Requests\UpdateExpenseItemRequest;
-use Modules\Accounting\Http\Requests\StoreExpenseRequest;
-use Modules\Accounting\Http\Requests\UpdateExpenseRequest;
-use Modules\Accounting\Http\Requests\AccountingSummaryRequest;
-use Modules\Accounting\Http\Requests\IncomeRequest;
-use Modules\Accounting\Http\Requests\BalancesRequest;
-use Modules\Accounting\Services\ExpenseItemService;
-use Modules\Accounting\Services\ExpenseService;
-use Modules\Accounting\Services\SummaryService;
-use Modules\Accounting\Services\IncomeService;
-use Modules\Accounting\Services\BalanceService;
+use Modules\Accounting\app\Http\Requests\StoreExpenseItemRequest;
+use Modules\Accounting\app\Http\Requests\UpdateExpenseItemRequest;
+use Modules\Accounting\app\Http\Requests\StoreExpenseRequest;
+use Modules\Accounting\app\Http\Requests\UpdateExpenseRequest;
+use Modules\Accounting\app\Http\Requests\AccountingSummaryRequest;
+use Modules\Accounting\app\Http\Requests\IncomeRequest;
+use Modules\Accounting\app\Http\Requests\BalancesRequest;
+use Modules\Accounting\app\Services\ExpenseItemService;
+use Modules\Accounting\app\Services\ExpenseService;
+use Modules\Accounting\app\Services\SummaryService;
+use Modules\Accounting\app\Services\IncomeService;
+use Modules\Accounting\app\Services\BalanceService;
 use Illuminate\Http\Request;
 
 class AccountingController extends Controller
@@ -172,3 +172,5 @@ class AccountingController extends Controller
             ->with('success', 'Expense deleted successfully.');
     }
 }
+
+

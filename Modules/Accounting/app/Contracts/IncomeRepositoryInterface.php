@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\Accounting\Contracts;
+namespace Modules\Accounting\app\Contracts;
 
 interface IncomeRepositoryInterface
 {
@@ -8,3 +8,4 @@ interface IncomeRepositoryInterface
     public function getAllIncomeEntries(array $filters = [], int $perPage = 15, int $page = 1, string $orderDirection = 'desc');
     public function getIncomeEntriesQuery(array $filters = []);
 }
+

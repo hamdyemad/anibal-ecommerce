@@ -1,12 +1,12 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use Modules\Accounting\Http\Controllers\SummaryController;
-use Modules\Accounting\Http\Controllers\IncomeController;
-use Modules\Accounting\Http\Controllers\ExpenseItemController;
-use Modules\Accounting\Http\Controllers\ExpenseController;
-use Modules\Accounting\Http\Controllers\BalanceController;
-use Modules\Accounting\Http\Controllers\VendorBalanceController;
+use Modules\Accounting\app\Http\Controllers\SummaryController;
+use Modules\Accounting\app\Http\Controllers\IncomeController;
+use Modules\Accounting\app\Http\Controllers\ExpenseItemController;
+use Modules\Accounting\app\Http\Controllers\ExpenseController;
+use Modules\Accounting\app\Http\Controllers\BalanceController;
+use Modules\Accounting\app\Http\Controllers\VendorBalanceController;
 
 Route::middleware(['auth', 'verified', 'admin.only'])->group(function () {
     Route::get('accounting/summary', [SummaryController::class, 'index'])->name('accounting.summary');

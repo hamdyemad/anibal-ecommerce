@@ -1,10 +1,10 @@
 <?php
 
-namespace Modules\Accounting\Http\Controllers;
+namespace Modules\Accounting\app\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-use Modules\Accounting\Http\Requests\AccountingSummaryRequest;
-use Modules\Accounting\Services\SummaryService;
+use Modules\Accounting\app\Http\Requests\AccountingSummaryRequest;
+use Modules\Accounting\app\Services\SummaryService;
 use Illuminate\Http\Request;
 
 class SummaryController extends Controller
@@ -17,3 +17,5 @@ class SummaryController extends Controller
         return view('accounting::summary', compact('summary'));
     }
 }
+
+

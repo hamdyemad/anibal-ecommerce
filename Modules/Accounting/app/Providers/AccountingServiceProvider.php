@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\Accounting\Providers;
+namespace Modules\Accounting\app\Providers;
 
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\ServiceProvider;
@@ -42,33 +42,33 @@ class AccountingServiceProvider extends ServiceProvider
         
         // Register repository bindings
         $this->app->bind(
-            \Modules\Accounting\Contracts\ExpenseItemRepositoryInterface::class,
-            \Modules\Accounting\Repositories\ExpenseItemRepository::class
+            \Modules\Accounting\app\Contracts\ExpenseItemRepositoryInterface::class,
+            \Modules\Accounting\app\Repositories\ExpenseItemRepository::class
         );
         
         $this->app->bind(
-            \Modules\Accounting\Contracts\ExpenseRepositoryInterface::class,
-            \Modules\Accounting\Repositories\ExpenseRepository::class
+            \Modules\Accounting\app\Contracts\ExpenseRepositoryInterface::class,
+            \Modules\Accounting\app\Repositories\ExpenseRepository::class
         );
         
         $this->app->bind(
-            \Modules\Accounting\Contracts\SummaryRepositoryInterface::class,
-            \Modules\Accounting\Repositories\SummaryRepository::class
+            \Modules\Accounting\app\Contracts\SummaryRepositoryInterface::class,
+            \Modules\Accounting\app\Repositories\SummaryRepository::class
         );
         
         $this->app->bind(
-            \Modules\Accounting\Contracts\IncomeRepositoryInterface::class,
-            \Modules\Accounting\Repositories\IncomeRepository::class
+            \Modules\Accounting\app\Contracts\IncomeRepositoryInterface::class,
+            \Modules\Accounting\app\Repositories\IncomeRepository::class
         );
         
         $this->app->bind(
-            \Modules\Accounting\Contracts\BalanceRepositoryInterface::class,
-            \Modules\Accounting\Repositories\BalanceRepository::class
+            \Modules\Accounting\app\Contracts\BalanceRepositoryInterface::class,
+            \Modules\Accounting\app\Repositories\BalanceRepository::class
         );
         
         $this->app->bind(
-            \Modules\Accounting\Contracts\VendorBalanceRepositoryInterface::class,
-            \Modules\Accounting\Repositories\VendorBalanceRepository::class
+            \Modules\Accounting\app\Contracts\VendorBalanceRepositoryInterface::class,
+            \Modules\Accounting\app\Repositories\VendorBalanceRepository::class
         );
     }
 

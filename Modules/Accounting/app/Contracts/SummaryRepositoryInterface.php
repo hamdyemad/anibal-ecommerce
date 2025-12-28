@@ -1,8 +1,9 @@
 <?php
 
-namespace Modules\Accounting\Contracts;
+namespace Modules\Accounting\app\Contracts;
 
 interface SummaryRepositoryInterface
 {
     public function getSummaryData(array $filters = []): array;
 }
+

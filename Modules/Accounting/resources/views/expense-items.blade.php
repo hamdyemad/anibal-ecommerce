@@ -41,7 +41,7 @@
                             <div class="card-body">
                                 <div class="row g-3 align-items-end">
                                     {{-- Search --}}
-                                    <div class="col-md-4">
+                                    <div class="col-md-6">
                                         <div class="form-group">
                                             <label for="search" class="il-gray fs-14 fw-500 mb-10">
                                                 <i class="uil uil-search me-1"></i> {{ __('accounting.search') }}
@@ -51,7 +51,7 @@
                                     </div>
 
                                     {{-- Status --}}
-                                    <div class="col-md-4">
+                                    <div class="col-md-6">
                                         <div class="form-group">
                                             <label for="status-filter" class="il-gray fs-14 fw-500 mb-10">
                                                 <i class="uil uil-check-circle me-1"></i> {{ __('accounting.status') }}
@@ -64,7 +64,7 @@
                                         </div>
                                     </div>
 
-                                    <div class="col-md-4 d-flex align-items-center gap-2">
+                                    <div class="col-md-6 d-flex align-items-center gap-2">
                                         <button type="button" id="searchBtn" class="btn btn-success btn-default btn-squared me-1">
                                             <i class="uil uil-search me-1"></i> {{ __('accounting.search') }}
                                         </button>
@@ -114,23 +114,30 @@
 
 {{-- Add Category Modal --}}
 <div class="modal fade" id="addCategoryModal" tabindex="-1" aria-labelledby="addCategoryModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="addCategoryModalLabel">{{ __('accounting.add_expense_category') }}</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ __('accounting.close') }}"></button>
             </div>
-            <form method="POST" action="{{ route('admin.accounting.expense-items.store') }}">
+            <form method="POST" action="{{ route('admin.accounting.expense-items.store') }}" id="addCategoryForm">
                 @csrf
                 <div class="modal-body">
-                    <div class="mb-3">
-                        <label for="name_en" class="form-label">{{ __('accounting.category_name') }} (English) <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" id="name_en" name="name_en" required>
+                    {{-- Validation Errors Alert --}}
+                    <div class="alert alert-danger d-none" id="addCategoryErrors">
+                        <ul class="mb-0" id="addCategoryErrorsList"></ul>
                     </div>
-                    <div class="mb-3">
-                        <label for="name_ar" class="form-label">{{ __('accounting.category_name') }} (العربية) <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" id="name_ar" name="name_ar" required>
-                    </div>
+                    
+                    <x-multilingual-input 
+                        name="name" 
+                        :label="__('accounting.category_name')"
+                        :placeholder="__('accounting.enter_category_name')"
+                        :labelAr="__('accounting.category_name')"
+                        :placeholderAr="__('accounting.enter_category_name_ar')"
+                        :languages="$languages"
+                        :required="true"
+                        cols="6"
+                    />
                     <div class="mb-3">
                         <label for="active" class="form-label">{{ __('accounting.status') }}</label>
                         <div class="form-check form-switch">
@@ -141,7 +148,13 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('accounting.cancel') }}</button>
-                    <button type="submit" class="btn btn-primary">{{ __('accounting.create_category') }}</button>
+                    <button type="submit" class="btn btn-primary" id="addCategorySubmitBtn">
+                        <span class="btn-text">{{ __('accounting.create_category') }}</span>
+                        <span class="btn-loading d-none">
+                            <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+                            {{ __('accounting.please_wait') }}
+                        </span>
+                    </button>
                 </div>
             </form>
         </div>
@@ -150,23 +163,39 @@
 
 {{-- Edit Category Modal --}}
 <div class="modal fade" id="editCategoryModal" tabindex="-1" aria-labelledby="editCategoryModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="editCategoryModalLabel">{{ __('Edit Expense Category') }}</h5>
+                <h5 class="modal-title" id="editCategoryModalLabel">{{ __('accounting.edit_expense_category') }}</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form method="POST" id="editCategoryForm">
                 @csrf
                 @method('PUT')
                 <div class="modal-body">
-                    <div class="mb-3">
-                        <label for="edit_name_en" class="form-label">{{ __('accounting.category_name') }} (English) <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" id="edit_name_en" name="name_en" required>
+                    {{-- Validation Errors Alert --}}
+                    <div class="alert alert-danger d-none" id="editCategoryErrors">
+                        <ul class="mb-0" id="editCategoryErrorsList"></ul>
                     </div>
-                    <div class="mb-3">
-                        <label for="edit_name_ar" class="form-label">{{ __('accounting.category_name') }} (العربية) <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" id="edit_name_ar" name="name_ar" required>
+                    
+                    <div class="row">
+                        @foreach ($languages as $language)
+                            <div class="col-md-6 mb-25 @if (app()->getLocale() == 'ar') {{ $language->code == 'ar' ? 'order-1' : 'order-2' }} @else {{ $language->code == 'en' ? 'order-1' : 'order-2' }} @endif">
+                                <div class="form-group">
+                                    <label for="edit_translation_{{ $language->id }}_name" class="il-gray fs-14 fw-500 mb-10 d-block"
+                                        @if ($language->code == 'ar') dir="rtl" @else dir="ltr" @endif>
+                                        {{ __('accounting.category_name') }} ({{ $language->name }}) <span class="text-danger">*</span>
+                                    </label>
+                                    <input type="text"
+                                        class="form-control ih-medium ip-gray radius-xs b-light px-15"
+                                        id="edit_translation_{{ $language->id }}_name"
+                                        name="translations[{{ $language->id }}][name]"
+                                        data-lang="{{ $language->code }}"
+                                        @if ($language->code == 'ar') dir="rtl" @else dir="ltr" @endif
+                                        required>
+                                </div>
+                            </div>
+                        @endforeach
                     </div>
                     <div class="mb-3">
                         <label for="edit_active" class="form-label">{{ __('accounting.status') }}</label>
@@ -178,7 +207,13 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('accounting.cancel') }}</button>
-                    <button type="submit" class="btn btn-primary">{{ __('accounting.update_category') }}</button>
+                    <button type="submit" class="btn btn-primary" id="editCategorySubmitBtn">
+                        <span class="btn-text">{{ __('accounting.update_category') }}</span>
+                        <span class="btn-loading d-none">
+                            <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+                            {{ __('accounting.please_wait') }}
+                        </span>
+                    </button>
                 </div>
             </form>
         </div>
@@ -374,12 +409,24 @@
             function bindEditEvents() {
                 $('.edit').off('click').on('click', function() {
                     const id = $(this).data('id');
-                    const nameEn = $(this).data('name-en');
-                    const nameAr = $(this).data('name-ar');
+                    const translations = $(this).data('translations');
                     const active = $(this).data('active') === 1;
 
-                    $('#edit_name_en').val(nameEn);
-                    $('#edit_name_ar').val(nameAr);
+                    // Clear previous errors
+                    $('#editCategoryErrors').addClass('d-none');
+                    $('#editCategoryErrorsList').empty();
+                    $('#editCategoryForm').find('.is-invalid').removeClass('is-invalid');
+
+                    // Set translations for each language
+                    if (translations) {
+                        Object.keys(translations).forEach(function(langId) {
+                            const translation = translations[langId];
+                            if (translation && translation.name) {
+                                $(`#edit_translation_${langId}_name`).val(translation.name);
+                            }
+                        });
+                    }
+
                     $('#edit_active').prop('checked', active);
 
                     const form = $('#editCategoryForm');
@@ -387,6 +434,150 @@
                     form.attr('action', updateUrl);
                 });
             }
+
+            // Add Category Form AJAX Submit
+            $('#addCategoryForm').on('submit', function(e) {
+                e.preventDefault();
+                
+                const form = $(this);
+                const submitBtn = $('#addCategorySubmitBtn');
+                const errorsContainer = $('#addCategoryErrors');
+                const errorsList = $('#addCategoryErrorsList');
+                
+                // Clear previous errors
+                errorsContainer.addClass('d-none');
+                errorsList.empty();
+                form.find('.is-invalid').removeClass('is-invalid');
+                
+                // Show loading
+                submitBtn.prop('disabled', true);
+                submitBtn.find('.btn-text').addClass('d-none');
+                submitBtn.find('.btn-loading').removeClass('d-none');
+                
+                $.ajax({
+                    url: form.attr('action'),
+                    method: 'POST',
+                    data: form.serialize(),
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            // Close modal and reload table
+                            $('#addCategoryModal').modal('hide');
+                            form[0].reset();
+                            table.ajax.reload();
+                            
+                            // Show success toast if available
+                            if (typeof toastr !== 'undefined') {
+                                toastr.success(response.message || '{{ __("accounting.record_created") }}');
+                            }
+                        }
+                    },
+                    error: function(xhr) {
+                        if (xhr.status === 422) {
+                            const errors = xhr.responseJSON.errors;
+                            Object.keys(errors).forEach(function(field) {
+                                errors[field].forEach(function(message) {
+                                    errorsList.append('<li>' + message + '</li>');
+                                });
+                                
+                                // Add is-invalid class to the field
+                                const fieldName = field.replace(/\./g, '_');
+                                form.find(`[name="${field}"], [name*="${field}"]`).addClass('is-invalid');
+                            });
+                            errorsContainer.removeClass('d-none');
+                        } else {
+                            errorsList.append('<li>{{ __("accounting.error_creating") }}</li>');
+                            errorsContainer.removeClass('d-none');
+                        }
+                    },
+                    complete: function() {
+                        // Hide loading
+                        submitBtn.prop('disabled', false);
+                        submitBtn.find('.btn-text').removeClass('d-none');
+                        submitBtn.find('.btn-loading').addClass('d-none');
+                    }
+                });
+            });
+
+            // Edit Category Form AJAX Submit
+            $('#editCategoryForm').on('submit', function(e) {
+                e.preventDefault();
+                
+                const form = $(this);
+                const submitBtn = $('#editCategorySubmitBtn');
+                const errorsContainer = $('#editCategoryErrors');
+                const errorsList = $('#editCategoryErrorsList');
+                
+                // Clear previous errors
+                errorsContainer.addClass('d-none');
+                errorsList.empty();
+                form.find('.is-invalid').removeClass('is-invalid');
+                
+                // Show loading
+                submitBtn.prop('disabled', true);
+                submitBtn.find('.btn-text').addClass('d-none');
+                submitBtn.find('.btn-loading').removeClass('d-none');
+                
+                $.ajax({
+                    url: form.attr('action'),
+                    method: 'POST',
+                    data: form.serialize(),
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            // Close modal and reload table
+                            $('#editCategoryModal').modal('hide');
+                            table.ajax.reload();
+                            
+                            // Show success toast if available
+                            if (typeof toastr !== 'undefined') {
+                                toastr.success(response.message || '{{ __("accounting.record_updated") }}');
+                            }
+                        }
+                    },
+                    error: function(xhr) {
+                        if (xhr.status === 422) {
+                            const errors = xhr.responseJSON.errors;
+                            Object.keys(errors).forEach(function(field) {
+                                errors[field].forEach(function(message) {
+                                    errorsList.append('<li>' + message + '</li>');
+                                });
+                                
+                                // Add is-invalid class to the field
+                                form.find(`[name="${field}"], [name*="${field}"]`).addClass('is-invalid');
+                            });
+                            errorsContainer.removeClass('d-none');
+                        } else {
+                            errorsList.append('<li>{{ __("accounting.error_updating") }}</li>');
+                            errorsContainer.removeClass('d-none');
+                        }
+                    },
+                    complete: function() {
+                        // Hide loading
+                        submitBtn.prop('disabled', false);
+                        submitBtn.find('.btn-text').removeClass('d-none');
+                        submitBtn.find('.btn-loading').addClass('d-none');
+                    }
+                });
+            });
+
+            // Clear errors when modal is closed
+            $('#addCategoryModal').on('hidden.bs.modal', function() {
+                $('#addCategoryErrors').addClass('d-none');
+                $('#addCategoryErrorsList').empty();
+                $('#addCategoryForm').find('.is-invalid').removeClass('is-invalid');
+                $('#addCategoryForm')[0].reset();
+            });
+
+            $('#editCategoryModal').on('hidden.bs.modal', function() {
+                $('#editCategoryErrors').addClass('d-none');
+                $('#editCategoryErrorsList').empty();
+                $('#editCategoryForm').find('.is-invalid').removeClass('is-invalid');
+            });
         });
     </script>
 @endpush

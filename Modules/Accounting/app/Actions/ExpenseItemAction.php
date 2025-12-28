@@ -1,8 +1,8 @@
 <?php
 
-namespace Modules\Accounting\Actions;
+namespace Modules\Accounting\app\Actions;
 
-use Modules\Accounting\Services\ExpenseItemService;
+use Modules\Accounting\app\Services\ExpenseItemService;
 use App\Services\LanguageService;
 use App\Traits\Res;
 use Illuminate\Support\Str;
@@ -42,15 +42,21 @@ class ExpenseItemAction
             foreach ($dataPaginated as $item) {
                 $statusBadge = $item->active;
 
-                $nameEn = $item->getTranslation('name', 'en') ?? '';
-                $nameAr = $item->getTranslation('name', 'ar') ?? '';
+                // Build translations object for JavaScript
+                $translationsData = [];
+                foreach ($languages as $language) {
+                    $translationsData[$language->id] = [
+                        'name' => $item->getTranslation('name', $language->code) ?? ''
+                    ];
+                }
+                $translationsJson = htmlspecialchars(json_encode($translationsData), ENT_QUOTES, 'UTF-8');
 
                 $actions = '
                     <div class="orderDatatable_actions d-inline-flex gap-1 justify-content-center">
                         <button type="button" class="edit btn btn-warning table_action_father" title="Edit"
                                 data-bs-toggle="modal" data-bs-target="#editCategoryModal"
-                                data-id="'.$item->id.'" data-name-en="'.$nameEn.'"
-                                data-name-ar="'.$nameAr.'" data-active="'.$item->active.'">
+                                data-id="'.$item->id.'" data-translations=\''.$translationsJson.'\'
+                                data-active="'.$item->active.'">
                             <i class="uil uil-edit table_action_icon"></i>
                         </button>
                         <button type="button" class="btn btn-danger table_action_father delete-expense-item" title="Delete"
@@ -80,3 +86,5 @@ class ExpenseItemAction
         }
     }
 }
+
+

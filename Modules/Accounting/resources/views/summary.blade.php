@@ -72,7 +72,7 @@
                         <div class="card-body">
                             <div class="row g-3 align-items-end">
                                 {{-- From Date --}}
-                                <div class="col-md-4">
+                                <div class="col-md-6">
                                     <div class="form-group">
                                         <label for="date_from" class="il-gray fs-14 fw-500 mb-10">
                                             <i class="uil uil-calendar-alt me-1"></i> {{ __('accounting.date_from') }}
@@ -82,7 +82,7 @@
                                 </div>
 
                                 {{-- To Date --}}
-                                <div class="col-md-4">
+                                <div class="col-md-6">
                                     <div class="form-group">
                                         <label for="date_to" class="il-gray fs-14 fw-500 mb-10">
                                             <i class="uil uil-calendar-alt me-1"></i> {{ __('accounting.date_to') }}
@@ -91,7 +91,7 @@
                                     </div>
                                 </div>
 
-                                <div class="col-md-4 d-flex align-items-center">
+                                <div class="col-md-12 d-flex align-items-center">
                                     <button type="button" id="filterBtn" class="btn btn-success btn-default btn-squared me-1">
                                         <i class="uil uil-filter me-1"></i> {{ __('accounting.filter') }}
                                     </button>

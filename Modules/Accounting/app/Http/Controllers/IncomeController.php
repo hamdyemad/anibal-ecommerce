@@ -1,10 +1,10 @@
 <?php
 
-namespace Modules\Accounting\Http\Controllers;
+namespace Modules\Accounting\app\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-use Modules\Accounting\Services\IncomeService;
-use Modules\Accounting\Actions\IncomeAction;
+use Modules\Accounting\app\Services\IncomeService;
+use Modules\Accounting\app\Actions\IncomeAction;
 use Illuminate\Http\Request;
 
 class IncomeController extends Controller
@@ -60,3 +60,5 @@ class IncomeController extends Controller
         return view('accounting::income');
     }
 }
+
+

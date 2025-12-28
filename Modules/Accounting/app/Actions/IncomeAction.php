@@ -1,8 +1,8 @@
 <?php
 
-namespace Modules\Accounting\Actions;
+namespace Modules\Accounting\app\Actions;
 
-use Modules\Accounting\Services\IncomeService;
+use Modules\Accounting\app\Services\IncomeService;
 
 class IncomeAction
 {
@@ -45,3 +45,5 @@ class IncomeAction
         ];
     }
 }
+
+

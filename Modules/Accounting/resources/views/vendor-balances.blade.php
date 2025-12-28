@@ -45,7 +45,7 @@
                                     </div>
 
                                     {{-- Date From --}}
-                                    <div class="col-md-3">
+                                    <div class="col-md-4">
                                         <div class="form-group">
                                             <label for="date-from" class="il-gray fs-14 fw-500 mb-10">
                                                 <i class="uil uil-calendar-alt me-1"></i> {{ __('accounting.date_from') }}
@@ -55,7 +55,7 @@
                                     </div>
 
                                     {{-- Date To --}}
-                                    <div class="col-md-3">
+                                    <div class="col-md-4">
                                         <div class="form-group">
                                             <label for="date-to" class="il-gray fs-14 fw-500 mb-10">
                                                 <i class="uil uil-calendar-alt me-1"></i> {{ __('accounting.date_to') }}
@@ -64,7 +64,7 @@
                                         </div>
                                     </div>
 
-                                    <div class="col-md-2 d-flex align-items-center gap-2">
+                                    <div class="col-md-12 d-flex align-items-center gap-2">
                                         <button type="button" id="searchBtn" class="btn btn-success btn-default btn-squared me-1">
                                             <i class="uil uil-search me-1"></i> {{ __('accounting.search') }}
                                         </button>
@@ -96,8 +96,7 @@
                             <thead>
                                 <tr class="userDatatable-header">
                                     <th class="text-center"><span class="userDatatable-title">#</span></th>
-                                    <th><span class="userDatatable-title">{{ __('accounting.vendor_name') }}</span></th>
-                                    <th><span class="userDatatable-title">{{ __('accounting.vendor_email') }}</span></th>
+                                    <th><span class="userDatatable-title">{{ __('accounting.vendor_information') }}</span></th>
                                     <th><span class="userDatatable-title">{{ __('accounting.total_earnings') }}</span></th>
                                     <th><span class="userDatatable-title">{{ __('accounting.commission_deducted') }}</span></th>
                                     <th><span class="userDatatable-title">{{ __('accounting.available_balance') }}</span></th>
@@ -153,8 +152,16 @@
                             return meta.row + meta.settings._iDisplayStart + 1;
                         }
                     },
-                    { data: 'vendor_name', name: 'vendor_name' },
-                    { data: 'vendor_email', name: 'vendor_email' },
+                    { 
+                        data: 'vendor_name', 
+                        name: 'vendor_name',
+                        render: function(data, type, row) {
+                            return `<div class="userDatatable-inline-title">
+                                <h6 class="text-dark fw-500 mb-1">${row.vendor_name || '-'}</h6>
+                                <p class="d-block mb-0 text-muted small">${row.vendor_email || '-'}</p>
+                            </div>`;
+                        }
+                    },
                     { data: 'total_earnings', name: 'total_earnings' },
                     { data: 'commission_deducted', name: 'commission_deducted' },
                     { data: 'available_balance', name: 'available_balance' },
@@ -164,7 +171,7 @@
                 ],
                 pageLength: per_page,
                 lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]],
-                order: [[8, 'desc']],
+                order: [[7, 'desc']],
                 pagingType: 'full_numbers',
                 dom: '<"row"<"col-sm-12"tr>>' +
                      '<"row mt-3"<"col-sm-12 col-md-5"i><"col-sm-12 col-md-7"p>>'

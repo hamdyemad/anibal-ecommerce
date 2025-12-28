@@ -1,13 +1,13 @@
 <?php
 
-namespace Modules\Accounting\Http\Controllers;
+namespace Modules\Accounting\app\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-use Modules\Accounting\Http\Requests\StoreExpenseRequest;
-use Modules\Accounting\Http\Requests\UpdateExpenseRequest;
-use Modules\Accounting\Services\ExpenseService;
-use Modules\Accounting\Services\ExpenseItemService;
-use Modules\Accounting\Actions\ExpenseAction;
+use Modules\Accounting\app\Http\Requests\StoreExpenseRequest;
+use Modules\Accounting\app\Http\Requests\UpdateExpenseRequest;
+use Modules\Accounting\app\Services\ExpenseService;
+use Modules\Accounting\app\Services\ExpenseItemService;
+use Modules\Accounting\app\Actions\ExpenseAction;
 use Illuminate\Http\Request;
 
 class ExpenseController extends Controller
@@ -145,3 +145,5 @@ class ExpenseController extends Controller
         }
     }
 }
+
+

@@ -1,8 +1,8 @@
 <?php
 
-namespace Modules\Accounting\Services;
+namespace Modules\Accounting\app\Services;
 
-use Modules\Accounting\Contracts\SummaryRepositoryInterface;
+use Modules\Accounting\app\Contracts\SummaryRepositoryInterface;
 
 class SummaryService
 {
@@ -13,3 +13,5 @@ class SummaryService
         return $this->repository->getSummaryData($filters);
     }
 }
+
+

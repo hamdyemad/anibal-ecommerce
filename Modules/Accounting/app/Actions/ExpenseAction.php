@@ -1,8 +1,8 @@
 <?php
 
-namespace Modules\Accounting\Actions;
+namespace Modules\Accounting\app\Actions;
 
-use Modules\Accounting\Services\ExpenseService;
+use Modules\Accounting\app\Services\ExpenseService;
 use App\Traits\Res;
 use Illuminate\Support\Str;
 
@@ -86,3 +86,5 @@ class ExpenseAction
         }
     }
 }
+
+

@@ -45,7 +45,7 @@
                                     </div>
 
                                     {{-- Date From --}}
-                                    <div class="col-md-3">
+                                    <div class="col-md-4">
                                         <div class="form-group">
                                             <label for="date-from" class="il-gray fs-14 fw-500 mb-10">
                                                 <i class="uil uil-calendar-alt me-1"></i> {{ __('accounting.date_from') }}
@@ -55,7 +55,7 @@
                                     </div>
 
                                     {{-- Date To --}}
-                                    <div class="col-md-3">
+                                    <div class="col-md-4">
                                         <div class="form-group">
                                             <label for="date-to" class="il-gray fs-14 fw-500 mb-10">
                                                 <i class="uil uil-calendar-alt me-1"></i> {{ __('accounting.date_to') }}

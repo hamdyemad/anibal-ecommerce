@@ -1,10 +1,10 @@
 <?php
 
-namespace Modules\Accounting\Repositories;
+namespace Modules\Accounting\app\Repositories;
 
-use Modules\Accounting\Contracts\SummaryRepositoryInterface;
-use Modules\Accounting\Contracts\IncomeRepositoryInterface;
-use Modules\Accounting\Contracts\BalanceRepositoryInterface;
+use Modules\Accounting\app\Contracts\SummaryRepositoryInterface;
+use Modules\Accounting\app\Contracts\IncomeRepositoryInterface;
+use Modules\Accounting\app\Contracts\BalanceRepositoryInterface;
 use Modules\Accounting\app\Models\AccountingEntry;
 use Modules\Accounting\app\Models\VendorBalance;
 use Modules\Accounting\app\Models\Expense;
@@ -86,3 +86,5 @@ class BalanceRepository implements BalanceRepositoryInterface
         return $query->latest()->paginate(20);
     }
 }
+
+
