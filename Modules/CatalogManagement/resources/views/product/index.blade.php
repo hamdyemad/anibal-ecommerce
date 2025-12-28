@@ -662,21 +662,19 @@
                                     </a>`;
                             @endcan
 
-                            // Add approve/reject button and move to bank for admin users only
+                            // Add approve/reject button for admin users
                             @if(isAdmin())
                                 @can('products.change-status')
-                                    if(data.product_type == 'product') {
-                                        actions += `
-                                            <a href="javascript:void(0);" class="change-status btn btn-success table_action_father"
-                                            data-bs-toggle="modal" data-bs-target="#modal-change-status"
-                                            data-item-id="${data.vendor_product_id}"
-                                            data-item-status="${data.status || ''}"
-                                            data-item-name="${data.product_information?.name_en || 'Product'}"
-                                            data-item-type="${data.product_type || ''}"
-                                            title="{{ trans('catalogmanagement::product.change_status') }}">
-                                                <i class="uil uil-check-circle table_action_icon"></i>
-                                            </a>`;
-                                    }
+                                    actions += `
+                                        <a href="javascript:void(0);" class="change-status btn btn-success table_action_father"
+                                        data-bs-toggle="modal" data-bs-target="#modal-change-status"
+                                        data-item-id="${data.vendor_product_id}"
+                                        data-item-status="${data.status || ''}"
+                                        data-item-name="${data.product_information?.name_en || 'Product'}"
+                                        data-item-type="${data.product_type || ''}"
+                                        title="{{ trans('catalogmanagement::product.change_status') }}">
+                                            <i class="uil uil-check-circle table_action_icon"></i>
+                                        </a>`;
                                 @endcan
                             @endif
 
