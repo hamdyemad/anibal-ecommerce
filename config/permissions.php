@@ -141,7 +141,8 @@ return [
                     'show' => ['name' => ['en' => 'View', 'ar' => 'عرض'], 'key' => 'products.show', 'type' => 'all'],
                     'status' => ['name' => ['en' => 'Change Status', 'ar' => 'تغيير الحالة'], 'key' => 'products.change-status', 'type' => 'all'],
                     'activation' => ['name' => ['en' => 'Change Activation', 'ar' => 'تغيير التنشيط'], 'key' => 'products.change-activation', 'type' => 'all'],
-                    'stock-setup' => ['name' => ['en' => 'Stock Setup', 'ar' => 'إعداد المخزون'], 'key' => 'products.stock-setup', 'type' => 'all'],
+                    'stock-management' => ['name' => ['en' => 'Stock Management', 'ar' => 'إدارة المخزون'], 'key' => 'products.stock-management', 'type' => 'all'],
+                    'stock-setup' => ['name' => ['en' => 'Stock Setup', 'ar' => 'إعداد المخزون'], 'key' => 'products.stock-setup', 'type' => 'admin'],
                 ]
             ],
             'Products Bank' => [
@@ -229,16 +230,16 @@ return [
     'Variant Keys' => [
         'name' => ['en' => 'Variant Keys', 'ar' => 'مفاتيح التنوع'],
         'icon' => 'uil-key-skeleton',
-        'type' => 'admin',
+        'type' => 'all',
         'sub_modules' => [
             'Variant Keys' => [
                 'name' => ['en' => 'Variant Keys', 'ar' => 'مفاتيح التنوع'],
                 'permissions' => [
-                    'read' => ['name' => ['en' => 'Read', 'ar' => 'قراءة'], 'key' => 'variant-keys.index', 'type' => 'admin'],
+                    'read' => ['name' => ['en' => 'Read', 'ar' => 'قراءة'], 'key' => 'variant-keys.index', 'type' => 'all'],
                     'create' => ['name' => ['en' => 'Create', 'ar' => 'إنشاء'], 'key' => 'variant-keys.create', 'type' => 'admin'],
                     'edit' => ['name' => ['en' => 'Edit', 'ar' => 'تعديل'], 'key' => 'variant-keys.edit', 'type' => 'admin'],
                     'delete' => ['name' => ['en' => 'Delete', 'ar' => 'حذف'], 'key' => 'variant-keys.delete', 'type' => 'admin'],
-                    'show' => ['name' => ['en' => 'View', 'ar' => 'عرض'], 'key' => 'variant-keys.show', 'type' => 'admin'],
+                    'show' => ['name' => ['en' => 'View', 'ar' => 'عرض'], 'key' => 'variant-keys.show', 'type' => 'all'],
                 ]
             ],
         ]
@@ -247,16 +248,16 @@ return [
     'Variants Configurations' => [
         'name' => ['en' => 'Variants Configurations', 'ar' => 'تكوينات التنوع'],
         'icon' => 'uil-layer-group',
-        'type' => 'admin',
+        'type' => 'all',
         'sub_modules' => [
             'Variants Configurations' => [
                 'name' => ['en' => 'Variants Configurations', 'ar' => 'تكوينات التنوع'],
                 'permissions' => [
-                    'read' => ['name' => ['en' => 'Read', 'ar' => 'قراءة'], 'key' => 'variants-configurations.index', 'type' => 'admin'],
+                    'read' => ['name' => ['en' => 'Read', 'ar' => 'قراءة'], 'key' => 'variants-configurations.index', 'type' => 'all'],
                     'create' => ['name' => ['en' => 'Create', 'ar' => 'إنشاء'], 'key' => 'variants-configurations.create', 'type' => 'admin'],
                     'edit' => ['name' => ['en' => 'Edit', 'ar' => 'تعديل'], 'key' => 'variants-configurations.edit', 'type' => 'admin'],
                     'delete' => ['name' => ['en' => 'Delete', 'ar' => 'حذف'], 'key' => 'variants-configurations.delete', 'type' => 'admin'],
-                    'show' => ['name' => ['en' => 'View', 'ar' => 'عرض'], 'key' => 'variants-configurations.show', 'type' => 'admin'],
+                    'show' => ['name' => ['en' => 'View', 'ar' => 'عرض'], 'key' => 'variants-configurations.show', 'type' => 'all'],
                 ]
             ],
         ]

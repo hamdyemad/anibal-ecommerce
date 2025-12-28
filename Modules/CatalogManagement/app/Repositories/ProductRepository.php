@@ -54,7 +54,21 @@ class ProductRepository implements ProductInterface
 
         $query = Product::with($with)->filter($bankFilters);
         
-        // Filter by vendor's departments if vendor_id is provided (for exclude_vendor_id)
+        // Filter by vendor's departments if vendor_id is provided (without excluding existing products)
+        if (!empty($filters['vendor_id'])) {
+            $vendorId = $filters['vendor_id'];
+            $vendor = \Modules\Vendor\app\Models\Vendor::withoutGlobalScopes()->find($vendorId);
+            
+            if ($vendor) {
+                $departmentIds = $vendor->departments()->pluck('departments.id')->toArray();
+                
+                if (!empty($departmentIds)) {
+                    $query->whereIn('department_id', $departmentIds);
+                }
+            }
+        }
+        
+        // Filter by vendor's departments if exclude_vendor_id is provided (and exclude existing products)
         if (!empty($filters['exclude_vendor_id'])) {
             $vendorId = $filters['exclude_vendor_id'];
             $vendor = \Modules\Vendor\app\Models\Vendor::withoutGlobalScopes()->find($vendorId);
@@ -193,6 +207,12 @@ class ProductRepository implements ProductInterface
             $vendorProduct->setRelation('product', $product);
 
             // Update vendor product fields (for both new and existing records)
+            // Reset status to pending when vendor edits the product
+            $newStatus = $vendorProduct->status;
+            if (in_array($currentUser->user_type_id, UserType::vendorIds())) {
+                $newStatus = 'pending';
+            }
+            
             $vendorProduct->update([
                 'tax_id' => $data['tax_id'],
                 'sku' => $data['sku'] ?? null,
@@ -200,7 +220,7 @@ class ProductRepository implements ProductInterface
                 'max_per_order' => $data['max_per_order'],
                 'is_active' => $data['is_active'] ?? false,
                 'is_featured' => $data['is_featured'] ?? false,
-                'status' => in_array($currentUser->user_type_id, UserType::vendorIds()) ? 'pending' : 'approved',
+                'status' => $newStatus,
             ]);
 
             // Update translations
@@ -231,6 +251,8 @@ class ProductRepository implements ProductInterface
                 throw new \Exception(__('catalogmanagement::product.product_not_found'));
             }
 
+            $product = $vendorProduct->product;
+
             // Delete variants and their stocks
             foreach ($vendorProduct->variants as $variant) {
                 $variant->stocks()->delete();
@@ -239,6 +261,17 @@ class ProductRepository implements ProductInterface
 
             // Delete the vendor product (soft delete)
             $vendorProduct->delete();
+
+            // Check if the product has any other vendor products linked to it
+            // If not, also soft delete the product
+            $otherVendorProducts = VendorProduct::where('product_id', $product->id)
+                ->where('id', '!=', $id)
+                ->count();
+
+            if ($otherVendorProducts === 0) {
+                // No other vendors are using this product, safe to delete
+                $product->delete();
+            }
 
             return true;
         });
@@ -443,6 +476,18 @@ class ProductRepository implements ProductInterface
             $this->syncVariantStocks($vendorProductVariant, $data['stocks'] ?? []);
         } else {
             // Handle variants with multiple configurations
+
+            // Handle explicitly deleted variants first
+            if (isset($data['deleted_variants']) && is_array($data['deleted_variants'])) {
+                foreach ($data['deleted_variants'] as $deletedVariantId) {
+                    $variantToDelete = $vendorProduct->variants()->find($deletedVariantId);
+                    if ($variantToDelete) {
+                        $variantToDelete->stocks()->delete();
+                        $variantToDelete->delete();
+                        Log::info('Deleted variant explicitly', ['variant_id' => $deletedVariantId]);
+                    }
+                }
+            }
 
             // If switching from simple to variants, delete the old simple variant first
             $existingVariants = $vendorProduct->variants()->get();
@@ -761,24 +806,32 @@ class ProductRepository implements ProductInterface
      */
     public function updateStockAndPricing($id, array $data)
     {
-        // Get VendorProduct (which includes the product relationship)
-        $vendorProduct = $this->getProductById($id);
+        return DB::transaction(function () use ($id, $data) {
+            // Get VendorProduct (which includes the product relationship)
+            $vendorProduct = $this->getProductById($id);
 
-        if (!$vendorProduct) {
-            throw new \Exception('Product not found');
-        }
+            if (!$vendorProduct) {
+                throw new \Exception('Product not found');
+            }
 
-        // Get the actual Product model
-        $product = $vendorProduct->product;
+            // Get the actual Product model
+            $product = $vendorProduct->product;
 
-        if (!$product) {
-            throw new \Exception('Product data not found');
-        }
+            if (!$product) {
+                throw new \Exception('Product data not found');
+            }
 
-        // Use the same handleProductVariants method for consistency
-        $this->handleProductVariants($vendorProduct, $data);
+            // Update configuration type on the Product model
+            $configurationType = $data['configuration_type'] ?? 'simple';
+            $product->update([
+                'configuration_type' => $configurationType
+            ]);
 
-        return $vendorProduct->fresh();
+            // Use the same handleProductVariants method for consistency
+            $this->handleProductVariants($vendorProduct, $data);
+
+            return $vendorProduct->fresh();
+        });
     }
 
     /**
@@ -978,12 +1031,6 @@ class ProductRepository implements ProductInterface
             }
 
             // Normal status update without bank product assignment
-            if ($data['status'] == 'approved') {
-                $vendorProduct->product->update([
-                    'type' => Product::TYPE_BANK
-                ]);
-            }
-
             $vendorProduct->update([
                 'status' => $data['status'],
                 'rejection_reason' => $data['status'] === 'rejected' ? ($data['rejection_reason'] ?? null) : null

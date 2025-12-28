@@ -295,15 +295,15 @@
                                         <div class="variant-configuration-section">
                                             @if (isset($product) && $configurationType === 'variants' && $product->variants->count() > 0)
                                                 @foreach ($product->variants as $variantIndex => $variant)
-                                                    {{-- Hidden Variant Data Inputs --}}
-                                                    <input type="hidden" name="variants[{{ $variantIndex }}][id]"
-                                                        value="{{ $variant->id }}">
-                                                    <input type="hidden"
-                                                        name="variants[{{ $variantIndex }}][variant_configuration_id]"
-                                                        value="{{ $variant->variant_configuration_id }}">
+                                                    <div class="card mt-4 existing-variant-card" id="variant-{{ $variantIndex }}-section" data-variant-id="{{ $variant->id }}">
+                                                        {{-- Hidden Variant Data Inputs - INSIDE the card so they get removed with it --}}
+                                                        <input type="hidden" name="variants[{{ $variantIndex }}][id]"
+                                                            value="{{ $variant->id }}">
+                                                        <input type="hidden"
+                                                            name="variants[{{ $variantIndex }}][variant_configuration_id]"
+                                                            value="{{ $variant->variant_configuration_id }}">
 
-                                                    <div class="card mt-4" id="variant-{{ $variantIndex }}-section">
-                                                        <div class="card-header">
+                                                        <div class="card-header d-flex justify-content-between align-items-center">
                                                             <h6 class="mb-0" style="font-weight: 600; font-size: 16px;">
                                                                 <i class="uil uil-layer-group me-2"></i>
                                                                 {{ __('catalogmanagement::product.variant_configuration') }}:
@@ -386,6 +386,12 @@
                                                                     Packaging - 10 kg
                                                                 @endif
                                                             </h6>
+                                                            <button type="button" class="btn btn-danger btn-sm remove-existing-variant-btn" 
+                                                                data-variant-id="{{ $variant->id }}"
+                                                                style="{{ $product->variants->count() <= 1 ? 'display: none;' : '' }}">
+                                                                <i class="uil uil-trash-alt m-0"></i>
+                                                                {{ __('common.remove') }}
+                                                            </button>
                                                         </div>
                                                         <div class="card-body">
                                                             {{-- {{ __('catalogmanagement::product.variant_sku') }} and Price Row --}}
@@ -908,6 +914,37 @@
     </div>
     </div>
 
+    {{-- Delete Variant Confirmation Modal --}}
+    <div class="modal fade" id="modal-delete-variant" tabindex="-1" aria-labelledby="deleteVariantModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deleteVariantModalLabel">
+                        <i class="uil uil-exclamation-triangle text-danger me-2"></i>
+                        {{ __('main.confirm delete') }}
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="mb-0">{{ __('main.are you sure you want to delete this') }}</p>
+                    <p class="fw-bold text-danger mt-2" id="delete-variant-name"></p>
+                    <div class="alert alert-warning mt-3 mb-0">
+                        <i class="uil uil-info-circle me-1"></i>
+                        {{ __('catalogmanagement::product.save_after_remove_variant') }}
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="uil uil-times me-1"></i>{{ __('main.cancel') }}
+                    </button>
+                    <button type="button" class="btn btn-danger" id="confirmDeleteVariantBtn">
+                        <i class="uil uil-trash-alt me-1"></i>{{ __('main.delete') }}
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
 @endsection
 
 @push('after-body')
@@ -1313,10 +1350,15 @@
             function loadVariantKeys() {
                 console.log('🔑 Loading variant keys from API...');
 
+                const countryId = $("meta[name='current_country_id']").attr("content");
+
                 $.ajax({
                     url: '{{ route('admin.api.variant-keys') }}',
                     type: 'GET',
                     dataType: 'json',
+                    data: {
+                        country_id: countryId
+                    },
                     success: function(response) {
                         variantKeysData = response.data || response;
                         console.log('✅ Variant keys loaded:', variantKeysData.length, 'keys');
@@ -1371,12 +1413,15 @@
                 // Store keyId in the variant box for later use
                 $(`#variant-${variantIndex}`).data('current-key-id', keyId);
 
+                const countryId = $("meta[name='current_country_id']").attr("content");
+
                 $.ajax({
                     url: '{{ route('admin.api.variants-by-key') }}',
                     type: 'GET',
                     dataType: 'json',
                     data: {
                         key_id: keyId,
+                        country_id: countryId,
                     },
                     success: function(response) {
                         const variants = response.data || response;
@@ -1442,13 +1487,16 @@
                     }
                 });
 
+                const countryId = $("meta[name='current_country_id']").attr("content");
+
                 $.ajax({
                     url: '{{ route('admin.api.variants-by-key') }}',
                     type: 'GET',
                     dataType: 'json',
                     data: {
                         key_id: keyId,
-                        parent_id: parentId
+                        parent_id: parentId,
+                        country_id: countryId
                     },
                     success: function(response) {
                         const variants = response.data || response;
@@ -1822,9 +1870,14 @@
             function loadVariantsByKey(variantIndex, keyId) {
                 console.log('🔄 Loading variants for key:', keyId);
 
+                const countryId = $("meta[name='current_country_id']").attr("content");
+                
                 $.ajax({
                     url: `/api/variant-configurations/key/${keyId}/tree`,
                     method: 'GET',
+                    data: {
+                        country_id: countryId
+                    },
                     success: function(response) {
                         console.log('✅ Variant tree response:', response);
                         if (response && response.children) {
@@ -1946,6 +1999,99 @@
                 console.log('🗑️ Variant box removed');
             }
 
+            // Remove existing variant (from database)
+            let variantToDeleteId = null;
+            let variantToDeleteCard = null;
+            let deleteVariantModal = null;
+            
+            function showDeleteVariantModal(button) {
+                const $card = $(button).closest('.existing-variant-card');
+                const variantId = $(button).data('variant-id');
+                const variantName = $card.find('.card-header h6').text().trim();
+                
+                // Count total existing variants
+                const totalExistingVariants = $('.existing-variant-card').length;
+                
+                if (totalExistingVariants <= 1) {
+                    // Show error in modal
+                    $('#delete-variant-name').text('{{ __("catalogmanagement::product.cannot_remove_last_variant") }}');
+                    $('#confirmDeleteVariantBtn').hide();
+                    if (!deleteVariantModal) {
+                        deleteVariantModal = new bootstrap.Modal(document.getElementById('modal-delete-variant'));
+                    }
+                    deleteVariantModal.show();
+                    return;
+                }
+                
+                // Store references for confirmation
+                variantToDeleteId = variantId;
+                variantToDeleteCard = $card;
+                
+                // Set variant name in modal
+                $('#delete-variant-name').text(variantName);
+                $('#confirmDeleteVariantBtn').show();
+                
+                // Show modal
+                if (!deleteVariantModal) {
+                    deleteVariantModal = new bootstrap.Modal(document.getElementById('modal-delete-variant'));
+                }
+                deleteVariantModal.show();
+            }
+            
+            function confirmDeleteVariant() {
+                if (!variantToDeleteId || !variantToDeleteCard) return;
+                
+                const $card = variantToDeleteCard;
+                const variantId = variantToDeleteId;
+                
+                // Add hidden input to mark this variant for deletion - OUTSIDE the card (in the form)
+                $('#productForm').append(
+                    `<input type="hidden" name="deleted_variants[]" value="${variantId}">`
+                );
+                
+                // IMPORTANT: Remove all inputs from the card immediately so they don't get submitted
+                // This prevents validation errors like "variants.1.price required"
+                const inputsRemoved = $card.find('input, select, textarea').length;
+                $card.find('input, select, textarea').remove();
+                console.log('🗑️ Removed ' + inputsRemoved + ' inputs from card');
+                
+                // Debug: Log remaining variant inputs in form
+                const remainingInputs = $('#productForm').find('input[name^="variants["]').map(function() {
+                    return $(this).attr('name');
+                }).get();
+                console.log('📋 Remaining variant inputs:', remainingInputs);
+                
+                // Hide modal
+                if (deleteVariantModal) {
+                    deleteVariantModal.hide();
+                }
+                
+                // Hide the card with animation then remove it
+                $card.slideUp(300, function() {
+                    $(this).remove();
+                    
+                    // Update visibility of remove buttons
+                    updateRemoveButtonsVisibility();
+                });
+                
+                console.log('🗑️ Existing variant marked for deletion:', variantId);
+                
+                // Reset references
+                variantToDeleteId = null;
+                variantToDeleteCard = null;
+            }
+            
+            // Update remove buttons visibility based on variant count
+            function updateRemoveButtonsVisibility() {
+                const totalVariants = $('.existing-variant-card').length;
+                
+                if (totalVariants <= 1) {
+                    $('.remove-existing-variant-btn').hide();
+                } else {
+                    $('.remove-existing-variant-btn').show();
+                }
+            }
+
 
             // ============================================
             // Event Handlers
@@ -2039,6 +2185,16 @@
                 // Remove variant button handler
                 $(document).on('click', '.remove-variant-btn', function() {
                     removeVariantBox(this);
+                });
+
+                // Remove existing variant button handler
+                $(document).on('click', '.remove-existing-variant-btn', function() {
+                    showDeleteVariantModal(this);
+                });
+                
+                // Confirm delete variant button handler
+                $('#confirmDeleteVariantBtn').on('click', function() {
+                    confirmDeleteVariant();
                 });
 
                 // Variant key selection handler

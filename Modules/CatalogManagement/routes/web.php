@@ -22,25 +22,25 @@ Route::group(['middleware' => 'adminGuard'], function() {
     Route::get('taxes/datatable', 'TaxController@datatable')->name('taxes.datatable');
     Route::resource('taxes', 'TaxController');
 
-    // Variant Configuration Keys
-    Route::get('variant-keys/datatable', 'VariantConfigurationKeyController@datatable')->name('variant-keys.datatable');
-    Route::get('variant-keys-tree', 'VariantConfigurationKeyController@tree')->name('variant-keys.tree');
-    Route::resource('variant-keys', 'VariantConfigurationKeyController');
-
-    // Variants Configurations
-    Route::group(['prefix' => 'variants-configurations'], function() {
-        Route::get('datatable', 'VariantsConfigurationController@datatable')->name('variants-configurations.datatable');
-        Route::get('get-parents-by-key', 'VariantsConfigurationController@getParentsByKey')->name('variants-configurations.get-parents-by-key');
-        Route::get('tree', 'VariantsConfigurationController@tree')->name('variants-configurations.tree');
-    });
-    Route::resource('variants-configurations', 'VariantsConfigurationController');
-
     // Bundle Categories
     Route::get('bundle-categories/datatable', 'BundleCategoryController@datatable')->name('bundle-categories.datatable');
     Route::post('bundle-categories/{id}/toggle-status', 'BundleCategoryController@toggleStatus')->name('bundle-categories.toggle-status');
     Route::resource('bundle-categories', 'BundleCategoryController');
 
 });
+
+// Variant Configuration Keys (accessible by both admin and vendor - permission controlled in controller)
+Route::get('variant-keys/datatable', 'VariantConfigurationKeyController@datatable')->name('variant-keys.datatable');
+Route::get('variant-keys-tree', 'VariantConfigurationKeyController@tree')->name('variant-keys.tree');
+Route::resource('variant-keys', 'VariantConfigurationKeyController');
+
+// Variants Configurations (accessible by both admin and vendor - permission controlled in controller)
+Route::group(['prefix' => 'variants-configurations'], function() {
+    Route::get('datatable', 'VariantsConfigurationController@datatable')->name('variants-configurations.datatable');
+    Route::get('get-parents-by-key', 'VariantsConfigurationController@getParentsByKey')->name('variants-configurations.get-parents-by-key');
+    Route::get('tree', 'VariantsConfigurationController@tree')->name('variants-configurations.tree');
+});
+Route::resource('variants-configurations', 'VariantsConfigurationController');
 
 // Occasions
 
@@ -72,6 +72,9 @@ Route::group(['prefix' => 'products'], function() {
     Route::get('pending', 'ProductController@pending')->name('products.pending');
     Route::get('rejected', 'ProductController@rejected')->name('products.rejected');
     Route::get('accepted', 'ProductController@accepted')->name('products.accepted');
+    
+    // Search bank products for product creation (accessible with products.create permission)
+    Route::get('search-bank-products', 'ProductController@searchBankProducts')->name('products.search-bank-products');
 
     Route::prefix('bank')->group(function () {
         // Product Bank routes (must be before resource to avoid conflict with {product} parameter)

@@ -417,6 +417,10 @@
                         <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive('admin.system-settings.push-notifications.index', $currentRoute) ? 'active' : '' }}"
                             href="{{ route('admin.system-settings.push-notifications.index') }}">
                             {{ trans('menu.push_notifications.all_notifications') }}
+                            <span class="badge badge-round ms-1"
+                                style="{{ getBadgeStyle(isMenuActive('admin.system-settings.push-notifications.index', $currentRoute)) }}">
+                                {{ \Modules\SystemSetting\app\Models\PushNotification::count() }}
+                            </span>
                         </a>
                     </li>
                     @endcan
@@ -533,14 +537,17 @@
                     <span class="toggle-icon"></span>
                 </a>
                 <ul class="px-0">
-                    @can('products.stock-setup')
-                        <li>
-                            <a class="fw-bold {{ isMenuActive('admin.products.stock-setup', $currentRoute) ? 'active' : '' }}"
-                                href="{{ route('admin.products.stock-setup') }}">
-                                {{ trans('menu.products.stock_setup') }}
-                            </a>
-                        </li>
-                    @endcan
+
+                    @if(isAdmin())
+                        @can('products.stock-setup')
+                            <li>
+                                <a class="fw-bold {{ isMenuActive('admin.products.stock-setup', $currentRoute) ? 'active' : '' }}"
+                                    href="{{ route('admin.products.stock-setup') }}">
+                                    {{ trans('menu.products.stock_setup') }}
+                                </a>
+                            </li>
+                        @endcan
+                    @endif
 
                     @can('products.bank')
                         <li>

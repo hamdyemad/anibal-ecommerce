@@ -111,6 +111,7 @@ return [
     // Latest Orders
     'latest_orders' => 'أحدث الطلبات',
     'order_number' => 'رقم الطلب',
+    'customer' => 'العميل',
     'user' => 'المستخدم',
 
     // Best Customers

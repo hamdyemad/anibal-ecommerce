@@ -539,7 +539,8 @@
             </div>
         </div>
 
-        {{-- Vendor Products Management --}}
+        {{-- Vendor Products Management (Admin Only) --}}
+        @if(isAdmin())
         <div class="row mt-4">
             <div class="col-lg-12">
                 <div class="card border-0 shadow-sm">
@@ -601,23 +602,22 @@
                             </div>
                         </div>
 
-                        @if(isAdmin())
-                            <div class="table-responsive">
-                                <table id="productsDataTable" class="table mb-0 table-bordered table-hover text-center">
-                                    <thead class="userDatatable-header">
-                                        <tr>
-                                            <th class="text-center" width="80">#</th>
-                                            <th class="text-center">{{ __('catalogmanagement::product.vendor') }}</th>
-                                            <th class="text-center">{{ __('catalogmanagement::product.orders_count') ?? 'Orders' }}</th>
-                                            @canany(['products.bank.vendor-product.trash', 'products.bank.vendor-product.restore'])
-                                                <th class="text-center" width="150">{{ __('common.actions') }}</th>
-                                            @endcanany
-                                        </tr>
-                                    </thead>
-                                    <tbody id="vendor-products-tbody">
-                                        @php
-                                            $vendorProducts = $product
-                                                ->vendorProducts()
+                        <div class="table-responsive">
+                            <table id="productsDataTable" class="table mb-0 table-bordered table-hover text-center">
+                                <thead class="userDatatable-header">
+                                    <tr>
+                                        <th class="text-center" width="80">#</th>
+                                        <th class="text-center">{{ __('catalogmanagement::product.vendor') }}</th>
+                                        <th class="text-center">{{ __('catalogmanagement::product.orders_count') ?? 'Orders' }}</th>
+                                        @canany(['products.bank.vendor-product.trash', 'products.bank.vendor-product.restore'])
+                                            <th class="text-center" width="150">{{ __('common.actions') }}</th>
+                                        @endcanany
+                                    </tr>
+                                </thead>
+                                <tbody id="vendor-products-tbody">
+                                    @php
+                                        $vendorProducts = $product
+                                            ->vendorProducts()
                                                 ->with(['vendor.logo'])
                                                 ->withTrashed()
                                                 ->withCount('orderProducts')
@@ -692,11 +692,11 @@
                                     </tbody>
                                 </table>
                             </div>
-                        @endif
                     </div>
                 </div>
             </div>
         </div>
+        @endif
     </div>
 
 @endsection

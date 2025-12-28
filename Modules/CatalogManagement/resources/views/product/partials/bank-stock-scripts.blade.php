@@ -2581,9 +2581,14 @@
 
         // Utility functions
         function loadVariantKeys() {
+            const countryId = $("meta[name='current_country_id']").attr("content");
+            
             $.ajax({
                 url: config.routes.variantKeys,
                 type: 'GET',
+                data: {
+                    country_id: countryId
+                },
                 success: function(response) {
                     variantKeysData = response.data || [];
                 },
@@ -2805,12 +2810,15 @@
             // Store keyId in the variant box for later use
             $(`#variant-${variantIndex}`).data('current-key-id', keyId);
 
+            const countryId = $("meta[name='current_country_id']").attr("content");
+
             $.ajax({
                 url: '{{ route('admin.api.variants-by-key') }}',
                 type: 'GET',
                 dataType: 'json',
                 data: {
                     key_id: keyId,
+                    country_id: countryId,
                 },
                 success: function(response) {
                     const variants = response.data || response;
@@ -2876,13 +2884,16 @@
                 }
             });
 
+            const countryId = $("meta[name='current_country_id']").attr("content");
+
             $.ajax({
                 url: '{{ route('admin.api.variants-by-key') }}',
                 type: 'GET',
                 dataType: 'json',
                 data: {
                     key_id: keyId,
-                    parent_id: parentId
+                    parent_id: parentId,
+                    country_id: countryId
                 },
                 success: function(response) {
                     const variants = response.data || response;
