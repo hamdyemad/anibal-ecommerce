@@ -530,11 +530,6 @@
                                     </div>
                                 @endif
 
-                                @if(isset($occasion) && $occasion->occasionProducts->count() > 0)
-                                    {{-- Existing Products Table (for edit mode) --}}
-                                    @include('catalogmanagement::occasions.occasion-products-table', ['occasion' => $occasion, 'showDragHandle' => true, 'showActions' => true])
-                                @endif
-
                             </div>
 
                             {{-- SEO Information Section --}}
@@ -692,54 +687,76 @@
                         if (response.status && response.data && response.data.length > 0) {
                             allProducts = [];
                             let productsHtml = '';
+                            const currencySymbol = '{{ currency() }}';
 
                             response.data.forEach(function(vendorProduct) {
                                 const productImage = vendorProduct.image || '{{ asset('assets/img/logo.png') }}';
                                 const productName = vendorProduct.name || 'N/A';
                                 const variants = vendorProduct.variants || [];
+                                
+                                // Get vendor info
+                                const vendor = vendorProduct.vendor || {};
+                                const vendorName = vendor.name || 'N/A';
+                                const vendorLogo = vendor.logo || '{{ asset('assets/img/default-vendor.png') }}';
 
                                 if (variants.length > 0) {
                                     variants.forEach(function(variant) {
                                         const variantId = variant.id;
                                         const variantName = variant.variant_name || variant.name || '';
+                                        const variantKey = variant.variant_key || '';
+                                        const variantValue = variant.variant_value || variantName || '';
                                         const variantSku = variant.sku || 'N/A';
-                                        const stock = variant.stock || 0;
+                                        // Use remaining_stock instead of stock
+                                        const remainingStock = variant.remaining_stock ?? variant.stock ?? 0;
                                         const price = variant.real_price;
                                         const priceBeforeDiscount = variant.fake_price;
                                         const isSelected = selectedProducts.includes(variantId);
+                                        const isOutOfStock = remainingStock <= 0;
 
                                         allProducts.push({
                                             id: variantId,
                                             productName: productName,
                                             variantName: variantName,
+                                            variantKey: variantKey,
+                                            variantValue: variantValue,
                                             sku: variantSku,
-                                            stock: stock,
+                                            stock: remainingStock,
                                             price: price,
                                             priceBeforeDiscount: priceBeforeDiscount,
-                                            image: productImage
+                                            image: productImage,
+                                            vendorName: vendorName,
+                                            vendorLogo: vendorLogo
                                         });
+
+                                        const disabledClass = isOutOfStock ? 'opacity-50' : '';
+                                        const stockClass = remainingStock > 0 ? 'text-success' : 'text-danger fw-bold';
+                                        const stockText = isOutOfStock ? `${remainingStock} ({{ trans('catalogmanagement::occasion.out_of_stock') }})` : remainingStock;
 
                                         productsHtml += `
                                             <div class="col-md-6 col-lg-4 mb-3">
-                                                <div class="card border-0 shadow-sm h-100 product-card" data-product-id="${variantId}">
+                                                <div class="card border-0 shadow-sm h-100 product-card ${disabledClass}" data-product-id="${variantId}">
                                                     <div class="card-body p-3">
                                                         <div class="d-flex gap-2 mb-2">
                                                             <img src="${productImage}" alt="${productName}"
                                                                  class="rounded" style="width: 50px; height: 50px; object-fit: cover; flex-shrink: 0;">
                                                             <div class="flex-grow-1">
                                                                 <h6 class="mb-1 fw-semibold text-truncate">${productName}</h6>
-                                                                ${variantName ? `<small class="text-primary d-block">${variantName}</small>` : ''}
+                                                                ${variantKey ? `<small class="text-primary d-block"><strong>${variantKey}:</strong> ${variantValue}</small>` : ''}
                                                             </div>
                                                         </div>
                                                         <div class="d-flex flex-column gap-1 mb-2">
                                                             <small class="text-muted"><strong>{{ trans('catalogmanagement::occasion.sku') }}:</strong> ${variantSku}</small>
-                                                            <small class="text-muted"><strong>{{ trans('common.stock') }}:</strong> ${stock}</small>
-                                                            <small class="text-muted"><strong>{{ trans('catalogmanagement::occasion.original_price') }}:</strong> ${price} {{ currency() }}</small>
-                                                            ${priceBeforeDiscount ? `<small class="text-muted"><strong>{{ trans('common.before_discount') }}:</strong> ${priceBeforeDiscount} {{ currency() }}</small>` : ''}
+                                                            <small><strong>{{ trans('catalogmanagement::occasion.remaining_stock') }}:</strong> <span class="${stockClass}">${stockText}</span></small>
+                                                            <small class="text-muted"><strong>{{ trans('catalogmanagement::occasion.original_price') }}:</strong> ${price} ${currencySymbol}</small>
+                                                            ${priceBeforeDiscount ? `<small class="text-muted"><strong>{{ trans('common.before_discount') }}:</strong> ${priceBeforeDiscount} ${currencySymbol}</small>` : ''}
+                                                        </div>
+                                                        <div class="d-flex align-items-center mb-2 pt-2 border-top">
+                                                            <img src="${vendorLogo}" alt="${vendorName}" class="rounded-circle me-2" style="width: 20px; height: 20px; object-fit: cover;">
+                                                            <small class="text-primary fw-500">${vendorName}</small>
                                                         </div>
                                                         <button type="button" class="btn btn-sm ${isSelected ? 'btn-success' : 'btn-primary'} w-100 add-product-btn"
-                                                                data-product-id="${variantId}" ${isSelected ? 'disabled' : ''}>
-                                                            <i class="uil ${isSelected ? 'uil-check' : 'uil-plus'} me-1"></i>${isSelected ? '{{ trans('common.added') }}' : '{{ trans('common.add') }}'}
+                                                                data-product-id="${variantId}" ${isSelected || isOutOfStock ? 'disabled' : ''}>
+                                                            <i class="uil ${isSelected ? 'uil-check' : 'uil-plus'} me-1"></i>${isSelected ? '{{ trans('common.added') }}' : (isOutOfStock ? '{{ trans('catalogmanagement::occasion.out_of_stock') }}' : '{{ trans('common.add') }}')}
                                                         </button>
                                                     </div>
                                                 </div>
@@ -801,12 +818,17 @@
             // Update selected products display
             function updateSelectedProductsDisplay() {
                 const count = selectedProducts.length;
+                const currencySymbol = '{{ currency() }}';
 
                 if (count > 0) {
                     let selectedHtml = '';
                     selectedProducts.forEach(function(variantId, index) {
                         const variant = selectedProductsDetails[variantId];
                         if (variant) {
+                            const vendorLogo = variant.vendorLogo || '{{ asset('assets/img/default-vendor.png') }}';
+                            const vendorName = variant.vendorName || 'N/A';
+                            const stockClass = variant.stock > 0 ? 'text-success' : 'text-danger';
+                            
                             selectedHtml += `
                                 <div class="col-md-6 col-lg-4 mb-3">
                                     <div class="card border-0 shadow-sm h-100 product-card" data-product-id="${variantId}">
@@ -816,14 +838,18 @@
                                                      class="rounded" style="width: 50px; height: 50px; object-fit: cover; flex-shrink: 0;">
                                                 <div class="flex-grow-1">
                                                     <h6 class="mb-1 fw-semibold text-truncate">${variant.productName}</h6>
-                                                    ${variant.variantName ? `<small class="text-primary d-block">${variant.variantName}</small>` : ''}
+                                                    ${variant.variantKey ? `<small class="text-primary d-block"><strong>${variant.variantKey}:</strong> ${variant.variantValue || variant.variantName}</small>` : (variant.variantName ? `<small class="text-primary d-block">${variant.variantName}</small>` : '')}
                                                 </div>
+                                            </div>
+                                            <div class="d-flex align-items-center mb-2">
+                                                <img src="${vendorLogo}" alt="${vendorName}" class="rounded-circle me-2" style="width: 20px; height: 20px; object-fit: cover;">
+                                                <small class="text-primary fw-500">${vendorName}</small>
                                             </div>
                                             <div class="d-flex flex-column gap-1 mb-2">
                                                 <small class="text-muted"><strong>{{ trans('catalogmanagement::occasion.sku') }}:</strong> ${variant.sku}</small>
-                                                <small class="text-muted"><strong>{{ trans('common.stock') }}:</strong> ${variant.stock}</small>
-                                                <small class="text-muted"><strong>{{ trans('catalogmanagement::occasion.original_price') }}:</strong> ${variant.price} {{ currency() }}</small>
-                                                ${variant.priceBeforeDiscount ? `<small class="text-muted"><strong>{{ trans('common.before_discount') }}:</strong> ${variant.priceBeforeDiscount} {{ currency() }}</small>` : ''}
+                                                <small><strong>{{ trans('catalogmanagement::occasion.remaining_stock') }}:</strong> <span class="${stockClass}">${variant.stock}</span></small>
+                                                <small class="text-muted"><strong>{{ trans('catalogmanagement::occasion.original_price') }}:</strong> ${variant.price} ${currencySymbol}</small>
+                                                ${variant.priceBeforeDiscount ? `<small class="text-muted"><strong>{{ trans('common.before_discount') }}:</strong> ${variant.priceBeforeDiscount} ${currencySymbol}</small>` : ''}
                                             </div>
                                             <div class="mb-2">
                                                 <label class="form-label fs-13 fw-500">{{ trans('catalogmanagement::occasion.special_price') }}</label>
@@ -904,31 +930,46 @@
                     $(document).ready(function() {
                         @php
                             $existingVariantsData = $occasion->occasionProducts->map(function ($item) {
+                                $vpv = $item->vendorProductVariant;
+                                $vendorProduct = $vpv?->vendorProduct;
+                                $product = $vendorProduct?->product;
+                                $vendor = $vendorProduct?->vendor;
+                                $variantConfig = $vpv?->variantConfiguration;
+                                
                                 return [
                                     'id' => $item->vendor_product_variant_id,
                                     'special_price' => $item->special_price,
                                     'position' => $item->position,
-                                    'variant' => $item->vendorProductVariant
+                                    'variant' => $vpv
                                         ? [
-                                            'id' => $item->vendorProductVariant->id,
-                                            'sku' => $item->vendorProductVariant->sku,
-                                            'variant_name' => $item->vendorProductVariant->variant_name,
-                                            'stock' => $item->vendorProductVariant->total_stock,
-                                            'real_price' => $item->vendorProductVariant->price,
-                                            'fake_price' => $item->vendorProductVariant->price_before_discount,
+                                            'id' => $vpv->id,
+                                            'sku' => $vpv->sku,
+                                            'variant_name' => $vpv->variant_name,
+                                            'variant_key' => $variantConfig?->key?->name,
+                                            'variant_value' => $variantConfig?->name,
+                                            'stock' => $vpv->remaining_stock ?? 0,
+                                            'real_price' => $vpv->price,
+                                            'fake_price' => $vpv->price_before_discount,
                                         ]
                                         : null,
-                                    'product' =>
-                                        $item->vendorProductVariant && $item->vendorProductVariant->vendorProduct
-                                            ? [
-                                                'name' => $item->vendorProductVariant->vendorProduct->product->title,
-                                                'image' => $item->vendorProductVariant->vendorProduct->product->mainImage ? asset('storage/' . $item->vendorProductVariant->vendorProduct->product->mainImage->path) : null,
-                                            ]
-                                            : null,
+                                    'product' => $product
+                                        ? [
+                                            'name' => $product->title,
+                                            'image' => $product->mainImage ? formatImage($product->mainImage) : null,
+                                        ]
+                                        : null,
+                                    'vendor' => $vendor
+                                        ? [
+                                            'name' => $vendor->name,
+                                            'logo' => formatImage($vendor->logo),
+                                        ]
+                                        : null,
                                 ];
                             });
                         @endphp
                         const existingVariants = @json($existingVariantsData);
+                        const defaultImage = '{{ asset('assets/img/default.png') }}';
+                        const defaultVendorLogo = '{{ asset('assets/img/default-vendor.png') }}';
 
                         // Add existing variants to selected products
                         existingVariants.forEach(function(item) {
@@ -944,14 +985,16 @@
                                 selectedProductsDetails[variantId] = {
                                     productName: item.product.name,
                                     variantName: item.variant.variant_name || '',
+                                    variantKey: item.variant.variant_key || '',
+                                    variantValue: item.variant.variant_value || '',
                                     sku: item.variant.sku,
                                     stock: item.variant.stock || 0,
                                     price: item.variant.real_price || '0.00',
                                     priceBeforeDiscount: item.variant.fake_price || null,
-                                    image: item.product.image ||
-                                        '{{ asset('assets/img/default.png') }}',
-                                    specialPrice: item
-                                        .special_price // Store the saved special price
+                                    image: item.product.image || defaultImage,
+                                    vendorName: item.vendor?.name || 'N/A',
+                                    vendorLogo: item.vendor?.logo || defaultVendorLogo,
+                                    specialPrice: item.special_price
                                 };
                             }
                         });
