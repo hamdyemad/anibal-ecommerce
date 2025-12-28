@@ -63,9 +63,19 @@ class CalculateProductPrices
             }
 
             $price = (float) ($vendorProduct['variants'][0]['price'] ?? 0);
-            $taxRate = (float) ($vendorProduct['tax']['tax_rate'] ?? 0);
-            $taxNameEn = $vendorProduct['tax']['name_en'] ?? $vendorProduct['tax']['name'] ?? '';
-            $taxNameAr = $vendorProduct['tax']['name_ar'] ?? $vendorProduct['tax']['name'] ?? '';
+            
+            // Calculate total tax rate from all taxes
+            $taxes = $vendorProduct['taxes'] ?? [];
+            $taxRate = 0;
+            $taxNames = ['en' => [], 'ar' => []];
+            foreach ($taxes as $tax) {
+                $taxRate += (float) ($tax['percentage'] ?? 0);
+                $taxNames['en'][] = $tax['name_en'] ?? $tax['name'] ?? '';
+                $taxNames['ar'][] = $tax['name_ar'] ?? $tax['name'] ?? '';
+            }
+            $taxNameEn = implode(', ', array_filter($taxNames['en']));
+            $taxNameAr = implode(', ', array_filter($taxNames['ar']));
+            
             $limitation = (int) ($vendorProduct['max_per_order'] ?? 0);
 
             // Get commission from product's department
@@ -100,7 +110,7 @@ class CalculateProductPrices
                         'name' => $productNameAr,
                     ],
                 ],
-                'tax_id' => $vendorProduct['tax']['id'] ?? null,
+                'tax_id' => null, // Multiple taxes now handled via vendor_product_taxes
                 'tax_rate' => $taxRate,
                 'tax_amount' => $tax,
                 'tax_translations' => [

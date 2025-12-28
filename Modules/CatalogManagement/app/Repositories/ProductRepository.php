@@ -95,7 +95,7 @@ class ProductRepository implements ProductInterface
             'product.translations',
             'product.attachments',
             'vendor',
-            'tax',
+            'taxes',
             'variants',
             'variants.stocks.region.translations',
             'variants.variantConfiguration.parent_data.parent_data.parent_data', // Load parent hierarchy
@@ -147,7 +147,6 @@ class ProductRepository implements ProductInterface
             $vendorProduct = VendorProduct::updateOrCreate(
                 ['vendor_id' => $vendorId, 'product_id' => $product->id],
                 [
-                    'tax_id' => $data['tax_id'],
                     'sku' => $data['sku'] ?? null,
                     'video_link' => $data['video_link'] ?? null,
                     'max_per_order' => $data['max_per_order'],
@@ -194,7 +193,6 @@ class ProductRepository implements ProductInterface
             $vendorProduct = VendorProduct::firstOrCreate(
                 ['vendor_id' => $vendorId, 'product_id' => $product->id],
                 [
-                    'tax_id' => $data['tax_id'],
                     'sku' => $data['sku'] ?? null,
                     'max_per_order' => $data['max_per_order'],
                     'is_active' => $data['is_active'] ?? false,
@@ -214,7 +212,6 @@ class ProductRepository implements ProductInterface
             }
             
             $vendorProduct->update([
-                'tax_id' => $data['tax_id'],
                 'sku' => $data['sku'] ?? null,
                 'video_link' => $data['video_link'] ?? null,
                 'max_per_order' => $data['max_per_order'],
@@ -703,23 +700,10 @@ class ProductRepository implements ProductInterface
         return DB::transaction(function () use ($data) {
             $productId = $data['product_id'];
             $vendorId = $data['vendor_id'];
-            $taxId = $data['tax_id'] ?? null;
-
-            // If no tax_id provided, get the first available tax as default
-            if (!$taxId) {
-                $defaultTax = Tax::first();
-                $taxId = $defaultTax ? $defaultTax->id : null;
-
-                // If still no tax available, throw an error since tax_id is required in database
-                if (!$taxId) {
-                    throw new \Exception('No tax found in the system. Please create at least one tax before adding products to bank.');
-                }
-            }
 
             $vendorProductData = [
                 'product_id' => $productId,
                 'vendor_id' => $vendorId,
-                'tax_id' => $taxId,
                 'sku' => Str::random(4),
                 'max_per_order' => $data['max_per_order'] ?? 10,
                 'video_link' => $data['video_link'] ?? null,
@@ -895,7 +879,6 @@ class ProductRepository implements ProductInterface
         return [
             'id' => $vendorProduct->id,
             'configuration_type' => $vendorProduct->configuration_type,
-            'tax_id' => $vendorProduct->tax_id,
             'sku' => $vendorProduct->sku,
             'max_per_order' => $vendorProduct->max_per_order,
             'video_link' => $vendorProduct->video_link,
@@ -999,7 +982,6 @@ class ProductRepository implements ProductInterface
 
                 // Store original vendor product data before deletion
                 $originalVendorProductData = [
-                    'tax_id' => $vendorProduct->tax_id,
                     'sku' => $vendorProduct->sku,
                     'max_per_order' => $vendorProduct->max_per_order,
                     'is_active' => $vendorProduct->is_active,
@@ -1018,7 +1000,6 @@ class ProductRepository implements ProductInterface
                 VendorProduct::create([
                     'vendor_id' => $vendorId,
                     'product_id' => $bankProduct->id,
-                    'tax_id' => $originalVendorProductData['tax_id'],
                     'sku' => $originalVendorProductData['sku'],
                     'max_per_order' => $originalVendorProductData['max_per_order'],
                     'is_active' => $originalVendorProductData['is_active'],

@@ -1,5 +1,7 @@
 @extends('layout.app')
-@section('title', trans('catalogmanagement::tax.view_tax'))
+@section('title')
+    {{ __('catalogmanagement::tax.view_tax') }} | Bnaia
+@endsection
 
 @section('content')
     <div class="container-fluid">
@@ -7,24 +9,26 @@
             <div class="col-lg-12">
                 <x-breadcrumb :items="[
                     ['title' => trans('dashboard.title'), 'url' => route('admin.dashboard'), 'icon' => 'uil uil-estate'],
-                    ['title' => trans('catalogmanagement::tax.taxes_management'), 'url' => route('admin.taxes.index')],
-                    ['title' => trans('catalogmanagement::tax.view_tax')]
+                    ['title' => __('catalogmanagement::tax.taxes_management'), 'url' => route('admin.taxes.index')],
+                    ['title' => __('catalogmanagement::tax.view_tax')],
                 ]" />
             </div>
         </div>
 
         <div class="row">
             <div class="col-lg-12">
-                <div class="card border-0 shadow-sm mb-3">
+                <div class="card border-0 shadow-sm">
                     <div class="card-header bg-white border-bottom py-20 d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0 fw-500">{{ trans('catalogmanagement::tax.tax_details') }}</h5>
+                        <h5 class="mb-0 fw-500">{{ __('catalogmanagement::tax.tax_details') }}</h5>
                         <div class="d-flex gap-10">
                             <a href="{{ route('admin.taxes.index') }}" class="btn btn-light btn-sm">
-                                <i class="uil uil-arrow-left me-2"></i>{{ trans('common.back_to_list') }}
+                                <i class="uil uil-arrow-left me-2"></i>{{ __('catalogmanagement::tax.back_to_list') }}
                             </a>
-                            <a href="{{ route('admin.taxes.edit', $tax->id) }}" class="btn btn-primary btn-sm">
-                                <i class="uil uil-edit me-2"></i>{{ trans('common.edit') }}
-                            </a>
+                            @can('taxes.edit')
+                                <a href="{{ route('admin.taxes.edit', $tax->id) }}" class="btn btn-primary btn-sm">
+                                    <i class="uil uil-edit me-2"></i>{{ __('catalogmanagement::tax.edit_tax') }}
+                                </a>
+                            @endcan
                         </div>
                     </div>
                     <div class="card-body">
@@ -32,79 +36,31 @@
                             <div class="col-md-12">
                                 <div class="card card-holder">
                                     <div class="card-header">
-                                        <h3>
-                                            <i class="uil uil-info-circle me-1"></i>{{ trans('common.basic_information') }}
-                                        </h3>
+                                        <h3><i class="uil uil-info-circle me-1"></i>{{ __('common.basic_information') }}</h3>
                                     </div>
                                     <div class="card-body">
                                         <div class="row">
-                                            {{-- Dynamic Language Translations for Name --}}
-                                            @foreach($languages as $language)
-                                                <div class="col-md-6">
-                                                    <div class="view-item">
-                                                        <label class="il-gray fs-14 fw-500 mb-10" @if($language->rtl) dir="rtl" style="text-align: right; display: block;" @endif>
-                                                            @if($language->code == 'ar')
-                                                                الاسم بالعربية
-                                                            @elseif($language->code == 'en')
-                                                                {{ trans('catalogmanagement::tax.name') }}
-                                                            @else
-                                                                {{ trans('catalogmanagement::tax.name') }} ({{ $language->name }})
-                                                            @endif
-                                                        </label>
-                                                        <p class="fs-15 color-dark fw-500" @if($language->rtl) dir="rtl" style="text-align: right;" @endif>
-                                                            {{ $tax->getTranslation('name', $language->code) ?? '-' }}
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                            @endforeach
-
-                                            {{-- Tax Rate --}}
+                                            <x-translation-display :label="__('catalogmanagement::tax.name')" :model="$tax" fieldName="name" :languages="$languages" />
+                                            
                                             <div class="col-md-6">
                                                 <div class="view-item">
-                                                    <label class="il-gray fs-14 fw-500 mb-10">{{ trans('catalogmanagement::tax.tax_rate') }}</label>
+                                                    <label class="il-gray fs-14 fw-500 mb-10">{{ __('catalogmanagement::tax.percentage') }}</label>
                                                     <p class="fs-15 color-dark">
-                                                        <span class="badge badge-info badge-round badge-lg">
-                                                            <i class="uil uil-percentage"></i> {{ number_format($tax->tax_rate, 2) }}%
-                                                        </span>
+                                                        <span class="badge badge-info badge-round badge-lg">{{ $tax->percentage }}%</span>
                                                     </p>
                                                 </div>
                                             </div>
-
-                                            {{-- Activation Status --}}
+                                            
                                             <div class="col-md-6">
                                                 <div class="view-item">
-                                                    <label class="il-gray fs-14 fw-500 mb-10">{{ trans('catalogmanagement::tax.activation') }}</label>
+                                                    <label class="il-gray fs-14 fw-500 mb-10">{{ __('catalogmanagement::tax.status') }}</label>
                                                     <p class="fs-15">
-                                                        @if($tax->active)
-                                                            <span class="badge badge-success badge-round badge-lg">{{ trans('catalogmanagement::tax.active') }}</span>
+                                                        @if($tax->is_active)
+                                                            <span class="badge badge-success badge-round badge-lg">{{ __('catalogmanagement::tax.active') }}</span>
                                                         @else
-                                                            <span class="badge badge-danger badge-round badge-lg">{{ trans('catalogmanagement::tax.inactive') }}</span>
+                                                            <span class="badge badge-danger badge-round badge-lg">{{ __('catalogmanagement::tax.inactive') }}</span>
                                                         @endif
                                                     </p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="card card-holder mt-3">
-                                    <div class="card-header">
-                                        <h3>
-                                            <i class="uil uil-clock me-1"></i>{{ trans('common.timestamps') }}
-                                        </h3>
-                                    </div>
-                                    <div class="card-body">
-                                        <div class="row">
-                                            <div class="col-md-6">
-                                                <div class="view-item">
-                                                    <label class="il-gray fs-14 fw-500 mb-10">{{ trans('common.created_at') }}</label>
-                                                    <p class="fs-15 color-dark">{{ $tax->created_at }}</p>
-                                                </div>
-                                            </div>
-                                            <div class="col-md-6">
-                                                <div class="view-item">
-                                                    <label class="il-gray fs-14 fw-500 mb-10">{{ trans('common.updated_at') }}</label>
-                                                    <p class="fs-15 color-dark">{{ $tax->updated_at }}</p>
                                                 </div>
                                             </div>
                                         </div>

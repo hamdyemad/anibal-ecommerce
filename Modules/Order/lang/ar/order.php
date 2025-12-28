@@ -166,6 +166,7 @@ return [
     'product' => 'المنتج',
     'quantity' => 'الكمية',
     'price_per_unit' => 'السعر لكل وحدة',
+    'tax' => 'الضريبة',
     'actions' => 'الإجراءات',
 
     // Promo Code

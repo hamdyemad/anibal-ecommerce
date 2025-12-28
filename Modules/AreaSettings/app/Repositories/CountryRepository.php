@@ -27,7 +27,7 @@ class CountryRepository implements CountryRepositoryInterface
         $query = Country::with('translations')->filter($filters);
 
         // Debug: Log filters in repository
-        \Log::info('CountryRepository filters:', $filters);
+        Log::info('CountryRepository filters:', $filters);
 
         return $query;
     }

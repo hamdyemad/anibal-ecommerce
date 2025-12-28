@@ -24,7 +24,7 @@ class WishlistQueryAction
                             },
                             'variants',
                             'vendor',
-                            'tax',
+                            'taxes',
                         ])
                         ->withCount('reviews')
                         ->withAvg('reviews', 'star');

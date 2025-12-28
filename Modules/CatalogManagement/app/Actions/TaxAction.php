@@ -2,125 +2,127 @@
 
 namespace Modules\CatalogManagement\app\Actions;
 
-use Modules\CatalogManagement\app\Services\TaxService;
 use App\Services\LanguageService;
-use App\Traits\Res;
-use Carbon\Carbon;
-use Exception;
+use Modules\CatalogManagement\app\Services\TaxService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Modules\CatalogManagement\app\Interfaces\TaxRepositoryInterface;
 
 class TaxAction {
 
-    use Res;
-
     public function __construct(
         protected LanguageService $languageService,
         protected TaxService $taxService,
         protected TaxRepositoryInterface $taxRepositoryInterface
-        ) {}
+    ) {}
 
     /**
-     * Datatable endpoint for server-side processing
+     * Get datatable data for taxes
      */
-    public function getDataTable($data)
+    public function getDatatableData(Request $request)
     {
-        try {
-            // Get pagination parameters
-            $perPage = $data['per_page'] ?? $data['length'] ?? 10;
-            $page = $data['page'] ?? 1;
+        $draw = $request->get('draw', 1);
+        $start = $request->get('start', 0);
+        $length = $request->get('length', 10);
+        $searchValue = $request->get('search')['value'] ?? '';
+        $orderColumnIndex = $request->get('order')[0]['column'] ?? 0;
+        $orderDirection = $request->get('order')[0]['dir'] ?? 'asc';
 
-            // Get sorting parameters
-            $orderColumnIndex = $data['orderColumnIndex'] ?? 0;
-            $orderDirection = $data['orderDirection'] ?? 'desc';
+        // Get filter parameters
+        $isActive = $request->get('is_active');
 
-            // Get filter parameters
-            $filters = [
-                'search' => $data['search'],
-                'active' => $data['active'],
-                'created_date_from' => $data['created_date_from'],
-                'created_date_to' => $data['created_date_to'],
-            ];
+        // Prepare filters array
+        $filters = [
+            'search' => $searchValue,
+            'is_active' => $isActive,
+        ];
 
-            // Get languages
-            $languages = $this->languageService->getAll();
+        // Get languages
+        $languages = $this->languageService->getAll();
 
-            // Get total and filtered counts
-            $totalRecords = $this->taxRepositoryInterface->getTaxesQuery([])->count();
-            $filteredRecords = $this->taxRepositoryInterface->getTaxesQuery($filters)->count();
+        // Get total and filtered counts
+        $totalRecords = $this->taxRepositoryInterface->getTaxesQuery([])->count();
+        $filteredRecords = $this->taxRepositoryInterface->getTaxesQuery($filters)->count();
 
-            // Determine sort column
-            $orderBy = null;
-            if ($orderColumnIndex == 0) {
+        // Determine sort column
+        $orderBy = null;
+        switch ($orderColumnIndex) {
+            case 0:
                 $orderBy = 'id';
-            } elseif ($orderColumnIndex >= 1 && $orderColumnIndex <= count($languages)) {
-                // Sorting by translated name column
-                $languageIndex = $orderColumnIndex - 1;
-                $selectedLanguage = $languages->values()->get($languageIndex);
-                if ($selectedLanguage) {
-                    $orderBy = [
-                        'lang_id' => $selectedLanguage->id,
-                        'key' => 'name'
-                    ];
-                }
-            } elseif ($orderColumnIndex == count($languages) + 1) {
-                $orderBy = 'tax_rate';
-            } elseif ($orderColumnIndex == count($languages) + 2) {
-                $orderBy = 'active';
-            } elseif ($orderColumnIndex == count($languages) + 3) {
+                break;
+            case 1:
+                $orderBy = null; // Name - handled by translations
+                break;
+            case 2:
+                $orderBy = 'percentage';
+                break;
+            case 3:
+                $orderBy = 'is_active';
+                break;
+            case 4:
                 $orderBy = 'created_at';
-            }
-
-            // Get taxes with pagination and sorting
-            $taxesQuery = $this->taxRepositoryInterface->getTaxesQuery($filters, $orderBy, $orderDirection);
-            $taxes = $taxesQuery->paginate($perPage, ['*'], 'page', $page);
-
-            // Return raw data - rendering will be handled by DataTables in the view
-            $data = [];
-            foreach ($taxes as $tax) {
-                $rowData = [
-                    'id' => $tax->id,
-                    'translations' => [],
-                    'tax_rate' => $tax->tax_rate,
-                    'active' => $tax->active,
-                    'created_at' => $tax->created_at,
-                ];
-
-                // Add translations for each language
-                foreach ($languages as $language) {
-                    $translation = $tax->translations->where('lang_id', $language->id)
-                        ->where('lang_key', 'name')
-                        ->first();
-                    $rowData['translations'][$language->code] = [
-                        'name' => $translation ? $translation->lang_value : '-',
-                        'rtl' => $language->rtl
-                    ];
-                }
-
-                // Add first translation name for delete modal
-                $firstTranslation = $tax->translations->where('lang_key', 'name')->first();
-                $rowData['first_name'] = $firstTranslation ? $firstTranslation->lang_value : '';
-
-                $data[] = $rowData;
-            }
-
-            return [
-                'data' => $data,
-                'totalRecords' => $totalRecords,
-                'filteredRecords' => $filteredRecords,
-                'dataPaginated' => $taxes
-            ];
-
-        } catch (\Exception $e) {
-            Log::error('Error in TaxAction getDataTable: ' . $e->getMessage());
-            return [
-                'data' => [],
-                'totalRecords' => 0,
-                'filteredRecords' => 0,
-                'dataPaginated' => new \Illuminate\Pagination\LengthAwarePaginator([], 0, 10)
-            ];
+                break;
         }
+
+        // Calculate pagination
+        $perPage = $length > 0 ? $length : 10;
+        $page = ($start / $perPage) + 1;
+
+        // Get taxes with pagination and sorting
+        $taxesQuery = $this->taxRepositoryInterface->getTaxesQuery($filters, $orderBy, $orderDirection);
+        $taxes = $taxesQuery->paginate($perPage, ['*'], 'page', $page);
+
+        // Format data for DataTables
+        $data = $this->formatDataForDataTables($taxes, $languages);
+
+        return [
+            'draw' => intval($draw),
+            'recordsTotal' => $totalRecords,
+            'recordsFiltered' => $filteredRecords,
+            'data' => $data,
+        ];
     }
 
+    /**
+     * Format data for DataTables
+     */
+    protected function formatDataForDataTables($taxes, $languages)
+    {
+        $data = [];
+
+        foreach ($taxes as $index => $tax) {
+            $row = [
+                'index' => $taxes->firstItem() + $index,
+                'id' => $tax->id,
+                'names' => [],
+                'percentage' => $tax->percentage,
+                'is_active' => $tax->is_active,
+                'created_at' => $tax->created_at,
+                'display_name' => '',
+            ];
+
+            // Get names for each language
+            foreach ($languages as $language) {
+                $translation = $tax->translations()
+                    ->where('lang_id', $language->id)
+                    ->where('lang_key', 'name')
+                    ->first();
+
+                $name = $translation ? $translation->lang_value : '-';
+                $row['names'][$language->id] = [
+                    'value' => $name,
+                    'rtl' => $language->rtl
+                ];
+
+                // Set display name (first available translation)
+                if (!$row['display_name'] && $name !== '-') {
+                    $row['display_name'] = $name;
+                }
+            }
+
+            $data[] = $row;
+        }
+
+        return $data;
+    }
 }

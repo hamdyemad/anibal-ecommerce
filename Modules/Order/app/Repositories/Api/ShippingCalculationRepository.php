@@ -4,22 +4,59 @@ namespace Modules\Order\app\Repositories\Api;
 
 use Modules\Order\app\Interfaces\Api\ShippingCalculationRepositoryInterface;
 use Modules\Customer\app\Models\CustomerAddress;
+use Modules\AreaSettings\app\Models\City;
 use Modules\Order\app\Models\Shipping;
 use App\Exceptions\OrderException;
 
 class ShippingCalculationRepository implements ShippingCalculationRepositoryInterface
 {
     /**
-     * Calculate shipping cost for cart items based on customer address
+     * Calculate shipping cost for cart items based on customer address or city
      * Groups items by category and city, adds shipping cost once per group
+     * Supports both existing customers (with address) and external customers (with city_id)
      */
-    public function calculateShipping($customerId, $customerAddressId, array $cartItems)
+    public function calculateShipping($customerId, $customerAddressId, array $cartItems, $cityId = null)
     {
-        // Get customer address
-        $address = CustomerAddress::with('city')->findOrFail($customerAddressId);
+        // Determine city_id from either customer address or direct city_id parameter
+        $targetCityId = null;
+        $cityName = null;
+        $addressInfo = null;
 
-        if ($address->customer_id != $customerId) {
-            throw new OrderException(trans('shipping.address_not_found'));
+        if ($customerAddressId && $customerId) {
+            // Existing customer with address
+            $address = CustomerAddress::withoutGlobalScope('country_filter')
+                ->with('city')
+                ->findOrFail($customerAddressId);
+
+            if ($address->customer_id != $customerId) {
+                throw new OrderException(trans('shipping.address_not_found'));
+            }
+
+            $targetCityId = $address->city_id;
+            $cityName = $address->city->name ?? null;
+            $addressInfo = [
+                'id' => $address->id,
+                'title' => $address->title,
+                'city_id' => $address->city_id,
+                'city_name' => $cityName,
+            ];
+        } elseif ($cityId) {
+            // External customer with direct city_id
+            $city = City::withoutGlobalScope('country_filter')->find($cityId);
+            if (!$city) {
+                throw new OrderException(trans('shipping.city_not_found'));
+            }
+
+            $targetCityId = $cityId;
+            $cityName = $city->name ?? null;
+            $addressInfo = [
+                'id' => null,
+                'title' => null,
+                'city_id' => $cityId,
+                'city_name' => $cityName,
+            ];
+        } else {
+            throw new OrderException(trans('shipping.address_or_city_required'));
         }
 
         // Group cart items by category_id
@@ -31,13 +68,16 @@ class ShippingCalculationRepository implements ShippingCalculationRepositoryInte
 
         foreach ($itemsByCategory as $categoryId => $items) {
             // Get shipping for this category and city using many-to-many relationships
-            $shipping = Shipping::where('active', 1)
-                ->where(function ($query) use ($address, $categoryId) {
-                    $query->whereHas('cities', function($q) use ($address) {
-                        $q->where('cities.id', $address->city_id);
-                    })->whereHas('categories', function($q) use ($categoryId) {
-                        $q->where('categories.id', $categoryId);
-                    });
+            // Bypass country filter to ensure we find the shipping
+            $shipping = Shipping::withoutGlobalScope('country_filter')
+                ->where('active', 1)
+                ->whereHas('cities', function($q) use ($targetCityId) {
+                    $q->withoutGlobalScope('country_filter')
+                      ->where('cities.id', $targetCityId);
+                })
+                ->whereHas('categories', function($q) use ($categoryId) {
+                    $q->withoutGlobalScope('country_filter')
+                      ->where('categories.id', $categoryId);
                 })
                 ->first();
 
@@ -45,8 +85,8 @@ class ShippingCalculationRepository implements ShippingCalculationRepositoryInte
                 $shippingBreakdown[] = [
                     'category_id' => $categoryId,
                     'category_name' => $items[0]['category_name'] ?? null,
-                    'city_id' => $address->city_id,
-                    'city_name' => $address->city->name ?? null,
+                    'city_id' => $targetCityId,
+                    'city_name' => $cityName,
                     'shipping_id' => $shipping->id,
                     'shipping_name' => $shipping->getTranslation('name', app()->getLocale()),
                     'cost' => (float) $shipping->cost,
@@ -59,12 +99,7 @@ class ShippingCalculationRepository implements ShippingCalculationRepositoryInte
         return [
             'shipping_cost' => (float) $totalShippingCost,
             'breakdown' => $shippingBreakdown,
-            'address' => [
-                'id' => $address->id,
-                'title' => $address->title,
-                'city_id' => $address->city_id,
-                'city_name' => $address->city->name ?? null,
-            ]
+            'address' => $addressInfo
         ];
     }
 

@@ -46,7 +46,7 @@ class SimpleProductResource extends JsonResource
             'currency' => CurrencyResource::make($this->product->currency),
             'meta_description' => $this->product->meta_description,
             'meta_keywords' => $this->product->meta_keywords ?? [],
-            'tax' => TaxResource::make($this->tax),
+            'taxes' => TaxResource::collection($this->whenLoaded('taxes')),
             'category' => [
                 'id' => $this->product->category_id,
                 'name' => $this->product->category->name ?? null,

@@ -25,13 +25,7 @@
                             {{ trans('catalogmanagement::product.bank_products_management') }}
                         </h4>
                         <div class="d-flex gap-2">
-                            @can('products.bank.import')
-                            <a href="{{ route('admin.products.bank.stock-management') }}"
-                                class="btn btn-success btn-squared shadow-sm px-4">
-                                <i class="uil uil-import"></i>
-                                {{ trans('catalogmanagement::product.import_product_from_bank') }}
-                            </a>
-                            @endcan
+                            {{-- Import Product from Bank button hidden - taxes handled by observer --}}
                             <a href="{{ route('admin.products.index') }}"
                                 class="btn btn-secondary btn-squared shadow-sm px-4">
                                 <i class="uil uil-arrow-left"></i> {{ trans('common.back') ?? 'Back' }}

@@ -499,7 +499,7 @@ return [
     'please_fix_validation_errors' => 'Fields with errors are highlighted in red with specific error messages below each field. Please fix the following validation errors:',
     'bank_product' => 'Bank Product',
     'regular_product' => 'Regular Product',
-    'is_product_from_bank' => 'Is your product from bank?',
+    'is_product_from_bank' => 'Choose a product from the available products',
 
     // Variant Removal
     'cannot_remove_last_variant' => 'Cannot remove the last variant. Product must have at least one variant.',

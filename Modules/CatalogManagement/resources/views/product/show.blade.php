@@ -359,17 +359,20 @@
                                                 </div>
                                             </div>
 
-                                            {{-- Tax --}}
+                                            {{-- Taxes --}}
                                             <div class="col-md-4 mb-3">
                                                 <div class="p-3 border rounded" style="background: #f8f9fa;">
                                                     <small
                                                         class="text-muted d-block mb-1">{{ __('catalogmanagement::product.tax') }}</small>
                                                     <div class="fw-bold text-dark" style="font-size: 16px;">
-                                                        <i class="uil uil-percentage me-1"></i>
-                                                        @if ($product->tax)
-                                                            {{ $product->tax->getTranslation('name', app()->getLocale()) ?? ($product->tax->getTranslation('name', 'en') ?? ($product->tax->name ?? '-')) }}
+                                                        @if ($product->taxes && $product->taxes->count() > 0)
+                                                            @foreach ($product->taxes as $tax)
+                                                                <span class="badge badge-round badge-info me-1">
+                                                                    {{ $tax->getTranslation('name', app()->getLocale()) ?? $tax->name }}
+                                                                </span>
+                                                            @endforeach
                                                         @else
-                                                            -
+                                                            <span class="text-muted">-</span>
                                                         @endif
                                                     </div>
                                                 </div>
@@ -610,12 +613,12 @@
                                                                             <div
                                                                                 class="fw-bold text-danger text-decoration-line-through mb-1">
                                                                                 <i
-                                                                                    class="uil uil-money-bill me-1"></i>{{ number_format($variant->price_before_discount, 2) }}
+                                                                                    class="uil uil-money-bill me-1"></i>{{ number_format($variant->price_before_discount, 2) }} {{ currency() }}
                                                                             </div>
                                                                         @endif
                                                                         <div class="fw-bold text-success">
                                                                             <i
-                                                                                class="uil uil-money-bill me-1"></i>{{ number_format($variant->price, 2) }}
+                                                                                class="uil uil-money-bill me-1"></i>{{ number_format($variant->price, 2) }} {{ currency() }}
                                                                         </div>
                                                                         @if ($variant->has_discount && $variant->discount_end_date)
                                                                             <small class="text-muted d-block mt-2">

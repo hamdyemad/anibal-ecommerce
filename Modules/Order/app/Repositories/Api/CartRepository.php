@@ -130,9 +130,10 @@ class CartRepository implements CartRepositoryInterface
             $lineItemTotal = $this->calculateLineItemTotal($cart);
             $totalProductPrice += $lineItemTotal;
 
-            // Calculate taxes
-            if ($cart->vendorProduct && $cart->vendorProduct->tax) {
-                $taxAmount = ($lineItemTotal * $cart->vendorProduct->tax->tax_rate) / 100;
+            // Calculate taxes from all taxes
+            if ($cart->vendorProduct && $cart->vendorProduct->taxes) {
+                $taxRate = $cart->vendorProduct->taxes->sum('percentage');
+                $taxAmount = ($lineItemTotal * $taxRate) / 100;
                 $totalTaxAmount += $taxAmount;
             }
         }

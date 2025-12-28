@@ -182,9 +182,13 @@
                                                 $variantPath = $variantValue;
                                             }
                                             
+                                            // Get tax amount
+                                            $taxAmount = $product->taxes?->amount ?? 0;
+                                            $priceWithTax = $product->price + $taxAmount;
+                                            
                                             // Calculate commission and remaining
                                             // Get commission from product's department
-                                            $productTotal = $product->price * $product->quantity;
+                                            $productTotal = $priceWithTax * $product->quantity;
                                             $departmentCommission = $product->vendorProduct?->product?->department?->commission ?? 0;
                                             $commissionPercent = $departmentCommission;
                                             $bnaiaCommission = $productTotal * ($commissionPercent / 100);
@@ -227,8 +231,13 @@
                                                     </div>
                                                 </div>
                                             </td>
-                                            <td class="text-end">{{ number_format($product->price, 2) }}
-                                                {{ currency() }}</td>
+                                            <td class="text-end">
+                                                {{ number_format($priceWithTax, 2) }}
+                                                {{ currency() }}
+                                                @if($taxAmount > 0)
+                                                    <small class="d-block text-muted">({{ trans('order::order.tax') }}: {{ number_format($taxAmount, 2) }})</small>
+                                                @endif
+                                            </td>
                                             <td class="text-center">{{ $product->quantity }}</td>
                                             <td class="text-end fw-bold">
                                                 {{ number_format($productTotal, 2) }}
@@ -326,15 +335,19 @@
                             $totalProductsPrice = 0;
                             $totalCommission = 0;
                             $totalRemaining = 0;
+                            $totalProductsTax = 0;
                             
                             $productsToCalculate = isset($vendorProducts) && $vendorProducts !== null ? $vendorProducts : $order->products;
                             
                             foreach ($productsToCalculate as $prod) {
-                                $prodTotal = $prod->price * $prod->quantity;
+                                $prodTax = $prod->taxes?->amount ?? 0;
+                                $prodPriceWithTax = $prod->price + $prodTax;
+                                $prodTotal = $prodPriceWithTax * $prod->quantity;
                                 $deptCommission = $prod->vendorProduct?->product?->department?->commission ?? 0;
                                 $commAmount = $prodTotal * ($deptCommission / 100);
                                 
                                 $totalProductsPrice += $prodTotal;
+                                $totalProductsTax += ($prodTax * $prod->quantity);
                                 $totalCommission += $commAmount;
                                 $totalRemaining += ($prodTotal - $commAmount);
                             }
@@ -372,7 +385,7 @@
                                             {{-- Admin view: show full order summary --}}
                                             <div class="summary-row mb-12">
                                                 <span class="fw-bold">{{ trans('order::order.subtotal') }}</span>
-                                                <span class="fw-bold">{{ number_format($order->total_product_price, 2) }}
+                                                <span class="fw-bold">{{ number_format($totalProductsPrice, 2) }}
                                                     {{ currency() }}</span>
                                             </div>
                                             <div class="summary-row mb-12">
@@ -388,7 +401,7 @@
                                             <hr style="border-color: rgba(255,255,255,0.3); margin: 15px 0;">
                                             <div class="summary-row mb-12">
                                                 <span class="fw-bold">{{ trans('order::order.subtotal') }}</span>
-                                                <span class="fw-bold">{{ number_format($order->total_product_price, 2) }}
+                                                <span class="fw-bold">{{ number_format($totalProductsPrice, 2) }}
                                                     {{ currency() }}</span>
                                             </div>
                                             @if ($order->total_discounts > 0)

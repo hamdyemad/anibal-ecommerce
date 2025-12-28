@@ -160,7 +160,6 @@ class BankController extends Controller
         }
     }
 
-
     /**
      * Save bank product stock
      */

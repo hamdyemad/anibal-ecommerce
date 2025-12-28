@@ -68,6 +68,7 @@ class ProductAction {
                 'product.category',
                 'product.translations',
                 'vendor',
+                'taxes',
                 'variants.stocks'
             ]);
 
@@ -227,6 +228,13 @@ class ProductAction {
                         'configuration_type' => $product->configuration_type,
                         'created_at' => $item->created_at,
                         'total_stock' => $totalStock,
+                        'taxes' => $item->taxes->map(function($tax) {
+                            return [
+                                'id' => $tax->id,
+                                'name' => $tax->getTranslation('name', app()->getLocale()) ?? $tax->name,
+                                'percentage' => $tax->percentage,
+                            ];
+                        })->toArray(),
                     ];
 
                     // Add vendor information for admin users

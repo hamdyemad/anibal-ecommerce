@@ -39,7 +39,6 @@ class StoreProductRequest extends FormRequest
             'department_id' => 'required_without:bank_product_id|exists:departments,id',
             'category_id' => 'required_without:bank_product_id|exists:categories,id',
             'sub_category_id' => 'nullable|exists:sub_categories,id',
-            'tax_id' => 'required|exists:taxes,id',
 
             // Vendor validation based on user role
             'vendor_id' => $this->getVendorValidationRule(),
@@ -155,7 +154,6 @@ class StoreProductRequest extends FormRequest
             'department_id' => __('catalogmanagement::product.department'),
             'category_id' => __('catalogmanagement::product.category'),
             'sub_category_id' => __('catalogmanagement::product.sub_category'),
-            'tax_id' => __('catalogmanagement::product.tax'),
             'stocks.*.region_id' => __('areasettings::region.name'),
             'stocks.*.quantity' => __('common.quantity'),
             'main_image' => __('catalogmanagement::product.main_image'),

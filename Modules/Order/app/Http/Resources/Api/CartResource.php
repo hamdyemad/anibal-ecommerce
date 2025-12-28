@@ -29,7 +29,7 @@ class CartResource extends JsonResource
             'limitation' => $limit[0],
             'min' => $limit[1],
             'price' => round($this->price(), 2),
-            'taxes' => TaxResource::make($this->vendorProduct->tax),
+            'taxes' => TaxResource::collection($this->vendorProduct->taxes),
         ];
     }
 

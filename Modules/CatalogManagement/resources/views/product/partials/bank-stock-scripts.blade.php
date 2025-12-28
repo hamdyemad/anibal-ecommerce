@@ -985,18 +985,6 @@
             let isValid = true;
             let errors = [];
 
-            // Validate global vendor product fields
-            const taxId = $('#tax_id').val();
-            if (!taxId || taxId === '') {
-                errors.push('{{ trans('catalogmanagement::product.tax_selection_required') }}');
-                $('#tax_id').addClass('is-invalid');
-                $('#error-tax_id').text('{{ trans('catalogmanagement::product.tax_required') }}').show();
-                isValid = false;
-            } else {
-                $('#tax_id').removeClass('is-invalid');
-                $('#error-tax_id').hide();
-            }
-
             const maxPerOrder = $('#max_per_order').val();
             if (!maxPerOrder || parseInt(maxPerOrder) < 1) {
                 errors.push('{{ trans('catalogmanagement::product.max_per_order_min') }}');
@@ -2217,16 +2205,6 @@
 
             // Validate vendor product form
             const vendorForm = $('#vendor-product-form');
-
-            // Check tax selection
-            const taxId = vendorForm.find('#tax_id').val();
-            if (!taxId) {
-                vendorForm.find('#tax_id').addClass('is-invalid');
-                vendorForm.find('#tax_id').next('.invalid-feedback').text(
-                    '{{ __('catalogmanagement::product.tax_required') }}');
-                errors.push('{{ __('catalogmanagement::product.tax_required') }}');
-                isValid = false;
-            }
 
             // Check points
             const points = vendorForm.find('#points').val();

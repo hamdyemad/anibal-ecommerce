@@ -160,7 +160,6 @@ class VendorProductController extends Controller
             $vendorProduct = VendorProduct::create([
                 'vendor_id' => $vendor->id,
                 'product_id' => $product->id,
-                'tax_id' => $request->tax_id,
                 'sku' => $request->sku,
                 'points' => $request->points ?? 0,
                 'max_per_order' => $request->max_per_order ?? 1,
@@ -274,7 +273,7 @@ class VendorProductController extends Controller
 
             $query = VendorProduct::with([
                 'product.brand', 'product.department', 'product.category',
-                'tax', 'variants.variantConfiguration'
+                'taxes', 'variants.variantConfiguration'
             ])->where('vendor_id', $vendor->id);
 
             // Apply filters
@@ -309,7 +308,7 @@ class VendorProductController extends Controller
                               $product->getTranslation('title', 'ar') ?? 'N/A',
                     'sku' => $vendorProduct->sku,
                     'brand' => $product->brand?->getTranslation('name', app()->getLocale()) ?? 'N/A',
-                    'tax' => $vendorProduct->tax?->getTranslation('name', app()->getLocale()) ?? 'N/A',
+                    'taxes' => $vendorProduct->taxes->map(fn($tax) => $tax->getTranslation('name', app()->getLocale()) ?? $tax->name)->implode(', ') ?: 'N/A',
                     'variants_count' => $vendorProduct->variants()->count(),
                     'total_stock' => $totalStock,
                     'is_active' => $vendorProduct->is_active,
@@ -339,7 +338,7 @@ class VendorProductController extends Controller
         $vendor = Auth::user()->vendor;
         $vendorProduct = VendorProduct::with([
             'product.brand', 'product.department', 'product.category', 'product.subCategory',
-            'tax', 'variants.variantConfiguration', 'variants.stocks.region'
+            'taxes', 'variants.variantConfiguration', 'variants.stocks.region'
         ])->where('vendor_id', $vendor->id)->findOrFail($id);
 
         return view('catalogmanagement::vendor-products.show', compact('vendorProduct'));

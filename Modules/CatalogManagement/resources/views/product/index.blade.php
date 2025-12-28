@@ -309,6 +309,7 @@
                                     @if(auth()->user() && in_array(auth()->user()->user_type_id, \App\Models\UserType::adminIds()))
                                         <th><span class="userDatatable-title">{{ __('catalogmanagement::product.vendor') }}</span></th>
                                     @endif
+                                    <th><span class="userDatatable-title">{{ __('catalogmanagement::product.tax') }}</span></th>
                                     <th><span class="userDatatable-title">{{ __('catalogmanagement::product.approval_status') }}</span></th>
                                     <th><span class="userDatatable-title">{{ __('common.activation') }}</span></th>
                                     <th><span class="userDatatable-title">{{ __('common.created_at') }}</span></th>
@@ -569,6 +570,26 @@
                         }
                     },
                     @endif
+                    {
+                        data: 'taxes',
+                        name: 'taxes',
+                        orderable: false,
+                        searchable: false,
+                        className: 'text-start',
+                        render: function(data, type, row) {
+                            if (!data || data.length === 0) {
+                                return '<span class="text-muted">—</span>';
+                            }
+                            let html = '<div class="taxes-list">';
+                            data.forEach(function(tax) {
+                                html += `<div class="mb-1">
+                                    <span class="badge badge-info badge-round badge-lg">${$('<div/>').text(tax.name).html()} (${tax.percentage}%)</span>
+                                </div>`;
+                            });
+                            html += '</div>';
+                            return html;
+                        }
+                    },
                     {
                         data: 'status',
                         name: 'status',

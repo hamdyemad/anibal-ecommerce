@@ -20,6 +20,7 @@ Route::group(['middleware' => 'adminGuard'], function() {
 
     // Taxes
     Route::get('taxes/datatable', 'TaxController@datatable')->name('taxes.datatable');
+    Route::post('taxes/{id}/toggle-status', 'TaxController@toggleStatus')->name('taxes.toggle-status');
     Route::resource('taxes', 'TaxController');
 
     // Bundle Categories

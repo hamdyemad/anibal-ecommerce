@@ -38,6 +38,8 @@ use Modules\CatalogManagement\app\Repositories\Api\BundleApiRepository;
 use Modules\CatalogManagement\app\Repositories\Api\BundleCategoryApiRepository;
 use Modules\CatalogManagement\app\Repositories\BundleRepository;
 use Modules\CatalogManagement\app\Repositories\OccasionRepository;
+use Modules\CatalogManagement\app\Models\VendorProduct;
+use Modules\CatalogManagement\app\Observers\VendorProductObserver;
 use Nwidart\Modules\Traits\PathNamespace;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
@@ -61,6 +63,9 @@ class CatalogManagementServiceProvider extends ServiceProvider
         $this->registerConfig();
         $this->registerViews();
         $this->loadMigrationsFrom(module_path($this->name, 'database/migrations'));
+        
+        // Register observers
+        VendorProduct::observe(VendorProductObserver::class);
     }
 
     /**

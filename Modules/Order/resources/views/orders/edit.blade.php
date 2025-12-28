@@ -339,6 +339,7 @@
                             <input type="hidden" id="selected_product_price" value="">
                             <input type="hidden" id="selected_product_limitation" value="">
                             <input type="hidden" id="selected_product_tax_rate" value="">
+                            <input type="hidden" id="selected_product_taxes_info" value="">
                             <input type="hidden" id="selected_product_category_id" value="">
                             <input type="hidden" id="selected_product_category_name" value="">
                             <input type="hidden" id="selected_product_sku" value="">
@@ -611,8 +612,8 @@
                                 $productName = $orderProduct->vendorProduct?->product?->getTranslation('title', app()->getLocale()) ?? 'N/A';
                                 $variantName = $orderProduct->vendorProductVariant?->variantConfiguration?->getTranslation('name', app()->getLocale()) ?? '';
                                 $fullName = $variantName ? $productName . ' - ' . $variantName : $productName;
-                                // Get tax rate from the product's tax, not from order product tax
-                                $taxRate = $orderProduct->vendorProduct?->tax?->tax_rate ?? 0;
+                                // Get tax rate from all taxes
+                                $taxRate = $orderProduct->vendorProduct?->taxes?->sum('percentage') ?? 0;
                                 $categoryId = $orderProduct->vendorProduct?->product?->category_id ?? null;
                                 $categoryName = $orderProduct->vendorProduct?->product?->category?->getTranslation('name', app()->getLocale()) ?? '';
                                 $price = $orderProduct->price ?? 0;
@@ -815,7 +816,25 @@
                                         products.forEach(product => {
                                             const productName = product.name || product.title || 'N/A';
                                             const limitation = product.limitation || 0;
-                                            const taxRate = product.tax && product.tax.tax_rate ? product.tax.tax_rate : 0;
+                                            // Calculate total tax rate from all taxes and build taxes info
+                                            let taxRate = 0;
+                                            let taxesInfo = [];
+                                            if (product.taxes && Array.isArray(product.taxes)) {
+                                                product.taxes.forEach(tax => {
+                                                    const percentage = parseFloat(tax.percentage || tax.tax_rate || 0);
+                                                    taxRate += percentage;
+                                                    taxesInfo.push({
+                                                        name: tax.name || 'Tax',
+                                                        percentage: percentage
+                                                    });
+                                                });
+                                            } else if (product.tax && product.tax.tax_rate) {
+                                                taxRate = product.tax.tax_rate;
+                                                taxesInfo.push({
+                                                    name: product.tax.name || 'Tax',
+                                                    percentage: taxRate
+                                                });
+                                            }
                                             const productStock = product.remaining_stock || 0;
                                             const productImage = product.image || '';
                                             const vendorId = product.vendor_id || null;
@@ -851,6 +870,7 @@
                                                      data-price="${price}"
                                                      data-limitation="${limitation}"
                                                      data-tax-rate="${taxRate}"
+                                                     data-taxes-info='${JSON.stringify(taxesInfo)}'
                                                      data-category-id="${categoryId}"
                                                      data-category-name="${categoryName}"
                                                      data-sku="${variantSku}"
@@ -861,7 +881,7 @@
                                                      style="cursor: pointer;">
                                                     <div class="d-flex align-items-center gap-2">
                                                         ${productImage ? 
-                                                            `<img src="${productImage}" alt="${productName}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px; border: 1px solid #dee2e6;">` : 
+                                                            `<img src="${productImage}" alt="${productName}" style="width: 50px; height: 50px;  border-radius: 4px; border: 1px solid #dee2e6;">` : 
                                                             `<div class="rounded d-flex align-items-center justify-content-center" style="width: 50px; height: 50px; border: 1px solid #dee2e6;"><i class="uil uil-image text-muted"></i></div>`
                                                         }
                                                         <div class="flex-grow-1">
@@ -891,7 +911,7 @@
                                                  style="cursor: pointer;">
                                                 <div class="d-flex align-items-center gap-2">
                                                     ${productImage ? 
-                                                        `<img src="${productImage}" alt="${productName}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px; border: 1px solid #dee2e6;">` : 
+                                                        `<img src="${productImage}" alt="${productName}" style="width: 50px; height: 50px;  border-radius: 4px; border: 1px solid #dee2e6;">` : 
                                                         `<div class="rounded d-flex align-items-center justify-content-center" style="width: 50px; height: 50px; border: 1px solid #dee2e6;"><i class="uil uil-image text-muted"></i></div>`
                                                     }
                                                     <div class="flex-grow-1">
@@ -931,6 +951,7 @@
                         const price = $(this).data('price');
                         const limitation = $(this).data('limitation') || 0;
                         const taxRate = $(this).data('tax-rate') || 0;
+                        const taxesInfo = $(this).data('taxes-info') || [];
                         const categoryId = $(this).data('category-id');
                         const categoryName = $(this).data('category-name');
                         const sku = $(this).data('sku') || 'N/A';
@@ -957,6 +978,7 @@
                             price,
                             limitation,
                             taxRate,
+                            taxesInfo,
                             categoryId,
                             categoryName,
                             sku,
@@ -973,6 +995,7 @@
                         $('#selected_product_price').val(price);
                         $('#selected_product_limitation').val(limitation);
                         $('#selected_product_tax_rate').val(taxRate);
+                        $('#selected_product_taxes_info').val(JSON.stringify(taxesInfo));
                         $('#selected_product_category_id').val(categoryId);
                         $('#selected_product_category_name').val(categoryName);
                         $('#selected_product_sku').val(sku);
@@ -1679,6 +1702,12 @@
                         const quantity = parseInt($('#product_quantity').val()) || 1;
                         const limitation = parseInt($('#selected_product_limitation').val()) || 0;
                         const taxRate = parseFloat($('#selected_product_tax_rate').val()) || 0;
+                        let taxesInfo = [];
+                        try {
+                            taxesInfo = JSON.parse($('#selected_product_taxes_info').val() || '[]');
+                        } catch(e) {
+                            taxesInfo = [];
+                        }
                         const categoryId = parseInt($('#selected_product_category_id').val()) || null;
                         const categoryName = $('#selected_product_category_name').val();
                         const sku = $('#selected_product_sku').val() || 'N/A';
@@ -1694,6 +1723,7 @@
                             quantity,
                             limitation,
                             taxRate,
+                            taxesInfo,
                             categoryId,
                             categoryName,
                             sku,
@@ -1748,6 +1778,7 @@
                                 price: productPrice,
                                 total: productTotal,
                                 taxRate: taxRate,
+                                taxesInfo: taxesInfo,
                                 sku: sku,
                                 variantName: variantName,
                                 vendorName: vendorName,
@@ -1764,6 +1795,7 @@
                         $('#selected_product_price').val('');
                         $('#selected_product_limitation').val('');
                         $('#selected_product_tax_rate').val('');
+                        $('#selected_product_taxes_info').val('');
                         $('#selected_product_sku').val('');
                         $('#selected_product_variant_name').val('');
                         $('#selected_product_vendor_name').val('');
@@ -1802,18 +1834,34 @@
 
                         products.forEach(product => {
                             const taxRate = product.taxRate || 0;
-                            // Price from API is already excluding tax
+                            const taxesInfo = product.taxesInfo || [];
+                            // Price is the price before taxes from vendor_product_variants
                             const priceExcl = product.price;
+                            // Total is price × quantity (without adding tax)
                             const lineTotal = priceExcl * product.quantity;
-                            const lineTax = lineTotal * (taxRate / 100);
-                            const lineTotalIncl = lineTotal + lineTax;
+                            
+                            // Build tax badges HTML
+                            let taxBadgesHtml = '';
+                            if (taxesInfo && taxesInfo.length > 0) {
+                                taxesInfo.forEach(tax => {
+                                    taxBadgesHtml += `<span class="badge bg-info text-white me-1 mb-1">${tax.name} (${tax.percentage}%)</span>`;
+                                });
+                                // Add total tax rate badge
+                                if (taxesInfo.length > 1) {
+                                    taxBadgesHtml += `<br><span class="badge bg-primary text-white mt-1">{{ __('common.total') }}: ${taxRate.toFixed(2)}%</span>`;
+                                }
+                            } else if (taxRate > 0) {
+                                taxBadgesHtml = `<span class="badge bg-info text-white">${taxRate.toFixed(2)}%</span>`;
+                            } else {
+                                taxBadgesHtml = '<span class="text-muted">-</span>';
+                            }
                             
                             const row = `
                         <tr>
                             <td>
                                 <div class="d-flex align-items-center justify-content-center gap-2">
                                     ${product.image ? 
-                                        `<img src="${product.image}" alt="${product.name}" style="width: 45px; height: 45px; object-fit: cover; border-radius: 4px; border: 1px solid #dee2e6;">` : 
+                                        `<img src="${product.image}" alt="${product.name}" style="width: 45px; height: 45px;  border-radius: 4px; border: 1px solid #dee2e6;">` : 
                                         `<div class="rounded d-flex align-items-center justify-content-center" style="width: 45px; height: 45px; border: 1px solid #dee2e6;"><i class="uil uil-image text-muted"></i></div>`
                                     }
                                     <div>
@@ -1825,8 +1873,8 @@
                             </td>
                             <td class="text-center align-middle">${priceExcl.toFixed(2)} {{ currency() }}</td>
                             <td class="text-center align-middle">${product.quantity}</td>
-                            <td class="text-center align-middle">${taxRate > 0 ? taxRate.toFixed(2) + '%' : '-'}</td>
-                            <td class="text-center align-middle">${lineTotalIncl.toFixed(2)} {{ currency() }}</td>
+                            <td class="text-center align-middle">${taxBadgesHtml}</td>
+                            <td class="text-center align-middle">${lineTotal.toFixed(2)} {{ currency() }}</td>
                             <td class="text-center align-middle">
                                 <button type="button" class="btn btn-sm btn-danger remove-product" data-product-id="${product.id}">
                                     <i class="uil uil-trash m-0"></i>
@@ -1946,14 +1994,17 @@
                         calculateShipping();
                     });
 
+                    // Calculate shipping when external city is changed
+                    $('#external_city_id').on('change', function() {
+                        calculateShipping();
+                    });
+
                     // Calculate shipping cost via API
                     function calculateShipping() {
                         const customerType = $('input[name="customer_type"]:checked').val();
-                        const customerId = $('#selected_customer_id').val();
-                        const addressId = $('#customer_address_select').val();
-
-                        // Only calculate for existing customers with selected address and at least one product
-                        if (customerType !== 'existing' || !customerId || !addressId || products.length === 0) {
+                        
+                        // Check if we have products
+                        if (products.length === 0) {
                             $('#shipping').val(0);
                             updateSummary();
                             return;
@@ -1967,6 +2018,35 @@
                             quantity: p.quantity
                         }));
 
+                        let requestData = {
+                            cart_items: cartItems
+                        };
+
+                        if (customerType === 'existing') {
+                            const customerId = $('#selected_customer_id').val();
+                            const addressId = $('#customer_address_select').val();
+
+                            if (!customerId || !addressId) {
+                                $('#shipping').val(0);
+                                updateSummary();
+                                return;
+                            }
+
+                            requestData.customer_id = customerId;
+                            requestData.customer_address_id = addressId;
+                        } else {
+                            // External customer - use city_id directly
+                            const cityId = $('#external_city_id').val();
+
+                            if (!cityId) {
+                                $('#shipping').val(0);
+                                updateSummary();
+                                return;
+                            }
+
+                            requestData.city_id = cityId;
+                        }
+
                         // Call shipping calculation endpoint
                         $.ajax({
                             url: '{{ route('admin.shipping.calculate') }}',
@@ -1978,11 +2058,7 @@
                                 'X-Country-Code': countryCode,
                                 'lang': "{{ app()->getLocale() }}",
                             },
-                            data: JSON.stringify({
-                                customer_id: customerId,
-                                customer_address_id: addressId,
-                                cart_items: cartItems
-                            }),
+                            data: JSON.stringify(requestData),
                             success: function(response) {
                                 console.log('Shipping response:', response);
                                 if (response.success && response.data) {

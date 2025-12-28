@@ -166,6 +166,7 @@ return [
     'product' => 'Product',
     'quantity' => 'Quantity',
     'price_per_unit' => 'Price Per Unit',
+    'tax' => 'Tax',
     'actions' => 'Actions',
 
     // Promo Code

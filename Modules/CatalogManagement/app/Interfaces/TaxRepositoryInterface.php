@@ -5,19 +5,14 @@ namespace Modules\CatalogManagement\app\Interfaces;
 interface TaxRepositoryInterface
 {
     /**
-     * Get all taxes with filters and pagination
+     * Get all taxes with optional pagination
      */
-    public function getAllTaxes(int $perPage, array $filters = []);
+    public function getAllTaxes(int $perPage = 10, array $filters = []);
 
     /**
      * Get taxes query for DataTables
      */
     public function getTaxesQuery(array $filters = [], $orderBy = null, $orderDirection = 'asc');
-
-    /**
-     * Get taxes query for Select2 AJAX
-     */
-    public function getAllTaxesQuery(array $filters = []);
 
     /**
      * Get tax by ID

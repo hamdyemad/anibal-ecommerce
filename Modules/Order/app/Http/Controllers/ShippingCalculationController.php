@@ -18,17 +18,20 @@ class ShippingCalculationController extends Controller
     /**
      * Calculate shipping cost for cart items (Dashboard)
      * POST /admin/shipping/calculate
+     * Supports both existing customers (with address) and external customers (with city_id)
      */
     public function calculate($lang, $countryCode, CalculateShippingRequest $request)
     {
         $customerId = $request->input('customer_id');
         $customerAddressId = $request->input('customer_address_id');
+        $cityId = $request->input('city_id');
         $cartItems = $request->input('cart_items');
 
         $result = $this->shippingCalculationService->calculateShipping(
             $customerId,
             $customerAddressId,
-            $cartItems
+            $cartItems,
+            $cityId
         );
 
         return response()->json([

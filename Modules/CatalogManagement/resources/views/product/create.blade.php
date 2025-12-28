@@ -104,7 +104,7 @@
                                             <div class="col-md-12">
                                                 <div class="form-group">
                                                     <label
-                                                        class="form-label d-block">{{ __('catalogmanagement::product.is_product_from_bank') }}?</label>
+                                                        class="form-label d-block">{{ __('catalogmanagement::product.is_product_from_bank') }}</label>
                                                     <div class="form-check form-switch form-switch-lg">
                                                         <input class="form-check-input" type="checkbox" role="switch"
                                                             id="is_bank_product" name="is_bank_product" value="1">
@@ -217,7 +217,7 @@
                                                         class="form-control ih-medium ip-gray radius-xs b-light px-15"
                                                         placeholder="{{ __('catalogmanagement::product.sku') }}"
                                                         value="{{ isset($product) ? $product->sku : '' }}">
-                                                    <div class="invalid-feedback" id="error-sku"></div>
+                                                    <div class="error-message text-danger" id="error-sku" style="display: none;"></div>
                                                 </div>
                                             </div>
 
@@ -311,35 +311,6 @@
                                                         style="display: none;"></div>
                                                 </div>
                                             </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Card 4: Logistics & Taxes -->
-                                <div class="card mb-4">
-                                    <div class="card-body">
-                                        <h5 class="mb-4">
-                                            <i class="uil uil-truck"></i>
-                                            {{ __('common.logistics') }}
-                                        </h5>
-                                        <div class="row">
-                                            <div class="col-md-6 mb-3">
-                                                <div class="form-group">
-                                                    <label for="tax_id"
-                                                        class="form-label">{{ __('catalogmanagement::product.tax') }}
-                                                        <span class="text-danger">*</span>
-                                                    </label>
-                                                    <select name="tax_id" id="tax_id" class="form-control select2">
-                                                        <option value="">{{ __('common.select_option') }}</option>
-                                                        @foreach ($taxes as $tax)
-                                                            <option value="{{ $tax['id'] }}"
-                                                                {{ isset($product) && $product->tax_id == $tax['id'] ? 'selected' : '' }}>
-                                                                {{ $tax['name'] }} ({{ $tax['percentage'] }}%)</option>
-                                                        @endforeach
-                                                    </select>
-                                                </div>
-                                            </div>
-
                                             <div class="col-md-6 mb-3">
                                                 <div class="form-group">
                                                     <label for="max_per_order"
@@ -667,7 +638,7 @@
                                                     {{ __('catalogmanagement::product.product_variants') }}
                                                 </div>
                                                 <button type="button" id="add-variant-btn"
-                                                    class="btn btn-primary btn-sm">
+                                                    class="btn btn-white btn-sm">
                                                     <i class="uil uil-plus"></i>
                                                     {{ __('catalogmanagement::product.add_variant') }}
                                                 </button>
@@ -1241,13 +1212,6 @@
                             $('#error-category_id').text('{{ __('catalogmanagement::product.category_required') }}')
                                 .show();
                             $('#category_id').next('.select2').find('.select2-selection').addClass('is-invalid');
-                            isValid = false;
-                        }
-
-                        // Tax validation
-                        if (!$('#tax_id').val()) {
-                            $('#error-tax_id').text('{{ __('catalogmanagement::product.tax_required') }}').show();
-                            $('#tax_id').next('.select2').find('.select2-selection').addClass('is-invalid');
                             isValid = false;
                         }
 
@@ -2813,13 +2777,6 @@
                     if ($(this).val()) {
                         $(this).next('.select2').find('.select2-selection').removeClass('is-invalid');
                         $('#error-category_id').hide();
-                    }
-                });
-
-                $('#tax_id').on('change', function() {
-                    if ($(this).val()) {
-                        $(this).next('.select2').find('.select2-selection').removeClass('is-invalid');
-                        $('#error-tax_id').hide();
                     }
                 });
 

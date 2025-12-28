@@ -140,14 +140,11 @@
                             <thead>
                                 <tr class="userDatatable-header">
                                     <th class="text-center"><span class="userDatatable-title">#</span></th>
-                                    @foreach ($languages as $language)
-                                        <th>
-                                            <span class="userDatatable-title"
-                                                @if ($language->rtl) dir="rtl" @endif>
-                                                {{ __('areasettings::country.name') }} ({{ $language->name }})
-                                            </span>
-                                        </th>
-                                    @endforeach
+                                    <th>
+                                        <span class="userDatatable-title">
+                                            {{ __('areasettings::country.country_information') ?? 'Country Information' }}
+                                        </span>
+                                    </th>
                                     <th><span
                                             class="userDatatable-title">{{ __('areasettings::country.country_code') }}</span>
                                     </th>
@@ -250,19 +247,32 @@
                             return '<div class="userDatatable-content">' + data + '</div>';
                         }
                     },
-                    @foreach ($languages as $language)
-                        {
-                            data: 'names.{{ $language->id }}.value',
-                            name: 'name_{{ $language->code }}',
-                            orderable: true,
-                            render: function(data, type, row) {
-                                const nameData = row.names[{{ $language->id }}];
-                                const rtlAttr = nameData.rtl ? ' dir="rtl"' : '';
-                                return '<div class="userDatatable-content"' + rtlAttr + '>' + (
-                                    nameData.value || '-') + '</div>';
-                            }
-                        },
-                    @endforeach {
+                    {
+                        data: 'names',
+                        name: 'country_information',
+                        orderable: false,
+                        render: function(data, type, row) {
+                            let html = '<div class="country-info-container">';
+                            
+                            // English name
+                            const nameEn = row.name_en || '-';
+                            html += `<div class="mb-1">
+                                <span class="badge bg-primary text-white px-2 py-1 me-2 rounded-pill fw-bold" style="font-size: 10px;">EN</span>
+                                <span class="fw-semibold">${$('<div/>').text(nameEn).html()}</span>
+                            </div>`;
+                            
+                            // Arabic name
+                            const nameAr = row.name_ar || '-';
+                            html += `<div>
+                                <span class="badge bg-success text-white px-2 py-1 me-2 rounded-pill fw-bold" style="font-size: 10px;">AR</span>
+                                <span class="fw-semibold" dir="rtl" style="font-family: 'Cairo', sans-serif;">${$('<div/>').text(nameAr).html()}</span>
+                            </div>`;
+                            
+                            html += '</div>';
+                            return html;
+                        }
+                    },
+                    {
                         data: 'code',
                         name: 'code',
                         orderable: false,

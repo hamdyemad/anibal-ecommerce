@@ -12,7 +12,9 @@ class ShippingRepository implements ShippingRepositoryInterface
      */
     public function getAllShippings(array $filters)
     {
-        $query = Shipping::with(['cities', 'categories', 'translations'])->filter($filters);
+        $query = Shipping::with(['cities', 'categories', 'translations'])
+            ->filter($filters)
+            ->latest();
 
         // Pagination
         return $query->paginate(15);

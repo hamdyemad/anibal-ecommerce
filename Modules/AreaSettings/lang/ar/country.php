@@ -37,6 +37,7 @@ return [
     'phone' => 'كود الهاتف',
     'action' => 'الإجراءات',
     'created_at' => 'تاريخ الإنشاء',
+    'country_information' => 'معلومات الدولة',
 
     // Buttons
     'add_country' => 'إضافة دولة',
@@ -113,6 +114,7 @@ return [
     'countries_list' => 'قائمة الدول',
     'currency' => 'العملة',
     'select_currency' => 'اختر العملة',
+    'tax_percentage' => 'نسبة الضريبة',
     'view_cities' => 'عرض المدن',
     'add_city' => 'إضافة مدينة',
     'updated_at' => 'تاريخ التحديث',

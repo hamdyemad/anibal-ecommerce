@@ -38,7 +38,6 @@ class UpdateProductRequest extends FormRequest
             'department_id' => 'nullable|exists:departments,id',
             'category_id' => 'nullable|exists:categories,id',
             'sub_category_id' => 'nullable|exists:sub_categories,id',
-            'tax_id' => 'nullable|exists:taxes,id',
 
             // Vendor validation based on user role
             'vendor_id' => $this->getVendorValidationRule(),
@@ -111,27 +110,38 @@ class UpdateProductRequest extends FormRequest
         $validator->after(function ($validator) {
             // Check main product SKU uniqueness
             $sku = $this->input('sku');
+            $productId = $this->route('product');
+            
             Log::info('SKU Validation Check', [
                 'input_sku' => $sku,
-                'route_product_id' => $this->route('product')
+                'route_product_id' => $productId
             ]);
             
             if (!empty($sku)) {
-                // The route parameter {product} is actually VendorProduct ID
-                $vendorProductId = $this->route('product');
+                // The route parameter {product} is the Product ID, we need to find the VendorProduct
+                $vendorId = $this->input('vendor_id');
+                
+                // Find the current VendorProduct by product_id and vendor_id
+                $currentVendorProduct = \Modules\CatalogManagement\app\Models\VendorProduct::withoutGlobalScopes()
+                    ->where('product_id', $productId)
+                    ->when($vendorId, function($q) use ($vendorId) {
+                        $q->where('vendor_id', $vendorId);
+                    })
+                    ->first();
                 
                 // Check if SKU exists in database (excluding current vendor product)
                 $query = \Modules\CatalogManagement\app\Models\VendorProduct::withoutGlobalScopes()
                     ->where('sku', $sku);
                 
-                if ($vendorProductId) {
-                    $query->where('id', '!=', $vendorProductId);
+                if ($currentVendorProduct) {
+                    $query->where('id', '!=', $currentVendorProduct->id);
                 }
                 
                 $exists = $query->exists();
                 Log::info('SKU Uniqueness Check', [
                     'sku' => $sku,
-                    'vendor_product_id' => $vendorProductId,
+                    'product_id' => $productId,
+                    'vendor_product_id' => $currentVendorProduct?->id,
                     'exists_in_other_products' => $exists
                 ]);
                 
@@ -230,7 +240,6 @@ class UpdateProductRequest extends FormRequest
             'department_id' => __('catalogmanagement::product.department'),
             'category_id' => __('catalogmanagement::product.category'),
             'sub_category_id' => __('catalogmanagement::product.sub_category'),
-            'tax_id' => __('catalogmanagement::product.tax'),
             'main_image' => __('catalogmanagement::product.main_image'),
             'configuration_type' => __('catalogmanagement::product.configuration_type'),
             'price' => __('catalogmanagement::product.price'),

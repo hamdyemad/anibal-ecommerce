@@ -103,9 +103,7 @@ class ProductApiRepository implements ProductApiRepositoryInterface
                     ]);
                 },
                 'vendor',
-                'tax' => function ($q) {
-                    $q->with('translations');
-                },
+                'taxes',
                 'variants' => function ($q) {
                     $q->with('variantConfiguration', 'stocks');
                 }
@@ -120,9 +118,16 @@ class ProductApiRepository implements ProductApiRepositoryInterface
         $productNameEn = $vendorProduct->product->getTranslation('title', 'en') ?? $vendorProduct->product->title;
         $productNameAr = $vendorProduct->product->getTranslation('title', 'ar') ?? $vendorProduct->product->title;
 
-        // Extract tax translations using getTranslation method
-        $taxNameEn = $vendorProduct->tax?->getTranslation('name', 'en') ?? ($vendorProduct->tax?->name ?? '');
-        $taxNameAr = $vendorProduct->tax?->getTranslation('name', 'ar') ?? ($vendorProduct->tax?->name ?? '');
+        // Calculate total tax rate from all taxes
+        $taxes = $vendorProduct->taxes ?? collect();
+        $taxRate = $taxes->sum('percentage');
+        $taxNames = ['en' => [], 'ar' => []];
+        foreach ($taxes as $tax) {
+            $taxNames['en'][] = $tax->getTranslation('name', 'en') ?? $tax->name ?? '';
+            $taxNames['ar'][] = $tax->getTranslation('name', 'ar') ?? $tax->name ?? '';
+        }
+        $taxNameEn = implode(', ', array_filter($taxNames['en']));
+        $taxNameAr = implode(', ', array_filter($taxNames['ar']));
 
         // Return formatted array for pipeline
         return [
@@ -144,16 +149,20 @@ class ProductApiRepository implements ProductApiRepositoryInterface
             'vendor' => [
                 'id' => $vendorProduct?->vendor?->id,
                 'name' => $vendorProduct?->vendor?->name,
-                // 'activities' => $vendorProduct?->vendor?->activities->toArray(),
             ],
             'price' => $vendorProduct->price,
-            'tax' => [
-                'id' => $vendorProduct?->tax?->id,
-                'name' => $vendorProduct?->tax?->name,
-                'name_en' => $taxNameEn,
-                'name_ar' => $taxNameAr,
-                'tax_rate' => $vendorProduct?->tax?->tax_rate ?? 0,
-            ],
+            'taxes' => $taxes->map(function ($tax) {
+                return [
+                    'id' => $tax->id,
+                    'name' => $tax->name,
+                    'name_en' => $tax->getTranslation('name', 'en') ?? $tax->name,
+                    'name_ar' => $tax->getTranslation('name', 'ar') ?? $tax->name,
+                    'percentage' => $tax->percentage ?? 0,
+                ];
+            })->toArray(),
+            'tax_rate' => $taxRate,
+            'tax_name_en' => $taxNameEn,
+            'tax_name_ar' => $taxNameAr,
             'max_per_order' => $vendorProduct->max_per_order,
             'variants' => $vendorProduct->variants,
         ];
@@ -247,7 +256,7 @@ class ProductApiRepository implements ProductApiRepositoryInterface
             'variants' => function ($subQ) {
                 $subQ->with(['variantConfiguration', 'stocks', 'vendorProduct.vendor']);
             },
-            'tax'
+            'taxes'
         ]);
 
         $result = $this->paginated->handle($query, $filters['per_page'] ?? 15, $filters['paginated'] ?? false);
