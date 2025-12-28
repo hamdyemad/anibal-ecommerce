@@ -193,6 +193,12 @@ class ProductRepository implements ProductInterface
             $vendorProduct->setRelation('product', $product);
 
             // Update vendor product fields (for both new and existing records)
+            // Reset status to pending when vendor edits the product
+            $newStatus = $vendorProduct->status;
+            if (in_array($currentUser->user_type_id, UserType::vendorIds())) {
+                $newStatus = 'pending';
+            }
+            
             $vendorProduct->update([
                 'tax_id' => $data['tax_id'],
                 'sku' => $data['sku'] ?? null,
@@ -200,7 +206,7 @@ class ProductRepository implements ProductInterface
                 'max_per_order' => $data['max_per_order'],
                 'is_active' => $data['is_active'] ?? false,
                 'is_featured' => $data['is_featured'] ?? false,
-                'status' => in_array($currentUser->user_type_id, UserType::vendorIds()) ? 'pending' : 'approved',
+                'status' => $newStatus,
             ]);
 
             // Update translations
@@ -231,6 +237,8 @@ class ProductRepository implements ProductInterface
                 throw new \Exception(__('catalogmanagement::product.product_not_found'));
             }
 
+            $product = $vendorProduct->product;
+
             // Delete variants and their stocks
             foreach ($vendorProduct->variants as $variant) {
                 $variant->stocks()->delete();
@@ -239,6 +247,17 @@ class ProductRepository implements ProductInterface
 
             // Delete the vendor product (soft delete)
             $vendorProduct->delete();
+
+            // Check if the product has any other vendor products linked to it
+            // If not, also soft delete the product
+            $otherVendorProducts = VendorProduct::where('product_id', $product->id)
+                ->where('id', '!=', $id)
+                ->count();
+
+            if ($otherVendorProducts === 0) {
+                // No other vendors are using this product, safe to delete
+                $product->delete();
+            }
 
             return true;
         });
