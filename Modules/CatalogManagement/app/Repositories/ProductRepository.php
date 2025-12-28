@@ -463,6 +463,18 @@ class ProductRepository implements ProductInterface
         } else {
             // Handle variants with multiple configurations
 
+            // Handle explicitly deleted variants first
+            if (isset($data['deleted_variants']) && is_array($data['deleted_variants'])) {
+                foreach ($data['deleted_variants'] as $deletedVariantId) {
+                    $variantToDelete = $vendorProduct->variants()->find($deletedVariantId);
+                    if ($variantToDelete) {
+                        $variantToDelete->stocks()->delete();
+                        $variantToDelete->delete();
+                        Log::info('Deleted variant explicitly', ['variant_id' => $deletedVariantId]);
+                    }
+                }
+            }
+
             // If switching from simple to variants, delete the old simple variant first
             $existingVariants = $vendorProduct->variants()->get();
             if ($existingVariants->count() == 1) {
@@ -780,24 +792,32 @@ class ProductRepository implements ProductInterface
      */
     public function updateStockAndPricing($id, array $data)
     {
-        // Get VendorProduct (which includes the product relationship)
-        $vendorProduct = $this->getProductById($id);
+        return DB::transaction(function () use ($id, $data) {
+            // Get VendorProduct (which includes the product relationship)
+            $vendorProduct = $this->getProductById($id);
 
-        if (!$vendorProduct) {
-            throw new \Exception('Product not found');
-        }
+            if (!$vendorProduct) {
+                throw new \Exception('Product not found');
+            }
 
-        // Get the actual Product model
-        $product = $vendorProduct->product;
+            // Get the actual Product model
+            $product = $vendorProduct->product;
 
-        if (!$product) {
-            throw new \Exception('Product data not found');
-        }
+            if (!$product) {
+                throw new \Exception('Product data not found');
+            }
 
-        // Use the same handleProductVariants method for consistency
-        $this->handleProductVariants($vendorProduct, $data);
+            // Update configuration type on the Product model
+            $configurationType = $data['configuration_type'] ?? 'simple';
+            $product->update([
+                'configuration_type' => $configurationType
+            ]);
 
-        return $vendorProduct->fresh();
+            // Use the same handleProductVariants method for consistency
+            $this->handleProductVariants($vendorProduct, $data);
+
+            return $vendorProduct->fresh();
+        });
     }
 
     /**

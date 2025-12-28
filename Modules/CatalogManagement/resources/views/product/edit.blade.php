@@ -2377,10 +2377,15 @@
             function loadVariantKeys() {
                 console.log('🔑 Loading variant keys from API...');
 
+                const countryId = $("meta[name='current_country_id']").attr("content");
+
                 $.ajax({
                     url: '{{ route('admin.api.variant-keys') }}',
                     type: 'GET',
                     dataType: 'json',
+                    data: {
+                        country_id: countryId
+                    },
                     headers: {
                         'lang': "{{ app()->getLocale() }}",
                         'X-Country-Code': $("meta[name='currency_country_code']").attr('content'),
@@ -2461,6 +2466,8 @@
                 // Store keyId in the variant box for later use
                 $(`#variant-${variantIndex}`).data('current-key-id', keyId);
 
+                const countryId = $("meta[name='current_country_id']").attr("content");
+
                 $.ajax({
                     url: '{{ route('admin.api.variants-by-key') }}',
                     type: 'GET',
@@ -2471,6 +2478,7 @@
                     },
                     data: {
                         key_id: keyId,
+                        country_id: countryId,
                     },
                     success: function(response) {
                         const variants = response.data || response;
@@ -2536,6 +2544,8 @@
                     }
                 });
 
+                const countryId = $("meta[name='current_country_id']").attr("content");
+
                 $.ajax({
                     url: '{{ route('admin.api.variants-by-key') }}',
                     type: 'GET',
@@ -2546,7 +2556,8 @@
                     },
                     data: {
                         key_id: keyId,
-                        parent_id: parentId
+                        parent_id: parentId,
+                        country_id: countryId
                     },
                     success: function(response) {
                         const variants = response.data || response;
@@ -2865,9 +2876,14 @@
             function loadVariantsByKey(variantIndex, keyId) {
                 console.log('🔄 Loading variants for key:', keyId);
 
+                const countryId = $("meta[name='current_country_id']").attr("content");
+
                 $.ajax({
                     url: `/api/variant-configurations/key/${keyId}/tree`,
                     method: 'GET',
+                    data: {
+                        country_id: countryId
+                    },
                     headers: {
                         'lang': "{{ app()->getLocale() }}",
                         'X-Country-Code': $("meta[name='currency_country_code']").attr("content")

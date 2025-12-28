@@ -1963,12 +1963,17 @@
             function loadVariantKeys() {
                 console.log('🔑 Loading variant keys from API...');
 
+                const countryId = $("meta[name='current_country_id']").attr("content");
+
                 $.ajax({
                     url: '{{ route('admin.api.variant-keys') }}',
                     type: 'GET',
                     headers: {
                         'lang': "{{ app()->getLocale() }}",
                         'X-Country-Code': $("meta[name='currency_country_code']").attr('content'),
+                    },
+                    data: {
+                        country_id: countryId
                     },
                     dataType: 'json',
                     success: function(response) {
@@ -2025,6 +2030,8 @@
                 // Store keyId in the variant box for later use
                 $(`#variant-${variantIndex}`).data('current-key-id', keyId);
 
+                const countryId = $("meta[name='current_country_id']").attr("content");
+
                 $.ajax({
                     url: '{{ route('admin.api.variants-by-key') }}',
                     type: 'GET',
@@ -2035,6 +2042,7 @@
                     },
                     data: {
                         key_id: keyId,
+                        country_id: countryId,
                     },
                     success: function(response) {
                         const variants = response.data || response;
@@ -2100,6 +2108,8 @@
                     }
                 });
 
+                const countryId = $("meta[name='current_country_id']").attr("content");
+
                 $.ajax({
                     url: '{{ route('admin.api.variants-by-key') }}',
                     type: 'GET',
@@ -2110,7 +2120,8 @@
                     },
                     data: {
                         key_id: keyId,
-                        parent_id: parentId
+                        parent_id: parentId,
+                        country_id: countryId
                     },
                     success: function(response) {
                         const variants = response.data || response;

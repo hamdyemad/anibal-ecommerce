@@ -22,25 +22,25 @@ Route::group(['middleware' => 'adminGuard'], function() {
     Route::get('taxes/datatable', 'TaxController@datatable')->name('taxes.datatable');
     Route::resource('taxes', 'TaxController');
 
-    // Variant Configuration Keys
-    Route::get('variant-keys/datatable', 'VariantConfigurationKeyController@datatable')->name('variant-keys.datatable');
-    Route::get('variant-keys-tree', 'VariantConfigurationKeyController@tree')->name('variant-keys.tree');
-    Route::resource('variant-keys', 'VariantConfigurationKeyController');
-
-    // Variants Configurations
-    Route::group(['prefix' => 'variants-configurations'], function() {
-        Route::get('datatable', 'VariantsConfigurationController@datatable')->name('variants-configurations.datatable');
-        Route::get('get-parents-by-key', 'VariantsConfigurationController@getParentsByKey')->name('variants-configurations.get-parents-by-key');
-        Route::get('tree', 'VariantsConfigurationController@tree')->name('variants-configurations.tree');
-    });
-    Route::resource('variants-configurations', 'VariantsConfigurationController');
-
     // Bundle Categories
     Route::get('bundle-categories/datatable', 'BundleCategoryController@datatable')->name('bundle-categories.datatable');
     Route::post('bundle-categories/{id}/toggle-status', 'BundleCategoryController@toggleStatus')->name('bundle-categories.toggle-status');
     Route::resource('bundle-categories', 'BundleCategoryController');
 
 });
+
+// Variant Configuration Keys (accessible by both admin and vendor - permission controlled in controller)
+Route::get('variant-keys/datatable', 'VariantConfigurationKeyController@datatable')->name('variant-keys.datatable');
+Route::get('variant-keys-tree', 'VariantConfigurationKeyController@tree')->name('variant-keys.tree');
+Route::resource('variant-keys', 'VariantConfigurationKeyController');
+
+// Variants Configurations (accessible by both admin and vendor - permission controlled in controller)
+Route::group(['prefix' => 'variants-configurations'], function() {
+    Route::get('datatable', 'VariantsConfigurationController@datatable')->name('variants-configurations.datatable');
+    Route::get('get-parents-by-key', 'VariantsConfigurationController@getParentsByKey')->name('variants-configurations.get-parents-by-key');
+    Route::get('tree', 'VariantsConfigurationController@tree')->name('variants-configurations.tree');
+});
+Route::resource('variants-configurations', 'VariantsConfigurationController');
 
 // Occasions
 

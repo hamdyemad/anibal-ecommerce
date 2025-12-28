@@ -507,4 +507,8 @@ return [
     'bank_product' => 'منتج بنكي',
     'regular_product' => 'منتج عادي',
     'is_product_from_bank' => 'هل منتجك من البنك؟',
+
+    // Variant Removal
+    'cannot_remove_last_variant' => 'لا يمكن إزالة المتغير الأخير. يجب أن يحتوي المنتج على متغير واحد على الأقل.',
+    'save_after_remove_variant' => 'يرجى النقر على زر "تحديث المخزون والتسعير" لحفظ التغييرات بعد إزالة المتغير.',
 ];
