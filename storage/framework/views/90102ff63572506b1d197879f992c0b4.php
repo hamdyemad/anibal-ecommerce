@@ -19,7 +19,7 @@
                     <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__empty_1 = true; $__currentLoopData = $topSellingProducts ?? []; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $index => $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
                     <tr>
                         <td><?php echo e($index + 1); ?></td>
-                        <td>
+                        <td class="userDatatable-title">
                             <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($item->vendorProduct && $item->vendorProduct->product): ?>
                                 <?php $product = $item->vendorProduct->product; ?>
                                 <a href="<?php echo e(route('admin.products.show', $product->id)); ?>" target="_blank" class="d-flex align-items-center">
@@ -28,9 +28,9 @@
                                             src="<?php echo e(asset('storage/' . $product->mainImage->path)); ?>"
                                             alt="product" style="width: 40px; height: 40px;">
                                     <?php else: ?>
-                                        <div class="bg-light rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
-                                            <i class="uil uil-box text-muted"></i>
-                                        </div>
+                                        <img class="rounded-circle"
+                                            src="<?php echo e(asset('assets/img/default.png')); ?>"
+                                            alt="product" style="width: 40px; height: 40px;">
                                     <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                                     <span class="ms-3"><?php echo e($product->title); ?></span>
                                 </a>

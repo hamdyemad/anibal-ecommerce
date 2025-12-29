@@ -19,7 +19,7 @@
                     @forelse($topSellingProducts ?? [] as $index => $item)
                     <tr>
                         <td>{{ $index + 1 }}</td>
-                        <td>
+                        <td class="userDatatable-title">
                             @if($item->vendorProduct && $item->vendorProduct->product)
                                 @php $product = $item->vendorProduct->product; @endphp
                                 <a href="{{ route('admin.products.show', $product->id) }}" target="_blank" class="d-flex align-items-center">
@@ -28,9 +28,9 @@
                                             src="{{ asset('storage/' . $product->mainImage->path) }}"
                                             alt="product" style="width: 40px; height: 40px;">
                                     @else
-                                        <div class="bg-light rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
-                                            <i class="uil uil-box text-muted"></i>
-                                        </div>
+                                        <img class="rounded-circle"
+                                            src="{{ asset('assets/img/default.png') }}"
+                                            alt="product" style="width: 40px; height: 40px;">
                                     @endif
                                     <span class="ms-3">{{ $product->title }}</span>
                                 </a>
