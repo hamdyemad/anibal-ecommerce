@@ -41,12 +41,12 @@ class CustomerPointsApiController extends Controller
                 ->get();
 
             $data = [
-                'total_points' => $userPoints ? floatval(number_format($userPoints->total_points, 2)) : '0.00',
-                'points_value' => $pointsValue ? floatval(number_format($pointsValue, 2)) : '0.00',
-                'earned_points' => $userPoints ? floatval(number_format($userPoints->earned_points, 2)) : '0.00',
-                'redeemed_points' => $userPoints ? floatval(number_format($userPoints->redeemed_points, 2)) : '0.00',
-                'expired_points' => $userPoints ? floatval(number_format($userPoints->expired_points, 2)) : '0.00',
-                'available_points' => $userPoints ? floatval(number_format($userPoints->available_points, 2)) : '0.00',
+                'total_points' => $userPoints ? round($userPoints->total_points, 2) : 0,
+                'points_value' => $pointsValue ? round($pointsValue, 2) : 0,
+                'earned_points' => $userPoints ? round($userPoints->earned_points, 2) : 0,
+                'redeemed_points' => $userPoints ? round($userPoints->redeemed_points, 2) : 0,
+                'expired_points' => $userPoints ? round($userPoints->expired_points, 2) : 0,
+                'available_points' => $userPoints ? round($userPoints->available_points, 2) : 0,
                 'expiring_soon' => $expiringSoon
             ];
 
