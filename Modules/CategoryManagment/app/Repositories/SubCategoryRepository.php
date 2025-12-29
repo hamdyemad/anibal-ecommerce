@@ -158,6 +158,8 @@ class SubCategoryRepository implements SubCategoryRepositoryInterface
         $subCategory = SubCategory::create([
             'category_id' => $data['category_id'],
             'active' => $data['active'] ?? 1,
+            'sort_number' => $data['sort_number'] ?? 0,
+            'view_status' => $data['view_status'] ?? 1,
         ]);
 
         // Store translations
@@ -211,11 +213,13 @@ class SubCategoryRepository implements SubCategoryRepositoryInterface
         $updatedData = [];
         (isset($data['category_id'])) ? $updatedData['category_id'] = $data['category_id'] : null;
         if(isset($data['active'])) {
-            if($data['active'] == 1) {
-                $updatedData['active'] = 1;
-            } else {
-                $updatedData['active'] = 0;
-            }
+            $updatedData['active'] = $data['active'] == 1 ? 1 : 0;
+        }
+        if(isset($data['sort_number'])) {
+            $updatedData['sort_number'] = (int) $data['sort_number'];
+        }
+        if(isset($data['view_status'])) {
+            $updatedData['view_status'] = $data['view_status'] == 1 ? 1 : 0;
         }
         $subCategory->update($updatedData);
 

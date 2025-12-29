@@ -21,6 +21,7 @@ class LightSubCategoryApiResource extends JsonResource
             'slug' => $this->slug,
             'name' => $this->name,
             'image' => formatImage($this->image),
+            'sort_number' => $this->sort_number ?? 0,
         ];
     }
 }

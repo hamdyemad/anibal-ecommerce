@@ -13,7 +13,9 @@ class DepartmentQueryAction
                     ->withCount('activeProducts')
                     ->with('activeCategories')
                     ->active()
-                    ->filter($filters);
+                    ->where('view_status', 1)
+                    ->filter($filters)
+                    ->orderBy('sort_number', 'asc');
         return $query;
     }
 }
