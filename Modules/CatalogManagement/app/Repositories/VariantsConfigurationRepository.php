@@ -46,6 +46,12 @@ class VariantsConfigurationRepository implements VariantsConfigurationRepository
     public function create(array $data)
     {
         return DB::transaction(function () use ($data) {
+            \Log::info('VariantsConfiguration Create Request', [
+                'data' => $data,
+                'value' => $data['value'] ?? 'NOT SET',
+                'type' => $data['type'] ?? 'NOT SET'
+            ]);
+            
             // Create the variant configuration
             $variantConfig = VariantsConfiguration::create([
                 'key_id' => $data['key_id'] ?? null,

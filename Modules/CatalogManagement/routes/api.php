@@ -5,6 +5,7 @@ use Modules\CatalogManagement\app\Http\Controllers\Api\BrandApiController;
 use Modules\CatalogManagement\app\Http\Controllers\Api\BundleCategoryApiController;
 use Modules\CatalogManagement\app\Http\Controllers\Api\BundlesApiController;
 use Modules\CatalogManagement\app\Http\Controllers\VariantsConfigurationController;
+use Modules\CatalogManagement\app\Http\Controllers\Api\VariantConfigurationApiController;
 use Modules\CatalogManagement\app\Http\Controllers\Api\ProductApiController;
 use Modules\CatalogManagement\app\Http\Controllers\Api\ReviewApiController;
 use Modules\CatalogManagement\app\Http\Controllers\Api\OccasionApiController;
@@ -12,7 +13,18 @@ use Modules\CatalogManagement\app\Http\Controllers\Api\OccasionApiController;
 // Variant Configuration API Routes (for product form)
 Route::prefix('variant-configurations')->group(function () {
     Route::get('key/{keyId}/tree', [VariantsConfigurationController::class, 'getKeyTree']);
+    Route::get('{id}/tree', [VariantsConfigurationController::class, 'getVariantTree']);
     Route::get('{id}', [VariantsConfigurationController::class, 'show']);
+});
+
+// Variant Configuration API Routes (public API)
+Route::prefix('variants')->group(function () {
+    Route::get('keys', [VariantConfigurationApiController::class, 'keys']);
+    Route::get('keys/{keyId}/tree', [VariantConfigurationApiController::class, 'keyTree']);
+    Route::get('by-key/{keyId}', [VariantConfigurationApiController::class, 'byKey']);
+    Route::get('{id}/tree', [VariantConfigurationApiController::class, 'tree']);
+    Route::get('{id}/children', [VariantConfigurationApiController::class, 'children']);
+    Route::get('{id}', [VariantConfigurationApiController::class, 'show']);
 });
 
 Route::apiResource('brands', BrandApiController::class);

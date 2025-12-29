@@ -213,7 +213,6 @@
                                         <input type="text"
                                                class="form-control ih-medium ip-gray radius-xs b-light px-15"
                                                id="value_text"
-                                               name="value_text"
                                                value="{{ isset($variantsConfig) && $variantsConfig->type == 'text' ? $variantsConfig->value : old('value') }}"
                                                placeholder="{{ trans('catalogmanagement::variantsconfig.enter_text_value') }}">
                                     </div>
@@ -229,7 +228,6 @@
                                             <input type="color"
                                                    class="form-control form-control-color @error('value') is-invalid @enderror"
                                                    id="value_color"
-                                                   name="value_color"
                                                    value="{{ isset($variantsConfig) && $variantsConfig->type == 'color' ? $variantsConfig->value : (old('value') ?: '#000000') }}"
                                                    title="{{ trans('catalogmanagement::variantsconfig.choose_color') }}"
                                                    style="width: 80px; height: 45px;">
@@ -294,15 +292,39 @@
         }
 
         // Function to toggle value input based on type
-        function toggleValueInput() {
+        function toggleValueInput(syncToHidden = false) {
             const type = $('#type').val();
+            const currentValue = $('#value').val();
 
             if (type === 'text') {
                 $('#textValueContainer').show();
                 $('#colorValueContainer').hide();
+                // Set text input value from hidden field if not already set
+                if (currentValue && !$('#value_text').val()) {
+                    $('#value_text').val(currentValue);
+                }
+                // Sync text value to hidden field
+                if (syncToHidden || !currentValue) {
+                    const textVal = $('#value_text').val();
+                    if (textVal) {
+                        $('#value').val(textVal);
+                    }
+                }
             } else if (type === 'color') {
                 $('#textValueContainer').hide();
                 $('#colorValueContainer').show();
+                // Set color input value from hidden field if not already set
+                if (currentValue) {
+                    $('#value_color').val(currentValue);
+                    $('#color_hex').val(currentValue);
+                } else {
+                    // If no current value, sync from color picker
+                    const colorVal = $('#value_color').val();
+                    if (colorVal) {
+                        $('#value').val(colorVal);
+                        $('#color_hex').val(colorVal);
+                    }
+                }
             } else {
                 $('#textValueContainer').hide();
                 $('#colorValueContainer').hide();
@@ -311,14 +333,34 @@
 
         // Trigger on page load
         toggleValueInput();
+        
+        // Ensure hidden value is synced on page load for existing records
+        const initialType = $('#type').val();
+        if (initialType === 'color') {
+            const colorVal = $('#value_color').val();
+            if (colorVal && colorVal !== '#000000') {
+                $('#value').val(colorVal);
+            }
+        } else if (initialType === 'text') {
+            const textVal = $('#value_text').val();
+            if (textVal) {
+                $('#value').val(textVal);
+            }
+        }
 
         // Trigger on type change
         $('#type').on('change', function() {
-            toggleValueInput();
+            // Clear all values when type changes
+            $('#value').val('');
+            $('#value_text').val('');
+            $('#value_color').val('#000000');
+            $('#color_hex').val('#000000');
+            // Then toggle visibility
+            toggleValueInput(true);
         });
 
         // Update hidden value field when text input changes
-        $('#value_text').on('input', function() {
+        $('#value_text').on('input change', function() {
             $('#value').val($(this).val());
         });
 
@@ -345,6 +387,18 @@
 
         $('#variantsConfigForm').on('submit', function(e) {
             e.preventDefault();
+
+            // Sync value to hidden field before submission
+            const type = $('#type').val();
+            if (type === 'color') {
+                const colorVal = $('#value_color').val();
+                $('#value').val(colorVal);
+                console.log('Syncing color value before submit:', colorVal);
+            } else if (type === 'text') {
+                const textVal = $('#value_text').val();
+                $('#value').val(textVal);
+                console.log('Syncing text value before submit:', textVal);
+            }
 
             const variantsConfigForm = this;
             const $submitBtn = $('#submitBtn');
@@ -381,6 +435,12 @@
             LoadingOverlay.animateProgressBar(30, 300).then(() => {
                 // Prepare form data
                 const formData = new FormData(variantsConfigForm);
+                
+                // Debug: Log form data entries
+                console.log('Form data being submitted:');
+                for (let [key, value] of formData.entries()) {
+                    console.log(`  ${key}: ${value}`);
+                }
 
                 // Send AJAX request
                 return fetch(variantsConfigForm.action, {

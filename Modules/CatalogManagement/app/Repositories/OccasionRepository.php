@@ -18,7 +18,11 @@ class OccasionRepository implements OccasionRepositoryInterface
 
     public function getAllOccasions(array $filters = [], $perPage = 10)
     {
-        $query = Occasion::with(['translations', 'vendor', 'occasionProducts.vendorProductVariant.vendorProduct.product'])
+        $query = Occasion::with([
+            'translations', 
+            'vendor', 
+            'occasionProducts.vendorProductVariant.vendorProduct.product'
+        ])
             ->filter($filters)
             ->latest();
 
