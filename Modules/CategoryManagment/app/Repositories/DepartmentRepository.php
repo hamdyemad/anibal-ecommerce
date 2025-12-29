@@ -16,7 +16,7 @@ class DepartmentRepository implements DepartmentRepositoryInterface
     public function getAllDepartments(array $filters = [], int $perPage = 15)
     {
         $query = Department::with('translations')->filter($filters);
-        $query->orderBy('created_at', 'desc');
+        $query->orderBy('sort_number', 'asc');
         return ($perPage == 0) ? $query->get() : $query->paginate($perPage);
     }
 
@@ -50,7 +50,7 @@ class DepartmentRepository implements DepartmentRepositoryInterface
                 $query->orderBy($orderBy, $orderDirection);
             }
         } else {
-            $query->orderBy('created_at', 'desc');
+            $query->orderBy('sort_number', 'asc');
         }
 
         return $query;
@@ -61,7 +61,7 @@ class DepartmentRepository implements DepartmentRepositoryInterface
      */
     public function getActiveDepartments()
     {
-        return Department::with('translations')->where('active', 1)->get();
+        return Department::with('translations')->where('active', 1)->orderBy('sort_number', 'asc')->get();
     }
 
     /**
@@ -80,6 +80,8 @@ class DepartmentRepository implements DepartmentRepositoryInterface
         $department = Department::create([
             'active' => $data['active'] ?? 1,
             'commission' => $data['commission'] ?? 0,
+            'sort_number' => $data['sort_number'] ?? 0,
+            'view_status' => $data['view_status'] ?? 1,
         ]);
 
         // Store translations
@@ -134,6 +136,8 @@ class DepartmentRepository implements DepartmentRepositoryInterface
         $updateData = [
             'active' => $data['active'] ?? 1,
             'commission' => $data['commission'] ?? 0,
+            'sort_number' => $data['sort_number'] ?? 0,
+            'view_status' => $data['view_status'] ?? 1,
         ];
 
         $department->update($updateData);

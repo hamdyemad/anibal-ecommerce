@@ -1,27 +1,54 @@
-@extends('layout.app')
 
-@section('title')
-    {{ trans('categorymanagment::department.departments_management') }}
-@endsection
 
-@push('styles')
+<?php $__env->startSection('title'); ?>
+    <?php echo e(trans('categorymanagment::department.departments_management')); ?>
+
+<?php $__env->stopSection(); ?>
+
+<?php $__env->startPush('styles'); ?>
 <style>
 
 </style>
-@endpush
+<?php $__env->stopPush(); ?>
 
-@section('content')
+<?php $__env->startSection('content'); ?>
     <div class="container-fluid">
         <div class="row">
             <div class="col-lg-12">
-                <x-breadcrumb :items="[
+                <?php if (isset($component)) { $__componentOriginale19f62b34dfe0bfdf95075badcb45bc2 = $component; } ?>
+<?php if (isset($attributes)) { $__attributesOriginale19f62b34dfe0bfdf95075badcb45bc2 = $attributes; } ?>
+<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.breadcrumb','data' => ['items' => [
                     [
                         'title' => trans('dashboard.title'),
                         'url' => route('admin.dashboard'),
                         'icon' => 'uil uil-estate',
                     ],
                     ['title' => trans('categorymanagment::department.departments_management')],
-                ]" />
+                ]]] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component->withName('breadcrumb'); ?>
+<?php if ($component->shouldRender()): ?>
+<?php $__env->startComponent($component->resolveView(), $component->data()); ?>
+<?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
+<?php $attributes = $attributes->except(\Illuminate\View\AnonymousComponent::ignoredParameterNames()); ?>
+<?php endif; ?>
+<?php $component->withAttributes(['items' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute([
+                    [
+                        'title' => trans('dashboard.title'),
+                        'url' => route('admin.dashboard'),
+                        'icon' => 'uil uil-estate',
+                    ],
+                    ['title' => trans('categorymanagment::department.departments_management')],
+                ])]); ?>
+<?php echo $__env->renderComponent(); ?>
+<?php endif; ?>
+<?php if (isset($__attributesOriginale19f62b34dfe0bfdf95075badcb45bc2)): ?>
+<?php $attributes = $__attributesOriginale19f62b34dfe0bfdf95075badcb45bc2; ?>
+<?php unset($__attributesOriginale19f62b34dfe0bfdf95075badcb45bc2); ?>
+<?php endif; ?>
+<?php if (isset($__componentOriginale19f62b34dfe0bfdf95075badcb45bc2)): ?>
+<?php $component = $__componentOriginale19f62b34dfe0bfdf95075badcb45bc2; ?>
+<?php unset($__componentOriginale19f62b34dfe0bfdf95075badcb45bc2); ?>
+<?php endif; ?>
             </div>
         </div>
 
@@ -30,21 +57,23 @@
 
                 <div class="userDatatable global-shadow border-light-0 p-30 bg-white radius-xl w-100 mb-30">
                     <div class="d-flex justify-content-between align-items-center mb-25">
-                        <h4 class="mb-0 fw-500">{{ trans('categorymanagment::department.departments_management') }}</h4>
-                        @can('departments.create')
+                        <h4 class="mb-0 fw-500"><?php echo e(trans('categorymanagment::department.departments_management')); ?></h4>
+                        <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('departments.create')): ?>
                             <div class="d-flex gap-2">
-                                <a href="{{ route('admin.category-management.departments.create') }}"
+                                <a href="<?php echo e(route('admin.category-management.departments.create')); ?>"
                                     class="btn btn-primary btn-default btn-squared text-capitalize">
-                                    <i class="uil uil-plus"></i> {{ trans('categorymanagment::department.add_department') }}
+                                    <i class="uil uil-plus"></i> <?php echo e(trans('categorymanagment::department.add_department')); ?>
+
                                 </a>
                             </div>
-                        @endcan
+                        <?php endif; ?>
                     </div>
                     <div class="alert alert-info glowing-alert" role="alert">
-                        {{ __('common.live_search_info') }}
+                        <?php echo e(__('common.live_search_info')); ?>
+
                     </div>
 
-                    {{-- Search and Filter --}}
+                    
                     <div class="mb-25">
                         <div class="card border-0 shadow-sm">
                             <div class="card-body">
@@ -52,25 +81,28 @@
                                     <div class="col-md-3">
                                         <div class="form-group">
                                             <label for="search"
-                                                class="il-gray fs-14 fw-500 mb-10">{{ trans('common.search') }}</label>
+                                                class="il-gray fs-14 fw-500 mb-10"><?php echo e(trans('common.search')); ?></label>
                                             <input type="text"
                                                 class="form-control ih-medium ip-gray radius-xs b-light px-15"
-                                                id="search" placeholder="{{ __('common.search') }}" autocomplete="off">
+                                                id="search" placeholder="<?php echo e(__('common.search')); ?>" autocomplete="off">
                                         </div>
                                     </div>
                                     <div class="col-md-3">
                                         <div class="form-group">
                                             <label for="active"
-                                                class="il-gray fs-14 fw-500 mb-10">{{ trans('categorymanagment::department.activation') }}</label>
+                                                class="il-gray fs-14 fw-500 mb-10"><?php echo e(trans('categorymanagment::department.activation')); ?></label>
                                             <select
                                                 class="form-control form-select ih-medium ip-gray radius-xs b-light"
                                                 id="active">
-                                                <option value="">{{ trans('categorymanagment::department.all') }}
+                                                <option value=""><?php echo e(trans('categorymanagment::department.all')); ?>
+
                                                 </option>
-                                                <option value="1">{{ trans('categorymanagment::department.active') }}
+                                                <option value="1"><?php echo e(trans('categorymanagment::department.active')); ?>
+
                                                 </option>
                                                 <option value="0">
-                                                    {{ trans('categorymanagment::department.inactive') }}
+                                                    <?php echo e(trans('categorymanagment::department.inactive')); ?>
+
                                                 </option>
                                             </select>
                                         </div>
@@ -78,15 +110,18 @@
                                     <div class="col-md-3">
                                         <div class="form-group">
                                             <label for="view_status"
-                                                class="il-gray fs-14 fw-500 mb-10">{{ trans('categorymanagment::department.view_status') }}</label>
+                                                class="il-gray fs-14 fw-500 mb-10"><?php echo e(trans('categorymanagment::department.view_status')); ?></label>
                                             <select
                                                 class="form-control form-select ih-medium ip-gray radius-xs b-light"
                                                 id="view_status">
-                                                <option value="">{{ trans('categorymanagment::department.all') }}
+                                                <option value=""><?php echo e(trans('categorymanagment::department.all')); ?>
+
                                                 </option>
-                                                <option value="1">{{ __('common.visible') }}
+                                                <option value="1"><?php echo e(__('common.visible')); ?>
+
                                                 </option>
-                                                <option value="0">{{ __('common.hidden') }}
+                                                <option value="0"><?php echo e(__('common.hidden')); ?>
+
                                                 </option>
                                             </select>
                                         </div>
@@ -94,7 +129,7 @@
                                     <div class="col-md-3">
                                         <div class="form-group">
                                             <label for="created_date_from"
-                                                class="il-gray fs-14 fw-500 mb-10">{{ trans('common.created_date_from') }}</label>
+                                                class="il-gray fs-14 fw-500 mb-10"><?php echo e(trans('common.created_date_from')); ?></label>
                                             <input type="date"
                                                 class="form-control ih-medium ip-gray radius-xs b-light px-15"
                                                 id="created_date_from">
@@ -103,7 +138,7 @@
                                     <div class="col-md-3">
                                         <div class="form-group">
                                             <label for="created_date_to"
-                                                class="il-gray fs-14 fw-500 mb-10">{{ trans('common.created_date_to') }}</label>
+                                                class="il-gray fs-14 fw-500 mb-10"><?php echo e(trans('common.created_date_to')); ?></label>
                                             <input type="date"
                                                 class="form-control ih-medium ip-gray radius-xs b-light px-15"
                                                 id="created_date_to">
@@ -113,8 +148,9 @@
                                         <div class="form-group">
                                             <button type="button" id="resetFilters"
                                                 class="btn btn-warning btn-default btn-squared"
-                                                title="{{ __('common.reset') }}">
-                                                <i class="uil uil-redo me-1"></i> {{ __('common.reset_filters') }}
+                                                title="<?php echo e(__('common.reset')); ?>">
+                                                <i class="uil uil-redo me-1"></i> <?php echo e(__('common.reset_filters')); ?>
+
                                             </button>
                                         </div>
                                     </div>
@@ -123,17 +159,17 @@
                         </div>
                     </div>
 
-                    {{-- Entries Per Page Selector --}}
+                    
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <div class="d-flex align-items-center">
-                            <label class="me-2 mb-0">{{ __('common.show') ?? 'Show' }}</label>
+                            <label class="me-2 mb-0"><?php echo e(__('common.show') ?? 'Show'); ?></label>
                             <select id="entriesSelect" class="form-select form-select-sm" style="width: auto;">
                                 <option value="10">10</option>
                                 <option value="25">25</option>
                                 <option value="50">50</option>
                                 <option value="100">100</option>
                             </select>
-                            <label class="ms-2 mb-0">{{ __('common.entries') ?? 'entries' }}</label>
+                            <label class="ms-2 mb-0"><?php echo e(__('common.entries') ?? 'entries'); ?></label>
                         </div>
                     </div>
 
@@ -145,22 +181,22 @@
                                         <span class="userDatatable-title">#</span>
                                     </th>
                                     <th>
-                                        <span class="userDatatable-title">{{ trans('categorymanagment::department.department_information') ?? 'Department Information' }}</span>
+                                        <span class="userDatatable-title"><?php echo e(trans('categorymanagment::department.department_information') ?? 'Department Information'); ?></span>
                                     </th>
                                     <th>
                                         <span
-                                            class="userDatatable-title">{{ trans('categorymanagment::department.view_status') ?? 'View Status' }}</span>
+                                            class="userDatatable-title"><?php echo e(trans('categorymanagment::department.view_status') ?? 'View Status'); ?></span>
                                     </th>
                                     <th>
                                         <span
-                                            class="userDatatable-title">{{ trans('categorymanagment::department.activation') }}</span>
+                                            class="userDatatable-title"><?php echo e(trans('categorymanagment::department.activation')); ?></span>
                                     </th>
                                     <th>
                                         <span
-                                            class="userDatatable-title">{{ trans('categorymanagment::department.created_at') }}</span>
+                                            class="userDatatable-title"><?php echo e(trans('categorymanagment::department.created_at')); ?></span>
                                     </th>
                                     <th>
-                                        <span class="userDatatable-title">{{ trans('common.actions') }}</span>
+                                        <span class="userDatatable-title"><?php echo e(trans('common.actions')); ?></span>
                                     </th>
                                 </tr>
                             </thead>
@@ -172,18 +208,53 @@
             </div>
         </div>
     </div>
-    {{-- Delete Confirmation Modal with Loading Component --}}
-    <x-delete-with-loading modalId="modal-delete-department" tableId="departmentsDataTable"
-        deleteButtonClass="delete-department" :title="__('main.confirm delete')" :message="__('main.are you sure you want to delete this')" itemNameId="delete-department-name"
-        confirmBtnId="confirmDeleteDepartmentBtn" :cancelText="__('main.cancel')" :deleteText="__('main.delete')" :loadingDeleting="trans('main.deleting') ?? 'Deleting...'" :loadingPleaseWait="trans('main.please wait') ?? 'Please wait...'"
-        :loadingDeletedSuccessfully="trans('main.deleted success') ?? 'Deleted Successfully!'" :loadingRefreshing="trans('main.refreshing') ?? 'Refreshing...'" :errorDeleting="__('main.error on delete')" />
-@endsection
+    
+    <?php if (isset($component)) { $__componentOriginal4d4be0bcf29da35c820833c3b98d2b58 = $component; } ?>
+<?php if (isset($attributes)) { $__attributesOriginal4d4be0bcf29da35c820833c3b98d2b58 = $attributes; } ?>
+<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.delete-with-loading','data' => ['modalId' => 'modal-delete-department','tableId' => 'departmentsDataTable','deleteButtonClass' => 'delete-department','title' => __('main.confirm delete'),'message' => __('main.are you sure you want to delete this'),'itemNameId' => 'delete-department-name','confirmBtnId' => 'confirmDeleteDepartmentBtn','cancelText' => __('main.cancel'),'deleteText' => __('main.delete'),'loadingDeleting' => trans('main.deleting') ?? 'Deleting...','loadingPleaseWait' => trans('main.please wait') ?? 'Please wait...','loadingDeletedSuccessfully' => trans('main.deleted success') ?? 'Deleted Successfully!','loadingRefreshing' => trans('main.refreshing') ?? 'Refreshing...','errorDeleting' => __('main.error on delete')]] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component->withName('delete-with-loading'); ?>
+<?php if ($component->shouldRender()): ?>
+<?php $__env->startComponent($component->resolveView(), $component->data()); ?>
+<?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
+<?php $attributes = $attributes->except(\Illuminate\View\AnonymousComponent::ignoredParameterNames()); ?>
+<?php endif; ?>
+<?php $component->withAttributes(['modalId' => 'modal-delete-department','tableId' => 'departmentsDataTable','deleteButtonClass' => 'delete-department','title' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute(__('main.confirm delete')),'message' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute(__('main.are you sure you want to delete this')),'itemNameId' => 'delete-department-name','confirmBtnId' => 'confirmDeleteDepartmentBtn','cancelText' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute(__('main.cancel')),'deleteText' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute(__('main.delete')),'loadingDeleting' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute(trans('main.deleting') ?? 'Deleting...'),'loadingPleaseWait' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute(trans('main.please wait') ?? 'Please wait...'),'loadingDeletedSuccessfully' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute(trans('main.deleted success') ?? 'Deleted Successfully!'),'loadingRefreshing' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute(trans('main.refreshing') ?? 'Refreshing...'),'errorDeleting' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute(__('main.error on delete'))]); ?>
+<?php echo $__env->renderComponent(); ?>
+<?php endif; ?>
+<?php if (isset($__attributesOriginal4d4be0bcf29da35c820833c3b98d2b58)): ?>
+<?php $attributes = $__attributesOriginal4d4be0bcf29da35c820833c3b98d2b58; ?>
+<?php unset($__attributesOriginal4d4be0bcf29da35c820833c3b98d2b58); ?>
+<?php endif; ?>
+<?php if (isset($__componentOriginal4d4be0bcf29da35c820833c3b98d2b58)): ?>
+<?php $component = $__componentOriginal4d4be0bcf29da35c820833c3b98d2b58; ?>
+<?php unset($__componentOriginal4d4be0bcf29da35c820833c3b98d2b58); ?>
+<?php endif; ?>
+<?php $__env->stopSection(); ?>
 
-@push('after-body')
-    <x-loading-overlay />
-@endpush
+<?php $__env->startPush('after-body'); ?>
+    <?php if (isset($component)) { $__componentOriginal115e82920da0ed7c897ee494af74b9d8 = $component; } ?>
+<?php if (isset($attributes)) { $__attributesOriginal115e82920da0ed7c897ee494af74b9d8 = $attributes; } ?>
+<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.loading-overlay','data' => []] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component->withName('loading-overlay'); ?>
+<?php if ($component->shouldRender()): ?>
+<?php $__env->startComponent($component->resolveView(), $component->data()); ?>
+<?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
+<?php $attributes = $attributes->except(\Illuminate\View\AnonymousComponent::ignoredParameterNames()); ?>
+<?php endif; ?>
+<?php $component->withAttributes([]); ?>
+<?php echo $__env->renderComponent(); ?>
+<?php endif; ?>
+<?php if (isset($__attributesOriginal115e82920da0ed7c897ee494af74b9d8)): ?>
+<?php $attributes = $__attributesOriginal115e82920da0ed7c897ee494af74b9d8; ?>
+<?php unset($__attributesOriginal115e82920da0ed7c897ee494af74b9d8); ?>
+<?php endif; ?>
+<?php if (isset($__componentOriginal115e82920da0ed7c897ee494af74b9d8)): ?>
+<?php $component = $__componentOriginal115e82920da0ed7c897ee494af74b9d8; ?>
+<?php unset($__componentOriginal115e82920da0ed7c897ee494af74b9d8); ?>
+<?php endif; ?>
+<?php $__env->stopPush(); ?>
 
-@push('scripts')
+<?php $__env->startPush('scripts'); ?>
     <script>
         $(document).ready(function() {
             let per_page = 10;
@@ -193,7 +264,7 @@
                 processing: true,
                 serverSide: true, // Server-side processing
                 ajax: {
-                    url: '{{ route('admin.category-management.departments.datatable') }}',
+                    url: '<?php echo e(route('admin.category-management.departments.datatable')); ?>',
                     type: 'GET',
                     data: function(d) {
                         // Map DataTables parameters to backend parameters
@@ -263,31 +334,31 @@
                             let html = '<div class="department-info-container">';
 
                             // Department Names with language badges
-                            @foreach ($languages as $language)
-                                if (data && data['{{ $language->code }}'] && data['{{ $language->code }}'].name && data['{{ $language->code }}'].name !== '-') {
-                                    let name = $('<div/>').text(data['{{ $language->code }}'].name).html();
-                                    @if ($language->rtl)
+                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__currentLoopData = $languages; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $language): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                if (data && data['<?php echo e($language->code); ?>'] && data['<?php echo e($language->code); ?>'].name && data['<?php echo e($language->code); ?>'].name !== '-') {
+                                    let name = $('<div/>').text(data['<?php echo e($language->code); ?>'].name).html();
+                                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($language->rtl): ?>
                                         html += `<div class="name-item mb-2">
-                                            <span class="language-badge badge bg-success text-white px-2 py-1 me-2 rounded-pill fw-bold" style="font-size: 10px;">{{ strtoupper($language->code) }}</span>
+                                            <span class="language-badge badge bg-success text-white px-2 py-1 me-2 rounded-pill fw-bold" style="font-size: 10px;"><?php echo e(strtoupper($language->code)); ?></span>
                                             <span class="item-name text-dark fw-semibold" dir="rtl" style="font-family: 'Cairo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">${name}</span>
                                         </div>`;
-                                    @else
+                                    <?php else: ?>
                                         html += `<div class="name-item mb-2">
-                                            <span class="language-badge badge bg-primary text-white px-2 py-1 me-2 rounded-pill fw-bold" style="font-size: 10px;">{{ strtoupper($language->code) }}</span>
+                                            <span class="language-badge badge bg-primary text-white px-2 py-1 me-2 rounded-pill fw-bold" style="font-size: 10px;"><?php echo e(strtoupper($language->code)); ?></span>
                                             <span class="item-name text-dark fw-semibold">${name}</span>
                                         </div>`;
-                                    @endif
+                                    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                                 }
-                            @endforeach
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 
                             // Commission and Sort Number
                             html += '<div class="department-meta-info">';
                             html += `<div class="mb-1">
-                                <small class="text-muted">{{ trans('categorymanagment::department.commission') }}:</small>
+                                <small class="text-muted"><?php echo e(trans('categorymanagment::department.commission')); ?>:</small>
                                 <span class="badge badge-secondary badge-round badge-lg ms-1">${row.commission ? row.commission + '%' : '0%'}</span>
                             </div>`;
                             html += `<div class="mb-1">
-                                <small class="text-muted">{{ trans('categorymanagment::department.sort_number') }}:</small>
+                                <small class="text-muted"><?php echo e(trans('categorymanagment::department.sort_number')); ?>:</small>
                                 <span class="badge badge-secondary badge-round badge-lg ms-1">${row.sort_number ?? 0}</span>
                             </div>`;
                             html += '</div>';
@@ -304,7 +375,7 @@
                         orderable: false,
                         className: 'text-center',
                         render: function(data, type, row) {
-                            @can('departments.change-status')
+                            <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('departments.change-status')): ?>
                                 const isChecked = data ? 'checked' : '';
                                 const switchId = 'view-status-switch-' + row.department_id;
                                 return `<div class="userDatatable-content">
@@ -318,13 +389,13 @@
                                         <label class="form-check-label" for="${switchId}"></label>
                                     </div>
                                 </div>`;
-                            @else
+                            <?php else: ?>
                                 if (data == 1) {
-                                    return '<span class="badge badge-success badge-round badge-lg">{{ trans('common.visible') ?? 'Visible' }}</span>';
+                                    return '<span class="badge badge-success badge-round badge-lg"><?php echo e(trans('common.visible') ?? 'Visible'); ?></span>';
                                 } else {
-                                    return '<span class="badge badge-danger badge-round badge-lg">{{ trans('common.hidden') ?? 'Hidden' }}</span>';
+                                    return '<span class="badge badge-danger badge-round badge-lg"><?php echo e(trans('common.hidden') ?? 'Hidden'); ?></span>';
                                 }
-                            @endcan
+                            <?php endif; ?>
                         }
                     },
                     // Active Status column
@@ -335,7 +406,7 @@
                         className: 'text-center',
                         render: function(data, type, row) {
                             // For display, return formatted HTML with switcher (for users with change-status permission)
-                            @can('departments.change-status')
+                            <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('departments.change-status')): ?>
                                 const isChecked = data ? 'checked' : '';
                                 const switchId = 'status-switch-' + row.department_id;
                                 const departmentName = row.translations && row.translations['en'] ?
@@ -355,13 +426,13 @@
                                     <label class="form-check-label" for="${switchId}"></label>
                                 </div>
                             </div>`;
-                            @else
+                            <?php else: ?>
                                 if (data == 1) {
-                                    return '<span class="badge badge-success badge-round badge-lg">{{ trans('categorymanagment::department.active') }}</span>';
+                                    return '<span class="badge badge-success badge-round badge-lg"><?php echo e(trans('categorymanagment::department.active')); ?></span>';
                                 } else {
-                                    return '<span class="badge badge-danger badge-round badge-lg">{{ trans('categorymanagment::department.inactive') }}</span>';
+                                    return '<span class="badge badge-danger badge-round badge-lg"><?php echo e(trans('categorymanagment::department.inactive')); ?></span>';
                                 }
-                            @endcan
+                            <?php endif; ?>
                         }
                     },
                     // Created At column
@@ -382,43 +453,43 @@
                         className: 'text-center',
                         render: function(data, type, row) {
                             let viewUrl =
-                                "{{ route('admin.category-management.departments.show', ':id') }}"
+                                "<?php echo e(route('admin.category-management.departments.show', ':id')); ?>"
                                 .replace(':id', row.department_id);
                             let editUrl =
-                                "{{ route('admin.category-management.departments.edit', ':id') }}"
+                                "<?php echo e(route('admin.category-management.departments.edit', ':id')); ?>"
                                 .replace(':id', row.department_id);
                             return `
                             <ul class="mb-0 d-flex flex-wrap justify-content-center">
                                 <li>
                                     <a href="${viewUrl}"
                                     class="btn btn-primary table_action_father me-1"
-                                    title="{{ trans('common.view') }}">
+                                    title="<?php echo e(trans('common.view')); ?>">
                                         <i class="uil uil-eye table_action_icon"></i>
                                     </a>
                                 </li>
-                                @can('departments.edit')
+                                <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('departments.edit')): ?>
                                 <li>
                                     <a href="${editUrl}"
                                     class="btn btn-warning table_action_father me-1"
-                                    title="{{ trans('common.edit') }}">
+                                    title="<?php echo e(trans('common.edit')); ?>">
                                         <i class="uil uil-edit table_action_icon"></i>
                                     </a>
                                 </li>
-                                @endcan
-                                @can('departments.delete')
+                                <?php endif; ?>
+                                <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('departments.delete')): ?>
                                 <li>
                                     <a href="javascript:void(0);"
                                     class="btn btn-danger delete-department table_action_father"
-                                    title="{{ trans('common.delete') }}"
+                                    title="<?php echo e(trans('common.delete')); ?>"
                                     data-bs-toggle="modal"
                                     data-bs-target="#modal-delete-department"
                                     data-id="${row.department_id}"
                                     data-name="${$('<div>').text(row.translations && row.translations['en'] ? row.translations['en'].name : 'Department').html()}"
-                                    data-url="${'{{ route('admin.category-management.departments.destroy', 'REPLACE_ID') }}'.replace('REPLACE_ID', row.department_id)}">
+                                    data-url="${'<?php echo e(route('admin.category-management.departments.destroy', 'REPLACE_ID')); ?>'.replace('REPLACE_ID', row.department_id)}">
                                         <i class="uil uil-trash-alt table_action_icon"></i>
                                     </a>
                                 </li>
-                                @endcan
+                                <?php endif; ?>
                             </ul>`;
                         }
                     }
@@ -437,35 +508,35 @@
                     exportOptions: {
                         columns: ':not(:last-child)'
                     },
-                    title: '{{ trans('categorymanagment::department.departments_management') }}'
+                    title: '<?php echo e(trans('categorymanagment::department.departments_management')); ?>'
                 }],
                 searching: true, // Enable built-in search
                 language: {
-                    lengthMenu: "{{ __('common.show') ?? 'Show' }} _MENU_",
-                    info: "{{ __('common.showing') ?? 'Showing' }} _START_ {{ __('common.to') ?? 'to' }} _END_ {{ __('common.of') ?? 'of' }} _TOTAL_ {{ __('common.entries') ?? 'entries' }}",
-                    infoEmpty: "{{ __('common.showing') ?? 'Showing' }} 0 {{ __('common.to') ?? 'to' }} 0 {{ __('common.of') ?? 'of' }} 0 {{ __('common.entries') ?? 'entries' }}",
-                    infoFiltered: "({{ __('common.filtered_from') ?? 'filtered from' }} _MAX_ {{ __('common.total_entries') ?? 'total entries' }})",
-                    zeroRecords: "{{ trans('categorymanagment::department.no_departments_found') ?? 'No departments found' }}",
-                    emptyTable: "{{ trans('categorymanagment::department.no_departments_found') ?? 'No departments found' }}",
-                    loadingRecords: "{{ __('common.loading') ?? 'Loading' }}...",
-                    processing: "{{ __('common.processing') ?? 'Processing' }}...",
-                    search: "{{ __('common.search') ?? 'Search' }}:",
+                    lengthMenu: "<?php echo e(__('common.show') ?? 'Show'); ?> _MENU_",
+                    info: "<?php echo e(__('common.showing') ?? 'Showing'); ?> _START_ <?php echo e(__('common.to') ?? 'to'); ?> _END_ <?php echo e(__('common.of') ?? 'of'); ?> _TOTAL_ <?php echo e(__('common.entries') ?? 'entries'); ?>",
+                    infoEmpty: "<?php echo e(__('common.showing') ?? 'Showing'); ?> 0 <?php echo e(__('common.to') ?? 'to'); ?> 0 <?php echo e(__('common.of') ?? 'of'); ?> 0 <?php echo e(__('common.entries') ?? 'entries'); ?>",
+                    infoFiltered: "(<?php echo e(__('common.filtered_from') ?? 'filtered from'); ?> _MAX_ <?php echo e(__('common.total_entries') ?? 'total entries'); ?>)",
+                    zeroRecords: "<?php echo e(trans('categorymanagment::department.no_departments_found') ?? 'No departments found'); ?>",
+                    emptyTable: "<?php echo e(trans('categorymanagment::department.no_departments_found') ?? 'No departments found'); ?>",
+                    loadingRecords: "<?php echo e(__('common.loading') ?? 'Loading'); ?>...",
+                    processing: "<?php echo e(__('common.processing') ?? 'Processing'); ?>...",
+                    search: "<?php echo e(__('common.search') ?? 'Search'); ?>:",
                     paginate: {
-                        @if (app()->getLocale() == 'en')
+                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(app()->getLocale() == 'en'): ?>
                             first: '<i class="uil uil-angle-double-left"></i>',
                             last: '<i class="uil uil-angle-double-right"></i>',
                             next: '<i class="uil uil-angle-right"></i>',
                             previous: '<i class="uil uil-angle-left"></i>'
-                        @else
+                        <?php else: ?>
                             first: '<i class="uil uil-angle-double-right"></i>',
                             last: '<i class="uil uil-angle-double-left"></i>',
                             next: '<i class="uil uil-angle-left"></i>',
                             previous: '<i class="uil uil-angle-right"></i>'
-                        @endif
+                        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                     },
                     aria: {
-                        sortAscending: ": {{ __('common.sort_ascending') ?? 'activate to sort column ascending' }}",
-                        sortDescending: ": {{ __('common.sort_descending') ?? 'activate to sort column descending' }}"
+                        sortAscending: ": <?php echo e(__('common.sort_ascending') ?? 'activate to sort column ascending'); ?>",
+                        sortDescending: ": <?php echo e(__('common.sort_descending') ?? 'activate to sort column descending'); ?>"
                     }
                 }
             });
@@ -553,9 +624,9 @@
                         }
                     }
 
-                    // Date filters (column {{ count($languages) + 3 }})
+                    // Date filters (column <?php echo e(count($languages) + 3); ?>)
                     if (dateFrom || dateTo) {
-                        var dateColumn = data[{{ count($languages) + 3 }}];
+                        var dateColumn = data[<?php echo e(count($languages) + 3); ?>];
                         if (dateColumn) {
                             var rowDate = dateColumn.replace(/<[^>]*>/g, '').trim().split(' ')[
                                 0]; // Extract YYYY-MM-DD
@@ -603,18 +674,18 @@
                 // Show loading overlay
                 if (typeof LoadingOverlay !== 'undefined') {
                     LoadingOverlay.show({
-                        text: '{{ __('categorymanagment::department.change_status') }}',
-                        subtext: '{{ __('common.please_wait') ?? 'Please wait' }}...'
+                        text: '<?php echo e(__('categorymanagment::department.change_status')); ?>',
+                        subtext: '<?php echo e(__('common.please_wait') ?? 'Please wait'); ?>...'
                     });
                 }
 
                 // Make AJAX request
                 $.ajax({
-                    url: '{{ route('admin.category-management.departments.change-status', ':id') }}'
+                    url: '<?php echo e(route('admin.category-management.departments.change-status', ':id')); ?>'
                         .replace(':id', departmentId),
                     type: 'POST',
                     data: {
-                        _token: '{{ csrf_token() }}',
+                        _token: '<?php echo e(csrf_token()); ?>',
                         status: newStatus
                     },
                     success: function(response) {
@@ -628,7 +699,7 @@
                             if (typeof Swal !== 'undefined') {
                                 Swal.fire({
                                     icon: 'success',
-                                    title: '{{ __('common.success') ?? 'Success' }}',
+                                    title: '<?php echo e(__('common.success') ?? 'Success'); ?>',
                                     text: response.message,
                                     timer: 2000,
                                     showConfirmButton: false,
@@ -652,7 +723,7 @@
                             if (typeof Swal !== 'undefined') {
                                 Swal.fire({
                                     icon: 'error',
-                                    title: '{{ __('common.error') ?? 'Error' }}',
+                                    title: '<?php echo e(__('common.error') ?? 'Error'); ?>',
                                     text: response.message
                                 });
                             } else {
@@ -670,7 +741,7 @@
                         switcher.prop('checked', !switcher.is(':checked'));
 
                         let errorMessage =
-                            '{{ __('categorymanagment::department.error_changing_status') }}';
+                            '<?php echo e(__('categorymanagment::department.error_changing_status')); ?>';
                         if (xhr.responseJSON && xhr.responseJSON.message) {
                             errorMessage = xhr.responseJSON.message;
                         }
@@ -679,7 +750,7 @@
                         if (typeof Swal !== 'undefined') {
                             Swal.fire({
                                 icon: 'error',
-                                title: '{{ __('common.error') ?? 'Error' }}',
+                                title: '<?php echo e(__('common.error') ?? 'Error'); ?>',
                                 text: errorMessage
                             });
                         } else {
@@ -704,11 +775,11 @@
 
                 // Make AJAX request
                 $.ajax({
-                    url: '{{ route('admin.category-management.departments.change-view-status', ':id') }}'
+                    url: '<?php echo e(route('admin.category-management.departments.change-view-status', ':id')); ?>'
                         .replace(':id', departmentId),
                     type: 'POST',
                     data: {
-                        _token: '{{ csrf_token() }}',
+                        _token: '<?php echo e(csrf_token()); ?>',
                         view_status: newStatus
                     },
                     success: function(response) {
@@ -716,7 +787,7 @@
                             if (typeof Swal !== 'undefined') {
                                 Swal.fire({
                                     icon: 'success',
-                                    title: '{{ __('common.success') ?? 'Success' }}',
+                                    title: '<?php echo e(__('common.success') ?? 'Success'); ?>',
                                     text: response.message,
                                     timer: 2000,
                                     showConfirmButton: false,
@@ -730,7 +801,7 @@
                             if (typeof Swal !== 'undefined') {
                                 Swal.fire({
                                     icon: 'error',
-                                    title: '{{ __('common.error') ?? 'Error' }}',
+                                    title: '<?php echo e(__('common.error') ?? 'Error'); ?>',
                                     text: response.message
                                 });
                             }
@@ -738,14 +809,14 @@
                     },
                     error: function(xhr) {
                         switcher.prop('checked', !switcher.is(':checked'));
-                        let errorMessage = '{{ __('common.error') ?? 'Error' }}';
+                        let errorMessage = '<?php echo e(__('common.error') ?? 'Error'); ?>';
                         if (xhr.responseJSON && xhr.responseJSON.message) {
                             errorMessage = xhr.responseJSON.message;
                         }
                         if (typeof Swal !== 'undefined') {
                             Swal.fire({
                                 icon: 'error',
-                                title: '{{ __('common.error') ?? 'Error' }}',
+                                title: '<?php echo e(__('common.error') ?? 'Error'); ?>',
                                 text: errorMessage
                             });
                         }
@@ -759,4 +830,6 @@
             // Delete functionality is now handled by the delete-with-loading component
         });
     </script>
-@endpush
+<?php $__env->stopPush(); ?>
+
+<?php echo $__env->make('layout.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\laragon\www\eramo-multi-vendor\Modules/CategoryManagment\resources/views/department/index.blade.php ENDPATH**/ ?>

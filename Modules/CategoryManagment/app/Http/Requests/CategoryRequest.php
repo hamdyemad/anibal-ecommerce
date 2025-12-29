@@ -26,6 +26,8 @@ class CategoryRequest extends FormRequest
             'translations.*.description' => 'nullable|string',
             'department_id' => 'required|exists:departments,id',
             'active' => 'nullable|boolean',
+            'sort_number' => 'nullable|integer|min:0',
+            'view_status' => 'nullable|boolean',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048',
             'icon' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048',
         ];

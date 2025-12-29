@@ -20,6 +20,8 @@ return [
     'activities' => 'Activities',
     'image' => 'Image',
     'activation' => 'Activation',
+    'view_status' => 'View Status',
+    'sort_number' => 'Sort Number',
     'status' => 'Status',
     'active' => 'Active',
     'inactive' => 'Inactive',
@@ -43,6 +45,7 @@ return [
     'name_en' => 'Name (English)',
     'name_ar' => 'الاسم باللغه العربيه',
     'created_at' => 'Created At',
+    'category_information' => 'Category Information',
 
     // Buttons
     'add_category' => 'Add Category',

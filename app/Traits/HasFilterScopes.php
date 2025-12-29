@@ -194,6 +194,11 @@ trait HasFilterScopes
             $query->isActive($filters['active']);
         }
 
+        // View status filter
+        if (isset($filters['view_status']) && $filters['view_status'] !== '') {
+            $query->where('view_status', $filters['view_status']);
+        }
+
         // Date range filter
         if (!empty($filters['created_date_from']) || !empty($filters['created_date_to'])) {
             $query->dateRange(

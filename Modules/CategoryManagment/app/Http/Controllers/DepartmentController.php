@@ -42,6 +42,7 @@ class DepartmentController extends Controller
             'orderDirection' => $request->get('orderDirection', 'desc'),
             'search' => $request->get('search'),
             'active' => $request->get('active'),
+            'view_status' => $request->get('view_status'),
             'created_date_from' => $request->get('created_date_from'),
             'created_date_to' => $request->get('created_date_to'),
         ];
@@ -313,6 +314,54 @@ class DepartmentController extends Controller
 
         } catch (\Exception $e) {
             Log::error('Error changing department status: ' . $e->getMessage(), [
+                'department_id' => $id,
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => __('categorymanagment::department.error_changing_status')
+            ], 500);
+        }
+    }
+
+    /**
+     * Change the view status of the specified department.
+     */
+    public function changeViewStatus($lang, $countryCode, Request $request, string $id)
+    {
+        try {
+            $request->validate([
+                'view_status' => 'required|in:0,1'
+            ]);
+
+            $department = $this->departmentService->getDepartmentById($id);
+
+            if (!$department) {
+                return response()->json([
+                    'success' => false,
+                    'message' => __('categorymanagment::department.department_not_found')
+                ], 404);
+            }
+
+            $newStatus = (bool) $request->view_status;
+            $department->view_status = $newStatus;
+            $department->save();
+
+            Log::info('Department view_status changed', [
+                'department_id' => $id,
+                'new_view_status' => $newStatus,
+                'changed_by' => auth()->id()
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => __('categorymanagment::department.status_changed_successfully'),
+                'new_status' => $newStatus
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Error changing department view_status: ' . $e->getMessage(), [
                 'department_id' => $id,
                 'trace' => $e->getTraceAsString()
             ]);

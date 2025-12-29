@@ -35,10 +35,11 @@ class DepartmentAction {
 
             // Get filter parameters
             $filters = [
-                'search' => $data['search'],
-                'active' => $data['active'],
-                'created_date_from' => $data['created_date_from'],
-                'created_date_to' => $data['created_date_to'],
+                'search' => $data['search'] ?? null,
+                'active' => isset($data['active']) && $data['active'] !== '' ? $data['active'] : null,
+                'view_status' => isset($data['view_status']) && $data['view_status'] !== '' ? $data['view_status'] : null,
+                'created_date_from' => $data['created_date_from'] ?? null,
+                'created_date_to' => $data['created_date_to'] ?? null,
             ];
 
             // Get languages
@@ -106,6 +107,8 @@ class DepartmentAction {
                     'department_id' => $department->id,
                     'image' => $department->image,
                     'commission' => $department->commission,
+                    'sort_number' => $department->sort_number ?? 0,
+                    'view_status' => $department->view_status ?? 1,
                     'translations' => [],
                     'active' => $department->active,
                     'created_at' => $department->created_at,

@@ -1,23 +1,49 @@
-@extends('layout.app')
-@section('title', trans('categorymanagment::category.categories_management'))
 
-@push('styles')
+<?php $__env->startSection('title', trans('categorymanagment::category.categories_management')); ?>
+
+<?php $__env->startPush('styles'); ?>
 <style>
 </style>
-@endpush
+<?php $__env->stopPush(); ?>
 
-@section('content')
+<?php $__env->startSection('content'); ?>
     <div class="container-fluid">
         <div class="row">
             <div class="col-lg-12">
-                <x-breadcrumb :items="[
+                <?php if (isset($component)) { $__componentOriginale19f62b34dfe0bfdf95075badcb45bc2 = $component; } ?>
+<?php if (isset($attributes)) { $__attributesOriginale19f62b34dfe0bfdf95075badcb45bc2 = $attributes; } ?>
+<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.breadcrumb','data' => ['items' => [
                     [
                         'title' => trans('dashboard.title'),
                         'url' => route('admin.dashboard'),
                         'icon' => 'uil uil-estate',
                     ],
                     ['title' => trans('categorymanagment::category.categories_management')],
-                ]" />
+                ]]] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component->withName('breadcrumb'); ?>
+<?php if ($component->shouldRender()): ?>
+<?php $__env->startComponent($component->resolveView(), $component->data()); ?>
+<?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
+<?php $attributes = $attributes->except(\Illuminate\View\AnonymousComponent::ignoredParameterNames()); ?>
+<?php endif; ?>
+<?php $component->withAttributes(['items' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute([
+                    [
+                        'title' => trans('dashboard.title'),
+                        'url' => route('admin.dashboard'),
+                        'icon' => 'uil uil-estate',
+                    ],
+                    ['title' => trans('categorymanagment::category.categories_management')],
+                ])]); ?>
+<?php echo $__env->renderComponent(); ?>
+<?php endif; ?>
+<?php if (isset($__attributesOriginale19f62b34dfe0bfdf95075badcb45bc2)): ?>
+<?php $attributes = $__attributesOriginale19f62b34dfe0bfdf95075badcb45bc2; ?>
+<?php unset($__attributesOriginale19f62b34dfe0bfdf95075badcb45bc2); ?>
+<?php endif; ?>
+<?php if (isset($__componentOriginale19f62b34dfe0bfdf95075badcb45bc2)): ?>
+<?php $component = $__componentOriginale19f62b34dfe0bfdf95075badcb45bc2; ?>
+<?php unset($__componentOriginale19f62b34dfe0bfdf95075badcb45bc2); ?>
+<?php endif; ?>
             </div>
         </div>
 
@@ -27,20 +53,23 @@
                     <div class="d-flex justify-content-between align-items-center mb-25">
                         <h4 class="mb-0 fw-600 text-primary">
                             <i class="uil uil-folder-open me-2"></i>
-                            {{ trans('categorymanagment::category.categories_management') }}
+                            <?php echo e(trans('categorymanagment::category.categories_management')); ?>
+
                         </h4>
-                        @can('categories.create')
-                            <a href="{{ route('admin.category-management.categories.create') }}"
+                        <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('categories.create')): ?>
+                            <a href="<?php echo e(route('admin.category-management.categories.create')); ?>"
                                 class="btn btn-primary btn-squared shadow-sm px-4">
-                                <i class="uil uil-plus"></i> {{ trans('categorymanagment::category.add_category') }}
+                                <i class="uil uil-plus"></i> <?php echo e(trans('categorymanagment::category.add_category')); ?>
+
                             </a>
-                        @endcan
+                        <?php endif; ?>
                     </div>
                     <div class="alert alert-info glowing-alert" role="alert">
-                        {{ __('common.live_search_info') }}
+                        <?php echo e(__('common.live_search_info')); ?>
+
                     </div>
 
-                    {{-- Search & Filters --}}
+                    
                     <div class="mb-25">
                         <div class="card border-0 shadow-sm">
                             <div class="card-body">
@@ -49,41 +78,56 @@
                                     <div class="col-md-3">
                                         <div class="form-group">
                                             <label for="search" class="il-gray fs-14 fw-500 mb-10">
-                                                <i class="uil uil-search me-1"></i> {{ __('common.search') }}
+                                                <i class="uil uil-search me-1"></i> <?php echo e(__('common.search')); ?>
+
                                             </label>
                                             <input type="text"
                                                 class="form-control ih-medium ip-gray radius-xs b-light px-15"
                                                 id="search"
-                                                placeholder="{{ __('categorymanagment::category.search_by_name') }}"
+                                                placeholder="<?php echo e(__('categorymanagment::category.search_by_name')); ?>"
                                                 autocomplete="off">
                                         </div>
                                     </div>
 
                                     <div class="col-md-3">
-                                        <x-searchable-tags
-                                            name="department_filter"
-                                            :label="__('categorymanagment::category.department')"
-                                            :options="$departments"
-                                            :selected="[]"
-                                            :placeholder="__('categorymanagment::category.select_departments')"
-                                            :multiple="false"
-                                            id="department_filter"
-                                        />
+                                        <?php if (isset($component)) { $__componentOriginal8b85cde560f35167074cbd8632d75a5d = $component; } ?>
+<?php if (isset($attributes)) { $__attributesOriginal8b85cde560f35167074cbd8632d75a5d = $attributes; } ?>
+<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.searchable-tags','data' => ['name' => 'department_filter','label' => __('categorymanagment::category.department'),'options' => $departments,'selected' => [],'placeholder' => __('categorymanagment::category.select_departments'),'multiple' => false,'id' => 'department_filter']] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component->withName('searchable-tags'); ?>
+<?php if ($component->shouldRender()): ?>
+<?php $__env->startComponent($component->resolveView(), $component->data()); ?>
+<?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
+<?php $attributes = $attributes->except(\Illuminate\View\AnonymousComponent::ignoredParameterNames()); ?>
+<?php endif; ?>
+<?php $component->withAttributes(['name' => 'department_filter','label' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute(__('categorymanagment::category.department')),'options' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($departments),'selected' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute([]),'placeholder' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute(__('categorymanagment::category.select_departments')),'multiple' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute(false),'id' => 'department_filter']); ?>
+<?php echo $__env->renderComponent(); ?>
+<?php endif; ?>
+<?php if (isset($__attributesOriginal8b85cde560f35167074cbd8632d75a5d)): ?>
+<?php $attributes = $__attributesOriginal8b85cde560f35167074cbd8632d75a5d; ?>
+<?php unset($__attributesOriginal8b85cde560f35167074cbd8632d75a5d); ?>
+<?php endif; ?>
+<?php if (isset($__componentOriginal8b85cde560f35167074cbd8632d75a5d)): ?>
+<?php $component = $__componentOriginal8b85cde560f35167074cbd8632d75a5d; ?>
+<?php unset($__componentOriginal8b85cde560f35167074cbd8632d75a5d); ?>
+<?php endif; ?>
                                     </div>
 
                                     <div class="col-md-3">
                                         <div class="form-group">
                                             <label for="active" class="il-gray fs-14 fw-500 mb-10">
                                                 <i class="uil uil-check-circle me-1"></i>
-                                                {{ __('categorymanagment::category.activation') }}
+                                                <?php echo e(__('categorymanagment::category.activation')); ?>
+
                                             </label>
                                             <select
                                                 class="form-control form-select ih-medium ip-gray radius-xs b-light"
                                                 id="active">
-                                                <option value="">{{ __('categorymanagment::category.all') }}</option>
-                                                <option value="1">{{ __('categorymanagment::category.active') }}
+                                                <option value=""><?php echo e(__('categorymanagment::category.all')); ?></option>
+                                                <option value="1"><?php echo e(__('categorymanagment::category.active')); ?>
+
                                                 </option>
-                                                <option value="0">{{ __('categorymanagment::category.inactive') }}
+                                                <option value="0"><?php echo e(__('categorymanagment::category.inactive')); ?>
+
                                                 </option>
                                             </select>
                                         </div>
@@ -93,14 +137,15 @@
                                         <div class="form-group">
                                             <label for="view_status" class="il-gray fs-14 fw-500 mb-10">
                                                 <i class="uil uil-eye me-1"></i>
-                                                {{ __('categorymanagment::category.view_status') }}
+                                                <?php echo e(__('categorymanagment::category.view_status')); ?>
+
                                             </label>
                                             <select
                                                 class="form-control form-select ih-medium ip-gray radius-xs b-light"
                                                 id="view_status">
-                                                <option value="">{{ __('categorymanagment::category.all') }}</option>
-                                                <option value="1">{{ __('common.visible') }}</option>
-                                                <option value="0">{{ __('common.hidden') }}</option>
+                                                <option value=""><?php echo e(__('categorymanagment::category.all')); ?></option>
+                                                <option value="1"><?php echo e(__('common.visible')); ?></option>
+                                                <option value="0"><?php echo e(__('common.hidden')); ?></option>
                                             </select>
                                         </div>
                                     </div>
@@ -109,7 +154,8 @@
                                         <div class="form-group">
                                             <label for="created_date_from" class="il-gray fs-14 fw-500 mb-10">
                                                 <i class="uil uil-calendar-alt me-1"></i>
-                                                {{ __('common.created_date_from') }}
+                                                <?php echo e(__('common.created_date_from')); ?>
+
                                             </label>
                                             <input type="date"
                                                 class="form-control ih-medium ip-gray radius-xs b-light px-15"
@@ -121,7 +167,8 @@
                                         <div class="form-group">
                                             <label for="created_date_to" class="il-gray fs-14 fw-500 mb-10">
                                                 <i class="uil uil-calendar-alt me-1"></i>
-                                                {{ __('common.created_date_to') }}
+                                                <?php echo e(__('common.created_date_to')); ?>
+
                                             </label>
                                             <input type="date"
                                                 class="form-control ih-medium ip-gray radius-xs b-light px-15"
@@ -133,9 +180,10 @@
                                         <div class="form-group">
                                             <button type="button" id="resetFilters"
                                                 class="btn btn-warning btn-default btn-squared"
-                                                title="{{ __('common.reset') }}">
+                                                title="<?php echo e(__('common.reset')); ?>">
                                                 <i class="uil uil-redo me-1"></i>
-                                                {{ __('common.reset_filters') }}
+                                                <?php echo e(__('common.reset_filters')); ?>
+
                                             </button>
                                         </div>
                                     </div>
@@ -144,32 +192,32 @@
                         </div>
                     </div>
 
-                    {{-- Entries Per Page --}}
+                    
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <div class="d-flex align-items-center">
-                            <label class="me-2 mb-0">{{ __('common.show') }}</label>
+                            <label class="me-2 mb-0"><?php echo e(__('common.show')); ?></label>
                             <select id="entriesSelect" class="form-select form-select-sm" style="width: auto;">
                                 <option value="10">10</option>
                                 <option value="25">25</option>
                                 <option value="50">50</option>
                                 <option value="100">100</option>
                             </select>
-                            <label class="ms-2 mb-0">{{ __('common.entries') }}</label>
+                            <label class="ms-2 mb-0"><?php echo e(__('common.entries')); ?></label>
                         </div>
                     </div>
 
-                    {{-- DataTable --}}
+                    
                     <div class="table-responsive">
                         <table id="categoriesDataTable" class="table mb-0 table-bordered table-hover" style="width:100%">
                             <thead>
                                 <tr class="userDatatable-header">
                                     <th class="text-center"><span class="userDatatable-title">#</span></th>
-                                    <th><span class="userDatatable-title">{{ __('categorymanagment::category.category_information') }}</span></th>
-                                    <th><span class="userDatatable-title">{{ __('activity.department') }}</span></th>
-                                    <th><span class="userDatatable-title">{{ __('categorymanagment::category.view_status') }}</span></th>
-                                    <th><span class="userDatatable-title">{{ __('activity.activation') }}</span></th>
-                                    <th><span class="userDatatable-title">{{ __('activity.created_at') }}</span></th>
-                                    <th><span class="userDatatable-title">{{ __('common.actions') }}</span></th>
+                                    <th><span class="userDatatable-title"><?php echo e(__('categorymanagment::category.category_information')); ?></span></th>
+                                    <th><span class="userDatatable-title"><?php echo e(__('activity.department')); ?></span></th>
+                                    <th><span class="userDatatable-title"><?php echo e(__('categorymanagment::category.view_status')); ?></span></th>
+                                    <th><span class="userDatatable-title"><?php echo e(__('activity.activation')); ?></span></th>
+                                    <th><span class="userDatatable-title"><?php echo e(__('activity.created_at')); ?></span></th>
+                                    <th><span class="userDatatable-title"><?php echo e(__('common.actions')); ?></span></th>
                                 </tr>
                             </thead>
                             <tbody></tbody>
@@ -180,26 +228,61 @@
         </div>
     </div>
 
-    {{-- Delete Modal --}}
-    <x-delete-with-loading modalId="modal-delete-category" tableId="categoriesDataTable" deleteButtonClass="delete-category"
-        :title="trans('main.confirm delete')" :message="trans('main.are you sure you want to delete this')" itemNameId="delete-category-name" confirmBtnId="confirmDeleteCategoryBtn"
-        :cancelText="trans('main.cancel')" :deleteText="trans('main.delete')" :loadingDeleting="trans('main.deleting')" :loadingPleaseWait="trans('main.please wait')" :loadingDeletedSuccessfully="trans('main.deleted success')" :loadingRefreshing="trans('main.refreshing')"
-        :errorDeleting="trans('main.error on delete')" />
-@endsection
+    
+    <?php if (isset($component)) { $__componentOriginal4d4be0bcf29da35c820833c3b98d2b58 = $component; } ?>
+<?php if (isset($attributes)) { $__attributesOriginal4d4be0bcf29da35c820833c3b98d2b58 = $attributes; } ?>
+<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.delete-with-loading','data' => ['modalId' => 'modal-delete-category','tableId' => 'categoriesDataTable','deleteButtonClass' => 'delete-category','title' => trans('main.confirm delete'),'message' => trans('main.are you sure you want to delete this'),'itemNameId' => 'delete-category-name','confirmBtnId' => 'confirmDeleteCategoryBtn','cancelText' => trans('main.cancel'),'deleteText' => trans('main.delete'),'loadingDeleting' => trans('main.deleting'),'loadingPleaseWait' => trans('main.please wait'),'loadingDeletedSuccessfully' => trans('main.deleted success'),'loadingRefreshing' => trans('main.refreshing'),'errorDeleting' => trans('main.error on delete')]] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component->withName('delete-with-loading'); ?>
+<?php if ($component->shouldRender()): ?>
+<?php $__env->startComponent($component->resolveView(), $component->data()); ?>
+<?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
+<?php $attributes = $attributes->except(\Illuminate\View\AnonymousComponent::ignoredParameterNames()); ?>
+<?php endif; ?>
+<?php $component->withAttributes(['modalId' => 'modal-delete-category','tableId' => 'categoriesDataTable','deleteButtonClass' => 'delete-category','title' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute(trans('main.confirm delete')),'message' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute(trans('main.are you sure you want to delete this')),'itemNameId' => 'delete-category-name','confirmBtnId' => 'confirmDeleteCategoryBtn','cancelText' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute(trans('main.cancel')),'deleteText' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute(trans('main.delete')),'loadingDeleting' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute(trans('main.deleting')),'loadingPleaseWait' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute(trans('main.please wait')),'loadingDeletedSuccessfully' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute(trans('main.deleted success')),'loadingRefreshing' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute(trans('main.refreshing')),'errorDeleting' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute(trans('main.error on delete'))]); ?>
+<?php echo $__env->renderComponent(); ?>
+<?php endif; ?>
+<?php if (isset($__attributesOriginal4d4be0bcf29da35c820833c3b98d2b58)): ?>
+<?php $attributes = $__attributesOriginal4d4be0bcf29da35c820833c3b98d2b58; ?>
+<?php unset($__attributesOriginal4d4be0bcf29da35c820833c3b98d2b58); ?>
+<?php endif; ?>
+<?php if (isset($__componentOriginal4d4be0bcf29da35c820833c3b98d2b58)): ?>
+<?php $component = $__componentOriginal4d4be0bcf29da35c820833c3b98d2b58; ?>
+<?php unset($__componentOriginal4d4be0bcf29da35c820833c3b98d2b58); ?>
+<?php endif; ?>
+<?php $__env->stopSection(); ?>
 
-@push('after-body')
-    <x-loading-overlay />
-@endpush
+<?php $__env->startPush('after-body'); ?>
+    <?php if (isset($component)) { $__componentOriginal115e82920da0ed7c897ee494af74b9d8 = $component; } ?>
+<?php if (isset($attributes)) { $__attributesOriginal115e82920da0ed7c897ee494af74b9d8 = $attributes; } ?>
+<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.loading-overlay','data' => []] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component->withName('loading-overlay'); ?>
+<?php if ($component->shouldRender()): ?>
+<?php $__env->startComponent($component->resolveView(), $component->data()); ?>
+<?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
+<?php $attributes = $attributes->except(\Illuminate\View\AnonymousComponent::ignoredParameterNames()); ?>
+<?php endif; ?>
+<?php $component->withAttributes([]); ?>
+<?php echo $__env->renderComponent(); ?>
+<?php endif; ?>
+<?php if (isset($__attributesOriginal115e82920da0ed7c897ee494af74b9d8)): ?>
+<?php $attributes = $__attributesOriginal115e82920da0ed7c897ee494af74b9d8; ?>
+<?php unset($__attributesOriginal115e82920da0ed7c897ee494af74b9d8); ?>
+<?php endif; ?>
+<?php if (isset($__componentOriginal115e82920da0ed7c897ee494af74b9d8)): ?>
+<?php $component = $__componentOriginal115e82920da0ed7c897ee494af74b9d8; ?>
+<?php unset($__componentOriginal115e82920da0ed7c897ee494af74b9d8); ?>
+<?php endif; ?>
+<?php $__env->stopPush(); ?>
 
 
-@push('scripts')
+<?php $__env->startPush('scripts'); ?>
     <script>
         $(document).ready(function() {
             let table = $('#categoriesDataTable').DataTable({
                 processing: true,
                 serverSide: true,
                 ajax: {
-                    url: '{{ route('admin.category-management.categories.datatable') }}',
+                    url: '<?php echo e(route('admin.category-management.categories.datatable')); ?>',
                     data: function(d) {
                         d.search = $('#search').val();
                         d.department_id = $('#department_filter-single-display').find('input[name="department_filter"]').val() || '';
@@ -224,27 +307,27 @@
                             let html = '<div class="category-info-container">';
                             
                             // Category Names with language badges
-                            @foreach ($languages as $language)
-                                if (data && data['{{ $language->code }}'] && data['{{ $language->code }}'].name && data['{{ $language->code }}'].name !== '-') {
-                                    let name = $('<div/>').text(data['{{ $language->code }}'].name).html();
-                                    @if ($language->rtl)
+                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__currentLoopData = $languages; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $language): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                if (data && data['<?php echo e($language->code); ?>'] && data['<?php echo e($language->code); ?>'].name && data['<?php echo e($language->code); ?>'].name !== '-') {
+                                    let name = $('<div/>').text(data['<?php echo e($language->code); ?>'].name).html();
+                                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($language->rtl): ?>
                                         html += `<div class="name-item mb-2">
-                                            <span class="language-badge badge bg-success text-white px-2 py-1 me-2 rounded-pill fw-bold" style="font-size: 10px;">{{ strtoupper($language->code) }}</span>
+                                            <span class="language-badge badge bg-success text-white px-2 py-1 me-2 rounded-pill fw-bold" style="font-size: 10px;"><?php echo e(strtoupper($language->code)); ?></span>
                                             <span class="item-name text-dark fw-semibold" dir="rtl" style="font-family: 'Cairo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">${name}</span>
                                         </div>`;
-                                    @else
+                                    <?php else: ?>
                                         html += `<div class="name-item mb-2">
-                                            <span class="language-badge badge bg-primary text-white px-2 py-1 me-2 rounded-pill fw-bold" style="font-size: 10px;">{{ strtoupper($language->code) }}</span>
+                                            <span class="language-badge badge bg-primary text-white px-2 py-1 me-2 rounded-pill fw-bold" style="font-size: 10px;"><?php echo e(strtoupper($language->code)); ?></span>
                                             <span class="item-name text-dark fw-semibold">${name}</span>
                                         </div>`;
-                                    @endif
+                                    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                                 }
-                            @endforeach
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 
                             // Sort Number
                             html += '<div class="category-meta-info">';
                             html += `<div class="mb-1">
-                                <small class="text-muted">{{ trans('categorymanagment::category.sort_number') }}:</small>
+                                <small class="text-muted"><?php echo e(trans('categorymanagment::category.sort_number')); ?>:</small>
                                 <span class="badge badge-secondary badge-round badge-lg ms-1">${row.sort_number ?? 0}</span>
                             </div>`;
                             html += '</div>';
@@ -269,7 +352,7 @@
                         orderable: false,
                         className: 'text-center',
                         render: function(data, type, row) {
-                            @can('categories.edit')
+                            <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('categories.edit')): ?>
                                 const isChecked = data ? 'checked' : '';
                                 const switchId = 'view-status-switch-' + row.id;
 
@@ -283,11 +366,11 @@
                                        style="cursor: pointer;">
                                 <label class="form-check-label" for="${switchId}"></label>
                             </div>`;
-                            @else
+                            <?php else: ?>
                                 return data ?
                                     `<span class="badge badge-success badge-round badge-lg"><i class="uil uil-eye"></i></span>` :
                                     `<span class="badge badge-secondary badge-round badge-lg"><i class="uil uil-eye-slash"></i></span>`;
-                            @endcan
+                            <?php endif; ?>
                         }
                     },
                     {
@@ -296,7 +379,7 @@
                         orderable: false,
                         className: 'text-center',
                         render: function(data, type, row) {
-                            @can('categories.edit')
+                            <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('categories.edit')): ?>
                                 const isChecked = data ? 'checked' : '';
                                 const switchId = 'status-switch-' + row.id;
 
@@ -310,11 +393,11 @@
                                        style="cursor: pointer;">
                                 <label class="form-check-label" for="${switchId}"></label>
                             </div>`;
-                            @else
+                            <?php else: ?>
                                 return data ?
-                                    `<span class="badge badge-success badge-round badge-lg"><i class="uil uil-check"></i> {{ trans('categorymanagment::category.active') }}</span>` :
-                                    `<span class="badge badge-danger badge-round badge-lg"><i class="uil uil-times"></i> {{ trans('categorymanagment::category.inactive') }}</span>`;
-                            @endcan
+                                    `<span class="badge badge-success badge-round badge-lg"><i class="uil uil-check"></i> <?php echo e(trans('categorymanagment::category.active')); ?></span>` :
+                                    `<span class="badge badge-danger badge-round badge-lg"><i class="uil uil-times"></i> <?php echo e(trans('categorymanagment::category.inactive')); ?></span>`;
+                            <?php endif; ?>
                         }
                     },
                     {
@@ -332,35 +415,35 @@
                         className: 'text-center',
                         render: function(data) {
                             let showUrl =
-                                "{{ route('admin.category-management.categories.show', ':id') }}"
+                                "<?php echo e(route('admin.category-management.categories.show', ':id')); ?>"
                                 .replace(':id', data.id),
                                 editUrl =
-                                "{{ route('admin.category-management.categories.edit', ':id') }}"
+                                "<?php echo e(route('admin.category-management.categories.edit', ':id')); ?>"
                                 .replace(':id', data.id),
                                 deleteUrl =
-                                "{{ route('admin.category-management.categories.destroy', ':id') }}"
+                                "<?php echo e(route('admin.category-management.categories.destroy', ':id')); ?>"
                                 .replace(':id', data.id);
 
                             return `
                             <div class="orderDatatable_actions d-inline-flex gap-1 justify-content-center">
-                                <a href="${showUrl}" class="view btn btn-primary table_action_father" title="{{ trans('common.view') }}">
+                                <a href="${showUrl}" class="view btn btn-primary table_action_father" title="<?php echo e(trans('common.view')); ?>">
                                     <i class="uil uil-eye table_action_icon"></i>
                                 </a>
-                                @can('categories.edit')
-                                <a href="${editUrl}" class="edit btn btn-warning table_action_father" title="{{ trans('common.edit') }}">
+                                <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('categories.edit')): ?>
+                                <a href="${editUrl}" class="edit btn btn-warning table_action_father" title="<?php echo e(trans('common.edit')); ?>">
                                     <i class="uil uil-edit table_action_icon"></i>
                                 </a>
-                                @endcan
-                                @can('categories.delete')
+                                <?php endif; ?>
+                                <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('categories.delete')): ?>
                                 <a href="javascript:void(0);" class="remove delete-category btn btn-danger table_action_father"
                                    data-bs-toggle="modal" data-bs-target="#modal-delete-category"
                                    data-item-id="${data.id}"
-                                   data-item-name="${data.translations?.{{ app()->getLocale() }}?.name || 'Category'}"
+                                   data-item-name="${data.translations?.<?php echo e(app()->getLocale()); ?>?.name || 'Category'}"
                                    data-url="${deleteUrl}"
-                                   title="{{ trans('common.delete') }}">
+                                   title="<?php echo e(trans('common.delete')); ?>">
                                     <i class="uil uil-trash-alt table_action_icon"></i>
                                 </a>
-                                @endcan
+                                <?php endif; ?>
                             </div>`;
                         }
                     }
@@ -369,31 +452,31 @@
                 lengthMenu: [10, 25, 50, 100],
                 order: [],
                 language: {
-                    lengthMenu: "{{ __('common.show') ?? 'Show' }} _MENU_",
-                    info: "{{ __('common.showing') ?? 'Showing' }} _START_ {{ __('common.to') ?? 'to' }} _END_ {{ __('common.of') ?? 'of' }} _TOTAL_ {{ __('common.entries') ?? 'entries' }}",
-                    infoEmpty: "{{ __('common.showing') ?? 'Showing' }} 0 {{ __('common.to') ?? 'to' }} 0 {{ __('common.of') ?? 'of' }} 0 {{ __('common.entries') ?? 'entries' }}",
-                    infoFiltered: "({{ __('common.filtered_from') ?? 'filtered from' }} _MAX_ {{ __('common.total_entries') ?? 'total entries' }})",
-                    zeroRecords: "{{ __('activity.no_activities_found') ?? 'No activities found' }}",
-                    emptyTable: "{{ __('activity.no_activities_found') ?? 'No activities found' }}",
-                    loadingRecords: "{{ __('common.loading') ?? 'Loading' }}...",
-                    processing: "{{ __('common.processing') ?? 'Processing' }}...",
-                    search: "{{ __('common.search') ?? 'Search' }}:",
+                    lengthMenu: "<?php echo e(__('common.show') ?? 'Show'); ?> _MENU_",
+                    info: "<?php echo e(__('common.showing') ?? 'Showing'); ?> _START_ <?php echo e(__('common.to') ?? 'to'); ?> _END_ <?php echo e(__('common.of') ?? 'of'); ?> _TOTAL_ <?php echo e(__('common.entries') ?? 'entries'); ?>",
+                    infoEmpty: "<?php echo e(__('common.showing') ?? 'Showing'); ?> 0 <?php echo e(__('common.to') ?? 'to'); ?> 0 <?php echo e(__('common.of') ?? 'of'); ?> 0 <?php echo e(__('common.entries') ?? 'entries'); ?>",
+                    infoFiltered: "(<?php echo e(__('common.filtered_from') ?? 'filtered from'); ?> _MAX_ <?php echo e(__('common.total_entries') ?? 'total entries'); ?>)",
+                    zeroRecords: "<?php echo e(__('activity.no_activities_found') ?? 'No activities found'); ?>",
+                    emptyTable: "<?php echo e(__('activity.no_activities_found') ?? 'No activities found'); ?>",
+                    loadingRecords: "<?php echo e(__('common.loading') ?? 'Loading'); ?>...",
+                    processing: "<?php echo e(__('common.processing') ?? 'Processing'); ?>...",
+                    search: "<?php echo e(__('common.search') ?? 'Search'); ?>:",
                     paginate: {
-                        @if (app()->getLocale() == 'en')
+                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(app()->getLocale() == 'en'): ?>
                             first: '<i class="uil uil-angle-double-left"></i>',
                             last: '<i class="uil uil-angle-double-right"></i>',
                             next: '<i class="uil uil-angle-right"></i>',
                             previous: '<i class="uil uil-angle-left"></i>'
-                        @else
+                        <?php else: ?>
                             first: '<i class="uil uil-angle-double-right"></i>',
                             last: '<i class="uil uil-angle-double-left"></i>',
                             next: '<i class="uil uil-angle-left"></i>',
                             previous: '<i class="uil uil-angle-right"></i>'
-                        @endif
+                        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                     },
                     aria: {
-                        sortAscending: ": {{ __('common.sort_ascending') ?? 'activate to sort column ascending' }}",
-                        sortDescending: ": {{ __('common.sort_descending') ?? 'activate to sort column descending' }}"
+                        sortAscending: ": <?php echo e(__('common.sort_ascending') ?? 'activate to sort column ascending'); ?>",
+                        sortDescending: ": <?php echo e(__('common.sort_descending') ?? 'activate to sort column descending'); ?>"
                     }
                 },
                 dom: '<"row"<"col-sm-12"tr>><"row mt-3"<"col-sm-12 col-md-5"i><"col-sm-12 col-md-7"p>>',
@@ -404,7 +487,7 @@
                     exportOptions: {
                         columns: ':not(:last-child)'
                     },
-                    title: '{{ trans('categorymanagment::category.categories_management') }}'
+                    title: '<?php echo e(trans('categorymanagment::category.categories_management')); ?>'
                 }]
             });
 
@@ -439,7 +522,7 @@
                 // Reset department filter (single select)
                 const deptDisplay = $('#department_filter-single-display');
                 const deptDropdown = $('#department_filter-dropdown');
-                deptDisplay.html('<span class="placeholder-text text-muted">{{ __("categorymanagment::category.select_departments") }}</span>');
+                deptDisplay.html('<span class="placeholder-text text-muted"><?php echo e(__("categorymanagment::category.select_departments")); ?></span>');
                 deptDropdown.find('.tag-option').removeClass('selected').show();
                 
                 $('#entriesSelect').val(10);
@@ -459,18 +542,18 @@
                 // Show loading overlay
                 if (typeof LoadingOverlay !== 'undefined') {
                     LoadingOverlay.show({
-                        text: '{{ __('categorymanagment::category.change_status') }}',
-                        subtext: '{{ __('common.please_wait') ?? 'Please wait' }}...'
+                        text: '<?php echo e(__('categorymanagment::category.change_status')); ?>',
+                        subtext: '<?php echo e(__('common.please_wait') ?? 'Please wait'); ?>...'
                     });
                 }
 
                 // Make AJAX request
                 $.ajax({
-                    url: '{{ route('admin.category-management.categories.change-status', ':id') }}'
+                    url: '<?php echo e(route('admin.category-management.categories.change-status', ':id')); ?>'
                         .replace(':id', categoryId),
                     type: 'POST',
                     data: {
-                        _token: '{{ csrf_token() }}',
+                        _token: '<?php echo e(csrf_token()); ?>',
                         status: newStatus
                     },
                     success: function(response) {
@@ -484,7 +567,7 @@
                             if (typeof Swal !== 'undefined') {
                                 Swal.fire({
                                     icon: 'success',
-                                    title: '{{ __('common.success') ?? 'Success' }}',
+                                    title: '<?php echo e(__('common.success') ?? 'Success'); ?>',
                                     text: response.message,
                                     timer: 2000,
                                     showConfirmButton: false,
@@ -508,7 +591,7 @@
                             if (typeof Swal !== 'undefined') {
                                 Swal.fire({
                                     icon: 'error',
-                                    title: '{{ __('common.error') ?? 'Error' }}',
+                                    title: '<?php echo e(__('common.error') ?? 'Error'); ?>',
                                     text: response.message
                                 });
                             } else {
@@ -526,7 +609,7 @@
                         switcher.prop('checked', !switcher.is(':checked'));
 
                         let errorMessage =
-                            '{{ __('categorymanagment::category.error_changing_status') }}';
+                            '<?php echo e(__('categorymanagment::category.error_changing_status')); ?>';
                         if (xhr.responseJSON && xhr.responseJSON.message) {
                             errorMessage = xhr.responseJSON.message;
                         }
@@ -535,7 +618,7 @@
                         if (typeof Swal !== 'undefined') {
                             Swal.fire({
                                 icon: 'error',
-                                title: '{{ __('common.error') ?? 'Error' }}',
+                                title: '<?php echo e(__('common.error') ?? 'Error'); ?>',
                                 text: errorMessage
                             });
                         } else {
@@ -560,11 +643,11 @@
 
                 // Make AJAX request
                 $.ajax({
-                    url: '{{ route('admin.category-management.categories.change-view-status', ':id') }}'
+                    url: '<?php echo e(route('admin.category-management.categories.change-view-status', ':id')); ?>'
                         .replace(':id', categoryId),
                     type: 'POST',
                     data: {
-                        _token: '{{ csrf_token() }}',
+                        _token: '<?php echo e(csrf_token()); ?>',
                         view_status: newStatus
                     },
                     success: function(response) {
@@ -572,7 +655,7 @@
                             if (typeof Swal !== 'undefined') {
                                 Swal.fire({
                                     icon: 'success',
-                                    title: '{{ __('common.success') ?? 'Success' }}',
+                                    title: '<?php echo e(__('common.success') ?? 'Success'); ?>',
                                     text: response.message,
                                     timer: 2000,
                                     showConfirmButton: false,
@@ -586,7 +669,7 @@
                             if (typeof Swal !== 'undefined') {
                                 Swal.fire({
                                     icon: 'error',
-                                    title: '{{ __('common.error') ?? 'Error' }}',
+                                    title: '<?php echo e(__('common.error') ?? 'Error'); ?>',
                                     text: response.message
                                 });
                             }
@@ -594,14 +677,14 @@
                     },
                     error: function(xhr) {
                         switcher.prop('checked', !switcher.is(':checked'));
-                        let errorMessage = '{{ __('common.error') ?? 'Error' }}';
+                        let errorMessage = '<?php echo e(__('common.error') ?? 'Error'); ?>';
                         if (xhr.responseJSON && xhr.responseJSON.message) {
                             errorMessage = xhr.responseJSON.message;
                         }
                         if (typeof Swal !== 'undefined') {
                             Swal.fire({
                                 icon: 'error',
-                                title: '{{ __('common.error') ?? 'Error' }}',
+                                title: '<?php echo e(__('common.error') ?? 'Error'); ?>',
                                 text: errorMessage
                             });
                         }
@@ -618,4 +701,6 @@
             }
         });
     </script>
-@endpush
+<?php $__env->stopPush(); ?>
+
+<?php echo $__env->make('layout.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\laragon\www\eramo-multi-vendor\Modules/CategoryManagment\resources/views/category/index.blade.php ENDPATH**/ ?>

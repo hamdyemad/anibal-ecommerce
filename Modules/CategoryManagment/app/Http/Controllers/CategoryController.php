@@ -66,8 +66,19 @@ class CategoryController extends Controller
     {
         try {
             $languages = $this->languageService->getAll();
-            return view('categorymanagment::category.index', compact('languages'));
+            $departmentsCollection = $this->departmentService->getActiveDepartments();
+            
+            // Format for searchable-tags: only id and name
+            $departments = $departmentsCollection->map(function($dept) {
+                return [
+                    'id' => $dept->id,
+                    'name' => $dept->getTranslation('name', app()->getLocale()) ?? 'N/A',
+                ];
+            })->values()->toArray();
+            
+            return view('categorymanagment::category.index', compact('languages', 'departments'));
         } catch (\Exception $e) {
+            \Log::error('Error loading categories: ' . $e->getMessage());
             return redirect()->back()->with('error', trans('categorymanagment::category.error_loading_categories'));
         }
     }
@@ -251,6 +262,44 @@ class CategoryController extends Controller
                 ->with('success', __('categorymanagment::category.status_changed_successfully'));
         } catch (\Exception $e) {
             // Check if request is AJAX
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => __('categorymanagment::category.error_changing_status') . ': ' . $e->getMessage()
+                ], 422);
+            }
+
+            return redirect()->route('admin.category-management.categories.index')
+                ->with('error', __('categorymanagment::category.error_changing_status') . ': ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Change the view status of the specified category.
+     */
+    public function changeViewStatus($lang, $countryCode, Request $request, string $id)
+    {
+        $request->validate([
+            'view_status' => 'required|in:0,1'
+        ]);
+
+        try {
+            $category = $this->categoryService->getCategoryById($id);
+            $newStatus = (bool) $request->input('view_status');
+
+            $this->categoryService->updateCategory($id, ['view_status' => $newStatus]);
+
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => __('categorymanagment::category.status_changed_successfully'),
+                    'new_status' => $newStatus
+                ]);
+            }
+
+            return redirect()->route('admin.category-management.categories.index')
+                ->with('success', __('categorymanagment::category.status_changed_successfully'));
+        } catch (\Exception $e) {
             if ($request->ajax() || $request->wantsJson()) {
                 return response()->json([
                     'success' => false,

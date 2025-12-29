@@ -27,6 +27,8 @@ class DepartmentRequest extends FormRequest
             'translations.*.description' => 'nullable|string',
             'commission' => 'required|numeric|min:0|max:100',
             'active' => 'nullable|boolean',
+            'sort_number' => 'nullable|integer|min:0',
+            'view_status' => 'nullable|boolean',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048',
             'icon' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048',
         ];

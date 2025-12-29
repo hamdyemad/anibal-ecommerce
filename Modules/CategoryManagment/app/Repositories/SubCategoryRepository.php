@@ -31,6 +31,11 @@ class SubCategoryRepository implements SubCategoryRepositoryInterface
             $query->where('active', $filters['active']);
         }
 
+        // View status filter
+        if (isset($filters['view_status']) && $filters['view_status'] !== '') {
+            $query->where('view_status', $filters['view_status']);
+        }
+
         // Category filter
         if (!empty($filters['category_id'])) {
             $query->where('category_id', $filters['category_id']);
@@ -81,6 +86,11 @@ class SubCategoryRepository implements SubCategoryRepositoryInterface
         // Active filter
         if (isset($filters['active']) && $filters['active'] !== '') {
             $query->where('active', $filters['active']);
+        }
+
+        // View status filter
+        if (isset($filters['view_status']) && $filters['view_status'] !== '') {
+            $query->where('view_status', $filters['view_status']);
         }
 
         // Category filter

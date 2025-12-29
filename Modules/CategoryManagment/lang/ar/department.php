@@ -16,6 +16,8 @@ return [
     'description_english' => 'الوصف بالانجليزية',
     'department_code' => 'رمز القسم',
     'activation' => 'التفعيل',
+    'view_status' => 'حالة العرض',
+    'sort_number' => 'رقم الترتيب',
     'status' => 'الحالة',
     'active' => 'نشط',
     'inactive' => 'غير نشط',
@@ -39,6 +41,7 @@ return [
     'name_ar' => 'الاسم (عربي)',
     'code' => 'الرمز',
     'created_at' => 'تاريخ الإنشاء',
+    'department_information' => 'معلومات القسم',
 
     // Buttons
     'add_department' => 'إضافة قسم',

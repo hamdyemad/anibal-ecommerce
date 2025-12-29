@@ -16,7 +16,7 @@ class CategoryRepository implements CategoryRepositoryInterface
         $query = Category::with('translations', 'department')->filter($filters);
 
         // Order by latest
-        $query->orderBy('created_at', 'desc');
+        $query->orderBy('sort_number', 'asc');
         return ($perPage == 0) ? $query->get() : $query->paginate($perPage);
     }
 
@@ -60,7 +60,7 @@ class CategoryRepository implements CategoryRepositoryInterface
                 $query->orderBy($orderBy, $orderDirection);
             }
         } else {
-            $query->orderBy('created_at', 'desc');
+            $query->orderBy('sort_number', 'asc');
         }
 
         // Load relationships after sorting is applied
@@ -94,6 +94,8 @@ class CategoryRepository implements CategoryRepositoryInterface
         $category = Category::create([
             'department_id' => $data['department_id'],
             'active' => $data['active'] ?? 1,
+            'sort_number' => $data['sort_number'] ?? 0,
+            'view_status' => $data['view_status'] ?? 1,
         ]);
 
         // Store translations
@@ -153,6 +155,12 @@ class CategoryRepository implements CategoryRepositoryInterface
             } else {
                 $updatedData['active'] = 0;
             }
+        }
+        if(isset($data['sort_number'])) {
+            $updatedData['sort_number'] = (int) $data['sort_number'];
+        }
+        if(isset($data['view_status'])) {
+            $updatedData['view_status'] = $data['view_status'] == 1 ? 1 : 0;
         }
         $category->update($updatedData);
 

@@ -173,6 +173,43 @@
                                     </div>
                                 </div>
 
+                                {{-- View Status Switcher --}}
+                                <div class="col-md-6 mb-25">
+                                    <div class="form-group">
+                                        <label class="il-gray fs-14 fw-500 mb-10 d-block">
+                                            {{ trans('categorymanagment::department.view_status') ?? 'View Status' }}
+                                        </label>
+                                        <div class="dm-switch-wrap d-flex align-items-center">
+                                            <div class="form-check form-switch form-switch-primary form-switch-md">
+                                                <input type="hidden" name="view_status" value="0">
+                                                <input type="checkbox" class="form-check-input" id="view_status"
+                                                    name="view_status" value="1"
+                                                    {{ old('view_status', $department->view_status ?? 1) == 1 ? 'checked' : '' }}>
+                                            </div>
+                                        </div>
+                                        @error('view_status')
+                                            <div class="text-danger fs-12 mt-1">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+                                </div>
+
+                                {{-- Sort Number Field --}}
+                                <div class="col-md-6 mb-25">
+                                    <div class="form-group">
+                                        <label for="sort_number" class="il-gray fs-14 fw-500 mb-10">
+                                            {{ trans('categorymanagment::department.sort_number') ?? 'Sort Number' }}
+                                        </label>
+                                        <input type="number"
+                                            class="form-control ih-medium ip-gray radius-xs b-light px-15 @error('sort_number') is-invalid @enderror"
+                                            id="sort_number" name="sort_number"
+                                            value="{{ old('sort_number', $department->sort_number ?? 0) }}" min="0">
+                                        @error('sort_number')
+                                            <div class="invalid-feedback d-block" style="display: block !important;">
+                                                {{ $message }}</div>
+                                        @enderror
+                                    </div>
+                                </div>
+
                                 {{-- Commission Field --}}
                                 <div class="col-md-6 mb-25">
                                     <div class="form-group">

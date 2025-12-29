@@ -235,4 +235,6 @@ return [
     'no_roles_found' => 'No roles found',
     'error_loading_roles' => 'Error loading roles',
     'vendor_country_restriction' => 'You can only access your assigned country.',
+    'visible' => 'Visible',
+    'hidden' => 'Hidden',
 ];

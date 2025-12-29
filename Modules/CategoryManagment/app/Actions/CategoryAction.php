@@ -45,6 +45,7 @@ class CategoryAction {
                 'search' => $data['search'] ?? null,
                 'department_id' => $data['department_id'] ?? null,
                 'active' => $data['active'] ?? null,
+                'view_status' => $data['view_status'] ?? null,
                 'created_date_from' => $data['created_date_from'] ?? null,
                 'created_date_to' => $data['created_date_to'] ?? null,
             ];
@@ -101,6 +102,8 @@ class CategoryAction {
                     'id' => $category->id,
                     'translations' => [],
                     'department' => null,
+                    'sort_number' => $category->sort_number,
+                    'view_status' => $category->view_status,
                     'active' => $category->active,
                     'created_at' => $category->created_at,
                 ];

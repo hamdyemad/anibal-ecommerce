@@ -18,6 +18,8 @@ return [
     'category' => 'الفئة',
     'image' => 'الصورة',
     'activation' => 'التفعيل',
+    'view_status' => 'حالة العرض',
+    'sort_number' => 'رقم الترتيب',
     'status' => 'الحالة',
     'active' => 'نشط',
     'inactive' => 'غير نشط',
@@ -42,6 +44,7 @@ return [
     'name_en' => 'الاسم (إنجليزي)',
     'name_ar' => 'الاسم (عربي)',
     'created_at' => 'تاريخ الإنشاء',
+    'subcategory_information' => 'معلومات الفئة الفرعية',
 
     // Buttons
     'add_subcategory' => 'إضافة فئة فرعية',

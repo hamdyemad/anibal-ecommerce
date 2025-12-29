@@ -66,9 +66,20 @@ class SubCategoryController extends Controller
     {
         try {
             $languages = $this->languageService->getAll();
-            $categories = $this->categoryService->getActiveCategories();
+            $categoriesCollection = $this->categoryService->getActiveCategories();
+            
+            // Format specifically for searchable-tags: simple array of ['id' => ..., 'name' => ...]
+            $categories = [];
+            foreach ($categoriesCollection as $cat) {
+                $categories[] = [
+                    'id' => $cat->id,
+                    'name' => $cat->getTranslation('name', app()->getLocale()) ?? 'N/A',
+                ];
+            }
+            
             return view('categorymanagment::subcategory.index', compact('languages', 'categories'));
         } catch (\Exception $e) {
+            \Log::error('Error loading sub-categories: ' . $e->getMessage());
             return redirect()->back()->with('error', __('Error loading sub-categories'));
         }
     }
@@ -256,6 +267,54 @@ class SubCategoryController extends Controller
 
         } catch (\Exception $e) {
             Log::error('Error changing sub-category status: ' . $e->getMessage(), [
+                'subcategory_id' => $id,
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => __('categorymanagment::subcategory.error_changing_status')
+            ], 500);
+        }
+    }
+
+    /**
+     * Change the view status of the specified sub-category.
+     */
+    public function changeViewStatus($lang, $countryCode, Request $request, string $id)
+    {
+        try {
+            $request->validate([
+                'view_status' => 'required|in:0,1'
+            ]);
+
+            $subCategory = $this->subCategoryService->getSubCategoryById($id);
+
+            if (!$subCategory) {
+                return response()->json([
+                    'success' => false,
+                    'message' => __('categorymanagment::subcategory.subcategory_not_found')
+                ], 404);
+            }
+
+            $newStatus = (bool) $request->view_status;
+            $subCategory->view_status = $newStatus;
+            $subCategory->save();
+
+            Log::info('SubCategory view_status changed', [
+                'subcategory_id' => $id,
+                'new_view_status' => $newStatus,
+                'changed_by' => auth()->id()
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => __('categorymanagment::subcategory.status_changed_successfully'),
+                'new_status' => $newStatus
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Error changing sub-category view_status: ' . $e->getMessage(), [
                 'subcategory_id' => $id,
                 'trace' => $e->getTraceAsString()
             ]);

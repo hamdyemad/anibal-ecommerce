@@ -27,6 +27,8 @@ class Department extends BaseModel
         'description',
         'slug',
         'active',
+        'view_status',
+        'sort_number',
         'commission',
         'country_id'
     ];
@@ -151,18 +153,13 @@ class Department extends BaseModel
     public function scopeFilter(Builder $query, array $filters)
     {
         // Call parent filter scope from HasFilterScopes trait
-        // Note: HasFilterScopes::scopeFilter ALREADY calls byVendor if vendor_id is present.
-        // Since we overrode byVendor, the trait will use our implementation.
-        // We don't need to manually call it again, but if parent::scopeFilter is generic 
-        // and calls $this->byVendor(), it works. 
-        // However, looking at Department.php parent::scopeFilter, it might be calling the Trait logic directly.
-        // Traits methods are mixed in. "parent" usually refers to the extended Class (BaseModel).
+        parent::scopeFilter($query, $filters);
         
-        // If BaseModel uses HasFilterScopes, calling parent::scopeFilter invokes the Trait's logic mixed into BaseModel.
-        // That logic simply does $query->byVendor(...). 
-        // Since $query is an instance of Department query builder, it should find the scope locally defined?
-        // Actually, $query is a Builder instance, but the method call `byVendor` is a scope call.
+        // Ensure view_status filter is applied (in case parent doesn't handle it)
+        if (isset($filters['view_status']) && $filters['view_status'] !== '') {
+            $query->where('view_status', $filters['view_status']);
+        }
         
-        return parent::scopeFilter($query, $filters);
+        return $query;
     }
 }

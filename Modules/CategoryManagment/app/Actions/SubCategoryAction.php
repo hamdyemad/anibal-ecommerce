@@ -38,7 +38,8 @@ class SubCategoryAction {
             $filters = [
                 'search' => $data['search'] ?? null,
                 'category_id' => $data['category_id'] ?? null,
-                'active' => $data['active'] ?? null,
+                'active' => isset($data['active']) && $data['active'] !== '' ? $data['active'] : null,
+                'view_status' => isset($data['view_status']) && $data['view_status'] !== '' ? $data['view_status'] : null,
                 'created_date_from' => $data['created_date_from'] ?? null,
                 'created_date_to' => $data['created_date_to'] ?? null,
             ];
@@ -88,6 +89,8 @@ class SubCategoryAction {
                     'id' => $subCategory->id,
                     'translations' => [],
                     'category' => null,
+                    'sort_number' => $subCategory->sort_number,
+                    'view_status' => $subCategory->view_status,
                     'active' => $subCategory->active,
                     'created_at' => $subCategory->created_at,
                 ];
