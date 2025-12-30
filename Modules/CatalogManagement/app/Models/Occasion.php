@@ -37,14 +37,21 @@ class Occasion extends BaseModel
     }
 
     /**
-     * Scope for active occasions
+     * Scope for active occasions (is_active = true and not expired)
      */
     public function scopeActive($query)
     {
         return $query
-        ->where('start_date', '>=', now())
-        ->whereColumn('end_date', '<=', 'start_date')
-        ->where('is_active', true);
+            ->where('is_active', true)
+            ->where('end_date', '>=', now()->toDateString());
+    }
+
+    /**
+     * Scope for valid occasions (not expired - end_date >= today)
+     */
+    public function scopeNotExpired($query)
+    {
+        return $query->where('end_date', '>=', now()->toDateString());
     }
 
     /**
@@ -71,6 +78,11 @@ class Occasion extends BaseModel
         // Filter by active status
         if (isset($filters['active']) && $filters['active'] !== '' && $filters['active'] !== null) {
             $query->where('is_active', $filters['active']);
+        }
+
+        // Filter out expired occasions (end_date < today)
+        if (!empty($filters['not_expired'])) {
+            $query->where('end_date', '>=', now()->toDateString());
         }
 
         // Filter by created_from

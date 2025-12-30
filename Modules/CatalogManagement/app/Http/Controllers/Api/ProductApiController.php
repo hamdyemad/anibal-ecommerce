@@ -372,8 +372,12 @@ class ProductApiController extends Controller
             $bundleCategories = BundleCategoryResource::collection($bundleCategories)->resolve();
             $returnedData['bundle_categories'] = $bundleCategories;
         } else {
-            $occasions = $this->occasionService->getAllOccasions($request->all(), 0);
-            $returnedData['occasions'] = $occasions;
+            $filters = array_merge($request->all(), [
+                'not_expired' => true, // Only show occasions where end_date >= today
+                'active' => true,
+            ]);
+            $occasions = $this->occasionService->getAllOccasions($filters, 0);
+            $returnedData['occasions'] = \Modules\CatalogManagement\app\Http\Resources\OccasionResource::collection($occasions)->resolve();
         }
         $returnedData['tress'] = $tress;
         $returnedData['brands'] = $brands;

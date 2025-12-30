@@ -25,7 +25,7 @@ class OccasionApiController extends Controller
         $filters = [
             'search' => $request->get('search'),
             'active' => $request->get('active', true),
-            'vendor_id' => $request->get('vendor_id'),
+            'not_expired' => true, // Only show occasions where end_date >= today
         ];
         $per_page = $request->get('per_page');
 
