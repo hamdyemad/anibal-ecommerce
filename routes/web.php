@@ -89,21 +89,22 @@ Route::get('/permissions/reset', function() {
 
 // Clear Cache & Optimize
 Route::get('/clear-cache', function() {
+     Artisan::call('optimize:clear');
     Artisan::call('cache:clear');
     Artisan::call('config:clear');
     Artisan::call('route:clear');
     Artisan::call('view:clear');
-    Artisan::call('optimize:clear');
+   
     
     return response()->json([
         'success' => true,
         'message' => 'Cache cleared and optimized successfully!',
         'commands' => [
+            'optimize:clear',
             'cache:clear',
             'config:clear', 
             'route:clear',
             'view:clear',
-            'optimize:clear'
         ]
     ]);
 })->name('clear_cache');
