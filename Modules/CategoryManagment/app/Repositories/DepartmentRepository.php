@@ -16,7 +16,7 @@ class DepartmentRepository implements DepartmentRepositoryInterface
     public function getAllDepartments(array $filters = [], int $perPage = 15)
     {
         $query = Department::with('translations')->filter($filters);
-        $query->orderBy('created_at', 'desc');
+        $query->orderBy('sort_number', 'asc');
         return ($perPage == 0) ? $query->get() : $query->paginate($perPage);
     }
 
@@ -25,35 +25,9 @@ class DepartmentRepository implements DepartmentRepositoryInterface
      */
     public function getDepartmentsQuery(array $filters = [], $orderBy = null, $orderDirection = 'asc')
     {
-        // Ensure we exclude soft-deleted records
-        $query = Department::with('translations')->filter($filters);
-
-        // Apply sorting
-        if ($orderBy) {
-            if (is_array($orderBy) && isset($orderBy['lang_id'])) {
-                // Sort by translation using polymorphic relationship
-                Log::info('Department Repository - Applying translation sort', [
-                    'lang_id' => $orderBy['lang_id'],
-                    'direction' => $orderDirection
-                ]);
-
-                $query->join('translations as t', function($join) use ($orderBy) {
-                    $join->on('departments.id', '=', 't.translatable_id')
-                         ->where('t.translatable_type', '=', 'Modules\CategoryManagment\app\Models\Department')
-                         ->where('t.lang_id', '=', $orderBy['lang_id'])
-                         ->where('t.lang_key', '=', 'name');
-                })
-                ->orderBy('t.lang_value', $orderDirection)
-                ->select('departments.*');
-            } else {
-                // Sort by regular column
-                $query->orderBy($orderBy, $orderDirection);
-            }
-        } else {
-            $query->orderBy('created_at', 'desc');
-        }
-
-        return $query;
+        return Department::with('translations')
+            ->filter($filters)
+            ->sorted($orderBy, $orderDirection, 'sort_number', 'asc');
     }
 
     /**
@@ -61,7 +35,7 @@ class DepartmentRepository implements DepartmentRepositoryInterface
      */
     public function getActiveDepartments()
     {
-        return Department::with('translations')->where('active', 1)->get();
+        return Department::with('translations')->where('active', 1)->orderBy('sort_number', 'asc')->get();
     }
 
     /**
@@ -80,6 +54,8 @@ class DepartmentRepository implements DepartmentRepositoryInterface
         $department = Department::create([
             'active' => $data['active'] ?? 1,
             'commission' => $data['commission'] ?? 0,
+            'sort_number' => $data['sort_number'] ?? 0,
+            'view_status' => $data['view_status'] ?? 1,
         ]);
 
         // Store translations
@@ -134,6 +110,8 @@ class DepartmentRepository implements DepartmentRepositoryInterface
         $updateData = [
             'active' => $data['active'] ?? 1,
             'commission' => $data['commission'] ?? 0,
+            'sort_number' => $data['sort_number'] ?? 0,
+            'view_status' => $data['view_status'] ?? 1,
         ];
 
         $department->update($updateData);

@@ -158,6 +158,8 @@ class CountryAction
                 'index' => $startIndex + $index + 1,
                 'id' => $country->id,
                 'names' => [],
+                'name_en' => '',
+                'name_ar' => '',
                 'code' => $country->code,
                 'phone_code' => $country->phone_code,
                 'active' => $country->active ?? true,
@@ -178,6 +180,13 @@ class CountryAction
                     'value' => $name,
                     'rtl' => $language->rtl
                 ];
+
+                // Set name_en and name_ar based on language code
+                if ($language->code === 'en') {
+                    $row['name_en'] = $name;
+                } elseif ($language->code === 'ar') {
+                    $row['name_ar'] = $name;
+                }
 
                 // Set display name (first available translation)
                 if (!$row['display_name'] && $name !== '-') {

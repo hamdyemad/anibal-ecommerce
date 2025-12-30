@@ -63,6 +63,44 @@
             });
         $notifications = $notifications->merge($messages);
     }
+
+    // 4. Push Notifications for Vendors (only unviewed)
+    if (!isAdmin() && auth()->user()->vendor) {
+        $vendorId = auth()->user()->vendor->id;
+        $userId = auth()->id();
+        $pushNotifications = \Modules\SystemSetting\app\Models\PushNotification::where(function($q) use ($vendorId) {
+                // Notifications sent to all vendors
+                $q->where('type', 'all_vendors')
+                // Or notifications sent to this specific vendor
+                ->orWhere(function($q2) use ($vendorId) {
+                    $q2->where('type', 'specific_vendors')
+                       ->whereHas('vendors', function($q3) use ($vendorId) {
+                           $q3->where('vendors.id', $vendorId);
+                       });
+                });
+            })
+            // Exclude viewed notifications
+            ->whereDoesntHave('views', function($q) use ($userId) {
+                $q->where('user_id', $userId);
+            })
+            ->orderBy('created_at', 'desc')
+            ->limit(10)
+            ->get()
+            ->map(function($notification) {
+                $locale = app()->getLocale();
+                return [
+                    'type' => 'push_notification',
+                    'icon' => 'uil-bell',
+                    'color' => 'info',
+                    'title' => $notification->getTranslation('title', $locale) ?? $notification->getTranslation('title', 'en'),
+                    'description' => \Illuminate\Support\Str::limit(strip_tags($notification->getTranslation('description', $locale) ?? $notification->getTranslation('description', 'en')), 50),
+                    'url' => route('admin.system-settings.push-notifications.view', ['id' => $notification->id]),
+                    'created_at' => $notification->created_at,
+                    'image' => $notification->image ? formatImage($notification->image) : null,
+                ];
+            });
+        $notifications = $notifications->merge($pushNotifications);
+    }
     
     // Sort by created_at and take latest 5
     $notifications = $notifications->sortByDesc('created_at')->take(5);
@@ -82,7 +120,7 @@
             @if($notificationsCount > 0)
                 <ul>
                     @foreach($notifications as $notification)
-                        <li class="nav-notification__single nav-notification__single--unread d-flex flex-wrap">
+                        <li class="nav-notification__single {{ empty($notification['is_viewed']) ? 'nav-notification__single--unread' : '' }} d-flex flex-wrap">
                             <div class="nav-notification__type nav-notification__type--{{ $notification['color'] }}">
                                 <i class="{{ $notification['icon'] }}"></i>
                             </div>

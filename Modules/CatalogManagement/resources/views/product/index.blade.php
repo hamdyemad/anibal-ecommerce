@@ -309,7 +309,6 @@
                                     @if(auth()->user() && in_array(auth()->user()->user_type_id, \App\Models\UserType::adminIds()))
                                         <th><span class="userDatatable-title">{{ __('catalogmanagement::product.vendor') }}</span></th>
                                     @endif
-                                    <th><span class="userDatatable-title">{{ __('catalogmanagement::product.total_stock') ?? 'Total Stock' }}</span></th>
                                     <th><span class="userDatatable-title">{{ __('catalogmanagement::product.approval_status') }}</span></th>
                                     <th><span class="userDatatable-title">{{ __('common.activation') }}</span></th>
                                     <th><span class="userDatatable-title">{{ __('common.created_at') }}</span></th>
@@ -541,6 +540,18 @@
                                     <span class="badge badge-secondary badge-round badge-lg ms-1">${$('<div/>').text(row.brand.name).html()}</span>
                                 </div>`;
                             }
+                            // Stock Information (Total Stock & Remaining Stock)
+                            const totalStock = row.total_stock || 0;
+                            const remainingStock = row.remaining_stock || 0;
+                            const stockBadgeClass = remainingStock > 0 ? 'badge-success' : 'badge-danger';
+                            html += `<div class="mb-1">
+                                <small class="text-muted">{{ __('catalogmanagement::product.total_stock') }}:</small>
+                                <span class="badge badge-secondary badge-round badge-lg ms-1">${totalStock}</span>
+                            </div>`;
+                            html += `<div class="mb-1">
+                                <small class="text-muted">{{ __('catalogmanagement::product.remaining_stock') }}:</small>
+                                <span class="badge ${stockBadgeClass} badge-round badge-lg ms-1">${remainingStock > 0 ? remainingStock : '{{ __('dashboard.out_of_stock') }}'}</span>
+                            </div>`;
                             html += '</div>';
 
                             html += '</div>';
@@ -562,21 +573,6 @@
                         }
                     },
                     @endif
-                    {
-                        data: 'total_stock',
-                        name: 'total_stock',
-                        searchable: false,
-                        orderable: false,
-                        className: 'text-center',
-                        render: function(data, type, row) {
-                            const stock = data || 0;
-                            if (stock > 0) {
-                                return `<span class="badge badge-success badge-round badge-lg">${stock}</span>`;
-                            } else {
-                                return `<span class="badge badge-danger badge-round badge-lg">{{ __('dashboard.out_of_stock') }}</span>`;
-                            }
-                        }
-                    },
                     {
                         data: 'status',
                         name: 'status',
@@ -664,27 +660,25 @@
                                     <i class="uil uil-edit table_action_icon"></i>
                                 </a>`;
                             @endcan
-                            @can('products.stock-setup')
+                            @can('products.stock-management')
                                 actions += `<a href="${stockPricingUrl}" class="stock-management btn btn-info table_action_father" title="{{ trans('catalogmanagement::product.stock_management') }}">
                                         <i class="uil uil-box table_action_icon"></i>
                                     </a>`;
                             @endcan
 
-                            // Add approve/reject button and move to bank for admin users only
+                            // Add approve/reject button for admin users
                             @if(isAdmin())
                                 @can('products.change-status')
-                                    if(data.product_type == 'product') {
-                                        actions += `
-                                            <a href="javascript:void(0);" class="change-status btn btn-success table_action_father"
-                                            data-bs-toggle="modal" data-bs-target="#modal-change-status"
-                                            data-item-id="${data.vendor_product_id}"
-                                            data-item-status="${data.status || ''}"
-                                            data-item-name="${data.product_information?.name_en || 'Product'}"
-                                            data-item-type="${data.product_type || ''}"
-                                            title="{{ trans('catalogmanagement::product.change_status') }}">
-                                                <i class="uil uil-check-circle table_action_icon"></i>
-                                            </a>`;
-                                    }
+                                    actions += `
+                                        <a href="javascript:void(0);" class="change-status btn btn-success table_action_father"
+                                        data-bs-toggle="modal" data-bs-target="#modal-change-status"
+                                        data-item-id="${data.vendor_product_id}"
+                                        data-item-status="${data.status || ''}"
+                                        data-item-name="${data.product_information?.name_en || 'Product'}"
+                                        data-item-type="${data.product_type || ''}"
+                                        title="{{ trans('catalogmanagement::product.change_status') }}">
+                                            <i class="uil uil-check-circle table_action_icon"></i>
+                                        </a>`;
                                 @endcan
                             @endif
 
@@ -710,9 +704,9 @@
                 lengthMenu: [10, 25, 50, 100],
                 order: [
                     @if(auth()->user() && in_array(auth()->user()->user_type_id, [\App\Models\UserType::SUPER_ADMIN_TYPE, \App\Models\UserType::ADMIN_TYPE]))
-                        [6, 'desc'] // Created at column for admin users (with vendor column + total_stock)
+                        [5, 'desc'] // Created at column for admin users (with vendor column)
                     @else
-                        [5, 'desc'] // Created at column for vendor users (without vendor column, with total_stock)
+                        [4, 'desc'] // Created at column for vendor users (without vendor column)
                     @endif
                 ],
                 language: {
@@ -977,7 +971,10 @@
                         if (response.success) {
                             toastr.success(response.message || '{{ __("catalogmanagement::product.status_updated_successfully") }}');
                             $('#modal-change-status').modal('hide');
-                            table.ajax.reload(null, false);
+                            // Reload the table data and redraw
+                            table.ajax.reload(function() {
+                                console.log('Table reloaded after status change');
+                            }, false);
                         } else {
                             toastr.error(response.message || '{{ __("common.error_occurred") }}');
                         }

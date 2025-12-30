@@ -20,6 +20,7 @@ class LightDepartmentApiResource extends JsonResource
             'slug' => $this->slug,
             'image' => formatImage($this->image),
             'name' => $this->name,
+            'sort_number' => $this->sort_number ?? 0,
         ];
     }
 }

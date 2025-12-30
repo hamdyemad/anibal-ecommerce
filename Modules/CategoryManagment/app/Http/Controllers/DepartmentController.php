@@ -22,7 +22,7 @@ class DepartmentController extends Controller
     {
         $this->middleware('can:departments.index')->only(['index', 'show']);
         $this->middleware('can:departments.create')->only(['create', 'store']);
-        $this->middleware('can:departments.edit')->only(['edit', 'update']);
+        $this->middleware('can:departments.edit')->only(['edit', 'update', 'reorder']);
         $this->middleware('can:departments.change-status')->only(['changeStatus']);
         $this->middleware('can:departments.delete')->only(['destroy']);
     }
@@ -38,17 +38,18 @@ class DepartmentController extends Controller
             'start' => $request->get('start', 0),
             'length' => $request->get('length', 10),
             'per_page' => $request->get('per_page', $request->get('length', 10)),
-            'orderColumnIndex' => $request->get('orderColumnIndex', 0),
-            'orderDirection' => $request->get('orderDirection', 'desc'),
+            'sort_column' => $request->get('sort_column', 'sort_number'),
+            'sort_direction' => $request->get('sort_direction', 'asc'),
             'search' => $request->get('search'),
             'active' => $request->get('active'),
+            'view_status' => $request->get('view_status'),
             'created_date_from' => $request->get('created_date_from'),
             'created_date_to' => $request->get('created_date_to'),
         ];
 
         Log::info('Department Controller - DataTable Request', [
-            'all_params' => $request->all(),
-            'processed_data' => $data
+            'sort_column' => $data['sort_column'],
+            'sort_direction' => $data['sort_direction'],
         ]);
 
         try {
@@ -320,6 +321,152 @@ class DepartmentController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => __('categorymanagment::department.error_changing_status')
+            ], 500);
+        }
+    }
+
+    /**
+     * Change the view status of the specified department.
+     */
+    public function changeViewStatus($lang, $countryCode, Request $request, string $id)
+    {
+        try {
+            $request->validate([
+                'view_status' => 'required|in:0,1'
+            ]);
+
+            $department = $this->departmentService->getDepartmentById($id);
+
+            if (!$department) {
+                return response()->json([
+                    'success' => false,
+                    'message' => __('categorymanagment::department.department_not_found')
+                ], 404);
+            }
+
+            $newStatus = (bool) $request->view_status;
+            $department->view_status = $newStatus;
+            $department->save();
+
+            Log::info('Department view_status changed', [
+                'department_id' => $id,
+                'new_view_status' => $newStatus,
+                'changed_by' => auth()->id()
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => __('categorymanagment::department.status_changed_successfully'),
+                'new_status' => $newStatus
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Error changing department view_status: ' . $e->getMessage(), [
+                'department_id' => $id,
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => __('categorymanagment::department.error_changing_status')
+            ], 500);
+        }
+    }
+
+    /**
+     * Reorder departments by updating sort_number
+    /**
+     * Reorder departments by updating sort_number
+     */
+    public function reorder($lang, $countryCode, Request $request)
+    {
+        try {
+            $request->validate([
+                'items' => 'required|array',
+                'items.*.id' => 'required|integer|exists:departments,id',
+                'items.*.sort_number' => 'required|integer|min:0'
+            ]);
+
+            Log::info('Departments reorder request', [
+                'items' => $request->items,
+                'changed_by' => auth()->id()
+            ]);
+
+            $items = $request->items;
+            $itemIds = array_column($items, 'id');
+
+            // Get all departments ordered by sort_number
+            $allDepartments = \Modules\CategoryManagment\app\Models\Department::orderBy('sort_number', 'asc')->get();
+            
+            // Remove the dragged items from the list
+            $remainingDepartments = $allDepartments->filter(function($dept) use ($itemIds) {
+                return !in_array($dept->id, $itemIds);
+            })->values();
+
+            // Build new order: insert dragged items at their new positions
+            $newOrder = [];
+            $sortNumber = 1;
+
+            // Create a map of id => new_sort_number from request
+            $itemSortMap = [];
+            foreach ($items as $item) {
+                $itemSortMap[$item['id']] = $item['sort_number'];
+            }
+
+            // Sort the dragged items by their new sort_number
+            usort($items, function($a, $b) {
+                return $a['sort_number'] - $b['sort_number'];
+            });
+
+            // Merge: go through positions and assign
+            $draggedIndex = 0;
+            $remainingIndex = 0;
+            $totalCount = count($allDepartments);
+
+            for ($pos = 1; $pos <= $totalCount; $pos++) {
+                // Check if any dragged item should be at this position
+                if ($draggedIndex < count($items) && $items[$draggedIndex]['sort_number'] == $pos) {
+                    $newOrder[] = ['id' => $items[$draggedIndex]['id'], 'sort_number' => $sortNumber++];
+                    $draggedIndex++;
+                } elseif ($remainingIndex < count($remainingDepartments)) {
+                    $newOrder[] = ['id' => $remainingDepartments[$remainingIndex]->id, 'sort_number' => $sortNumber++];
+                    $remainingIndex++;
+                }
+            }
+
+            // Add any remaining dragged items
+            while ($draggedIndex < count($items)) {
+                $newOrder[] = ['id' => $items[$draggedIndex]['id'], 'sort_number' => $sortNumber++];
+                $draggedIndex++;
+            }
+
+            // Add any remaining departments
+            while ($remainingIndex < count($remainingDepartments)) {
+                $newOrder[] = ['id' => $remainingDepartments[$remainingIndex]->id, 'sort_number' => $sortNumber++];
+                $remainingIndex++;
+            }
+
+            // Update all sort numbers
+            foreach ($newOrder as $item) {
+                \Modules\CategoryManagment\app\Models\Department::where('id', $item['id'])
+                    ->update(['sort_number' => $item['sort_number']]);
+            }
+
+            Log::info('Departments reordered successfully', ['new_order' => $newOrder]);
+
+            return response()->json([
+                'success' => true,
+                'message' => __('common.reorder_success')
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Error reordering departments: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => __('common.reorder_error')
             ], 500);
         }
     }

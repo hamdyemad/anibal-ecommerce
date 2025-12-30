@@ -56,6 +56,12 @@ class CreateOrder
         // Store order using repository
         $order = $this->orderRepository->storeOrder($orderData);
 
+        // Update points transaction with order ID if points were used
+        if (!empty($context['points_transaction_id'])) {
+            \Modules\SystemSetting\app\Models\UserPointsTransaction::where('id', $context['points_transaction_id'])
+                ->update(['transactionable_id' => $order->id]);
+        }
+
         $context['order'] = $order;
 
         return $next([

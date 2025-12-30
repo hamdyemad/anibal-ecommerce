@@ -21,9 +21,7 @@
                                 <th style="width: 50px;"><i class="uil uil-arrows-move" title="{{ __('common.drag_to_reorder') }}"></i></th>
                             @endif
                             <th>#</th>
-                            <th>{{ trans('catalogmanagement::occasion.product') }}</th>
-                            <th>{{ trans('catalogmanagement::occasion.variant_name') }}</th>
-                            <th>{{ trans('catalogmanagement::occasion.sku') }}</th>
+                            <th>{{ trans('catalogmanagement::occasion.product_information') }}</th>
                             <th>{{ trans('catalogmanagement::occasion.original_price') }}</th>
                             <th>{{ trans('catalogmanagement::occasion.special_price') }}</th>
                             <th>{{ trans('catalogmanagement::occasion.position') }}</th>
@@ -34,6 +32,16 @@
                     </thead>
                     <tbody id="occasionProductsBody" class="sortable-tbody">
                         @foreach(($occasion ? $occasion->occasionProducts : $products) as $index => $product)
+                            @php
+                                $vpv = $product->vendorProductVariant;
+                                $vendorProduct = $vpv?->vendorProduct;
+                                $productModel = $vendorProduct?->product;
+                                $vendor = $vendorProduct?->vendor;
+                                $variantConfig = $vpv?->variantConfiguration;
+                                $variantKey = $variantConfig?->key?->name;
+                                $variantValue = $variantConfig?->name;
+                                $remainingStock = $vpv?->remaining_stock ?? 0;
+                            @endphp
                             <tr class="draggable-row" data-product-id="{{ $product->id }}" data-occasion-id="{{ $occasion?->id }}" data-position="{{ $product->position }}" draggable="{{ $showDragHandle ? 'true' : 'false' }}">
                                 @if($showDragHandle)
                                     <td class="drag-handle text-center" style="cursor: move; user-select: none;">
@@ -42,16 +50,53 @@
                                 @endif
                                 <td>{{ $index + 1 }}</td>
                                 <td>
-                                    <strong>{{ $product->vendorProductVariant->vendorProduct->product->name ?? '-' }}</strong>
+                                    <div class="d-flex align-items-start gap-3">
+                                        {{-- Product Image --}}
+                                        @if($productModel?->mainImage)
+                                            <img src="{{ formatImage($productModel->mainImage) }}" alt="{{ $productModel->name ?? '' }}" class="rounded" style="width: 60px; height: 60px; flex-shrink: 0;">
+                                        @else
+                                            <div class="rounded bg-light d-flex align-items-center justify-content-center" style="width: 60px; height: 60px; flex-shrink: 0;">
+                                                <i class="uil uil-image text-muted fs-4"></i>
+                                            </div>
+                                        @endif
+                                        <div class="flex-grow-1">
+                                            {{-- Product Name --}}
+                                            <strong class="d-block mb-1">{{ $productModel->name ?? '-' }}</strong>
+                                            {{-- Variant --}}
+                                            @if($variantKey)
+                                                <small class="d-block text-primary mb-1"><strong>{{ $variantKey }}:</strong> {{ $variantValue ?? 'Default' }}</small>
+                                            @elseif($variantValue)
+                                                <small class="d-block text-muted mb-1">{{ $variantValue }}</small>
+                                            @endif
+                                            {{-- SKU --}}
+                                            <small class="d-block text-muted mb-1">
+                                                <i class="uil uil-tag-alt me-1"></i>{{ trans('catalogmanagement::occasion.sku') }}: <code>{{ $vpv->sku ?? '-' }}</code>
+                                            </small>
+                                            {{-- Remaining Stock --}}
+                                            <small class="d-block mb-1">
+                                                <i class="uil uil-box me-1"></i>{{ trans('catalogmanagement::occasion.remaining_stock') }}:
+                                                <span class="badge badge-sm badge-round {{ $remainingStock > 0 ? 'badge-success' : 'badge-danger' }}">
+                                                    {{ $remainingStock }}@if($remainingStock <= 0) ({{ trans('catalogmanagement::occasion.out_of_stock') }})@endif
+                                                </span>
+                                            </small>
+                                            {{-- Vendor --}}
+                                            @if($vendor)
+                                                <div class="d-flex align-items-center justify-content-center gap-2 mt-2 pt-2 border-top">
+                                                    @if($vendor->logo)
+                                                        <img src="{{ formatImage($vendor->logo) }}" alt="{{ $vendor->name }}" class="rounded-circle" style="width: 24px; height: 24px; ">
+                                                    @else
+                                                        <div class="rounded-circle bg-light d-flex align-items-center justify-content-center" style="width: 24px; height: 24px;">
+                                                            <i class="uil uil-store text-muted" style="font-size: 12px;"></i>
+                                                        </div>
+                                                    @endif
+                                                    <small class="text-primary fw-500">{{ $vendor->name }}</small>
+                                                </div>
+                                            @endif
+                                        </div>
+                                    </div>
                                 </td>
                                 <td>
-                                    {{ $product->vendorProductVariant->variantConfiguration->name ?? 'Default' }}
-                                </td>
-                                <td>
-                                    <code>{{ $product->vendorProductVariant->sku ?? '-' }}</code>
-                                </td>
-                                <td>
-                                    <span class="badge badge-lg badge-round badge-info">{{ number_format($product->vendorProductVariant->price ?? 0, 2) }} {{ currency() }}</span>
+                                    <span class="badge badge-lg badge-round badge-info">{{ number_format($vpv->price ?? 0, 2) }} {{ currency() }}</span>
                                 </td>
                                 <td>
                                     <div class="input-group input-group-sm" style="max-width: 150px;">

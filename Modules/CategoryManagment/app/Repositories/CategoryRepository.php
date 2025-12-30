@@ -16,7 +16,7 @@ class CategoryRepository implements CategoryRepositoryInterface
         $query = Category::with('translations', 'department')->filter($filters);
 
         // Order by latest
-        $query->orderBy('created_at', 'desc');
+        $query->orderBy('sort_number', 'asc');
         return ($perPage == 0) ? $query->get() : $query->paginate($perPage);
     }
 
@@ -25,48 +25,9 @@ class CategoryRepository implements CategoryRepositoryInterface
      */
     public function getCategoriesQuery(array $filters = [], $orderBy = null, $orderDirection = 'asc')
     {
-        $query = Category::query()->filter($filters);
-        // Apply sorting
-        if ($orderBy) {
-            if (is_array($orderBy) && isset($orderBy['lang_id'])) {
-                // Sort by translation using subquery
-                $langId = $orderBy['lang_id'];
-                $query->orderByRaw("(
-                    SELECT lang_value
-                    FROM translations
-                    WHERE translations.translatable_id = categories.id
-                    AND translations.translatable_type = 'Modules\\\\CategoryManagment\\\\app\\\\Models\\\\Category'
-                    AND translations.lang_id = ?
-                    AND translations.lang_key = 'name'
-                    LIMIT 1
-                ) {$orderDirection}", [$langId]);
-            } elseif ($orderBy === 'department') {
-                // Sort by department name using subquery
-                $currentLocale = app()->getLocale();
-                $langId = $currentLocale === 'ar' ? 1 : 2;
-
-                $query->orderByRaw("(
-                    SELECT dt.lang_value
-                    FROM departments d
-                    LEFT JOIN translations dt ON d.id = dt.translatable_id
-                        AND dt.translatable_type = 'Modules\\\\CategoryManagment\\\\app\\\\Models\\\\Department'
-                        AND dt.lang_key = 'name'
-                        AND dt.lang_id = ?
-                    WHERE d.id = categories.department_id
-                    LIMIT 1
-                ) {$orderDirection}", [$langId]);
-            } else {
-                // Sort by regular column
-                $query->orderBy($orderBy, $orderDirection);
-            }
-        } else {
-            $query->orderBy('created_at', 'desc');
-        }
-
-        // Load relationships after sorting is applied
-        $query->with(['translations', 'department']);
-
-        return $query;
+        return Category::with(['translations', 'department'])
+            ->filter($filters)
+            ->sorted($orderBy, $orderDirection, 'sort_number', 'asc');
     }
 
 
@@ -94,6 +55,8 @@ class CategoryRepository implements CategoryRepositoryInterface
         $category = Category::create([
             'department_id' => $data['department_id'],
             'active' => $data['active'] ?? 1,
+            'sort_number' => $data['sort_number'] ?? 0,
+            'view_status' => $data['view_status'] ?? 1,
         ]);
 
         // Store translations
@@ -153,6 +116,12 @@ class CategoryRepository implements CategoryRepositoryInterface
             } else {
                 $updatedData['active'] = 0;
             }
+        }
+        if(isset($data['sort_number'])) {
+            $updatedData['sort_number'] = (int) $data['sort_number'];
+        }
+        if(isset($data['view_status'])) {
+            $updatedData['view_status'] = $data['view_status'] == 1 ? 1 : 0;
         }
         $category->update($updatedData);
 

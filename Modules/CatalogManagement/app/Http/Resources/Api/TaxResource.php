@@ -17,9 +17,9 @@ class TaxResource extends JsonResource
         return [
             'id' => $this->id,
             'name' => $this->name,
-            'slug' => $this->slug,
-            'tax_rate' => (float) $this->tax_rate,
-            'active' => $this->active,
+            'percentage' => (float) $this->percentage,
+            'tax_rate' => (float) $this->percentage, // Alias for backward compatibility
+            'is_active' => $this->is_active,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

@@ -221,6 +221,7 @@ return [
     'trashed' => 'محذوف',
     'restore' => 'استعادة',
     'no_data_available' => 'لا توجد بيانات متاحة',
+    'guest' => 'زائر',
     'drag_to_reorder' => 'اسحب لإعادة الترتيب',
     'order_updated_successfully' => 'تم تحديث الترتيب بنجاح',
     'error_updating_order' => 'خطأ في تحديث الترتيب',
@@ -239,4 +240,20 @@ return [
     'no_roles_found' => 'لا توجد أدوار',
     'error_loading_roles' => 'خطأ في تحميل الأدوار',
     'vendor_country_restriction' => 'يمكنك الوصول فقط إلى الدولة المخصصة لك.',
+    'visible' => 'مرئي',
+    'hidden' => 'مخفي',
+    
+    // Drag and Drop
+    'drag_drop_info' => 'اسحب وأفلت الصفوف لإعادة الترتيب. سيتم حفظ التغييرات تلقائياً.',
+    'drag_drop_disabled_info' => 'السحب والإفلات متاح فقط عند الترتيب حسب رقم الترتيب (تصاعدي).',
+    'drag_to_reorder' => 'اسحب لإعادة الترتيب',
+    'reorder_success' => 'تم تحديث الترتيب بنجاح',
+    'reorder_error' => 'فشل في تحديث الترتيب',
+    
+    // Sorting
+    'sort_by' => 'ترتيب حسب',
+    'sort_direction' => 'اتجاه الترتيب',
+    'sort_number' => 'رقم الترتيب',
+    'ascending' => 'تصاعدي',
+    'descending' => 'تنازلي',
 ];

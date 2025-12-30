@@ -23,7 +23,7 @@ class CategoryController extends Controller
     {
         $this->middleware('can:categories.index')->only(['index', 'show']);
         $this->middleware('can:categories.create')->only(['create', 'store']);
-        $this->middleware('can:categories.edit')->only(['edit', 'update']);
+        $this->middleware('can:categories.edit')->only(['edit', 'update', 'reorder']);
         $this->middleware('can:categories.change-status')->only(['changeStatus']);
         $this->middleware('can:categories.delete')->only(['destroy']);
     }
@@ -66,8 +66,19 @@ class CategoryController extends Controller
     {
         try {
             $languages = $this->languageService->getAll();
-            return view('categorymanagment::category.index', compact('languages'));
+            $departmentsCollection = $this->departmentService->getActiveDepartments();
+            
+            // Format for searchable-tags: only id and name
+            $departments = $departmentsCollection->map(function($dept) {
+                return [
+                    'id' => $dept->id,
+                    'name' => $dept->getTranslation('name', app()->getLocale()) ?? 'N/A',
+                ];
+            })->values()->toArray();
+            
+            return view('categorymanagment::category.index', compact('languages', 'departments'));
         } catch (\Exception $e) {
+            \Log::error('Error loading categories: ' . $e->getMessage());
             return redirect()->back()->with('error', trans('categorymanagment::category.error_loading_categories'));
         }
     }
@@ -260,6 +271,134 @@ class CategoryController extends Controller
 
             return redirect()->route('admin.category-management.categories.index')
                 ->with('error', __('categorymanagment::category.error_changing_status') . ': ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Change the view status of the specified category.
+     */
+    public function changeViewStatus($lang, $countryCode, Request $request, string $id)
+    {
+        $request->validate([
+            'view_status' => 'required|in:0,1'
+        ]);
+
+        try {
+            $category = $this->categoryService->getCategoryById($id);
+            $newStatus = (bool) $request->input('view_status');
+
+            $this->categoryService->updateCategory($id, ['view_status' => $newStatus]);
+
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => __('categorymanagment::category.status_changed_successfully'),
+                    'new_status' => $newStatus
+                ]);
+            }
+
+            return redirect()->route('admin.category-management.categories.index')
+                ->with('success', __('categorymanagment::category.status_changed_successfully'));
+        } catch (\Exception $e) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => __('categorymanagment::category.error_changing_status') . ': ' . $e->getMessage()
+                ], 422);
+            }
+
+            return redirect()->route('admin.category-management.categories.index')
+                ->with('error', __('categorymanagment::category.error_changing_status') . ': ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Reorder categories by updating sort_number
+     */
+    public function reorder($lang, $countryCode, Request $request)
+    {
+        try {
+            $request->validate([
+                'items' => 'required|array',
+                'items.*.id' => 'required|integer|exists:categories,id',
+                'items.*.sort_number' => 'required|integer|min:0'
+            ]);
+
+            \Log::info('Categories reorder request', [
+                'items' => $request->items,
+                'changed_by' => auth()->id()
+            ]);
+
+            $items = $request->items;
+            $itemIds = array_column($items, 'id');
+
+            // Get all categories ordered by sort_number
+            $allCategories = \Modules\CategoryManagment\app\Models\Category::orderBy('sort_number', 'asc')->get();
+            
+            // Remove the dragged items from the list
+            $remainingCategories = $allCategories->filter(function($cat) use ($itemIds) {
+                return !in_array($cat->id, $itemIds);
+            })->values();
+
+            // Build new order: insert dragged items at their new positions
+            $newOrder = [];
+            $sortNumber = 1;
+
+            // Sort the dragged items by their new sort_number
+            usort($items, function($a, $b) {
+                return $a['sort_number'] - $b['sort_number'];
+            });
+
+            // Merge: go through positions and assign
+            $draggedIndex = 0;
+            $remainingIndex = 0;
+            $totalCount = count($allCategories);
+
+            for ($pos = 1; $pos <= $totalCount; $pos++) {
+                // Check if any dragged item should be at this position
+                if ($draggedIndex < count($items) && $items[$draggedIndex]['sort_number'] == $pos) {
+                    $newOrder[] = ['id' => $items[$draggedIndex]['id'], 'sort_number' => $sortNumber++];
+                    $draggedIndex++;
+                } elseif ($remainingIndex < count($remainingCategories)) {
+                    $newOrder[] = ['id' => $remainingCategories[$remainingIndex]->id, 'sort_number' => $sortNumber++];
+                    $remainingIndex++;
+                }
+            }
+
+            // Add any remaining dragged items
+            while ($draggedIndex < count($items)) {
+                $newOrder[] = ['id' => $items[$draggedIndex]['id'], 'sort_number' => $sortNumber++];
+                $draggedIndex++;
+            }
+
+            // Add any remaining categories
+            while ($remainingIndex < count($remainingCategories)) {
+                $newOrder[] = ['id' => $remainingCategories[$remainingIndex]->id, 'sort_number' => $sortNumber++];
+                $remainingIndex++;
+            }
+
+            // Update all sort numbers
+            foreach ($newOrder as $item) {
+                \Modules\CategoryManagment\app\Models\Category::where('id', $item['id'])
+                    ->update(['sort_number' => $item['sort_number']]);
+            }
+
+            \Log::info('Categories reordered successfully', ['new_order' => $newOrder]);
+
+            return response()->json([
+                'success' => true,
+                'message' => __('common.reorder_success')
+            ]);
+
+        } catch (\Exception $e) {
+            \Log::error('Error reordering categories: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => __('common.reorder_error')
+            ], 500);
         }
     }
 }

@@ -13,7 +13,7 @@ class VariantConfigurationKeyRepository implements VariantConfigurationKeyReposi
      */
     public function getAllVariantConfigurationKeys($filters, $perPage = 10)
     {
-        $query = VariantConfigurationKey::with(
+        $query = VariantConfigurationKey::withoutGlobalScopes()->with(
             'translations',
             'variants.translations',
             'variants.children.translations',

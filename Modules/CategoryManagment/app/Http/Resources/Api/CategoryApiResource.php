@@ -23,6 +23,7 @@ class CategoryApiResource extends JsonResource
             'summary' => $this->description,
             'image' => formatImage($this->image),
             'icon' => formatImage($this->icon),
+            'sort_number' => $this->sort_number ?? 0,
             'department' => new DepartmentApiResource($this->whenLoaded('department')),
             'sub_categories' => SubCategoryApiResource::collection($this->whenLoaded('activeSubs')),
             'products_count' => $this->active_products_count ?? 0,

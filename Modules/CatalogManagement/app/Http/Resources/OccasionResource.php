@@ -16,12 +16,6 @@ class OccasionResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'vendor_id' => $this->vendor_id,
-            'vendor' => [
-                'id' => $this->vendor?->id,
-                'name' => $this->vendor?->name,
-                'slug' => $this->vendor?->slug,
-            ],
             'name' => $this->getTranslation('name', app()->getLocale()) ?? '',
             'title' => $this->getTranslation('title', app()->getLocale()) ?? '',
             'sub_title' => $this->getTranslation('sub_title', app()->getLocale()) ?? '',
@@ -40,8 +34,17 @@ class OccasionResource extends JsonResource
                 ->where('type', 'image')
                 ->first()?->path ? asset('storage/' . $this->attachments()->where('type', 'image')->first()->path) : null,
 
-            // Occasion Products
-            'occasion_products' => OccasionProductResource::collection($this->occasionProducts),
+            // Occasion Products - only include approved and active products
+            'occasion_products' => OccasionProductResource::collection(
+                $this->occasionProducts->filter(function ($occasionProduct) {
+                    $vendorProduct = $occasionProduct->vendorProductVariant?->vendorProduct;
+                    if (!$vendorProduct) {
+                        return false;
+                    }
+                    // Check if product is approved and active
+                    return $vendorProduct->status === 'approved' && $vendorProduct->is_active;
+                })
+            ),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

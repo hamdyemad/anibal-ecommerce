@@ -15,9 +15,9 @@ class TaxService
     }
 
     /**
-     * Get all taxes with filters and pagination
+     * Get all taxes with optional pagination
      */
-    public function getAllTaxes(int $perPage, array $filters = [])
+    public function getAllTaxes(int $perPage = 10, array $filters = [])
     {
         try {
             return $this->taxRepository->getAllTaxes($perPage, $filters);
@@ -41,62 +41,6 @@ class TaxService
     }
 
     /**
-     * Get taxes query for Select2 AJAX search
-     */
-    public function getAllTaxesQuery(array $filters = [])
-    {
-        try {
-            return $this->taxRepository->getAllTaxesQuery($filters);
-        } catch (\Exception $e) {
-            Log::error('Error fetching taxes query: ' . $e->getMessage());
-            throw $e;
-        }
-    }
-
-    /**
-     * Search taxes for Select2 (AJAX with pagination)
-     */
-    public function searchForSelect2($search = '', $page = 1, $perPage = 30)
-    {
-        try {
-            // Build filters for active taxes with search
-            $filters = [
-                'search' => $search,
-                'active' => 1
-            ];
-
-            // Get query from repository
-            $query = $this->taxRepository->getAllTaxesQuery($filters);
-
-            // Count total for pagination
-            $total = $query->count();
-
-            // Get paginated taxes
-            $taxes = $query->skip(($page - 1) * $perPage)
-                ->take($perPage)
-                ->get();
-
-            // Format results for Select2
-            $results = $taxes->map(function ($tax) {
-                return [
-                    'id' => $tax->id,
-                    'text' => $tax->getTranslation('name', app()->getLocale()) . ' (' . $tax->tax_rate . '%)'
-                ];
-            });
-
-            return [
-                'results' => $results,
-                'pagination' => [
-                    'more' => ($page * $perPage) < $total
-                ]
-            ];
-        } catch (\Exception $e) {
-            Log::error('Error searching taxes for Select2: ' . $e->getMessage());
-            throw $e;
-        }
-    }
-
-    /**
      * Get tax by ID
      */
     public function getTaxById(int $id)
@@ -110,7 +54,7 @@ class TaxService
     }
 
     /**
-     * Create a new tax with translations
+     * Create a new tax
      */
     public function createTax(array $data)
     {
@@ -123,7 +67,7 @@ class TaxService
     }
 
     /**
-     * Update tax with translations
+     * Update tax
      */
     public function updateTax(int $id, array $data)
     {

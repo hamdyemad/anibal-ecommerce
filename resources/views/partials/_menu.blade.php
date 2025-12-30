@@ -417,6 +417,10 @@
                         <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive('admin.system-settings.push-notifications.index', $currentRoute) ? 'active' : '' }}"
                             href="{{ route('admin.system-settings.push-notifications.index') }}">
                             {{ trans('menu.push_notifications.all_notifications') }}
+                            <span class="badge badge-round ms-1"
+                                style="{{ getBadgeStyle(isMenuActive('admin.system-settings.push-notifications.index', $currentRoute)) }}">
+                                {{ \Modules\SystemSetting\app\Models\PushNotification::count() }}
+                            </span>
                         </a>
                     </li>
                     @endcan
@@ -533,15 +537,17 @@
                     <span class="toggle-icon"></span>
                 </a>
                 <ul class="px-0">
-                    @can('products.stock-setup')
-                        <li>
-                            <a class="fw-bold {{ isMenuActive('admin.products.stock-setup', $currentRoute) ? 'active' : '' }}"
-                                href="{{ route('admin.products.stock-setup') }}">
-                                {{ trans('menu.products.stock_setup') }}
-                            </a>
-                        </li>
-                    @endcan
-
+                    @if(isAdmin())
+                        @can('products.stock-setup')
+                            <li>
+                                <a class="fw-bold {{ isMenuActive('admin.products.stock-setup', $currentRoute) ? 'active' : '' }}"
+                                    href="{{ route('admin.products.stock-setup') }}">
+                                    {{ trans('menu.products.stock_setup') }}
+                                </a>
+                            </li>
+                        @endcan
+                    @endif
+                    
                     @can('products.bank')
                         <li>
                             <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive('admin.products.bank', $currentRoute) ? 'active' : '' }}"
@@ -681,7 +687,26 @@
             </li>
         @endcanany
 
-        {{-- Occasions Menu --}}
+        {{-- Taxes Menu --}}
+        @can('taxes.index')
+            <li
+                class="{{ isMenuActive(['admin.taxes.index', 'admin.taxes.create', 'admin.taxes.show', 'admin.taxes.edit'], $currentRoute) ? 'active' : '' }}">
+                <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive(['admin.taxes.index', 'admin.taxes.create', 'admin.taxes.show', 'admin.taxes.edit'], $currentRoute) ? 'active' : '' }}"
+                    href="{{ route('admin.taxes.index') }}">
+                    <span class="d-flex align-items-center">
+                        <span class="nav-icon uil uil-bill"></span>
+                        <span class="menu-text">{{ trans('menu.taxes.title') }}</span>
+                    </span>
+                    <span class="badge badge-round ms-1"
+                        style="{{ getBadgeStyle(isMenuActive(['admin.taxes.index', 'admin.taxes.create', 'admin.taxes.show', 'admin.taxes.edit'], $currentRoute)) }}">
+                        {{ \Modules\CatalogManagement\app\Models\Tax::count() }}
+                    </span>
+                </a>
+            </li>
+        @endcan
+
+        {{-- Occasions Menu (Admin Only) --}}
+        @if(isAdmin())
         @can('occasions.index')
             <li
                 class="{{ isMenuActive(['admin.occasions.index', 'admin.occasions.create', 'admin.occasions.show', 'admin.occasions.edit'], $currentRoute) ? 'active' : '' }}">
@@ -694,21 +719,14 @@
                     <span class="badge badge-round ms-1"
                         style="{{ getBadgeStyle(isMenuActive(['admin.occasions.index', 'admin.occasions.create', 'admin.occasions.show', 'admin.occasions.edit'], $currentRoute)) }}">
                         @php
-                            $occasions_count = 0;
-                            if (isAdmin()) {
-                                $occasions_count = \Modules\CatalogManagement\app\Models\Occasion::count();
-                            } else {
-                                $occasionVendor = auth()->user()->vendorByUser ?? auth()->user()->vendorById;
-                                if ($occasionVendor) {
-                                    $occasions_count = \Modules\CatalogManagement\app\Models\Occasion::where('vendor_id', $occasionVendor->id)->count();
-                                }
-                            }
+                            $occasions_count = \Modules\CatalogManagement\app\Models\Occasion::count();
                         @endphp
                         {{ $occasions_count }}
                     </span>
                 </a>
             </li>
         @endcan
+        @endif
         @can('product-reviews.index')
             @php
                 try {
@@ -760,36 +778,6 @@
                 </ul>
             </li>
         @endcan
-
-        @canany(['taxes.view', 'taxes.create'])
-            <li
-                class="has-child {{ isParentMenuOpen(['admin.taxes.index', 'admin.taxes.create', 'admin.taxes.show', 'admin.taxes.edit'], ['admin/taxes*']) ? 'open' : '' }}">
-                <a href="#"
-                    class="{{ isParentMenuOpen(['admin.taxes.index', 'admin.taxes.create', 'admin.taxes.show', 'admin.taxes.edit'], ['admin/taxes*']) ? 'active' : '' }}">
-                    <span class="nav-icon uil uil-percentage"></span>
-                    <span class="menu-text fw-bold">{{ trans('menu.taxes.title') }}</span>
-                    <span class="toggle-icon"></span>
-                </a>
-                <ul class="px-0">
-                    @can('taxes.index')
-                        <li>
-                            <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive(['admin.taxes.index', 'admin.taxes.show', 'admin.taxes.edit'], $currentRoute) ? 'active' : '' }}"
-                                href="{{ route('admin.taxes.index') }}">
-                                {{ trans('menu.taxes.all') }}
-                                <span class="badge badge-round ms-1"
-                                    style="{{ getBadgeStyle(isMenuActive(['admin.taxes.index', 'admin.taxes.show', 'admin.taxes.edit'], $currentRoute)) }}">{{ \Modules\CatalogManagement\app\Models\Tax::count() }}</span>
-                            </a>
-                        </li>
-                    @endcan
-
-                    @can('taxes.create')
-                        <li><a href="{{ route('admin.taxes.create') }}"
-                                class=" fw-bold {{ isMenuActive('admin.taxes.create', $currentRoute) ? 'active' : '' }}">{{ trans('menu.taxes.create') }}</a>
-                        </li>
-                    @endcan
-                </ul>
-            </li>
-        @endcanany
 
         @can('brands.index')
             <li>

@@ -339,15 +339,51 @@ class ProductApiController extends Controller
     public function filters(Request $request)
     {
         $filterData = $this->productService->getFilters($request->all());
+        
+        // Handle categories - could be array or collection
+        $categories = $filterData['categories'] ?? [];
+        if (is_array($categories)) {
+            // Already formatted as array (including empty array)
+            $categoriesData = $categories;
+        } elseif ($categories instanceof \Illuminate\Support\Collection || $categories instanceof \Illuminate\Database\Eloquent\Collection) {
+            // Collection of models - use resource
+            $categoriesData = $categories->isEmpty() ? [] : GeneralResoruce::collection($categories)->resolve();
+        } else {
+            $categoriesData = [];
+        }
+        
+        // Handle brands - could be array or collection
+        $brands = $filterData['brands'] ?? [];
+        if (is_array($brands)) {
+            // Already formatted as array (including empty array)
+            $brandsData = $brands;
+        } elseif ($brands instanceof \Illuminate\Support\Collection || $brands instanceof \Illuminate\Database\Eloquent\Collection) {
+            // Collection of models - use resource
+            $brandsData = $brands->isEmpty() ? [] : GeneralResoruce::collection($brands)->resolve();
+        } else {
+            $brandsData = [];
+        }
+        
+        // Handle trees - could be array or collection
+        $trees = $filterData['trees'] ?? [];
+        if (is_array($trees)) {
+            // Already formatted as array (including empty array)
+            $treesData = $trees;
+        } elseif ($trees instanceof \Illuminate\Support\Collection || $trees instanceof \Illuminate\Database\Eloquent\Collection) {
+            // Collection of models - use resource
+            $treesData = $trees->isEmpty() ? [] : VariantConfigurationKeyResource::collection($trees)->resolve();
+        } else {
+            $treesData = [];
+        }
+        
         return $this->sendRes(
             config('responses.success')[app()->getLocale()],
             true,
             [
-                // 'category_info' => (isset($filterData['category_info'])) ? GeneralResoruce::collection($filterData['category_info'])->resolve() : [],
-                'categories' => GeneralResoruce::collection($filterData['categories'])->resolve(),
-                'brands' => GeneralResoruce::collection($filterData['brands'])->resolve(),
-                'tags' => $filterData['tags'],
-                'trees' => $filterData['trees'] ? VariantConfigurationKeyResource::collection($filterData['trees'])->resolve() : [],
+                'categories' => $categoriesData,
+                'brands' => $brandsData,
+                'tags' => $filterData['tags'] ?? [],
+                'trees' => $treesData,
                 'biggest_price' => isset($filterData["price"]) ? collect($filterData['price']) : collect(),
             ],
             [],
@@ -361,22 +397,32 @@ class ProductApiController extends Controller
      */
     public function filterByType(FilterTypeRequest $request)
     {
-        $trees = $this->productService->getTreesByFilters($request->all());
-        $tress = VariantConfigurationKeyResource::collection($trees)->resolve();
-        $brandDto = BrandFilterDTO::fromRequest($request);
-        $brands = $this->brandApiService->getAllBrands($brandDto);
-        $brands = BrandApiResource::collection($brands)->resolve();
         $returnedData = [];
-        if($request->type == 'bundle') {
+        
+        if ($request->type == 'bundle') {
+            // Get bundle categories
             $bundleCategories = $this->bundleCategoryApiService->getAll($request->all(), 0);
             $bundleCategories = BundleCategoryResource::collection($bundleCategories)->resolve();
             $returnedData['bundle_categories'] = $bundleCategories;
+            
+            // Get trees and brands filtered by bundle products
+            $filterData = $this->productService->getFiltersByBundle($request->all());
         } else {
-            $occasions = $this->occasionService->getAllOccasions($request->all(), 0);
-            $returnedData['occasions'] = $occasions;
+            // Get occasions (not expired and active)
+            $filters = array_merge($request->all(), [
+                'not_expired' => true,
+                'active' => true,
+            ]);
+            $occasions = $this->occasionService->getAllOccasions($filters, 0);
+            $returnedData['occasions'] = \Modules\CatalogManagement\app\Http\Resources\OccasionResource::collection($occasions)->resolve();
+            
+            // Get trees and brands filtered by occasion products
+            $filterData = $this->productService->getFiltersByOccasion($request->all());
         }
-        $returnedData['tress'] = $tress;
-        $returnedData['brands'] = $brands;
+        
+        $returnedData['trees'] = $filterData['trees'] ?? [];
+        $returnedData['brands'] = $filterData['brands'] ?? [];
+        
         return $this->sendRes(
             config('responses.success')[app()->getLocale()],
             true,

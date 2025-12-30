@@ -28,17 +28,17 @@ class DepartmentAction {
             // Calculate page number from start offset
             $page = $perPage > 0 ? floor($start / $perPage) + 1 : 1;
 
-
-            // Get sorting parameters
-            $orderColumnIndex = $data['orderColumnIndex'] ?? 0;
-            $orderDirection = $data['orderDirection'] ?? 'desc';
+            // Get custom sorting parameters
+            $sortColumn = $data['sort_column'] ?? 'sort_number';
+            $sortDirection = $data['sort_direction'] ?? 'asc';
 
             // Get filter parameters
             $filters = [
-                'search' => $data['search'],
-                'active' => $data['active'],
-                'created_date_from' => $data['created_date_from'],
-                'created_date_to' => $data['created_date_to'],
+                'search' => $data['search'] ?? null,
+                'active' => isset($data['active']) && $data['active'] !== '' ? $data['active'] : null,
+                'view_status' => isset($data['view_status']) && $data['view_status'] !== '' ? $data['view_status'] : null,
+                'created_date_from' => $data['created_date_from'] ?? null,
+                'created_date_to' => $data['created_date_to'] ?? null,
             ];
 
             // Get languages
@@ -49,48 +49,13 @@ class DepartmentAction {
             $filteredRecords = $this->departmentService->getDepartmentsQuery($filters)->count();
 
             // Determine sort column
-            $orderBy = null;
+            $orderBy = $sortColumn;
+            $orderDirection = $sortDirection;
 
             Log::info('Department Action - Sorting Debug', [
-                'orderColumnIndex' => $orderColumnIndex,
-                'orderDirection' => $orderDirection,
-                'languagesCount' => count($languages),
-                'languages' => $languages->pluck('name', 'id')->toArray(),
-                'columnMapping' => [
-                    '0' => 'ID',
-                    '1' => 'First Language (' . ($languages->first() ? $languages->first()->name : 'N/A') . ')',
-                    '2' => 'Second Language (' . ($languages->count() > 1 ? $languages->skip(1)->first()->name : 'N/A') . ')',
-                    (count($languages) + 1) => 'Active Status',
-                    (count($languages) + 2) => 'Created At',
-                    (count($languages) + 3) => 'Actions'
-                ]
+                'sortColumn' => $sortColumn,
+                'sortDirection' => $sortDirection,
             ]);
-
-            if ($orderColumnIndex == 0) {
-                $orderBy = 'id';
-                Log::info('Department Action - Sorting by ID');
-            } elseif ($orderColumnIndex >= 1 && $orderColumnIndex <= count($languages)) {
-                // Sorting by translated name column (after ID column)
-                $languageIndex = $orderColumnIndex - 1;
-                $selectedLanguage = $languages->values()->get($languageIndex);
-                if ($selectedLanguage) {
-                    $orderBy = [
-                        'lang_id' => $selectedLanguage->id,
-                        'key' => 'name'
-                    ];
-                }
-            } elseif ($orderColumnIndex == count($languages) + 1) {
-                $orderBy = 'commission';
-                Log::info('Department Action - Sorting by Commission');
-            } elseif ($orderColumnIndex == count($languages) + 2) {
-                $orderBy = 'active';
-                Log::info('Department Action - Sorting by Active');
-            } elseif ($orderColumnIndex == count($languages) + 3) {
-                $orderBy = 'created_at';
-                Log::info('Department Action - Sorting by Created At');
-            }
-
-            Log::info('Department Action - Final Sort Config', ['orderBy' => $orderBy]);
 
             // Get departments with pagination and sorting
             $departmentsQuery = $this->departmentService->getDepartmentsQuery($filters, $orderBy, $orderDirection);
@@ -106,6 +71,8 @@ class DepartmentAction {
                     'department_id' => $department->id,
                     'image' => $department->image,
                     'commission' => $department->commission,
+                    'sort_number' => $department->sort_number ?? 0,
+                    'view_status' => $department->view_status ?? 1,
                     'translations' => [],
                     'active' => $department->active,
                     'created_at' => $department->created_at,

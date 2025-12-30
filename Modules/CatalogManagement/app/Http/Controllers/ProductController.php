@@ -5,6 +5,7 @@ namespace Modules\CatalogManagement\app\Http\Controllers;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
 use Exception;
 use Illuminate\Validation\ValidationException;
 use Modules\CatalogManagement\app\Models\Product;
@@ -55,9 +56,9 @@ class ProductController extends Controller
         protected BankService $productBankService,
     ) {
         $this->middleware('can:products.index')->only(['index', 'datatable', 'pending', 'rejected', 'accepted']);
-        $this->middleware('can:products.create')->only(['create', 'store']);
+        $this->middleware('can:products.create')->only(['create', 'store', 'searchBankProducts']);
         $this->middleware('can:products.edit')->only(['edit', 'update', 'moveToBank']);
-        $this->middleware('can:products.stock-setup')->only(['stockManagement', 'updateStockPricing']);
+        $this->middleware('can:products.stock-management')->only(['stockManagement', 'updateStockPricing']);
         $this->middleware('can:products.delete')->only(['destroy']);
         $this->middleware('can:products.show')->only(['show']);
         $this->middleware('can:products.change-status')->only(['changeStatus']);
@@ -118,7 +119,9 @@ class ProductController extends Controller
         $languages = $this->languageService->getAll();
         $brands = $this->brandService->getAllBrands([], 0);
         $brands = BrandResource::collection($brands)->resolve();
-        $taxes = $this->taxService->getAllTaxes(0, []);
+        $taxes = $this->taxService->getAllTaxes(0, [
+            'is_active' => true
+        ]);
         $taxes = TaxResource::collection($taxes)->resolve();
         // Get vendors for admin/super admin, or current vendor for vendor users
         $vendors = [];
@@ -240,7 +243,7 @@ class ProductController extends Controller
         $languages = $this->languageService->getAll();
         $brands = $this->brandService->getAllBrands([], 0);
         $brands = BrandResource::collection($brands)->resolve();
-        $taxes = $this->taxService->getAllTaxes(0, []);
+        $taxes = $this->taxService->getAllTaxes(0, ['is_active' => true]);
         $taxes = TaxResource::collection($taxes)->resolve();
         $regions = $this->regionService->getAllRegions([], 0);
         $regions = RegionResource::collection($regions)->resolve();
@@ -586,7 +589,7 @@ class ProductController extends Controller
         $regions = RegionResource::collection($regions)->resolve();
 
         // Get taxes for the global vendor product section
-        $taxes = $this->taxService->getAllTaxes(0, []);
+        $taxes = $this->taxService->getAllTaxes(0, ['is_active' => true]);
         $taxes = TaxResource::collection($taxes)->resolve();
 
         // Get variant configuration keys for the variant section
@@ -777,11 +780,37 @@ class ProductController extends Controller
                 ], 403);
             }
 
+            DB::beginTransaction();
+
             $vendorProduct = VendorProduct::withTrashed()->findOrFail($id);
+            
+            // Restore the vendor product
             $vendorProduct->restore();
 
-            Log::info('Vendor product restored', [
+            // Restore variants and their stocks
+            $variants = \Modules\CatalogManagement\app\Models\VendorProductVariant::withTrashed()
+                ->where('vendor_product_id', $id)
+                ->get();
+
+            foreach ($variants as $variant) {
+                $variant->restore();
+                
+                // Restore stocks for this variant
+                \Modules\CatalogManagement\app\Models\VendorProductVariantStock::withTrashed()
+                    ->where('vendor_product_variant_id', $variant->id)
+                    ->restore();
+            }
+
+            // Also restore the product if it was soft-deleted
+            if ($vendorProduct->product && $vendorProduct->product->trashed()) {
+                $vendorProduct->product->restore();
+            }
+
+            DB::commit();
+
+            Log::info('Vendor product restored with variants and stocks', [
                 'vendor_product_id' => $id,
+                'variants_count' => $variants->count(),
                 'restored_by' => auth()->id()
             ]);
 
@@ -791,6 +820,8 @@ class ProductController extends Controller
             ]);
 
         } catch (Exception $e) {
+            DB::rollBack();
+            
             Log::error('Restore vendor product failed', [
                 'vendor_product_id' => $id,
                 'error' => $e->getMessage(),
@@ -800,6 +831,45 @@ class ProductController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => __('catalogmanagement::product.error_restoring_vendor_product')
+            ], 500);
+        }
+    }
+
+    /**
+     * Search bank products for product creation
+     * This endpoint is accessible to users with products.create permission
+     */
+    public function searchBankProducts(Request $request)
+    {
+        try {
+            $search = $request->get('search', '');
+            $vendorId = $request->get('vendor_id');
+            $perPage = (int) $request->get('per_page', 20);
+
+            // Don't exclude vendor's existing products - let them select any bank product
+            // The exclude_vendor_id in the repository filters by vendor's departments
+            $products = $this->productBankService->getAllBankProducts([
+                'search' => $search,
+                'vendor_id' => $vendorId, // Use vendor_id to filter by departments only
+            ], $perPage);
+
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'products' => \Modules\CatalogManagement\app\Http\Resources\BankProductResource::collection($products->items()),
+                    'current_page' => $products->currentPage(),
+                    'last_page' => $products->lastPage(),
+                    'total' => $products->total()
+                ]
+            ]);
+        } catch (Exception $e) {
+            Log::error('Search bank products error: ' . $e->getMessage(), [
+                'search' => $request->get('search'),
+                'vendor_id' => $request->get('vendor_id'),
+            ]);
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
             ], 500);
         }
     }

@@ -2,7 +2,7 @@
 
     return [
         'dashboard' => [
-            'title' => 'dashboard'
+            'title' => 'Dashboard'
         ],
         'vendors' => [
             'title' => 'vendors',

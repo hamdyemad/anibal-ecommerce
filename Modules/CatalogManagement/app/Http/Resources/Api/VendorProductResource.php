@@ -64,7 +64,7 @@ class VendorProductResource extends JsonResource
             'brand' => $this->whenLoaded('product', function() {
                 return $this->product->brand ? GeneralResoruce::make($this->product->brand) : null;
             }),
-            'tax' => TaxResource::make($this->whenLoaded('tax')),
+            'taxes' => TaxResource::collection($this->whenLoaded('taxes')),
             'variants' => VendorProductVariantResource::collection($this->whenLoaded('variants')),
             'department' => $this->when($this->relationLoaded('product') && $this->product?->relationLoaded('department'), function() {
                 return LightDepartmentApiResource::make($this->product->department);

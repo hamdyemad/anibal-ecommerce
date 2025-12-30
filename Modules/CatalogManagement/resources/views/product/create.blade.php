@@ -51,6 +51,30 @@
                         <!-- Validation Alerts Container -->
                         <div id="validation-alerts-container" class="mb-3"></div>
 
+                        <!-- Tax Information Alert -->
+                        @if(isset($taxes) && count($taxes) > 0)
+                        <div class="mb-4">
+                            <div class="p-3 rounded" style="background: rgba(255, 193, 7, 0.1); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid rgba(255, 193, 7, 0.3); box-shadow: 0 4px 15px rgba(255, 193, 7, 0.1);">
+                                <div class="d-flex align-items-start gap-3">
+                                    <div class="p-2 rounded-circle d-flex align-items-center justify-content-center" style="background: rgba(255, 193, 7, 0.2); min-width: 40px; height: 40px;">
+                                        <i class="uil uil-exclamation-triangle fs-5" style="color: #ffc107;"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-2 fw-bold" style="color: #856404;">{{ __('catalogmanagement::product.tax_notice') }}</h6>
+                                        <p class="mb-2 small" style="color: #856404;">{{ __('catalogmanagement::product.tax_notice_description') }}</p>
+                                        <div class="d-flex flex-wrap gap-2">
+                                            @foreach($taxes as $tax)
+                                                <span class="badge badge-round badge-lg px-3 py-2" style="background: rgba(255, 193, 7, 0.2); color: #856404; font-size: 13px;">
+                                                    {{ $tax['name'] ?? __('catalogmanagement::product.tax') }} ({{ $tax['percentage'] }}%)
+                                                </span>
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        @endif
+
                         <!-- Form -->
                         <form id="productForm" method="POST"
                             action="{{ isset($product) ? route('admin.products.update', $product->product ? $product->product->id : $product->id) : route('admin.products.store') }}"
@@ -104,7 +128,7 @@
                                             <div class="col-md-12">
                                                 <div class="form-group">
                                                     <label
-                                                        class="form-label d-block">{{ __('catalogmanagement::product.is_product_from_bank') }}?</label>
+                                                        class="form-label d-block">{{ __('catalogmanagement::product.is_product_from_bank') }}</label>
                                                     <div class="form-check form-switch form-switch-lg">
                                                         <input class="form-check-input" type="checkbox" role="switch"
                                                             id="is_bank_product" name="is_bank_product" value="1">
@@ -217,7 +241,7 @@
                                                         class="form-control ih-medium ip-gray radius-xs b-light px-15"
                                                         placeholder="{{ __('catalogmanagement::product.sku') }}"
                                                         value="{{ isset($product) ? $product->sku : '' }}">
-                                                    <div class="invalid-feedback" id="error-sku"></div>
+                                                    <div class="error-message text-danger" id="error-sku" style="display: none;"></div>
                                                 </div>
                                             </div>
 
@@ -311,35 +335,6 @@
                                                         style="display: none;"></div>
                                                 </div>
                                             </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Card 4: Logistics & Taxes -->
-                                <div class="card mb-4">
-                                    <div class="card-body">
-                                        <h5 class="mb-4">
-                                            <i class="uil uil-truck"></i>
-                                            {{ __('common.logistics') }}
-                                        </h5>
-                                        <div class="row">
-                                            <div class="col-md-6 mb-3">
-                                                <div class="form-group">
-                                                    <label for="tax_id"
-                                                        class="form-label">{{ __('catalogmanagement::product.tax') }}
-                                                        <span class="text-danger">*</span>
-                                                    </label>
-                                                    <select name="tax_id" id="tax_id" class="form-control select2">
-                                                        <option value="">{{ __('common.select_option') }}</option>
-                                                        @foreach ($taxes as $tax)
-                                                            <option value="{{ $tax['id'] }}"
-                                                                {{ isset($product) && $product->tax_id == $tax['id'] ? 'selected' : '' }}>
-                                                                {{ $tax['name'] }} ({{ $tax['percentage'] }}%)</option>
-                                                        @endforeach
-                                                    </select>
-                                                </div>
-                                            </div>
-
                                             <div class="col-md-6 mb-3">
                                                 <div class="form-group">
                                                     <label for="max_per_order"
@@ -667,7 +662,7 @@
                                                     {{ __('catalogmanagement::product.product_variants') }}
                                                 </div>
                                                 <button type="button" id="add-variant-btn"
-                                                    class="btn btn-primary btn-sm">
+                                                    class="btn btn-white btn-sm">
                                                     <i class="uil uil-plus"></i>
                                                     {{ __('catalogmanagement::product.add_variant') }}
                                                 </button>
@@ -1241,13 +1236,6 @@
                             $('#error-category_id').text('{{ __('catalogmanagement::product.category_required') }}')
                                 .show();
                             $('#category_id').next('.select2').find('.select2-selection').addClass('is-invalid');
-                            isValid = false;
-                        }
-
-                        // Tax validation
-                        if (!$('#tax_id').val()) {
-                            $('#error-tax_id').text('{{ __('catalogmanagement::product.tax_required') }}').show();
-                            $('#tax_id').next('.select2').find('.select2-selection').addClass('is-invalid');
                             isValid = false;
                         }
 
@@ -1963,12 +1951,17 @@
             function loadVariantKeys() {
                 console.log('🔑 Loading variant keys from API...');
 
+                const countryId = $("meta[name='current_country_id']").attr("content");
+
                 $.ajax({
                     url: '{{ route('admin.api.variant-keys') }}',
                     type: 'GET',
                     headers: {
                         'lang': "{{ app()->getLocale() }}",
                         'X-Country-Code': $("meta[name='currency_country_code']").attr('content'),
+                    },
+                    data: {
+                        country_id: countryId
                     },
                     dataType: 'json',
                     success: function(response) {
@@ -2025,6 +2018,8 @@
                 // Store keyId in the variant box for later use
                 $(`#variant-${variantIndex}`).data('current-key-id', keyId);
 
+                const countryId = $("meta[name='current_country_id']").attr("content");
+
                 $.ajax({
                     url: '{{ route('admin.api.variants-by-key') }}',
                     type: 'GET',
@@ -2035,6 +2030,7 @@
                     },
                     data: {
                         key_id: keyId,
+                        country_id: countryId,
                     },
                     success: function(response) {
                         const variants = response.data || response;
@@ -2100,6 +2096,8 @@
                     }
                 });
 
+                const countryId = $("meta[name='current_country_id']").attr("content");
+
                 $.ajax({
                     url: '{{ route('admin.api.variants-by-key') }}',
                     type: 'GET',
@@ -2110,7 +2108,8 @@
                     },
                     data: {
                         key_id: keyId,
-                        parent_id: parentId
+                        parent_id: parentId,
+                        country_id: countryId
                     },
                     success: function(response) {
                         const variants = response.data || response;
@@ -2290,7 +2289,7 @@
                     $('#products-list-container').hide();
 
                     $.ajax({
-                        url: '{{ route('admin.products.bank.api.products') }}',
+                        url: '{{ route('admin.products.search-bank-products') }}',
                         type: 'GET',
                         data: {
                             type: 'search',
@@ -2323,7 +2322,7 @@
                                 data-product='${JSON.stringify(product).replace(/'/g, "&apos;")}'>
                                 <div class="d-flex w-100 justify-content-between align-items-center">
                                     <div class="d-flex align-items-center">
-                                        <img src="${product.image || '/assets/img/default.png'}" class="me-2" style="width: 40px; height: 40px; object-fit: cover; border-radius: 4px;">
+                                        <img src="${product.image || '/assets/img/default.png'}" class="me-2" style="width: 40px; height: 40px; border-radius: 4px;">
                                         <div>
                                             <h6 class="mb-0">${product.name}</h6>
                                             <small class="text-muted">${product.brand || ''} | ${product.category || ''}</small>
@@ -2647,7 +2646,7 @@
                     urls.forEach(url => {
                         $container.append(`
                             <div class="gallery-item" style="width: 100px; height: 100px; border: 1px solid #ddd; border-radius: 4px; overflow: hidden; cursor: pointer;">
-                                <img src="${url}" class="lightbox-trigger" style="width: 100%; height: 100%; object-fit: cover;">
+                                <img src="${url}" class="lightbox-trigger" style="width: 100%; height: 100%;">
                             </div>
                         `);
                     });
@@ -2802,13 +2801,6 @@
                     if ($(this).val()) {
                         $(this).next('.select2').find('.select2-selection').removeClass('is-invalid');
                         $('#error-category_id').hide();
-                    }
-                });
-
-                $('#tax_id').on('change', function() {
-                    if ($(this).val()) {
-                        $(this).next('.select2').find('.select2-selection').removeClass('is-invalid');
-                        $('#error-tax_id').hide();
                     }
                 });
 

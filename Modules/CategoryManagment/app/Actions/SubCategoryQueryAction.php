@@ -10,9 +10,11 @@ class SubCategoryQueryAction
     {
         $query = SubCategory::query()
                     ->active()
+                    ->where('view_status', 1)
                     ->withCount('activeProducts')
                     ->with(['category','category.department', 'translations'])
-                    ->filter($filters);
+                    ->filter($filters)
+                    ->orderBy('sort_number', 'asc');
         return $query;
     }
 }

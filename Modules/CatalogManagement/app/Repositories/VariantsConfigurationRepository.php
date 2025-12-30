@@ -46,6 +46,12 @@ class VariantsConfigurationRepository implements VariantsConfigurationRepository
     public function create(array $data)
     {
         return DB::transaction(function () use ($data) {
+            \Log::info('VariantsConfiguration Create Request', [
+                'data' => $data,
+                'value' => $data['value'] ?? 'NOT SET',
+                'type' => $data['type'] ?? 'NOT SET'
+            ]);
+            
             // Create the variant configuration
             $variantConfig = VariantsConfiguration::create([
                 'key_id' => $data['key_id'] ?? null,
@@ -148,7 +154,8 @@ class VariantsConfigurationRepository implements VariantsConfigurationRepository
      */
     public function getVariantKeysForApi()
     {
-        $keys = \Modules\CatalogManagement\app\Models\VariantConfigurationKey::with('translations')
+        $keys = \Modules\CatalogManagement\app\Models\VariantConfigurationKey::withoutGlobalScopes()
+            ->with('translations')
             ->get();
 
         \Log::info('Found keys count: ' . $keys->count());
@@ -170,7 +177,8 @@ class VariantsConfigurationRepository implements VariantsConfigurationRepository
      */
     public function getVariantsByKeyForApi($keyId, $parentId = null)
     {
-        $query = VariantsConfiguration::with(['translations', 'children.translations'])
+        $query = VariantsConfiguration::withoutGlobalScopes()
+            ->with(['translations', 'children.translations'])
             ->where('key_id', $keyId);
 
         // If parent_id is provided, get children of that parent

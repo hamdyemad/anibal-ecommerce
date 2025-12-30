@@ -14,12 +14,12 @@ class CartQueryAction
         $query = Cart::query()
             ->byCustomer($customerId)
             ->with([
-                'vendorProduct.product',
+                'vendorProduct.product.category',
                 'vendorProduct.vendor',
-                'vendorProduct.tax',
+                'vendorProduct.taxes',
                 'vendorProductVariant',
-                // 'bundle',
-                // 'occasion'
+                'bundle.bundleProducts',
+                'occasion.occasionProducts'
             ])
             ->orderBy('created_at', 'desc')
             ->filter($filters);

@@ -31,6 +31,11 @@ class SubCategoryRepository implements SubCategoryRepositoryInterface
             $query->where('active', $filters['active']);
         }
 
+        // View status filter
+        if (isset($filters['view_status']) && $filters['view_status'] !== '') {
+            $query->where('view_status', $filters['view_status']);
+        }
+
         // Category filter
         if (!empty($filters['category_id'])) {
             $query->where('category_id', $filters['category_id']);
@@ -62,66 +67,12 @@ class SubCategoryRepository implements SubCategoryRepositoryInterface
      */
     public function getSubCategoriesQuery(array $filters = [])
     {
-        $query = SubCategory::with(['translations', 'category']);
+        $orderBy = $filters['orderBy'] ?? null;
+        $sortBy = $filters['sortBy'] ?? 'asc';
 
-        \Log::info('SubCategory Repository - Query Start', ['filters' => $filters]);
-
-        // Search filter
-        if (!empty($filters['search'])) {
-            $search = $filters['search'];
-            \Log::info('SubCategory Repository - Applying search filter', ['search' => $search]);
-            $query->where(function($q) use ($search) {
-                $q->whereHas('translations', function($query) use ($search) {
-                    $query->where('lang_key', 'name')
-                          ->where('lang_value', 'like', "%{$search}%");
-                });
-            });
-        }
-
-        // Active filter
-        if (isset($filters['active']) && $filters['active'] !== '') {
-            $query->where('active', $filters['active']);
-        }
-
-        // Category filter
-        if (!empty($filters['category_id'])) {
-            $query->where('category_id', $filters['category_id']);
-        }
-
-        // Date from filter
-        if (!empty($filters['created_date_from'])) {
-            $query->whereDate('created_at', '>=', $filters['created_date_from']);
-        }
-
-        // Date to filter
-        if (!empty($filters['created_date_to'])) {
-            $query->whereDate('created_at', '<=', $filters['created_date_to']);
-        }
-
-        // Apply sorting
-        if(!empty($filters['orderBy'])) {
-            $sortBy = $filters['sortBy'] ?? 'desc';
-            if (is_array($filters['orderBy']) && isset($filters['orderBy']['lang_id'])) {
-                // Sort by translation using subquery to avoid duplicates
-                $langId = $filters['orderBy']['lang_id'];
-                $query->orderByRaw("(
-                    SELECT lang_value
-                    FROM translations
-                    WHERE translations.translatable_id = sub_categories.id
-                    AND translations.translatable_type = 'Modules\\\\CategoryManagment\\\\app\\\\Models\\\\SubCategory'
-                    AND translations.lang_id = {$langId}
-                    AND translations.lang_key = 'name'
-                    LIMIT 1
-                ) {$sortBy}");
-            } else {
-                // Sort by regular column
-                $query->orderBy($filters['orderBy'], $sortBy);
-            }
-        } else {
-            $query->orderBy('created_at', 'desc');
-        }
-
-        return $query;
+        return SubCategory::with(['translations', 'category'])
+            ->filter($filters)
+            ->sorted($orderBy, $sortBy, 'sort_number', 'asc');
     }
 
     /**
@@ -148,6 +99,8 @@ class SubCategoryRepository implements SubCategoryRepositoryInterface
         $subCategory = SubCategory::create([
             'category_id' => $data['category_id'],
             'active' => $data['active'] ?? 1,
+            'sort_number' => $data['sort_number'] ?? 0,
+            'view_status' => $data['view_status'] ?? 1,
         ]);
 
         // Store translations
@@ -201,11 +154,13 @@ class SubCategoryRepository implements SubCategoryRepositoryInterface
         $updatedData = [];
         (isset($data['category_id'])) ? $updatedData['category_id'] = $data['category_id'] : null;
         if(isset($data['active'])) {
-            if($data['active'] == 1) {
-                $updatedData['active'] = 1;
-            } else {
-                $updatedData['active'] = 0;
-            }
+            $updatedData['active'] = $data['active'] == 1 ? 1 : 0;
+        }
+        if(isset($data['sort_number'])) {
+            $updatedData['sort_number'] = (int) $data['sort_number'];
+        }
+        if(isset($data['view_status'])) {
+            $updatedData['view_status'] = $data['view_status'] == 1 ? 1 : 0;
         }
         $subCategory->update($updatedData);
 

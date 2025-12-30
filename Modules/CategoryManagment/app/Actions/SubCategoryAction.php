@@ -30,15 +30,16 @@ class SubCategoryAction {
             // Calculate page number from start offset
             $page = $perPage > 0 ? floor($start / $perPage) + 1 : 1;
 
-            // Get sorting parameters
-            $sortType = $data['sort_type'] ?? 'id';
-            $sortBy = $data['sort_by'] ?? 'desc';
+            // Get custom sorting parameters
+            $sortColumn = $data['sort_column'] ?? 'sort_number';
+            $sortDirection = $data['sort_direction'] ?? 'asc';
 
             // Get filter parameters
             $filters = [
                 'search' => $data['search'] ?? null,
                 'category_id' => $data['category_id'] ?? null,
-                'active' => $data['active'] ?? null,
+                'active' => isset($data['active']) && $data['active'] !== '' ? $data['active'] : null,
+                'view_status' => isset($data['view_status']) && $data['view_status'] !== '' ? $data['view_status'] : null,
                 'created_date_from' => $data['created_date_from'] ?? null,
                 'created_date_to' => $data['created_date_to'] ?? null,
             ];
@@ -50,30 +51,17 @@ class SubCategoryAction {
             $totalRecords = $this->subCategoryRepositoryInterface->getSubCategoriesQuery([])->count();
             $filteredRecords = $this->subCategoryRepositoryInterface->getSubCategoriesQuery($filters)->count();
 
-            // Determine sort column based on sort_type
-            $orderBy = null;
-            if ($sortType == 'id') {
-                $orderBy = 'id';
-            } elseif (str_starts_with($sortType, 'name_')) {
-                // Sorting by translated name column (e.g., name_en, name_ar)
-                $languageCode = str_replace('name_', '', $sortType);
-                $selectedLanguage = $languages->firstWhere('code', $languageCode);
-                if ($selectedLanguage) {
-                    $orderBy = [
-                        'lang_id' => $selectedLanguage->id,
-                        'key' => 'name'
-                    ];
-                }
-            } elseif ($sortType == 'category') {
-                $orderBy = 'category_id';
-            } elseif ($sortType == 'active') {
-                $orderBy = 'active';
-            } elseif ($sortType == 'created_at') {
-                $orderBy = 'created_at';
-            }
+            // Determine sort column
+            $orderBy = $sortColumn;
+            $orderDirection = $sortDirection;
+
+            Log::info('SubCategoryAction - Sorting Debug', [
+                'sortColumn' => $sortColumn,
+                'sortDirection' => $sortDirection,
+            ]);
 
             $filters['orderBy'] = $orderBy;
-            $filters['sortBy'] = $sortBy;
+            $filters['sortBy'] = $orderDirection;
             // Get subcategories with pagination and sorting
             $subCategoriesQuery = $this->subCategoryRepositoryInterface->getSubCategoriesQuery($filters);
             $subCategoriesPaginated = $subCategoriesQuery->paginate($perPage, ['*'], 'page', $page);
@@ -88,6 +76,8 @@ class SubCategoryAction {
                     'id' => $subCategory->id,
                     'translations' => [],
                     'category' => null,
+                    'sort_number' => $subCategory->sort_number,
+                    'view_status' => $subCategory->view_status,
                     'active' => $subCategory->active,
                     'created_at' => $subCategory->created_at,
                 ];

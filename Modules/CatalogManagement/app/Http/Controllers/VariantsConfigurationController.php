@@ -23,11 +23,13 @@ class VariantsConfigurationController extends Controller
         protected VariantsConfigurationAction $variantsConfigAction,
         protected LanguageService $languageService
     ) {
-        $this->middleware('can:variants-configurations.index')->only(['index', 'datatable', 'tree', 'getKeyTree', 'getVariantKeys', 'getVariantsByKey', 'getParentsByKey']);
+        $this->middleware('can:variants-configurations.index')->only(['index', 'datatable', 'tree', 'getParentsByKey']);
         $this->middleware('can:variants-configurations.create')->only(['create', 'store']);
         $this->middleware('can:variants-configurations.edit')->only(['edit', 'update']);
         $this->middleware('can:variants-configurations.delete')->only(['destroy']);
         $this->middleware('can:variants-configurations.show')->only(['show']);
+        // Note: getVariantKeys, getVariantsByKey, and getKeyTree are API endpoints used by product forms
+        // They should be accessible to anyone who can create/edit products
     }
 
     /**
@@ -229,6 +231,95 @@ class VariantsConfigurationController extends Controller
                 'message' => $e->getMessage()
             ], 500);
         }
+    }
+
+    /**
+     * Get variant configuration tree by variant ID
+     * Returns the full tree from key with all variants at each level (for product form)
+     */
+    public function getVariantTree(string $id)
+    {
+        try {
+            $variant = $this->variantsConfigService->findById($id);
+
+            if (!$variant) {
+                return response()->json([
+                    'error' => 'Variant configuration not found'
+                ], 404);
+            }
+
+            // Get the path from root to this variant (to know which ones are selected)
+            $selectedPath = $this->getSelectedPath($variant);
+
+            // Build the full tree starting from the key
+            $result = [
+                'id' => $variant->key ? $variant->key->id : null,
+                'name' => $variant->key ? $variant->key->getTranslation('name', app()->getLocale()) : null,
+                'type' => 'key',
+                'selected_variant_id' => $id,
+                'selected_path' => $selectedPath,
+                'children' => $this->buildFullVariantTree($variant->key_id, null, $selectedPath),
+            ];
+
+            return response()->json($result);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Error loading variant tree',
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get the path of selected variant IDs from root to target
+     */
+    private function getSelectedPath($variant)
+    {
+        $path = [];
+        $current = $variant;
+        
+        while ($current) {
+            array_unshift($path, $current->id);
+            $current = $current->parent_data;
+        }
+        
+        return $path;
+    }
+
+    /**
+     * Build full variant tree with all siblings at each level
+     */
+    private function buildFullVariantTree($keyId, $parentId = null, $selectedPath = [])
+    {
+        // Get all variants at this level
+        $variants = VariantsConfiguration::with(['translations', 'children'])
+            ->where('key_id', $keyId)
+            ->when($parentId === null, function($q) {
+                $q->whereNull('parent_id');
+            }, function($q) use ($parentId) {
+                $q->where('parent_id', $parentId);
+            })
+            ->get();
+
+        return $variants->map(function($variant) use ($selectedPath) {
+            $isSelected = in_array($variant->id, $selectedPath);
+            $hasChildren = $variant->children->count() > 0;
+            
+            return [
+                'id' => $variant->id,
+                'name' => $variant->getTranslation('name', app()->getLocale()),
+                'value' => $variant->value,
+                'type' => $variant->type,
+                'color' => $variant->type === 'color' ? $variant->value : null,
+                'is_selected' => $isSelected,
+                'has_children' => $hasChildren,
+                'children_count' => $variant->children->count(),
+                // Only load children for selected path to keep response size manageable
+                'children' => $isSelected && $hasChildren 
+                    ? $this->buildFullVariantTree($variant->key_id, $variant->id, $selectedPath)
+                    : [],
+            ];
+        })->toArray();
     }
 
     /**

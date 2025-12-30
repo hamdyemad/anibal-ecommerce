@@ -216,6 +216,7 @@ return [
     'trashed' => 'Trashed',
     'restore' => 'Restore',
     'no_data_available' => 'No Data Available',
+    'guest' => 'Guest',
     'drag_to_reorder' => 'Drag to reorder',
     'order_updated_successfully' => 'Order updated successfully',
     'error_updating_order' => 'Error updating order',
@@ -234,4 +235,20 @@ return [
     'no_roles_found' => 'No roles found',
     'error_loading_roles' => 'Error loading roles',
     'vendor_country_restriction' => 'You can only access your assigned country.',
+    'visible' => 'Visible',
+    'hidden' => 'Hidden',
+    
+    // Drag and Drop
+    'drag_drop_info' => 'Drag and drop rows to reorder. Changes will be saved automatically.',
+    'drag_drop_disabled_info' => 'Drag and drop is only available when sorting by Sort Number (Ascending).',
+    'drag_to_reorder' => 'Drag to reorder',
+    'reorder_success' => 'Order updated successfully',
+    'reorder_error' => 'Failed to update order',
+    
+    // Sorting
+    'sort_by' => 'Sort By',
+    'sort_direction' => 'Sort Direction',
+    'sort_number' => 'Sort Number',
+    'ascending' => 'Ascending',
+    'descending' => 'Descending',
 ];

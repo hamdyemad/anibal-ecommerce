@@ -353,6 +353,7 @@
                                     <th><span class="userDatatable-title">{{ trans('systemsetting::points.type') }}</span></th>
                                     <th class="text-center"><span class="userDatatable-title">{{ trans('systemsetting::points.points') }}</span></th>
                                     <th><span class="userDatatable-title">{{ trans('systemsetting::points.description') }}</span></th>
+                                    <th class="text-center"><span class="userDatatable-title">{{ trans('common.actions') }}</span></th>
                                 </tr>
                             </thead>
                             <tbody></tbody>
@@ -428,6 +429,57 @@
                     </button>
                     <button type="button" class="btn btn-primary" id="submitAdjustPoints">
                         <i class="uil uil-check me-1"></i>{{ trans('common.save') }}
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- View Transaction Modal -->
+    <div class="modal fade" id="viewTransactionModal" tabindex="-1" aria-labelledby="viewTransactionModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-info text-white">
+                    <h5 class="modal-title text-white" id="viewTransactionModalLabel">
+                        <i class="uil uil-eye me-2"></i>{{ trans('systemsetting::points.transaction_details') }}
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="transaction-details">
+                        <div class="row mb-3">
+                            <div class="col-5 fw-bold text-muted">{{ trans('systemsetting::points.transaction_id') }}:</div>
+                            <div class="col-7" id="viewTransactionId">-</div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-5 fw-bold text-muted">{{ trans('systemsetting::points.date') }}:</div>
+                            <div class="col-7" id="viewTransactionDate">-</div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-5 fw-bold text-muted">{{ trans('systemsetting::points.type') }}:</div>
+                            <div class="col-7" id="viewTransactionType">-</div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-5 fw-bold text-muted">{{ trans('systemsetting::points.points') }}:</div>
+                            <div class="col-7" id="viewTransactionPoints">-</div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-5 fw-bold text-muted">{{ trans('systemsetting::points.description') }}:</div>
+                            <div class="col-7" id="viewTransactionDescription">-</div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-5 fw-bold text-muted">{{ trans('systemsetting::points.related_to') }}:</div>
+                            <div class="col-7" id="viewTransactionRelated">-</div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-5 fw-bold text-muted">{{ trans('systemsetting::points.expires_at') }}:</div>
+                            <div class="col-7" id="viewTransactionExpires">-</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="uil uil-times me-1"></i>{{ trans('common.close') }}
                     </button>
                 </div>
             </div>
@@ -514,6 +566,29 @@
                         render: function(data) {
                             return data || '-';
                         }
+                    },
+                    {
+                        data: null,
+                        name: 'actions',
+                        orderable: false,
+                        searchable: false,
+                        className: 'text-center d-flex',
+                        render: function(data, type, row) {
+                            return `<button type="button" class="btn btn-info btn-sm view-transaction-btn" 
+                                        data-id="${row.id}"
+                                        data-date="${row.created_at || '-'}"
+                                        data-type="${row.type}"
+                                        data-type-label="${row.type_label}"
+                                        data-points="${row.points}"
+                                        data-description="${row.full_description || row.description || '-'}"
+                                        data-related="${row.transactionable_type || '-'}"
+                                        data-related-id="${row.transactionable_id || '-'}"
+                                        data-order-number="${row.order_number || ''}"
+                                        data-expires="${row.expires_at || '-'}"
+                                        title="{{ trans('common.view') }}">
+                                        <i class="uil uil-eye m-0"></i>
+                                    </button>`;
+                        }
                     }
                 ],
                 pageLength: per_page,
@@ -581,6 +656,73 @@
             // Set user ID when modal is shown
             $('#adjustPointsModal').on('show.bs.modal', function() {
                 document.getElementById('adjustUserId').value = userId;
+            });
+
+            // Handle view transaction button click
+            $(document).on('click', '.view-transaction-btn', function() {
+                const btn = $(this);
+                
+                // Populate modal with transaction data
+                $('#viewTransactionId').text(btn.data('id'));
+                $('#viewTransactionDate').text(btn.data('date'));
+                
+                // Type with badge
+                let typeLabel = btn.data('type-label');
+                let type = btn.data('type');
+                let badgeClass = 'type-adjusted';
+                if (type === 'earned') badgeClass = 'type-earned';
+                else if (type === 'redeemed') badgeClass = 'type-redeemed';
+                else if (type === 'expired') badgeClass = 'type-expired';
+                $('#viewTransactionType').html(`<span class="type-badge ${badgeClass}">${typeLabel}</span>`);
+                
+                // Points with color
+                let points = btn.data('points');
+                let pointsClass = parseFloat(points) >= 0 ? 'points-positive' : 'points-negative';
+                $('#viewTransactionPoints').html(`<span class="${pointsClass}">${points}</span>`);
+                
+                $('#viewTransactionDescription').text(btn.data('description'));
+                
+                // Related to (transactionable)
+                let relatedType = btn.data('related');
+                let relatedId = btn.data('related-id');
+                let orderNumber = btn.data('order-number');
+                
+                // Translation strings
+                const orderLabel = '@lang("order::order.order")';
+                const customerLabel = '@lang("customer::customer.customer")';
+                const adjustmentLabel = '@lang("systemsetting::points.manual_adjustment")';
+                const automaticEarnedLabel = '@lang("systemsetting::points.automatic_earned")';
+                
+                let displayText = '-';
+                
+                if (type === 'earned') {
+                    // Earned points - show order if available, otherwise automatic earned
+                    if (relatedType && (relatedType.includes('Order') || relatedType === 'order_checkout') && orderNumber) {
+                        displayText = orderLabel + ' #' + orderNumber;
+                    } else {
+                        displayText = automaticEarnedLabel;
+                    }
+                } else if (type === 'redeemed') {
+                    // Redeemed points - show order
+                    if (relatedType && (relatedType.includes('Order') || relatedType === 'order_checkout')) {
+                        if (orderNumber) {
+                            displayText = orderLabel + ' #' + orderNumber;
+                        } else if (relatedId && relatedId != 0) {
+                            displayText = orderLabel + ' #' + relatedId;
+                        }
+                    }
+                } else if (type === 'adjusted') {
+                    // Adjusted points - manual adjustment
+                    displayText = adjustmentLabel;
+                } else if (relatedType && relatedType.includes('Customer')) {
+                    displayText = customerLabel + ' #' + relatedId;
+                }
+                
+                $('#viewTransactionRelated').text(displayText);
+                $('#viewTransactionExpires').text(btn.data('expires'));
+                
+                // Show modal
+                new bootstrap.Modal(document.getElementById('viewTransactionModal')).show();
             });
 
             // Clear validation errors

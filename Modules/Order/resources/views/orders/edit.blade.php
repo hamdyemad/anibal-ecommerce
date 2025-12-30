@@ -231,6 +231,42 @@
                                     <div class="col-md-6 mb-25">
                                         <div class="form-group">
                                             <label class="il-gray fs-14 fw-500 mb-10 d-block">
+                                                {{ trans('order.city') }}
+                                                <span class="text-danger">*</span>
+                                            </label>
+                                            <select
+                                                class="form-control ih-medium ip-gray radius-xs b-light px-15 form-select"
+                                                id="external_city_id" name="external_city_id">
+                                                <option value="">{{ __('common.select') }}</option>
+                                            </select>
+                                            @error('external_city_id')
+                                                <div class="invalid-feedback d-block">{{ $message }}</div>
+                                            @enderror
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6 mb-25">
+                                        <div class="form-group">
+                                            <label class="il-gray fs-14 fw-500 mb-10 d-block">
+                                                {{ trans('order.region') }}
+                                                <span class="text-danger">*</span>
+                                            </label>
+                                            <select
+                                                class="form-control ih-medium ip-gray radius-xs b-light px-15 form-select"
+                                                id="external_region_id" name="external_region_id" disabled>
+                                                <option value="">{{ __('common.select') }}</option>
+                                            </select>
+                                            @error('external_region_id')
+                                                <div class="invalid-feedback d-block">{{ $message }}</div>
+                                            @enderror
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-6 mb-25">
+                                        <div class="form-group">
+                                            <label class="il-gray fs-14 fw-500 mb-10 d-block">
                                                 {{ trans('order.customer_address') }}
                                                 <span class="text-danger">*</span>
                                             </label>
@@ -303,6 +339,8 @@
                             <input type="hidden" id="selected_product_price" value="">
                             <input type="hidden" id="selected_product_limitation" value="">
                             <input type="hidden" id="selected_product_tax_rate" value="">
+                            <input type="hidden" id="selected_product_taxes_info" value="">
+                            <input type="hidden" id="selected_product_unit_price_before_tax" value="">
                             <input type="hidden" id="selected_product_category_id" value="">
                             <input type="hidden" id="selected_product_category_name" value="">
                             <input type="hidden" id="selected_product_sku" value="">
@@ -358,14 +396,21 @@
                         <span class="fw-500" id="subtotal">0.00 {{ currency() }}</span>
                     </div>
 
-                    {{-- Shipping Cost --}}
+                    {{-- Promo Code Discount (Read-only display) - After Subtotal --}}
+                    @if($order->customer_promo_code_amount > 0)
                     <div class="d-flex justify-content-between align-items-center mb-15 pb-15 border-bottom">
                         <div class="d-flex align-items-center">
-                            <i class="uil uil-truck text-info me-2" style="font-size: 18px;"></i>
-                            <span class="fw-500">{{ trans('order.shipping') }}</span>
+                            <i class="uil uil-tag-alt text-success me-2" style="font-size: 18px;"></i>
+                            <span class="fw-500">
+                                {{ trans('order::order.promo_discount') }}
+                                @if($order->customer_promo_code_title)
+                                    <small class="text-muted">({{ $order->customer_promo_code_title }})</small>
+                                @endif
+                            </span>
                         </div>
-                        <span class="fw-500" id="shippingDisplay">0.00 {{ currency() }}</span>
+                        <span class="fw-500 text-danger">-{{ number_format($order->customer_promo_code_amount, 2) }} {{ currency() }}</span>
                     </div>
+                    @endif
 
                     {{-- Total Tax --}}
                     <div class="d-flex justify-content-between align-items-center mb-15 pb-15 border-bottom d-none"
@@ -375,6 +420,15 @@
                             <span class="fw-500">{{ trans('order.tax') }}</span>
                         </div>
                         <span class="fw-500" id="totalTax">0.00 {{ __('common.currency') }}</span>
+                    </div>
+
+                    {{-- Shipping Cost --}}
+                    <div class="d-flex justify-content-between align-items-center mb-15 pb-15 border-bottom">
+                        <div class="d-flex align-items-center">
+                            <i class="uil uil-truck text-info me-2" style="font-size: 18px;"></i>
+                            <span class="fw-500">{{ trans('order.shipping') }}</span>
+                        </div>
+                        <span class="fw-500" id="shippingDisplay">0.00 {{ currency() }}</span>
                     </div>
 
                     {{-- Additional Fees Section --}}
@@ -406,6 +460,17 @@
                         <div id="discountsContainer"></div>
                         <span class="fw-500" id="totalDiscountsDisplay">0.00 {{ currency() }}</span>
                     </div>
+
+                    {{-- Points Used (Read-only display) --}}
+                    @if($order->points_used > 0)
+                    <div class="d-flex justify-content-between align-items-center mb-15 pb-15 border-bottom">
+                        <div class="d-flex align-items-center">
+                            <i class="uil uil-star text-warning me-2" style="font-size: 18px;"></i>
+                            <span class="fw-500">{{ trans('order::order.points_used') }}</span>
+                        </div>
+                        <span class="fw-500 text-danger">-{{ number_format($order->points_cost, 2) }} {{ currency() }} ({{ number_format($order->points_used, 0) }} {{ trans('order::order.points') }})</span>
+                    </div>
+                    @endif
 
                     {{-- Grand Total --}}
                     <div class="d-flex justify-content-between align-items-center pt-15 mb-20 pb-15 border-bottom">
@@ -575,13 +640,21 @@
                                 $productName = $orderProduct->vendorProduct?->product?->getTranslation('title', app()->getLocale()) ?? 'N/A';
                                 $variantName = $orderProduct->vendorProductVariant?->variantConfiguration?->getTranslation('name', app()->getLocale()) ?? '';
                                 $fullName = $variantName ? $productName . ' - ' . $variantName : $productName;
-                                // Get tax rate from the product's tax, not from order product tax
-                                $taxRate = $orderProduct->vendorProduct?->tax?->tax_rate ?? 0;
+                                // Get tax rate from all taxes
+                                $taxRate = $orderProduct->vendorProduct?->taxes?->sum('percentage') ?? 0;
                                 $categoryId = $orderProduct->vendorProduct?->product?->category_id ?? null;
                                 $categoryName = $orderProduct->vendorProduct?->product?->category?->getTranslation('name', app()->getLocale()) ?? '';
-                                $price = $orderProduct->price ?? 0;
+                                
+                                // Price stored is total price WITH tax for all quantities
+                                $totalPriceWithTax = $orderProduct->price ?? 0;
                                 $quantity = $orderProduct->quantity ?? 1;
-                                $total = $price * $quantity;
+                                
+                                // Calculate unit price with tax
+                                $unitPriceWithTax = $quantity > 0 ? $totalPriceWithTax / $quantity : 0;
+                                
+                                // Calculate unit price before tax
+                                $unitPriceBeforeTax = $taxRate > 0 ? $unitPriceWithTax / (1 + $taxRate / 100) : $unitPriceWithTax;
+                                
                                 $sku = $orderProduct->vendorProductVariant?->sku ?? $orderProduct->vendorProduct?->sku ?? 'N/A';
                                 $vendorName = $orderProduct->vendorProduct?->vendor?->getTranslation('name', app()->getLocale()) ?? 'N/A';
                                 $productImage = $orderProduct->vendorProduct?->product?->image ?? '';
@@ -591,10 +664,11 @@
                                 vendor_product_id: {{ $orderProduct->vendor_product_id ?? 'null' }},
                                 vendor_product_variant_id: {{ $orderProduct->vendor_product_variant_id ?? 'null' }},
                                 name: "{{ addslashes($fullName) }}",
-                                price: {{ $price }},
+                                price: {{ $unitPriceWithTax }},
+                                unitPriceBeforeTax: {{ $unitPriceBeforeTax }},
                                 quantity: {{ $quantity }},
                                 taxRate: {{ $taxRate }},
-                                total: {{ $total }},
+                                total: {{ $totalPriceWithTax }},
                                 category_id: {{ $categoryId ?? 'null' }},
                                 category_name: "{{ addslashes($categoryName) }}",
                                 sku: "{{ addslashes($sku) }}",
@@ -779,7 +853,25 @@
                                         products.forEach(product => {
                                             const productName = product.name || product.title || 'N/A';
                                             const limitation = product.limitation || 0;
-                                            const taxRate = product.tax && product.tax.tax_rate ? product.tax.tax_rate : 0;
+                                            // Calculate total tax rate from all taxes and build taxes info
+                                            let taxRate = 0;
+                                            let taxesInfo = [];
+                                            if (product.taxes && Array.isArray(product.taxes)) {
+                                                product.taxes.forEach(tax => {
+                                                    const percentage = parseFloat(tax.percentage || tax.tax_rate || 0);
+                                                    taxRate += percentage;
+                                                    taxesInfo.push({
+                                                        name: tax.name || 'Tax',
+                                                        percentage: percentage
+                                                    });
+                                                });
+                                            } else if (product.tax && product.tax.tax_rate) {
+                                                taxRate = product.tax.tax_rate;
+                                                taxesInfo.push({
+                                                    name: product.tax.name || 'Tax',
+                                                    percentage: taxRate
+                                                });
+                                            }
                                             const productStock = product.remaining_stock || 0;
                                             const productImage = product.image || '';
                                             const vendorId = product.vendor_id || null;
@@ -796,6 +888,8 @@
                                             if (product.variants && product.variants.length > 0) {
                                                 product.variants.forEach(variant => {
                                                     const price = parseFloat(variant.real_price) || 0;
+                                                    // Calculate unit price before tax for display
+                                                    const unitPriceBeforeTax = taxRate > 0 ? price / (1 + taxRate / 100) : price;
                                                     const variantKey = variant.variant_key;
                                                     const variantValue = variant.variant_value;
                                                     const variantName = variantKey ?
@@ -813,8 +907,10 @@
                                                      data-product-id="${product.id}"
                                                      data-name="${productName} - ${variantName}"
                                                      data-price="${price}"
+                                                     data-unit-price-before-tax="${unitPriceBeforeTax.toFixed(2)}"
                                                      data-limitation="${limitation}"
                                                      data-tax-rate="${taxRate}"
+                                                     data-taxes-info='${JSON.stringify(taxesInfo)}'
                                                      data-category-id="${categoryId}"
                                                      data-category-name="${categoryName}"
                                                      data-sku="${variantSku}"
@@ -825,7 +921,7 @@
                                                      style="cursor: pointer;">
                                                     <div class="d-flex align-items-center gap-2">
                                                         ${productImage ? 
-                                                            `<img src="${productImage}" alt="${productName}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px; border: 1px solid #dee2e6;">` : 
+                                                            `<img src="${productImage}" alt="${productName}" style="width: 50px; height: 50px;  border-radius: 4px; border: 1px solid #dee2e6;">` : 
                                                             `<div class="rounded d-flex align-items-center justify-content-center" style="width: 50px; height: 50px; border: 1px solid #dee2e6;"><i class="uil uil-image text-muted"></i></div>`
                                                         }
                                                         <div class="flex-grow-1">
@@ -855,7 +951,7 @@
                                                  style="cursor: pointer;">
                                                 <div class="d-flex align-items-center gap-2">
                                                     ${productImage ? 
-                                                        `<img src="${productImage}" alt="${productName}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px; border: 1px solid #dee2e6;">` : 
+                                                        `<img src="${productImage}" alt="${productName}" style="width: 50px; height: 50px;  border-radius: 4px; border: 1px solid #dee2e6;">` : 
                                                         `<div class="rounded d-flex align-items-center justify-content-center" style="width: 50px; height: 50px; border: 1px solid #dee2e6;"><i class="uil uil-image text-muted"></i></div>`
                                                     }
                                                     <div class="flex-grow-1">
@@ -893,8 +989,10 @@
                         const variantId = $(this).data('id');
                         const name = $(this).data('name');
                         const price = $(this).data('price');
+                        const unitPriceBeforeTax = $(this).data('unit-price-before-tax') || price;
                         const limitation = $(this).data('limitation') || 0;
                         const taxRate = $(this).data('tax-rate') || 0;
+                        const taxesInfo = $(this).data('taxes-info') || [];
                         const categoryId = $(this).data('category-id');
                         const categoryName = $(this).data('category-name');
                         const sku = $(this).data('sku') || 'N/A';
@@ -919,8 +1017,10 @@
                             variantId,
                             name,
                             price,
+                            unitPriceBeforeTax,
                             limitation,
                             taxRate,
+                            taxesInfo,
                             categoryId,
                             categoryName,
                             sku,
@@ -935,8 +1035,10 @@
                         $('#selected_product_variant_id').val(variantId);
                         $('#selected_product_name').val(name);
                         $('#selected_product_price').val(price);
+                        $('#selected_product_unit_price_before_tax').val(unitPriceBeforeTax);
                         $('#selected_product_limitation').val(limitation);
                         $('#selected_product_tax_rate').val(taxRate);
+                        $('#selected_product_taxes_info').val(JSON.stringify(taxesInfo));
                         $('#selected_product_category_id').val(categoryId);
                         $('#selected_product_category_name').val(categoryName);
                         $('#selected_product_sku').val(sku);
@@ -1236,6 +1338,88 @@
                             }
                         });
                     });
+
+                    // ========== External Customer Location Handlers ==========
+                    // Load cities for external customer
+                    function loadExternalCities(selectedCityId = null, selectedRegionId = null) {
+                        const countryId = $("meta[name='current_country_id']").attr('content');
+                        
+                        if (!countryId) return;
+
+                        const citySelect = $('#external_city_id');
+                        citySelect.empty().append('<option value="">{{ __('common.select') }}</option>');
+
+                        $.ajax({
+                            url: `/api/area/countries/${countryId}/cities`,
+                            type: 'GET',
+                            dataType: 'json',
+                            headers: {
+                                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
+                                'Accept': 'application/json',
+                                'X-Country-Code': countryCode,
+                                'lang': "{{ app()->getLocale() }}",
+                            },
+                            success: function(response) {
+                                if (response.data && response.data.length > 0) {
+                                    response.data.forEach(city => {
+                                        citySelect.append(
+                                            `<option value="${city.id}" ${selectedCityId == city.id ? 'selected' : ''}>${city.name || city.title}</option>`
+                                        );
+                                    });
+                                    // If city was pre-selected, load regions
+                                    if (selectedCityId) {
+                                        loadExternalRegions(selectedCityId, selectedRegionId);
+                                    }
+                                }
+                            }
+                        });
+                    }
+
+                    // Load regions for external customer based on city
+                    function loadExternalRegions(cityId, selectedRegionId = null) {
+                        const regionSelect = $('#external_region_id');
+                        regionSelect.empty().append('<option value="">{{ __('common.select') }}</option>').prop('disabled', true);
+
+                        if (!cityId) return;
+
+                        $.ajax({
+                            url: `/api/area/cities/${cityId}/regions`,
+                            type: 'GET',
+                            dataType: 'json',
+                            headers: {
+                                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
+                                'Accept': 'application/json',
+                                'X-Country-Code': countryCode,
+                                'lang': "{{ app()->getLocale() }}",
+                            },
+                            success: function(response) {
+                                if (response.data && response.data.length > 0) {
+                                    response.data.forEach(region => {
+                                        regionSelect.append(
+                                            `<option value="${region.id}" ${selectedRegionId == region.id ? 'selected' : ''}>${region.name || region.title}</option>`
+                                        );
+                                    });
+                                    regionSelect.prop('disabled', false);
+                                }
+                            }
+                        });
+                    }
+
+                    $('#external_city_id').on('change', function() {
+                        loadExternalRegions($(this).val());
+                    });
+
+                    // Load external cities when switching to external customer or on page load for external orders
+                    $('input[name="customer_type"]').on('change', function() {
+                        if ($(this).val() === 'external') {
+                            loadExternalCities();
+                        }
+                    });
+
+                    // On page load, if order is external customer, load cities with pre-selected values
+                    @if(!$order->customer_id)
+                        loadExternalCities({{ $order->city_id ?? 'null' }}, {{ $order->region_id ?? 'null' }});
+                    @endif
 
                     // Open add address modal
                     $('#addNewAddressBtn, #createAddressBtn').on('click', function() {
@@ -1558,9 +1742,16 @@
                         const variantId = $('#selected_product_variant_id').val() || null;
                         const productName = $('#selected_product_name').val();
                         const productPrice = parseFloat($('#selected_product_price').val()) || 0;
+                        const unitPriceBeforeTax = parseFloat($('#selected_product_unit_price_before_tax').val()) || productPrice;
                         const quantity = parseInt($('#product_quantity').val()) || 1;
                         const limitation = parseInt($('#selected_product_limitation').val()) || 0;
                         const taxRate = parseFloat($('#selected_product_tax_rate').val()) || 0;
+                        let taxesInfo = [];
+                        try {
+                            taxesInfo = JSON.parse($('#selected_product_taxes_info').val() || '[]');
+                        } catch(e) {
+                            taxesInfo = [];
+                        }
                         const categoryId = parseInt($('#selected_product_category_id').val()) || null;
                         const categoryName = $('#selected_product_category_name').val();
                         const sku = $('#selected_product_sku').val() || 'N/A';
@@ -1573,9 +1764,11 @@
                             variantId,
                             productName,
                             productPrice,
+                            unitPriceBeforeTax,
                             quantity,
                             limitation,
                             taxRate,
+                            taxesInfo,
                             categoryId,
                             categoryName,
                             sku,
@@ -1628,8 +1821,10 @@
                                 id: productId + (variantId ? '_' + variantId : ''), // Unique ID for UI
                                 name: productName,
                                 price: productPrice,
+                                unitPriceBeforeTax: unitPriceBeforeTax,
                                 total: productTotal,
                                 taxRate: taxRate,
+                                taxesInfo: taxesInfo,
                                 sku: sku,
                                 variantName: variantName,
                                 vendorName: vendorName,
@@ -1644,8 +1839,10 @@
                         $('#selected_product_variant_id').val('');
                         $('#selected_product_name').val('');
                         $('#selected_product_price').val('');
+                        $('#selected_product_unit_price_before_tax').val('');
                         $('#selected_product_limitation').val('');
                         $('#selected_product_tax_rate').val('');
+                        $('#selected_product_taxes_info').val('');
                         $('#selected_product_sku').val('');
                         $('#selected_product_variant_name').val('');
                         $('#selected_product_vendor_name').val('');
@@ -1684,18 +1881,34 @@
 
                         products.forEach(product => {
                             const taxRate = product.taxRate || 0;
-                            // Price from API is already excluding tax
-                            const priceExcl = product.price;
-                            const lineTotal = priceExcl * product.quantity;
-                            const lineTax = lineTotal * (taxRate / 100);
-                            const lineTotalIncl = lineTotal + lineTax;
+                            const taxesInfo = product.taxesInfo || [];
+                            // Unit price before tax for display in Price column
+                            const unitPriceBeforeTax = product.unitPriceBeforeTax || product.price;
+                            // Total is price (with tax) × quantity
+                            const lineTotal = product.price * product.quantity;
+                            
+                            // Build tax badges HTML
+                            let taxBadgesHtml = '';
+                            if (taxesInfo && taxesInfo.length > 0) {
+                                taxesInfo.forEach(tax => {
+                                    taxBadgesHtml += `<span class="badge badge-lg badge-round bg-info text-white me-1 mb-1">${tax.name} (${tax.percentage}%)</span>`;
+                                });
+                                // Add total tax rate badge
+                                if (taxesInfo.length > 1) {
+                                    taxBadgesHtml += `<br><span class="badge badge-lg badge-round bg-primary text-white mt-1">{{ __('common.total') }}: ${taxRate.toFixed(2)}%</span>`;
+                                }
+                            } else if (taxRate > 0) {
+                                taxBadgesHtml = `<span class="badge badge-lg badge-round bg-info text-white">${taxRate.toFixed(2)}%</span>`;
+                            } else {
+                                taxBadgesHtml = '<span class="text-muted">-</span>';
+                            }
                             
                             const row = `
                         <tr>
                             <td>
                                 <div class="d-flex align-items-center justify-content-center gap-2">
                                     ${product.image ? 
-                                        `<img src="${product.image}" alt="${product.name}" style="width: 45px; height: 45px; object-fit: cover; border-radius: 4px; border: 1px solid #dee2e6;">` : 
+                                        `<img src="${product.image}" alt="${product.name}" style="width: 45px; height: 45px;  border-radius: 4px; border: 1px solid #dee2e6;">` : 
                                         `<div class="rounded d-flex align-items-center justify-content-center" style="width: 45px; height: 45px; border: 1px solid #dee2e6;"><i class="uil uil-image text-muted"></i></div>`
                                     }
                                     <div>
@@ -1705,10 +1918,10 @@
                                     </div>
                                 </div>
                             </td>
-                            <td class="text-center align-middle">${priceExcl.toFixed(2)} {{ currency() }}</td>
+                            <td class="text-center align-middle">${parseFloat(unitPriceBeforeTax).toFixed(2)} {{ currency() }}</td>
                             <td class="text-center align-middle">${product.quantity}</td>
-                            <td class="text-center align-middle">${taxRate > 0 ? taxRate.toFixed(2) + '%' : '-'}</td>
-                            <td class="text-center align-middle">${lineTotalIncl.toFixed(2)} {{ currency() }}</td>
+                            <td class="text-center align-middle">${taxBadgesHtml}</td>
+                            <td class="text-center align-middle">${lineTotal.toFixed(2)} {{ currency() }}</td>
                             <td class="text-center align-middle">
                                 <button type="button" class="btn btn-sm btn-danger remove-product" data-product-id="${product.id}">
                                     <i class="uil uil-trash m-0"></i>
@@ -1730,23 +1943,23 @@
                         let subtotal = 0;
                         let totalTax = 0;
 
-                        // Calculate subtotal and tax from products
-                        // Price from API is already excluding tax
+                        // Calculate subtotal (before tax) and tax from products
                         products.forEach(product => {
                             const taxRate = product.taxRate || 0;
-                            const priceExcl = product.price;
-                            const lineTotal = priceExcl * product.quantity;
-                            const lineTax = lineTotal * (taxRate / 100);
+                            // Use unit price before tax for subtotal
+                            const unitPriceBeforeTax = parseFloat(product.unitPriceBeforeTax) || product.price;
+                            const lineSubtotal = unitPriceBeforeTax * product.quantity;
+                            const lineTax = lineSubtotal * (taxRate / 100);
 
                             console.log('Product tax calculation:', {
                                 name: product.name,
                                 taxRate: taxRate,
-                                priceExcl: priceExcl,
-                                lineTotal: lineTotal,
+                                unitPriceBeforeTax: unitPriceBeforeTax,
+                                lineSubtotal: lineSubtotal,
                                 lineTax: lineTax
                             });
 
-                            subtotal += lineTotal;
+                            subtotal += lineSubtotal;
                             totalTax += lineTax;
                         });
 
@@ -1777,7 +1990,12 @@
                         discounts = tempDiscounts;
 
                         const shipping = parseFloat($('#shipping').val()) || 0;
-                        const grandTotal = subtotal + shipping + totalFees + totalTax - totalDiscounts;
+                        
+                        // Get promo code discount and points cost from order data
+                        const promoDiscount = {{ $order->customer_promo_code_amount ?? 0 }};
+                        const pointsCost = {{ $order->points_cost ?? 0 }};
+                        
+                        const grandTotal = Math.max(0, subtotal + shipping + totalFees + totalTax - totalDiscounts - promoDiscount - pointsCost);
 
                         console.log('Updating UI with:', {
                             subtotal: subtotal,
@@ -1785,6 +2003,8 @@
                             totalTax: totalTax,
                             totalFees: totalFees,
                             totalDiscounts: totalDiscounts,
+                            promoDiscount: promoDiscount,
+                            pointsCost: pointsCost,
                             grandTotal: grandTotal
                         });
 
@@ -1828,14 +2048,17 @@
                         calculateShipping();
                     });
 
+                    // Calculate shipping when external city is changed
+                    $('#external_city_id').on('change', function() {
+                        calculateShipping();
+                    });
+
                     // Calculate shipping cost via API
                     function calculateShipping() {
                         const customerType = $('input[name="customer_type"]:checked').val();
-                        const customerId = $('#selected_customer_id').val();
-                        const addressId = $('#customer_address_select').val();
-
-                        // Only calculate for existing customers with selected address and at least one product
-                        if (customerType !== 'existing' || !customerId || !addressId || products.length === 0) {
+                        
+                        // Check if we have products
+                        if (products.length === 0) {
                             $('#shipping').val(0);
                             updateSummary();
                             return;
@@ -1849,6 +2072,35 @@
                             quantity: p.quantity
                         }));
 
+                        let requestData = {
+                            cart_items: cartItems
+                        };
+
+                        if (customerType === 'existing') {
+                            const customerId = $('#selected_customer_id').val();
+                            const addressId = $('#customer_address_select').val();
+
+                            if (!customerId || !addressId) {
+                                $('#shipping').val(0);
+                                updateSummary();
+                                return;
+                            }
+
+                            requestData.customer_id = customerId;
+                            requestData.customer_address_id = addressId;
+                        } else {
+                            // External customer - use city_id directly
+                            const cityId = $('#external_city_id').val();
+
+                            if (!cityId) {
+                                $('#shipping').val(0);
+                                updateSummary();
+                                return;
+                            }
+
+                            requestData.city_id = cityId;
+                        }
+
                         // Call shipping calculation endpoint
                         $.ajax({
                             url: '{{ route('admin.shipping.calculate') }}',
@@ -1860,11 +2112,7 @@
                                 'X-Country-Code': countryCode,
                                 'lang': "{{ app()->getLocale() }}",
                             },
-                            data: JSON.stringify({
-                                customer_id: customerId,
-                                customer_address_id: addressId,
-                                cart_items: cartItems
-                            }),
+                            data: JSON.stringify(requestData),
                             success: function(response) {
                                 console.log('Shipping response:', response);
                                 if (response.success && response.data) {

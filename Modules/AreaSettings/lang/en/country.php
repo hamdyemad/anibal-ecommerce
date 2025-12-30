@@ -37,6 +37,7 @@ return [
     'phone' => 'Phone Code',
     'action' => 'Actions',
     'created_at' => 'Created At',
+    'country_information' => 'Country Information',
 
     // Buttons
     'add_country' => 'Add Country',
@@ -110,6 +111,7 @@ return [
     'countries_list' => 'Countries List',
     'currency' => 'Currency',
     'select_currency' => 'Select Currency',
+    'tax_percentage' => 'Tax Percentage',
     'view_cities' => 'View Cities',
     'add_city' => 'Add City',
     'updated_at' => 'Updated At',

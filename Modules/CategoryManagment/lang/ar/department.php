@@ -16,6 +16,8 @@ return [
     'description_english' => 'الوصف بالانجليزية',
     'department_code' => 'رمز القسم',
     'activation' => 'التفعيل',
+    'view_status' => 'حالة العرض',
+    'sort_number' => 'رقم الترتيب',
     'status' => 'الحالة',
     'active' => 'نشط',
     'inactive' => 'غير نشط',
@@ -39,6 +41,7 @@ return [
     'name_ar' => 'الاسم (عربي)',
     'code' => 'الرمز',
     'created_at' => 'تاريخ الإنشاء',
+    'department_information' => 'معلومات القسم',
 
     // Buttons
     'add_department' => 'إضافة قسم',
@@ -97,4 +100,8 @@ return [
     'at_least_one_translation_required' => 'يجب توفير ترجمة واحدة على الأقل.',
     'name_required' => 'اسم القسم مطلوب.',
     'name_max_255' => 'اسم القسم قد لا يتجاوز 255 حرفاً.',
+
+    // Reorder
+    'reorder_success' => 'تم إعادة ترتيب الأقسام بنجاح',
+    'error_reordering' => 'خطأ في إعادة ترتيب الأقسام',
 ];

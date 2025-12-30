@@ -1,6 +1,51 @@
 @extends('layout.app')
 @section('title', trans('categorymanagment::subcategory.subcategories_management'))
 
+@push('styles')
+<style>
+    /* Drag and Drop Styles */
+    #subcategoriesDataTable tbody tr {
+        cursor: default;
+    }
+    #subcategoriesDataTable tbody tr.ui-sortable-helper {
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        cursor: grabbing;
+    }
+    #subcategoriesDataTable tbody tr.ui-sortable-placeholder {
+        border: 2px dashed #2196f3 !important;
+        visibility: visible !important;
+        height: 50px;
+    }
+    .drag-handle {
+        cursor: grab;
+        color: #6c757d;
+        padding: 10px 15px;
+        font-size: 18px;
+        display: block;
+        width: 100%;
+        height: 100%;
+    }
+    .drag-handle:hover {
+        color: #495057;
+    }
+    .drag-handle:active {
+        cursor: grabbing;
+    }
+    .reorder-info {
+        border: 1px solid #ffc107;
+        border-radius: 5px;
+        padding: 10px 15px;
+        margin-bottom: 15px;
+        display: none;
+    }
+    .reorder-info.show {
+        display: block;
+    }
+</style>
+<!-- jQuery UI for Sortable -->
+<link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
+@endpush
+
 @section('content')
     <div class="container-fluid">
         <div class="row">
@@ -44,7 +89,7 @@
                                 <div class="row g-3 align-items-end">
 
                                     {{-- Search --}}
-                                    <div class="col-md-4">
+                                    <div class="col-md-3">
                                         <div class="form-group">
                                             <label for="search" class="il-gray fs-14 fw-500 mb-10">
                                                 <i class="uil uil-search me-1"></i> {{ __('common.search') }}
@@ -58,35 +103,27 @@
                                     </div>
 
                                     {{-- Category Filter --}}
-                                    <div class="col-md-4">
-                                        <div class="form-group">
-                                            <label for="category_filter" class="il-gray fs-14 fw-500 mb-10">
-                                                <i class="uil uil-layers me-1"></i>
-                                                {{ __('categorymanagment::subcategory.category') }}
-                                            </label>
-                                            <select
-                                                class="form-control ih-medium ip-gray radius-xs b-light px-15 form-select"
-                                                id="category_filter">
-                                                <option value="">{{ __('categorymanagment::subcategory.all') }}
-                                                </option>
-                                                @foreach ($categories as $category)
-                                                    <option value="{{ $category->id }}">
-                                                        {{ $category->getTranslation('name', app()->getLocale()) }}
-                                                    </option>
-                                                @endforeach
-                                            </select>
-                                        </div>
+                                    <div class="col-md-3">
+                                        <x-searchable-tags
+                                            name="category_filter"
+                                            :label="__('categorymanagment::subcategory.category')"
+                                            :options="$categories"
+                                            :selected="[]"
+                                            :placeholder="__('categorymanagment::subcategory.select_category')"
+                                            :multiple="false"
+                                            id="category_filter"
+                                        />
                                     </div>
 
                                     {{-- Activation Filter --}}
-                                    <div class="col-md-4">
+                                    <div class="col-md-3">
                                         <div class="form-group">
                                             <label for="active" class="il-gray fs-14 fw-500 mb-10">
                                                 <i class="uil uil-check-circle me-1"></i>
                                                 {{ __('categorymanagment::subcategory.activation') }}
                                             </label>
                                             <select
-                                                class="form-control ih-medium ip-gray radius-xs b-light px-15 form-select"
+                                                class="form-control form-select ih-medium ip-gray radius-xs b-light"
                                                 id="active">
                                                 <option value="">{{ __('categorymanagment::subcategory.all') }}
                                                 </option>
@@ -98,8 +135,28 @@
                                         </div>
                                     </div>
 
+                                    {{-- View Status Filter --}}
+                                    <div class="col-md-3">
+                                        <div class="form-group">
+                                            <label for="view_status" class="il-gray fs-14 fw-500 mb-10">
+                                                <i class="uil uil-eye me-1"></i>
+                                                {{ __('categorymanagment::subcategory.view_status') }}
+                                            </label>
+                                            <select
+                                                class="form-control form-select ih-medium ip-gray radius-xs b-light"
+                                                id="view_status">
+                                                <option value="">{{ __('categorymanagment::subcategory.all') }}
+                                                </option>
+                                                <option value="1">{{ __('common.visible') }}
+                                                </option>
+                                                <option value="0">{{ __('common.hidden') }}
+                                                </option>
+                                            </select>
+                                        </div>
+                                    </div>
+
                                     {{-- Created Date From --}}
-                                    <div class="col-md-6">
+                                    <div class="col-md-3">
                                         <div class="form-group">
                                             <label for="created_date_from" class="il-gray fs-14 fw-500 mb-10">
                                                 <i class="uil uil-calendar-alt me-1"></i>
@@ -112,7 +169,7 @@
                                     </div>
 
                                     {{-- Created Date To --}}
-                                    <div class="col-md-6">
+                                    <div class="col-md-3">
                                         <div class="form-group">
                                             <label for="created_date_to" class="il-gray fs-14 fw-500 mb-10">
                                                 <i class="uil uil-calendar-alt me-1"></i>
@@ -124,13 +181,47 @@
                                         </div>
                                     </div>
 
-                                    <div class="col-md-12 d-flex align-items-center">
-                                        <button type="button" id="resetFilters"
-                                            class="btn btn-warning btn-default btn-squared"
-                                            title="{{ __('common.reset') }}">
-                                            <i class="uil uil-redo me-1"></i>
-                                            {{ __('common.reset_filters') }}
-                                        </button>
+                                    {{-- Sort Column --}}
+                                    <div class="col-md-3">
+                                        <div class="form-group">
+                                            <label for="sort_column" class="il-gray fs-14 fw-500 mb-10">
+                                                <i class="uil uil-sort me-1"></i>
+                                                {{ __('common.sort_by') ?? 'Sort By' }}
+                                            </label>
+                                            <select
+                                                class="form-control form-select ih-medium ip-gray radius-xs b-light"
+                                                id="sort_column">
+                                                <option value="sort_number" selected>{{ __('common.sort_number') ?? 'Sort Number' }}</option>
+                                                <option value="created_at">{{ __('common.created_at') ?? 'Created At' }}</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    {{-- Sort Direction --}}
+                                    <div class="col-md-3">
+                                        <div class="form-group">
+                                            <label for="sort_direction" class="il-gray fs-14 fw-500 mb-10">
+                                                <i class="uil uil-sort-amount-down me-1"></i>
+                                                {{ __('common.sort_direction') ?? 'Sort Direction' }}
+                                            </label>
+                                            <select
+                                                class="form-control form-select ih-medium ip-gray radius-xs b-light"
+                                                id="sort_direction">
+                                                <option value="asc" selected>{{ __('common.ascending') ?? 'Ascending' }}</option>
+                                                <option value="desc">{{ __('common.descending') ?? 'Descending' }}</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-3 d-flex align-items-center">
+                                        <div class="form-group">
+                                            <button type="button" id="resetFilters"
+                                                class="btn btn-warning btn-default btn-squared"
+                                                title="{{ __('common.reset') }}">
+                                                <i class="uil uil-redo me-1"></i>
+                                                {{ __('common.reset_filters') }}
+                                            </button>
+                                        </div>
                                     </div>
 
                                 </div>
@@ -154,20 +245,21 @@
 
                     {{-- DataTable --}}
                     <div class="table-responsive">
+                        <div class="reorder-info" id="reorderInfo">
+                            <i class="uil uil-info-circle me-2"></i>
+                            {{ __('common.drag_drop_info') ?? 'Drag and drop rows to reorder. Changes will be saved automatically.' }}
+                        </div>
                         <table id="subcategoriesDataTable" class="table mb-0 table-bordered table-hover" style="width:100%">
                             <thead>
                                 <tr class="userDatatable-header">
+                                    <th style="width: 40px;"><span class="userDatatable-title"><i class="uil uil-sort"></i></span></th>
                                     <th class="text-center"><span class="userDatatable-title">#</span></th>
-                                    @foreach ($languages as $language)
-                                        <th>
-                                            <span class="userDatatable-title"
-                                                @if ($language->rtl) dir="rtl" @endif>
-                                                {{ __('categorymanagment::subcategory.name') }} ({{ $language->name }})
-                                            </span>
-                                        </th>
-                                    @endforeach
+                                    <th><span class="userDatatable-title">{{ __('categorymanagment::subcategory.subcategory_information') }}</span></th>
                                     <th><span
                                             class="userDatatable-title">{{ __('categorymanagment::subcategory.category') }}</span>
+                                    </th>
+                                    <th><span
+                                            class="userDatatable-title">{{ __('categorymanagment::subcategory.view_status') }}</span>
                                     </th>
                                     <th><span
                                             class="userDatatable-title">{{ __('categorymanagment::subcategory.activation') }}</span>
@@ -202,6 +294,7 @@
     <script>
         $(document).ready(function() {
             let per_page = 10;
+            let dragDropEnabled = true; // Will be controlled by sort filters
 
             // Server-side processing with pagination
             var table = $('#subcategoriesDataTable').DataTable({
@@ -219,36 +312,15 @@
                         d.search = $('#search').val();
 
                         // Add filter parameters
-                        d.category_id = $('#category_filter').val();
+                        d.category_id = $('#category_filter-single-display').find('input[name="category_filter"]').val() || '';
                         d.active = $('#active').val();
+                        d.view_status = $('#view_status').val();
                         d.created_date_from = $('#created_date_from').val();
                         d.created_date_to = $('#created_date_to').val();
 
-                        // Add sorting parameters
-                        if (d.order && d.order.length > 0) {
-                            var columnIndex = d.order[0].column;
-                            var sortType = '';
-
-                            // Map column index to sort type
-                            if (columnIndex == 0) {
-                                sortType = 'id';
-                            }
-                            @foreach ($languages as $index => $language)
-                                else if (columnIndex == {{ $index + 1 }}) {
-                                    sortType = 'name_{{ $language->code }}';
-                                }
-                            @endforeach
-                            else if (columnIndex == {{ count($languages) + 1 }}) {
-                                sortType = 'category';
-                            } else if (columnIndex == {{ count($languages) + 2 }}) {
-                                sortType = 'active';
-                            } else if (columnIndex == {{ count($languages) + 3 }}) {
-                                sortType = 'created_at';
-                            }
-
-                            d.sort_type = sortType;
-                            d.sort_by = d.order[0].dir; // 'asc' or 'desc'
-                        }
+                        // Add custom sorting parameters
+                        d.sort_column = $('#sort_column').val();
+                        d.sort_direction = $('#sort_direction').val();
 
                         console.log('📤 Sending to server:', {
                             search: d.search,
@@ -256,8 +328,8 @@
                             active: d.active,
                             created_date_from: d.created_date_from,
                             created_date_to: d.created_date_to,
-                            sort_type: d.sort_type,
-                            sort_by: d.sort_by
+                            sort_column: d.sort_column,
+                            sort_direction: d.sort_direction
                         });
 
                         return d;
@@ -274,42 +346,103 @@
                     }
                 },
                 columns: [{
+                        data: null,
+                        name: 'drag',
+                        orderable: false,
+                        searchable: false,
+                        className: 'text-center',
+                        render: function(data, type, row) {
+                            return `<span class="drag-handle" title="{{ __('common.drag_to_reorder') ?? 'Drag to reorder' }}"><i class="uil uil-draggabledots"></i></span>`;
+                        }
+                    },
+                    {
                         data: 'index',
-                        name: 'index'
+                        name: 'index',
+                        orderable: false,
+                        className: 'text-center fw-bold'
                     }, // #
-                    @foreach ($languages as $language)
-                        {
-                            data: 'translations.{{ $language->code }}.name',
-                            name: 'name_{{ $language->code }}',
-                            render: function(data, type, row) {
-                                if (!data) return '-';
-                                @if ($language->rtl)
-                                    return '<span dir="rtl">' + data + '</span>';
-                                @else
-                                    return data;
-                                @endif
-                            }
+                    {
+                        data: 'translations',
+                        name: 'subcategory_information',
+                        orderable: false,
+                        render: function(data, type, row) {
+                            let html = '<div class="subcategory-info-container">';
+                            
+                            // Subcategory Names with language badges
+                            @foreach ($languages as $language)
+                                if (data && data['{{ $language->code }}'] && data['{{ $language->code }}'].name && data['{{ $language->code }}'].name !== '-') {
+                                    let name = $('<div/>').text(data['{{ $language->code }}'].name).html();
+                                    @if ($language->rtl)
+                                        html += `<div class="name-item mb-2">
+                                            <span class="language-badge badge bg-success text-white px-2 py-1 me-2 rounded-pill fw-bold" style="font-size: 10px;">{{ strtoupper($language->code) }}</span>
+                                            <span class="item-name text-dark fw-semibold" dir="rtl" style="font-family: 'Cairo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">${name}</span>
+                                        </div>`;
+                                    @else
+                                        html += `<div class="name-item mb-2">
+                                            <span class="language-badge badge bg-primary text-white px-2 py-1 me-2 rounded-pill fw-bold" style="font-size: 10px;">{{ strtoupper($language->code) }}</span>
+                                            <span class="item-name text-dark fw-semibold">${name}</span>
+                                        </div>`;
+                                    @endif
+                                }
+                            @endforeach
+
+                            // Sort Number
+                            html += '<div class="subcategory-meta-info">';
+                            html += `<div class="mb-1">
+                                <small class="text-muted">{{ trans('categorymanagment::subcategory.sort_number') }}:</small>
+                                <span class="badge badge-secondary badge-round badge-lg ms-1">${row.sort_number ?? 0}</span>
+                            </div>`;
+                            html += '</div>';
+
+                            html += '</div>';
+                            return html;
                         },
-                    @endforeach {
+                        className: 'text-start'
+                    },
+                    {
                         data: 'category',
                         name: 'category',
+                        orderable: false,
                         render: function(data) {
                             if (data && data.name) {
                                 return '<span class="badge badge-round badge-primary badge-lg" data-category-id="' +
                                     data.id + '">' + data.name + '</span>';
                             }
-                            return '-';
+                            return '<span class="text-muted">—</span>';
+                        }
+                    },
+                    {
+                        data: 'view_status',
+                        name: 'view_status',
+                        orderable: false,
+                        className: 'text-center',
+                        render: function(data, type, row) {
+                            @can('sub-categories.edit')
+                                const isChecked = data ? 'checked' : '';
+                                const switchId = 'view-status-switch-' + row.id;
+
+                                return `<div class="form-switch">
+                                <input class="form-check-input view-status-switcher"
+                                       type="checkbox"
+                                       id="${switchId}"
+                                       data-subcategory-id="${row.id}"
+                                       ${isChecked}
+                                       style="cursor: pointer;">
+                                <label class="form-check-label" for="${switchId}"></label>
+                            </div>`;
+                            @else
+                                return data ?
+                                    `<span class="badge badge-success badge-round badge-lg"><i class="uil uil-eye"></i></span>` :
+                                    `<span class="badge badge-secondary badge-round badge-lg"><i class="uil uil-eye-slash"></i></span>`;
+                            @endcan
                         }
                     },
                     {
                         data: 'active',
                         name: 'active',
+                        orderable: false,
+                        className: 'text-center',
                         render: function(data, type, row) {
-                            // For sorting, return numeric value
-                            if (type === 'sort' || type === 'type') {
-                                return data ? 1 : 0;
-                            }
-
                             // For display, return formatted HTML with switcher (for users with change-status permission)
                             @can('sub-categories.change-status')
                             const isChecked = data ? 'checked' : '';
@@ -339,13 +472,15 @@
                     },
                     {
                         data: 'created_at',
-                        name: 'created_at'
+                        name: 'created_at',
+                        orderable: false
                     },
                     {
                         data: null,
                         name: 'actions',
                         orderable: false,
                         searchable: false,
+                        className: 'text-center',
                         render: function(data, type, row) {
                             let showUrl = "{{ route('admin.category-management.subcategories.show', ':id') }}".replace(':id',row.id),
                                 editUrl = "{{ route('admin.category-management.subcategories.edit', ':id') }}".replace(':id',row.id),
@@ -390,9 +525,7 @@
                     [10, 25, 50, 100],
                     [10, 25, 50, 100]
                 ],
-                order: [
-                    [0, 'desc']
-                ],
+                order: [],
                 pagingType: 'full_numbers',
                 dom: '<"row"<"col-sm-12"tr>>' +
                     '<"row mt-3"<"col-sm-12 col-md-5"i><"col-sm-12 col-md-7"p>>',
@@ -477,14 +610,14 @@
                         return true;
                     }
 
-                    var categoryFilter = $('#category_filter').val();
+                    var categoryFilter = $('#category_filter-single-display').find('input[name="category_filter"]').val() || '';
                     var activeFilter = $('#active').val();
                     var dateFrom = $('#created_date_from').val();
                     var dateTo = $('#created_date_to').val();
 
-                    // Category filter (column {{ count($languages) + 1 }})
+                    // Category filter (column 2)
                     if (categoryFilter && categoryFilter !== '') {
-                        var categoryColIndex = {{ count($languages) + 1 }};
+                        var categoryColIndex = 2;
 
                         // Get the actual rendered cell content with the data-category-id attribute
                         var rowNode = table.row(dataIndex).node();
@@ -511,9 +644,9 @@
                         }
                     }
 
-                    // Active filter (column {{ count($languages) + 2 }})
+                    // Active filter (column 5)
                     if (activeFilter && activeFilter !== '') {
-                        var colIndex = {{ count($languages) + 2 }};
+                        var colIndex = 5;
 
                         // Get the actual rendered cell content (with HTML)
                         var rowNode = table.row(dataIndex).node();
@@ -547,9 +680,9 @@
                         }
                     }
 
-                    // Date filters (column {{ count($languages) + 3 }})
+                    // Date filters (column 6)
                     if (dateFrom || dateTo) {
-                        var dateColumn = data[{{ count($languages) + 3 }}];
+                        var dateColumn = data[6];
                         if (dateColumn) {
                             var rowDate = dateColumn.replace(/<[^>]*>/g, '').trim().split(' ')[
                                 0]; // Extract YYYY-MM-DD
@@ -563,9 +696,54 @@
             );
 
             // Server-side filter event listeners - reload data when filters change
-            $('#category_filter, #active, #created_date_from, #created_date_to').on('change', function() {
+            $('#active, #view_status, #created_date_from, #created_date_to').on('change', function() {
                 console.log('Filter changed:', $(this).attr('id'), '=', $(this).val());
                 table.ajax.reload();
+            });
+
+            // Sort filter change handlers
+            $('#sort_column, #sort_direction').on('change', function() {
+                console.log('Sort changed:', $('#sort_column').val(), $('#sort_direction').val());
+                table.ajax.reload();
+                updateDragDropState();
+            });
+
+            // Function to update drag and drop state based on sort filters
+            function updateDragDropState() {
+                var sortColumn = $('#sort_column').val();
+                var sortDirection = $('#sort_direction').val();
+                dragDropEnabled = (sortColumn === 'sort_number' && sortDirection === 'asc');
+                
+                if (dragDropEnabled) {
+                    $('#subcategoriesDataTable tbody').removeClass('drag-disabled');
+                    $('.drag-handle').css('opacity', '1').css('cursor', 'grab');
+                    $('#reorderInfo').removeClass('show').html('<i class="uil uil-info-circle me-2"></i>{{ __('common.drag_drop_info') ?? 'Drag and drop rows to reorder. Changes will be saved automatically.' }}');
+                } else {
+                    $('#subcategoriesDataTable tbody').addClass('drag-disabled');
+                    $('.drag-handle').css('opacity', '0.3').css('cursor', 'not-allowed');
+                    $('#reorderInfo').addClass('show').html('<i class="uil uil-exclamation-triangle me-2"></i>{{ __('common.drag_drop_disabled_info') ?? 'Drag and drop is only available when sorting by Sort Number (Ascending).' }}');
+                }
+            }
+
+            // Category filter change handler (searchable-tags single select)
+            $('#category_filter-wrapper').on('searchable-tags:change', function() {
+                table.ajax.reload();
+            });
+
+            // Reset filters
+            $('#resetFilters').on('click', function() {
+                $('#search, #active, #view_status, #created_date_from, #created_date_to').val('');
+                $('#sort_column').val('sort_number');
+                $('#sort_direction').val('asc');
+                
+                // Reset category filter (single select)
+                const catDisplay = $('#category_filter-single-display');
+                const catDropdown = $('#category_filter-dropdown');
+                catDisplay.html('<span class="placeholder-text text-muted">{{ __("categorymanagment::subcategory.select_category") }}</span>');
+                catDropdown.find('.tag-option').removeClass('selected').show();
+                
+                table.ajax.reload();
+                updateDragDropState();
             });
 
             // Status switcher handler
@@ -669,7 +847,218 @@
                 });
             });
 
+            // View status switcher handler
+            $(document).on('change', '.view-status-switcher', function() {
+                const switcher = $(this);
+                const subcategoryId = switcher.data('subcategory-id');
+                const newStatus = switcher.is(':checked') ? 1 : 0;
+
+                // Disable switcher during request
+                switcher.prop('disabled', true);
+
+                // Make AJAX request
+                $.ajax({
+                    url: '{{ route('admin.category-management.subcategories.change-view-status', ':id') }}'.replace(':id', subcategoryId),
+                    type: 'POST',
+                    data: {
+                        _token: '{{ csrf_token() }}',
+                        view_status: newStatus
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            if (typeof Swal !== 'undefined') {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: '{{ __('common.success') ?? 'Success' }}',
+                                    text: response.message,
+                                    timer: 2000,
+                                    showConfirmButton: false,
+                                    toast: true,
+                                    position: 'top-end'
+                                });
+                            }
+                            table.ajax.reload(null, false);
+                        } else {
+                            switcher.prop('checked', !switcher.is(':checked'));
+                            if (typeof Swal !== 'undefined') {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: '{{ __('common.error') ?? 'Error' }}',
+                                    text: response.message
+                                });
+                            }
+                        }
+                    },
+                    error: function(xhr) {
+                        switcher.prop('checked', !switcher.is(':checked'));
+                        let errorMessage = '{{ __('common.error') ?? 'Error' }}';
+                        if (xhr.responseJSON && xhr.responseJSON.message) {
+                            errorMessage = xhr.responseJSON.message;
+                        }
+                        if (typeof Swal !== 'undefined') {
+                            Swal.fire({
+                                icon: 'error',
+                                title: '{{ __('common.error') ?? 'Error' }}',
+                                text: errorMessage
+                            });
+                        }
+                    },
+                    complete: function() {
+                        switcher.prop('disabled', false);
+                    }
+                });
+            });
+
             // Delete functionality is now handled by the delete-with-loading component
+
+            // Initialize drag and drop sortable
+            @can('sub-categories.edit')
+            // Load jQuery UI if not already loaded
+            if (typeof $.ui === 'undefined' || typeof $.ui.sortable === 'undefined') {
+                $.getScript('https://code.jquery.com/ui/1.13.2/jquery-ui.min.js', function() {
+                    console.log('jQuery UI loaded');
+                    initSortable();
+                    updateDragDropState();
+                });
+            } else {
+                initSortable();
+                updateDragDropState();
+            }
+
+            function initSortable() {
+                var $tbody = $('#subcategoriesDataTable tbody');
+                
+                // Destroy existing sortable if any
+                if ($tbody.hasClass('ui-sortable')) {
+                    $tbody.sortable('destroy');
+                }
+                
+                $tbody.sortable({
+                    handle: '.drag-handle',
+                    axis: 'y',
+                    cursor: 'grabbing',
+                    opacity: 0.8,
+                    disabled: !dragDropEnabled,
+                    helper: function(e, tr) {
+                        var $originals = tr.children();
+                        var $helper = tr.clone();
+                        $helper.children().each(function(index) {
+                            $(this).width($originals.eq(index).outerWidth());
+                        });
+                        return $helper;
+                    },
+                    placeholder: 'ui-sortable-placeholder',
+                    start: function(event, ui) {
+                        if (!dragDropEnabled) {
+                            return false;
+                        }
+                        ui.placeholder.height(ui.item.outerHeight());
+                        var colCount = ui.item.children('td').length;
+                        ui.placeholder.html('<td colspan="' + colCount + '" style="background-color: #e3f2fd; border: 2px dashed #2196f3;">&nbsp;</td>');
+                    },
+                    stop: function(event, ui) {
+                        // Optional: hide info after drop
+                    },
+                    update: function(event, ui) {
+                        if (!dragDropEnabled) {
+                            return false;
+                        }
+                        var items = [];
+                        $('#subcategoriesDataTable tbody tr').each(function(index) {
+                            var rowData = table.row(this).data();
+                            if (rowData && rowData.id) {
+                                items.push({
+                                    id: rowData.id,
+                                    sort_number: index + 1
+                                });
+                            }
+                        });
+
+                        console.log('Reorder items:', items);
+
+                        if (items.length > 0) {
+                            // Show loading
+                            if (typeof LoadingOverlay !== 'undefined') {
+                                LoadingOverlay.show({
+                                    text: '{{ __('common.saving') ?? 'Saving' }}...',
+                                    subtext: '{{ __('common.please_wait') ?? 'Please wait' }}...'
+                                });
+                            }
+
+                            $.ajax({
+                                url: '{{ route('admin.category-management.subcategories.reorder') }}',
+                                type: 'POST',
+                                data: {
+                                    _token: '{{ csrf_token() }}',
+                                    items: items
+                                },
+                                success: function(response) {
+                                    if (typeof LoadingOverlay !== 'undefined') {
+                                        LoadingOverlay.hide();
+                                    }
+                                    
+                                    if (response.success) {
+                                        if (typeof Swal !== 'undefined') {
+                                            Swal.fire({
+                                                icon: 'success',
+                                                title: '{{ __('common.success') ?? 'Success' }}',
+                                                text: response.message || '{{ __('common.reorder_success') ?? 'Order updated successfully' }}',
+                                                timer: 2000,
+                                                showConfirmButton: false,
+                                                toast: true,
+                                                position: 'top-end'
+                                            });
+                                        }
+                                        // Reload table to get updated sort numbers
+                                        table.ajax.reload(null, false);
+                                    } else {
+                                        if (typeof Swal !== 'undefined') {
+                                            Swal.fire({
+                                                icon: 'error',
+                                                title: '{{ __('common.error') ?? 'Error' }}',
+                                                text: response.message || '{{ __('common.reorder_error') ?? 'Failed to update order' }}'
+                                            });
+                                        }
+                                        table.ajax.reload(null, false);
+                                    }
+                                },
+                                error: function(xhr) {
+                                    if (typeof LoadingOverlay !== 'undefined') {
+                                        LoadingOverlay.hide();
+                                    }
+                                    
+                                    let errorMessage = '{{ __('common.reorder_error') ?? 'Failed to update order' }}';
+                                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                                        errorMessage = xhr.responseJSON.message;
+                                    }
+                                    
+                                    if (typeof Swal !== 'undefined') {
+                                        Swal.fire({
+                                            icon: 'error',
+                                            title: '{{ __('common.error') ?? 'Error' }}',
+                                            text: errorMessage
+                                        });
+                                    }
+                                    table.ajax.reload(null, false);
+                                }
+                            });
+                        }
+                    }
+                });
+                
+                console.log('Sortable initialized for subcategories');
+            }
+
+            // Re-initialize sortable after table draw
+            table.on('draw', function() {
+                setTimeout(function() {
+                    if (typeof $.ui !== 'undefined' && typeof $.ui.sortable !== 'undefined') {
+                        initSortable();
+                        updateDragDropState();
+                    }
+                }, 100);
+            });
+            @endcan
         });
     </script>
 @endpush

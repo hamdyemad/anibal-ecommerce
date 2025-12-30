@@ -103,9 +103,7 @@ class ProductApiRepository implements ProductApiRepositoryInterface
                     ]);
                 },
                 'vendor',
-                'tax' => function ($q) {
-                    $q->with('translations');
-                },
+                'taxes',
                 'variants' => function ($q) {
                     $q->with('variantConfiguration', 'stocks');
                 }
@@ -120,9 +118,16 @@ class ProductApiRepository implements ProductApiRepositoryInterface
         $productNameEn = $vendorProduct->product->getTranslation('title', 'en') ?? $vendorProduct->product->title;
         $productNameAr = $vendorProduct->product->getTranslation('title', 'ar') ?? $vendorProduct->product->title;
 
-        // Extract tax translations using getTranslation method
-        $taxNameEn = $vendorProduct->tax?->getTranslation('name', 'en') ?? ($vendorProduct->tax?->name ?? '');
-        $taxNameAr = $vendorProduct->tax?->getTranslation('name', 'ar') ?? ($vendorProduct->tax?->name ?? '');
+        // Calculate total tax rate from all taxes
+        $taxes = $vendorProduct->taxes ?? collect();
+        $taxRate = $taxes->sum('percentage');
+        $taxNames = ['en' => [], 'ar' => []];
+        foreach ($taxes as $tax) {
+            $taxNames['en'][] = $tax->getTranslation('name', 'en') ?? $tax->name ?? '';
+            $taxNames['ar'][] = $tax->getTranslation('name', 'ar') ?? $tax->name ?? '';
+        }
+        $taxNameEn = implode(', ', array_filter($taxNames['en']));
+        $taxNameAr = implode(', ', array_filter($taxNames['ar']));
 
         // Return formatted array for pipeline
         return [
@@ -144,16 +149,20 @@ class ProductApiRepository implements ProductApiRepositoryInterface
             'vendor' => [
                 'id' => $vendorProduct?->vendor?->id,
                 'name' => $vendorProduct?->vendor?->name,
-                // 'activities' => $vendorProduct?->vendor?->activities->toArray(),
             ],
             'price' => $vendorProduct->price,
-            'tax' => [
-                'id' => $vendorProduct?->tax?->id,
-                'name' => $vendorProduct?->tax?->name,
-                'name_en' => $taxNameEn,
-                'name_ar' => $taxNameAr,
-                'tax_rate' => $vendorProduct?->tax?->tax_rate ?? 0,
-            ],
+            'taxes' => $taxes->map(function ($tax) {
+                return [
+                    'id' => $tax->id,
+                    'name' => $tax->name,
+                    'name_en' => $tax->getTranslation('name', 'en') ?? $tax->name,
+                    'name_ar' => $tax->getTranslation('name', 'ar') ?? $tax->name,
+                    'percentage' => $tax->percentage ?? 0,
+                ];
+            })->toArray(),
+            'tax_rate' => $taxRate,
+            'tax_name_en' => $taxNameEn,
+            'tax_name_ar' => $taxNameAr,
             'max_per_order' => $vendorProduct->max_per_order,
             'variants' => $vendorProduct->variants,
         ];
@@ -189,8 +198,27 @@ class ProductApiRepository implements ProductApiRepositoryInterface
      */
     public function getPriceByFilters(array $filters)
     {
+        // Check if any product-related filter is provided
+        $hasFilters = !empty($filters['department_id']) || 
+                      !empty($filters['main_category_id']) || 
+                      !empty($filters['category_id']) || 
+                      !empty($filters['sub_category_id']) || 
+                      !empty($filters['brand_id']) || 
+                      !empty($filters['vendor_id']) ||
+                      !empty($filters['search']) ||
+                      !empty($filters['min_price']) ||
+                      !empty($filters['max_price']);
+        
         $query = $this->query->handle($filters)
             ->whereHas('variants');
+
+        // If filters are provided, check if any products match
+        if ($hasFilters) {
+            $vendorProductIds = $query->pluck('id')->toArray();
+            if (empty($vendorProductIds)) {
+                return 0;
+            }
+        }
 
         $maxPrice = $query->max(DB::raw('(SELECT MAX(price) FROM vendor_product_variants WHERE vendor_product_id = vendor_products.id)'));
 
@@ -202,10 +230,36 @@ class ProductApiRepository implements ProductApiRepositoryInterface
      */
     public function getTagsByFilters(array $filters)
     {
-        $products = $this->query->handle($filters)->get();
+        // Check if any product-related filter is provided
+        $hasFilters = !empty($filters['department_id']) || 
+                      !empty($filters['main_category_id']) || 
+                      !empty($filters['category_id']) || 
+                      !empty($filters['sub_category_id']) || 
+                      !empty($filters['brand_id']) || 
+                      !empty($filters['vendor_id']) ||
+                      !empty($filters['search']) ||
+                      !empty($filters['min_price']) ||
+                      !empty($filters['max_price']);
+        
+        $query = $this->query->handle($filters);
+        
+        // If filters are provided, check if any products match
+        if ($hasFilters) {
+            $vendorProductIds = $query->pluck('id')->toArray();
+            if (empty($vendorProductIds)) {
+                return [];
+            }
+            // Re-query with the IDs to get products with tags
+            $products = \Modules\CatalogManagement\app\Models\VendorProduct::whereIn('id', $vendorProductIds)
+                ->with('product')
+                ->get();
+        } else {
+            $products = $query->get();
+        }
+        
         $tags = [];
         foreach ($products as $product) {
-            $productTags = $product->product->tags_array;
+            $productTags = $product->product->tags_array ?? [];
             $tags = array_merge($tags, $productTags);
         }
 
@@ -213,21 +267,169 @@ class ProductApiRepository implements ProductApiRepositoryInterface
     }
 
     /**
+     * Get brands from filtered products
+     */
+    public function getBrandsByProductFilters(array $filters)
+    {
+        // Check if any product-related filter is provided
+        $hasFilters = !empty($filters['department_id']) || 
+                      !empty($filters['main_category_id']) || 
+                      !empty($filters['category_id']) || 
+                      !empty($filters['sub_category_id']) || 
+                      !empty($filters['vendor_id']) ||
+                      !empty($filters['brand_id']) ||
+                      !empty($filters['search']) ||
+                      !empty($filters['min_price']) ||
+                      !empty($filters['max_price']);
+        
+        // If no filters, return all active brands
+        if (!$hasFilters) {
+            return \Modules\CatalogManagement\app\Models\Brand::where('active', true)
+                ->with('logo')
+                ->get()
+                ->map(function ($brand) {
+                    return [
+                        'id' => $brand->id,
+                        'title' => $brand->name,
+                        'slug' => $brand->slug,
+                        'image' => $brand->logo ? asset('storage/' . $brand->logo->path) : '',
+                        'icon' => '',
+                        'type' => 'brand',
+                    ];
+                })->toArray();
+        }
+
+        // Get filtered vendor products using ProductQueryAction
+        $query = $this->query->handle($filters);
+        $vendorProductIds = $query->pluck('id')->toArray();
+        
+        // If no products match the filters, return empty array
+        if (empty($vendorProductIds)) {
+            return [];
+        }
+
+        // Get product IDs from vendor products
+        $productIds = \Modules\CatalogManagement\app\Models\VendorProduct::whereIn('id', $vendorProductIds)
+            ->pluck('product_id')
+            ->unique()
+            ->toArray();
+        
+        if (empty($productIds)) {
+            return [];
+        }
+        
+        // Get brand IDs from products
+        $brandIds = Product::whereIn('id', $productIds)
+            ->whereNotNull('brand_id')
+            ->pluck('brand_id')
+            ->unique()
+            ->toArray();
+        
+        if (empty($brandIds)) {
+            return [];
+        }
+
+        return \Modules\CatalogManagement\app\Models\Brand::whereIn('id', $brandIds)
+            ->where('active', true)
+            ->with('logo')
+            ->get()
+            ->map(function ($brand) {
+                return [
+                    'id' => $brand->id,
+                    'title' => $brand->name,
+                    'slug' => $brand->slug,
+                    'image' => $brand->logo ? asset('storage/' . $brand->logo->path) : '',
+                    'icon' => '',
+                    'type' => 'brand',
+                ];
+            })->toArray();
+    }
+
+    /**
      * Get variant trees from filtered products
      */
     public function getTreesByFilters(array $filters)
     {
+        // Check if any product-related filter is provided
+        $hasFilters = !empty($filters['department_id']) || 
+                      !empty($filters['main_category_id']) || 
+                      !empty($filters['category_id']) || 
+                      !empty($filters['sub_category_id']) || 
+                      !empty($filters['brand_id']) || 
+                      !empty($filters['vendor_id']) ||
+                      !empty($filters['occasion_id']) || 
+                      !empty($filters['bundle_category_id']) ||
+                      !empty($filters['search']) ||
+                      !empty($filters['min_price']) ||
+                      !empty($filters['max_price']);
+        
+        // If no filters, return all trees
+        if (!$hasFilters) {
+            return VariantConfigurationKey::query()
+                ->whereNull('parent_key_id')
+                ->with([
+                    'variants' => function ($q) {
+                        $q->whereNull('parent_id')
+                            ->with(['childrenRecursive', 'childrenRecursive.key', 'childrenRecursive.translations', 'childrenRecursive.key.translations']);
+                    },
+                    'childrenKeys' => function ($q) {
+                        $q->with([
+                            'variants' => function ($q2) {
+                                $q2->whereNull('parent_id')
+                                    ->with(['childrenRecursive', 'childrenRecursive.key']);
+                            },
+                            'childrenKeys'
+                        ]);
+                    }
+                ])
+                ->get();
+        }
+
+        // Get filtered vendor products using ProductQueryAction
+        $query = $this->query->handle($filters);
+        $vendorProductIds = $query->pluck('id')->toArray();
+        
+        // If no products match the filters, return empty collection
+        if (empty($vendorProductIds)) {
+            return collect([]);
+        }
+
+        // Get variant configuration IDs from filtered products' variants
+        $configIds = \Modules\CatalogManagement\app\Models\VendorProductVariant::whereIn('vendor_product_id', $vendorProductIds)
+            ->whereNotNull('variant_configuration_id')
+            ->pluck('variant_configuration_id')
+            ->unique()
+            ->toArray();
+
+        if (empty($configIds)) {
+            return collect([]);
+        }
+
+        // Get key IDs from configurations
+        $keyIds = \Modules\CatalogManagement\app\Models\VariantsConfiguration::whereIn('id', $configIds)
+            ->pluck('key_id')
+            ->unique()
+            ->toArray();
+        
+        if (empty($keyIds)) {
+            return collect([]);
+        }
+
+        // Get trees with only the relevant variants
         return VariantConfigurationKey::query()
+            ->whereIn('id', $keyIds)
             ->whereNull('parent_key_id')
             ->with([
-                'variants' => function ($q) {
+                'variants' => function ($q) use ($configIds) {
                     $q->whereNull('parent_id')
+                        ->whereIn('id', $configIds)
                         ->with(['childrenRecursive', 'childrenRecursive.key', 'childrenRecursive.translations', 'childrenRecursive.key.translations']);
                 },
-                'childrenKeys' => function ($q) {
+                'childrenKeys' => function ($q) use ($configIds) {
                     $q->with([
-                        'variants' => function ($q2) {
+                        'variants' => function ($q2) use ($configIds) {
                             $q2->whereNull('parent_id')
+                                ->whereIn('id', $configIds)
                                 ->with(['childrenRecursive', 'childrenRecursive.key']);
                         },
                         'childrenKeys'
@@ -247,7 +449,7 @@ class ProductApiRepository implements ProductApiRepositoryInterface
             'variants' => function ($subQ) {
                 $subQ->with(['variantConfiguration', 'stocks', 'vendorProduct.vendor']);
             },
-            'tax'
+            'taxes'
         ]);
 
         $result = $this->paginated->handle($query, $filters['per_page'] ?? 15, $filters['paginated'] ?? false);
@@ -295,6 +497,206 @@ class ProductApiRepository implements ProductApiRepositoryInterface
             'vendorProducts' => $vendorProducts,
             'reviews' => $reviews,
         ];
+    }
+
+    /**
+     * Get filters (trees and brands) by occasion products
+     */
+    public function getFiltersByOccasion(array $filters)
+    {
+        // Get vendor product variant IDs from occasion products
+        $query = \Modules\CatalogManagement\app\Models\OccasionProduct::query()
+            ->whereHas('occasion', function ($q) use ($filters) {
+                $q->where('is_active', true)
+                  ->where('end_date', '>=', now()->toDateString());
+                
+                // Filter by specific occasion if provided
+                if (!empty($filters['occasion_id'])) {
+                    $q->where('id', $filters['occasion_id']);
+                }
+            });
+        
+        $variantIds = $query->pluck('vendor_product_variant_id')->unique()->toArray();
+        
+        // Get vendor product IDs from variants
+        $vendorProductIds = \Modules\CatalogManagement\app\Models\VendorProductVariant::whereIn('id', $variantIds)
+            ->pluck('vendor_product_id')
+            ->unique()
+            ->toArray();
+        
+        // Get product IDs from vendor products
+        $productIds = \Modules\CatalogManagement\app\Models\VendorProduct::whereIn('id', $vendorProductIds)
+            ->pluck('product_id')
+            ->unique()
+            ->toArray();
+        
+        // Get brands from products
+        $brandIds = Product::whereIn('id', $productIds)
+            ->whereNotNull('brand_id')
+            ->pluck('brand_id')
+            ->unique()
+            ->toArray();
+        
+        $brands = \Modules\CatalogManagement\app\Models\Brand::whereIn('id', $brandIds)
+            ->get()
+            ->map(function ($brand) {
+                return [
+                    'id' => $brand->id,
+                    'slug' => $brand->slug,
+                    'name' => $brand->name,
+                    'image' => $brand->image ? asset('storage/' . $brand->image) : null,
+                ];
+            })
+            ->toArray();
+        
+        // Get variant configuration IDs from variants
+        $configIds = \Modules\CatalogManagement\app\Models\VendorProductVariant::whereIn('id', $variantIds)
+            ->whereNotNull('variant_configuration_id')
+            ->pluck('variant_configuration_id')
+            ->unique()
+            ->toArray();
+        
+        // Get trees from configurations
+        $trees = $this->getTreesFromConfigIds($configIds);
+        
+        return [
+            'trees' => $trees,
+            'brands' => $brands,
+        ];
+    }
+
+    /**
+     * Get filters (trees and brands) by bundle products
+     */
+    public function getFiltersByBundle(array $filters)
+    {
+        // Get vendor product variant IDs from bundle products
+        $query = \Modules\CatalogManagement\app\Models\BundleProduct::query()
+            ->whereHas('bundle', function ($q) use ($filters) {
+                $q->where('is_active', true)
+                  ->where('admin_approval', 1);
+                
+                // Filter by specific bundle category if provided
+                if (!empty($filters['bundle_category_id'])) {
+                    $q->where('bundle_category_id', $filters['bundle_category_id']);
+                }
+            });
+        
+        $variantIds = $query->pluck('vendor_product_variant_id')->unique()->toArray();
+        
+        // Get vendor product IDs from variants
+        $vendorProductIds = \Modules\CatalogManagement\app\Models\VendorProductVariant::whereIn('id', $variantIds)
+            ->pluck('vendor_product_id')
+            ->unique()
+            ->toArray();
+        
+        // Get product IDs from vendor products
+        $productIds = \Modules\CatalogManagement\app\Models\VendorProduct::whereIn('id', $vendorProductIds)
+            ->pluck('product_id')
+            ->unique()
+            ->toArray();
+        
+        // Get brands from products
+        $brandIds = Product::whereIn('id', $productIds)
+            ->whereNotNull('brand_id')
+            ->pluck('brand_id')
+            ->unique()
+            ->toArray();
+        
+        $brands = \Modules\CatalogManagement\app\Models\Brand::whereIn('id', $brandIds)
+            ->get()
+            ->map(function ($brand) {
+                return [
+                    'id' => $brand->id,
+                    'slug' => $brand->slug,
+                    'name' => $brand->name,
+                    'image' => $brand->image ? asset('storage/' . $brand->image) : null,
+                ];
+            })
+            ->toArray();
+        
+        // Get variant configuration IDs from variants
+        $configIds = \Modules\CatalogManagement\app\Models\VendorProductVariant::whereIn('id', $variantIds)
+            ->whereNotNull('variant_configuration_id')
+            ->pluck('variant_configuration_id')
+            ->unique()
+            ->toArray();
+        
+        // Get trees from configurations
+        $trees = $this->getTreesFromConfigIds($configIds);
+        
+        return [
+            'trees' => $trees,
+            'brands' => $brands,
+        ];
+    }
+
+    /**
+     * Get variant configuration trees from configuration IDs
+     */
+    private function getTreesFromConfigIds(array $configIds)
+    {
+        if (empty($configIds)) {
+            return [];
+        }
+        
+        // Get key IDs from configurations
+        $keyIds = \Modules\CatalogManagement\app\Models\VariantsConfiguration::whereIn('id', $configIds)
+            ->pluck('key_id')
+            ->unique()
+            ->toArray();
+        
+        // Get trees with only the relevant variants
+        return VariantConfigurationKey::query()
+            ->whereIn('id', $keyIds)
+            ->orWhereHas('variants', function ($q) use ($configIds) {
+                $q->whereIn('id', $configIds);
+            })
+            ->whereNull('parent_key_id')
+            ->with([
+                'variants' => function ($q) use ($configIds) {
+                    $q->whereNull('parent_id')
+                        ->where(function ($subQ) use ($configIds) {
+                            $subQ->whereIn('id', $configIds)
+                                ->orWhereHas('childrenRecursive', function ($childQ) use ($configIds) {
+                                    $childQ->whereIn('id', $configIds);
+                                });
+                        })
+                        ->with(['childrenRecursive', 'childrenRecursive.key', 'childrenRecursive.translations', 'childrenRecursive.key.translations']);
+                },
+                'childrenKeys' => function ($q) use ($configIds) {
+                    $q->with([
+                        'variants' => function ($q2) use ($configIds) {
+                            $q2->whereNull('parent_id')
+                                ->whereIn('id', $configIds)
+                                ->with(['childrenRecursive', 'childrenRecursive.key']);
+                        },
+                        'childrenKeys'
+                    ]);
+                }
+            ])
+            ->get()
+            ->map(function ($key) {
+                return [
+                    'id' => $key->id,
+                    'name' => $key->name,
+                    'variants' => $key->variants->map(function ($variant) {
+                        return [
+                            'id' => $variant->id,
+                            'name' => $variant->name,
+                            'color' => $variant->color,
+                            'children' => $variant->childrenRecursive->map(function ($child) {
+                                return [
+                                    'id' => $child->id,
+                                    'name' => $child->name,
+                                    'color' => $child->color,
+                                ];
+                            })->toArray(),
+                        ];
+                    })->toArray(),
+                ];
+            })
+            ->toArray();
     }
 
 }

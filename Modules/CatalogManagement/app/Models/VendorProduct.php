@@ -64,11 +64,12 @@ class VendorProduct extends BaseModel
     }
 
     /**
-     * Get the tax
+     * Get the taxes for this vendor product (many-to-many)
      */
-    public function tax()
+    public function taxes()
     {
-        return $this->belongsTo(Tax::class);
+        return $this->belongsToMany(Tax::class, 'vendor_product_taxes', 'vendor_product_id', 'tax_id')
+            ->withTimestamps();
     }
 
     /**

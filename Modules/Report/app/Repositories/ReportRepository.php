@@ -232,12 +232,15 @@ class ReportRepository implements ReportRepositoryInterface
         }
 
         // If user is vendor, filter to show only their orders
-        if (auth()->check() && in_array(auth()->user()->user_type_id, \App\Models\UserType::vendorIds())) {
+        if (isVendor()) {
             $vendor = auth()->user()->vendor;
             if ($vendor) {
-                $query->whereHas('orderProducts', function ($q) use ($vendor) {
+                $query->whereHas('products', function ($q) use ($vendor) {
                     $q->where('vendor_id', $vendor->id);
                 });
+            } else {
+                // If vendor user but no vendor record, return empty results
+                $query->whereRaw('1 = 0');
             }
         }
 
@@ -317,7 +320,14 @@ class ReportRepository implements ReportRepositoryInterface
             ->whereIn('order_stages.type', ['new', 'in_progress'])
             ->count();
 
-        $data = $query->with(['customer', 'stage'])
+        $isVendor = isVendor();
+        $vendorId = null;
+        if ($isVendor) {
+            $vendor = auth()->user()->vendor;
+            $vendorId = $vendor ? $vendor->id : null;
+        }
+
+        $data = $query->with(['customer', 'stage', 'products'])
             ->paginate(
                 perPage: $filter->per_page,
                 page: $filter->page
@@ -331,13 +341,25 @@ class ReportRepository implements ReportRepositoryInterface
             if ($order->customer) {
                 $customerName = trim(($order->customer->first_name ?? '') . ' ' . ($order->customer->last_name ?? '')) ?: 'N/A';
             }
+            
+            // Calculate total based on user type
+            $orderTotal = $order->total_price;
+            if ($isVendor && $vendorId) {
+                // For vendors, show only their products total (price * quantity)
+                $orderTotal = $order->products
+                    ->where('vendor_id', $vendorId)
+                    ->sum(function ($product) {
+                        return $product->price * $product->quantity;
+                    });
+            }
+            
             $transformedItems[] = [
                 'index' => ($filter->page - 1) * $filter->per_page + $index + 1,
                 'order_number' => $order->order_number,
                 'customer_name' => $customerName,
                 'stage' => $order->stage ? $order->stage->name : 'N/A',
                 'stage_type' => $order->stage ? $order->stage->type : null,
-                'total' => $order->total_price,
+                'total' => $orderTotal,
                 'created_at' => $order->created_at,
             ];
         }
@@ -378,10 +400,13 @@ class ReportRepository implements ReportRepositoryInterface
         }
 
         // If user is vendor, filter to show only their products
-        if (auth()->check() && in_array(auth()->user()->user_type_id, \App\Models\UserType::vendorIds())) {
+        if (isVendor()) {
             $vendor = auth()->user()->vendor;
             if ($vendor) {
                 $query->where('vendor_id', $vendor->id);
+            } else {
+                // If vendor user but no vendor record, return empty results
+                $query->whereRaw('1 = 0');
             }
         }
 

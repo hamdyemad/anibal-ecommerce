@@ -22,7 +22,7 @@ class ProductQueryAction
                 'product.mainImage',
                 'variants',
                 'vendor',
-                'tax',
+                'taxes',
             ])
             ->withCount('reviews')
             ->withAvg('reviews', 'star');

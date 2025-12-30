@@ -51,6 +51,56 @@
                         <!-- Validation Alerts Container -->
                         <div id="validation-alerts-container" class="mb-3"></div>
 
+                        <!-- Tax Information Alert -->
+                        @php
+                            // Get current product taxes
+                            $productTaxIds = [];
+                            if (isset($product)) {
+                                $vendorProduct = $product->product ? $product : $product;
+                                if ($vendorProduct && method_exists($vendorProduct, 'taxes')) {
+                                    $productTaxIds = $vendorProduct->taxes->pluck('id')->toArray();
+                                }
+                            }
+                        @endphp
+                        @if(isset($taxes) && count($taxes) > 0)
+                        <div class="mb-4">
+                            <div class="p-3 rounded" style="background: rgba(255, 193, 7, 0.1); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid rgba(255, 193, 7, 0.3); box-shadow: 0 4px 15px rgba(255, 193, 7, 0.1);">
+                                <div class="d-flex align-items-start gap-3">
+                                    <div class="p-2 rounded-circle d-flex align-items-center justify-content-center" style="background: rgba(255, 193, 7, 0.2); min-width: 40px; height: 40px;">
+                                        <i class="uil uil-exclamation-triangle fs-5" style="color: #ffc107;"></i>
+                                    </div>
+                                    <div class="w-100">
+                                        <h6 class="mb-2 fw-bold" style="color: #856404;">{{ __('catalogmanagement::product.tax_notice') }}</h6>
+                                        
+                                        {{-- Current Product Taxes --}}
+                                        @if(count($productTaxIds) > 0)
+                                        <p class="mb-2 small" style="color: #856404;">{{ __('catalogmanagement::product.current_product_taxes') }}:</p>
+                                        <div class="d-flex flex-wrap gap-2 mb-3">
+                                            @foreach($taxes as $tax)
+                                                @if(in_array($tax['id'], $productTaxIds))
+                                                <span class="badge badge-round badge-lg px-3 py-2" style="background: rgba(40, 167, 69, 0.2); color: #155724; font-size: 13px;">
+                                                    <i class="uil uil-check-circle me-1"></i>{{ $tax['name'] ?? __('catalogmanagement::product.tax') }} ({{ $tax['percentage'] }}%)
+                                                </span>
+                                                @endif
+                                            @endforeach
+                                        </div>
+                                        @endif
+                                        
+                                        {{-- System Taxes that will be applied on update --}}
+                                        <p class="mb-2 small" style="color: #856404;">{{ __('catalogmanagement::product.tax_notice_description') }}</p>
+                                        <div class="d-flex flex-wrap gap-2">
+                                            @foreach($taxes as $tax)
+                                                <span class="badge badge-round badge-lg px-3 py-2" style="background: rgba(255, 193, 7, 0.2); color: #856404; font-size: 13px;">
+                                                    {{ $tax['name'] ?? __('catalogmanagement::product.tax') }} ({{ $tax['percentage'] }}%)
+                                                </span>
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        @endif
+
                         <!-- Form -->
                         <form id="productForm" method="POST"
                             action="{{ isset($product) ? route('admin.products.update', $product->product ? $product->product->id : $product->id) : route('admin.products.store') }}"
@@ -89,7 +139,7 @@
                                                         class="form-control ih-medium ip-gray radius-xs b-light px-15"
                                                         placeholder="{{ __('catalogmanagement::product.sku') }}"
                                                         value="{{ isset($product) ? $product->sku : '' }}">
-                                                    <div class="invalid-feedback" id="error-sku"></div>
+                                                    <div class="error-message text-danger" id="error-sku" style="display: none;"></div>
                                                 </div>
                                             </div>
 
@@ -208,35 +258,6 @@
                                                     </select>
                                                 </div>
                                             </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Card 3: Logistics & Taxes -->
-                                <div class="card mb-4">
-                                    <div class="card-body">
-                                        <h5 class="mb-4">
-                                            <i class="uil uil-truck"></i>
-                                            {{ __('common.logistics') }}
-                                        </h5>
-                                        <div class="row">
-                                            <div class="col-md-6 mb-3">
-                                                <div class="form-group">
-                                                    <label for="tax_id"
-                                                        class="form-label">{{ __('catalogmanagement::product.tax') }}
-                                                        <span class="text-danger">*</span>
-                                                    </label>
-                                                    <select name="tax_id" id="tax_id" class="form-control select2">
-                                                        <option value="">{{ __('common.select_option') }}</option>
-                                                        @foreach ($taxes as $tax)
-                                                            <option value="{{ $tax['id'] }}"
-                                                                {{ isset($product) && $product->tax_id == $tax['id'] ? 'selected' : '' }}>
-                                                                {{ $tax['name'] }} ({{ $tax['percentage'] }}%)</option>
-                                                        @endforeach
-                                                    </select>
-                                                </div>
-                                            </div>
-
                                             <div class="col-md-6 mb-3">
                                                 <div class="form-group">
                                                     <label for="max_per_order"
@@ -1014,7 +1035,7 @@
                                                                 {{ __('catalogmanagement::product.add_new_variants') }}
                                                             </div>
                                                             <button type="button" id="add-variant-btn"
-                                                                class="btn btn-primary btn-sm">
+                                                                class="btn btn-white btn-sm">
                                                                 <i class="uil uil-plus"></i>
                                                                 {{ __('catalogmanagement::product.add_variant') }}
                                                             </button>
@@ -1662,13 +1683,6 @@
                             $('#error-category_id').text('{{ __('catalogmanagement::product.category_required') }}')
                                 .show();
                             $('#category_id').next('.select2').find('.select2-selection').addClass('is-invalid');
-                            isValid = false;
-                        }
-
-                        // Tax validation
-                        if (!$('#tax_id').val()) {
-                            $('#error-tax_id').text('{{ __('catalogmanagement::product.tax_required') }}').show();
-                            $('#tax_id').next('.select2').find('.select2-selection').addClass('is-invalid');
                             isValid = false;
                         }
 
@@ -2377,10 +2391,15 @@
             function loadVariantKeys() {
                 console.log('🔑 Loading variant keys from API...');
 
+                const countryId = $("meta[name='current_country_id']").attr("content");
+
                 $.ajax({
                     url: '{{ route('admin.api.variant-keys') }}',
                     type: 'GET',
                     dataType: 'json',
+                    data: {
+                        country_id: countryId
+                    },
                     headers: {
                         'lang': "{{ app()->getLocale() }}",
                         'X-Country-Code': $("meta[name='currency_country_code']").attr('content'),
@@ -2461,6 +2480,8 @@
                 // Store keyId in the variant box for later use
                 $(`#variant-${variantIndex}`).data('current-key-id', keyId);
 
+                const countryId = $("meta[name='current_country_id']").attr("content");
+
                 $.ajax({
                     url: '{{ route('admin.api.variants-by-key') }}',
                     type: 'GET',
@@ -2471,6 +2492,7 @@
                     },
                     data: {
                         key_id: keyId,
+                        country_id: countryId,
                     },
                     success: function(response) {
                         const variants = response.data || response;
@@ -2536,6 +2558,8 @@
                     }
                 });
 
+                const countryId = $("meta[name='current_country_id']").attr("content");
+
                 $.ajax({
                     url: '{{ route('admin.api.variants-by-key') }}',
                     type: 'GET',
@@ -2546,7 +2570,8 @@
                     },
                     data: {
                         key_id: keyId,
-                        parent_id: parentId
+                        parent_id: parentId,
+                        country_id: countryId
                     },
                     success: function(response) {
                         const variants = response.data || response;
@@ -2865,9 +2890,14 @@
             function loadVariantsByKey(variantIndex, keyId) {
                 console.log('🔄 Loading variants for key:', keyId);
 
+                const countryId = $("meta[name='current_country_id']").attr("content");
+
                 $.ajax({
                     url: `/api/variant-configurations/key/${keyId}/tree`,
                     method: 'GET',
+                    data: {
+                        country_id: countryId
+                    },
                     headers: {
                         'lang': "{{ app()->getLocale() }}",
                         'X-Country-Code': $("meta[name='currency_country_code']").attr("content")
@@ -3363,13 +3393,6 @@
                     if ($(this).val()) {
                         $(this).next('.select2').find('.select2-selection').removeClass('is-invalid');
                         $('#error-category_id').hide();
-                    }
-                });
-
-                $('#tax_id').on('change', function() {
-                    if ($(this).val()) {
-                        $(this).next('.select2').find('.select2-selection').removeClass('is-invalid');
-                        $('#error-tax_id').hide();
                     }
                 });
 

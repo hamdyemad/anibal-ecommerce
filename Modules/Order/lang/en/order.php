@@ -2,6 +2,7 @@
 
 return [
     // General
+    'order' => 'Order',
     'order_management' => 'Order Management',
     'orders_list' => 'Orders List',
     'order_details' => 'Order Details',
@@ -47,7 +48,12 @@ return [
     'cannot_change_final_stage' => 'Cannot change stage for delivered or cancelled orders',
     'cannot_go_back_to_new' => 'Cannot change status back to new from in progress',
     'cannot_go_back' => 'Cannot go back',
+    'cannot_go_back_stage' => 'Cannot go back to a previous stage',
     'final_stage' => 'Final stage',
+    'same_stage_selected' => 'The selected stage is the same as the current stage',
+    'refund_only_after_deliver' => 'Refund can only be applied after delivery',
+    'no_available_stages' => 'No available stages to transition to',
+    'cannot_skip_steps' => 'Cannot skip steps. Please follow the order workflow sequence.',
 
     // Payment Types
     'cash_on_delivery' => 'Cash on Delivery',
@@ -90,6 +96,7 @@ return [
     'order_not_found' => 'Order not found',
     'error_loading_order' => 'Error loading order',
     'cannot_edit_order' => 'You cannot edit this order because it contains products from other vendors',
+    'cannot_edit_final_stage_order' => 'You cannot edit this order because it has been delivered, cancelled, or refunded',
     'cannot_delete_order' => 'You cannot delete this order because it contains products from other vendors',
     'cannot_delete_allocated_order' => 'You cannot delete this order because it has allocated stock',
 
@@ -101,6 +108,8 @@ return [
     'customer_email_invalid' => 'Customer email must be a valid email address',
     'customer_phone_required' => 'Customer phone is required',
     'customer_address_required' => 'Customer address is required',
+    'city_required' => 'City is required',
+    'region_required' => 'Region is required',
     'address_required' => 'Please select an address',
     'products_required' => 'Please add at least 3 products to the order',
     'total_price_required' => 'Total price is required',
@@ -140,10 +149,15 @@ return [
     'order_summary' => 'Order Summary',
     'subtotal' => 'Subtotal',
     'your_products_total' => 'Your Products Total',
+    'your_products_total_including_tax' => 'Your Products Total Including Tax',
     'shipping' => 'Shipping',
     'tax' => 'Tax',
     'discount' => 'Discount',
     'discounts' => 'Discounts',
+    'promo_discount' => 'Promo Code Discount',
+    'no_points_available' => 'No points available to use',
+    'points_used' => 'Points Used',
+    'points' => 'Points',
     'fees' => 'Fees',
     'fee' => 'Fee',
     'total' => 'Total',
@@ -154,8 +168,11 @@ return [
     'bnaia_commission' => 'Bnaia Commission',
     'remaining' => 'Remaining',
     'total_commission' => 'Total Commission',
+    'total_commission_including_tax' => 'Total Commission Including Tax',
     'final_remaining' => 'Final Remaining',
     'vendors_remaining' => 'Vendors Remaining',
+    'vendor_remaining_summary' => 'Vendor Remaining Summary',
+    'with_tax' => 'With Tax',
     'type' => 'Type',
     'reason' => 'Reason',
     'amount' => 'Amount',
@@ -163,7 +180,10 @@ return [
     'reg_number' => 'Reg. Number',
     'product' => 'Product',
     'quantity' => 'Quantity',
+    'price_before_tax' => 'Price Before Tax',
     'price_per_unit' => 'Price Per Unit',
+    'subtotal_including_tax' => 'Subtotal Including Tax',
+    'tax' => 'Tax',
     'actions' => 'Actions',
 
     // Promo Code

@@ -12,7 +12,7 @@ interface OccasionRepositoryInterface
     /**
      * Get occasion by ID
      */
-    public function getOccasionById($id);
+    public function getOccasionById($id, array $filters = []);
 
     /**
      * Create new occasion
@@ -38,4 +38,9 @@ interface OccasionRepositoryInterface
      * Toggle occasion status
      */
     public function toggleOccasionStatus($id);
+
+    /**
+     * Count total occasions
+     */
+    public function count(): int;
 }

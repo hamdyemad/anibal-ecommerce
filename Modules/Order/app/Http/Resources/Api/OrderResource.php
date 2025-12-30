@@ -23,7 +23,7 @@ class OrderResource extends JsonResource
             'customer_address' => $this->customer_address,
             'order_from' => $this->order_from,
             'payment_type' => $this->payment_type,
-            'stage' => $this->stage?->name,
+            'stage' => $this->stage ? new OrderStageResource($this->stage) : null,
             'items_count' => $this->items_count,
             'total_product_price' => (float) $this->total_product_price,
             'total_tax' => (float) $this->total_tax,

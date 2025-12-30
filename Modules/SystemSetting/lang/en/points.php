@@ -79,10 +79,16 @@ return [
     'expiration' => 'Expiration',
     'active' => 'Active',
     'expired' => 'Expired',
+    'transaction_details' => 'Transaction Details',
+    'transaction_id' => 'Transaction ID',
+    'related_to' => 'Related To',
+    'expires_at' => 'Expires At',
 
     // Adjust Points
     'adjust_points' => 'Adjust Points',
     'adjust_points_help' => 'Enter positive value to add points or negative to deduct',
     'points_adjusted_successfully' => 'Points adjusted successfully',
     'adjusted_points' => 'Adjusted Points',
+    'manual_adjustment' => 'Manual Adjustment',
+    'automatic_earned' => 'Automatic Earned',
 ];

@@ -16,7 +16,7 @@ class BundleProductResource extends JsonResource
         // Load the vendor product with its relations if variant is loaded
         $vendorProduct = null;
         if ($this->vendorProductVariant) {
-            $vendorProduct = VendorProduct::with(['product.mainImage', 'product.brand', 'product.department', 'product.category', 'product.subCategory', 'vendor', 'tax'])
+            $vendorProduct = VendorProduct::with(['product.mainImage', 'product.brand', 'product.department', 'product.category', 'product.subCategory', 'vendor', 'taxes', 'variants'])
                 ->withCount('reviews')
                 ->withAvg('reviews', 'star')
                 ->find($this->vendorProductVariant->vendor_product_id);
@@ -25,6 +25,7 @@ class BundleProductResource extends JsonResource
         return [
             'id' => $this->id,
             'bundle_id' => $this->bundle_id,
+            'vendor_product_id' => $vendorProduct?->id,
             'vendor_product_variant_id' => $this->vendor_product_variant_id,
             'price' => round($this->price, 2),
             'min_quantity' => $this->min_quantity,
@@ -33,6 +34,13 @@ class BundleProductResource extends JsonResource
             'position' => $this->position,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
+
+            // Product Rating
+            'star' => round($vendorProduct?->reviews_avg_star ?? 0, 1),
+            'num_of_user_review' => $vendorProduct?->reviews_count ?? 0,
+
+            // Vendor Product Details (using VendorProductResource)
+            'vendor_product' => $vendorProduct ? new VendorProductResource($vendorProduct) : null,
 
             // Vendor Product Variant Details
             'vendor_product_variant' => $this->whenLoaded('vendorProductVariant', function() {

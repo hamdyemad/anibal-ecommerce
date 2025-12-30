@@ -114,6 +114,7 @@ class CartRepository implements CartRepositoryInterface
 
     /**
      * Get cart summary with totals
+     * Note: Prices already include tax, so we extract the tax from the total
      */
     public function getCartSummary($customerId)
     {
@@ -123,26 +124,33 @@ class CartRepository implements CartRepositoryInterface
             return null;
         }
 
-        $totalProductPrice = 0;
+        $totalPriceWithTax = 0;
         $totalTaxAmount = 0;
+        $totalProductPrice = 0;
 
         foreach ($carts as $cart) {
             $lineItemTotal = $this->calculateLineItemTotal($cart);
-            $totalProductPrice += $lineItemTotal;
+            $totalPriceWithTax += $lineItemTotal;
 
-            // Calculate taxes
-            if ($cart->vendorProduct && $cart->vendorProduct->tax) {
-                $taxAmount = ($lineItemTotal * $cart->vendorProduct->tax->tax_rate) / 100;
+            // Price already includes tax, so we need to extract the tax
+            if ($cart->vendorProduct && $cart->vendorProduct->taxes) {
+                $taxRate = $cart->vendorProduct->taxes->sum('percentage');
+                // Calculate base price: priceWithTax / (1 + taxRate/100)
+                $basePrice = $lineItemTotal / (1 + ($taxRate / 100));
+                $taxAmount = $lineItemTotal - $basePrice;
+                
                 $totalTaxAmount += $taxAmount;
+                $totalProductPrice += $basePrice;
+            } else {
+                // No tax, so the full amount is product price
+                $totalProductPrice += $lineItemTotal;
             }
         }
 
-        $finalTotalPrice = $totalProductPrice + $totalTaxAmount;
-
         return [
-            'totalProductPrice' => $totalProductPrice,
-            'totalTaxAmount' => $totalTaxAmount,
-            'finalTotalPrice' => $finalTotalPrice,
+            'totalProductPrice' => round($totalProductPrice, 2),
+            'totalTaxAmount' => round($totalTaxAmount, 2),
+            'finalTotalPrice' => round($totalPriceWithTax, 2),
         ];
     }
 
@@ -151,26 +159,32 @@ class CartRepository implements CartRepositoryInterface
      */
     private function calculateLineItemTotal($cart)
     {
-        if ($cart->type === 'product') {
-            if ($cart->vendorProductVariant) {
-                $price = $cart->vendorProductVariant->price ?? 0;
-                return (float) $price * $cart->quantity;
-            }
-        }
-        elseif ($cart->type === 'bundle' && $cart->bundle) {
-            // Get bundle product price
-            // This assumes BundleProduct model exists
-            $bundleProduct = $cart->bundle->bundleProducts->where('vendor_product_variant_id', $cart->vendor_product_variant_id)->first();
+        if ($cart->type === 'bundle' && $cart->bundle_id) {
+            // Query database directly for bundle product price
+            $bundleProduct = \Modules\CatalogManagement\app\Models\BundleProduct::where('bundle_id', $cart->bundle_id)
+                ->where('vendor_product_variant_id', $cart->vendor_product_variant_id)
+                ->first();
 
             if ($bundleProduct) {
                 return (float) $bundleProduct->price * $cart->quantity;
             }
-        } elseif ($cart->type === 'occasion' && $cart->occasion) {
-            $occasionProduct = $cart->occasion->occasionProducts->where('vendor_product_variant_id', $cart->vendor_product_variant_id)->first();
+        }
+        
+        if ($cart->type === 'occasion' && $cart->occasion_id) {
+            // Query database directly for occasion product price
+            $occasionProduct = \Modules\CatalogManagement\app\Models\OccasionProduct::where('occasion_id', $cart->occasion_id)
+                ->where('vendor_product_variant_id', $cart->vendor_product_variant_id)
+                ->first();
 
             if ($occasionProduct) {
                 return (float) $occasionProduct->special_price * $cart->quantity;
             }
+        }
+        
+        // Default: regular product price
+        if ($cart->vendorProductVariant) {
+            $price = $cart->vendorProductVariant->price ?? 0;
+            return (float) $price * $cart->quantity;
         }
 
         return 0;

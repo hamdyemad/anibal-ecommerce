@@ -16,6 +16,8 @@ return [
     'description_english' => 'Description in english',
     'department_code' => 'Department Code',
     'activation' => 'Activation',
+    'view_status' => 'View Status',
+    'sort_number' => 'Sort Number',
     'status' => 'Status',
     'active' => 'Active',
     'inactive' => 'Inactive',
@@ -39,6 +41,7 @@ return [
     'name_ar' => 'الاسم باللغه العربيه',
     'code' => 'Code',
     'created_at' => 'Created At',
+    'department_information' => 'Department Information',
 
     // Buttons
     'add_department' => 'Add Department',
@@ -97,4 +100,8 @@ return [
     'at_least_one_translation_required' => 'At least one translation is required.',
     'name_required' => 'The department name is required.',
     'name_max_255' => 'The department name may not be greater than 255 characters.',
+
+    // Reorder
+    'reorder_success' => 'Departments reordered successfully',
+    'error_reordering' => 'Error reordering departments',
 ];

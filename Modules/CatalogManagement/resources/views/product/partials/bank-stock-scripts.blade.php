@@ -298,7 +298,7 @@
                 <div class="col-md-6 col-lg-4 mb-3">
                     <div class="product-card" data-product-id="${product.id}">
                         <div class="d-flex align-items-start">
-                            <img src="${product.image || "{{ asset('/assets/img/default.png') }}"}" alt="${product.name}" class="product-image me-3" style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px;">
+                            <img src="${product.image || "{{ asset('/assets/img/default.png') }}"}" alt="${product.name}" class="product-image me-3" style="width: 60px; height: 60px; border-radius: 8px;">
                             <div class="product-info flex-grow-1">
                                 <h6 class="mb-1">${product.name}</h6>
                                 <div class="product-details">
@@ -984,18 +984,6 @@
 
             let isValid = true;
             let errors = [];
-
-            // Validate global vendor product fields
-            const taxId = $('#tax_id').val();
-            if (!taxId || taxId === '') {
-                errors.push('{{ trans('catalogmanagement::product.tax_selection_required') }}');
-                $('#tax_id').addClass('is-invalid');
-                $('#error-tax_id').text('{{ trans('catalogmanagement::product.tax_required') }}').show();
-                isValid = false;
-            } else {
-                $('#tax_id').removeClass('is-invalid');
-                $('#error-tax_id').hide();
-            }
 
             const maxPerOrder = $('#max_per_order').val();
             if (!maxPerOrder || parseInt(maxPerOrder) < 1) {
@@ -2218,16 +2206,6 @@
             // Validate vendor product form
             const vendorForm = $('#vendor-product-form');
 
-            // Check tax selection
-            const taxId = vendorForm.find('#tax_id').val();
-            if (!taxId) {
-                vendorForm.find('#tax_id').addClass('is-invalid');
-                vendorForm.find('#tax_id').next('.invalid-feedback').text(
-                    '{{ __('catalogmanagement::product.tax_required') }}');
-                errors.push('{{ __('catalogmanagement::product.tax_required') }}');
-                isValid = false;
-            }
-
             // Check points
             const points = vendorForm.find('#points').val();
             if (!points || points < 0) {
@@ -2581,9 +2559,14 @@
 
         // Utility functions
         function loadVariantKeys() {
+            const countryId = $("meta[name='current_country_id']").attr("content");
+            
             $.ajax({
                 url: config.routes.variantKeys,
                 type: 'GET',
+                data: {
+                    country_id: countryId
+                },
                 success: function(response) {
                     variantKeysData = response.data || [];
                 },
@@ -2805,12 +2788,15 @@
             // Store keyId in the variant box for later use
             $(`#variant-${variantIndex}`).data('current-key-id', keyId);
 
+            const countryId = $("meta[name='current_country_id']").attr("content");
+
             $.ajax({
                 url: '{{ route('admin.api.variants-by-key') }}',
                 type: 'GET',
                 dataType: 'json',
                 data: {
                     key_id: keyId,
+                    country_id: countryId,
                 },
                 success: function(response) {
                     const variants = response.data || response;
@@ -2876,13 +2862,16 @@
                 }
             });
 
+            const countryId = $("meta[name='current_country_id']").attr("content");
+
             $.ajax({
                 url: '{{ route('admin.api.variants-by-key') }}',
                 type: 'GET',
                 dataType: 'json',
                 data: {
                     key_id: keyId,
-                    parent_id: parentId
+                    parent_id: parentId,
+                    country_id: countryId
                 },
                 success: function(response) {
                     const variants = response.data || response;

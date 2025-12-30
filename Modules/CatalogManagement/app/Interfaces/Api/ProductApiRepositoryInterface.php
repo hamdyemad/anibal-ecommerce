@@ -12,24 +12,12 @@ interface ProductApiRepositoryInterface
     public function getPriceByFilters(array $filters);
     public function getTagsByFilters(array $filters);
     public function getTreesByFilters(array $filters);
+    public function getBrandsByProductFilters(array $filters);
     public function incrementProductViews(string $productId);
     public function incrementProductSales(string $productId, $quantity);
     public function getVariantsWithProduct(array $filters);
     public function findProductForOrder(string $id);
-
-
-
-    /**
-     * Get filters by occasion
-     * TODO: Uncomment when Occasion model is created
-     */
-    // public function getFiltersByOccasion(array $filters);
-
-    /**
-     * Get filters by bundle category
-     * TODO: Uncomment when BundleCategory model is created
-     */
-    // public function getFiltersByBundleCategory(array $filters);
-
-
+    public function getProductBySlug(string $slug);
+    public function getFiltersByOccasion(array $filters);
+    public function getFiltersByBundle(array $filters);
 }

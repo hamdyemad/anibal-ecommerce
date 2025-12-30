@@ -79,10 +79,16 @@ return [
     'expiration' => 'انتهاء الصلاحية',
     'active' => 'نشط',
     'expired' => 'منتهي',
+    'transaction_details' => 'تفاصيل المعاملة',
+    'transaction_id' => 'رقم المعاملة',
+    'related_to' => 'مرتبط بـ',
+    'expires_at' => 'تنتهي في',
 
     // Adjust Points
     'adjust_points' => 'تعديل النقاط',
     'adjust_points_help' => 'أدخل قيمة موجبة لإضافة نقاط أو سالبة للخصم',
     'points_adjusted_successfully' => 'تم تعديل النقاط بنجاح',
     'adjusted_points' => 'النقاط المعدلة',
+    'manual_adjustment' => 'تعديل يدوي',
+    'automatic_earned' => 'مكتسبة تلقائياً',
 ];

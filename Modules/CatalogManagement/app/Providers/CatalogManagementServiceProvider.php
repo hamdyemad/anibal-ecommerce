@@ -29,6 +29,9 @@ use Modules\CatalogManagement\app\Services\Api\BrandApiService;
 use Modules\CatalogManagement\app\Interfaces\Api\ReviewRepositoryInterface;
 use Modules\CatalogManagement\app\Repositories\Api\ReviewRepository;
 use Modules\CatalogManagement\app\Services\Api\ReviewService;
+use Modules\CatalogManagement\app\Interfaces\Api\VariantConfigurationApiRepositoryInterface;
+use Modules\CatalogManagement\app\Repositories\Api\VariantConfigurationApiRepository;
+use Modules\CatalogManagement\app\Services\Api\VariantConfigurationApiService;
 use Modules\CategoryManagment\app\Services\Api\CategoryApiService;
 use Modules\CatalogManagement\app\Interfaces\BundleCategoryRepositoryInterface;
 use Modules\CatalogManagement\app\Interfaces\BundleRepositoryInterface;
@@ -38,6 +41,8 @@ use Modules\CatalogManagement\app\Repositories\Api\BundleApiRepository;
 use Modules\CatalogManagement\app\Repositories\Api\BundleCategoryApiRepository;
 use Modules\CatalogManagement\app\Repositories\BundleRepository;
 use Modules\CatalogManagement\app\Repositories\OccasionRepository;
+use Modules\CatalogManagement\app\Models\VendorProduct;
+use Modules\CatalogManagement\app\Observers\VendorProductObserver;
 use Nwidart\Modules\Traits\PathNamespace;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
@@ -61,6 +66,9 @@ class CatalogManagementServiceProvider extends ServiceProvider
         $this->registerConfig();
         $this->registerViews();
         $this->loadMigrationsFrom(module_path($this->name, 'database/migrations'));
+        
+        // Register observers
+        VendorProduct::observe(VendorProductObserver::class);
     }
 
     /**
@@ -108,6 +116,11 @@ class CatalogManagementServiceProvider extends ServiceProvider
         );
 
         $this->app->bind(
+            VariantConfigurationApiRepositoryInterface::class,
+            VariantConfigurationApiRepository::class
+        );
+
+        $this->app->bind(
             BundleCategoryRepositoryInterface::class,
             BundleCategoryRepository::class
         );
@@ -123,6 +136,7 @@ class CatalogManagementServiceProvider extends ServiceProvider
         );
 
         $this->app->singleton(ReviewService::class);
+        $this->app->singleton(VariantConfigurationApiService::class);
 
         // Register API repository and service bindings
         $this->app->singleton(ProductQueryAction::class);

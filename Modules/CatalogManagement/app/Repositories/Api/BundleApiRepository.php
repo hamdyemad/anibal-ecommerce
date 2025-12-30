@@ -26,10 +26,8 @@ class BundleApiRepository implements BundleRepositoryApiInterface
         $query = Bundle::with('country', 'vendor', 'bundleCategory',
          'bundleProducts.vendorProductVariant.vendorProduct'
         )->filter($filters)
-        ->active()
-        ->approved()
+        ->active() // active() now includes is_active = 1 AND admin_approval = 1
         ->withCount('bundleProducts')
-        ->filter($filters)
         ->latest();
         return ($perPage == 0) ? $query->get() : $query->paginate($perPage);
     }
@@ -37,20 +35,30 @@ class BundleApiRepository implements BundleRepositoryApiInterface
     /**
      * Get bundle by ID
      */
-    public function getBundleById($id)
+    public function getBundleById($id, array $filters = [])
     {
         return Bundle::with([
             'attachments',
             'country',
             'vendor',
             'bundleCategory',
-            'bundleProducts.vendorProductVariant.vendorProduct',
+            'bundleProducts' => function ($q) use ($filters) {
+                // Apply search filter on bundle products via VendorProduct filter scope
+                if (!empty($filters['search'])) {
+                    $q->whereHas('vendorProductVariant.vendorProduct', function ($vpQuery) use ($filters) {
+                        $vpQuery->filter($filters);
+                    });
+                }
+                
+                // Eager load relationships
+                $q->with(['vendorProductVariant.vendorProduct']);
+            },
         ])
         ->withCount('bundleProducts')
-        ->where('id', $id)
-        ->orwhere('slug', $id)
-        ->approved()
-        ->active()
+        ->where(function($q) use ($id) {
+            $q->where('id', $id)->orWhere('slug', $id);
+        })
+        ->active() // active() now includes is_active = 1 AND admin_approval = 1
         ->firstOrFail();
     }
 

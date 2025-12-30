@@ -18,6 +18,8 @@ return [
     'category' => 'Category',
     'image' => 'Image',
     'activation' => 'Activation',
+    'view_status' => 'View Status',
+    'sort_number' => 'Sort Number',
     'status' => 'Status',
     'active' => 'Active',
     'inactive' => 'Inactive',
@@ -40,6 +42,7 @@ return [
     'name_en' => 'Name (English)',
     'name_ar' => 'الاسم باللغه العربيه',
     'created_at' => 'Created At',
+    'subcategory_information' => 'Subcategory Information',
 
     // Buttons
     'add_subcategory' => 'Add Sub-Category',
@@ -86,4 +89,8 @@ return [
     'status_changed_successfully' => 'Sub-category status changed successfully',
     'error_changing_status' => 'Error changing sub-category status',
     'status_already_set' => 'Sub-category is already set to this status',
+
+    // Reorder
+    'reorder_success' => 'Sub-categories reordered successfully',
+    'error_reordering' => 'Error reordering sub-categories',
 ];

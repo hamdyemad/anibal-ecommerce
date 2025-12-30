@@ -2,6 +2,7 @@
 
 return [
     // General
+    'order' => 'الطلب',
     'order_management' => 'إدارة الطلبات',
     'orders_list' => 'قائمة الطلبات',
     'order_details' => 'تفاصيل الطلب',
@@ -47,7 +48,12 @@ return [
     'cannot_change_final_stage' => 'لا يمكن تغيير المرحلة للطلبات المسلمة أو الملغاة',
     'cannot_go_back_to_new' => 'لا يمكن تغيير الحالة إلى جديد من قيد التنفيذ',
     'cannot_go_back' => 'لا يمكن الرجوع',
+    'cannot_go_back_stage' => 'لا يمكن الرجوع إلى مرحلة سابقة',
     'final_stage' => 'مرحلة نهائية',
+    'same_stage_selected' => 'المرحلة المختارة هي نفس المرحلة الحالية',
+    'refund_only_after_deliver' => 'يمكن تطبيق الاسترداد فقط بعد التسليم',
+    'no_available_stages' => 'لا توجد مراحل متاحة للانتقال إليها',
+    'cannot_skip_steps' => 'لا يمكن تخطي المراحل. يرجى اتباع تسلسل سير العمل.',
 
     // Payment Types
     'cash_on_delivery' => 'الدفع عند الاستلام',
@@ -90,6 +96,7 @@ return [
     'order_not_found' => 'الطلب غير موجود',
     'error_loading_order' => 'خطأ في تحميل الطلب',
     'cannot_edit_order' => 'لا يمكنك تعديل هذا الطلب لأنه يحتوي على منتجات من بائعين آخرين',
+    'cannot_edit_final_stage_order' => 'لا يمكنك تعديل هذا الطلب لأنه تم تسليمه أو إلغاؤه أو استرداده',
     'cannot_delete_order' => 'لا يمكنك حذف هذا الطلب لأنه يحتوي على منتجات من بائعين آخرين',
     'cannot_delete_allocated_order' => 'لا يمكنك حذف هذا الطلب لأنه يحتوي على مخزون مخصص',
 
@@ -101,6 +108,8 @@ return [
     'customer_email_invalid' => 'يجب أن يكون بريد العميل الإلكتروني صحيحاً',
     'customer_phone_required' => 'هاتف العميل مطلوب',
     'customer_address_required' => 'عنوان العميل مطلوب',
+    'city_required' => 'المدينة مطلوبة',
+    'region_required' => 'المنطقة مطلوبة',
     'address_required' => 'يرجى اختيار عنوان',
     'products_required' => 'يرجى إضافة 3 منتجات على الأقل إلى الطلب',
     'total_price_required' => 'السعر الإجمالي مطلوب',
@@ -140,10 +149,15 @@ return [
     'order_summary' => 'ملخص الطلب',
     'subtotal' => 'المجموع الفرعي',
     'your_products_total' => 'إجمالي منتجاتك',
+    'your_products_total_including_tax' => 'إجمالي منتجاتك شامل الضريبة',
     'shipping' => 'الشحن',
     'tax' => 'الضريبة',
     'discount' => 'الخصم',
     'discounts' => 'الخصومات',
+    'promo_discount' => 'خصم كود الخصم',
+    'no_points_available' => 'لا توجد نقاط متاحة للاستخدام',
+    'points_used' => 'النقاط المستخدمة',
+    'points' => 'نقطة',
     'fees' => 'الرسوم',
     'fee' => 'رسم',
     'total' => 'الإجمالي',
@@ -154,8 +168,11 @@ return [
     'bnaia_commission' => 'عمولة بنايا',
     'remaining' => 'المتبقي',
     'total_commission' => 'إجمالي العمولة',
+    'total_commission_including_tax' => 'إجمالي العمولة شامل الضريبة',
     'final_remaining' => 'المتبقي النهائي',
     'vendors_remaining' => 'المتبقي للبائعين',
+    'vendor_remaining_summary' => 'ملخص المتبقي للبائعين',
+    'with_tax' => 'شامل الضريبة',
     'type' => 'النوع',
     'reason' => 'السبب',
     'amount' => 'المبلغ',
@@ -163,7 +180,10 @@ return [
     'reg_number' => 'رقم التسجيل',
     'product' => 'المنتج',
     'quantity' => 'الكمية',
+    'price_before_tax' => 'السعر قبل الضريبة',
     'price_per_unit' => 'السعر لكل وحدة',
+    'subtotal_including_tax' => 'المجموع الفرعي شامل الضريبة',
+    'tax' => 'الضريبة',
     'actions' => 'الإجراءات',
 
     // Promo Code

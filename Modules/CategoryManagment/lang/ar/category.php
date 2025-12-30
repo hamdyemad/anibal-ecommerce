@@ -20,6 +20,8 @@ return [
     'activities' => 'الأنشطة',
     'image' => 'الصورة',
     'activation' => 'التفعيل',
+    'view_status' => 'حالة العرض',
+    'sort_number' => 'رقم الترتيب',
     'status' => 'الحالة',
     'active' => 'نشط',
     'inactive' => 'غير نشط',
@@ -43,6 +45,7 @@ return [
     'name_en' => 'الاسم (إنجليزي)',
     'name_ar' => 'الاسم (عربي)',
     'created_at' => 'تاريخ الإنشاء',
+    'category_information' => 'معلومات الفئة',
 
     // Buttons
     'add_category' => 'إضافة فئة',
@@ -90,4 +93,8 @@ return [
     'status_changed_successfully' => 'تم تغيير حالة الفئة بنجاح',
     'error_changing_status' => 'خطأ في تغيير حالة الفئة',
     'status_already_set' => 'الفئة مضبوطة بالفعل على هذه الحالة',
+
+    // Reorder
+    'reorder_success' => 'تم إعادة ترتيب الفئات بنجاح',
+    'error_reordering' => 'خطأ في إعادة ترتيب الفئات',
 ];

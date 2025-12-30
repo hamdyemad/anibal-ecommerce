@@ -23,7 +23,7 @@ class ReviewResource extends JsonResource
         // Load the reviewable resource
         $reviewable = null;
         if ($isProduct) {
-            $product = VendorProduct::with(['product.mainImage', 'product.brand', 'product.department', 'product.category', 'product.subCategory', 'vendor', 'tax'])
+            $product = VendorProduct::with(['product.mainImage', 'product.brand', 'product.department', 'product.category', 'product.subCategory', 'vendor', 'taxes'])
                 ->withCount('reviews')
                 ->withAvg('reviews', 'star')
                 ->find($this->reviewable_id);

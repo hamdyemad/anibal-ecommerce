@@ -15,6 +15,27 @@ class VendorProductVariantResource extends JsonResource
     public function toArray(Request $request): array
     {
         $locale = app()->getLocale();
+        
+        // Build configuration object
+        $configuration = null;
+        if ($this->variantConfiguration) {
+            // Get color value - only if type is 'color', use the value field
+            $colorValue = null;
+            if ($this->variantConfiguration->type === 'color') {
+                $colorValue = $this->variantConfiguration->value;
+            }
+            
+            $configuration = [
+                'id' => $this->variantConfiguration->id,
+                'name' => $this->variantConfiguration->getTranslation('name', $locale) ?? $this->variantConfiguration->name ?? $this->variantConfiguration->value,
+                'color' => $colorValue,
+                'key' => $this->variantConfiguration->key ? [
+                    'id' => $this->variantConfiguration->key->id,
+                    'name' => $this->variantConfiguration->key->getTranslation('name', $locale) ?? $this->variantConfiguration->key->name,
+                ] : null,
+            ];
+        }
+        
         return [
             'id' => $this->id,
             'show_end_offer_at_section' => (bool) $this->has_discount,
@@ -29,11 +50,9 @@ class VendorProductVariantResource extends JsonResource
                 ($this->variantConfiguration->key->getTranslation('name', $locale) ?? $this->variantConfiguration->key->name) : '',
             'variant_value' => $this->variantConfiguration ? 
                 ($this->variantConfiguration->getTranslation('name', $locale) ?? ($this->variantConfiguration->name ?? $this->variantConfiguration->value)) : '',
-            'vendor_name' => $this->vendorProduct && $this->vendorProduct->vendor ? 
-                $this->vendorProduct->vendor->name : 'N/A',
-            'vendor_product' => $this->whenLoaded('vendorProduct', function() {
-                return new VendorProductResource($this->vendorProduct);
-            }),
+            'configuration' => $configuration,
+            'vendor_name' => $this->relationLoaded('vendorProduct') && $this->vendorProduct ? 
+                ($this->vendorProduct->relationLoaded('vendor') && $this->vendorProduct->vendor ? $this->vendorProduct->vendor->name : null) : null,
             'real_price' => $this->formatPrice((float) $this->price),
             'fake_price' => $this->price_before_discount ? $this->formatPrice((float) $this->price_before_discount) : null,
             'discount' => $this->discount,
