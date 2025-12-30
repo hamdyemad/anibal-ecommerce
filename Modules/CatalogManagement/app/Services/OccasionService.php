@@ -26,9 +26,9 @@ class OccasionService
     /**
      * Get occasion by ID
      */
-    public function getOccasionById($id)
+    public function getOccasionById($id, array $filters = [])
     {
-        return $this->occasionRepository->getOccasionById($id);
+        return $this->occasionRepository->getOccasionById($id, $filters);
     }
 
     /**

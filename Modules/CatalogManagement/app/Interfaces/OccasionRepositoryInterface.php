@@ -12,7 +12,7 @@ interface OccasionRepositoryInterface
     /**
      * Get occasion by ID
      */
-    public function getOccasionById($id);
+    public function getOccasionById($id, array $filters = []);
 
     /**
      * Create new occasion

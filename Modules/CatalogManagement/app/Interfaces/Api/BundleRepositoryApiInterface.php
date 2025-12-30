@@ -12,6 +12,6 @@ interface BundleRepositoryApiInterface
     /**
      * Get bundle by ID
      */
-    public function getBundleById($id);
+    public function getBundleById($id, array $filters = []);
 
 }

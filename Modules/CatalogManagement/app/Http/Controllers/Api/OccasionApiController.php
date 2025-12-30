@@ -40,9 +40,12 @@ class OccasionApiController extends Controller
      */
     public function show(Request $request, $id)
     {
-        $occasion = $this->occasionService->getOccasionById($id);
+        $filters = [
+            'search' => $request->get('search'),
+        ];
+        
+        $occasion = $this->occasionService->getOccasionById($id, $filters);
         return $this->sendRes(config('responses.success')[app()->getLocale()], true, new OccasionResource($occasion));
-
     }
 
 

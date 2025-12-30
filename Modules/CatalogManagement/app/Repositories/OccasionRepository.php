@@ -31,14 +31,26 @@ class OccasionRepository implements OccasionRepositoryInterface
     /**
      * Get occasion by ID
      */
-    public function getOccasionById($id)
+    public function getOccasionById($id, array $filters = [])
     {
         $query = Occasion::with([
             'translations',
-            'occasionProducts.vendorProductVariant.vendorProduct.product.mainImage',
-            'occasionProducts.vendorProductVariant.vendorProduct.product.translations',
-            'occasionProducts.vendorProductVariant.vendorProduct.vendor.logo',
-            'occasionProducts.vendorProductVariant.variantConfiguration.key'
+            'occasionProducts' => function ($q) use ($filters) {
+                // Apply search filter on occasion products via VendorProduct filter scope
+                if (!empty($filters['search'])) {
+                    $q->whereHas('vendorProductVariant.vendorProduct', function ($vpQuery) use ($filters) {
+                        $vpQuery->filter($filters);
+                    });
+                }
+                
+                // Eager load relationships
+                $q->with([
+                    'vendorProductVariant.vendorProduct.product.mainImage',
+                    'vendorProductVariant.vendorProduct.product.translations',
+                    'vendorProductVariant.vendorProduct.vendor.logo',
+                    'vendorProductVariant.variantConfiguration.key'
+                ]);
+            },
         ])
         ->where(function($q) use ($id) {
             $q->where('id', $id)->orWhere('slug', $id);

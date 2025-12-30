@@ -35,9 +35,12 @@ class BundlesApiController extends Controller
      */
     public function show(Request $request, $id)
     {
-        $bundle = $this->bundleService->getBundleById($id);
+        $filters = [
+            'search' => $request->get('search'),
+        ];
+        
+        $bundle = $this->bundleService->getBundleById($id, $filters);
         return $this->sendRes(config('responses.success')[app()->getLocale()], true, new BundleResource($bundle));
-
     }
 
 

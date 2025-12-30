@@ -24,9 +24,9 @@ class BundleApiService
     /**
      * Get bundle by ID
      */
-    public function getBundleById($id)
+    public function getBundleById($id, array $filters = [])
     {
-        return $this->bundleRepository->getBundleById($id);
+        return $this->bundleRepository->getBundleById($id, $filters);
     }
 
 }

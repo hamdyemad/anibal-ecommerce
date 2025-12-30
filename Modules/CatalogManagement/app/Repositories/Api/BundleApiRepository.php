@@ -35,14 +35,24 @@ class BundleApiRepository implements BundleRepositoryApiInterface
     /**
      * Get bundle by ID
      */
-    public function getBundleById($id)
+    public function getBundleById($id, array $filters = [])
     {
         return Bundle::with([
             'attachments',
             'country',
             'vendor',
             'bundleCategory',
-            'bundleProducts.vendorProductVariant.vendorProduct',
+            'bundleProducts' => function ($q) use ($filters) {
+                // Apply search filter on bundle products via VendorProduct filter scope
+                if (!empty($filters['search'])) {
+                    $q->whereHas('vendorProductVariant.vendorProduct', function ($vpQuery) use ($filters) {
+                        $vpQuery->filter($filters);
+                    });
+                }
+                
+                // Eager load relationships
+                $q->with(['vendorProductVariant.vendorProduct']);
+            },
         ])
         ->withCount('bundleProducts')
         ->where(function($q) use ($id) {
