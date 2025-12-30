@@ -87,6 +87,27 @@ Route::get('/permissions/reset', function() {
     return "done";
 });
 
+// Clear Cache & Optimize
+Route::get('/clear-cache', function() {
+    Artisan::call('cache:clear');
+    Artisan::call('config:clear');
+    Artisan::call('route:clear');
+    Artisan::call('view:clear');
+    Artisan::call('optimize:clear');
+    
+    return response()->json([
+        'success' => true,
+        'message' => 'Cache cleared and optimized successfully!',
+        'commands' => [
+            'cache:clear',
+            'config:clear', 
+            'route:clear',
+            'view:clear',
+            'optimize:clear'
+        ]
+    ]);
+})->name('clear_cache');
+
 Route::get('/lang/{lang}',[ LanguageController::class,'switchLang'])->name('switch_lang');
 
 // Country Switch Route
