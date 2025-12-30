@@ -15,17 +15,17 @@ class CalculateFinalTotal
         $data = $payload['data'];
         $context = $payload['context'];
 
-        // Calculate final total
-        $promocode = $context['promo_code'] ?? null;
-        $promoDiscount = $promocode ? $this->calculatePromoDiscount($context['total_product_price'], $promocode->value, $promocode->type) : 0;
-        
-        $subtotal = $context['total_product_price'];
+        $subtotal = $context['total_product_price']; // Price before tax
         // Use calculated shipping from CalculateShipping pipeline, or fallback to data
         $shipping = (float) ($data['shipping'] ?? 0);
         $tax = $context['total_tax'] ?? 0;
         $fees = $context['total_fees'] ?? 0;
         $discounts = $context['total_discounts'] ?? 0;
         $pointsCost = $context['points_cost'] ?? 0;
+
+        // Calculate promo discount from subtotal (price before tax)
+        $promocode = $context['promo_code'] ?? null;
+        $promoDiscount = $promocode ? $this->calculatePromoDiscount($subtotal, $promocode->value, $promocode->type) : 0;
 
         Log::info('CalculateFinalTotal: Before calculation', [
             'subtotal' => $subtotal,

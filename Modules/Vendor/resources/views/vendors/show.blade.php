@@ -271,11 +271,16 @@
                                 // Calculate vendor order data for 6 cards
                                 $vendorOrderProducts = \Modules\Order\app\Models\OrderProduct::where('vendor_id', $vendor->id)->get();
                                 $ordersPrice = $vendorOrderProducts->sum(function($op) {
-                                    return $op->price * $op->quantity;
+                                    return $op->price;
                                 });
-                                $bnaiaBalance = $vendorOrderProducts->sum(function($op) {
-                                    return ($op->price * $op->quantity) * ($op->commission / 100);
-                                });
+                                
+                                // Subtract promo code discounts from orders containing this vendor's products
+                                $orderIds = $vendorOrderProducts->pluck('order_id')->unique();
+                                $totalPromoDiscount = \Modules\Order\app\Models\Order::whereIn('id', $orderIds)->sum('customer_promo_code_amount') ?? 0;
+                                $ordersPrice = $ordersPrice - $totalPromoDiscount;
+                                
+                                // Commission is stored as actual amount, not percentage
+                                $bnaiaBalance = $vendorOrderProducts->sum('commission');
                                 $totalVendorBalance = $ordersPrice - $bnaiaBalance;
                                 $totalSentMoney = $vendor->total_sent;
                             @endphp

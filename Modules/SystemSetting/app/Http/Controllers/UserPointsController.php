@@ -174,6 +174,15 @@ class UserPointsController extends Controller
             // Format data
             $data = [];
             foreach ($transactions as $index => $transaction) {
+                // Get order number if related to an order
+                $orderNumber = null;
+                if ($transaction->transactionable_type && 
+                    (str_contains($transaction->transactionable_type, 'Order') || $transaction->transactionable_type === 'order_checkout') &&
+                    $transaction->transactionable_id) {
+                    $order = \Modules\Order\app\Models\Order::withoutGlobalScopes()->find($transaction->transactionable_id);
+                    $orderNumber = $order?->order_number;
+                }
+
                 $data[] = [
                     'id' => $transaction->id,
                     'index' => $skip + $index + 1,
@@ -181,9 +190,13 @@ class UserPointsController extends Controller
                     'type' => $transaction->type,
                     'type_label' => trans('systemsetting::points.type_' . $transaction->type),
                     'description' => truncateString($transaction->description),
+                    'full_description' => $transaction->description,
                     'expires_at' => $transaction->expires_at ? $transaction->expires_at : '-',
                     'is_expired' => $transaction->is_expired,
                     'created_at' => $transaction->created_at,
+                    'transactionable_type' => $transaction->transactionable_type,
+                    'transactionable_id' => $transaction->transactionable_id,
+                    'order_number' => $orderNumber,
                 ];
             }
 

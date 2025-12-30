@@ -74,7 +74,7 @@ class OrderController extends Controller
             // Admin sees all orders - filtered by country through Order model's CountryCheckIdTrait
             $orderIds = Order::pluck('id');
             $total_price = number_format(
-                OrderProduct::whereIn('order_id', $orderIds)->sum(\DB::raw('price * quantity')), 
+                OrderProduct::whereIn('order_id', $orderIds)->sum('price'), 
                 2
             );
             $orders_count = Order::latest()->count();
@@ -95,13 +95,18 @@ class OrderController extends Controller
                     ->pluck('order_products.order_id');
                 
                 // Calculate vendor's product totals using DB query
-                $total_price = number_format(
-                    \DB::table('order_products')
-                        ->join('orders', 'order_products.order_id', '=', 'orders.id')
-                        ->where('order_products.vendor_id', $vendorId)
-                        ->sum(\DB::raw('order_products.price * order_products.quantity')), 
-                    2
-                );
+                // price already includes total (price * quantity)
+                $vendorProductSum = \DB::table('order_products')
+                    ->join('orders', 'order_products.order_id', '=', 'orders.id')
+                    ->where('order_products.vendor_id', $vendorId)
+                    ->sum('order_products.price');
+                
+                // Subtract promo discounts from vendor's total
+                $promoDiscountSum = \DB::table('orders')
+                    ->whereIn('id', $orderIds)
+                    ->sum('customer_promo_code_amount');
+                
+                $total_price = number_format($vendorProductSum - $promoDiscountSum, 2);
                 $orders_count = $orderIds->count();
                 
                 // Calculate vendor order product stats by stage
@@ -190,12 +195,13 @@ class OrderController extends Controller
                 // For vendors: calculate their product total only
                 $displayTotalPrice = $order->total_price;
                 if ($isVendorUser && $currentVendorId) {
+                    // price already includes total (price * quantity), so just sum it
                     $vendorProductTotal = $order->products
                         ->where('vendor_id', $currentVendorId)
-                        ->sum(function($product) {
-                            return $product->price * $product->quantity;
-                        });
-                    $displayTotalPrice = $vendorProductTotal;
+                        ->sum('price');
+                    // Subtract promo discount from vendor's total
+                    $promoDiscount = $order->customer_promo_code_amount ?? 0;
+                    $displayTotalPrice = $vendorProductTotal - $promoDiscount;
                 }
 
                 $rowData = [
@@ -344,9 +350,10 @@ class OrderController extends Controller
                     $vendorProducts = $order->products->filter(function($product) use ($currentVendorId) {
                         return $product->vendor_id == $currentVendorId;
                     });
-                    $vendorProductTotal = $vendorProducts->sum(function($product) {
-                        return $product->price * $product->quantity;
-                    });
+                    // price already includes total (price * quantity), so just sum it
+                    $vendorProductTotal = $vendorProducts->sum('price');
+                    // Subtract promo discount from vendor's total
+                    $vendorProductTotal = $vendorProductTotal - ($order->customer_promo_code_amount ?? 0);
                 }
             }
             
@@ -389,6 +396,13 @@ class OrderController extends Controller
         $order = $this->orderService->getOrderById($id);
         if (!$order) {
             return abort(404, trans('order::order.order_not_found'));
+        }
+
+        // Check if order is in a final stage (deliver, cancel, refund)
+        $finalStages = ['deliver', 'cancel', 'refund'];
+        if ($order->stage && in_array($order->stage->type, $finalStages)) {
+            return redirect()->route('admin.orders.show', $id)
+                ->with('error', trans('order::order.cannot_edit_final_stage_order'));
         }
 
         // Check if vendor can edit this order
@@ -546,7 +560,7 @@ class OrderController extends Controller
             return $stage->type === 'deliver';
         });
         
-        // Get orders with their total_price and stage info
+        // Get orders with their total_price, promo discount and stage info
         // Use DB query to avoid scope issues
         $query = \DB::table('orders')
             ->join('order_products', 'orders.id', '=', 'order_products.order_id');
@@ -559,6 +573,7 @@ class OrderController extends Controller
         $vendorOrders = $query->select(
                 'orders.id as order_id',
                 'orders.total_price',
+                'orders.customer_promo_code_amount',
                 'orders.stage_id',
                 'order_products.quantity',
                 'order_products.price as product_price'
@@ -566,12 +581,14 @@ class OrderController extends Controller
             ->get();
         
         // Group by order to avoid counting same order multiple times
-        // For vendors: calculate product total, for admin: use order total
+        // For vendors: calculate product total minus promo discount, for admin: use order total
         $uniqueOrders = $vendorOrders->groupBy('order_id')->map(function($group) use ($vendorId) {
-            // Calculate vendor's product total (sum of price * quantity for their products)
-            $vendorProductTotal = $group->sum(function($item) {
-                return $item->product_price * $item->quantity;
-            });
+            // product_price already includes total (price * quantity)
+            $vendorProductTotal = $group->sum('product_price');
+            
+            // Subtract promo discount
+            $promoDiscount = $group->first()->customer_promo_code_amount ?? 0;
+            $vendorProductTotal = $vendorProductTotal - $promoDiscount;
             
             return [
                 'order_id' => $group->first()->order_id,

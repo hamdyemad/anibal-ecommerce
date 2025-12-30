@@ -381,8 +381,30 @@
                                         </h6>
                                         <div class="summary-details">
                                             <div class="summary-row mb-12">
+                                                <span class="fw-bold">{{ trans('order::order.subtotal') }}</span>
+                                                <span class="fw-bold">{{ number_format($totalProductsPriceBeforeTax, 2) }}
+                                                    {{ currency() }}</span>
+                                            </div>
+                                            @if ($order->customer_promo_code_amount > 0)
+                                                <div class="summary-row mb-12">
+                                                    <span class="fw-bold">
+                                                        {{ trans('order::order.promo_discount') }}
+                                                        @if($order->customer_promo_code_title)
+                                                            <small class="text-white-50">({{ $order->customer_promo_code_title }})</small>
+                                                        @endif
+                                                    </span>
+                                                    <span class="fw-bold" style="color: #ffcccc;">-{{ number_format($order->customer_promo_code_amount, 2) }}
+                                                        {{ currency() }}</span>
+                                                </div>
+                                            @endif
+                                            <div class="summary-row mb-12">
+                                                <span class="fw-bold">{{ trans('order::order.tax') }}</span>
+                                                <span class="fw-bold">+{{ number_format($totalProductsTax, 2) }}
+                                                    {{ currency() }}</span>
+                                            </div>
+                                            <div class="summary-row mb-12">
                                                 <span class="fw-bold">{{ trans('order::order.your_products_total_including_tax') }}</span>
-                                                <span class="fw-bold">{{ number_format($totalProductsPriceWithTax, 2) }}
+                                                <span class="fw-bold">{{ number_format($totalProductsPriceWithTax - $order->customer_promo_code_amount, 2) }}
                                                     {{ currency() }}</span>
                                             </div>
                                             <div class="summary-row mb-12">
@@ -393,7 +415,7 @@
                                             <hr style="border-color: rgba(255,255,255,0.3); margin: 15px 0;">
                                             <div class="summary-row" style="font-size: 18px;">
                                                 <span class="fw-bold">{{ trans('order::order.final_remaining') }}</span>
-                                                <span class="fw-bold" style="color: #ffffcc;">{{ number_format($totalRemaining, 2) }}
+                                                <span class="fw-bold" style="color: #ffffcc;">{{ number_format($totalRemaining - $order->customer_promo_code_amount, 2) }}
                                                     {{ currency() }}</span>
                                             </div>
                                         </div>
@@ -415,7 +437,7 @@
                                         <div class="summary-details">
                                             <div class="summary-row mb-12">
                                                 <span class="fw-bold">{{ trans('order::order.subtotal_including_tax') }}</span>
-                                                <span class="fw-bold">{{ number_format($totalProductsPriceWithTax, 2) }}
+                                                <span class="fw-bold">{{ number_format($totalProductsPriceWithTax - $order->customer_promo_code_amount, 2) }}
                                                     {{ currency() }}</span>
                                             </div>
                                             <div class="summary-row mb-12">
@@ -426,7 +448,7 @@
                                             <hr style="border-color: rgba(255,255,255,0.3); margin: 15px 0;">
                                             <div class="summary-row" style="font-size: 18px;">
                                                 <span class="fw-bold">{{ trans('order::order.vendors_remaining') }}</span>
-                                                <span class="fw-bold" style="color: #ffffcc;">{{ number_format($totalRemaining, 2) }}
+                                                <span class="fw-bold" style="color: #ffffcc;">{{ number_format($totalRemaining - $order->customer_promo_code_amount, 2) }}
                                                     {{ currency() }}</span>
                                             </div>
                                         </div>
@@ -449,6 +471,18 @@
                                                 <span class="fw-bold">{{ number_format($totalProductsPriceBeforeTax, 2) }}
                                                     {{ currency() }}</span>
                                             </div>
+                                            @if ($order->customer_promo_code_amount > 0)
+                                                <div class="summary-row mb-12">
+                                                    <span class="fw-bold">
+                                                        {{ trans('order::order.promo_discount') }}
+                                                        @if($order->customer_promo_code_title)
+                                                            <small class="text-white-50">({{ $order->customer_promo_code_title }})</small>
+                                                        @endif
+                                                    </span>
+                                                    <span class="fw-bold" style="color: #ffcccc;">-{{ number_format($order->customer_promo_code_amount, 2) }}
+                                                        {{ currency() }}</span>
+                                                </div>
+                                            @endif
                                             <div class="summary-row mb-12">
                                                 <span class="fw-bold">{{ trans('order::order.tax') }}</span>
                                                 <span class="fw-bold">+{{ number_format($order->total_tax, 2) }}
@@ -456,7 +490,7 @@
                                             </div>
                                             <div class="summary-row mb-12">
                                                 <span class="fw-bold">{{ trans('order::order.subtotal_including_tax') }}</span>
-                                                <span class="fw-bold">{{ number_format($totalProductsPriceWithTax, 2) }}
+                                                <span class="fw-bold">{{ number_format($totalProductsPriceWithTax - $order->customer_promo_code_amount, 2) }}
                                                     {{ currency() }}</span>
                                             </div>
                                             @if ($order->total_discounts > 0)
@@ -478,6 +512,13 @@
                                                 <span class="fw-bold">+{{ number_format($order->shipping, 2) }}
                                                     {{ currency() }}</span>
                                             </div>
+                                            @if ($order->points_used > 0)
+                                                <div class="summary-row mb-12">
+                                                    <span class="fw-bold">{{ trans('order::order.points_used') }}</span>
+                                                    <span class="fw-bold" style="color: #ffcccc;">-{{ number_format($order->points_cost, 2) }}
+                                                        {{ currency() }} ({{ number_format($order->points_used, 0) }} {{ trans('order::order.points') }})</span>
+                                                </div>
+                                            @endif
                                             <hr style="border-color: rgba(255,255,255,0.3); margin: 15px 0;">
                                             <div class="summary-row" style="font-size: 18px;">
                                                 <span class="fw-bold">{{ trans('order::order.total') }}</span>

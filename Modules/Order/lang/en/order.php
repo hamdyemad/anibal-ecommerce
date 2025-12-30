@@ -2,6 +2,7 @@
 
 return [
     // General
+    'order' => 'Order',
     'order_management' => 'Order Management',
     'orders_list' => 'Orders List',
     'order_details' => 'Order Details',
@@ -95,6 +96,7 @@ return [
     'order_not_found' => 'Order not found',
     'error_loading_order' => 'Error loading order',
     'cannot_edit_order' => 'You cannot edit this order because it contains products from other vendors',
+    'cannot_edit_final_stage_order' => 'You cannot edit this order because it has been delivered, cancelled, or refunded',
     'cannot_delete_order' => 'You cannot delete this order because it contains products from other vendors',
     'cannot_delete_allocated_order' => 'You cannot delete this order because it has allocated stock',
 
@@ -152,6 +154,10 @@ return [
     'tax' => 'Tax',
     'discount' => 'Discount',
     'discounts' => 'Discounts',
+    'promo_discount' => 'Promo Code Discount',
+    'no_points_available' => 'No points available to use',
+    'points_used' => 'Points Used',
+    'points' => 'Points',
     'fees' => 'Fees',
     'fee' => 'Fee',
     'total' => 'Total',

@@ -396,14 +396,21 @@
                         <span class="fw-500" id="subtotal">0.00 {{ currency() }}</span>
                     </div>
 
-                    {{-- Shipping Cost --}}
+                    {{-- Promo Code Discount (Read-only display) - After Subtotal --}}
+                    @if($order->customer_promo_code_amount > 0)
                     <div class="d-flex justify-content-between align-items-center mb-15 pb-15 border-bottom">
                         <div class="d-flex align-items-center">
-                            <i class="uil uil-truck text-info me-2" style="font-size: 18px;"></i>
-                            <span class="fw-500">{{ trans('order.shipping') }}</span>
+                            <i class="uil uil-tag-alt text-success me-2" style="font-size: 18px;"></i>
+                            <span class="fw-500">
+                                {{ trans('order::order.promo_discount') }}
+                                @if($order->customer_promo_code_title)
+                                    <small class="text-muted">({{ $order->customer_promo_code_title }})</small>
+                                @endif
+                            </span>
                         </div>
-                        <span class="fw-500" id="shippingDisplay">0.00 {{ currency() }}</span>
+                        <span class="fw-500 text-danger">-{{ number_format($order->customer_promo_code_amount, 2) }} {{ currency() }}</span>
                     </div>
+                    @endif
 
                     {{-- Total Tax --}}
                     <div class="d-flex justify-content-between align-items-center mb-15 pb-15 border-bottom d-none"
@@ -413,6 +420,15 @@
                             <span class="fw-500">{{ trans('order.tax') }}</span>
                         </div>
                         <span class="fw-500" id="totalTax">0.00 {{ __('common.currency') }}</span>
+                    </div>
+
+                    {{-- Shipping Cost --}}
+                    <div class="d-flex justify-content-between align-items-center mb-15 pb-15 border-bottom">
+                        <div class="d-flex align-items-center">
+                            <i class="uil uil-truck text-info me-2" style="font-size: 18px;"></i>
+                            <span class="fw-500">{{ trans('order.shipping') }}</span>
+                        </div>
+                        <span class="fw-500" id="shippingDisplay">0.00 {{ currency() }}</span>
                     </div>
 
                     {{-- Additional Fees Section --}}
@@ -444,6 +460,17 @@
                         <div id="discountsContainer"></div>
                         <span class="fw-500" id="totalDiscountsDisplay">0.00 {{ currency() }}</span>
                     </div>
+
+                    {{-- Points Used (Read-only display) --}}
+                    @if($order->points_used > 0)
+                    <div class="d-flex justify-content-between align-items-center mb-15 pb-15 border-bottom">
+                        <div class="d-flex align-items-center">
+                            <i class="uil uil-star text-warning me-2" style="font-size: 18px;"></i>
+                            <span class="fw-500">{{ trans('order::order.points_used') }}</span>
+                        </div>
+                        <span class="fw-500 text-danger">-{{ number_format($order->points_cost, 2) }} {{ currency() }} ({{ number_format($order->points_used, 0) }} {{ trans('order::order.points') }})</span>
+                    </div>
+                    @endif
 
                     {{-- Grand Total --}}
                     <div class="d-flex justify-content-between align-items-center pt-15 mb-20 pb-15 border-bottom">
@@ -1963,7 +1990,12 @@
                         discounts = tempDiscounts;
 
                         const shipping = parseFloat($('#shipping').val()) || 0;
-                        const grandTotal = subtotal + shipping + totalFees + totalTax - totalDiscounts;
+                        
+                        // Get promo code discount and points cost from order data
+                        const promoDiscount = {{ $order->customer_promo_code_amount ?? 0 }};
+                        const pointsCost = {{ $order->points_cost ?? 0 }};
+                        
+                        const grandTotal = Math.max(0, subtotal + shipping + totalFees + totalTax - totalDiscounts - promoDiscount - pointsCost);
 
                         console.log('Updating UI with:', {
                             subtotal: subtotal,
@@ -1971,6 +2003,8 @@
                             totalTax: totalTax,
                             totalFees: totalFees,
                             totalDiscounts: totalDiscounts,
+                            promoDiscount: promoDiscount,
+                            pointsCost: pointsCost,
                             grandTotal: grandTotal
                         });
 

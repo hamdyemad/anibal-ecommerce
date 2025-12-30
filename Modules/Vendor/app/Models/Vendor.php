@@ -173,7 +173,7 @@ class Vendor extends BaseModel
     }
 
     /**
-     * Get total balance for this vendor (only delivered orders - vendor's product totals)
+     * Get total balance for this vendor (only delivered orders - vendor's product totals minus promo discounts)
      */
     public function getTotalBalanceAttribute()
     {
@@ -187,12 +187,26 @@ class Vendor extends BaseModel
         }
         
         // Get vendor's order products from delivered orders
-        // Sum the product price * quantity for this vendor's products only
-        return OrderProduct::where('vendor_id', $this->id)
+        // price already includes total (price * quantity) from checkout
+        $productsTotal = OrderProduct::where('vendor_id', $this->id)
             ->whereHas('order', function($query) use ($deliverStage) {
                 $query->where('stage_id', $deliverStage->id);
             })
-            ->sum(DB::raw('price * quantity'));
+            ->sum('price');
+        
+        // Get unique order IDs for this vendor's delivered products
+        $orderIds = OrderProduct::where('vendor_id', $this->id)
+            ->whereHas('order', function($query) use ($deliverStage) {
+                $query->where('stage_id', $deliverStage->id);
+            })
+            ->pluck('order_id')
+            ->unique();
+        
+        // Subtract promo code discounts from those orders
+        $totalPromoDiscount = \Modules\Order\app\Models\Order::whereIn('id', $orderIds)
+            ->sum('customer_promo_code_amount') ?? 0;
+        
+        return $productsTotal - $totalPromoDiscount;
     }
 
     public function getBnaiaCommissionAttribute()
@@ -206,23 +220,12 @@ class Vendor extends BaseModel
             return 0;
         }
         
-        // Get delivered order products for this vendor
-        $orderProducts = OrderProduct::where('vendor_id', $this->id)
+        // Commission is already stored as actual amount in order_products.commission
+        return OrderProduct::where('vendor_id', $this->id)
             ->whereHas('order', function($query) use ($deliverStage) {
                 $query->where('stage_id', $deliverStage->id);
             })
-            ->with('vendorProduct.product.department')
-            ->get();
-        
-        // Calculate commission using department commission
-        $totalCommission = 0;
-        foreach ($orderProducts as $orderProduct) {
-            $productTotal = $orderProduct->price * $orderProduct->quantity;
-            $departmentCommission = $orderProduct->vendorProduct?->product?->department?->commission ?? 0;
-            $totalCommission += $productTotal * ($departmentCommission / 100);
-        }
-        
-        return $totalCommission;
+            ->sum('commission');
     }
 
     /**
