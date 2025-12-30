@@ -4429,8 +4429,6 @@ body.top-menu .navbar-left .customizer-trigger+.top-menu {
 .navbar-right__menu .nav-author img {
     width: 32px;
     height: 32px;
-    -o-object-fit: cover;
-    object-fit: cover
 }
 
 .navbar-right__menu .nav-item-toggle {
