@@ -34,6 +34,10 @@ class BundleProductResource extends JsonResource
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
 
+            // Product Rating
+            'star' => round($vendorProduct?->reviews_avg_star ?? 0, 1),
+            'num_of_user_review' => $vendorProduct?->reviews_count ?? 0,
+
             // Vendor Product Variant Details
             'vendor_product_variant' => $this->whenLoaded('vendorProductVariant', function() {
                 return new VendorProductVariantResource($this->vendorProductVariant);
