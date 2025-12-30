@@ -12,27 +12,38 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // First, find and drop all foreign keys on this table
-        $foreignKeys = DB::select("
-            SELECT CONSTRAINT_NAME 
-            FROM information_schema.TABLE_CONSTRAINTS 
+        // Check if the unique index exists before trying to drop it
+        $indexExists = DB::select("
+            SELECT COUNT(*) as count 
+            FROM information_schema.STATISTICS 
             WHERE TABLE_SCHEMA = DATABASE() 
             AND TABLE_NAME = 'order_product_taxes' 
-            AND CONSTRAINT_TYPE = 'FOREIGN KEY'
+            AND INDEX_NAME = 'order_product_taxes_order_product_id_tax_id_unique'
         ");
         
-        foreach ($foreignKeys as $fk) {
-            DB::statement("ALTER TABLE `order_product_taxes` DROP FOREIGN KEY `{$fk->CONSTRAINT_NAME}`");
+        if ($indexExists[0]->count > 0) {
+            // First, find and drop all foreign keys on this table
+            $foreignKeys = DB::select("
+                SELECT CONSTRAINT_NAME 
+                FROM information_schema.TABLE_CONSTRAINTS 
+                WHERE TABLE_SCHEMA = DATABASE() 
+                AND TABLE_NAME = 'order_product_taxes' 
+                AND CONSTRAINT_TYPE = 'FOREIGN KEY'
+            ");
+            
+            foreach ($foreignKeys as $fk) {
+                DB::statement("ALTER TABLE `order_product_taxes` DROP FOREIGN KEY `{$fk->CONSTRAINT_NAME}`");
+            }
+            
+            // Now drop the unique index
+            DB::statement('ALTER TABLE `order_product_taxes` DROP INDEX `order_product_taxes_order_product_id_tax_id_unique`');
+            
+            // Re-add the foreign keys
+            Schema::table('order_product_taxes', function (Blueprint $table) {
+                $table->foreign('order_product_id')->references('id')->on('order_products')->onDelete('cascade');
+                $table->foreign('tax_id')->references('id')->on('taxes')->onDelete('cascade');
+            });
         }
-        
-        // Now drop the unique index
-        DB::statement('ALTER TABLE `order_product_taxes` DROP INDEX `order_product_taxes_order_product_id_tax_id_unique`');
-        
-        // Re-add the foreign keys
-        Schema::table('order_product_taxes', function (Blueprint $table) {
-            $table->foreign('order_product_id')->references('id')->on('order_products')->onDelete('cascade');
-            $table->foreign('tax_id')->references('id')->on('taxes')->onDelete('cascade');
-        });
     }
 
     /**
@@ -41,7 +52,18 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('order_product_taxes', function (Blueprint $table) {
-            $table->unique(['order_product_id', 'tax_id']);
+            // Only add if it doesn't exist
+            $indexExists = DB::select("
+                SELECT COUNT(*) as count 
+                FROM information_schema.STATISTICS 
+                WHERE TABLE_SCHEMA = DATABASE() 
+                AND TABLE_NAME = 'order_product_taxes' 
+                AND INDEX_NAME = 'order_product_taxes_order_product_id_tax_id_unique'
+            ");
+            
+            if ($indexExists[0]->count == 0) {
+                $table->unique(['order_product_id', 'tax_id']);
+            }
         });
     }
 };
