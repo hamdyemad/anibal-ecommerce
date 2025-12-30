@@ -17,7 +17,8 @@ class BundleCategoryApiRepository implements BundleCategoryApiRepositoryInterfac
         $query = BundleCategory::with(['translations'])
         ->withCount('bundles')
         ->active()
-        ->filter($filters);
+        ->filter($filters)
+        ->orderBy('created_at', 'desc');
         return ($per_page == 0) ? $query->get() : $query->paginate($per_page);
     }
 

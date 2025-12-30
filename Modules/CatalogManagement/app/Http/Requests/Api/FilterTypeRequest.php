@@ -16,6 +16,9 @@ class FilterTypeRequest extends FormRequest
     {
         return [
             'type' => 'required|in:occasion,bundle',
+            'occasion_id' => 'nullable|exists:occasions,id',
+            'bundle_category_id' => 'nullable|exists:bundle_categories,id',
+            'brand_id' => 'nullable|exists:brands,id',
         ];
     }
 

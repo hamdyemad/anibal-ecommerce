@@ -43,12 +43,15 @@ class CategoryApiService
             return $this->CategoryRepository->getAllCategories($dto);
         }
 
-        // If main_category_id is provided, return sub-categories
-        if (!empty($filters['main_category_id'])) {
-            return $this->SubCategoryRepository->getSubCategoriesByCategory($filters['main_category_id']);
+        // If main_category_id or category_id is provided, return sub-categories
+        $categoryId = $filters['main_category_id'] ?? $filters['category_id'] ?? null;
+        if (!empty($categoryId)) {
+            $subCategories = $this->SubCategoryRepository->getSubCategoriesByCategory($categoryId);
+            // If no sub-categories, return empty (category has no children)
+            return $subCategories;
         }
 
-        // If sub_category_id is provided, return the sub-category itself
+        // If sub_category_id is provided, return empty (no further children)
         if (!empty($filters['sub_category_id'])) {
             return collect();
         }

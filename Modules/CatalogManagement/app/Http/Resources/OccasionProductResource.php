@@ -4,6 +4,9 @@ namespace Modules\CatalogManagement\app\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Modules\CatalogManagement\app\Http\Resources\Api\VendorProductResource;
+use Modules\CatalogManagement\app\Http\Resources\Api\VendorProductVariantResource;
+use Modules\CatalogManagement\app\Models\VendorProduct;
 
 class OccasionProductResource extends JsonResource
 {
@@ -14,10 +17,27 @@ class OccasionProductResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        $vendorProduct = $this->vendorProductVariant?->vendorProduct;
-        $product = $vendorProduct?->product;
-        $vendor = $vendorProduct?->vendor;
-        $brand = $product?->brand;
+        $variant = $this->vendorProductVariant;
+        $vendor = $variant?->vendorProduct?->vendor;
+        $brand = $variant?->vendorProduct?->product?->brand;
+
+        // Load vendor product with all relations for VendorProductResource
+        $vendorProduct = null;
+        if ($variant) {
+            $vendorProduct = VendorProduct::with([
+                'product.mainImage', 
+                'product.brand', 
+                'product.department', 
+                'product.category', 
+                'product.subCategory', 
+                'vendor', 
+                'taxes',
+                'variants'
+            ])
+            ->withCount('reviews')
+            ->withAvg('reviews', 'star')
+            ->find($variant->vendor_product_id);
+        }
 
         return [
             'id' => $this->id,
@@ -27,18 +47,10 @@ class OccasionProductResource extends JsonResource
             'position' => $this->position,
 
             // Vendor Product Variant Information
-            'vendor_product_variant' => [
-                'id' => $this->vendorProductVariant?->id,
-                'vendor_product_id' => $this->vendorProductVariant?->vendor_product_id,
-                'slug' => $product?->slug,
-                'sku' => $this->vendorProductVariant?->sku,
-                'price' => $this->vendorProductVariant?->price,
-                'variant_name' => $this->vendorProductVariant?->variantConfiguration?->name ?? 'Default',
-                'product_name' => $product?->name ?? '-',
-                'product_image' => formatImage($product?->mainImage),
-                'star' => round($vendorProduct?->reviews_avg_star ?? $vendorProduct?->reviews?->avg('star') ?? 0, 1),
-                'num_of_user_review' => $vendorProduct?->reviews_count ?? $vendorProduct?->reviews?->count() ?? 0,
-            ],
+            'vendor_product_variant' => $variant ? new VendorProductVariantResource($variant) : null,
+
+            // Full Vendor Product Resource
+            'vendor_product' => $vendorProduct ? new VendorProductResource($vendorProduct) : null,
 
             // Vendor Information
             'vendor' => $vendor ? [
