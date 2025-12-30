@@ -52,7 +52,7 @@ class DashboardService
         $bestCustomers = $this->getBestCustomers();
         $ordersOverview = $this->getOrdersOverview();
         $salesOverview = $this->getSalesOverview();
-        $incomeExpense = $this->isVendor ? [] : $this->getIncomeExpenseData(); // Hide for vendors
+        $incomeExpense = $this->getIncomeExpenseData();
         $recentActivities = $this->isVendor ? [] : $this->getRecentActivities(); // Hide for vendors
 
         return [
@@ -357,59 +357,27 @@ class DashboardService
         $startOfMonth = $now->copy()->startOfMonth();
         $endOfMonth = $now->copy()->endOfMonth();
 
-        // Get income from delivered orders (total_price after delivery)
-        $monthlyIncome = $deliveredStage 
-            ? Order::withoutGlobalScopes()
-                ->where('stage_id', $deliveredStage->id)
+        $monthlyIncome = $deliveredStage
+            ? Order::where('stage_id', $deliveredStage->id)
                 ->whereBetween('created_at', [$startOfMonth, $endOfMonth])
                 ->sum('total_price')
             : 0;
-        
-        // Get actual expenses from expense records
-        $monthlyExpenses = \Modules\Accounting\app\Models\Expense::withoutGlobalScopes()
-            ->whereBetween('expense_date', [$startOfMonth, $endOfMonth])
-            ->sum('amount');
-        
-        // Get commission from delivered order products
-        $monthlyCommission = $deliveredStage 
-            ? \Modules\Order\app\Models\OrderProduct::withoutGlobalScopes()
-                ->whereHas('order', function($q) use ($deliveredStage, $startOfMonth, $endOfMonth) {
-                    $q->withoutGlobalScopes()
-                      ->where('stage_id', $deliveredStage->id)
-                      ->whereBetween('created_at', [$startOfMonth, $endOfMonth]);
-                })
-                ->sum('commission')
-            : 0;
-        
-        // Profit = Commission earned - Expenses
-        $monthlyProfit = $monthlyCommission - $monthlyExpenses;
+
+        $monthlyExpenses = 0; // Placeholder - implement based on your expense model
+        $monthlyProfit = $monthlyIncome - $monthlyExpenses;
 
         // This Year data
         $startOfYear = $now->copy()->startOfYear();
         $endOfYear = $now->copy()->endOfYear();
 
-        $yearlyIncome = $deliveredStage 
-            ? Order::withoutGlobalScopes()
-                ->where('stage_id', $deliveredStage->id)
+        $yearlyIncome = $deliveredStage
+            ? Order::where('stage_id', $deliveredStage->id)
                 ->whereBetween('created_at', [$startOfYear, $endOfYear])
                 ->sum('total_price')
             : 0;
-        
-        $yearlyExpenses = \Modules\Accounting\app\Models\Expense::withoutGlobalScopes()
-            ->whereBetween('expense_date', [$startOfYear, $endOfYear])
-            ->sum('amount');
-        
-        $yearlyCommission = $deliveredStage 
-            ? \Modules\Order\app\Models\OrderProduct::withoutGlobalScopes()
-                ->whereHas('order', function($q) use ($deliveredStage, $startOfYear, $endOfYear) {
-                    $q->withoutGlobalScopes()
-                      ->where('stage_id', $deliveredStage->id)
-                      ->whereBetween('created_at', [$startOfYear, $endOfYear]);
-                })
-                ->sum('commission')
-            : 0;
-        
-        $yearlyProfit = $yearlyCommission - $yearlyExpenses;
+
+        $yearlyExpenses = 0; // Placeholder - implement based on your expense model
+        $yearlyProfit = $yearlyIncome - $yearlyExpenses;
 
         // Monthly breakdown for chart (current year)
         $monthlyData = [];
@@ -417,32 +385,16 @@ class DashboardService
             $monthStart = Carbon::create($now->year, $month, 1)->startOfMonth();
             $monthEnd = Carbon::create($now->year, $month, 1)->endOfMonth();
 
-            $income = $deliveredStage 
-                ? Order::withoutGlobalScopes()
-                    ->where('stage_id', $deliveredStage->id)
+            $income = $deliveredStage
+                ? Order::where('stage_id', $deliveredStage->id)
                     ->whereBetween('created_at', [$monthStart, $monthEnd])
                     ->sum('total_price')
-                : 0;
-            
-            $expenses = \Modules\Accounting\app\Models\Expense::withoutGlobalScopes()
-                ->whereBetween('expense_date', [$monthStart, $monthEnd])
-                ->sum('amount');
-            
-            $commission = $deliveredStage 
-                ? \Modules\Order\app\Models\OrderProduct::withoutGlobalScopes()
-                    ->whereHas('order', function($q) use ($deliveredStage, $monthStart, $monthEnd) {
-                        $q->withoutGlobalScopes()
-                          ->where('stage_id', $deliveredStage->id)
-                          ->whereBetween('created_at', [$monthStart, $monthEnd]);
-                    })
-                    ->sum('commission')
                 : 0;
 
             $monthlyData[] = [
                 'month' => $month,
                 'income' => $income,
-                'expenses' => $expenses,
-                'commission' => $commission,
+                'expenses' => 0, // Placeholder
             ];
         }
 
@@ -452,32 +404,16 @@ class DashboardService
         for ($day = 1; $day <= $daysInMonth; $day++) {
             $dayDate = Carbon::create($now->year, $now->month, $day);
 
-            $income = $deliveredStage 
-                ? Order::withoutGlobalScopes()
-                    ->where('stage_id', $deliveredStage->id)
+            $income = $deliveredStage
+                ? Order::where('stage_id', $deliveredStage->id)
                     ->whereDate('created_at', $dayDate)
                     ->sum('total_price')
-                : 0;
-            
-            $expenses = \Modules\Accounting\app\Models\Expense::withoutGlobalScopes()
-                ->whereDate('expense_date', $dayDate)
-                ->sum('amount');
-            
-            $commission = $deliveredStage 
-                ? \Modules\Order\app\Models\OrderProduct::withoutGlobalScopes()
-                    ->whereHas('order', function($q) use ($deliveredStage, $dayDate) {
-                        $q->withoutGlobalScopes()
-                          ->where('stage_id', $deliveredStage->id)
-                          ->whereDate('created_at', $dayDate);
-                    })
-                    ->sum('commission')
                 : 0;
 
             $dailyData[] = [
                 'day' => $day,
                 'income' => $income,
-                'expenses' => $expenses,
-                'commission' => $commission,
+                'expenses' => 0, // Placeholder
             ];
         }
 
@@ -485,7 +421,6 @@ class DashboardService
             'month' => [
                 'income' => $monthlyIncome,
                 'expenses' => $monthlyExpenses,
-                'commission' => $monthlyCommission,
                 'profit' => $monthlyProfit,
                 'period' => $now->format('m-Y'),
                 'daily_data' => $dailyData,
@@ -493,7 +428,6 @@ class DashboardService
             'year' => [
                 'income' => $yearlyIncome,
                 'expenses' => $yearlyExpenses,
-                'commission' => $yearlyCommission,
                 'profit' => $yearlyProfit,
                 'period' => $now->year,
                 'monthly_data' => $monthlyData,
@@ -1078,6 +1012,9 @@ class DashboardService
                 ->whereNotNull('orders.customer_id')
                 ->groupBy('customers.id', 'customers.first_name', 'customers.last_name', 'customers.email', 'customers.image', 'customers.created_at');
 
+            // External customers (grouped by name + email)
+            $externalCustomers = \DB::table('orders')
+                ->select(
                     \DB::raw('NULL as id'),
                     \DB::raw("SUBSTRING_INDEX(orders.customer_name, ' ', 1) as first_name"),
                     \DB::raw("SUBSTRING_INDEX(orders.customer_name, ' ', -1) as last_name"),
@@ -1102,11 +1039,11 @@ class DashboardService
                 ->get();
 
             // Transform to collection with full_name attribute
+            return $customers->map(function ($customer) {
                 $customer->full_name = trim($customer->first_name . ' ' . $customer->last_name);
                 return $customer;
             });
         }
-        
         // For admin: Get all customers (registered + external) with highest total order amounts
         // Registered customers
         $registeredCustomers = \DB::table('orders')

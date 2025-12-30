@@ -594,6 +594,13 @@
                                         </button>
                                         ` : ''}
                                     @endcan
+                                    ${row.stage?.type === 'in_progress' ? `
+                                    <a href="${'{{ route('admin.order-fulfillments.allocate', ':id') }}'.replace(':id', row.id)}"
+                                    class="btn btn-secondary table_action_father"
+                                    title="{{ trans('order::order.allocate') }}">
+                                        <i class="uil uil-box table_action_icon"></i>
+                                    </a>
+                                    ` : ''}
                                 @endif
                                 @can('orders.delete')
                                     ${!isFinalStage && canEditDelete ? `

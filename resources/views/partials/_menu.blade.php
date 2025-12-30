@@ -547,7 +547,6 @@
                             </li>
                         @endcan
                     @endif
-                    
                     @can('products.bank')
                         <li>
                             <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive('admin.products.bank', $currentRoute) ? 'active' : '' }}"

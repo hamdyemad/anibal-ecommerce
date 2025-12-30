@@ -99,6 +99,7 @@ return [
     'cannot_edit_final_stage_order' => 'لا يمكنك تعديل هذا الطلب لأنه تم تسليمه أو إلغاؤه أو استرداده',
     'cannot_delete_order' => 'لا يمكنك حذف هذا الطلب لأنه يحتوي على منتجات من بائعين آخرين',
     'cannot_delete_allocated_order' => 'لا يمكنك حذف هذا الطلب لأنه يحتوي على مخزون مخصص',
+    'allocate' => 'تخصيص المخزون',
 
     // Validation Messages
     'order_id_required' => 'رقم الطلب مطلوب',

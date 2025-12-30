@@ -218,6 +218,7 @@ class OrderController extends Controller
                     'stage' => [
                         'id' => $order->stage?->id,
                         'slug' => $order->stage?->slug,
+                        'type' => $order->stage?->type,
                         'name' => $order->stage?->name ?? '-',
                         'color' => $order->stage?->color ?? '-',
                     ],

@@ -99,6 +99,7 @@ return [
     'cannot_edit_final_stage_order' => 'You cannot edit this order because it has been delivered, cancelled, or refunded',
     'cannot_delete_order' => 'You cannot delete this order because it contains products from other vendors',
     'cannot_delete_allocated_order' => 'You cannot delete this order because it has allocated stock',
+    'allocate' => 'Allocate Stock',
 
     // Validation Messages
     'order_id_required' => 'Order ID is required',
