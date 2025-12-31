@@ -51,6 +51,14 @@ class SimpleProductResource extends JsonResource
                 'id' => $this->product->category_id,
                 'name' => $this->product->category->name ?? null,
             ],
+            'department' => [
+                'id' => $this->product->department_id,
+                'name' => $this->product->department->name ?? null,
+            ],
+            'sub_category' => [
+                'id' => $this->product->sub_category_id,
+                'name' => $this->product->subCategory->name ?? null,
+            ],
             'variants' => VendorProductVariantResource::collection($this->whenLoaded('variants')),
         ];
     }

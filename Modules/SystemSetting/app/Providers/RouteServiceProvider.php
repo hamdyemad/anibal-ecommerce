@@ -41,7 +41,7 @@ class RouteServiceProvider extends ServiceProvider
             'localizationRedirect',
             'localeViewPath'])
             ->prefix('{lang}/{countryCode}/admin')
-            ->where(['lang' => '[a-z]{2}', 'countryCode' => '[a-z]{2}'])
+            ->where(['lang' => '[a-z]{2}', 'countryCode' => '[a-z]{2,3}'])
             ->as('admin.')
             ->group(module_path($this->name, '/routes/web.php'));
     }

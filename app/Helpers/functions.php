@@ -319,23 +319,157 @@ function getCountryCode(): string
 }
 
 /**
- * Get currency symbol for the current country
+ * Get currency display for the current country (image if use_image is true, otherwise symbol)
+ * Returns an Htmlable object so Blade won't escape the HTML
  *
- * @return string
+ * @return \Illuminate\Contracts\Support\Htmlable
  */
-function currency(): string
+function currency(): \Illuminate\Contracts\Support\Htmlable
+{
+    return new class implements \Illuminate\Contracts\Support\Htmlable {
+        public function toHtml(): string
+        {
+            try {
+                $countryCode = session('country_code') ?? 'eg';
+                $country = \Modules\AreaSettings\app\Models\Country::where('code', $countryCode)->first();
+
+                if ($country && $country->currency) {
+                    $currency = $country->currency;
+                    
+                    // If use_image is true and image exists, return img tag
+                    if ($currency->use_image && $currency->image) {
+                        $imageUrl = asset('/storage/' . $currency->image);
+                        return '<img src="' . $imageUrl . '" alt="' . e($currency->code) . '" class="currency-image" style="height: 18px; width: auto; vertical-align: middle;">';
+                    }
+                    
+                    return e($currency->symbol);
+                }
+
+                return 'EGP';
+            } catch (\Exception $e) {
+                return 'EGP';
+            }
+        }
+        
+        public function __toString(): string
+        {
+            return $this->toHtml();
+        }
+    };
+}
+
+/**
+ * Get currency image URL if use_image is true, otherwise null
+ *
+ * @return string|null
+ */
+function currencyImage(): ?string
 {
     try {
         $countryCode = session('country_code') ?? 'eg';
         $country = \Modules\AreaSettings\app\Models\Country::where('code', $countryCode)->first();
 
         if ($country && $country->currency) {
-            return $country->currency->symbol;
+            $currency = $country->currency;
+            
+            if ($currency->use_image && $currency->image) {
+                return asset('/storage/' . $currency->image);
+            }
+        }
+
+        return null;
+    } catch (\Exception $e) {
+        return null;
+    }
+}
+
+/**
+ * Check if currency uses image
+ *
+ * @return bool
+ */
+function currencyUsesImage(): bool
+{
+    try {
+        $countryCode = session('country_code') ?? 'eg';
+        $country = \Modules\AreaSettings\app\Models\Country::where('code', $countryCode)->first();
+
+        if ($country && $country->currency) {
+            return $country->currency->use_image && $country->currency->image;
+        }
+
+        return false;
+    } catch (\Exception $e) {
+        return false;
+    }
+}
+
+/**
+ * Get currency display (image if use_image is true, otherwise symbol)
+ *
+ * @param bool $asHtml Whether to return HTML img tag for image or just the URL/symbol
+ * @return string
+ */
+function currencyDisplay(bool $asHtml = true): string
+{
+    try {
+        $countryCode = session('country_code') ?? 'eg';
+        $country = \Modules\AreaSettings\app\Models\Country::where('code', $countryCode)->first();
+
+        if ($country && $country->currency) {
+            $currency = $country->currency;
+            
+            if ($currency->use_image && $currency->image) {
+                $imageUrl = asset('/storage/' . $currency->image);
+                if ($asHtml) {
+                    return '<img src="' . $imageUrl . '" alt="' . $currency->code . '" class="currency-image" style="height: 18px; width: auto; vertical-align: middle;">';
+                }
+                return $imageUrl;
+            }
+            
+            return $currency->symbol;
         }
 
         return 'EGP'; // Default fallback
     } catch (\Exception $e) {
         return 'EGP'; // Fallback in case of error
+    }
+}
+
+/**
+ * Get currency data array for the current country
+ *
+ * @return array
+ */
+function currencyData(): array
+{
+    try {
+        $countryCode = session('country_code') ?? 'eg';
+        $country = \Modules\AreaSettings\app\Models\Country::where('code', $countryCode)->first();
+
+        if ($country && $country->currency) {
+            $currency = $country->currency;
+            return [
+                'symbol' => $currency->symbol,
+                'code' => $currency->code,
+                'use_image' => $currency->use_image,
+                'image' => $currency->use_image && $currency->image ? asset('/storage/' . $currency->image) : null,
+            ];
+        }
+
+        return [
+            'symbol' => 'EGP',
+            'code' => 'EGP',
+            'use_image' => false,
+            'image' => null,
+        ];
+    } catch (\Exception $e) {
+        return [
+            'symbol' => 'EGP',
+            'code' => 'EGP',
+            'use_image' => false,
+            'image' => null,
+        ];
     }
 }
 

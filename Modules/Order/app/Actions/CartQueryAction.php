@@ -15,6 +15,8 @@ class CartQueryAction
             ->byCustomer($customerId)
             ->with([
                 'vendorProduct.product.category',
+                'vendorProduct.product.department',
+                'vendorProduct.product.subCategory',
                 'vendorProduct.vendor',
                 'vendorProduct.taxes',
                 'vendorProductVariant',

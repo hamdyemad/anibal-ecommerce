@@ -78,6 +78,7 @@ return [
 
     // Confirmations
     'confirm_delete' => 'هل أنت متأكد من رغبتك في حذف هذه الشحنة؟',
+    'delete_confirmation' => 'لا يمكن التراجع عن هذا الإجراء. سيتم حذف طريقة الشحن نهائياً.',
 
     // Filter labels
     'created_from' => 'تم الإنشاء من',
@@ -93,9 +94,13 @@ return [
     'cart_items_required' => 'عناصر السلة مطلوبة',
     'cart_items_min' => 'عنصر واحد على الأقل في السلة مطلوب',
     'category_id_not_found' => 'الفئة غير موجودة',
+    'department_id_not_found' => 'القسم غير موجود',
+    'sub_category_id_not_found' => 'الفئة الفرعية غير موجودة',
     'product_id_required' => 'معرّف المنتج مطلوب',
     'quantity_required' => 'الكمية مطلوبة',
     'quantity_min' => 'يجب أن تكون الكمية 1 على الأقل',
+    'city_not_found' => 'المدينة غير موجودة',
+    'address_or_city_required' => 'عنوان العميل أو المدينة مطلوب',
 
     // Shipping Settings
     'shipping_settings' => 'إعدادات الشحن',
@@ -107,6 +112,9 @@ return [
     'allow_sub_categories_desc' => 'تفعيل الشحن حسب الفئات الفرعية',
     'settings_saved_successfully' => 'تم حفظ إعدادات الشحن بنجاح',
     'error_saving_settings' => 'خطأ في حفظ إعدادات الشحن',
+    'confirm_setting_change' => 'تأكيد تغيير الإعداد',
+    'setting_change_warning' => 'تحذير: تغيير هذا الإعداد سيؤدي إلى حذف جميع طرق الشحن الحالية نهائياً. لا يمكن التراجع عن هذا الإجراء.',
+    'confirm_change' => 'تأكيد التغيير',
     'departments' => 'الأقسام',
     'select_departments' => 'اختر الأقسام...',
     'sub_categories' => 'الفئات الفرعية',

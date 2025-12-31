@@ -78,6 +78,7 @@ return [
 
     // Confirmations
     'confirm_delete' => 'Are you sure you want to delete this shipping?',
+    'delete_confirmation' => 'This action cannot be undone. The shipping method will be permanently deleted.',
 
     // Filter labels
     'created_from' => 'Created From',
@@ -93,9 +94,13 @@ return [
     'cart_items_required' => 'Cart items are required',
     'cart_items_min' => 'At least one cart item is required',
     'category_id_not_found' => 'Category not found',
+    'department_id_not_found' => 'Department not found',
+    'sub_category_id_not_found' => 'Sub category not found',
     'product_id_required' => 'Product ID is required',
     'quantity_required' => 'Quantity is required',
     'quantity_min' => 'Quantity must be at least 1',
+    'city_not_found' => 'City not found',
+    'address_or_city_required' => 'Customer address or city is required',
 
     // Shipping Settings
     'shipping_settings' => 'Shipping Settings',
@@ -107,6 +112,9 @@ return [
     'allow_sub_categories_desc' => 'Enable shipping by sub categories',
     'settings_saved_successfully' => 'Shipping settings saved successfully',
     'error_saving_settings' => 'Error saving shipping settings',
+    'confirm_setting_change' => 'Confirm Setting Change',
+    'setting_change_warning' => 'Warning: Changing this setting will permanently delete all existing shipping methods. This action cannot be undone.',
+    'confirm_change' => 'Confirm Change',
     'departments' => 'Departments',
     'select_departments' => 'Select departments...',
     'sub_categories' => 'Sub Categories',

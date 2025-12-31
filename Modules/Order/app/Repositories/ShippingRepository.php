@@ -50,17 +50,29 @@ class ShippingRepository implements ShippingRepositoryInterface
 
         // Attach categories
         if (isset($data['category_ids']) && is_array($data['category_ids'])) {
-            $shipping->categories()->attach($data['category_ids']);
+            $categoryData = [];
+            foreach ($data['category_ids'] as $categoryId) {
+                $categoryData[$categoryId] = ['type' => 'category'];
+            }
+            $shipping->categories()->attach($categoryData);
         }
 
         // Attach departments
         if (isset($data['department_ids']) && is_array($data['department_ids'])) {
-            $shipping->departments()->attach($data['department_ids']);
+            $departmentData = [];
+            foreach ($data['department_ids'] as $departmentId) {
+                $departmentData[$departmentId] = ['type' => 'department'];
+            }
+            $shipping->departments()->attach($departmentData);
         }
 
         // Attach sub categories
         if (isset($data['sub_category_ids']) && is_array($data['sub_category_ids'])) {
-            $shipping->subCategories()->attach($data['sub_category_ids']);
+            $subCategoryData = [];
+            foreach ($data['sub_category_ids'] as $subCategoryId) {
+                $subCategoryData[$subCategoryId] = ['type' => 'subcategory'];
+            }
+            $shipping->subCategories()->attach($subCategoryData);
         }
 
         // Store translations
@@ -102,21 +114,33 @@ class ShippingRepository implements ShippingRepositoryInterface
 
         // Sync categories (removes old and adds new)
         if (isset($data['category_ids']) && is_array($data['category_ids'])) {
-            $shipping->categories()->sync($data['category_ids']);
+            $categoryData = [];
+            foreach ($data['category_ids'] as $categoryId) {
+                $categoryData[$categoryId] = ['type' => 'category'];
+            }
+            $shipping->categories()->sync($categoryData);
         } else {
             $shipping->categories()->detach();
         }
 
         // Sync departments (removes old and adds new)
         if (isset($data['department_ids']) && is_array($data['department_ids'])) {
-            $shipping->departments()->sync($data['department_ids']);
+            $departmentData = [];
+            foreach ($data['department_ids'] as $departmentId) {
+                $departmentData[$departmentId] = ['type' => 'department'];
+            }
+            $shipping->departments()->sync($departmentData);
         } else {
             $shipping->departments()->detach();
         }
 
         // Sync sub categories (removes old and adds new)
         if (isset($data['sub_category_ids']) && is_array($data['sub_category_ids'])) {
-            $shipping->subCategories()->sync($data['sub_category_ids']);
+            $subCategoryData = [];
+            foreach ($data['sub_category_ids'] as $subCategoryId) {
+                $subCategoryData[$subCategoryId] = ['type' => 'subcategory'];
+            }
+            $shipping->subCategories()->sync($subCategoryData);
         } else {
             $shipping->subCategories()->detach();
         }

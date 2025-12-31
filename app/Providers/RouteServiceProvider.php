@@ -57,7 +57,7 @@ class RouteServiceProvider extends ServiceProvider
             'localeViewPath')
                 ->as('admin.')
                 ->prefix('{lang}/{countryCode}/admin')
-                ->where(['lang' => '[a-z]{2}', 'countryCode' => '[a-z]{2}'])
+                ->where(['lang' => '[a-z]{2}', 'countryCode' => '[a-z]{2,3}'])
                 ->group(function() {
                     require base_path('routes/admin.php');
                 });

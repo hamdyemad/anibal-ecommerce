@@ -39,7 +39,9 @@ class Shipping extends BaseModel
      */
     public function categories()
     {
-        return $this->belongsToMany(Category::class, 'shipping_categories', 'shipping_id', 'category_id')
+        return $this->belongsToMany(Category::class, 'shipping_categories', 'shipping_id', 'type_id')
+            ->wherePivot('type', 'category')
+            ->withPivot('type')
             ->withTimestamps();
     }
 
@@ -48,7 +50,9 @@ class Shipping extends BaseModel
      */
     public function departments()
     {
-        return $this->belongsToMany(\Modules\CategoryManagment\app\Models\Department::class, 'shipping_departments', 'shipping_id', 'department_id')
+        return $this->belongsToMany(\Modules\CategoryManagment\app\Models\Department::class, 'shipping_categories', 'shipping_id', 'type_id')
+            ->wherePivot('type', 'department')
+            ->withPivot('type')
             ->withTimestamps();
     }
 
@@ -57,7 +61,9 @@ class Shipping extends BaseModel
      */
     public function subCategories()
     {
-        return $this->belongsToMany(\Modules\CategoryManagment\app\Models\SubCategory::class, 'shipping_sub_categories', 'shipping_id', 'sub_category_id')
+        return $this->belongsToMany(\Modules\CategoryManagment\app\Models\SubCategory::class, 'shipping_categories', 'shipping_id', 'type_id')
+            ->wherePivot('type', 'subcategory')
+            ->withPivot('type')
             ->withTimestamps();
     }
 

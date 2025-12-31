@@ -394,6 +394,10 @@
                             <input type="hidden" id="selected_product_unit_price_before_tax" value="">
                             <input type="hidden" id="selected_product_category_id" value="">
                             <input type="hidden" id="selected_product_category_name" value="">
+                            <input type="hidden" id="selected_product_department_id" value="">
+                            <input type="hidden" id="selected_product_department_name" value="">
+                            <input type="hidden" id="selected_product_sub_category_id" value="">
+                            <input type="hidden" id="selected_product_sub_category_name" value="">
                             <input type="hidden" id="selected_product_sku" value="">
                             <input type="hidden" id="selected_product_variant_name" value="">
                             <input type="hidden" id="selected_product_vendor_name" value="">
@@ -798,10 +802,22 @@
                                             // Extract category from product
                                             let categoryId = null;
                                             let categoryName = null;
+                                            let departmentId = null;
+                                            let departmentName = null;
+                                            let subCategoryId = null;
+                                            let subCategoryName = null;
 
                                             if (product.category) {
                                                 categoryId = product.category.id;
                                                 categoryName = product.category.name;
+                                            }
+                                            if (product.department) {
+                                                departmentId = product.department.id;
+                                                departmentName = product.department.name;
+                                            }
+                                            if (product.sub_category) {
+                                                subCategoryId = product.sub_category.id;
+                                                subCategoryName = product.sub_category.name;
                                             }
 
                                             if (product.variants && product.variants.length > 0) {
@@ -832,6 +848,10 @@
                                                      data-taxes-info='${JSON.stringify(taxesInfo)}'
                                                      data-category-id="${categoryId}"
                                                      data-category-name="${categoryName}"
+                                                     data-department-id="${departmentId}"
+                                                     data-department-name="${departmentName}"
+                                                     data-sub-category-id="${subCategoryId}"
+                                                     data-sub-category-name="${subCategoryName}"
                                                      data-sku="${variantSku}"
                                                      data-variant-name="${variantName}"
                                                      data-vendor-name="${vendorName}"
@@ -867,6 +887,10 @@
                                                  data-tax-rate="${taxRate}"
                                                  data-category-id="${categoryId}"
                                                  data-category-name="${categoryName}"
+                                                 data-department-id="${departmentId}"
+                                                 data-department-name="${departmentName}"
+                                                 data-sub-category-id="${subCategoryId}"
+                                                 data-sub-category-name="${subCategoryName}"
                                                  data-stock="${productStock}"
                                                  style="cursor: pointer;">
                                                 <div class="d-flex align-items-center justify-content-center gap-2">
@@ -915,6 +939,10 @@
                         const taxesInfo = $(this).data('taxes-info') || [];
                         const categoryId = $(this).data('category-id');
                         const categoryName = $(this).data('category-name');
+                        const departmentId = $(this).data('department-id');
+                        const departmentName = $(this).data('department-name');
+                        const subCategoryId = $(this).data('sub-category-id');
+                        const subCategoryName = $(this).data('sub-category-name');
                         const sku = $(this).data('sku') || 'N/A';
                         const variantName = $(this).data('variant-name') || '';
                         const vendorName = $(this).data('vendor-name') || 'N/A';
@@ -943,6 +971,10 @@
                             taxesInfo,
                             categoryId,
                             categoryName,
+                            departmentId,
+                            departmentName,
+                            subCategoryId,
+                            subCategoryName,
                             sku,
                             variantName,
                             vendorName,
@@ -961,6 +993,10 @@
                         $('#selected_product_taxes_info').val(JSON.stringify(taxesInfo));
                         $('#selected_product_category_id').val(categoryId);
                         $('#selected_product_category_name').val(categoryName);
+                        $('#selected_product_department_id').val(departmentId);
+                        $('#selected_product_department_name').val(departmentName);
+                        $('#selected_product_sub_category_id').val(subCategoryId);
+                        $('#selected_product_sub_category_name').val(subCategoryName);
                         $('#selected_product_sku').val(sku);
                         $('#selected_product_variant_name').val(variantName);
                         $('#selected_product_vendor_name').val(vendorName);
@@ -1655,6 +1691,10 @@
                         }
                         const categoryId = parseInt($('#selected_product_category_id').val()) || null;
                         const categoryName = $('#selected_product_category_name').val();
+                        const departmentId = parseInt($('#selected_product_department_id').val()) || null;
+                        const departmentName = $('#selected_product_department_name').val();
+                        const subCategoryId = parseInt($('#selected_product_sub_category_id').val()) || null;
+                        const subCategoryName = $('#selected_product_sub_category_name').val();
                         const sku = $('#selected_product_sku').val() || 'N/A';
                         const variantName = $('#selected_product_variant_name').val() || '';
                         const vendorName = $('#selected_product_vendor_name').val() || 'N/A';
@@ -1672,6 +1712,10 @@
                             taxesInfo,
                             categoryId,
                             categoryName,
+                            departmentId,
+                            departmentName,
+                            subCategoryId,
+                            subCategoryName,
                             sku,
                             variantName,
                             vendorName,
@@ -1715,9 +1759,13 @@
                                 vendor_product_id: productId,
                                 vendor_product_variant_id: variantId,
                                 quantity: quantity,
-                                // Category data for shipping calculation
+                                // Category/Department/SubCategory data for shipping calculation
                                 category_id: categoryId,
                                 category_name: categoryName,
+                                department_id: departmentId,
+                                department_name: departmentName,
+                                sub_category_id: subCategoryId,
+                                sub_category_name: subCategoryName,
                                 // Display data for UI (not sent to server)
                                 id: productId + (variantId ? '_' + variantId : ''), // Unique ID for UI
                                 name: productName,
@@ -1749,6 +1797,12 @@
                         $('#selected_product_vendor_name').val('');
                         $('#selected_product_image').val('');
                         $('#selected_product_stock').val('');
+                        $('#selected_product_category_id').val('');
+                        $('#selected_product_category_name').val('');
+                        $('#selected_product_department_id').val('');
+                        $('#selected_product_department_name').val('');
+                        $('#selected_product_sub_category_id').val('');
+                        $('#selected_product_sub_category_name').val('');
                         $('#product_quantity').val(1);
                         $('#limitationText').text('');
                         $('#product_quantity').removeAttr('max');
@@ -1937,6 +1991,10 @@
                         const cartItems = products.map(p => ({
                             category_id: p.category_id,
                             category_name: p.category_name,
+                            department_id: p.department_id,
+                            department_name: p.department_name,
+                            sub_category_id: p.sub_category_id,
+                            sub_category_name: p.sub_category_name,
                             product_id: p.vendor_product_id,
                             quantity: p.quantity
                         }));
@@ -2096,7 +2154,11 @@
                             vendor_product_variant_id: p.vendor_product_variant_id,
                             quantity: p.quantity,
                             category_id: p.category_id,
-                            category_name: p.category_name
+                            category_name: p.category_name,
+                            department_id: p.department_id,
+                            department_name: p.department_name,
+                            sub_category_id: p.sub_category_id,
+                            sub_category_name: p.sub_category_name
                         }));
 
                         // Update hidden inputs with collected data

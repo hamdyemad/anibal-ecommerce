@@ -27,6 +27,10 @@ class CalculateShipping
                 $cartItems[] = [
                     'category_id' => $product['category_id'] ?? null,
                     'category_name' => $product['category_name'] ?? null,
+                    'department_id' => $product['department_id'] ?? null,
+                    'department_name' => $product['department_name'] ?? null,
+                    'sub_category_id' => $product['sub_category_id'] ?? null,
+                    'sub_category_name' => $product['sub_category_name'] ?? null,
                     'product_id' => $product['vendor_product_id'] ?? null,
                     'quantity' => $product['quantity'] ?? 1,
                 ];

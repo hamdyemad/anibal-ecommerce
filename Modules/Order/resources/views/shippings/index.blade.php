@@ -30,7 +30,7 @@
                     <div class="card-body py-20">
                         <div class="row align-items-center">
                             <div class="col-md-4">
-                                <div class="d-flex align-items-center justify-content-between p-3 bg-light rounded">
+                                <div class="d-flex align-items-center justify-content-between p-3 rounded">
                                     <div>
                                         <span class="fw-500">{{ trans('shipping.allow_departments') }}</span>
                                         <small class="d-block text-muted">{{ trans('shipping.allow_departments_desc') }}</small>
@@ -44,7 +44,7 @@
                                 </div>
                             </div>
                             <div class="col-md-4">
-                                <div class="d-flex align-items-center justify-content-between p-3 bg-light rounded">
+                                <div class="d-flex align-items-center justify-content-between p-3 rounded">
                                     <div>
                                         <span class="fw-500">{{ trans('shipping.allow_categories') }}</span>
                                         <small class="d-block text-muted">{{ trans('shipping.allow_categories_desc') }}</small>
@@ -58,7 +58,7 @@
                                 </div>
                             </div>
                             <div class="col-md-4">
-                                <div class="d-flex align-items-center justify-content-between p-3 bg-light rounded">
+                                <div class="d-flex align-items-center justify-content-between p-3 rounded">
                                     <div>
                                         <span class="fw-500">{{ trans('shipping.allow_sub_categories') }}</span>
                                         <small class="d-block text-muted">{{ trans('shipping.allow_sub_categories_desc') }}</small>
@@ -197,8 +197,6 @@
                                     <th class="text-center"><span class="userDatatable-title">#</span></th>
                                     <th><span class="userDatatable-title">{{ trans('shipping.name') }}</span></th>
                                     <th><span class="userDatatable-title">{{ trans('shipping.cost') }}</span></th>
-                                    <th><span class="userDatatable-title">{{ trans('shipping.cities') }}</span></th>
-                                    <th><span class="userDatatable-title">{{ trans('shipping.categories') }}</span></th>
                                     <th><span class="userDatatable-title">{{ trans('shipping.status') }}</span></th>
                                     <th><span class="userDatatable-title">{{ trans('shipping.created_at') }}</span></th>
                                     <th><span class="userDatatable-title">{{ __('common.actions') }}</span></th>
@@ -213,22 +211,85 @@
         </div>
     </div>
 
+    {{-- Delete Confirmation Modal --}}
+    <x-delete-modal 
+        modalId="modal-delete-shipping" 
+        :title="trans('shipping.confirm_delete')" 
+        :message="trans('shipping.delete_confirmation')" 
+        itemNameId="delete-shipping-name"
+        confirmBtnId="confirmDeleteShippingBtn" 
+        deleteRoute="{{ rtrim(route('admin.shippings.index'), '/') }}"
+        :cancelText="trans('main.cancel')" 
+        :deleteText="trans('shipping.delete')" />
+
+    {{-- Setting Change Confirmation Modal --}}
+    <div class="modal fade" id="modal-confirm-setting-change" tabindex="-1" aria-labelledby="settingChangeModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-warning-subtle border-0">
+                    <h5 class="modal-title" id="settingChangeModalLabel">
+                        <i class="uil uil-exclamation-triangle text-warning me-2"></i>
+                        {{ trans('shipping.confirm_setting_change') }}
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body py-4">
+                    <div class="text-center">
+                        <div class="mb-3">
+                            <i class="uil uil-info-circle text-warning" style="font-size: 48px;"></i>
+                        </div>
+                        <p class="mb-0 text-muted">{{ trans('shipping.setting_change_warning') }}</p>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 justify-content-center">
+                    <button type="button" class="btn btn-light btn-default btn-squared" data-bs-dismiss="modal">
+                        {{ trans('main.cancel') }}
+                    </button>
+                    <button type="button" class="btn btn-warning btn-default btn-squared" id="confirmSettingChangeBtn">
+                        <i class="uil uil-check me-1"></i>
+                        {{ trans('shipping.confirm_change') }}
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
 @endsection
 
 @push('scripts')
     <script>
         $(document).ready(function() {
             let per_page = 10;
+            let pendingSwitcher = null;
+            let pendingIsChecked = false;
 
-            // Shipping Settings Switch Handler
-            $('.shipping-setting-switch').on('change', function() {
+            // Shipping Settings Switch Handler - Show confirmation first
+            $('.shipping-setting-switch').on('change', function(e) {
+                e.preventDefault();
                 const switcher = $(this);
-                const setting = switcher.data('setting');
                 const isChecked = switcher.is(':checked');
+                
+                // Revert the switch temporarily until confirmed
+                switcher.prop('checked', !isChecked);
+                
+                // Store pending state
+                pendingSwitcher = switcher;
+                pendingIsChecked = isChecked;
+                
+                // Show confirmation modal
+                $('#modal-confirm-setting-change').modal('show');
+            });
 
+            // Confirm setting change
+            $('#confirmSettingChangeBtn').on('click', function() {
+                if (!pendingSwitcher) return;
+                
+                // Apply the change
+                pendingSwitcher.prop('checked', pendingIsChecked);
+                
                 // If turning on, turn off the others
-                if (isChecked) {
-                    $('.shipping-setting-switch').not(this).prop('checked', false);
+                if (pendingIsChecked) {
+                    $('.shipping-setting-switch').not(pendingSwitcher).prop('checked', false);
                 }
 
                 // Save settings via AJAX
@@ -242,16 +303,32 @@
                         shipping_allow_sub_categories: $('#shipping_allow_sub_categories').is(':checked') ? 1 : 0
                     },
                     success: function(response) {
+                        $('#modal-confirm-setting-change').modal('hide');
                         if (response.success) {
                             toastr.success(response.message);
+                            // Reload the datatable to reflect deleted shippings
+                            table.ajax.reload();
                         } else {
                             toastr.error(response.message);
+                            // Revert on error
+                            pendingSwitcher.prop('checked', !pendingIsChecked);
                         }
+                        pendingSwitcher = null;
                     },
                     error: function() {
+                        $('#modal-confirm-setting-change').modal('hide');
                         toastr.error('{{ trans("shipping.error_saving_settings") }}');
+                        // Revert on error
+                        pendingSwitcher.prop('checked', !pendingIsChecked);
+                        pendingSwitcher = null;
                     }
                 });
+            });
+
+            // Cancel setting change
+            $('#modal-confirm-setting-change').on('hidden.bs.modal', function() {
+                pendingSwitcher = null;
+                pendingIsChecked = false;
             });
 
             // Populate filters from URL parameters on page load
@@ -302,48 +379,6 @@
                         }
                     },
                     {
-                        data: 'cities',
-                        name: 'cities',
-                        orderable: false,
-                        searchable: false,
-                        render: function(data, type, row) {
-                            if (row.cities && row.cities.length > 0) {
-                                let badges = row.cities.slice(0, 3).map(city => 
-                                    `<span class="badge badge-sm" style="background-color: #0056B7; color: white; margin: 2px; padding: 4px 8px; border-radius: 4px; font-size: 11px;">${city.name}</span>`
-                                ).join(' ');
-                                
-                                if (row.cities.length > 3) {
-                                    let remainingCities = row.cities.slice(3).map(city => city.name).join(', ');
-                                    badges += ` <span class="badge badge-sm" style="background-color: #6c757d; color: white; margin: 2px; padding: 4px 8px; border-radius: 4px; font-size: 11px;"  data-bs-toggle="tooltip" data-bs-placement="top" title="${remainingCities}">+${row.cities.length - 3}</span>`;
-                                }
-                                
-                                return badges;
-                            }
-                            return '<span style="color: #999;">-</span>';
-                        }
-                    },
-                    {
-                        data: 'categories',
-                        name: 'categories',
-                        orderable: false,
-                        searchable: false,
-                        render: function(data, type, row) {
-                            if (row.categories && row.categories.length > 0) {
-                                let badges = row.categories.slice(0, 3).map(category => 
-                                    `<span class="badge badge-sm" style="background-color: #9C27B0; color: white; margin: 2px; padding: 4px 8px; border-radius: 4px; font-size: 11px;">${category.name}</span>`
-                                ).join(' ');
-                                
-                                if (row.categories.length > 3) {
-                                    let remainingCategories = row.categories.slice(3).map(category => category.name).join(', ');
-                                    badges += ` <span class="badge badge-sm" style="background-color: #6c757d; color: white; margin: 2px; padding: 4px 8px; border-radius: 4px; font-size: 11px;" data-bs-toggle="tooltip" data-bs-placement="top" title="${remainingCategories}">+${row.categories.length - 3}</span>`;
-                                }
-                                
-                                return badges;
-                            }
-                            return '<span style="color: #999;">-</span>';
-                        }
-                    },
-                    {
                         data: 'active',
                         name: 'active',
                         orderable: false,
@@ -353,7 +388,7 @@
                             const isChecked = data === 1 || data === true ? 'checked' : '';
                             const switchId = 'status-switch-' + row.id;
                             return `
-                                <div class="form-check form-switch  form-switch-primary form-switch-sm">
+                                <div class="form-check form-switch  form-switch-primary form-switch-sm d-flex justify-content-center">
                                     <input type="checkbox" class="form-check-input status-switcher" 
                                         id="${switchId}" data-id="${row.id}" ${isChecked}>
                                     <label class="form-check-label" for="${switchId}"></label>
@@ -403,8 +438,11 @@
                                     @endcan
                                     @can('shippings.delete')
                                     <button type="button"
-                                    class="delete-btn btn btn-danger table_action_father"
-                                    data-id="${row.id}"
+                                    class="btn btn-danger table_action_father"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#modal-delete-shipping"
+                                    data-item-id="${row.id}"
+                                    data-item-name="${row.name}"
                                     title="{{ trans('shipping.delete') }}">
                                         <i class="uil uil-trash table_action_icon"></i>
                                     </button>
@@ -506,22 +544,32 @@
             });
 
             // Delete shipping
-            $(document).on('click', '.delete-btn', function() {
-                let id = $(this).data('id');
-                if (confirm('{{ trans('shipping.confirm_delete') }}')) {
-                    $.ajax({
-                        url: "{{ route('admin.shippings.destroy', ':id') }}".replace(':id', id),
-                        type: 'DELETE',
-                        data: { _token: '{{ csrf_token() }}' },
-                        success: function(response) {
-                            toastr.success('{{ trans('shipping.deleted_successfully') }}');
-                            table.ajax.reload();
-                        },
-                        error: function() {
-                            toastr.error('{{ trans('shipping.error_deleting') }}');
-                        }
-                    });
-                }
+            $(document).on('click', '#confirmDeleteShippingBtn', function() {
+                let id = $(this).data('item-id');
+                $.ajax({
+                    url: "{{ route('admin.shippings.destroy', ':id') }}".replace(':id', id),
+                    type: 'DELETE',
+                    data: { _token: '{{ csrf_token() }}' },
+                    success: function(response) {
+                        $('#modal-delete-shipping').modal('hide');
+                        toastr.success('{{ trans('shipping.deleted_successfully') }}');
+                        table.ajax.reload();
+                    },
+                    error: function() {
+                        $('#modal-delete-shipping').modal('hide');
+                        toastr.error('{{ trans('shipping.error_deleting') }}');
+                    }
+                });
+            });
+
+            // Set item data when modal is shown
+            $('#modal-delete-shipping').on('show.bs.modal', function(event) {
+                const button = $(event.relatedTarget);
+                const itemId = button.data('item-id');
+                const itemName = button.data('item-name');
+                
+                $('#delete-shipping-name').text(itemName);
+                $('#confirmDeleteShippingBtn').data('item-id', itemId);
             });
         });
     </script>

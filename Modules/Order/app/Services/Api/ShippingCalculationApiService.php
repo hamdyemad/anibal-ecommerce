@@ -57,10 +57,15 @@ class ShippingCalculationApiService
 
         // Format cart items for shipping calculation
         return $cartItems->map(function ($item) {
+            $product = $item->vendorProduct->product;
             return [
-                'category_id' => $item->vendorProduct->product->category->id,
-                'category_name' => $item->vendorProduct->product->category->name,
-                'product_id' => $item->vendorProduct->product_id,
+                'category_id' => $product->category_id,
+                'category_name' => $product->category->name ?? null,
+                'department_id' => $product->department_id,
+                'department_name' => $product->department->name ?? null,
+                'sub_category_id' => $product->sub_category_id,
+                'sub_category_name' => $product->subCategory->name ?? null,
+                'product_id' => $product->id,
                 'quantity' => $item->quantity,
             ];
         })->toArray();

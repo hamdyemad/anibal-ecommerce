@@ -491,12 +491,18 @@
                     return;
                 }
 
+                // Map type to correct input name
+                let inputName = type + '_ids[]';
+                if (type === 'subcategory') {
+                    inputName = 'sub_category_ids[]';
+                }
+
                 // Create tag badge
                 const tagHtml = `
                 <span class="tag-badge" data-id="${id}">
                     ${name}
                     <span class="tag-remove" onclick="removeTag('${type}', ${id})">&times;</span>
-                    <input type="hidden" name="${type}_ids[]" value="${id}">
+                    <input type="hidden" name="${inputName}" value="${id}">
                 </span>
             `;
 

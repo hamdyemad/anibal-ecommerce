@@ -85,6 +85,26 @@
             font-size: 12px;
             display: inline-block;
         }
+
+        .badge-department {
+            background-color: #FF9800;
+            color: white;
+            margin: 2px;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            display: inline-block;
+        }
+
+        .badge-subcategory {
+            background-color: #4CAF50;
+            color: white;
+            margin: 2px;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            display: inline-block;
+        }
     </style>
 @endpush
 
@@ -187,7 +207,7 @@
                                     </div>
                                 </div>
 
-                                {{-- Cities & Categories --}}
+                                {{-- Cities & Categories/Departments/SubCategories --}}
                                 <div class="card card-holder">
                                     <div class="card-header">
                                         <h3>
@@ -212,19 +232,43 @@
                                                 </div>
                                             </div>
 
-                                            {{-- Categories --}}
+                                            {{-- Departments/Categories/SubCategories based on settings --}}
                                             <div class="col-md-6">
                                                 <div class="view-item">
-                                                    <label class="il-gray fs-14 fw-500 mb-10">{{ trans('shipping.categories') }}</label>
-                                                    <div class="fs-15 color-dark fw-500">
-                                                        @if($shipping->categories && $shipping->categories->count() > 0)
-                                                            @foreach($shipping->categories as $category)
-                                                                <span class="badge-category">{{ $category->name }}</span>
-                                                            @endforeach
-                                                        @else
-                                                            <span class="text-muted">-</span>
-                                                        @endif
-                                                    </div>
+                                                    @if($shippingSettings?->shipping_allow_departments)
+                                                        <label class="il-gray fs-14 fw-500 mb-10">{{ trans('shipping.departments') }}</label>
+                                                        <div class="fs-15 color-dark fw-500">
+                                                            @if($shipping->departments && $shipping->departments->count() > 0)
+                                                                @foreach($shipping->departments as $department)
+                                                                    <span class="badge-city">{{ $department->name }}</span>
+                                                                @endforeach
+                                                            @else
+                                                                <span class="text-muted">-</span>
+                                                            @endif
+                                                        </div>
+                                                    @elseif($shippingSettings?->shipping_allow_categories)
+                                                        <label class="il-gray fs-14 fw-500 mb-10">{{ trans('shipping.categories') }}</label>
+                                                        <div class="fs-15 color-dark fw-500">
+                                                            @if($shipping->categories && $shipping->categories->count() > 0)
+                                                                @foreach($shipping->categories as $category)
+                                                                    <span class="badge-city">{{ $category->name }}</span>
+                                                                @endforeach
+                                                            @else
+                                                                <span class="text-muted">-</span>
+                                                            @endif
+                                                        </div>
+                                                    @elseif($shippingSettings?->shipping_allow_sub_categories)
+                                                        <label class="il-gray fs-14 fw-500 mb-10">{{ trans('shipping.sub_categories') }}</label>
+                                                        <div class="fs-15 color-dark fw-500">
+                                                            @if($shipping->subCategories && $shipping->subCategories->count() > 0)
+                                                                @foreach($shipping->subCategories as $subCategory)
+                                                                    <span class="badge-city">{{ $subCategory->name }}</span>
+                                                                @endforeach
+                                                            @else
+                                                                <span class="text-muted">-</span>
+                                                            @endif
+                                                        </div>
+                                                    @endif
                                                 </div>
                                             </div>
                                         </div>

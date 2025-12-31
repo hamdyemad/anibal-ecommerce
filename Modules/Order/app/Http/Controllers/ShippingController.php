@@ -49,10 +49,25 @@ class ShippingController extends Controller
                 ], 500);
             }
 
+            // Check if any setting is being changed
+            $oldDepartments = $siteInfo->shipping_allow_departments;
+            $oldCategories = $siteInfo->shipping_allow_categories;
+            $oldSubCategories = $siteInfo->shipping_allow_sub_categories;
+
+            $newDepartments = $request->boolean('shipping_allow_departments');
+            $newCategories = $request->boolean('shipping_allow_categories');
+            $newSubCategories = $request->boolean('shipping_allow_sub_categories');
+
+            // If any setting changed, delete all shipping methods
+            if ($oldDepartments != $newDepartments || $oldCategories != $newCategories || $oldSubCategories != $newSubCategories) {
+                // Delete all shippings (this will cascade delete pivot table entries)
+                \Modules\Order\app\Models\Shipping::query()->forceDelete();
+            }
+
             $siteInfo->update([
-                'shipping_allow_departments' => $request->boolean('shipping_allow_departments'),
-                'shipping_allow_categories' => $request->boolean('shipping_allow_categories'),
-                'shipping_allow_sub_categories' => $request->boolean('shipping_allow_sub_categories'),
+                'shipping_allow_departments' => $newDepartments,
+                'shipping_allow_categories' => $newCategories,
+                'shipping_allow_sub_categories' => $newSubCategories,
             ]);
 
             return response()->json([
@@ -173,10 +188,11 @@ class ShippingController extends Controller
     /**
      * Display the specified shipping
      */
-    public function show($lang, $countryCode, $id   )
+    public function show($lang, $countryCode, $id)
     {
         $shipping = $this->shippingService->getShippingById($id);
-        return view('order::shippings.show', compact('shipping'));
+        $shippingSettings = SiteInformation::first();
+        return view('order::shippings.show', compact('shipping', 'shippingSettings'));
     }
 
     /**
