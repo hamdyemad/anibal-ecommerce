@@ -89,4 +89,22 @@ trait HumanDates
             ->locale(app()->getLocale())
             ->translatedFormat('d M, Y, h:i A');
     }
+
+    public function getOfferSentAtAttribute($value)
+    {
+        if (!$value) return null;
+        return Carbon::parse($value)
+            ->timezone(config('app.timezone'))
+            ->locale(app()->getLocale())
+            ->translatedFormat('d M, Y, h:i A');
+    }
+
+    public function getOfferRespondedAtAttribute($value)
+    {
+        if (!$value) return null;
+        return Carbon::parse($value)
+            ->timezone(config('app.timezone'))
+            ->locale(app()->getLocale())
+            ->translatedFormat('d M, Y, h:i A');
+    }
 }

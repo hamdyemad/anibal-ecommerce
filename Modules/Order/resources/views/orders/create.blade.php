@@ -16,6 +16,66 @@
             </div>
         </div>
 
+        @if(isset($quotation) && $quotation)
+        {{-- Quotation Info Box --}}
+        <div class="row mb-3">
+            <div class="col-lg-12">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body py-3">
+                        <div class="d-flex align-items-center mb-2">
+                            <i class="uil uil-file-check-alt text-primary me-2" style="font-size: 20px;"></i>
+                            <h6 class="mb-0 text-primary fw-600">{{ __('order::request-quotation.creating_order_from_quotation') }}</h6>
+                        </div>
+                        <div class="row g-3">
+                            <div class="col-md-3">
+                                <div class="d-flex align-items-center">
+                                    <i class="uil uil-user text-muted me-2"></i>
+                                    <div>
+                                        <small class="text-muted d-block">{{ __('order::request-quotation.customer_info') }}</small>
+                                        <span class="fw-500">{{ $quotation->customer?->full_name }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="d-flex align-items-center">
+                                    <i class="uil uil-dollar-sign text-success me-2"></i>
+                                    <div>
+                                        <small class="text-muted d-block">{{ __('order::request-quotation.offer_price') }}</small>
+                                        <span class="fw-600 text-success">{{ number_format($quotation->offer_price, 2) }} {{ currency() }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="d-flex align-items-center">
+                                    <i class="uil uil-map-marker text-muted me-2"></i>
+                                    <div>
+                                        <small class="text-muted d-block">{{ __('order::request-quotation.address') }}</small>
+                                        <span class="fw-500">{{ $quotation->customerAddress?->title }} - {{ $quotation->customerAddress?->city?->name }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="d-flex align-items-center">
+                                    <i class="uil uil-notes text-muted me-2"></i>
+                                    <div>
+                                        <small class="text-muted d-block">{{ __('order::request-quotation.notes') }}</small>
+                                        <span class="fw-500">{{ Str::limit($quotation->notes, 40) }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <input type="hidden" id="quotation_id" value="{{ $quotation->id }}">
+        <input type="hidden" id="quotation_customer_id" value="{{ $quotation->customer_id }}">
+        <input type="hidden" id="quotation_customer_name" value="{{ $quotation->customer?->full_name }}">
+        <input type="hidden" id="quotation_customer_email" value="{{ $quotation->customer?->email }}">
+        <input type="hidden" id="quotation_customer_phone" value="{{ $quotation->customer?->phone }}">
+        <input type="hidden" id="quotation_address_id" value="{{ $quotation->customer_address_id }}">
+        @endif
+
         <div class="responsive-grid">
             <div class="card border-0 shadow-sm">
                 <div class="card-header bg-white border-bottom py-20">
@@ -1447,29 +1507,73 @@
                     loadAllCustomers();
                     loadCitiesForCurrentCountry();
 
-                    // Handle URL parameters from Request Quotation
-                    const urlParams = new URLSearchParams(window.location.search);
-                    const quotationId = urlParams.get('quotation_id');
+                    // Handle quotation data if present (from Request Quotation)
+                    const quotationId = $('#quotation_id').val();
                     
                     if (quotationId) {
-                        // Select external customer type
-                        $('#external_customer').prop('checked', true).trigger('change');
+                        const customerId = $('#quotation_customer_id').val();
+                        const customerName = $('#quotation_customer_name').val();
+                        const customerEmail = $('#quotation_customer_email').val();
+                        const customerPhone = $('#quotation_customer_phone').val();
+                        const addressId = $('#quotation_address_id').val();
                         
-                        // Fill in the form fields
-                        const name = urlParams.get('name') || '';
-                        const email = urlParams.get('email') || '';
-                        const phone = urlParams.get('phone') || '';
-                        const address = urlParams.get('address') || '';
-                        const notes = urlParams.get('notes') || '';
+                        // Select existing customer type
+                        $('#existing_customer').prop('checked', true).trigger('change');
                         
-                        $('#external_customer_name').val(name);
-                        $('#external_customer_email').val(email);
-                        $('#external_customer_phone').val(phone);
-                        $('#external_customer_address').val(address);
+                        // Fill in customer details
+                        $('#customer_search').val(customerName);
+                        $('#selected_customer_id').val(customerId);
+                        $('#customer_email').val(customerEmail);
+                        $('#customer_phone').val(customerPhone);
                         
-                        // Store quotation_id for later use when creating order
-                        if (!$('#quotation_id').length) {
-                            $('#createOrderForm').append('<input type="hidden" id="quotation_id" name="quotation_id" value="' + quotationId + '">');
+                        // Load customer addresses and auto-select the quotation address
+                        if (customerId) {
+                            $.ajax({
+                                url: `/api/customers/${customerId}/addresses`,
+                                type: 'GET',
+                                dataType: 'json',
+                                xhrFields: {
+                                    withCredentials: true
+                                },
+                                headers: {
+                                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
+                                    'Accept': 'application/json',
+                                    'X-Country-Code': countryCode,
+                                    'lang': "{{ app()->getLocale() }}",
+                                },
+                                success: function(response) {
+                                    const addressSelect = $('#customer_address_select');
+                                    addressSelect.empty();
+                                    addressSelect.append('<option value="">{{ trans('order.select_address') }}</option>');
+
+                                    if (response.data && response.data.length > 0) {
+                                        response.data.forEach(address => {
+                                            const selected = address.id == addressId ? 'selected' : '';
+                                            addressSelect.append(
+                                                `<option value="${address.id}" data-address="${address.address}" ${selected}>${address.title} - ${address.address}</option>`
+                                            );
+                                        });
+                                        $('#customer_address_section').show();
+                                        $('#no_address_section').hide();
+                                        
+                                        // Trigger change to fill address field
+                                        if (addressId) {
+                                            addressSelect.val(addressId).trigger('change');
+                                        }
+                                    } else {
+                                        $('#customer_address_section').hide();
+                                        $('#no_address_section').show();
+                                    }
+                                },
+                                error: function(xhr) {
+                                    console.error('Failed to load addresses:', xhr);
+                                }
+                            });
+                        }
+                        
+                        // Add quotation_id to form
+                        if (!$('input[name="quotation_id"]').length) {
+                            $('#createOrderForm').append('<input type="hidden" name="quotation_id" value="' + quotationId + '">');
                         }
                     }
 

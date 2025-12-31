@@ -13,12 +13,15 @@ use Modules\Order\app\Http\Requests\AddProductToOrderRequest;
 use Modules\Order\app\Http\Requests\AddExtraFeeDiscountRequest;
 use Modules\Order\app\Http\Requests\CreateFulfillmentRequest;
 use Modules\Order\app\Models\Order;
+use Modules\Order\app\Models\RequestQuotation;
 use App\Models\Language;
 use Modules\Order\app\Http\Resources\Api\OrderStageResource;
 use Modules\Order\app\Models\OrderProduct;
 use Modules\Order\app\Models\OrderStage;
 use Modules\Order\app\Services\OrderStageService;
 use Modules\Vendor\app\Services\VendorService;
+use Modules\Customer\app\Models\Customer;
+use Modules\SystemSetting\app\Services\FirebaseService;
 
 class OrderController extends Controller
 {
@@ -263,9 +266,15 @@ class OrderController extends Controller
     /**
      * Show create order form
      */
-    public function create($lang, $countryCode)
+    public function create($lang, $countryCode, Request $request)
     {
-        return view('order::orders.create');
+        $quotation = null;
+        if ($request->has('quotation_id')) {
+            $quotation = RequestQuotation::with(['customer', 'customerAddress.city', 'customerAddress.region', 'customerAddress.subregion', 'customerAddress.country'])
+                ->find($request->quotation_id);
+        }
+        
+        return view('order::orders.create', compact('quotation'));
     }
 
     /**
@@ -300,12 +309,17 @@ class OrderController extends Controller
 
             // Update request quotation status and link order if quotation_id is provided
             if ($request->filled('quotation_id')) {
-                $quotation = \Modules\Order\app\Models\RequestQuotation::find($request->input('quotation_id'));
+                $quotation = \Modules\Order\app\Models\RequestQuotation::with('customer')->find($request->input('quotation_id'));
                 if ($quotation) {
                     $quotation->update([
-                        'status' => \Modules\Order\app\Models\RequestQuotation::STATUS_CREATED,
+                        'status' => \Modules\Order\app\Models\RequestQuotation::STATUS_ORDER_CREATED,
                         'order_id' => $order->id,
                     ]);
+
+                    // Send Firebase notification to customer
+                    if ($quotation->customer) {
+                        $this->sendOrderCreatedNotification($quotation->customer, $quotation, $order);
+                    }
                 }
             }
 
@@ -635,5 +649,37 @@ class OrderController extends Controller
             'total_delivery_value' => number_format($totalDeliveryValue, 2),
             'stage_stats' => $stageStats,
         ];
+    }
+
+    /**
+     * Send Firebase notification to customer when order is created from quotation
+     */
+    protected function sendOrderCreatedNotification(Customer $customer, RequestQuotation $quotation, Order $order)
+    {
+        try {
+            $fcmTokens = $customer->fcmTokens()->pluck('fcm_token')->toArray();
+            
+            if (empty($fcmTokens)) {
+                return;
+            }
+
+            $firebaseService = app(FirebaseService::class);
+            
+            $title = __('order::request-quotation.order_created_notification_title');
+            $body = __('order::request-quotation.order_created_notification_body', [
+                'order_number' => $order->order_number,
+            ]);
+
+            $data = [
+                'type' => 'quotation_order_created',
+                'quotation_id' => (string) $quotation->id,
+                'order_id' => (string) $order->id,
+                'order_number' => $order->order_number,
+            ];
+
+            $firebaseService->sendToTokens($fcmTokens, $title, $body, null, $data);
+        } catch (\Exception $e) {
+            \Log::error('Failed to send order created notification: ' . $e->getMessage());
+        }
     }
 }

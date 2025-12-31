@@ -182,6 +182,14 @@ class Order extends BaseModel
         return $this->hasOne(Payment::class)->latestOfMany();
     }
 
+    /**
+     * Get the request quotation that created this order.
+     */
+    public function requestQuotation()
+    {
+        return $this->hasOne(RequestQuotation::class);
+    }
+
     protected function applyCustomSearch(Builder $query, string $search): Builder
     {
         return $query->where(function ($q) use ($search) {

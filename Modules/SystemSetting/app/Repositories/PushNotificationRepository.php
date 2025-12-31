@@ -139,13 +139,21 @@ class PushNotificationRepository implements PushNotificationRepositoryInterface
                 $title = $titles[$lang] ?? $titles['en'] ?? '';
                 $body = $descriptions[$lang] ?? $descriptions['en'] ?? '';
 
-                $this->firebaseService->sendToToken(
+                $result = $this->firebaseService->sendToToken(
                     $token,
                     $title,
                     $body,
                     $imageUrl,
                     ['notification_id' => $notification->id]
                 );
+
+                // Delete invalid token if send failed
+                if (!$result) {
+                    CustomerFcmToken::where('customer_id', $customerId)
+                        ->where('fcm_token', $token)
+                        ->delete();
+                    Log::info('Deleted invalid FCM token for customer: ' . $customerId);
+                }
             }
         }
 

@@ -7,6 +7,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\LanguageController;
 use App\Http\Controllers\PaginationController;
 use App\Http\Controllers\VendorController;
+use App\Http\Controllers\AdminNotificationController;
 use App\Http\Controllers\AdminManagement\RoleController;
 use App\Http\Controllers\AdminManagement\AdminController;
 use App\Http\Controllers\AdminManagement\VendorUserController;
@@ -45,6 +46,12 @@ use Modules\Order\database\seeders\OrderDatabaseSeeder;
 
 // Admin dashboard with country code
 Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+// Admin Notifications
+Route::prefix('notifications')->name('notifications.')->group(function() {
+    Route::post('/mark-read', [AdminNotificationController::class, 'markAsRead'])->name('mark-read');
+    Route::post('/mark-all-read', [AdminNotificationController::class, 'markAllAsRead'])->name('mark-all-read');
+});
 
 // Profile Management
 Route::prefix('profile')->name('profile.')->group(function() {

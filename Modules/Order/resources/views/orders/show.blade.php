@@ -64,6 +64,16 @@
                                                 @endif
                                             </span>
                                         </div>
+                                        @if($order->requestQuotation)
+                                        <div class="detail-row">
+                                            <span class="detail-label">{{ trans('order::request-quotation.request_quotations') }}:</span>
+                                            <span class="detail-value">
+                                                <a target="_blank" href="{{ route('admin.request-quotations.index') }}?search={{ $order->order_number }}" class="btn btn-sm btn-outline-primary">
+                                                    <i class="uil uil-file-question-alt me-1"></i>{{ trans('common.view') }}
+                                                </a>
+                                            </span>
+                                        </div>
+                                        @endif
                                     </div>
                                 </div>
                             </div>

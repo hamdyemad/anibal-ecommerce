@@ -93,6 +93,17 @@
                                                 <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                                             </span>
                                         </div>
+                                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($order->requestQuotation): ?>
+                                        <div class="detail-row">
+                                            <span class="detail-label"><?php echo e(trans('order::request-quotation.request_quotations')); ?>:</span>
+                                            <span class="detail-value">
+                                                <a target="_blank" href="<?php echo e(route('admin.request-quotations.index')); ?>?search=<?php echo e($order->order_number); ?>" class="btn btn-sm btn-outline-primary">
+                                                    <i class="uil uil-file-question-alt me-1"></i><?php echo e(trans('common.view')); ?>
+
+                                                </a>
+                                            </span>
+                                        </div>
+                                        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                                     </div>
                                 </div>
                             </div>

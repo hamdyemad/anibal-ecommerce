@@ -22,6 +22,7 @@ class CustomerApiResource extends JsonResource
             'phone' => $this->phone,
             'image' => $this->image ? asset('storage/' . $this->image) : '',
             'lang' => $this->lang,
+            'gender' => $this->gender,
             'addresses' => AddressResource::collection($this->whenLoaded('addresses')),
             'status' => (bool) $this->status,
             'created_at' => $this->created_at,

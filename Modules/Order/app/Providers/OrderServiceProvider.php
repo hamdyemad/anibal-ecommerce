@@ -25,6 +25,8 @@ use Modules\Order\app\Interfaces\ShippingRepositoryInterface;
 use Modules\Order\app\Repositories\ShippingRepository;
 use Modules\Order\app\Interfaces\Api\ShippingCalculationRepositoryInterface;
 use Modules\Order\app\Repositories\Api\ShippingCalculationRepository;
+use Modules\Order\app\Interfaces\Api\RequestQuotationApiRepositoryInterface;
+use Modules\Order\app\Repositories\Api\RequestQuotationApiRepository;
 use Modules\Order\app\Pipelines\FetchUserData;
 use Modules\Order\app\Pipelines\FetchCartItems;
 use Modules\Order\app\Pipelines\CalculateApiProductPrices;
@@ -124,6 +126,12 @@ class OrderServiceProvider extends ServiceProvider
         $this->app->bind(
             ShippingCalculationRepositoryInterface::class,
             ShippingCalculationRepository::class
+        );
+
+        // Register request quotation API repository bindings
+        $this->app->bind(
+            RequestQuotationApiRepositoryInterface::class,
+            RequestQuotationApiRepository::class
         );
 
         // Register wishlist query action

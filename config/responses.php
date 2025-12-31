@@ -510,5 +510,43 @@ return [
     "subscribed_successfully" => [
         "en" => "Subscribed successfully",
         "ar" => "تم الاشتراك بنجاح"
+    ],
+    
+    // Request Quotation
+    "quotation_created_successfully" => [
+        "en" => "Request quotation submitted successfully",
+        "ar" => "تم إرسال طلب عرض السعر بنجاح"
+    ],
+    "quotation_not_found" => [
+        "en" => "Quotation not found",
+        "ar" => "طلب عرض السعر غير موجود"
+    ],
+    "quotations_retrieved_successfully" => [
+        "en" => "Quotations retrieved successfully",
+        "ar" => "تم استرجاع طلبات عروض الأسعار بنجاح"
+    ],
+    "quotation_retrieved_successfully" => [
+        "en" => "Quotation retrieved successfully",
+        "ar" => "تم استرجاع طلب عرض السعر بنجاح"
+    ],
+    "offer_accepted_successfully" => [
+        "en" => "Offer accepted successfully",
+        "ar" => "تم قبول العرض بنجاح"
+    ],
+    "offer_rejected_successfully" => [
+        "en" => "Offer rejected successfully",
+        "ar" => "تم رفض العرض بنجاح"
+    ],
+    "cannot_respond_to_offer" => [
+        "en" => "Cannot respond to this offer",
+        "ar" => "لا يمكن الرد على هذا العرض"
+    ],
+    "action_required" => [
+        "en" => "Action is required",
+        "ar" => "الإجراء مطلوب"
+    ],
+    "action_invalid" => [
+        "en" => "Action must be accept or reject",
+        "ar" => "الإجراء يجب أن يكون قبول أو رفض"
     ]
 ];

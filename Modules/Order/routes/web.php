@@ -47,5 +47,6 @@ Route::prefix('request-quotations')->name('request-quotations.')->group(function
     Route::get('/archived', [RequestQuotationController::class, 'archived'])->name('archived');
     Route::get('/datatable', [RequestQuotationController::class, 'datatable'])->name('datatable');
     Route::post('/{id}/archive', [RequestQuotationController::class, 'archive'])->name('archive');
+    Route::post('/{id}/send-offer', [RequestQuotationController::class, 'sendOffer'])->name('send-offer');
     Route::delete('/{id}', [RequestQuotationController::class, 'destroy'])->name('destroy');
 });

@@ -22,7 +22,6 @@ Route::prefix('orders')->group(function () {
 });
 
 // Request Quotation API (public - no auth required)
-Route::post('/request-quotations', [RequestQuotationApiController::class, 'store'])->name('request-quotations.store');
 
 // Paymob Payment Routes (public - no auth required for webhooks/callbacks)
 Route::prefix('paymob')->group(function () {
@@ -67,6 +66,14 @@ Route::middleware(['auth:sanctum'])->group(function () {
     // Shipping calculation routes
     Route::prefix('shipping')->group(function () {
         Route::post('/calculate', [ShippingCalculationController::class, 'calculate'])->name('calculate');
+    });
+
+    // Request Quotation API (authenticated)
+    Route::prefix('request-quotations')->group(function () {
+        Route::get('/', [RequestQuotationApiController::class, 'index'])->name('request-quotations.index');
+        Route::post('/', [RequestQuotationApiController::class, 'store'])->name('request-quotations.store');
+        Route::get('/{id}', [RequestQuotationApiController::class, 'show'])->name('request-quotations.show');
+        Route::post('/{id}/respond', [RequestQuotationApiController::class, 'respondToOffer'])->name('request-quotations.respond');
     });
 });
 Route::post('/promocode/check', [OrderApiController::class, 'checkPromoCode'])->name('check-promo-code');

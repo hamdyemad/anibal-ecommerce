@@ -1,7 +1,7 @@
 <?php
     // Collect all notifications from different sources
     $notifications = collect();
-    
+
     // 1. Vendor Requests (pending vendors where active = 0)
     if (isAdmin()) {
         $vendorRequests = \Modules\Vendor\app\Models\Vendor::where('active', 0)
@@ -16,11 +16,12 @@
                     'description' => trans('menu.become a vendor requests.wants_to_become'),
                     'url' => route('admin.vendors.show', $vendor->id),
                     'created_at' => $vendor->created_at,
+                    'source' => 'vendors',
                 ];
             });
         $notifications = $notifications->merge($vendorRequests);
     }
-    
+
     // 2. Recent Orders
     $ordersQuery = \Modules\Order\app\Models\Order::with('customer');
     if (!isAdmin() && auth()->user()->vendor) {
@@ -40,10 +41,11 @@
                 'description' => $order->customer_name ?? 'N/A',
                 'url' => route('admin.orders.show', $order->id),
                 'created_at' => $order->created_at,
+                'source' => 'orders',
             ];
         });
     $notifications = $notifications->merge($recentOrders);
-    
+
     // 3. User Messages (pending messages)
     if (isAdmin()) {
         $messages = \Modules\SystemSetting\app\Models\Message::where('status', 'pending')
@@ -59,19 +61,60 @@
                     'description' => $message->title,
                     'url' => route('admin.messages.show', $message->id),
                     'created_at' => $message->created_at,
+                    'source' => 'messages',
                 ];
             });
         $notifications = $notifications->merge($messages);
     }
 
-    // 4. Push Notifications for Vendors (only unviewed)
+    // 4. Request Quotations (new requests, accepted offers, rejected offers)
+    if (isAdmin()) {
+        $requestQuotations = \Modules\Order\app\Models\RequestQuotation::whereIn('status', [
+                \Modules\Order\app\Models\RequestQuotation::STATUS_PENDING,
+                \Modules\Order\app\Models\RequestQuotation::STATUS_ACCEPTED_OFFER,
+                \Modules\Order\app\Models\RequestQuotation::STATUS_REJECTED_OFFER,
+            ])
+            ->orderBy('created_at', 'desc')
+            ->limit(10)
+            ->get()
+            ->map(function($quotation) {
+                $isAccepted = $quotation->status === \Modules\Order\app\Models\RequestQuotation::STATUS_ACCEPTED_OFFER;
+                $isRejected = $quotation->status === \Modules\Order\app\Models\RequestQuotation::STATUS_REJECTED_OFFER;
+                
+                if ($isAccepted) {
+                    $icon = 'uil-check-circle';
+                    $color = 'success';
+                    $description = trans('order::request-quotation.notification_accepted');
+                } elseif ($isRejected) {
+                    $icon = 'uil-times-circle';
+                    $color = 'danger';
+                    $description = trans('order::request-quotation.notification_rejected');
+                } else {
+                    $icon = 'uil-file-question-alt';
+                    $color = 'warning';
+                    $description = trans('order::request-quotation.notification_new_request');
+                }
+                
+                return [
+                    'type' => 'request_quotation',
+                    'icon' => $icon,
+                    'color' => $color,
+                    'title' => $quotation->customer_name,
+                    'description' => $description,
+                    'url' => route('admin.request-quotations.index'),
+                    'created_at' => $isAccepted || $isRejected ? $quotation->offer_responded_at : $quotation->created_at,
+                    'source' => 'request_quotations',
+                ];
+            });
+        $notifications = $notifications->merge($requestQuotations);
+    }
+
+    // 5. Push Notifications for Vendors (only unviewed)
     if (!isAdmin() && auth()->user()->vendor) {
         $vendorId = auth()->user()->vendor->id;
         $userId = auth()->id();
         $pushNotifications = \Modules\SystemSetting\app\Models\PushNotification::where(function($q) use ($vendorId) {
-                // Notifications sent to all vendors
                 $q->where('type', 'all_vendors')
-                // Or notifications sent to this specific vendor
                 ->orWhere(function($q2) use ($vendorId) {
                     $q2->where('type', 'specific_vendors')
                        ->whereHas('vendors', function($q3) use ($vendorId) {
@@ -79,7 +122,6 @@
                        });
                 });
             })
-            // Exclude viewed notifications
             ->whereDoesntHave('views', function($q) use ($userId) {
                 $q->where('user_id', $userId);
             })
@@ -97,13 +139,14 @@
                     'url' => route('admin.system-settings.push-notifications.view', ['id' => $notification->id]),
                     'created_at' => $notification->created_at,
                     'image' => $notification->image ? formatImage($notification->image) : null,
+                    'source' => 'push_notifications',
                 ];
             });
         $notifications = $notifications->merge($pushNotifications);
     }
-    
-    // Sort by created_at and take latest 5
-    $notifications = $notifications->sortByDesc('created_at')->take(5);
+
+    // Sort by created_at and take latest 10
+    $notifications = $notifications->sortByDesc('created_at')->take(10);
     $notificationsCount = $notifications->count();
 ?>
 
@@ -120,7 +163,7 @@
             <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($notificationsCount > 0): ?>
                 <ul>
                     <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__currentLoopData = $notifications; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $notification): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                        <li class="nav-notification__single <?php echo e(empty($notification['is_viewed']) ? 'nav-notification__single--unread' : ''); ?> d-flex flex-wrap">
+                        <li class="nav-notification__single nav-notification__single--unread d-flex flex-wrap">
                             <div class="nav-notification__type nav-notification__type--<?php echo e($notification['color']); ?>">
                                 <i class="<?php echo e($notification['icon']); ?>"></i>
                             </div>
