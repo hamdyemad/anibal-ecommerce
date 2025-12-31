@@ -37,20 +37,127 @@ return [
 
     // Model names
     'models' => [
+        // Core Models
+        'User' => 'User',
+        'Role' => 'Role',
+        'Permission' => 'Permission',
+        'Language' => 'Language',
+        'Translation' => 'Translation',
+        'Attachment' => 'Attachment',
+        'ActivityLog' => 'Activity Log',
+        
+        // Area Settings
         'Country' => 'Country',
         'City' => 'City',
         'Region' => 'Region',
         'SubRegion' => 'Sub Region',
-        'User' => 'User',
         'Currency' => 'Currency',
+        
+        // Catalog Management
         'Department' => 'Department',
         'Category' => 'Category',
         'SubCategory' => 'Sub Category',
         'Product' => 'Product',
+        'ProductVariant' => 'Product Variant',
         'Brand' => 'Brand',
-        'Tax' => 'Tax',
+        'Tag' => 'Tag',
+        'Attribute' => 'Attribute',
+        'AttributeValue' => 'Attribute Value',
+        'VariantConfigurationKey' => 'Variant Configuration Key',
+        'VariantsConfiguration' => 'Variants Configuration',
+        'VariantStock' => 'Variant Stock',
+        
+        // Vendor
         'Vendor' => 'Vendor',
-        'Role' => 'Role',
-        'Permission' => 'Permission',
+        'VendorProduct' => 'Vendor Product',
+        'VendorProductVariant' => 'Vendor Product Variant',
+        'VendorProductVariantStock' => 'Vendor Product Variant Stock',
+        'VendorProductTax' => 'Vendor Product Tax',
+        'VendorBalance' => 'Vendor Balance',
+        'VendorFcmToken' => 'Vendor FCM Token',
+        'VendorRequest' => 'Vendor Request',
+        
+        // Customer
+        'Customer' => 'Customer',
+        'CustomerAddress' => 'Customer Address',
+        'CustomerAccessToken' => 'Customer Access Token',
+        'CustomerFcmToken' => 'Customer FCM Token',
+        'CustomerOtp' => 'Customer OTP',
+        'CustomerPasswordResetToken' => 'Customer Password Reset Token',
+        
+        // Order
+        'Order' => 'Order',
+        'OrderProduct' => 'Order Product',
+        'OrderProductTax' => 'Order Product Tax',
+        'OrderStage' => 'Order Stage',
+        'OrderFulfillment' => 'Order Fulfillment',
+        'OrderExtraFeeDiscount' => 'Order Extra Fee/Discount',
+        'Cart' => 'Cart',
+        'CartItem' => 'Cart Item',
+        'Wishlist' => 'Wishlist',
+        
+        // Promotions
+        'Occasion' => 'Occasion',
+        'OccasionProduct' => 'Occasion Product',
+        'Bundle' => 'Bundle',
+        'BundleCategory' => 'Bundle Category',
+        'BundleProduct' => 'Bundle Product',
+        'Promocode' => 'Promocode',
+        
+        // Accounting
+        'Expense' => 'Expense',
+        'ExpenseItem' => 'Expense Item',
+        'Income' => 'Income',
+        'AccountingEntry' => 'Accounting Entry',
+        'Withdraw' => 'Withdraw',
+        'Transaction' => 'Transaction',
+        'Payment' => 'Payment',
+        
+        // Shipping & Tax
+        'Shipping' => 'Shipping',
+        'ShippingMethod' => 'Shipping Method',
+        'Tax' => 'Tax',
+        'StockBooking' => 'Stock Booking',
+        
+        // Content Management
+        'Ad' => 'Ad',
+        'Slider' => 'Slider',
+        'Banner' => 'Banner',
+        'Blog' => 'Blog',
+        'BlogCategory' => 'Blog Category',
+        'BlogComment' => 'Blog Comment',
+        'Faq' => 'FAQ',
+        'Feature' => 'Feature',
+        'FooterContent' => 'Footer Content',
+        'Message' => 'Message',
+        'PushNotification' => 'Push Notification',
+        'Notification' => 'Notification',
+        
+        // Pages & Policies
+        'Page' => 'Page',
+        'PrivacyPolicy' => 'Privacy Policy',
+        'ReturnPolicy' => 'Return Policy',
+        'ServiceTerms' => 'Service Terms',
+        'TermsConditions' => 'Terms & Conditions',
+        
+        // Settings
+        'Setting' => 'Setting',
+        'SiteInformation' => 'Site Information',
+        'PaymentMethod' => 'Payment Method',
+        
+        // Points & Subscriptions
+        'PointsSetting' => 'Points Setting',
+        'PointsSystem' => 'Points System',
+        'UserPoints' => 'User Points',
+        'UserPointsTransaction' => 'User Points Transaction',
+        'Subscription' => 'Subscription',
+        
+        // Reviews & Requests
+        'Review' => 'Review',
+        'RequestQuotation' => 'Request Quotation',
+        
+        // Other
+        'Address' => 'Address',
+        'Tree' => 'Tree',
     ],
 ];

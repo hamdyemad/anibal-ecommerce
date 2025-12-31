@@ -38,12 +38,27 @@
                                     'updated' => 'text-primary',
                                     'deleted' => 'text-danger',
                                     'restored' => 'text-info',
+                                    'login' => 'text-info',
+                                    'logout' => 'text-secondary',
                                     default => 'text-secondary'
                                 };
+                                
+                                // Get translated description, fallback to action + model if translation key not found
+                                $description = $activity->translated_description;
+                                if (str_contains($description, 'activity_log.')) {
+                                    // Translation key not found, build a simple description
+                                    $actionText = __("activity_log.actions.{$activity->action}");
+                                    $modelName = class_basename($activity->model ?? 'Unknown');
+                                    $translatedModel = __("activity_log.models.{$modelName}");
+                                    if (str_contains($translatedModel, 'activity_log.models.')) {
+                                        $translatedModel = $modelName;
+                                    }
+                                    $description = "{$actionText} {$translatedModel}: {$activity->model_id}";
+                                }
                             @endphp
-                            <span class="{{ $actionClass }} fw-medium">{{ $activity->translated_description }}</span>
+                            <span class="{{ $actionClass }} fw-medium">{{ $description }}</span>
                         </td>
-                        <td>{{ $activity->created_at ? $activity->created_at->format('M d, Y h:i A') : '-' }}</td>
+                        <td>{{ $activity->created_at }}</td>
                     </tr>
                     @empty
                     <tr>

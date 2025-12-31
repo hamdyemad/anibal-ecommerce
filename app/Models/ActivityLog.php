@@ -82,6 +82,27 @@ class ActivityLog extends Model
 
         $params = $this->description_params ?? [];
         
+        // Translate the model name if present
+        if (isset($params['model'])) {
+            $modelName = $params['model'];
+            
+            // Check if it contains translation key pattern (case-insensitive)
+            if (stripos($modelName, 'activity_log.models.') !== false) {
+                // Extract just the model name from the key (handle both cases)
+                $modelName = preg_replace('/activity_log\.models\./i', '', $modelName);
+            }
+            
+            // Now translate the clean model name
+            $translatedModel = __("activity_log.models.{$modelName}");
+            
+            // If translation not found (returns the key), use the original model name
+            if (str_contains($translatedModel, 'activity_log.models.')) {
+                $params['model'] = $modelName;
+            } else {
+                $params['model'] = $translatedModel;
+            }
+        }
+        
         // If we have model information, try to get the translated identifier
         if ($this->model && isset($params["identifier"])) {
             $modelClass = $this->model;

@@ -37,20 +37,127 @@ return [
 
     // Model names
     'models' => [
+        // Core Models
+        'User' => 'مستخدم',
+        'Role' => 'دور',
+        'Permission' => 'صلاحية',
+        'Language' => 'لغة',
+        'Translation' => 'ترجمة',
+        'Attachment' => 'مرفق',
+        'ActivityLog' => 'سجل النشاط',
+        
+        // Area Settings
         'Country' => 'دولة',
         'City' => 'مدينة',
         'Region' => 'منطقة',
         'SubRegion' => 'منطقة فرعية',
-        'User' => 'مستخدم',
         'Currency' => 'عملة',
+        
+        // Catalog Management
         'Department' => 'قسم',
         'Category' => 'فئة',
         'SubCategory' => 'فئة فرعية',
         'Product' => 'منتج',
+        'ProductVariant' => 'متغير المنتج',
         'Brand' => 'علامة تجارية',
-        'Tax' => 'ضريبة',
+        'Tag' => 'وسم',
+        'Attribute' => 'سمة',
+        'AttributeValue' => 'قيمة السمة',
+        'VariantConfigurationKey' => 'مفتاح تكوين المتغير',
+        'VariantsConfiguration' => 'تكوين المتغيرات',
+        'VariantStock' => 'مخزون المتغير',
+        
+        // Vendor
         'Vendor' => 'بائع',
-        'Role' => 'دور',
-        'Permission' => 'صلاحية',
+        'VendorProduct' => 'منتج البائع',
+        'VendorProductVariant' => 'متغير منتج البائع',
+        'VendorProductVariantStock' => 'مخزون متغير منتج البائع',
+        'VendorProductTax' => 'ضريبة منتج البائع',
+        'VendorBalance' => 'رصيد البائع',
+        'VendorFcmToken' => 'رمز FCM للبائع',
+        'VendorRequest' => 'طلب البائع',
+        
+        // Customer
+        'Customer' => 'عميل',
+        'CustomerAddress' => 'عنوان العميل',
+        'CustomerAccessToken' => 'رمز وصول العميل',
+        'CustomerFcmToken' => 'رمز FCM للعميل',
+        'CustomerOtp' => 'رمز OTP للعميل',
+        'CustomerPasswordResetToken' => 'رمز إعادة تعيين كلمة مرور العميل',
+        
+        // Order
+        'Order' => 'طلب',
+        'OrderProduct' => 'منتج الطلب',
+        'OrderProductTax' => 'ضريبة منتج الطلب',
+        'OrderStage' => 'مرحلة الطلب',
+        'OrderFulfillment' => 'تنفيذ الطلب',
+        'OrderExtraFeeDiscount' => 'رسوم/خصم إضافي للطلب',
+        'Cart' => 'سلة',
+        'CartItem' => 'عنصر السلة',
+        'Wishlist' => 'قائمة الأمنيات',
+        
+        // Promotions
+        'Occasion' => 'مناسبة',
+        'OccasionProduct' => 'منتج المناسبة',
+        'Bundle' => 'حزمة',
+        'BundleCategory' => 'فئة الحزمة',
+        'BundleProduct' => 'منتج الحزمة',
+        'Promocode' => 'كود ترويجي',
+        
+        // Accounting
+        'Expense' => 'مصروف',
+        'ExpenseItem' => 'بند المصروف',
+        'Income' => 'دخل',
+        'AccountingEntry' => 'قيد محاسبي',
+        'Withdraw' => 'سحب',
+        'Transaction' => 'معاملة',
+        'Payment' => 'دفعة',
+        
+        // Shipping & Tax
+        'Shipping' => 'شحن',
+        'ShippingMethod' => 'طريقة الشحن',
+        'Tax' => 'ضريبة',
+        'StockBooking' => 'حجز المخزون',
+        
+        // Content Management
+        'Ad' => 'إعلان',
+        'Slider' => 'سلايدر',
+        'Banner' => 'بانر',
+        'Blog' => 'مدونة',
+        'BlogCategory' => 'فئة المدونة',
+        'BlogComment' => 'تعليق المدونة',
+        'Faq' => 'الأسئلة الشائعة',
+        'Feature' => 'ميزة',
+        'FooterContent' => 'محتوى التذييل',
+        'Message' => 'رسالة',
+        'PushNotification' => 'إشعار فوري',
+        'Notification' => 'إشعار',
+        
+        // Pages & Policies
+        'Page' => 'صفحة',
+        'PrivacyPolicy' => 'سياسة الخصوصية',
+        'ReturnPolicy' => 'سياسة الإرجاع',
+        'ServiceTerms' => 'شروط الخدمة',
+        'TermsConditions' => 'الشروط والأحكام',
+        
+        // Settings
+        'Setting' => 'إعداد',
+        'SiteInformation' => 'معلومات الموقع',
+        'PaymentMethod' => 'طريقة الدفع',
+        
+        // Points & Subscriptions
+        'PointsSetting' => 'إعدادات النقاط',
+        'PointsSystem' => 'نظام النقاط',
+        'UserPoints' => 'نقاط المستخدم',
+        'UserPointsTransaction' => 'معاملة نقاط المستخدم',
+        'Subscription' => 'اشتراك',
+        
+        // Reviews & Requests
+        'Review' => 'تقييم',
+        'RequestQuotation' => 'طلب عرض سعر',
+        
+        // Other
+        'Address' => 'عنوان',
+        'Tree' => 'شجرة',
     ],
 ];

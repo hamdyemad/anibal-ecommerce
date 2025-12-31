@@ -173,7 +173,7 @@ class GlobalModelObserver
                 'model_id' => $model->id,
                 'description_key' => $descriptionKeys[$action] ?? null,
                 'description_params' => [
-                    'model' => __("activity_log.models.{$modelName}"),
+                    'model' => $modelName, // Store just the model name, translate when displaying
                     'identifier' => $identifier,
                 ],
                 'properties' => $properties,

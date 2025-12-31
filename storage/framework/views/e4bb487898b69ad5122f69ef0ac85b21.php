@@ -294,7 +294,7 @@
                             const actionColor = colors[row.action] || 'secondary';
                             let html = '<div class="userDatatable-content">';
                             html += '<div class="mb-1"><strong>' + (row.user_name || '-') + '</strong></div>';
-                            html += '<div class="mb-1"><span class="badge badge-' + actionColor + ' badge-sm">' + row.action + '</span>';
+                            html += '<div class="mb-1"><span class="badge badge-round badge-lg badge-' + actionColor + ' ">' + row.action + '</span>';
                             html += ' <span class="text-muted">' + (row.model || '-') + '</span></div>';
                             if (row.description) {
                                 html += '<div class="text-muted small" title="' + row.description + '">' + (row.description.length > 80 ? row.description.substring(0, 80) + '...' : row.description) + '</div>';
