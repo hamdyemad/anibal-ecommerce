@@ -12,7 +12,7 @@ class ShippingRepository implements ShippingRepositoryInterface
      */
     public function getAllShippings(array $filters)
     {
-        $query = Shipping::with(['cities', 'categories', 'translations'])
+        $query = Shipping::with(['cities', 'categories', 'departments', 'subCategories', 'translations'])
             ->filter($filters)
             ->latest();
 
@@ -25,7 +25,7 @@ class ShippingRepository implements ShippingRepositoryInterface
      */
     public function getShippingById($id)
     {
-        return Shipping::with(['cities', 'categories', 'country'])->findOrFail($id);
+        return Shipping::with(['cities', 'categories', 'departments', 'subCategories', 'country'])->findOrFail($id);
     }
 
     /**
@@ -53,6 +53,16 @@ class ShippingRepository implements ShippingRepositoryInterface
             $shipping->categories()->attach($data['category_ids']);
         }
 
+        // Attach departments
+        if (isset($data['department_ids']) && is_array($data['department_ids'])) {
+            $shipping->departments()->attach($data['department_ids']);
+        }
+
+        // Attach sub categories
+        if (isset($data['sub_category_ids']) && is_array($data['sub_category_ids'])) {
+            $shipping->subCategories()->attach($data['sub_category_ids']);
+        }
+
         // Store translations
         if (isset($data['translations'])) {
             foreach ($data['translations'] as $langId => $translation) {
@@ -66,7 +76,7 @@ class ShippingRepository implements ShippingRepositoryInterface
             }
         }
 
-        return $shipping->load(['cities', 'categories']);
+        return $shipping->load(['cities', 'categories', 'departments', 'subCategories']);
     }
 
     /**
@@ -93,6 +103,22 @@ class ShippingRepository implements ShippingRepositoryInterface
         // Sync categories (removes old and adds new)
         if (isset($data['category_ids']) && is_array($data['category_ids'])) {
             $shipping->categories()->sync($data['category_ids']);
+        } else {
+            $shipping->categories()->detach();
+        }
+
+        // Sync departments (removes old and adds new)
+        if (isset($data['department_ids']) && is_array($data['department_ids'])) {
+            $shipping->departments()->sync($data['department_ids']);
+        } else {
+            $shipping->departments()->detach();
+        }
+
+        // Sync sub categories (removes old and adds new)
+        if (isset($data['sub_category_ids']) && is_array($data['sub_category_ids'])) {
+            $shipping->subCategories()->sync($data['sub_category_ids']);
+        } else {
+            $shipping->subCategories()->detach();
         }
 
         // Update translations
@@ -112,7 +138,7 @@ class ShippingRepository implements ShippingRepositoryInterface
                 }
             }
         }
-        return $shipping->load(['cities', 'categories']);
+        return $shipping->load(['cities', 'categories', 'departments', 'subCategories']);
     }
 
     /**

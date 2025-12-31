@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Modules\Order\app\Http\Requests\ShippingRequest;
 use Modules\Order\app\Http\Resources\ShippingResource;
 use Modules\Order\app\Services\ShippingService;
+use Modules\SystemSetting\app\Models\SiteInformation;
 use Illuminate\Http\Request;
 
 class ShippingController extends Controller
@@ -29,7 +30,41 @@ class ShippingController extends Controller
      */
     public function index($lang, $countryCode)
     {
-        return view('order::shippings.index');
+        $shippingSettings = SiteInformation::first();
+        return view('order::shippings.index', compact('shippingSettings'));
+    }
+
+    /**
+     * Update shipping settings
+     */
+    public function updateSettings(Request $request)
+    {
+        try {
+            $siteInfo = SiteInformation::first();
+            
+            if (!$siteInfo) {
+                return response()->json([
+                    'success' => false,
+                    'message' => trans('shipping.error_saving_settings')
+                ], 500);
+            }
+
+            $siteInfo->update([
+                'shipping_allow_departments' => $request->boolean('shipping_allow_departments'),
+                'shipping_allow_categories' => $request->boolean('shipping_allow_categories'),
+                'shipping_allow_sub_categories' => $request->boolean('shipping_allow_sub_categories'),
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => trans('shipping.settings_saved_successfully')
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => trans('shipping.error_saving_settings')
+            ], 500);
+        }
     }
 
     /**
@@ -77,9 +112,28 @@ class ShippingController extends Controller
         }
 
         $cities = $this->cityService->getCitiesByCountry($country->id);
-        $categories = $this->categoryService->getActiveCategories();
+        
+        // Get shipping settings
+        $shippingSettings = SiteInformation::first();
+        
+        // Get data based on settings
+        $departments = collect();
+        $categories = collect();
+        $subCategories = collect();
+        
+        if ($shippingSettings?->shipping_allow_departments) {
+            $departments = \Modules\CategoryManagment\app\Models\Department::active()->get();
+        }
+        
+        if ($shippingSettings?->shipping_allow_categories) {
+            $categories = $this->categoryService->getActiveCategories();
+        }
+        
+        if ($shippingSettings?->shipping_allow_sub_categories) {
+            $subCategories = \Modules\CategoryManagment\app\Models\SubCategory::active()->get();
+        }
 
-        return view('order::shippings.form', compact('languages', 'cities', 'categories'));
+        return view('order::shippings.form', compact('languages', 'cities', 'categories', 'departments', 'subCategories', 'shippingSettings'));
     }
 
     /**
@@ -140,9 +194,28 @@ class ShippingController extends Controller
         }
 
         $cities = $this->cityService->getCitiesByCountry($country->id);
-        $categories = $this->categoryService->getActiveCategories();
+        
+        // Get shipping settings
+        $shippingSettings = SiteInformation::first();
+        
+        // Get data based on settings
+        $departments = collect();
+        $categories = collect();
+        $subCategories = collect();
+        
+        if ($shippingSettings?->shipping_allow_departments) {
+            $departments = \Modules\CategoryManagment\app\Models\Department::active()->get();
+        }
+        
+        if ($shippingSettings?->shipping_allow_categories) {
+            $categories = $this->categoryService->getActiveCategories();
+        }
+        
+        if ($shippingSettings?->shipping_allow_sub_categories) {
+            $subCategories = \Modules\CategoryManagment\app\Models\SubCategory::active()->get();
+        }
 
-        return view('order::shippings.form', compact('shipping', 'languages', 'cities', 'categories'));
+        return view('order::shippings.form', compact('shipping', 'languages', 'cities', 'categories', 'departments', 'subCategories', 'shippingSettings'));
     }
 
     /**

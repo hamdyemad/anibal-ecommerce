@@ -42,6 +42,12 @@ return [
     'category_ids_min' => 'Please select at least one category',
     'category_id_not_exist' => 'Selected category does not exist',
     'country_id_required' => 'Country is required',
+    'department_ids_required' => 'At least one department is required',
+    'department_ids_min' => 'Please select at least one department',
+    'department_id_not_exist' => 'Selected department does not exist',
+    'sub_category_ids_required' => 'At least one sub category is required',
+    'sub_category_ids_min' => 'Please select at least one sub category',
+    'sub_category_id_not_exist' => 'Selected sub category does not exist',
 
     // Success messages
     'created_successfully' => 'Shipping created successfully',
@@ -90,4 +96,19 @@ return [
     'product_id_required' => 'Product ID is required',
     'quantity_required' => 'Quantity is required',
     'quantity_min' => 'Quantity must be at least 1',
+
+    // Shipping Settings
+    'shipping_settings' => 'Shipping Settings',
+    'allow_departments' => 'Allow Departments',
+    'allow_departments_desc' => 'Enable shipping by departments',
+    'allow_categories' => 'Allow Categories',
+    'allow_categories_desc' => 'Enable shipping by categories',
+    'allow_sub_categories' => 'Allow Sub Categories',
+    'allow_sub_categories_desc' => 'Enable shipping by sub categories',
+    'settings_saved_successfully' => 'Shipping settings saved successfully',
+    'error_saving_settings' => 'Error saving shipping settings',
+    'departments' => 'Departments',
+    'select_departments' => 'Select departments...',
+    'sub_categories' => 'Sub Categories',
+    'select_sub_categories' => 'Select sub categories...',
 ];

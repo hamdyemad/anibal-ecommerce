@@ -35,6 +35,7 @@ Route::prefix('order-fulfillments')->name('order-fulfillments.')->group(function
 
 // Shippings Management
 Route::get('shippings/datatable', [ShippingController::class, 'datatable'])->name('shippings.datatable');
+Route::post('shippings/update-settings', [ShippingController::class, 'updateSettings'])->name('shippings.update-settings');
 Route::post('shippings/{id}/change-status', [ShippingController::class, 'changeStatus'])->name('shippings.change-status');
 Route::resource('shippings', ShippingController::class);
 

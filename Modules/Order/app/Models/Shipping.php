@@ -44,6 +44,24 @@ class Shipping extends BaseModel
     }
 
     /**
+     * Get the departments associated with the shipping.
+     */
+    public function departments()
+    {
+        return $this->belongsToMany(\Modules\CategoryManagment\app\Models\Department::class, 'shipping_departments', 'shipping_id', 'department_id')
+            ->withTimestamps();
+    }
+
+    /**
+     * Get the sub categories associated with the shipping.
+     */
+    public function subCategories()
+    {
+        return $this->belongsToMany(\Modules\CategoryManagment\app\Models\SubCategory::class, 'shipping_sub_categories', 'shipping_id', 'sub_category_id')
+            ->withTimestamps();
+    }
+
+    /**
      * Get the country that owns the shipping.
      */
     public function country()

@@ -18,6 +18,65 @@
             </div>
         </div>
 
+        {{-- Shipping Settings Card --}}
+        <div class="row mb-3">
+            <div class="col-lg-12">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-white border-bottom py-15">
+                        <h6 class="mb-0 fw-500">
+                            <i class="uil uil-setting me-2"></i>{{ trans('shipping.shipping_settings') }}
+                        </h6>
+                    </div>
+                    <div class="card-body py-20">
+                        <div class="row align-items-center">
+                            <div class="col-md-4">
+                                <div class="d-flex align-items-center justify-content-between p-3 bg-light rounded">
+                                    <div>
+                                        <span class="fw-500">{{ trans('shipping.allow_departments') }}</span>
+                                        <small class="d-block text-muted">{{ trans('shipping.allow_departments_desc') }}</small>
+                                    </div>
+                                    <div class="form-check form-switch form-switch-primary form-switch-md">
+                                        <input type="checkbox" class="form-check-input shipping-setting-switch" 
+                                            id="shipping_allow_departments" 
+                                            data-setting="shipping_allow_departments"
+                                            {{ $shippingSettings->shipping_allow_departments ?? false ? 'checked' : '' }}>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="d-flex align-items-center justify-content-between p-3 bg-light rounded">
+                                    <div>
+                                        <span class="fw-500">{{ trans('shipping.allow_categories') }}</span>
+                                        <small class="d-block text-muted">{{ trans('shipping.allow_categories_desc') }}</small>
+                                    </div>
+                                    <div class="form-check form-switch form-switch-primary form-switch-md">
+                                        <input type="checkbox" class="form-check-input shipping-setting-switch" 
+                                            id="shipping_allow_categories" 
+                                            data-setting="shipping_allow_categories"
+                                            {{ $shippingSettings->shipping_allow_categories ?? true ? 'checked' : '' }}>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="d-flex align-items-center justify-content-between p-3 bg-light rounded">
+                                    <div>
+                                        <span class="fw-500">{{ trans('shipping.allow_sub_categories') }}</span>
+                                        <small class="d-block text-muted">{{ trans('shipping.allow_sub_categories_desc') }}</small>
+                                    </div>
+                                    <div class="form-check form-switch form-switch-primary form-switch-md">
+                                        <input type="checkbox" class="form-check-input shipping-setting-switch" 
+                                            id="shipping_allow_sub_categories" 
+                                            data-setting="shipping_allow_sub_categories"
+                                            {{ $shippingSettings->shipping_allow_sub_categories ?? false ? 'checked' : '' }}>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="row">
             <div class="col-lg-12">
                 <div class="userDatatable global-shadow border-light-0 p-30 bg-white radius-xl w-100 mb-30">
@@ -160,6 +219,40 @@
     <script>
         $(document).ready(function() {
             let per_page = 10;
+
+            // Shipping Settings Switch Handler
+            $('.shipping-setting-switch').on('change', function() {
+                const switcher = $(this);
+                const setting = switcher.data('setting');
+                const isChecked = switcher.is(':checked');
+
+                // If turning on, turn off the others
+                if (isChecked) {
+                    $('.shipping-setting-switch').not(this).prop('checked', false);
+                }
+
+                // Save settings via AJAX
+                $.ajax({
+                    url: '{{ route("admin.shippings.update-settings") }}',
+                    type: 'POST',
+                    data: {
+                        _token: '{{ csrf_token() }}',
+                        shipping_allow_departments: $('#shipping_allow_departments').is(':checked') ? 1 : 0,
+                        shipping_allow_categories: $('#shipping_allow_categories').is(':checked') ? 1 : 0,
+                        shipping_allow_sub_categories: $('#shipping_allow_sub_categories').is(':checked') ? 1 : 0
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            toastr.success(response.message);
+                        } else {
+                            toastr.error(response.message);
+                        }
+                    },
+                    error: function() {
+                        toastr.error('{{ trans("shipping.error_saving_settings") }}');
+                    }
+                });
+            });
 
             // Populate filters from URL parameters on page load
             const urlParams = new URLSearchParams(window.location.search);

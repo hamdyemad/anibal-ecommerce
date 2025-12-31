@@ -42,6 +42,12 @@ return [
     'category_ids_min' => 'الرجاء اختيار فئة واحدة على الأقل',
     'category_id_not_exist' => 'الفئة المحددة غير موجودة',
     'country_id_required' => 'الدولة مطلوبة',
+    'department_ids_required' => 'قسم واحد على الأقل مطلوب',
+    'department_ids_min' => 'الرجاء اختيار قسم واحد على الأقل',
+    'department_id_not_exist' => 'القسم المحدد غير موجود',
+    'sub_category_ids_required' => 'فئة فرعية واحدة على الأقل مطلوبة',
+    'sub_category_ids_min' => 'الرجاء اختيار فئة فرعية واحدة على الأقل',
+    'sub_category_id_not_exist' => 'الفئة الفرعية المحددة غير موجودة',
 
     // Success messages
     'created_successfully' => 'تم إنشاء الشحنة بنجاح',
@@ -90,4 +96,19 @@ return [
     'product_id_required' => 'معرّف المنتج مطلوب',
     'quantity_required' => 'الكمية مطلوبة',
     'quantity_min' => 'يجب أن تكون الكمية 1 على الأقل',
+
+    // Shipping Settings
+    'shipping_settings' => 'إعدادات الشحن',
+    'allow_departments' => 'السماح بالأقسام',
+    'allow_departments_desc' => 'تفعيل الشحن حسب الأقسام',
+    'allow_categories' => 'السماح بالفئات',
+    'allow_categories_desc' => 'تفعيل الشحن حسب الفئات',
+    'allow_sub_categories' => 'السماح بالفئات الفرعية',
+    'allow_sub_categories_desc' => 'تفعيل الشحن حسب الفئات الفرعية',
+    'settings_saved_successfully' => 'تم حفظ إعدادات الشحن بنجاح',
+    'error_saving_settings' => 'خطأ في حفظ إعدادات الشحن',
+    'departments' => 'الأقسام',
+    'select_departments' => 'اختر الأقسام...',
+    'sub_categories' => 'الفئات الفرعية',
+    'select_sub_categories' => 'اختر الفئات الفرعية...',
 ];
