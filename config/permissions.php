@@ -804,32 +804,45 @@ return [
         ]
     ],
 
-    'Accounting Overview' => [
-        'name' => ['en' => 'Accounting Overview', 'ar' => 'نظرة عامة على المحاسبة'],
-        'icon' => 'uil-chart-line',
-        'type' => 'admin',
+    'Accounting' => [
+        'name' => ['en' => 'Accounting', 'ar' => 'المحاسبة'],
+        'icon' => 'uil-calculator-alt',
+        'type' => 'all',
         'sub_modules' => [
-            'Overview' => [
-                'name' => ['en' => 'Overview', 'ar' => 'نظرة عامة'],
+            'Accounting Summary' => [
+                'name' => ['en' => 'Accounting Summary', 'ar' => 'ملخص المحاسبة'],
                 'permissions' => [
-                    'read' => ['name' => ['en' => 'Read', 'ar' => 'قراءة'], 'key' => 'accounting.overview.view', 'type' => 'admin'],
+                    'read' => ['name' => ['en' => 'View Summary', 'ar' => 'عرض الملخص'], 'key' => 'accounting.summary.index', 'type' => 'all'],
                 ]
             ],
-        ]
-    ],
-
-    'Expenses' => [
-        'name' => ['en' => 'Expenses', 'ar' => 'المصروفات'],
-        'icon' => 'uil-money-withdrawing',
-        'type' => 'admin',
-        'sub_modules' => [
+            'Income' => [
+                'name' => ['en' => 'Income', 'ar' => 'الإيرادات'],
+                'permissions' => [
+                    'read' => ['name' => ['en' => 'View Income', 'ar' => 'عرض الإيرادات'], 'key' => 'accounting.income.index', 'type' => 'all'],
+                ]
+            ],
+            'Expense Items' => [
+                'name' => ['en' => 'Expense Items', 'ar' => 'بنود المصروفات'],
+                'permissions' => [
+                    'read' => ['name' => ['en' => 'Read', 'ar' => 'قراءة'], 'key' => 'accounting.expense-items.index', 'type' => 'all'],
+                    'create' => ['name' => ['en' => 'Create', 'ar' => 'إنشاء'], 'key' => 'accounting.expense-items.create', 'type' => 'all'],
+                    'edit' => ['name' => ['en' => 'Edit', 'ar' => 'تعديل'], 'key' => 'accounting.expense-items.edit', 'type' => 'all'],
+                    'delete' => ['name' => ['en' => 'Delete', 'ar' => 'حذف'], 'key' => 'accounting.expense-items.delete', 'type' => 'all'],
+                ]
+            ],
             'Expenses' => [
                 'name' => ['en' => 'Expenses', 'ar' => 'المصروفات'],
                 'permissions' => [
-                    'read' => ['name' => ['en' => 'Read', 'ar' => 'قراءة'], 'key' => 'accounting.expenses.view', 'type' => 'admin'],
-                    'create' => ['name' => ['en' => 'Create', 'ar' => 'إنشاء'], 'key' => 'accounting.expenses.create', 'type' => 'admin'],
-                    'edit' => ['name' => ['en' => 'Edit', 'ar' => 'تعديل'], 'key' => 'accounting.expenses.edit', 'type' => 'admin'],
-                    'delete' => ['name' => ['en' => 'Delete', 'ar' => 'حذف'], 'key' => 'accounting.expenses.delete', 'type' => 'admin'],
+                    'read' => ['name' => ['en' => 'Read', 'ar' => 'قراءة'], 'key' => 'accounting.expenses.index', 'type' => 'all'],
+                    'create' => ['name' => ['en' => 'Create', 'ar' => 'إنشاء'], 'key' => 'accounting.expenses.store', 'type' => 'all'],
+                    'edit' => ['name' => ['en' => 'Edit', 'ar' => 'تعديل'], 'key' => 'accounting.expenses.update', 'type' => 'all'],
+                    'delete' => ['name' => ['en' => 'Delete', 'ar' => 'حذف'], 'key' => 'accounting.expenses.destroy', 'type' => 'all'],
+                ]
+            ],
+            'Vendor Balances' => [
+                'name' => ['en' => 'Vendor Balances', 'ar' => 'أرصدة الموردين'],
+                'permissions' => [
+                    'read' => ['name' => ['en' => 'View Vendor Balances', 'ar' => 'عرض أرصدة الموردين'], 'key' => 'accounting.balances.index', 'type' => 'all'],
                 ]
             ],
         ]
