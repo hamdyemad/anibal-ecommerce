@@ -724,6 +724,42 @@ class ProductController extends Controller
     }
 
     /**
+     * Move a product to bank (change product type to 'bank')
+     */
+    public function moveToBank($lang, $countryCode, Request $request, $id)
+    {
+        try {
+            // Check if user is admin
+            $currentUser = Auth::user();
+            if (!in_array($currentUser->user_type_id, UserType::adminIds())) {
+                return response()->json([
+                    'success' => false,
+                    'message' => __('common.unauthorized')
+                ], 403);
+            }
+
+            $result = $this->productService->moveProductToBank($id);
+
+            return response()->json([
+                'success' => true,
+                'message' => $result['message']
+            ]);
+
+        } catch (Exception $e) {
+            Log::error('Move to bank failed', [
+                'product_id' => $id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
      * Trash vendor product (soft delete)
      */
     public function trashVendorProduct($lang, $countryCode, $id)

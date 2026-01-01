@@ -1051,4 +1051,37 @@ class ProductRepository implements ProductInterface
         });
     }
 
+    /**
+     * Move a product to bank (change product type to 'bank')
+     */
+    public function moveProductToBank(int $vendorProductId)
+    {
+        return DB::transaction(function () use ($vendorProductId) {
+            $vendorProduct = VendorProduct::findOrFail($vendorProductId);
+            $product = $vendorProduct->product;
+
+            if (!$product) {
+                throw new \Exception(__('catalogmanagement::product.product_not_found'));
+            }
+
+            // Check if product is already a bank product
+            if ($product->type === Product::TYPE_BANK) {
+                throw new \Exception(__('catalogmanagement::product.product_already_in_bank'));
+            }
+
+            // Change product type to bank
+            $product->update([
+                'type' => Product::TYPE_BANK
+            ]);
+
+            Log::info('Product moved to bank', [
+                'product_id' => $product->id,
+                'vendor_product_id' => $vendorProductId,
+                'moved_by' => auth()->id()
+            ]);
+
+            return ['message' => __('catalogmanagement::product.product_moved_to_bank_successfully')];
+        });
+    }
+
 }

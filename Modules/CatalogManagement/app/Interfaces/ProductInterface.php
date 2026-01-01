@@ -21,4 +21,5 @@ interface ProductInterface
     // Status Management
     public function changeVendorProductStatus(int $productId, array $data);
     public function changeProductActivation(int $productId, bool $isActive);
+    public function moveProductToBank(int $vendorProductId);
 }

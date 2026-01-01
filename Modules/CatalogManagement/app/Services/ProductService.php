@@ -56,4 +56,12 @@ class ProductService
     {
         return $this->productInterface->changeProductActivation($productId, $isActive);
     }
+
+    /**
+     * Move product to bank
+     */
+    public function moveProductToBank(int $vendorProductId)
+    {
+        return $this->productInterface->moveProductToBank($vendorProductId);
+    }
 }
