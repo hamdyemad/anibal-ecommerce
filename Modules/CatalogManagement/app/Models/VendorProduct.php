@@ -208,13 +208,40 @@ class VendorProduct extends BaseModel
 
     public function scopeHasDiscount(Builder $query)
     {
-        $query->whereHas('variants', function($subQ) {
-            $subQ->whereNotNull('discount_end_date')->where('discount_end_date', '>', now());
+        // Check for products with variants that have active discounts
+        // OR products without variants but with discount fields on the vendor_product itself
+        $query->where(function($q) {
+            // Products with variants having active discount
+            $q->whereHas('variants', function($subQ) {
+                $subQ->where('has_discount', true)
+                    ->whereNotNull('discount_end_date')
+                    ->where('discount_end_date', '>', now());
+            });
         });
 
+        // Eager load only variants with active discounts
         $query->with(['variants' => function($subQ) {
-            $subQ->whereNotNull('discount_end_date')->where('discount_end_date', '>', now());
+            $subQ->where('has_discount', true)
+                ->whereNotNull('discount_end_date')
+                ->where('discount_end_date', '>', now());
         }]);
+
+        return $query;
+    }
+
+    /**
+     * Scope: Filter products WITHOUT active discount (offer=false)
+     */
+    public function scopeNoDiscount(Builder $query)
+    {
+        // Products where NO variants have active discounts
+        $query->where(function($q) {
+            $q->whereDoesntHave('variants', function($subQ) {
+                $subQ->where('has_discount', true)
+                    ->whereNotNull('discount_end_date')
+                    ->where('discount_end_date', '>', now());
+            });
+        });
 
         return $query;
     }
@@ -265,9 +292,18 @@ class VendorProduct extends BaseModel
             $query->featured();
         }
 
-        // Active filter
+        // Has discount filter (legacy support)
         if (!empty($filters['has_discount'])) {
             $query->hasDiscount();
+        }
+
+        // Offer filter - true = products with active offers, false = products without offers
+        if (isset($filters['offer'])) {
+            if ($filters['offer'] === true || $filters['offer'] === 'true' || $filters['offer'] === 1 || $filters['offer'] === '1') {
+                $query->hasDiscount();
+            } else {
+                $query->noDiscount();
+            }
         }
 
         if (!empty($filters['rate'])) {
