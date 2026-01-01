@@ -28,7 +28,7 @@ class CountryApiController extends Controller
 
     public function show(Request $request, $id)
     {
-        $country = $this->countryService->getCountryById($request->all(), $id);
+        $country = $this->countryService->getCountryById($id, $request->all());
 
         return $this->sendRes(config('responses.success')[app()->getLocale()], true, CountryResource::make($country));
     }
