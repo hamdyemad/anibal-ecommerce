@@ -26,7 +26,7 @@ class Vendor extends BaseModel
 
     protected $guarded = [];
 
-    protected $appends = ['reviews_count', 'average_rating', 'total_balance', 'total_sent', 'total_remaining'];
+    protected $appends = ['reviews_count', 'average_rating', 'total_balance', 'total_sent', 'total_remaining', 'bnaia_commission', 'orders_price'];
 
 
 
@@ -173,59 +173,73 @@ class Vendor extends BaseModel
     }
 
     /**
-     * Get total balance for this vendor (only delivered orders - vendor's product totals minus promo discounts)
+     * Get total balance for this vendor (orders price - commission)
      */
     public function getTotalBalanceAttribute()
     {
-        // Get the deliver stage ID
-        $deliverStage = \Modules\Order\app\Models\OrderStage::withoutGlobalScopes()
-            ->where('type', 'deliver')
-            ->first();
-        
-        if (!$deliverStage) {
-            return 0;
-        }
-        
-        // Get vendor's order products from delivered orders
-        // price already includes total (price * quantity) from checkout
-        $productsTotal = OrderProduct::where('vendor_id', $this->id)
-            ->whereHas('order', function($query) use ($deliverStage) {
-                $query->where('stage_id', $deliverStage->id);
-            })
-            ->sum('price');
-        
-        // Get unique order IDs for this vendor's delivered products
-        $orderIds = OrderProduct::where('vendor_id', $this->id)
-            ->whereHas('order', function($query) use ($deliverStage) {
-                $query->where('stage_id', $deliverStage->id);
-            })
-            ->pluck('order_id')
-            ->unique();
-        
-        // Subtract promo code discounts from those orders
-        $totalPromoDiscount = \Modules\Order\app\Models\Order::whereIn('id', $orderIds)
-            ->sum('customer_promo_code_amount') ?? 0;
-        
-        return $productsTotal - $totalPromoDiscount;
+        return $this->orders_price - $this->bnaia_commission;
     }
 
     public function getBnaiaCommissionAttribute()
     {
-        // Get the deliver stage ID
-        $deliverStage = \Modules\Order\app\Models\OrderStage::withoutGlobalScopes()
-            ->where('type', 'deliver')
+        // Use database-level aggregation for better performance with large datasets
+        $result = \Illuminate\Support\Facades\DB::table('order_products as op')
+            ->join('orders as o', 'op.order_id', '=', 'o.id')
+            ->leftJoin('vendor_products as vp', 'op.vendor_product_id', '=', 'vp.id')
+            ->leftJoin('products as p', 'vp.product_id', '=', 'p.id')
+            ->leftJoin('departments as d', 'p.department_id', '=', 'd.id')
+            ->where('op.vendor_id', $this->id)
+            ->select(
+                'op.order_id',
+                \Illuminate\Support\Facades\DB::raw('SUM(op.price) as total_product_price'),
+                \Illuminate\Support\Facades\DB::raw('SUM(CASE WHEN op.commission > 0 THEN op.commission ELSE COALESCE(d.commission, 0) END) as total_commission_percentage'),
+                \Illuminate\Support\Facades\DB::raw('MAX(o.shipping) as shipping')
+            )
+            ->groupBy('op.order_id')
+            ->get();
+
+        $bnaiaBalance = 0;
+        foreach ($result as $row) {
+            // Commission = (products total + shipping) × total percentage / 100
+            $bnaiaBalance += (($row->total_product_price + $row->shipping) * $row->total_commission_percentage) / 100;
+        }
+
+        return $bnaiaBalance;
+    }
+
+    /**
+     * Get orders price (total transactions) for this vendor including shipping
+     */
+    public function getOrdersPriceAttribute()
+    {
+        // Use database-level aggregation for better performance
+        $result = \Illuminate\Support\Facades\DB::table('order_products as op')
+            ->join('orders as o', 'op.order_id', '=', 'o.id')
+            ->where('op.vendor_id', $this->id)
+            ->select(
+                \Illuminate\Support\Facades\DB::raw('SUM(op.price) as products_total'),
+                \Illuminate\Support\Facades\DB::raw('SUM(DISTINCT o.shipping) as total_shipping'),
+                \Illuminate\Support\Facades\DB::raw('SUM(DISTINCT o.customer_promo_code_amount) as total_promo_discount')
+            )
             ->first();
-        
-        if (!$deliverStage) {
+
+        if (!$result) {
             return 0;
         }
-        
-        // Commission is already stored as actual amount in order_products.commission
-        return OrderProduct::where('vendor_id', $this->id)
-            ->whereHas('order', function($query) use ($deliverStage) {
-                $query->where('stage_id', $deliverStage->id);
-            })
-            ->sum('commission');
+
+        // Get unique orders for accurate shipping and promo calculation
+        $orderTotals = \Illuminate\Support\Facades\DB::table('order_products as op')
+            ->join('orders as o', 'op.order_id', '=', 'o.id')
+            ->where('op.vendor_id', $this->id)
+            ->select('o.id', 'o.shipping', 'o.customer_promo_code_amount')
+            ->distinct()
+            ->get();
+
+        $productsTotal = $result->products_total ?? 0;
+        $totalShipping = $orderTotals->sum('shipping') ?? 0;
+        $totalPromoDiscount = $orderTotals->sum('customer_promo_code_amount') ?? 0;
+
+        return $productsTotal + $totalShipping - $totalPromoDiscount;
     }
 
     /**

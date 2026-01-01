@@ -268,20 +268,10 @@
                     <div class="card-body">
                         <div class="row">
                             @php
-                                // Calculate vendor order data for 6 cards
-                                $vendorOrderProducts = \Modules\Order\app\Models\OrderProduct::where('vendor_id', $vendor->id)->get();
-                                $ordersPrice = $vendorOrderProducts->sum(function($op) {
-                                    return $op->price;
-                                });
-                                
-                                // Subtract promo code discounts from orders containing this vendor's products
-                                $orderIds = $vendorOrderProducts->pluck('order_id')->unique();
-                                $totalPromoDiscount = \Modules\Order\app\Models\Order::whereIn('id', $orderIds)->sum('customer_promo_code_amount') ?? 0;
-                                $ordersPrice = $ordersPrice - $totalPromoDiscount;
-                                
-                                // Commission is stored as actual amount, not percentage
-                                $bnaiaBalance = $vendorOrderProducts->sum('commission');
-                                $totalVendorBalance = $ordersPrice - $bnaiaBalance;
+                                // Get values from vendor model
+                                $ordersPrice = $vendor->orders_price;
+                                $bnaiaBalance = $vendor->bnaia_commission;
+                                $totalVendorBalance = $vendor->total_balance;
                                 $totalSentMoney = $vendor->total_sent;
                             @endphp
                             <div class="col-md-8 order-2 order-md-1">
@@ -727,7 +717,7 @@
                                                             <th><span class="userDatatable-title">{{ trans('vendor::vendor.order_product_information') }}</span></th>
                                                             <th><span class="userDatatable-title">{{ trans('vendor::vendor.price_before_taxes') }}</span></th>
                                                             <th><span class="userDatatable-title">{{ trans('vendor::vendor.taxes') }}</span></th>
-                                                            <th><span class="userDatatable-title">{{ trans('vendor::vendor.unit_price') }}</span></th>
+                                                            <th><span class="userDatatable-title">{{ trans('vendor::vendor.price_including_tax') }}</span></th>
                                                             <th><span class="userDatatable-title">{{ trans('vendor::vendor.quantity') }}</span></th>
                                                             <th><span class="userDatatable-title">{{ trans('vendor::vendor.total_price') }}</span></th>
                                                             <th><span class="userDatatable-title">{{ trans('common.actions') }}</span></th>
@@ -737,11 +727,11 @@
                                                         @forelse ($orderProducts ?? [] as $index => $orderProduct)
                                                             @php
                                                                 $unitPriceWithTax = $orderProduct->price ?? 0;
-                                                                // Get tax from the relationship
-                                                                $orderProductTax = $orderProduct->tax;
-                                                                $taxPercentage = $orderProductTax ? $orderProductTax->percentage : 0;
-                                                                $taxAmount = $orderProductTax ? $orderProductTax->amount : 0;
-                                                                $priceBeforeTax = $taxPercentage > 0 ? round($unitPriceWithTax / (1 + ($taxPercentage / 100)), 2) : $unitPriceWithTax;
+                                                                // Get all taxes from the relationship
+                                                                $orderProductTaxes = $orderProduct->taxes;
+                                                                $taxPercentage = $orderProductTaxes ? $orderProductTaxes->sum('percentage') : 0;
+                                                                $taxAmount = $orderProductTaxes ? $orderProductTaxes->sum('amount') : 0;
+                                                                $priceBeforeTax = $unitPriceWithTax - $taxAmount;
                                                                 $productName = $orderProduct->name ?? ($orderProduct->vendorProduct && $orderProduct->vendorProduct->product ? $orderProduct->vendorProduct->product->getTranslation('name', app()->getLocale()) : '-');
                                                                 $sku = $orderProduct->vendorProductVariant ? ($orderProduct->vendorProductVariant->sku ?? '-') : ($orderProduct->vendorProduct ? ($orderProduct->vendorProduct->sku ?? '-') : '-');
                                                                 $variantName = ($orderProduct->vendorProductVariant && $orderProduct->vendorProductVariant->variantConfiguration) ? $orderProduct->vendorProductVariant->variant_name : null;
@@ -782,7 +772,20 @@
                                                                     </div>
                                                                 </td>
                                                                 <td><div class="userDatatable-content">{{ number_format($priceBeforeTax, 2) }} {{ currency() }}</div></td>
-                                                                <td><div class="userDatatable-content text-warning">{{ number_format($taxAmount, 2) }} {{ currency() }} <small class="text-muted">({{ $taxPercentage }}%)</small></div></td>
+                                                                <td>
+                                                                    <div class="userDatatable-content">
+                                                                        @if($orderProductTaxes && $orderProductTaxes->count() > 0)
+                                                                            <span class="badge badge-round badge-lg bg-primary mb-1">{{ trans('order::order.total') }}: {{ $taxPercentage }}%</span>
+                                                                            <div>
+                                                                                @foreach($orderProductTaxes as $tax)
+                                                                                    <span class="badge badge-round badge-lg bg-secondary me-1 mb-1">{{ $tax->name }} {{ $tax->percentage }}%</span>
+                                                                                @endforeach
+                                                                            </div>
+                                                                        @else
+                                                                            <span class="text-muted">-</span>
+                                                                        @endif
+                                                                    </div>
+                                                                </td>
                                                                 <td><div class="userDatatable-content">{{ number_format($unitPriceWithTax, 2) }} {{ currency() }}</div></td>
                                                                 <td><div class="userDatatable-content fw-medium">{{ $orderProduct->quantity }}</div></td>
                                                                 <td><div class="userDatatable-content fw-bold text-success">{{ number_format($unitPriceWithTax * ($orderProduct->quantity ?? 1), 2) }} {{ currency() }}</div></td>
@@ -841,9 +844,9 @@
                                                                 <td>
                                                                     <div class="userDatatable-content">
                                                                         <div class="d-flex flex-column gap-1">
-                                                                            <div><span class="text-muted fw-bold">{{ trans('vendor::vendor.balance_before') }}:</span> <strong>{{ number_format($withdraw->before_sending_money ?? 0, 2) }} {{ currency() }}</strong></div>
+                                                                            <div><span class="text-muted fw-bold">{{ trans('vendor::vendor.balance_before') }}:</span> <strong>{{ number_format($vendor->total_balance ?? 0, 2) }} {{ currency() }}</strong></div>
                                                                             <div><span class="text-muted fw-bold">{{ trans('vendor::vendor.sent_amount') }}:</span> <strong class="text-success">{{ number_format($withdraw->sent_amount ?? 0, 2) }} {{ currency() }}</strong></div>
-                                                                            <div><span class="text-muted fw-bold">{{ trans('vendor::vendor.balance_after') }}:</span> <strong>{{ number_format($withdraw->after_sending_amount ?? 0, 2) }} {{ currency() }}</strong></div>
+                                                                            <div><span class="text-muted fw-bold">{{ trans('vendor::vendor.balance_after') }}:</span> <strong>{{ number_format($vendor->total_remaining ?? 0, 2) }} {{ currency() }}</strong></div>
                                                                             <div><span class="text-muted fw-bold">{{ trans('vendor::vendor.withdraw_status') }}:</span> 
                                                                                 @if($withdraw->status == 'accepted')
                                                                                     <strong class="text-success">{{ trans('vendor::vendor.accepted') }}</strong>

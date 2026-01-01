@@ -38,7 +38,6 @@ class OrderController extends Controller
         $this->middleware('can:orders.create')->only(['create', 'store']);
         $this->middleware('can:orders.show')->only(['show']);
         $this->middleware('can:orders.edit')->only(['edit', 'update', 'changeStage']);
-        $this->middleware('can:orders.delete')->only(['destroy']);
     }
 
     /**
@@ -202,9 +201,10 @@ class OrderController extends Controller
                     $vendorProductTotal = $order->products
                         ->where('vendor_id', $currentVendorId)
                         ->sum('price');
-                    // Subtract promo discount from vendor's total
+                    // Add shipping and subtract promo discount from vendor's total
+                    $shipping = $order->shipping ?? 0;
                     $promoDiscount = $order->customer_promo_code_amount ?? 0;
-                    $displayTotalPrice = $vendorProductTotal - $promoDiscount;
+                    $displayTotalPrice = $vendorProductTotal + $shipping - $promoDiscount;
                 }
 
                 $rowData = [
@@ -398,6 +398,42 @@ class OrderController extends Controller
                 ->get();
             
             return view('order::orders.payments', compact('order', 'payments'));
+        } catch (\Exception $e) {
+            return abort(500, trans('order::order.error_loading_order'));
+        }
+    }
+
+    /**
+     * Display printable order view
+     */
+    public function print($lang, $countryCode, $id)
+    {
+        try {
+            $order = $this->orderService->getOrderById($id);
+            if (!$order) {
+                return abort(404, trans('order::order.order_not_found'));
+            }
+            
+            $isVendorUser = !isAdmin();
+            $currentVendorId = null;
+            $vendorProducts = null;
+            $vendorProductTotal = 0;
+            
+            // For vendors: filter products to show only their products
+            if ($isVendorUser) {
+                $currentVendorId = auth()->user()->vendor?->id;
+                if ($currentVendorId) {
+                    $vendorProducts = $order->products->filter(function($product) use ($currentVendorId) {
+                        return $product->vendor_id == $currentVendorId;
+                    });
+                    // price already includes total (price * quantity), so just sum it
+                    $vendorProductTotal = $vendorProducts->sum('price');
+                    // Subtract promo discount from vendor's total
+                    $vendorProductTotal = $vendorProductTotal - ($order->customer_promo_code_amount ?? 0);
+                }
+            }
+            
+            return view('order::orders.print', compact('order', 'isVendorUser', 'vendorProducts', 'vendorProductTotal'));
         } catch (\Exception $e) {
             return abort(500, trans('order::order.error_loading_order'));
         }

@@ -294,6 +294,7 @@ return [
     'variant' => 'المتغير',
     'quantity' => 'الكمية',
     'unit_price' => 'سعر الوحدة',
+    'price_including_tax' => 'السعر شامل الضريبة',
     'price_before_taxes' => 'السعر قبل الضريبة',
     'taxes' => 'الضرائب',
     'total_price' => 'السعر الإجمالي',

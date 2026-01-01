@@ -343,17 +343,6 @@
 
     {{-- Include Change Stage Modal Component --}}
     <x-order::change-stage-modal :order-id="null" :order-stages="$orderStages" />
-
-    {{-- Delete Confirmation Modal --}}
-    <x-delete-modal 
-        modalId="modal-delete-order" 
-        :title="trans('order::order.delete_order')" 
-        :message="trans('order::order.delete_order_confirm')" 
-        itemNameId="delete-order-name"
-        confirmBtnId="confirmDeleteOrderBtn" 
-        deleteRoute="{{ rtrim(route('admin.orders.index'), '/') }}"
-        :cancelText="trans('main.cancel')" 
-        :deleteText="trans('order::order.delete_order')" />
 @endsection
 
 @push('after-body')
@@ -602,19 +591,6 @@
                                     </a>
                                     ` : ''}
                                 @endif
-                                @can('orders.delete')
-                                    ${!isFinalStage && canEditDelete ? `
-                                    <button type="button"
-                                    class="btn btn-danger table_action_father"
-                                    data-bs-toggle="modal"
-                                    data-bs-target="#modal-delete-order"
-                                    data-item-id="${row.id}"
-                                    data-item-name="${row.order_number}"
-                                    title="{{ trans('order::order.delete_order') }}">
-                                        <i class="uil uil-trash-alt table_action_icon"></i>
-                                    </button>
-                                    ` : ''}
-                                @endcan
                             </div>
                         `;
                     }

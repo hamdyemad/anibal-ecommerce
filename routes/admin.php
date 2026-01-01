@@ -98,6 +98,13 @@ Route::get('seeder', function () {
         \Modules\Order\app\Models\Order::query()->forceDelete();
         \Modules\Withdraw\app\Models\Withdraw::query()->forceDelete();
         \Modules\CatalogManagement\app\Models\StockBooking::query()->forceDelete();
+        
+        // Delete accounting entries
+        \Modules\Accounting\app\Models\AccountingEntry::query()->forceDelete();
+        \Modules\Accounting\app\Models\Expense::query()->forceDelete();
+        \Modules\Accounting\app\Models\ExpenseItem::query()->forceDelete();
+        \Modules\Accounting\app\Models\VendorBalance::query()->forceDelete();
+        
         \DB::statement('SET FOREIGN_KEY_CHECKS=1;');
         
         try {

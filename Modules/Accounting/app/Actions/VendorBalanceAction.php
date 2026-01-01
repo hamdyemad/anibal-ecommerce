@@ -30,13 +30,34 @@ class VendorBalanceAction
         $dataPaginated = $this->vendorBalanceService->getAllVendorBalances($filters, $perPage, $page, $orderDirection);
 
         $formattedData = $dataPaginated->map(function ($balance) {
-            // Calculate actual values from order_products table
-            $orderProductsData = \Modules\Order\app\Models\OrderProduct::where('vendor_id', $balance->vendor_id)
-                ->selectRaw('SUM(price * quantity) as total_earnings, SUM(commission) as total_commission')
-                ->first();
+            // Get order products for this vendor
+            $orderProducts = \Modules\Order\app\Models\OrderProduct::where('vendor_id', $balance->vendor_id)
+                ->with(['vendorProduct.product.department'])
+                ->get();
+            
+            // Get orders for shipping calculation
+            $orderIds = $orderProducts->pluck('order_id')->unique();
+            $vendorOrders = \Modules\Order\app\Models\Order::whereIn('id', $orderIds)->get();
 
-            $totalEarnings = $orderProductsData->total_earnings ?? 0;
-            $totalCommission = $orderProductsData->total_commission ?? 0;
+            $totalEarnings = $orderProducts->sum(function($p) {
+                return $p->price * $p->quantity;
+            });
+            
+            // Commission calculation - group by order to add shipping only once per order
+            $totalCommission = 0;
+            $productsByOrder = $orderProducts->groupBy('order_id');
+            foreach ($productsByOrder as $orderId => $orderProductsGroup) {
+                $order = $vendorOrders->firstWhere('id', $orderId);
+                $shipping = $order ? $order->shipping : 0;
+                $orderProductsTotal = $orderProductsGroup->sum('price');
+                
+                // Get commission percentage from first product's department
+                $commissionPercent = $orderProductsGroup->first()->vendorProduct?->product?->department?->commission ?? 0;
+                
+                // Commission = (products total + shipping) × percentage / 100
+                $totalCommission += (($orderProductsTotal + $shipping) * $commissionPercent) / 100;
+            }
+            
             $availableBalance = $totalEarnings - $totalCommission;
 
             $totalWithdrawn = $balance->withdraws()->where('status', 'accepted')->sum('sent_amount');

@@ -42,8 +42,8 @@ class WithdrawRepository implements WithdrawRepositoryInterface
             ];
         }
 
-        // Get vendor's total balance from delivered orders (product price * quantity)
-        $delivered_orders_total = $vendor->total_balance;
+        // Get vendor's orders price (products + shipping - promo discounts)
+        $orders_price = $vendor->orders_price;
 
         // Get total sent money (accepted withdrawals)
         $total_sent_money = Withdraw::where(function ($q) use ($vendor) {
@@ -59,17 +59,17 @@ class WithdrawRepository implements WithdrawRepositoryInterface
             ->where('status', 'new')
             ->sum('sent_amount');
 
-        // Commission from Bnaia (calculated from delivered orders)
+        // Commission from Bnaia
         $bnaia_balance = $vendor->bnaia_commission;
         
-        // Total Vendor's Credit = delivered orders total - bnaia commission
-        $total_vendor_balance = $delivered_orders_total - $bnaia_balance;
+        // Total Vendor's Credit = orders price - bnaia commission (same as total_balance)
+        $total_vendor_balance = $vendor->total_balance;
         
         // Remaining = Total Vendor's Credit - sent money
         $remaining = $total_vendor_balance - $total_sent_money;
         
         return [
-            "orders_price" => number_format($delivered_orders_total, 2),
+            "orders_price" => number_format($orders_price, 2),
             "vendor_commission" => $bnaia_balance,
             "bnaia_balance" => number_format($bnaia_balance, 2),
             "total_vendor_balance" => number_format($total_vendor_balance, 2),

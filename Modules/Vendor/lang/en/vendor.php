@@ -304,6 +304,7 @@ return [
     'variant' => 'Variant',
     'quantity' => 'Quantity',
     'unit_price' => 'Unit Price',
+    'price_including_tax' => 'Price Including Tax',
     'price_before_taxes' => 'Price Before Taxes',
     'taxes' => 'Taxes',
     'total_price' => 'Total Price',

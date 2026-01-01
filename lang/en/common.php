@@ -251,4 +251,8 @@ return [
     'sort_number' => 'Sort Number',
     'ascending' => 'Ascending',
     'descending' => 'Descending',
+    
+    // Print
+    'print' => 'Print',
+    'print_invoice' => 'Print Invoice',
 ];

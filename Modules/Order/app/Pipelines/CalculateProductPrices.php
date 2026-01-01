@@ -125,7 +125,7 @@ class CalculateProductPrices
                 'vendor_id' => $vendorId,
                 'quantity' => $quantity,
                 'price' => $productTotalWithTax, // Store total price INCLUDING tax
-                'commission' => $commissionAmount, // Commission calculated from price with tax
+                'commission' => $totalCommissionRate, // Store commission percentage only
                 'translations' => [
                     'en' => [
                         'name' => $productNameEn,

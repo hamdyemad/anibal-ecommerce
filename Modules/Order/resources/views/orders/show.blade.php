@@ -178,17 +178,17 @@
                                     <tr>
                                         <th class="text-white fw-bold text-center">#</th>
                                         <th class="text-white fw-bold text-center">{{ trans('order::order.product') }}</th>
-                                        <th class="text-white fw-bold text-center">{{ trans('order::order.price_before_tax') }}
+                                        <th class="text-white fw-bold text-center">{{ trans('order::order.price_before_taxes') }}
                                         </th>
-                                        <th class="text-white fw-bold text-center">{{ trans('order::order.price_per_unit') }}
+                                        <th class="text-white fw-bold text-center">{{ trans('order::order.taxes') }}
+                                        </th>
+                                        <th class="text-white fw-bold text-center">{{ trans('order::order.price_including_taxes') }}
                                         </th>
                                         <th class="text-white fw-bold text-center">{{ trans('order::order.quantity') }}
                                         </th>
                                         <th class="text-white fw-bold text-center">{{ trans('order::order.total_price') }}
                                         </th>
                                         <th class="text-white fw-bold text-center">{{ trans('order::order.bnaia_commission') }}
-                                        </th>
-                                        <th class="text-white fw-bold text-center">{{ trans('order::order.remaining') }}
                                         </th>
                                     </tr>
                                 </thead>
@@ -227,13 +227,18 @@
                                             $unitPriceBeforeTax = $product->quantity > 0 ? $productTotalBeforeTax / $product->quantity : 0;
                                             $unitTaxAmount = $product->quantity > 0 ? $taxAmount / $product->quantity : 0;
                                             
-                                            // Commission is stored directly (calculated from price with tax)
+                                            // Commission is stored as percentage
                                             $bnaiaCommission = $product->commission;
-                                            $departmentCommission = $product->vendorProduct?->product?->department?->commission ?? 0;
-                                            $commissionPercent = $departmentCommission;
+                                            $commissionPercent = $bnaiaCommission;
                                             
-                                            // Remaining = Total with tax - Commission
-                                            $remaining = $productTotalWithTax - $bnaiaCommission;
+                                            // Calculate commission amount from percentage
+                                            $commissionAmount = ($productTotalWithTax * $commissionPercent) / 100;
+                                            
+                                            // Remaining = Total with tax - Commission amount
+                                            $remaining = $productTotalWithTax - $commissionAmount;
+                                            
+                                            // Total tax percentage
+                                            $totalTaxPercentage = $product->taxes->sum('percentage') ?? 0;
                                         @endphp
                                         <tr>
                                             <td class="fw-bold text-center">{{ $key + 1 }}</td>
@@ -277,24 +282,29 @@
                                                 {{ currency() }}
                                             </td>
                                             <td class="text-center">
+                                                @if($product->taxes && $product->taxes->count() > 0)
+                                                    <span class="badge badge-round badge-lg bg-primary mb-1">{{ trans('order::order.total') }}: {{ $totalTaxPercentage }}%</span>
+                                                    <div>
+                                                        @foreach($product->taxes as $tax)
+                                                            <span class="badge badge-round badge-lg bg-secondary me-1 mb-1">{{ $tax->name }} {{ $tax->percentage }}%</span>
+                                                        @endforeach
+                                                    </div>
+                                                @else
+                                                    <span class="text-muted">-</span>
+                                                @endif
+                                            </td>
+                                            <td class="text-center">
                                                 {{ number_format($unitPriceWithTax, 2) }}
                                                 {{ currency() }}
-                                                @if($unitTaxAmount > 0)
-                                                    <small class="d-block text-muted">({{ trans('order::order.tax') }}: {{ number_format($unitTaxAmount, 2) }} {{ currency() }})</small>
-                                                @endif
                                             </td>
                                             <td class="text-center">{{ $product->quantity }}</td>
                                             <td class="text-center fw-bold">
                                                 {{ number_format($productTotalWithTax, 2) }}
                                                 {{ currency() }}</td>
-                                            <td class="text-center text-danger">
-                                                {{ number_format($bnaiaCommission, 2) }}
-                                                {{ currency() }}
-                                                <small class="d-block text-muted">({{ $commissionPercent }}%)</small>
-                                            </td>
-                                            <td class="text-center fw-bold text-success">
-                                                {{ number_format($remaining, 2) }}
-                                                {{ currency() }}</td>
+                                                <td class="text-center text-danger">
+                                                    <div>{{ $commissionPercent }}%</div>
+                                                    <div class="fw-bold">{{ number_format($commissionAmount, 2) }} {{ currency() }}</div>
+                                                </td>
                                         </tr>
                                     @empty
                                         <tr>
@@ -345,8 +355,8 @@
                         </div>
                     @endif
 
-                    <!-- Summary Section -->
-                    <div class="row mb-40">
+                    {{-- Order Summary - Full Width (Admin Only) --}}
+                    @if(!isset($isVendorUser) || !$isVendorUser)
                         @php
                             // Calculate total commission and remaining for all displayed products
                             $totalProductsPriceBeforeTax = 0;
@@ -378,97 +388,9 @@
                             // Total with tax for vendor remaining calculation
                             $totalProductsPriceWithTax = $totalProductsPriceBeforeTax + $totalProductsTax;
                         @endphp
-
-                        @if(isset($isVendorUser) && $isVendorUser && isset($vendorProductTotal))
-                            {{-- Vendor view: show Vendor Remaining Summary --}}
-                            <div class="col-md-6 mb-3">
-                                <div class="card border-0 shadow-sm h-100"
-                                    style="background: linear-gradient(135deg, #28a745 0%, #5dd879 100%); color: white;">
-                                    <div class="card-body">
-                                        <h6 class="card-title fw-bold mb-20 d-flex align-items-center text-white">
-                                            <i class="uil uil-money-bill me-2" style="font-size: 20px;"></i>
-                                            {{ trans('order::order.vendor_remaining_summary') }}
-                                        </h6>
-                                        <div class="summary-details">
-                                            <div class="summary-row mb-12">
-                                                <span class="fw-bold">{{ trans('order::order.subtotal') }}</span>
-                                                <span class="fw-bold">{{ number_format($totalProductsPriceBeforeTax, 2) }}
-                                                    {{ currency() }}</span>
-                                            </div>
-                                            @if ($order->customer_promo_code_amount > 0)
-                                                <div class="summary-row mb-12">
-                                                    <span class="fw-bold">
-                                                        {{ trans('order::order.promo_discount') }}
-                                                        @if($order->customer_promo_code_title)
-                                                            <small class="text-white-50">({{ $order->customer_promo_code_title }})</small>
-                                                        @endif
-                                                    </span>
-                                                    <span class="fw-bold" style="color: #ffcccc;">-{{ number_format($order->customer_promo_code_amount, 2) }}
-                                                        {{ currency() }}</span>
-                                                </div>
-                                            @endif
-                                            <div class="summary-row mb-12">
-                                                <span class="fw-bold">{{ trans('order::order.tax') }}</span>
-                                                <span class="fw-bold">+{{ number_format($totalProductsTax, 2) }}
-                                                    {{ currency() }}</span>
-                                            </div>
-                                            <div class="summary-row mb-12">
-                                                <span class="fw-bold">{{ trans('order::order.your_products_total_including_tax') }}</span>
-                                                <span class="fw-bold">{{ number_format($totalProductsPriceWithTax - $order->customer_promo_code_amount, 2) }}
-                                                    {{ currency() }}</span>
-                                            </div>
-                                            <div class="summary-row mb-12">
-                                                <span class="fw-bold">{{ trans('order::order.total_commission_including_tax') }}</span>
-                                                <span class="fw-bold" style="color: #ffcccc;">-{{ number_format($totalCommission, 2) }}
-                                                    {{ currency() }}</span>
-                                            </div>
-                                            <hr style="border-color: rgba(255,255,255,0.3); margin: 15px 0;">
-                                            <div class="summary-row" style="font-size: 18px;">
-                                                <span class="fw-bold">{{ trans('order::order.final_remaining') }}</span>
-                                                <span class="fw-bold" style="color: #ffffcc;">{{ number_format($totalRemaining - $order->customer_promo_code_amount, 2) }}
-                                                    {{ currency() }}</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        @else
-                            {{-- Admin view: show two boxes --}}
-                            
-                            {{-- Box 1: Vendor Remaining Summary (subtotal WITH tax) --}}
-                            <div class="col-md-6 mb-3">
-                                <div class="card border-0 shadow-sm h-100"
-                                    style="background: linear-gradient(135deg, #28a745 0%, #5dd879 100%); color: white;">
-                                    <div class="card-body">
-                                        <h6 class="card-title fw-bold mb-20 d-flex align-items-center text-white">
-                                            <i class="uil uil-money-bill me-2" style="font-size: 20px;"></i>
-                                            {{ trans('order::order.vendor_remaining_summary') }}
-                                        </h6>
-                                        <div class="summary-details">
-                                            <div class="summary-row mb-12">
-                                                <span class="fw-bold">{{ trans('order::order.subtotal_including_tax') }}</span>
-                                                <span class="fw-bold">{{ number_format($totalProductsPriceWithTax - $order->customer_promo_code_amount, 2) }}
-                                                    {{ currency() }}</span>
-                                            </div>
-                                            <div class="summary-row mb-12">
-                                                <span class="fw-bold">{{ trans('order::order.total_commission_including_tax') }}</span>
-                                                <span class="fw-bold" style="color: #ffcccc;">-{{ number_format($totalCommission, 2) }}
-                                                    {{ currency() }}</span>
-                                            </div>
-                                            <hr style="border-color: rgba(255,255,255,0.3); margin: 15px 0;">
-                                            <div class="summary-row" style="font-size: 18px;">
-                                                <span class="fw-bold">{{ trans('order::order.vendors_remaining') }}</span>
-                                                <span class="fw-bold" style="color: #ffffcc;">{{ number_format($totalRemaining - $order->customer_promo_code_amount, 2) }}
-                                                    {{ currency() }}</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            {{-- Box 2: Order Summary (subtotal WITHOUT tax) --}}
-                            <div class="col-md-6 mb-3">
-                                <div class="card border-0 shadow-sm h-100"
+                        <div class="row mb-40">
+                            <div class="col-12">
+                                <div class="card border-0 shadow-sm"
                                     style="background: linear-gradient(135deg, #5f63f2 0%, #8e92f7 100%); color: white;">
                                     <div class="card-body">
                                         <h6 class="card-title fw-bold mb-20 d-flex align-items-center text-white">
@@ -539,18 +461,144 @@
                                     </div>
                                 </div>
                             </div>
+                        </div>
+                    @endif
+
+                    <!-- Summary Section -->
+                    <div class="row mb-40">
+                        @php
+                            // Calculate total commission and remaining for all displayed products
+                            $totalProductsPriceBeforeTax = 0;
+                            $totalRemaining = 0;
+                            $totalProductsTax = 0;
+                            $totalCommissionPercentage = 0;
+                            
+                            $productsToCalculate = isset($vendorProducts) && $vendorProducts !== null ? $vendorProducts : $order->products;
+                            
+                            foreach ($productsToCalculate as $prod) {
+                                // Price stored is total price INCLUDING tax
+                                $prodTotalWithTax = $prod->price;
+                                
+                                // Get tax amount (sum of all taxes)
+                                $prodTax = $prod->taxes->sum('amount') ?? 0;
+                                
+                                // Calculate price before tax
+                                $prodTotalBeforeTax = $prodTotalWithTax - $prodTax;
+                                
+                                // Commission percentage from order_products.commission
+                                $commPercent = $prod->commission > 0 ? $prod->commission : ($prod->vendorProduct?->product?->department?->commission ?? 0);
+                                $totalCommissionPercentage += $commPercent;
+                                
+                                $totalProductsPriceBeforeTax += $prodTotalBeforeTax;
+                                $totalProductsTax += $prodTax;
+                            }
+                            
+                            // Total with tax for vendor remaining calculation
+                            $totalProductsPriceWithTax = $totalProductsPriceBeforeTax + $totalProductsTax;
+                            
+                            // Commission = (products total + shipping) × total percentage / 100
+                            $totalCommission = (($totalProductsPriceWithTax + $order->shipping) * $totalCommissionPercentage) / 100;
+                            $totalRemaining = $totalProductsPriceWithTax + $order->shipping - $totalCommission - $order->customer_promo_code_amount;
+                            $totalWithShipping = $totalProductsPriceWithTax + $order->shipping - $order->customer_promo_code_amount;
+                        @endphp
+
+                        @if(isset($isVendorUser) && $isVendorUser && isset($vendorProductTotal))
+                            {{-- Vendor view: show Vendor Remaining Summary --}}
+                            <div class="col-md-6 mb-3">
+                                <x-order::vendor-remaining-summary
+                                    :vendorName="trans('order::order.your')"
+                                    :subtotalBeforeTax="$totalProductsPriceBeforeTax"
+                                    :taxAmount="$totalProductsTax"
+                                    :subtotalWithTax="$totalProductsPriceWithTax"
+                                    :shipping="$order->shipping"
+                                    :total="$totalWithShipping"
+                                    :commissionPercentage="$totalCommissionPercentage"
+                                    :commissionAmount="$totalCommission"
+                                    :remaining="$totalRemaining"
+                                    :promoDiscount="$order->customer_promo_code_amount"
+                                    :colors="['#28a745', '#5dd879']"
+                                />
+                            </div>
+                        @else
+                            {{-- Admin view: show per-vendor boxes + order summary --}}
+                            
+                            @php
+                                // Group products by vendor
+                                $productsByVendor = $order->products->groupBy(function($product) {
+                                    return $product->vendorProduct?->vendor_id;
+                                });
+                                
+                                // Array of gradient colors for different vendors
+                                $vendorColors = [
+                                    ['#28a745', '#5dd879'], // Green
+                                    ['#17a2b8', '#4fc3dc'], // Cyan
+                                    ['#6f42c1', '#9b6dd6'], // Purple
+                                    ['#fd7e14', '#ffa94d'], // Orange
+                                    ['#20c997', '#63e6be'], // Teal
+                                    ['#e83e8c', '#f06595'], // Pink
+                                ];
+                                $colorIndex = 0;
+                            @endphp
+                            
+                            @foreach($productsByVendor as $vendorId => $vendorProducts)
+                                @php
+                                    // Get vendor name
+                                    $vendorName = $vendorProducts->first()->vendorProduct?->vendor?->getTranslation('name', app()->getLocale()) ?? 'N/A';
+                                    
+                                    // Calculate totals for this vendor
+                                    $vendorSubtotalBeforeTax = 0;
+                                    $vendorTotalTax = 0;
+                                    
+                                    // Sum up commission percentages and product prices
+                                    $totalCommissionPercentage = 0;
+                                    $totalProductPrices = 0;
+                                    
+                                    foreach ($vendorProducts as $prod) {
+                                        $prodTotalWithTax = $prod->price;
+                                        $prodTax = $prod->taxes->sum('amount') ?? 0;
+                                        $prodTotalBeforeTax = $prodTotalWithTax - $prodTax;
+                                        
+                                        $vendorSubtotalBeforeTax += $prodTotalBeforeTax;
+                                        $vendorTotalTax += $prodTax;
+                                        $totalProductPrices += $prodTotalWithTax;
+                                        
+                                        // Use stored commission if available, otherwise get from department
+                                        $commPercent = $prod->commission > 0 ? $prod->commission : ($prod->vendorProduct?->product?->department?->commission ?? 0);
+                                        $totalCommissionPercentage += $commPercent;
+                                    }
+                                    
+                                    $vendorSubtotalWithTax = $vendorSubtotalBeforeTax + $vendorTotalTax;
+                                    $vendorTotalWithShipping = $vendorSubtotalWithTax + $order->shipping;
+                                    
+                                    // Commission = (products total + shipping) × total percentage / 100
+                                    $vendorTotalCommission = (($totalProductPrices + $order->shipping) * $totalCommissionPercentage) / 100;
+                                    
+                                    // Remaining = Total with shipping - Commission
+                                    $vendorTotalRemaining = $vendorTotalWithShipping - $vendorTotalCommission;
+                                    
+                                    // Get color for this vendor
+                                    $colors = $vendorColors[$colorIndex % count($vendorColors)];
+                                    $colorIndex++;
+                                @endphp
+                                
+                                {{-- Per-Vendor Remaining Summary Box --}}
+                                <div class="col-md-6 mb-3">
+                                    <x-order::vendor-remaining-summary
+                                        :vendorName="$vendorName"
+                                        :subtotalBeforeTax="$vendorSubtotalBeforeTax"
+                                        :taxAmount="$vendorTotalTax"
+                                        :subtotalWithTax="$vendorSubtotalWithTax"
+                                        :shipping="$order->shipping"
+                                        :total="$vendorTotalWithShipping"
+                                        :commissionPercentage="$totalCommissionPercentage"
+                                        :commissionAmount="$vendorTotalCommission"
+                                        :remaining="$vendorTotalRemaining"
+                                        :colors="$colors"
+                                    />
+                                </div>
+                            @endforeach
                         @endif
                     </div>
-
-                    <style>
-                        .summary-row {
-                            display: flex;
-                            justify-content: space-between;
-                            align-items: center;
-                            padding: 8px 0;
-                            font-size: 14px;
-                        }
-                    </style>
                 </div>
 
                 <!-- Action Buttons Section (Not Printable) -->
@@ -561,6 +609,9 @@
                             <div class="d-flex gap-2">
                                 <a href="{{ route('admin.orders.index') }}" class="btn btn-outline-secondary btn-sm">
                                     <i class="uil uil-arrow-left me-2"></i>{{ trans('common.back') }}
+                                </a>
+                                <a href="{{ route('admin.orders.print', $order->id) }}" target="_blank" class="btn btn-info btn-sm">
+                                    <i class="uil uil-print me-2"></i>{{ trans('order::order.print_invoice') }}
                                 </a>
                                 @php
                                     $finalStages = ['deliver', 'cancel', 'refund'];
@@ -576,9 +627,6 @@
                                             class="uil uil-check-circle me-2"></i>{{ trans('order::order.change_order_stage') }}
                                     </button>
                                 @endif
-                                <button class="btn btn-info btn-sm" onclick="printInvoice()">
-                                    <i class="uil uil-print me-2"></i>{{ trans('order::order.print_invoice') }}
-                                </button>
                             </div>
                         </div>
                     </div>

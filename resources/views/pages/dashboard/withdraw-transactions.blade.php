@@ -14,49 +14,25 @@
     if (isAdmin()) {
         // For admin: calculate totals for all vendors
         $allVendors = \Modules\Vendor\app\Models\Vendor::all();
-        $allOrderProducts = \Modules\Order\app\Models\OrderProduct::all();
         
-        // Calculate total orders price (total transactions)
-        $ordersPrice = $allOrderProducts->sum(function($op) {
-            return $op->price;
-        });
+        // Sum up values from all vendors using model attributes
+        $ordersPrice = $allVendors->sum('orders_price');
+        $bnaiaBalance = $allVendors->sum('bnaia_commission');
+        $totalVendorBalance = $allVendors->sum('total_balance');
         
-        // Subtract promo code discounts from all orders
-        $totalPromoDiscount = \Modules\Order\app\Models\Order::sum('customer_promo_code_amount') ?? 0;
-        $ordersPrice = $ordersPrice - $totalPromoDiscount;
-        
-        // Calculate bnaia commission (commission is stored as actual amount, not percentage)
-        $bnaiaBalance = $allOrderProducts->sum('commission');
-        
-        // Total vendor balance (after commission and promo discount)
-        $totalVendorBalance = $ordersPrice - $bnaiaBalance;
-        
-        $totalNeeded = $allVendors->sum('total_balance');
+        $totalNeeded = $totalVendorBalance;
         $totalSentMoney = \Modules\Withdraw\app\Models\Withdraw::where('status', 'accepted')->sum('sent_amount');
         $totalRemaining = $totalNeeded - $totalSentMoney;
     } else {
-        // For vendor: calculate their own totals
+        // For vendor: get their own totals from model
         if (!$vendor) {
             $vendor = \Modules\Vendor\app\Models\Vendor::where('user_id', auth()->user()->vendor_id)->first();
         }
         
         if ($vendor) {
-            // Get order products for this vendor
-            $orderProducts = \Modules\Order\app\Models\OrderProduct::where('vendor_id', $vendor->id)->get();
-            
-            // Calculate orders price (total transactions)
-            $ordersPrice = $orderProducts->sum('price');
-            
-            // Get unique order IDs for this vendor's products and subtract their promo discounts
-            $orderIds = $orderProducts->pluck('order_id')->unique();
-            $totalPromoDiscount = \Modules\Order\app\Models\Order::whereIn('id', $orderIds)->sum('customer_promo_code_amount') ?? 0;
-            $ordersPrice = $ordersPrice - $totalPromoDiscount;
-            
-            // Calculate bnaia commission (commission is stored as actual amount, not percentage)
-            $bnaiaBalance = $orderProducts->sum('commission');
-            
-            // Total vendor balance (after commission and promo discount)
-            $totalVendorBalance = $ordersPrice - $bnaiaBalance;
+            $ordersPrice = $vendor->orders_price;
+            $bnaiaBalance = $vendor->bnaia_commission;
+            $totalVendorBalance = $vendor->total_balance;
             
             $totalNeeded = $vendor->total_balance;
             $totalSentMoney = $vendor->total_sent;

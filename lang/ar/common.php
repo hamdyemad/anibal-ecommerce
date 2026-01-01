@@ -256,4 +256,8 @@ return [
     'sort_number' => 'رقم الترتيب',
     'ascending' => 'تصاعدي',
     'descending' => 'تنازلي',
+    
+    // Print
+    'print' => 'طباعة',
+    'print_invoice' => 'طباعة الفاتورة',
 ];

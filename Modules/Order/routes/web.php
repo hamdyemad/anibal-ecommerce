@@ -22,6 +22,7 @@ Route::resource('order-stages', OrderStageController::class);
 Route::get('orders/datatable', [OrderController::class, 'datatable'])->name('orders.datatable');
 Route::post('orders/{id}/change-stage', [OrderController::class, 'changeStage'])->name('orders.change-stage');
 Route::get('orders/{id}/payments', [OrderController::class, 'payments'])->name('orders.payments');
+Route::get('orders/{id}/print', [OrderController::class, 'print'])->name('orders.print');
 
 // Resource routes
 Route::resource('orders', OrderController::class);

@@ -63,7 +63,12 @@ class AccountingDataSeeder extends Seeder
                 $totalAmount = $products->sum(function($p) {
                     return $p->price * $p->quantity;
                 });
-                $totalCommission = $products->sum('commission');
+                // Commission is stored as percentage, calculate amount
+                // Commission = (products price + shipping) × percentage / 100
+                $totalCommission = $products->sum(function($p) use ($order) {
+                    $commissionPercent = $p->commission ?? 0;
+                    return (($p->price + $order->shipping) * $commissionPercent) / 100;
+                });
                 $vendorAmount = $totalAmount - $totalCommission;
                 
                 // Check if accounting entry already exists
@@ -115,10 +120,20 @@ class AccountingDataSeeder extends Seeder
                         })
                         ->get();
                     
+                    // Get orders for shipping calculation
+                    $orderIds = $allVendorProducts->pluck('order_id')->unique();
+                    $vendorOrders = Order::withoutGlobalScopes()->whereIn('id', $orderIds)->get();
+                    
                     $totalEarnings = $allVendorProducts->sum(function($p) {
                         return $p->price * $p->quantity;
                     });
-                    $totalCommissionDeducted = $allVendorProducts->sum('commission');
+                    // Commission is stored as percentage, calculate amount
+                    $totalCommissionDeducted = $allVendorProducts->sum(function($p) use ($vendorOrders) {
+                        $order = $vendorOrders->firstWhere('id', $p->order_id);
+                        $shipping = $order ? $order->shipping : 0;
+                        $commissionPercent = $p->commission ?? 0;
+                        return (($p->price + $shipping) * $commissionPercent) / 100;
+                    });
                     $availableBalance = $totalEarnings - $totalCommissionDeducted;
                     
                     // Get vendor's country_id
@@ -156,10 +171,20 @@ class AccountingDataSeeder extends Seeder
                 continue;
             }
             
+            // Get orders for shipping calculation
+            $orderIds = $vendorOrderProducts->pluck('order_id')->unique();
+            $vendorOrders = Order::withoutGlobalScopes()->whereIn('id', $orderIds)->get();
+            
             $totalEarnings = $vendorOrderProducts->sum(function($p) {
                 return $p->price * $p->quantity;
             });
-            $totalCommissionDeducted = $vendorOrderProducts->sum('commission');
+            // Commission is stored as percentage, calculate amount
+            $totalCommissionDeducted = $vendorOrderProducts->sum(function($p) use ($vendorOrders) {
+                $order = $vendorOrders->firstWhere('id', $p->order_id);
+                $shipping = $order ? $order->shipping : 0;
+                $commissionPercent = $p->commission ?? 0;
+                return (($p->price + $shipping) * $commissionPercent) / 100;
+            });
             
             // Get existing withdrawn amount
             $vendorBalance = VendorBalance::withoutGlobalScopes()

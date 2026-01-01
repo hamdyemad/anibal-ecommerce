@@ -113,15 +113,19 @@ class WithdrawController extends Controller
                     $vendorName = '-';
                 }
 
+                // Get current vendor balance from model
+                $currentBalance = $item->vendor ? $item->vendor->total_balance : 0;
+                $remaining = $item->vendor ? $item->vendor->total_remaining : 0;
+
                 return [
                     'id' => $item->id,
                     'vendor_logo' => $logoPath,
                     'vendor' => $vendorName,
                     'status' => $item->status,
                     'invoice' => $item->invoice_url,
-                    'before_sending_money' => number_format($item->before_sending_money, 2) . ' ' . __('withdraw::withdraw.currency'),
+                    'before_sending_money' => number_format($currentBalance, 2) . ' ' . __('withdraw::withdraw.currency'),
                     'sent_amount' => number_format($item->sent_amount, 2) . ' ' . __('withdraw::withdraw.currency'),
-                    'after_sending_amount' => number_format($item->after_sending_amount, 2) . ' ' . __('withdraw::withdraw.currency'),
+                    'after_sending_amount' => number_format($remaining, 2) . ' ' . __('withdraw::withdraw.currency'),
                     'created_at' => $item->created_at,
                 ];
             });
@@ -514,6 +518,10 @@ class WithdrawController extends Controller
 
         // Prepare data for DataTable
         $data = $query->get()->map(function ($item) {
+            // Get current vendor balance from model
+            $currentBalance = $item->vendor ? $item->vendor->total_balance : 0;
+            $remaining = $item->vendor ? $item->vendor->total_remaining : 0;
+
             return [
                 'id' => $item->id,
                 'vendor_logo' => '',
@@ -522,9 +530,9 @@ class WithdrawController extends Controller
                     : '-',
                 'status' => $item->status,
                 'invoice' => $item->invoice_url,
-                'before_sending_money' => number_format($item->before_sending_money, 2) . ' ' . __("common.currency"),
+                'before_sending_money' => number_format($currentBalance, 2) . ' ' . __("common.currency"),
                 'sent_amount' => number_format($item->sent_amount, 2) . ' ' . __("common.currency"),
-                'after_sending_amount' => number_format($item->after_sending_amount, 2) . ' ' . __("common.currency"),
+                'after_sending_amount' => number_format($remaining, 2) . ' ' . __("common.currency"),
                 'created_at' => $item->created_at,
             ];
         });
