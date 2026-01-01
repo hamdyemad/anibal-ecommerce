@@ -182,13 +182,24 @@ class Vendor extends BaseModel
 
     public function getBnaiaCommissionAttribute()
     {
+        // Get the deliver stage ID
+        $deliverStageId = \Modules\Order\app\Models\OrderStage::withoutGlobalScopes()
+            ->where('type', 'deliver')
+            ->value('id');
+        
+        if (!$deliverStageId) {
+            return 0;
+        }
+
         // Use database-level aggregation for better performance with large datasets
+        // Only include orders with deliver stage
         $result = \Illuminate\Support\Facades\DB::table('order_products as op')
             ->join('orders as o', 'op.order_id', '=', 'o.id')
             ->leftJoin('vendor_products as vp', 'op.vendor_product_id', '=', 'vp.id')
             ->leftJoin('products as p', 'vp.product_id', '=', 'p.id')
             ->leftJoin('departments as d', 'p.department_id', '=', 'd.id')
             ->where('op.vendor_id', $this->id)
+            ->where('o.stage_id', $deliverStageId)
             ->select(
                 'op.order_id',
                 \Illuminate\Support\Facades\DB::raw('SUM(op.price) as total_product_price'),
@@ -209,13 +220,25 @@ class Vendor extends BaseModel
 
     /**
      * Get orders price (total transactions) for this vendor including shipping
+     * Only includes delivered orders
      */
     public function getOrdersPriceAttribute()
     {
+        // Get the deliver stage ID
+        $deliverStageId = \Modules\Order\app\Models\OrderStage::withoutGlobalScopes()
+            ->where('type', 'deliver')
+            ->value('id');
+        
+        if (!$deliverStageId) {
+            return 0;
+        }
+
         // Use database-level aggregation for better performance
+        // Only include orders with deliver stage
         $result = \Illuminate\Support\Facades\DB::table('order_products as op')
             ->join('orders as o', 'op.order_id', '=', 'o.id')
             ->where('op.vendor_id', $this->id)
+            ->where('o.stage_id', $deliverStageId)
             ->select(
                 \Illuminate\Support\Facades\DB::raw('SUM(op.price) as products_total'),
                 \Illuminate\Support\Facades\DB::raw('SUM(DISTINCT o.shipping) as total_shipping'),
@@ -231,6 +254,7 @@ class Vendor extends BaseModel
         $orderTotals = \Illuminate\Support\Facades\DB::table('order_products as op')
             ->join('orders as o', 'op.order_id', '=', 'o.id')
             ->where('op.vendor_id', $this->id)
+            ->where('o.stage_id', $deliverStageId)
             ->select('o.id', 'o.shipping', 'o.customer_promo_code_amount')
             ->distinct()
             ->get();
