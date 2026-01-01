@@ -63,6 +63,19 @@ class OrderController extends Controller
     }
 
     /**
+     * Get current country ID from session
+     */
+    private function getCurrentCountryId(): ?int
+    {
+        $countryCode = session('country_code');
+        if (!$countryCode) {
+            return null;
+        }
+        
+        return \Modules\AreaSettings\app\Models\Country::where('code', $countryCode)->value('id');
+    }
+
+    /**
      * Display a listing of the resource.
      */
     public function index()
@@ -70,6 +83,9 @@ class OrderController extends Controller
         $orderStages = $this->orderStageService->getOrderStagesQuery()->get();
         $orderStages = OrderStageResource::collection($orderStages)->resolve();
         $languages = Language::all();
+        
+        // Get current country ID for filtering
+        $countryId = $this->getCurrentCountryId();
         
         // Filter statistics by vendor if user is not admin
         if (isAdmin()) {
@@ -81,27 +97,35 @@ class OrderController extends Controller
             );
             $orders_count = Order::latest()->count();
             
-            // Admin sees stats for all vendors
-            $vendorOrderStats = $this->getVendorOrderStats(null);
+            // Admin sees stats for all vendors (filtered by country)
+            $vendorOrderStats = $this->getVendorOrderStats(null, $countryId);
         } else {
             // Vendor sees only their orders
             $vendor = auth()->user()->vendor;
             $vendorId = $vendor ? $vendor->id : null;
             
             if ($vendorId) {
-                // Use DB query to avoid global scope issues
-                $orderIds = \DB::table('order_products')
+                // Use DB query with country filter
+                $orderIdsQuery = \DB::table('order_products')
                     ->join('orders', 'order_products.order_id', '=', 'orders.id')
-                    ->where('order_products.vendor_id', $vendorId)
-                    ->distinct()
-                    ->pluck('order_products.order_id');
+                    ->where('order_products.vendor_id', $vendorId);
                 
-                // Calculate vendor's product totals using DB query
-                // price already includes total (price * quantity)
-                $vendorProductSum = \DB::table('order_products')
+                if ($countryId) {
+                    $orderIdsQuery->where('orders.country_id', $countryId);
+                }
+                
+                $orderIds = $orderIdsQuery->distinct()->pluck('order_products.order_id');
+                
+                // Calculate vendor's product totals using DB query with country filter
+                $vendorProductQuery = \DB::table('order_products')
                     ->join('orders', 'order_products.order_id', '=', 'orders.id')
-                    ->where('order_products.vendor_id', $vendorId)
-                    ->sum('order_products.price');
+                    ->where('order_products.vendor_id', $vendorId);
+                
+                if ($countryId) {
+                    $vendorProductQuery->where('orders.country_id', $countryId);
+                }
+                
+                $vendorProductSum = $vendorProductQuery->sum('order_products.price');
                 
                 // Subtract promo discounts from vendor's total
                 $promoDiscountSum = \DB::table('orders')
@@ -111,8 +135,8 @@ class OrderController extends Controller
                 $total_price = number_format($vendorProductSum - $promoDiscountSum, 2);
                 $orders_count = $orderIds->count();
                 
-                // Calculate vendor order product stats by stage
-                $vendorOrderStats = $this->getVendorOrderStats($vendorId);
+                // Calculate vendor order product stats by stage (filtered by country)
+                $vendorOrderStats = $this->getVendorOrderStats($vendorId, $countryId);
             } else {
                 $total_price = '0.00';
                 $orders_count = 0;
@@ -600,8 +624,9 @@ class OrderController extends Controller
     /**
      * Get vendor order statistics by stage
      * @param int|null $vendorId - If null, get stats for all vendors (admin view)
+     * @param int|null $countryId - Country ID to filter by
      */
-    private function getVendorOrderStats($vendorId): array
+    private function getVendorOrderStats($vendorId, $countryId = null): array
     {
         // Get all order stages
         $stages = OrderStage::withoutGlobalScopes()->get();
@@ -612,9 +637,14 @@ class OrderController extends Controller
         });
         
         // Get orders with their total_price, promo discount and stage info
-        // Use DB query to avoid scope issues
+        // Use DB query with country filter
         $query = \DB::table('orders')
             ->join('order_products', 'orders.id', '=', 'order_products.order_id');
+        
+        // Filter by country
+        if ($countryId) {
+            $query->where('orders.country_id', $countryId);
+        }
         
         // Filter by vendor if specified
         if ($vendorId) {
