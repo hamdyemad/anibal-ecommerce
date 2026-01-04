@@ -696,7 +696,14 @@
 
                     // Load all customers
                     function loadAllCustomers() {
-                        let vendor_id = "{{ auth()->user()->vendor?->id }}";
+                        @if(auth()->check() && auth()->user()->isVendor())
+                            let vendor_id = "{{ auth()->user()->vendorByUser?->id ?? auth()->user()->vendorById?->id ?? '' }}";
+                        @else
+                            let vendor_id = "";
+                        @endif
+                        
+                        console.log('Loading customers for vendor_id:', vendor_id);
+                        
                         $.ajax({
                             url: '/api/customers', // Customers API endpoint
                             type: 'GET',

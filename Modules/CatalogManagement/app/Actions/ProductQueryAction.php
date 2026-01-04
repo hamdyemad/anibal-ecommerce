@@ -2,6 +2,8 @@
 
 namespace Modules\CatalogManagement\app\Actions;
 
+use App\Models\Language;
+use Illuminate\Support\Facades\DB;
 use Modules\CatalogManagement\app\Models\VendorProduct;
 
 class ProductQueryAction
@@ -32,8 +34,12 @@ class ProductQueryAction
                 'vendor',
                 'taxes',
             ])
-            ->withCount('reviews')
-            ->withAvg('reviews', 'star');
+            ->withCount(['reviews' => function($q) {
+                $q->withoutGlobalScope('country_filter');
+            }])
+            ->withAvg(['reviews' => function($q) {
+                $q->withoutGlobalScope('country_filter');
+            }], 'star');
 
         if (!empty($filters)) {
             $query->filter($filters);
@@ -55,41 +61,53 @@ class ProductQueryAction
 
         switch ($sortBy) {
             case 'name':
-                $query->join('translations', function ($join) {
-                    $join->on('products.id', '=', 'translations.translatable_id')
-                         ->where('translations.translatable_type', 'Modules\\CatalogManagement\\app\\Models\\Product')
-                         ->where('translations.lang_key', 'name');
-                })
-                ->orderBy('translations.lang_value', $sortType)
-                ->select('products.*')->distinct('products.id');
+                // Sort by product name using join to avoid country_id ambiguity
+                // Get language ID from Language model based on current locale
+                $langId = Language::where('code', app()->getLocale())->value('id') ?? 1;
+                
+                // Validate sort type
+                $sortDirection = strtolower($sortType) === 'asc' ? 'asc' : 'desc';
+                
+                // Join products and translations tables with LEFT JOIN to not filter out products
+                $query->leftJoin('products', 'vendor_products.product_id', '=', 'products.id')
+                    ->leftJoin('translations', function($join) use ($langId) {
+                        $join->on('products.id', '=', 'translations.translatable_id')
+                             ->where('translations.translatable_type', '=', 'Modules\\CatalogManagement\\app\\Models\\Product')
+                             ->where('translations.lang_key', '=', 'name')
+                             ->where('translations.lang_id', '=', $langId);
+                    })
+                    ->select('vendor_products.*')
+                    ->groupBy('vendor_products.id')
+                    ->orderBy('translations.lang_value', $sortDirection);
                 break;
+                
             case 'price':
-                $query->orderByRaw("(
-                    SELECT COALESCE(MIN(price), 0)
-                    FROM vendor_product_variants
-                    WHERE vendor_product_id = vendor_products.id
-                    AND discount_end_date IS NOT NULL
-                    AND discount_end_date > NOW() AND has_discount = true
-                ) {$sortType}")
-                ->orderByRaw("(
-                    SELECT COALESCE(MIN(price), 0)
-                    FROM vendor_product_variants
-                    WHERE vendor_product_id = vendor_products.id
-                    AND has_discount = true
-                ) {$sortType}");
+                // Sort by minimum variant price using relationship
+                $query->leftJoin('vendor_product_variants', 'vendor_products.id', '=', 'vendor_product_variants.vendor_product_id')
+                    ->select('vendor_products.*')
+                    ->selectRaw('MIN(vendor_product_variants.price) as min_price')
+                    ->groupBy('vendor_products.id')
+                    ->orderBy('min_price', $sortType);
                 break;
+                
             case 'rating':
-                $query->withAvg('reviews', 'rating')
-                    ->orderBy('reviews_avg_rating', $sortType);
+                // Sort by average rating
+                $query->orderBy('reviews_avg_star', $sortType);
                 break;
+                
             case 'views':
-                $query->orderBy('views', $sortType);
+                // Sort by views
+                $query->orderBy('vendor_products.views', $sortType);
                 break;
+                
             case 'sales':
-                $query->orderBy('sales', $sortType);
+                // Sort by number of sales
+                $query->orderBy('vendor_products.sales', $sortType);
                 break;
+                
             default:
-                $query->orderBy('created_at', $sortType);
+                // Default sort by created_at
+                $query->orderBy('vendor_products.created_at', $sortType);
         }
 
         return $query;

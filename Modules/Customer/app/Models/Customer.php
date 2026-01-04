@@ -161,14 +161,9 @@ class Customer extends Authenticatable
             $query->where('status', $filters['active']);
         }
 
-        // Vendor filter - get customers who have ordered from this vendor
-        if (isset($filters['vendor_id']) && !empty($filters['vendor_id'])) {
-            $query->whereHas('orders', function($q) use ($filters) {
-                $q->whereHas('products', function($productQuery) use ($filters) {
-                    $productQuery->where('vendor_id', $filters['vendor_id']);
-                });
-            });
-        }
+        // Vendor filter - For order creation, don't filter by vendor
+        // Vendors can create orders for any customer in the system
+        // The vendor_id filter is intentionally not applied here
 
         // Date range filters
         if (!empty($filters['created_date_from'])) {

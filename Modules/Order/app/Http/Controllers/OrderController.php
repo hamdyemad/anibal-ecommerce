@@ -255,6 +255,11 @@ class OrderController extends Controller
      */
     public function create($lang, $countryCode, Request $request)
     {
+        // Load vendor relationships for authenticated user
+        if (auth()->check()) {
+            auth()->user()->load(['vendorByUser', 'vendorById']);
+        }
+        
         $quotation = null;
         if ($request->has('quotation_id')) {
             $quotation = RequestQuotation::with(['customer', 'customerAddress.city', 'customerAddress.region', 'customerAddress.subregion', 'customerAddress.country'])
@@ -340,10 +345,14 @@ class OrderController extends Controller
                 return abort(404, trans('order::order.order_not_found'));
             }
             
+            // Load vendor stages with stage and vendor relationships
+            $order->load(['vendorStages.stage', 'vendorStages.vendor']);
+            
             $isVendorUser = !isAdmin();
             $currentVendorId = null;
             $vendorProducts = null;
             $vendorProductTotal = 0;
+            $currentVendorStage = null;
             
             // For vendors: filter products to show only their products
             if ($isVendorUser) {
@@ -356,13 +365,16 @@ class OrderController extends Controller
                     $vendorProductTotal = $vendorProducts->sum('price');
                     // Subtract promo discount from vendor's total
                     $vendorProductTotal = $vendorProductTotal - ($order->customer_promo_code_amount ?? 0);
+                    
+                    // Get current vendor's stage
+                    $currentVendorStage = $order->vendorStages->firstWhere('vendor_id', $currentVendorId);
                 }
             }
             
             // Get order stages for the change stage modal
             $orderStages = $this->orderStageService->getOrderStagesQuery()->get();
             $orderStages = OrderStageResource::collection($orderStages)->resolve();
-            return view('order::orders.show', compact('order', 'isVendorUser', 'vendorProducts', 'vendorProductTotal', 'orderStages'));
+            return view('order::orders.show', compact('order', 'isVendorUser', 'vendorProducts', 'vendorProductTotal', 'orderStages', 'currentVendorStage'));
         } catch (\Exception $e) {
             return abort(500, trans('order::order.error_loading_order'));
         }

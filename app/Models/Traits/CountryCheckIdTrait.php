@@ -17,11 +17,8 @@ trait CountryCheckIdTrait
         static::addGlobalScope('country_filter', function (Builder $builder) {
             $countryId = static::resolveCountryId();
             if ($countryId !== null) {
-                $builder->where('country_id', $countryId);
-                // $builder->where($builder->getModel()->getTable().'.country_id', $countryId);
-
+                $builder->where($builder->getModel()->getTable().'.country_id', $countryId);
             }
-
         });
     }
 
