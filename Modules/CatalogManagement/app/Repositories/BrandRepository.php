@@ -100,6 +100,9 @@ class BrandRepository implements BrandRepositoryInterface
                 // Sorting by regular column
                 $query->orderBy($orderBy, $orderDirection);
             }
+        } else {
+            // Default ordering: latest first
+            $query->orderBy('created_at', 'desc');
         }
 
         return $query;

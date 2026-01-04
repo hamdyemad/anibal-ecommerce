@@ -87,75 +87,16 @@ class OrderController extends Controller
         // Get current country ID for filtering
         $countryId = $this->getCurrentCountryId();
         
-        // Filter statistics by vendor if user is not admin
-        if (isAdmin()) {
-            // Admin sees all orders - filtered by country through Order model's CountryCheckIdTrait
-            $orderIds = Order::pluck('id');
-            $total_price = number_format(
-                OrderProduct::whereIn('order_id', $orderIds)->sum('price'), 
-                2
-            );
-            $orders_count = Order::latest()->count();
-            
-            // Admin sees stats for all vendors (filtered by country)
-            $vendorOrderStats = $this->getVendorOrderStats(null, $countryId);
-        } else {
-            // Vendor sees only their orders
-            $vendor = auth()->user()->vendor;
-            $vendorId = $vendor ? $vendor->id : null;
-            
-            if ($vendorId) {
-                // Use DB query with country filter
-                $orderIdsQuery = \DB::table('order_products')
-                    ->join('orders', 'order_products.order_id', '=', 'orders.id')
-                    ->where('order_products.vendor_id', $vendorId);
-                
-                if ($countryId) {
-                    $orderIdsQuery->where('orders.country_id', $countryId);
-                }
-                
-                $orderIds = $orderIdsQuery->distinct()->pluck('order_products.order_id');
-                
-                // Calculate vendor's product totals using DB query with country filter
-                $vendorProductQuery = \DB::table('order_products')
-                    ->join('orders', 'order_products.order_id', '=', 'orders.id')
-                    ->where('order_products.vendor_id', $vendorId);
-                
-                if ($countryId) {
-                    $vendorProductQuery->where('orders.country_id', $countryId);
-                }
-                
-                $vendorProductSum = $vendorProductQuery->sum('order_products.price');
-                
-                // Get shipping total for vendor's orders
-                $shippingSum = \DB::table('orders')
-                    ->whereIn('id', $orderIds)
-                    ->sum('shipping');
-                
-                // Subtract promo discounts from vendor's total
-                $promoDiscountSum = \DB::table('orders')
-                    ->whereIn('id', $orderIds)
-                    ->sum('customer_promo_code_amount');
-                
-                // Vendor total = products + shipping - promo discount
-                $total_price = number_format($vendorProductSum + $shippingSum - $promoDiscountSum, 2);
-                $orders_count = $orderIds->count();
-                
-                // Calculate vendor order product stats by stage (filtered by country)
-                $vendorOrderStats = $this->getVendorOrderStats($vendorId, $countryId);
-            } else {
-                $total_price = '0.00';
-                $orders_count = 0;
-                $vendorOrderStats = null;
-            }
-        }
+        // Get all statistics from a single function
+        $vendorId = isAdmin() ? null : (auth()->user()->vendor?->id ?? null);
+        $statistics = $this->getOrderStatistics($vendorId, $countryId);
         
         $vendors = $this->vendorService->getAllVendors([]);
         $data = [
             'languages' => $languages,
-            'orders_count' => $orders_count,
-            'total_price' => $total_price,
-            'vendorOrderStats' => $vendorOrderStats ?? null,
+            'orders_count' => $statistics['orders_count'],
+            'total_price' => $statistics['total_price'],
+            'vendorOrderStats' => $statistics['vendor_stats'],
             'vendors' => $vendors,
             'orderStages' => $orderStages,
         ];
@@ -231,11 +172,33 @@ class OrderController extends Controller
                     $vendorProductTotal = $order->products
                         ->where('vendor_id', $currentVendorId)
                         ->sum('price');
-                    // Add shipping and subtract promo discount from vendor's total
-                    $shipping = $order->shipping ?? 0;
+                    
+                    // Calculate vendor-specific shipping (sum of shipping_cost for vendor's products)
+                    $vendorShipping = $order->products
+                        ->where('vendor_id', $currentVendorId)
+                        ->sum('shipping_cost');
+                    
+                    // Subtract promo discount from vendor's total
                     $promoDiscount = $order->customer_promo_code_amount ?? 0;
-                    $displayTotalPrice = $vendorProductTotal + $shipping - $promoDiscount;
+                    $displayTotalPrice = $vendorProductTotal + $vendorShipping - $promoDiscount;
                 }
+
+                // Get product stages - filter by vendor if vendor user
+                $products = $isVendorUser && $currentVendorId 
+                    ? $order->products->where('vendor_id', $currentVendorId)
+                    : $order->products;
+
+                $productStages = $products->map(function ($orderProduct) {
+                    return [
+                        'id' => $orderProduct->stage?->id,
+                        'slug' => $orderProduct->stage?->slug,
+                        'type' => $orderProduct->stage?->type,
+                        'name' => $orderProduct->stage?->name ?? '-',
+                        'color' => $orderProduct->stage?->color ?? '#6c757d',
+                        'product_id' => $orderProduct->id,
+                        'product_name' => $orderProduct->name ?? '-',
+                    ];
+                })->values()->toArray();
 
                 $rowData = [
                     'index' => $index++,
@@ -248,13 +211,7 @@ class OrderController extends Controller
                     'total_price' => $displayTotalPrice,
                     'total_product_price' => $order->total_product_price . ' ' . currency(),
                     'items_count' => $itemsCount,
-                    'stage' => [
-                        'id' => $order->stage?->id,
-                        'slug' => $order->stage?->slug,
-                        'type' => $order->stage?->type,
-                        'name' => $order->stage?->name ?? '-',
-                        'color' => $order->stage?->color ?? '-',
-                    ],
+                    'product_stages' => $productStages, // Array of product stages
                     'payment_type' => $order->payment_type ?? 'cash_on_delivery',
                     'payment_visa_status' => $order->payment_visa_status,
                     'created_at' => $order->created_at,
@@ -405,7 +362,6 @@ class OrderController extends Controller
             // Get order stages for the change stage modal
             $orderStages = $this->orderStageService->getOrderStagesQuery()->get();
             $orderStages = OrderStageResource::collection($orderStages)->resolve();
-            
             return view('order::orders.show', compact('order', 'isVendorUser', 'vendorProducts', 'vendorProductTotal', 'orderStages'));
         } catch (\Exception $e) {
             return abort(500, trans('order::order.error_loading_order'));
@@ -436,7 +392,7 @@ class OrderController extends Controller
     /**
      * Display printable order view
      */
-    public function print($lang, $countryCode, $id)
+    public function print($lang, $countryCode, $id, Request $request)
     {
         try {
             $order = $this->orderService->getOrderById($id);
@@ -449,17 +405,36 @@ class OrderController extends Controller
             $vendorProducts = null;
             $vendorProductTotal = 0;
             
+            // Get selected product IDs from query parameter
+            $selectedProductIds = $request->has('products') 
+                ? explode(',', $request->input('products')) 
+                : [];
+            
             // For vendors: filter products to show only their products
             if ($isVendorUser) {
                 $currentVendorId = auth()->user()->vendor?->id;
                 if ($currentVendorId) {
-                    $vendorProducts = $order->products->filter(function($product) use ($currentVendorId) {
-                        return $product->vendor_id == $currentVendorId;
+                    $vendorProducts = $order->products->filter(function($product) use ($currentVendorId, $selectedProductIds) {
+                        $matchesVendor = $product->vendor_id == $currentVendorId;
+                        
+                        // If specific products selected, also filter by those IDs
+                        if (!empty($selectedProductIds)) {
+                            return $matchesVendor && in_array($product->id, $selectedProductIds);
+                        }
+                        
+                        return $matchesVendor;
                     });
                     // price already includes total (price * quantity), so just sum it
                     $vendorProductTotal = $vendorProducts->sum('price');
                     // Subtract promo discount from vendor's total
                     $vendorProductTotal = $vendorProductTotal - ($order->customer_promo_code_amount ?? 0);
+                }
+            } else {
+                // For admins: if specific products selected, filter by those IDs
+                if (!empty($selectedProductIds)) {
+                    $vendorProducts = $order->products->filter(function($product) use ($selectedProductIds) {
+                        return in_array($product->id, $selectedProductIds);
+                    });
                 }
             }
             
@@ -591,6 +566,94 @@ class OrderController extends Controller
     }
 
     /**
+     * Change stage for a specific order product
+     * Vendors can only change stage for their own products
+     */
+    public function changeProductStage($lang, $countryCode, $orderProductId, Request $request)
+    {
+        try {
+            $request->validate([
+                'stage_id' => 'required|exists:order_stages,id',
+            ]);
+
+            $orderProduct = $this->orderService->changeOrderProductStage($orderProductId, $request->stage_id);
+
+            return response()->json([
+                'status' => true,
+                'message' => trans('order::order.product_stage_updated_successfully'),
+                'data' => [
+                    'id' => $orderProduct->id,
+                    'stage' => [
+                        'id' => $orderProduct->stage?->id,
+                        'name' => $orderProduct->stage?->getTranslation('name', app()->getLocale()),
+                        'color' => $orderProduct->stage?->color,
+                        'type' => $orderProduct->stage?->type,
+                    ],
+                ]
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => false,
+                'message' => $e->getMessage(),
+            ], 422);
+        }
+    }
+
+    /**
+     * Bulk change stage for all products in an order
+     * Only admins can use this
+     */
+    public function bulkChangeProductStages($lang, $countryCode, $id, Request $request)
+    {
+        try {
+            // Only admins can bulk change stages
+            if (!isAdmin()) {
+                return response()->json([
+                    'status' => false,
+                    'message' => trans('order::order.unauthorized'),
+                ], 403);
+            }
+
+            $request->validate([
+                'stage_id' => 'required|exists:order_stages,id',
+            ]);
+
+            $order = $this->orderService->getOrderById($id);
+            if (!$order) {
+                return response()->json([
+                    'status' => false,
+                    'message' => trans('order::order.order_not_found'),
+                ], 404);
+            }
+
+            // Update all products in the order to the new stage
+            $updatedCount = 0;
+            foreach ($order->products as $product) {
+                try {
+                    $this->orderService->changeOrderProductStage($product->id, $request->stage_id);
+                    $updatedCount++;
+                } catch (\Exception $e) {
+                    // Log error but continue with other products
+                    \Log::error('Failed to update product stage', [
+                        'product_id' => $product->id,
+                        'error' => $e->getMessage()
+                    ]);
+                }
+            }
+
+            return response()->json([
+                'status' => true,
+                'message' => trans('order::order.bulk_stages_updated_successfully', ['count' => $updatedCount]),
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => false,
+                'message' => $e->getMessage(),
+            ], 422);
+        }
+    }
+
+    /**
      * Delete the specified order
      */
     public function destroy($lang, $countryCode, $id)
@@ -628,11 +691,12 @@ class OrderController extends Controller
     }
 
     /**
-     * Get vendor order statistics by stage
+     * Get comprehensive order statistics including totals and stage breakdown
      * @param int|null $vendorId - If null, get stats for all vendors (admin view)
      * @param int|null $countryId - Country ID to filter by
+     * @return array - Returns orders_count, total_price, and vendor_stats (stage breakdown)
      */
-    private function getVendorOrderStats($vendorId, $countryId = null): array
+    private function getOrderStatistics($vendorId, $countryId = null): array
     {
         // Get all order stages
         $stages = OrderStage::withoutGlobalScopes()->get();
@@ -642,8 +706,7 @@ class OrderController extends Controller
             return $stage->type === 'deliver';
         });
         
-        // Get orders with their total_price, promo discount and stage info
-        // Use DB query with country filter
+        // Build query with country and vendor filters
         $query = \DB::table('orders')
             ->join('order_products', 'orders.id', '=', 'order_products.order_id');
         
@@ -664,36 +727,40 @@ class OrderController extends Controller
                 'orders.customer_promo_code_amount',
                 'orders.stage_id',
                 'order_products.quantity',
-                'order_products.price as product_price'
+                'order_products.price as product_price',
+                'order_products.shipping_cost'
             )
             ->get();
         
         // Group by order to avoid counting same order multiple times
-        // For vendors: calculate product total + shipping - promo discount, for admin: use order total
         $uniqueOrders = $vendorOrders->groupBy('order_id')->map(function($group) use ($vendorId) {
             // product_price already includes total (price * quantity)
             $vendorProductTotal = $group->sum('product_price');
             
-            // Add shipping
-            $shipping = $group->first()->shipping ?? 0;
+            // For vendors: use vendor-specific shipping (sum of shipping_cost)
+            // For admin: use total order shipping
+            $shipping = $vendorId 
+                ? $group->sum('shipping_cost') 
+                : ($group->first()->shipping ?? 0);
             
             // Subtract promo discount
             $promoDiscount = $group->first()->customer_promo_code_amount ?? 0;
             
-            // Vendor total = products + shipping - promo discount
-            $vendorTotal = $vendorProductTotal + $shipping - $promoDiscount;
+            // Calculate total: products + shipping - promo discount
+            $total = $vendorProductTotal + $shipping - $promoDiscount;
             
             return [
                 'order_id' => $group->first()->order_id,
-                'total_price' => $vendorId ? $vendorTotal : $group->first()->total_price,
+                'total_price' => $vendorId ? $total : $group->first()->total_price,
                 'stage_id' => $group->first()->stage_id,
                 'products_count' => $group->sum('quantity'),
             ];
         });
         
-        // Calculate totals
+        // Calculate overall totals
         $totalOrders = $uniqueOrders->count();
         $totalProducts = $uniqueOrders->sum('products_count');
+        $totalPrice = $uniqueOrders->sum('total_price');
         
         // Calculate delivery total only for orders with deliver stage
         $deliveredOrders = $deliverStage 
@@ -721,11 +788,16 @@ class OrderController extends Controller
             ];
         }
         
+        // Return comprehensive statistics
         return [
-            'total_orders' => $totalOrders,
-            'total_products' => $totalProducts,
-            'total_delivery_value' => number_format($totalDeliveryValue, 2),
-            'stage_stats' => $stageStats,
+            'orders_count' => $totalOrders,
+            'total_price' => number_format($totalPrice, 2),
+            'vendor_stats' => [
+                'total_orders' => $totalOrders,
+                'total_products' => $totalProducts,
+                'total_delivery_value' => number_format($totalDeliveryValue, 2),
+                'stage_stats' => $stageStats,
+            ],
         ];
     }
 

@@ -31,6 +31,8 @@ class OrderProduct extends Model
         'price',
         'vendor_id',
         'commission',
+        'shipping_cost',
+        'stage_id',
         'occasion_id',
         'bundle_id',
     ];
@@ -41,6 +43,7 @@ class OrderProduct extends Model
     protected $casts = [
         'price' => 'decimal:2',
         'commission' => 'decimal:2',
+        'shipping_cost' => 'decimal:2',
     ];
 
     /**
@@ -104,5 +107,13 @@ class OrderProduct extends Model
     public function occasion()
     {
         return $this->belongsTo(Occasion::class, 'occasion_id');
+    }
+
+    /**
+     * Get the stage for this order product.
+     */
+    public function stage(): BelongsTo
+    {
+        return $this->belongsTo(OrderStage::class, 'stage_id');
     }
 }

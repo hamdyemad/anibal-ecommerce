@@ -126,6 +126,12 @@ class CalculateProductPrices
                 'quantity' => $quantity,
                 'price' => $productTotalWithTax, // Store total price INCLUDING tax
                 'commission' => $totalCommissionRate, // Store commission percentage only
+                'category_id' => $vendorProduct['product']['category']['id'] ?? $vendorProduct['product']['category_id'] ?? null,
+                'category_name' => $vendorProduct['product']['category']['name'] ?? null,
+                'department_id' => $vendorProduct['product']['department']['id'] ?? $vendorProduct['product']['department_id'] ?? null,
+                'department_name' => $vendorProduct['product']['department']['name'] ?? null,
+                'sub_category_id' => $vendorProduct['product']['subCategory']['id'] ?? $vendorProduct['product']['sub_category_id'] ?? null,
+                'sub_category_name' => $vendorProduct['product']['subCategory']['name'] ?? null,
                 'translations' => [
                     'en' => [
                         'name' => $productNameEn,

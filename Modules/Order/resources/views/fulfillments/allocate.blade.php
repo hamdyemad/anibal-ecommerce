@@ -34,6 +34,17 @@
                         action="{{ route('admin.order-fulfillments.allocate', $order->id) }}">
                         @csrf
 
+                        @if(count($stockData) === 0)
+                            <div class="alert alert-info">
+                                <i class="uil uil-info-circle me-2"></i>
+                                {{ trans('order::order.no_products_to_allocate') }}
+                            </div>
+                            <div class="mt-30">
+                                <a href="{{ route('admin.orders.show', $order->id) }}" class="btn btn-outline-secondary">
+                                    <i class="uil uil-arrow-left me-2"></i>{{ trans('common.back') }}
+                                </a>
+                            </div>
+                        @else
                         @foreach ($stockData as $orderProductId => $data)
                             @php
                                 $orderProduct = $data['order_product'];
@@ -69,17 +80,27 @@
                                                              class="rounded"
                                                              style="width: 60px; height: 60px; ">
                                                     @else
-                                                        <div class="bg-light rounded d-flex align-items-center justify-content-center"
-                                                             style="width: 60px; height: 60px;">
-                                                            <i class="uil uil-image text-muted" style="font-size: 24px;"></i>
-                                                        </div>
+                                                        <img src="{{ asset('assets/img/default.png') }}" 
+                                                             alt="{{ $data['order_product']->name ?? 'Product' }}"
+                                                             class="rounded"
+                                                             style="width: 60px; height: 60px; ">
                                                     @endif
                                                 </div>
                                                 {{-- Product Details --}}
                                                 <div>
-                                                    <h5 class="text-primary fw-bold">
-                                                        {{ $data['order_product']->name ?? 'Product' }}
-                                                    </h5>
+                                                    <div class="d-flex align-items-center gap-2 mb-2">
+                                                        <h5 class="text-primary fw-bold mb-0">
+                                                            {{ $data['order_product']->name ?? 'Product' }}
+                                                        </h5>
+                                                        @if($orderProduct->stage)
+                                                            <x-protected-badge 
+                                                                :color="$orderProduct->stage->color ?? '#6c757d'"
+                                                                :text="$orderProduct->stage->getTranslation('name', app()->getLocale()) ?? 'N/A'"
+                                                                size="md"
+                                                                :id="'allocate-stage-' . $orderProduct->id"
+                                                            />
+                                                        @endif
+                                                    </div>
                                                     <div class="d-flex flex-wrap gap-3 text-muted" style="font-size: 0.9em;">
                                                         <span><strong>{{ trans('order::order.sku') }}:</strong> {{ $sku }}</span>
                                                         @if ($variantPath)
@@ -107,12 +128,12 @@
                                         <thead style="background-color: #003d82; color: white;">
                                             <tr>
                                                 <th class="text-white fw-bold">{{ trans('order.regions') }}</th>
-                                                <th class="text-white fw-bold text-center">
-                                                    {{ trans('order.available_stocks') }}</th>
-                                                <th class="text-white fw-bold text-center">
-                                                    {{ trans('order.allocated_quantity') }}</th>
-                                                <th class="text-white fw-bold text-center">
-                                                    {{ trans('order.remaining_stock') }}</th>
+                                                <th class="text-white fw-bold text-center">{{ trans('order::order.total_stock') }}</th>
+                                                <th class="text-white fw-bold text-center">{{ trans('order::order.booked') }}</th>
+                                                <th class="text-white fw-bold text-center">{{ trans('order::order.already_allocated') }}</th>
+                                                <th class="text-white fw-bold text-center">{{ trans('order.available_stocks') }}</th>
+                                                <th class="text-white fw-bold text-center">{{ trans('order.allocated_quantity') }}</th>
+                                                <th class="text-white fw-bold text-center">{{ trans('order.remaining_stock') }}</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -122,42 +143,60 @@
                                                 ) {
                                                     return $region['available_stock'] > 0;
                                                 });
+                                                $isFullyAllocated = $data['is_fully_allocated'] ?? false;
                                             @endphp
 
                                             @foreach ($availableRegions as $regionId => $regionData)
                                                 @php
                                                     $isInsufficient = $regionData['remaining_stock'] < 0;
                                                 @endphp
-                                                <tr class="{{ $isInsufficient ? 'table-danger' : '' }}">
+                                                <tr class="{{ $isInsufficient ? 'table-danger' : '' }} {{ $isFullyAllocated ? 'table-success' : '' }}">
                                                     <td class="fw-bold">
                                                         {{ $regionData['region']->name }}
                                                     </td>
                                                     <td class="text-center">
-                                                        <span class="text-success fw-bold"
-                                                            style="font-size: 1.1em;">{{ $regionData['available_stock'] }}</span>
+                                                        <span class="fw-bold" style="font-size: 1.1em;">{{ $regionData['total_stock'] ?? 0 }}</span>
                                                     </td>
                                                     <td class="text-center">
-                                                        @php
-                                                            $max = min(
-                                                                $regionData['available_stock'],
-                                                                $data['order_product']->quantity,
-                                                            );
-                                                        @endphp
-                                                        <input type="number"
-                                                            name="allocations[{{ $orderProductId }}_{{ $regionId }}][quantity]"
-                                                            value="{{ $regionData['allocated_quantity'] }}" min="0"
-                                                            max="{{ $max }}"
-                                                            class="form-control allocation-input text-center"
-                                                            style="width: 100px; margin: 0 auto;"
-                                                            data-order-product="{{ $orderProductId }}"
-                                                            data-region="{{ $regionId }}"
-                                                            data-available="{{ $regionData['available_stock'] }}">
-                                                        <input type="hidden"
-                                                            name="allocations[{{ $orderProductId }}_{{ $regionId }}][order_product_id]"
-                                                            value="{{ $orderProductId }}">
-                                                        <input type="hidden"
-                                                            name="allocations[{{ $orderProductId }}_{{ $regionId }}][region_id]"
+                                                        <span class="text-info fw-bold" style="font-size: 1.1em;">{{ $regionData['booking_quantity'] ?? 0 }}</span>
+                                                    </td>
+                                                    <td class="text-center">
+                                                        <span class="text-warning fw-bold" style="font-size: 1.1em;">{{ $regionData['already_allocated'] ?? 0 }}</span>
+                                                    </td>
+                                                    <td class="text-center">
+                                                        <span class="text-success fw-bold" style="font-size: 1.1em;">{{ $regionData['available_stock'] }}</span>
+                                                    </td>
+                                                    <td class="text-center">
+                                                        @if($isFullyAllocated)
+                                                            <x-protected-badge 
+                                                                color="#28a745"
+                                                                :text="(string)$regionData['allocated_quantity']"
+                                                                size="md"
+                                                                :id="'allocated-qty-' . $orderProductId . '-' . $regionId"
+                                                            />
+                                                        @else
+                                                            @php
+                                                                $max = min(
+                                                                    $regionData['available_stock'],
+                                                                    $data['order_product']->quantity,
+                                                                );
+                                                            @endphp
+                                                            <input type="number"
+                                                                name="allocations[{{ $orderProductId }}_{{ $regionId }}][quantity]"
+                                                                value="{{ $regionData['allocated_quantity'] }}" min="0"
+                                                                max="{{ $max }}"
+                                                                class="form-control allocation-input text-center"
+                                                                style="width: 100px; margin: 0 auto;"
+                                                                data-order-product="{{ $orderProductId }}"
+                                                                data-region="{{ $regionId }}"
+                                                                data-available="{{ $regionData['available_stock'] }}">
+                                                            <input type="hidden"
+                                                                name="allocations[{{ $orderProductId }}_{{ $regionId }}][order_product_id]"
+                                                                value="{{ $orderProductId }}">
+                                                            <input type="hidden"
+                                                                name="allocations[{{ $orderProductId }}_{{ $regionId }}][region_id]"
                                                             value="{{ $regionId }}">
+                                                        @endif
                                                     </td>
                                                     <td class="text-center">
                                                         <span class="remaining-{{ $orderProductId }}-{{ $regionId }}">
@@ -188,6 +227,7 @@
                                 <i class="uil uil-check-circle me-2"></i>{{ trans('order.save_allocation') }}
                             </button>
                         </div>
+                        @endif
                     </form>
                 </div>
             </div>

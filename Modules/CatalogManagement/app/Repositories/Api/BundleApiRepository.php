@@ -24,7 +24,9 @@ class BundleApiRepository implements BundleRepositoryApiInterface
     public function getAllBundles($filters = [], $perPage = 15)
     {
         $query = Bundle::with('country', 'vendor', 'bundleCategory',
-         'bundleProducts.vendorProductVariant.vendorProduct'
+         'bundleProducts.vendorProductVariant.vendorProduct',
+         'bundleProducts.vendorProductVariant.variantConfiguration.parent_data.key',
+         'bundleProducts.vendorProductVariant.variantConfiguration.key'
         )->filter($filters)
         ->active() // active() now includes is_active = 1 AND admin_approval = 1
         ->withCount('bundleProducts')
@@ -51,7 +53,11 @@ class BundleApiRepository implements BundleRepositoryApiInterface
                 }
                 
                 // Eager load relationships
-                $q->with(['vendorProductVariant.vendorProduct']);
+                $q->with([
+                    'vendorProductVariant.vendorProduct',
+                    'vendorProductVariant.variantConfiguration.parent_data.key',
+                    'vendorProductVariant.variantConfiguration.key'
+                ]);
             },
         ])
         ->withCount('bundleProducts')

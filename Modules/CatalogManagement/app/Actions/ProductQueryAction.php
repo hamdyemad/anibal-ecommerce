@@ -20,7 +20,15 @@ class ProductQueryAction
                 'product.brand.translations',
                 'product.translations',
                 'product.mainImage',
-                'variants',
+                'variants' => function ($q) use ($filters) {
+                    // Filter variants by price range if provided
+                    if (!empty($filters['min_price'])) {
+                        $q->where('price', '>=', $filters['min_price']);
+                    }
+                    if (!empty($filters['max_price'])) {
+                        $q->where('price', '<=', $filters['max_price']);
+                    }
+                },
                 'vendor',
                 'taxes',
             ])

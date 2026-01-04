@@ -190,13 +190,50 @@ class Order extends BaseModel
         return $this->hasOne(RequestQuotation::class);
     }
 
+    /**
+     * Get total products count (sum of quantities)
+     */
+    public function getProductsCountAttribute(): int
+    {
+        return $this->products->sum('quantity');
+    }
+
+    /**
+     * Get unique product stages grouped with counts
+     */
+    public function getProductStagesAttribute(): array
+    {
+        $stages = [];
+        
+        foreach ($this->products as $product) {
+            if ($product->stage) {
+                $stageKey = $product->stage_id;
+                
+                if (!isset($stages[$stageKey])) {
+                    $stages[$stageKey] = [
+                        'id' => $product->stage->id,
+                        'name' => $product->stage->getTranslation('name', app()->getLocale()),
+                        'color' => $product->stage->color,
+                        'type' => $product->stage->type,
+                        'count' => 0,
+                    ];
+                }
+                
+                $stages[$stageKey]['count']++;
+            }
+        }
+        
+        return array_values($stages);
+    }
+
     protected function applyCustomSearch(Builder $query, string $search): Builder
     {
         return $query->where(function ($q) use ($search) {
                 $q->where('id', 'like', "%{$search}%")
                     ->orWhere('order_number', $search)
                     ->orWhere('customer_name', 'like', "%{$search}%")
-                    ->orWhere('customer_email', 'like', "%{$search}%");
+                    ->orWhere('customer_email', 'like', "%{$search}%")
+                    ->orWhere('customer_phone', 'like', "%{$search}%");
             });
     }
 

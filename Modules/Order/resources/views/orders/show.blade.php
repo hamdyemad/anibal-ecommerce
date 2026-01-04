@@ -41,26 +41,74 @@
                                             <span class="detail-label">{{ trans('order::order.created_at') }}:</span>
                                             <span class="detail-value">{{ $order->created_at }}</span>
                                         </div>
-                                        <div class="detail-row mb-15 justify-content-between">
-                                            <span class="detail-label">{{ trans('order::order.stage') }}:</span>
-                                            <span class="badge badge-lg badge-round"
-                                                style="background: {{ $order->stage?->color ?? '#6c757d' }}; color: white">{{ $order->stage?->name ?? 'N/A' }}</span>
+                                        <div class="detail-row mb-15">
+                                            <span class="detail-label mb-2">{{ trans('order::order.product_stages') }}:</span>
+                                            <div class="d-flex flex-wrap gap-2">
+                                                @php
+                                                    // For vendors: get stages from their products only
+                                                    if ($isVendorUser && isset($vendorProducts)) {
+                                                        $productStagesData = $vendorProducts->groupBy('stage_id')->map(function($group) {
+                                                            $stage = $group->first()->stage;
+                                                            return [
+                                                                'id' => $stage?->id,
+                                                                'name' => $stage?->getTranslation('name', app()->getLocale()) ?? 'N/A',
+                                                                'color' => $stage?->color ?? '#6c757d',
+                                                                'count' => $group->count()
+                                                            ];
+                                                        })->values();
+                                                    } else {
+                                                        // For admins: use the order's product_stages getter
+                                                        $productStagesData = collect($order->product_stages);
+                                                    }
+                                                @endphp
+                                                @forelse($productStagesData as $productStage)
+                                                    <x-protected-badge 
+                                                        :color="$productStage['color']"
+                                                        :text="$productStage['name'] . ' (' . $productStage['count'] . ')'"
+                                                        size="lg"
+                                                        :id="'order-info-stage-' . $productStage['id']"
+                                                    />
+                                                @empty
+                                                    <x-protected-badge 
+                                                        color="#6c757d"
+                                                        text="N/A"
+                                                        size="lg"
+                                                        id="order-info-stage-empty"
+                                                    />
+                                                @endforelse
+                                            </div>
                                         </div>
                                         <div class="detail-row">
                                             <span class="detail-label">{{ trans('order::order.order_from') }}:</span>
                                             <span class="detail-value">
                                                 @if ($order->order_from === 'web')
-                                                    <span class="badge badge-lg badge-round bg-info"><i
-                                                            class="uil uil-globe me-1"></i>{{ trans('order::order.web') }}</span>
+                                                    <x-protected-badge 
+                                                        color="#17a2b8"
+                                                        text="🌐 {{ trans('order::order.web') }}"
+                                                        size="lg"
+                                                        id="order-from-badge"
+                                                    />
                                                 @elseif($order->order_from === 'ios')
-                                                    <span class="badge badge-lg badge-round bg-dark"><i
-                                                            class="uil uil-apple me-1"></i>{{ trans('order::order.ios') }}</span>
+                                                    <x-protected-badge 
+                                                        color="#343a40"
+                                                        text="🍎 {{ trans('order::order.ios') }}"
+                                                        size="lg"
+                                                        id="order-from-badge"
+                                                    />
                                                 @elseif($order->order_from === 'android')
-                                                    <span class="badge badge-lg badge-round bg-success"><i
-                                                            class="uil uil-android me-1"></i>{{ trans('order::order.android') }}</span>
+                                                    <x-protected-badge 
+                                                        color="#28a745"
+                                                        text="🤖 {{ trans('order::order.android') }}"
+                                                        size="lg"
+                                                        id="order-from-badge"
+                                                    />
                                                 @else
-                                                    <span
-                                                        class="badge badge-lg badge-round bg-secondary">{{ $order->order_from }}</span>
+                                                    <x-protected-badge 
+                                                        color="#6c757d"
+                                                        :text="$order->order_from"
+                                                        size="lg"
+                                                        id="order-from-badge"
+                                                    />
                                                 @endif
                                             </span>
                                         </div>
@@ -143,6 +191,11 @@
                             padding: 10px 0;
                             border-bottom: 1px solid #f0f0f0;
                         }
+                        
+                        .detail-row.flex-column {
+                            flex-direction: column;
+                            align-items: flex-start !important;
+                        }
 
                         .detail-row:last-child {
                             border-bottom: none;
@@ -172,10 +225,24 @@
 
                     <!-- Products Table -->
                     <div class="mb-40">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="fw-bold mb-0">{{ trans('order::order.products') }}</h5>
+                            <div class="d-flex gap-2">
+                                <a href="{{ route('admin.orders.index') }}" class="btn btn-outline-secondary btn-sm">
+                                    <i class="uil uil-arrow-left me-1"></i>{{ trans('common.back') }}
+                                </a>
+                                <button type="button" class="btn btn-info btn-sm" id="printSelectedBtn" disabled>
+                                    <i class="uil uil-print me-1"></i>{{ trans('order::order.print_selected') }} (<span id="selectedCount">0</span>)
+                                </button>
+                            </div>
+                        </div>
                         <div class="table-responsive">
                             <table class="table mb-0 table-hover" style="border-color: #dee2e6;">
                                 <thead class="userDatatable-header" style="background-color: #003d82; color: white;">
                                     <tr>
+                                        <th class="text-white fw-bold text-center">
+                                            <input type="checkbox" id="selectAllProducts" class="form-check-input" style="cursor: pointer;">
+                                        </th>
                                         <th class="text-white fw-bold text-center">#</th>
                                         <th class="text-white fw-bold text-center">{{ trans('order::order.product') }}</th>
                                         <th class="text-white fw-bold text-center">{{ trans('order::order.price_before_taxes') }}
@@ -187,6 +254,10 @@
                                         <th class="text-white fw-bold text-center">{{ trans('order::order.quantity') }}
                                         </th>
                                         <th class="text-white fw-bold text-center">{{ trans('order::order.total_price') }}
+                                        </th>
+                                        <th class="text-white fw-bold text-center">{{ trans('order::order.stage') }}
+                                        </th>
+                                        <th class="text-white fw-bold text-center">{{ trans('order::order.shipping') }}
                                         </th>
                                         <th class="text-white fw-bold text-center">{{ trans('order::order.bnaia_commission') }}
                                         </th>
@@ -239,8 +310,16 @@
                                             
                                             // Total tax percentage
                                             $totalTaxPercentage = $product->taxes->sum('percentage') ?? 0;
+                                            
+                                            // Shipping cost per product
+                                            $productShippingCost = $product->shipping_cost ?? 0;
                                         @endphp
                                         <tr>
+                                            <td class="text-center">
+                                                <input type="checkbox" class="form-check-input product-checkbox" 
+                                                       data-product-id="{{ $product->id }}" 
+                                                       style="cursor: pointer;">
+                                            </td>
                                             <td class="fw-bold text-center">{{ $key + 1 }}</td>
                                             <td class="text-center">
                                                 <div class="d-flex align-items-center justify-content-center gap-3">
@@ -283,10 +362,22 @@
                                             </td>
                                             <td class="text-center">
                                                 @if($product->taxes && $product->taxes->count() > 0)
-                                                    <span class="badge badge-round badge-lg bg-primary mb-1">{{ trans('order::order.total') }}: {{ $totalTaxPercentage }}%</span>
+                                                    <x-protected-badge 
+                                                        color="#5f63f2"
+                                                        :text="trans('order::order.total') . ': ' . $totalTaxPercentage . '%'"
+                                                        size="lg"
+                                                        :id="'tax-total-' . $product->id"
+                                                        class="mb-1"
+                                                    />
                                                     <div>
                                                         @foreach($product->taxes as $tax)
-                                                            <span class="badge badge-round badge-lg bg-secondary me-1 mb-1">{{ $tax->name }} {{ $tax->percentage }}%</span>
+                                                            <x-protected-badge 
+                                                                color="#6c757d"
+                                                                :text="$tax->name . ' ' . $tax->percentage . '%'"
+                                                                size="md"
+                                                                :id="'tax-' . $tax->id . '-' . $product->id"
+                                                                class="me-1 mb-1"
+                                                            />
                                                         @endforeach
                                                     </div>
                                                 @else
@@ -301,14 +392,56 @@
                                             <td class="text-center fw-bold">
                                                 {{ number_format($productTotalWithTax, 2) }}
                                                 {{ currency() }}</td>
-                                                <td class="text-center text-danger">
-                                                    <div>{{ $commissionPercent }}%</div>
-                                                    <div class="fw-bold">{{ number_format($commissionAmount, 2) }} {{ currency() }}</div>
-                                                </td>
+                                            <td class="text-center">
+                                                @if($product->stage)
+                                                    <div class="d-flex flex-column align-items-center gap-2">
+                                                        <x-protected-badge 
+                                                            :color="$product->stage->color ?? '#6c757d'"
+                                                            :text="$product->stage->getTranslation('name', app()->getLocale()) ?? 'N/A'"
+                                                            size="lg"
+                                                            :id="'stage-badge-' . $product->id"
+                                                        />
+                                                        @if(!isAdmin() && isset($orderStages) && count($orderStages) > 0)
+                                                            <div class="d-flex gap-1">
+                                                                <button type="button" class="btn btn-sm btn-outline-primary change-product-stage-btn" 
+                                                                        data-product-id="{{ $product->id }}"
+                                                                        data-current-stage="{{ $product->stage_id }}"
+                                                                        data-bs-toggle="modal" 
+                                                                        data-bs-target="#changeProductStageModal"
+                                                                        title="{{ trans('order::order.change_product_stage') }}">
+                                                                    <i class="uil uil-exchange m-0"></i>
+                                                                </button>
+                                                                @if($product->stage->type === 'in_progress')
+                                                                    <a href="{{ route('admin.order-fulfillments.show', $order->id) }}" 
+                                                                       class="btn btn-sm btn-outline-success"
+                                                                       title="{{ trans('order::order.allocate') }}">
+                                                                        <i class="uil uil-box m-0"></i>
+                                                                    </a>
+                                                                @endif
+                                                            </div>
+                                                        @endif
+                                                    </div>
+                                                @else
+                                                    <x-protected-badge 
+                                                        color="#6c757d"
+                                                        :text="trans('order::order.pending')"
+                                                        size="lg"
+                                                        :id="'stage-badge-' . $product->id"
+                                                    />
+                                                @endif
+                                            </td>
+                                            <td class="text-center">
+                                                {{ number_format($productShippingCost, 2) }}
+                                                {{ currency() }}
+                                            </td>
+                                            <td class="text-center text-danger">
+                                                <div>{{ $commissionPercent }}%</div>
+                                                <div class="fw-bold">{{ number_format($commissionAmount, 2) }} {{ currency() }}</div>
+                                            </td>
                                         </tr>
                                     @empty
                                         <tr>
-                                            <td colspan="8" class="text-center text-muted py-20">
+                                            <td colspan="10" class="text-center text-muted py-20">
                                                 {{ trans('common.no_data') }}
                                             </td>
                                         </tr>
@@ -335,11 +468,19 @@
                                             <tr>
                                                 <td>
                                                     @if ($extra->type === 'fee')
-                                                        <span
-                                                            class="badge badge-lg badge-round bg-danger">{{ trans('order::order.fee') }}</span>
+                                                        <x-protected-badge 
+                                                            color="#dc3545"
+                                                            :text="trans('order::order.fee')"
+                                                            size="lg"
+                                                            :id="'extra-' . $extra->id"
+                                                        />
                                                     @else
-                                                        <span
-                                                            class="badge badge-lg badge-round bg-success">{{ trans('order::order.discount') }}</span>
+                                                        <x-protected-badge 
+                                                            color="#28a745"
+                                                            :text="trans('order::order.discount')"
+                                                            size="lg"
+                                                            :id="'extra-' . $extra->id"
+                                                        />
                                                     @endif
                                                 </td>
                                                 <td>{{ $extra->reason }}</td>
@@ -467,50 +608,64 @@
                     <!-- Summary Section -->
                     <div class="row mb-40">
                         @php
-                            // Calculate total commission and remaining for all displayed products
-                            $totalProductsPriceBeforeTax = 0;
-                            $totalRemaining = 0;
-                            $totalProductsTax = 0;
-                            $totalCommissionPercentage = 0;
-                            
+                            // Calculate totals from products
                             $productsToCalculate = isset($vendorProducts) && $vendorProducts !== null ? $vendorProducts : $order->products;
                             
+                            $totalProductsPriceBeforeTax = 0;
+                            $totalProductsTax = 0;
+                            $vendorShippingCost = 0;
+                            $totalCommission = 0;
+                            $totalCommissionPercentage = 0;
+                            $productCount = $productsToCalculate->count();
+                            
                             foreach ($productsToCalculate as $prod) {
-                                // Price stored is total price INCLUDING tax
                                 $prodTotalWithTax = $prod->price;
-                                
-                                // Get tax amount (sum of all taxes)
                                 $prodTax = $prod->taxes->sum('amount') ?? 0;
-                                
-                                // Calculate price before tax
                                 $prodTotalBeforeTax = $prodTotalWithTax - $prodTax;
-                                
-                                // Commission percentage from order_products.commission
-                                $commPercent = $prod->commission > 0 ? $prod->commission : ($prod->vendorProduct?->product?->department?->commission ?? 0);
-                                $totalCommissionPercentage += $commPercent;
                                 
                                 $totalProductsPriceBeforeTax += $prodTotalBeforeTax;
                                 $totalProductsTax += $prodTax;
+                                $vendorShippingCost += $prod->shipping_cost ?? 0;
+                                
+                                // Calculate commission from each product
+                                $commPercent = $prod->commission > 0 ? $prod->commission : ($prod->vendorProduct?->product?->department?->commission ?? 0);
+                                $prodCommissionAmount = ($prodTotalWithTax * $commPercent) / 100;
+                                $totalCommission += $prodCommissionAmount;
+                                $totalCommissionPercentage += $commPercent;
+                            }
+                            
+                            // Calculate average commission percentage for display
+                            if ($productCount > 0) {
+                                $totalCommissionPercentage = $totalCommissionPercentage / $productCount;
                             }
                             
                             // Total with tax for vendor remaining calculation
                             $totalProductsPriceWithTax = $totalProductsPriceBeforeTax + $totalProductsTax;
                             
-                            // Commission = (products total + shipping) × total percentage / 100
-                            $totalCommission = (($totalProductsPriceWithTax + $order->shipping) * $totalCommissionPercentage) / 100;
-                            $totalRemaining = $totalProductsPriceWithTax + $order->shipping - $totalCommission - $order->customer_promo_code_amount;
-                            $totalWithShipping = $totalProductsPriceWithTax + $order->shipping - $order->customer_promo_code_amount;
+                            // Use vendor-specific shipping if vendor user, otherwise use total order shipping
+                            $shippingToUse = (isset($isVendorUser) && $isVendorUser) ? $vendorShippingCost : $order->shipping;
+                            
+                            $totalRemaining = $totalProductsPriceWithTax + $shippingToUse - $totalCommission - $order->customer_promo_code_amount;
+                            $totalWithShipping = $totalProductsPriceWithTax + $shippingToUse - $order->customer_promo_code_amount;
+                            
+                            // Get vendor name for display
+                            if (isset($isVendorUser) && $isVendorUser && isset($vendorProducts) && $vendorProducts->count() > 0) {
+                                $currentVendorName = $vendorProducts->first()->vendorProduct?->vendor?->getTranslation('name', app()->getLocale()) ?? 'Vendor';
+                            } else {
+                                $currentVendorName = 'Vendor';
+                            }
                         @endphp
 
                         @if(isset($isVendorUser) && $isVendorUser && isset($vendorProductTotal))
-                            {{-- Vendor view: show Vendor Remaining Summary --}}
-                            <div class="col-md-6 mb-3">
-                                <x-order::vendor-remaining-summary
-                                    :vendorName="trans('order::order.your')"
+                            {{-- Vendor view: show Vendor Remaining Summary with products inside --}}
+                            <div class="col-12 mb-3">
+                                <x-order::vendor-remaining-with-products
+                                    :vendorName="$currentVendorName"
+                                    :products="$displayProducts"
                                     :subtotalBeforeTax="$totalProductsPriceBeforeTax"
                                     :taxAmount="$totalProductsTax"
                                     :subtotalWithTax="$totalProductsPriceWithTax"
-                                    :shipping="$order->shipping"
+                                    :shipping="$vendorShippingCost"
                                     :total="$totalWithShipping"
                                     :commissionPercentage="$totalCommissionPercentage"
                                     :commissionAmount="$totalCommission"
@@ -520,7 +675,7 @@
                                 />
                             </div>
                         @else
-                            {{-- Admin view: show per-vendor boxes + order summary --}}
+                            {{-- Admin view: show per-vendor boxes with products inside --}}
                             
                             @php
                                 // Group products by vendor
@@ -548,10 +703,9 @@
                                     // Calculate totals for this vendor
                                     $vendorSubtotalBeforeTax = 0;
                                     $vendorTotalTax = 0;
-                                    
-                                    // Sum up commission percentages and product prices
+                                    $vendorShipping = 0;
+                                    $vendorTotalCommission = 0;
                                     $totalCommissionPercentage = 0;
-                                    $totalProductPrices = 0;
                                     
                                     foreach ($vendorProducts as $prod) {
                                         $prodTotalWithTax = $prod->price;
@@ -560,20 +714,20 @@
                                         
                                         $vendorSubtotalBeforeTax += $prodTotalBeforeTax;
                                         $vendorTotalTax += $prodTax;
-                                        $totalProductPrices += $prodTotalWithTax;
+                                        $vendorShipping += $prod->shipping_cost ?? 0;
                                         
-                                        // Use stored commission if available, otherwise get from department
+                                        // Calculate commission from each product
                                         $commPercent = $prod->commission > 0 ? $prod->commission : ($prod->vendorProduct?->product?->department?->commission ?? 0);
+                                        $prodCommissionAmount = ($prodTotalWithTax * $commPercent) / 100;
+                                        $vendorTotalCommission += $prodCommissionAmount;
                                         $totalCommissionPercentage += $commPercent;
                                     }
                                     
+                                    // Calculate average commission percentage for display
+                                    $avgCommissionPercentage = $vendorProducts->count() > 0 ? $totalCommissionPercentage / $vendorProducts->count() : 0;
+                                    
                                     $vendorSubtotalWithTax = $vendorSubtotalBeforeTax + $vendorTotalTax;
-                                    $vendorTotalWithShipping = $vendorSubtotalWithTax + $order->shipping;
-                                    
-                                    // Commission = (products total + shipping) × total percentage / 100
-                                    $vendorTotalCommission = (($totalProductPrices + $order->shipping) * $totalCommissionPercentage) / 100;
-                                    
-                                    // Remaining = Total with shipping - Commission
+                                    $vendorTotalWithShipping = $vendorSubtotalWithTax + $vendorShipping;
                                     $vendorTotalRemaining = $vendorTotalWithShipping - $vendorTotalCommission;
                                     
                                     // Get color for this vendor
@@ -581,18 +735,20 @@
                                     $colorIndex++;
                                 @endphp
                                 
-                                {{-- Per-Vendor Remaining Summary Box --}}
-                                <div class="col-md-6 mb-3">
-                                    <x-order::vendor-remaining-summary
+                                {{-- Per-Vendor Remaining Summary Box with Products Inside --}}
+                                <div class="col-12 mb-3">
+                                    <x-order::vendor-remaining-with-products
                                         :vendorName="$vendorName"
+                                        :products="$vendorProducts"
                                         :subtotalBeforeTax="$vendorSubtotalBeforeTax"
                                         :taxAmount="$vendorTotalTax"
                                         :subtotalWithTax="$vendorSubtotalWithTax"
-                                        :shipping="$order->shipping"
+                                        :shipping="$vendorShipping"
                                         :total="$vendorTotalWithShipping"
-                                        :commissionPercentage="$totalCommissionPercentage"
+                                        :commissionPercentage="$avgCommissionPercentage"
                                         :commissionAmount="$vendorTotalCommission"
                                         :remaining="$vendorTotalRemaining"
+                                        :promoDiscount="0"
                                         :colors="$colors"
                                     />
                                 </div>
@@ -600,43 +756,12 @@
                         @endif
                     </div>
                 </div>
-
-                <!-- Action Buttons Section (Not Printable) -->
-                <div class="mt-30 mb-40 no-print">
-                    <div class="bg-white p-20 radius-xl global-shadow border-light-0">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <h6 class="mb-0 fw-500">{{ trans('order::order.actions') }}</h6>
-                            <div class="d-flex gap-2">
-                                <a href="{{ route('admin.orders.index') }}" class="btn btn-outline-secondary btn-sm">
-                                    <i class="uil uil-arrow-left me-2"></i>{{ trans('common.back') }}
-                                </a>
-                                <a href="{{ route('admin.orders.print', $order->id) }}" target="_blank" class="btn btn-info btn-sm">
-                                    <i class="uil uil-print me-2"></i>{{ trans('order::order.print_invoice') }}
-                                </a>
-                                @php
-                                    $finalStages = ['deliver', 'cancel', 'refund'];
-                                    $isFinalStage = in_array($order->stage?->slug, $finalStages);
-                                @endphp
-                                @if (!$isFinalStage && isAdmin())
-                                    <button class="btn btn-primary btn-sm" data-bs-toggle="modal"
-                                        data-bs-target="#changeStageModal"
-                                        data-id="{{ $order->id }}"
-                                        data-stage-id="{{ $order->stage_id }}"
-                                        data-stage-type="{{ $order->stage?->type }}">
-                                        <i
-                                            class="uil uil-check-circle me-2"></i>{{ trans('order::order.change_order_stage') }}
-                                    </button>
-                                @endif
-                            </div>
-                        </div>
-                    </div>
-                </div>
             </div>
         </div>
     </div>
 
-    <!-- Include Change Stage Modal Component (Admin Only) -->
-    @if(isAdmin())
+    <!-- Include Change Stage Modal Component (Vendor Only) -->
+    @if(!isAdmin())
         <x-order::change-stage-modal :order-id="$order->id" :current-stage-id="$order->stage_id" :order-stages="$orderStages ?? []" />
     @endif
 
@@ -1055,4 +1180,259 @@
             }, 100);
         }
     </script>
+
+    <!-- Change Product Stage Modal -->
+    @if(isset($orderStages) && count($orderStages) > 0)
+    <div class="modal fade" id="changeProductStageModal" tabindex="-1" aria-labelledby="changeProductStageModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="changeProductStageModalLabel">{{ trans('order::order.change_product_stage') }}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="changeProductStageForm">
+                    <div class="modal-body">
+                        <div id="productStageSelectContainer"></div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ trans('common.cancel') }}</button>
+                        <button type="submit" class="btn btn-primary">{{ trans('order::order.update_stage') }}</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    @endif
+    
+    @push('scripts')
+    @if(isset($orderStages) && count($orderStages) > 0)
+    <script>
+        $(document).ready(function() {
+            // ===== PRINT FUNCTIONALITY =====
+            let selectedProductsForPrint = [];
+            
+            // Handle select all checkbox
+            $('#selectAllProducts').on('change', function() {
+                const isChecked = $(this).prop('checked');
+                $('.product-checkbox').prop('checked', isChecked);
+                updateSelectedProductsForPrint();
+            });
+            
+            // Handle individual product checkbox
+            $('.product-checkbox').on('change', function() {
+                updateSelectedProductsForPrint();
+                
+                // Update select all checkbox state
+                const totalCheckboxes = $('.product-checkbox').length;
+                const checkedCheckboxes = $('.product-checkbox:checked').length;
+                $('#selectAllProducts').prop('checked', totalCheckboxes === checkedCheckboxes);
+            });
+            
+            // Update selected products for print
+            function updateSelectedProductsForPrint() {
+                selectedProductsForPrint = [];
+                $('.product-checkbox:checked').each(function() {
+                    selectedProductsForPrint.push($(this).data('product-id'));
+                });
+                
+                // Update button state and count
+                $('#selectedCount').text(selectedProductsForPrint.length);
+                $('#printSelectedBtn').prop('disabled', selectedProductsForPrint.length === 0);
+            }
+            
+            // Handle print selected button
+            $('#printSelectedBtn').on('click', function() {
+                if (selectedProductsForPrint.length === 0) {
+                    toastr.warning('{{ trans('order::order.please_select_products_to_print') }}');
+                    return;
+                }
+                
+                // Build URL with selected product IDs
+                const productIds = selectedProductsForPrint.join(',');
+                const printUrl = '{{ route("admin.orders.print", $order->id) }}?products=' + productIds;
+                
+                // Open in new window
+                window.open(printUrl, '_blank');
+            });
+            
+            // ===== STAGE MANAGEMENT FUNCTIONALITY =====
+            console.log('Initializing stage management...');
+            
+            // Store all stages data with step values
+            const allStages = @json($orderStages);
+            console.log('All stages:', allStages);
+            
+            // Add step values to stages if not present
+            const STAGE_STEPS = {
+                'new': 1,
+                'in_progress': 2,
+                'deliver': 3,
+                'cancel': 3,
+                'refund': 4
+            };
+            
+            allStages.forEach(stage => {
+                if (!stage.step) {
+                    stage.step = STAGE_STEPS[stage.type] || 0;
+                }
+            });
+            
+            const FINAL_STAGES = ['deliver', 'cancel'];
+            
+            let currentProductId = null;
+            
+            // Handle click on change stage button
+            $('.change-product-stage-btn').on('click', function() {
+                currentProductId = $(this).data('product-id');
+                const currentStageId = $(this).data('current-stage');
+                console.log('Button clicked - Product ID:', currentProductId, 'Current Stage ID:', currentStageId);
+            });
+            
+            // Filter stages based on current stage
+            function getAvailableStages(currentStageId) {
+                const currentStage = allStages.find(s => s.id == currentStageId);
+                const currentType = currentStage ? currentStage.type : null;
+                const currentStep = currentStage ? (currentStage.step || 0) : 0;
+                
+                console.log('Current stage:', currentStage, 'Type:', currentType, 'Step:', currentStep);
+                
+                // If current stage is final, no transitions allowed
+                if (currentType && FINAL_STAGES.includes(currentType)) {
+                    console.log('Current stage is final, no transitions allowed');
+                    return [];
+                }
+                
+                const filtered = allStages.filter(stage => {
+                    // Can't transition to same stage
+                    if (stage.id == currentStageId) return false;
+                    
+                    const newType = stage.type;
+                    const newStep = stage.step || 0;
+                    
+                    // Can always cancel from any non-final stage
+                    if (newType === 'cancel') return true;
+                    
+                    // Can't go backwards
+                    if (newStep < currentStep) return false;
+                    
+                    // Can't skip steps (must go to next step only)
+                    if (newStep > currentStep + 1) return false;
+                    
+                    // Refund only after deliver
+                    if (newType === 'refund' && currentType !== 'deliver') return false;
+                    
+                    return true;
+                });
+                
+                console.log('Available stages after filtering:', filtered);
+                return filtered;
+            }
+            
+            // When modal opens, filter and render available stages
+            $('#changeProductStageModal').on('show.bs.modal', function(e) {
+                console.log('Modal opening...');
+                const button = $(e.relatedTarget);
+                const currentStageId = button.data('current-stage');
+                console.log('Current stage ID from button:', currentStageId);
+                
+                const availableStages = getAvailableStages(currentStageId);
+                
+                if (availableStages.length === 0) {
+                    console.log('No available stages');
+                    $('#productStageSelectContainer').html(`
+                        <div class="alert alert-warning">
+                            <i class="uil uil-exclamation-triangle me-2"></i>
+                            {{ trans('order::order.no_available_stages') }}
+                        </div>
+                    `);
+                    $('#changeProductStageForm button[type="submit"]').prop('disabled', true);
+                    return;
+                }
+                
+                // Render simple select dropdown
+                let selectHtml = `
+                    <div class="form-group">
+                        <label class="il-gray fs-14 fw-500 mb-10 d-block">
+                            {{ trans('order::order.select_new_stage') }}
+                            <span class="text-danger">*</span>
+                        </label>
+                        <select name="stage_id" id="productStageSelect" class="form-control" required>
+                            <option value="">{{ trans('order::order.select_stage') }}</option>
+                `;
+                
+                availableStages.forEach(stage => {
+                    selectHtml += `<option value="${stage.id}">${stage.name}</option>`;
+                });
+                
+                selectHtml += `
+                        </select>
+                    </div>
+                `;
+                
+                console.log('Rendering select HTML');
+                $('#productStageSelectContainer').html(selectHtml);
+                $('#changeProductStageForm button[type="submit"]').prop('disabled', false);
+            });
+            
+            // Handle stage change submission
+            $('#changeProductStageForm').on('submit', function(e) {
+                e.preventDefault();
+                
+                if (!currentProductId) {
+                    toastr.error('{{ trans("order::order.error_updating_stage") }}');
+                    return;
+                }
+                
+                const stageId = $('#productStageSelect').val();
+                if (!stageId) {
+                    toastr.error('{{ trans("order::order.please_select_stage") }}');
+                    return;
+                }
+                
+                const submitBtn = $(this).find('button[type="submit"]');
+                const originalText = submitBtn.html();
+                submitBtn.prop('disabled', true).html('<i class="uil uil-spinner-alt spin me-1"></i>{{ trans("order::order.updating_stage") }}');
+                
+                $.ajax({
+                    url: '{{ route("admin.orders.products.change-stage", ["orderProductId" => "__PRODUCT_ID__"]) }}'.replace('__PRODUCT_ID__', currentProductId),
+                    method: 'POST',
+                    data: {
+                        _token: '{{ csrf_token() }}',
+                        stage_id: stageId
+                    },
+                    success: function(response) {
+                        if (response.status) {
+                            toastr.success(response.message);
+                            
+                            // Check if the new stage is "in_progress"
+                            const newStageType = response.data?.stage?.type;
+                            if (newStageType === 'in_progress') {
+                                // Redirect to allocate page
+                                setTimeout(() => {
+                                    window.location.href = '{{ route("admin.order-fulfillments.show", $order->id) }}';
+                                }, 1000);
+                            } else {
+                                // Reload page to show updated stage
+                                setTimeout(() => {
+                                    window.location.reload();
+                                }, 1000);
+                            }
+                        } else {
+                            toastr.error(response.message || '{{ trans("order::order.error_updating_stage") }}');
+                        }
+                    },
+                    error: function(xhr) {
+                        const errorMessage = xhr.responseJSON?.message || '{{ trans("order::order.error_updating_stage") }}';
+                        toastr.error(errorMessage);
+                    },
+                    complete: function() {
+                        submitBtn.prop('disabled', false).html(originalText);
+                        $('#changeProductStageModal').modal('hide');
+                    }
+                });
+            });
+        });
+    </script>
+    @endif
+    @endpush
 @endsection

@@ -52,7 +52,10 @@ class ProductApiRepository implements ProductApiRepositoryInterface
                     $q->with(['department', 'category', 'subCategory']);
                 },
                 'variants' => function ($q) {
-                    $q->with(['variantConfiguration']);
+                    $q->with([
+                        'variantConfiguration.parent_data.key',
+                        'variantConfiguration.key'
+                    ]);
                 }
             ])
             ->first();
@@ -105,7 +108,11 @@ class ProductApiRepository implements ProductApiRepositoryInterface
                 'vendor',
                 'taxes',
                 'variants' => function ($q) {
-                    $q->with('variantConfiguration', 'stocks');
+                    $q->with([
+                        'variantConfiguration.parent_data.key',
+                        'variantConfiguration.key',
+                        'stocks'
+                    ]);
                 }
             ])
             ->first();
@@ -140,11 +147,18 @@ class ProductApiRepository implements ProductApiRepositoryInterface
                 'translations' => $vendorProduct?->product?->translations->toArray(),
                 'department' => [
                     'id' => $vendorProduct?->product?->department?->id,
+                    'name' => $vendorProduct?->product?->department?->name,
                     'commission' => $vendorProduct?->product?->department?->commission,
                 ],
+                'category' => [
+                    'id' => $vendorProduct?->product?->category?->id,
+                    'name' => $vendorProduct?->product?->category?->name,
+                ],
+                'subCategory' => [
+                    'id' => $vendorProduct?->product?->subCategory?->id,
+                    'name' => $vendorProduct?->product?->subCategory?->name,
+                ],
                 'brand' => $vendorProduct?->product?->brand,
-                'category' => $vendorProduct?->product?->category,
-                'subCategory' => $vendorProduct?->product?->subCategory,
             ],
             'vendor' => [
                 'id' => $vendorProduct?->vendor?->id,
@@ -447,7 +461,12 @@ class ProductApiRepository implements ProductApiRepositoryInterface
                 $subQ->with(['brand', 'department', 'category', 'subCategory']);
             },
             'variants' => function ($subQ) {
-                $subQ->with(['variantConfiguration', 'stocks', 'vendorProduct.vendor']);
+                $subQ->with([
+                    'variantConfiguration.parent_data.key',
+                    'variantConfiguration.key',
+                    'stocks',
+                    'vendorProduct.vendor'
+                ]);
             },
             'taxes'
         ]);
@@ -476,7 +495,11 @@ class ProductApiRepository implements ProductApiRepositoryInterface
             ->with([
                 'vendor',
                 'variants' => function($query) {
-                    $query->with(['stocks.region']);
+                    $query->with([
+                        'stocks.region',
+                        'variantConfiguration.parent_data.key',
+                        'variantConfiguration.key'
+                    ]);
                 }
             ])
             ->withCount('reviews')
@@ -525,17 +548,26 @@ class ProductApiRepository implements ProductApiRepositoryInterface
             ->toArray();
         
         // Get product IDs from vendor products
-        $productIds = \Modules\CatalogManagement\app\Models\VendorProduct::whereIn('id', $vendorProductIds)
-            ->pluck('product_id')
-            ->unique()
-            ->toArray();
+        $productQuery = \Modules\CatalogManagement\app\Models\VendorProduct::whereIn('id', $vendorProductIds);
+        
+        // Filter by brand if provided
+        if (!empty($filters['brand_id'])) {
+            $productQuery->whereHas('product', function ($q) use ($filters) {
+                $q->where('brand_id', $filters['brand_id']);
+            });
+        }
+        
+        $productIds = $productQuery->pluck('product_id')->unique()->toArray();
         
         // Get brands from products
-        $brandIds = Product::whereIn('id', $productIds)
-            ->whereNotNull('brand_id')
-            ->pluck('brand_id')
-            ->unique()
-            ->toArray();
+        $brandQuery = Product::whereIn('id', $productIds)->whereNotNull('brand_id');
+        
+        // If brand_id filter is applied, only return that brand
+        if (!empty($filters['brand_id'])) {
+            $brandQuery->where('brand_id', $filters['brand_id']);
+        }
+        
+        $brandIds = $brandQuery->pluck('brand_id')->unique()->toArray();
         
         $brands = \Modules\CatalogManagement\app\Models\Brand::whereIn('id', $brandIds)
             ->get()
@@ -548,6 +580,17 @@ class ProductApiRepository implements ProductApiRepositoryInterface
                 ];
             })
             ->toArray();
+        
+        // Get variant IDs filtered by brand if needed
+        if (!empty($filters['brand_id'])) {
+            $filteredVendorProductIds = \Modules\CatalogManagement\app\Models\VendorProduct::whereIn('product_id', $productIds)
+                ->pluck('id')
+                ->toArray();
+            
+            $variantIds = \Modules\CatalogManagement\app\Models\VendorProductVariant::whereIn('vendor_product_id', $filteredVendorProductIds)
+                ->pluck('id')
+                ->toArray();
+        }
         
         // Get variant configuration IDs from variants
         $configIds = \Modules\CatalogManagement\app\Models\VendorProductVariant::whereIn('id', $variantIds)
@@ -591,17 +634,26 @@ class ProductApiRepository implements ProductApiRepositoryInterface
             ->toArray();
         
         // Get product IDs from vendor products
-        $productIds = \Modules\CatalogManagement\app\Models\VendorProduct::whereIn('id', $vendorProductIds)
-            ->pluck('product_id')
-            ->unique()
-            ->toArray();
+        $productQuery = \Modules\CatalogManagement\app\Models\VendorProduct::whereIn('id', $vendorProductIds);
+        
+        // Filter by brand if provided
+        if (!empty($filters['brand_id'])) {
+            $productQuery->whereHas('product', function ($q) use ($filters) {
+                $q->where('brand_id', $filters['brand_id']);
+            });
+        }
+        
+        $productIds = $productQuery->pluck('product_id')->unique()->toArray();
         
         // Get brands from products
-        $brandIds = Product::whereIn('id', $productIds)
-            ->whereNotNull('brand_id')
-            ->pluck('brand_id')
-            ->unique()
-            ->toArray();
+        $brandQuery = Product::whereIn('id', $productIds)->whereNotNull('brand_id');
+        
+        // If brand_id filter is applied, only return that brand
+        if (!empty($filters['brand_id'])) {
+            $brandQuery->where('brand_id', $filters['brand_id']);
+        }
+        
+        $brandIds = $brandQuery->pluck('brand_id')->unique()->toArray();
         
         $brands = \Modules\CatalogManagement\app\Models\Brand::whereIn('id', $brandIds)
             ->get()
@@ -614,6 +666,17 @@ class ProductApiRepository implements ProductApiRepositoryInterface
                 ];
             })
             ->toArray();
+        
+        // Get variant IDs filtered by brand if needed
+        if (!empty($filters['brand_id'])) {
+            $filteredVendorProductIds = \Modules\CatalogManagement\app\Models\VendorProduct::whereIn('product_id', $productIds)
+                ->pluck('id')
+                ->toArray();
+            
+            $variantIds = \Modules\CatalogManagement\app\Models\VendorProductVariant::whereIn('vendor_product_id', $filteredVendorProductIds)
+                ->pluck('id')
+                ->toArray();
+        }
         
         // Get variant configuration IDs from variants
         $configIds = \Modules\CatalogManagement\app\Models\VendorProductVariant::whereIn('id', $variantIds)

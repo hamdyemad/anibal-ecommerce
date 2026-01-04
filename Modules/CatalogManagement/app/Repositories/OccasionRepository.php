@@ -20,7 +20,9 @@ class OccasionRepository implements OccasionRepositoryInterface
     {
         $query = Occasion::with([
             'translations', 
-            'occasionProducts.vendorProductVariant.vendorProduct.product'
+            'occasionProducts.vendorProductVariant.vendorProduct.product',
+            'occasionProducts.vendorProductVariant.variantConfiguration.parent_data.key',
+            'occasionProducts.vendorProductVariant.variantConfiguration.key'
         ])
             ->filter($filters)
             ->latest();
@@ -48,6 +50,7 @@ class OccasionRepository implements OccasionRepositoryInterface
                     'vendorProductVariant.vendorProduct.product.mainImage',
                     'vendorProductVariant.vendorProduct.product.translations',
                     'vendorProductVariant.vendorProduct.vendor.logo',
+                    'vendorProductVariant.variantConfiguration.parent_data.key',
                     'vendorProductVariant.variantConfiguration.key'
                 ]);
             },

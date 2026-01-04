@@ -16,13 +16,36 @@ class BundleProductResource extends JsonResource
         // Load the vendor product with its relations if variant is loaded
         $vendorProduct = null;
         if ($this->vendorProductVariant) {
-            $vendorProduct = VendorProduct::with(['product.mainImage', 'product.brand', 'product.department', 'product.category', 'product.subCategory', 'vendor', 'taxes', 'variants'])
+            $vendorProduct = VendorProduct::with([
+                'product.mainImage', 
+                'product.brand', 
+                'product.department', 
+                'product.category', 
+                'product.subCategory', 
+                'vendor', 
+                'taxes', 
+                'variants.variantConfiguration.parent_data.key',
+                'variants.variantConfiguration.key'
+            ])
                 ->withCount('reviews')
                 ->withAvg('reviews', 'star')
                 ->find($this->vendorProductVariant->vendor_product_id);
         }
 
-        return [
+        // Get vendor product data as array
+        $vendorProductData = $vendorProduct ? (new VendorProductResource($vendorProduct))->toArray($request) : [];
+        
+        // Remove keys from vendor product that will be overridden by bundle product data
+        unset(
+            $vendorProductData['id'],
+            $vendorProductData['star'],
+            $vendorProductData['num_of_user_review'],
+            $vendorProductData['created_at'],
+            $vendorProductData['updated_at']
+        );
+
+        // Merge vendor product data first, then bundle product data (bundle data takes precedence)
+        return array_merge($vendorProductData, [
             'id' => $this->id,
             'bundle_id' => $this->bundle_id,
             'vendor_product_id' => $vendorProduct?->id,
@@ -39,13 +62,10 @@ class BundleProductResource extends JsonResource
             'star' => round($vendorProduct?->reviews_avg_star ?? 0, 1),
             'num_of_user_review' => $vendorProduct?->reviews_count ?? 0,
 
-            // Vendor Product Details (using VendorProductResource)
-            'vendor_product' => $vendorProduct ? new VendorProductResource($vendorProduct) : null,
-
             // Vendor Product Variant Details
             'vendor_product_variant' => $this->whenLoaded('vendorProductVariant', function() {
                 return new VendorProductVariantResource($this->vendorProductVariant);
             }),
-        ];
+        ]);
     }
 }

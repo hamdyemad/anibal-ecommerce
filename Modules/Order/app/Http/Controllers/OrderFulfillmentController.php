@@ -21,7 +21,13 @@ class OrderFulfillmentController extends Controller
     ) {
         $this->fulfillmentService = $fulfillmentService;
         $this->stageTransitionService = $stageTransitionService;
-        $this->middleware('can:orders.edit')->only(['show', 'allocate']);
+        // Only vendors can access allocation - admins can only view
+        $this->middleware(function ($request, $next) {
+            if (isAdmin()) {
+                abort(403, 'Only vendors can allocate stock. Admins have view-only access.');
+            }
+            return $next($request);
+        })->only(['show', 'allocate']);
     }
 
     /**

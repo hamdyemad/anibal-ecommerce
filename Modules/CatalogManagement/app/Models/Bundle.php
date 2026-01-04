@@ -167,7 +167,12 @@ class Bundle extends Model
         }
 
         if (!empty($filters['category_id'])) {
-            $query->where('bundle_category_id', $filters['category_id']);
+            $query->where(function ($q) use ($filters) {
+                $q->where('bundle_category_id', $filters['category_id'])
+                  ->orWhereHas('bundleCategory', function ($categoryQuery) use ($filters) {
+                      $categoryQuery->where('slug', $filters['category_id']);
+                  });
+            });
         }
 
         if (!empty($filters['created_from'])) {

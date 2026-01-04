@@ -28,10 +28,18 @@ class ShippingCalculationController extends Controller
         $customerId = auth()->user()->id;
         $customerAddressId = $request->input('customer_address_id');
 
+        \Log::info('Shipping calculation API called', [
+            'customer_id' => $customerId,
+            'customer_address_id' => $customerAddressId,
+            'auth_user' => auth()->user()->email ?? 'N/A',
+        ]);
+
         $result = $this->shippingCalculationService->calculateShippingForCart(
             $customerId,
             $customerAddressId
         );
+
+        \Log::info('Shipping calculation result', $result);
 
         $message = config('responses.success')[app()->getLocale()];
 

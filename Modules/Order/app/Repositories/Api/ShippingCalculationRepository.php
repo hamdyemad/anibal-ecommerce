@@ -6,7 +6,6 @@ use Modules\Order\app\Interfaces\Api\ShippingCalculationRepositoryInterface;
 use Modules\Customer\app\Models\CustomerAddress;
 use Modules\AreaSettings\app\Models\City;
 use Modules\Order\app\Models\Shipping;
-use Modules\SystemSetting\app\Models\SiteInformation;
 use App\Exceptions\OrderException;
 use Illuminate\Support\Facades\Log;
 
@@ -14,8 +13,18 @@ class ShippingCalculationRepository implements ShippingCalculationRepositoryInte
 {
     /**
      * Calculate shipping cost for cart items based on customer address or city
-     * Groups items by department/category/subcategory (based on settings) and city, adds shipping cost once per group
+     * Groups items by type (department/category/subcategory) and city, adds shipping cost once per group
      * Supports both existing customers (with address) and external customers (with city_id)
+     * Returns both total shipping and per-product shipping breakdown
+     * 
+     * Cart items format: [
+     *   'type' => 'department|category|subcategory',
+     *   'type_id' => int,
+     *   'type_name' => string,
+     *   'product_id' => int (vendor_product_id),
+     *   'vendor_id' => int,
+     *   'quantity' => int
+     * ]
      */
     public function calculateShipping($customerId, $customerAddressId, array $cartItems, $cityId = null)
     {
@@ -61,39 +70,24 @@ class ShippingCalculationRepository implements ShippingCalculationRepositoryInte
             throw new OrderException(trans('shipping.address_or_city_required'));
         }
 
-        // Get shipping settings
-        $shippingSettings = SiteInformation::first();
-        
-        // Determine which type to use for grouping based on settings
-        // Priority: departments > subcategories > categories (default)
-        $groupByType = 'category'; // default
-        if ($shippingSettings?->shipping_allow_departments) {
-            $groupByType = 'department';
-        } elseif ($shippingSettings?->shipping_allow_sub_categories) {
-            $groupByType = 'subcategory';
-        } elseif ($shippingSettings?->shipping_allow_categories) {
-            $groupByType = 'category';
-        }
+        // Get type from first cart item (all items should have same type)
+        $groupByType = $cartItems[0]['type'] ?? 'category';
 
         Log::info('Shipping calculation debug', [
             'groupByType' => $groupByType,
-            'settings' => [
-                'allow_departments' => $shippingSettings?->shipping_allow_departments,
-                'allow_categories' => $shippingSettings?->shipping_allow_categories,
-                'allow_sub_categories' => $shippingSettings?->shipping_allow_sub_categories,
-            ],
             'cartItems' => $cartItems,
             'targetCityId' => $targetCityId,
         ]);
 
-        // Group cart items by the appropriate type
-        $itemsByType = $this->groupItemsByType($cartItems, $groupByType);
+        // Group cart items by type_id
+        $itemsByType = $this->groupItemsByTypeId($cartItems);
 
         Log::info('Grouped items', ['itemsByType' => $itemsByType]);
 
         // Calculate shipping for each type-city combination
         $shippingBreakdown = [];
         $totalShippingCost = 0;
+        $productShipping = []; // Per-product shipping costs
 
         foreach ($itemsByType as $typeId => $items) {
             // Get shipping for this type and city
@@ -107,6 +101,29 @@ class ShippingCalculationRepository implements ShippingCalculationRepositoryInte
             ]);
 
             if ($shipping) {
+                $shippingCost = (float) $shipping->cost;
+                $itemsCount = count($items);
+                
+                // Distribute shipping cost equally among products in this group
+                $shippingPerProduct = $itemsCount > 0 ? $shippingCost / $itemsCount : 0;
+                
+                // Assign shipping cost to each product in this group
+                foreach ($items as $item) {
+                    $productId = $item['product_id'] ?? null;
+                    $vendorId = $item['vendor_id'] ?? null;
+                    
+                    if ($productId) {
+                        // Use vendor_product_id as key for per-product shipping
+                        $productShipping[$productId] = [
+                            'vendor_product_id' => $productId,
+                            'vendor_id' => $vendorId,
+                            'shipping_cost' => round($shippingPerProduct, 2),
+                            'type' => $groupByType,
+                            'type_id' => $typeId,
+                        ];
+                    }
+                }
+                
                 $shippingBreakdown[] = [
                     'type' => $groupByType,
                     'type_id' => $typeId,
@@ -115,16 +132,18 @@ class ShippingCalculationRepository implements ShippingCalculationRepositoryInte
                     'city_name' => $cityName,
                     'shipping_id' => $shipping->id,
                     'shipping_name' => $shipping->getTranslation('name', app()->getLocale()),
-                    'cost' => (float) $shipping->cost,
-                    'items_count' => count($items),
+                    'cost' => $shippingCost,
+                    'items_count' => $itemsCount,
+                    'cost_per_product' => round($shippingPerProduct, 2),
                 ];
-                $totalShippingCost += $shipping->cost;
+                $totalShippingCost += $shippingCost;
             }
         }
 
         return [
             'shipping_cost' => (float) $totalShippingCost,
             'breakdown' => $shippingBreakdown,
+            'product_shipping' => $productShipping,
             'address' => $addressInfo
         ];
     }
@@ -134,36 +153,21 @@ class ShippingCalculationRepository implements ShippingCalculationRepositoryInte
      */
     private function findShippingForTypeAndCity($typeId, $cityId, $type)
     {
+        // Query shipping_categories pivot table directly for more reliable results
         $query = Shipping::withoutGlobalScope('country_filter')
             ->where('active', 1)
             ->whereHas('cities', function($q) use ($cityId) {
                 $q->withoutGlobalScope('country_filter')
                   ->where('cities.id', $cityId);
+            })
+            // Join shipping_categories directly to filter by type and type_id
+            ->whereExists(function ($subQuery) use ($typeId, $type) {
+                $subQuery->select(\DB::raw(1))
+                    ->from('shipping_categories')
+                    ->whereColumn('shipping_categories.shipping_id', 'shippings.id')
+                    ->where('shipping_categories.type', $type)
+                    ->where('shipping_categories.type_id', $typeId);
             });
-
-        // Add the appropriate relationship filter based on type
-        // Use the shipping_categories pivot table with type filter
-        switch ($type) {
-            case 'department':
-                $query->whereHas('departments', function($q) use ($typeId) {
-                    $q->withoutGlobalScope('country_filter')
-                      ->where('shipping_categories.type_id', $typeId);
-                });
-                break;
-            case 'subcategory':
-                $query->whereHas('subCategories', function($q) use ($typeId) {
-                    $q->withoutGlobalScope('country_filter')
-                      ->where('shipping_categories.type_id', $typeId);
-                });
-                break;
-            case 'category':
-            default:
-                $query->whereHas('categories', function($q) use ($typeId) {
-                    $q->withoutGlobalScope('country_filter')
-                      ->where('shipping_categories.type_id', $typeId);
-                });
-                break;
-        }
 
         Log::info('Shipping query SQL', ['sql' => $query->toSql(), 'bindings' => $query->getBindings()]);
 
@@ -171,31 +175,14 @@ class ShippingCalculationRepository implements ShippingCalculationRepositoryInte
     }
 
     /**
-     * Group cart items by type (department/category/subcategory)
+     * Group cart items by type_id
      */
-    private function groupItemsByType(array $cartItems, string $type): array
+    private function groupItemsByTypeId(array $cartItems): array
     {
         $grouped = [];
 
         foreach ($cartItems as $item) {
-            $typeId = null;
-            $typeName = null;
-
-            switch ($type) {
-                case 'department':
-                    $typeId = $item['department_id'] ?? null;
-                    $typeName = $item['department_name'] ?? null;
-                    break;
-                case 'subcategory':
-                    $typeId = $item['sub_category_id'] ?? null;
-                    $typeName = $item['sub_category_name'] ?? null;
-                    break;
-                case 'category':
-                default:
-                    $typeId = $item['category_id'] ?? null;
-                    $typeName = $item['category_name'] ?? null;
-                    break;
-            }
+            $typeId = $item['type_id'] ?? null;
 
             if (!$typeId) {
                 continue;
@@ -205,7 +192,6 @@ class ShippingCalculationRepository implements ShippingCalculationRepositoryInte
                 $grouped[$typeId] = [];
             }
 
-            $item['type_name'] = $typeName;
             $grouped[$typeId][] = $item;
         }
 

@@ -21,7 +21,9 @@ class OrderRepository implements OrderRepositoryInterface
     {
         $query = Order::query();
 
-        $query->with(['customer', 'products'])
+        $query->with(['customer', 'products.stage' => function($q) {
+                $q->withoutGlobalScopes();
+            }, 'products.vendorProduct.vendor'])
             ->with(['stage' => function($q) {
                 $q->withoutGlobalScopes();
             }])
@@ -44,6 +46,9 @@ class OrderRepository implements OrderRepositoryInterface
             'products.vendorProduct.taxes',
             'products.vendorProductVariant.variantConfiguration.key', 
             'products.taxes',
+            'products.stage' => function($q) {
+                $q->withoutGlobalScopes();
+            },
             'extraFeesDiscounts'
         ])->with(['stage' => function($q) {
             $q->withoutGlobalScopes();
@@ -259,8 +264,14 @@ class OrderRepository implements OrderRepositoryInterface
      */
     public function syncOrderProducts(Order $order, array $productsData): void
     {
+        // Get default stage (new) for order products
+        $defaultStage = OrderStage::withoutGlobalScopes()
+            ->where('type', 'new')
+            ->first();
+        $defaultStageId = $defaultStage?->id;
+
         foreach ($productsData as $product) {
-            // Create order product with all data
+            // Create order product with all data including shipping_cost and stage_id
             $orderProduct = OrderProduct::create([
                 'order_id' => $order->id,
                 'vendor_product_id' => $product['vendor_product_id'],
@@ -269,6 +280,10 @@ class OrderRepository implements OrderRepositoryInterface
                 'quantity' => $product['quantity'],
                 'price' => $product['price'],
                 'commission' => $product['commission'] ?? 0,
+                'shipping_cost' => $product['shipping_cost'] ?? 0,
+                'stage_id' => $product['stage_id'] ?? $defaultStageId,
+                'occasion_id' => $product['occasion_id'] ?? null,
+                'bundle_id' => $product['bundle_id'] ?? null,
             ]);
 
             // Save translations for product name (EN and AR)
@@ -482,5 +497,136 @@ class OrderRepository implements OrderRepositoryInterface
             // Delete the order
             return $order->delete();
         });
+    }
+
+    /**
+     * Change stage for a specific order product
+     * Vendors can only change stage for their own products
+     *
+     * @param int $orderProductId Order Product ID
+     * @param int $stageId New stage ID
+     * @return OrderProduct
+     * @throws \Exception If stage transition is not allowed or vendor doesn't own the product
+     */
+    public function changeOrderProductStage($orderProductId, $stageId)
+    {
+        return DB::transaction(function () use ($orderProductId, $stageId) {
+            $query = OrderProduct::with(['stage' => function($q) {
+                $q->withoutGlobalScopes();
+            }, 'order']);
+            
+            // If current user is a vendor, only allow access to their own products
+            if (auth()->check() && auth()->user()->isVendor()) {
+                $vendor = auth()->user()->vendorByUser ?? auth()->user()->vendorById;
+                if ($vendor) {
+                    $query->where('vendor_id', $vendor->id);
+                }
+            }
+            
+            $orderProduct = $query->findOrFail($orderProductId);
+            $previousStage = $orderProduct->stage;
+
+            // Fetch the current and new stages (without global scopes to avoid country filtering)
+            $currentStage = $orderProduct->stage ? OrderStage::withoutGlobalScopes()->find($orderProduct->stage_id) : null;
+            $newStage = OrderStage::withoutGlobalScopes()->findOrFail($stageId);
+
+            // Validate stage transition if current stage exists
+            if ($currentStage) {
+                $blockReason = $currentStage->getTransitionBlockReason($newStage);
+                if ($blockReason) {
+                    throw new \Exception($blockReason);
+                }
+            }
+
+            // Update order product stage
+            $orderProduct->update(['stage_id' => $stageId]);
+
+            // Handle stock booking based on stage type
+            $order = $orderProduct->order;
+            
+            // Create stock booking when moving to 'in_progress' stage
+            if ($newStage->type === 'in_progress' || $newStage->slug === 'in-progress') {
+                $this->createStockBookingForOrderProduct($order, $orderProduct);
+            }
+
+            // Release stock booking when product is cancelled
+            if ($newStage->type === 'cancel' || $newStage->slug === 'cancel') {
+                $this->releaseStockBookingForOrderProduct($order, $orderProduct);
+            }
+
+            // Update fulfillment status for this product
+            $this->updateFulfillmentByStageForProduct($orderProduct, $newStage);
+
+            // Dispatch event for accounting processing
+            event(new \Modules\Order\app\Events\OrderProductStageChanged($orderProduct->refresh(), $newStage, $previousStage));
+
+            return $orderProduct;
+        });
+    }
+
+    /**
+     * Create stock booking for a single order product
+     */
+    private function createStockBookingForOrderProduct(Order $order, OrderProduct $orderProduct): void
+    {
+        if ($orderProduct->vendor_product_variant_id) {
+            $existingBooking = StockBooking::where('order_id', $order->id)
+                ->where('order_product_id', $orderProduct->id)
+                ->first();
+
+            if (!$existingBooking) {
+                StockBooking::create([
+                    'order_id' => $order->id,
+                    'order_product_id' => $orderProduct->id,
+                    'vendor_product_variant_id' => $orderProduct->vendor_product_variant_id,
+                    'region_id' => $order->region_id,
+                    'booked_quantity' => $orderProduct->quantity,
+                    'status' => StockBooking::STATUS_BOOKED,
+                    'booked_at' => now(),
+                ]);
+            }
+        }
+    }
+
+    /**
+     * Release stock booking for a single order product
+     */
+    private function releaseStockBookingForOrderProduct(Order $order, OrderProduct $orderProduct): void
+    {
+        $booking = StockBooking::where('order_id', $order->id)
+            ->where('order_product_id', $orderProduct->id)
+            ->where('status', StockBooking::STATUS_BOOKED)
+            ->first();
+
+        if ($booking) {
+            $booking->update([
+                'status' => StockBooking::STATUS_RELEASED,
+            ]);
+        }
+    }
+
+    /**
+     * Update fulfillment status for a single order product based on stage
+     */
+    private function updateFulfillmentByStageForProduct(OrderProduct $orderProduct, $stage): void
+    {
+        $fulfillmentStatus = null;
+
+        switch ($stage->slug) {
+            case 'deliver':
+                $fulfillmentStatus = 'delivered';
+                break;
+            case 'cancel':
+            case 'refund':
+                $fulfillmentStatus = 'cancelled';
+                break;
+            default:
+                $fulfillmentStatus = 'shipped';
+                break;
+        }
+
+        if ($fulfillmentStatus) {
+            $orderProduct->fulfillments()->update(['status' => $fulfillmentStatus]);
+        }
     }
 }

@@ -92,85 +92,6 @@
             </div>
         </div>
 
-        {{-- Vendor Order Product Details Section --}}
-        @if(isset($vendorOrderStats) && $vendorOrderStats)
-        <div class="row mb-25">
-            <div class="col-12">
-                <div class="card border-0 shadow-sm">
-                    <div class="card-header bg-white border-bottom py-3">
-                        <h5 class="mb-0 fw-500">
-                            <i class="uil uil-box me-2"></i>{{ trans('order::order.order_product_details') }}
-                        </h5>
-                    </div>
-                    <div class="card-body">
-                        {{-- Summary Cards --}}
-                        <div class="row mb-4">
-                            <div class="col-md-4">
-                                <div class="p-3 border rounded text-center" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-                                    <div class="text-white">
-                                        <i class="uil uil-shopping-cart" style="font-size: 28px;"></i>
-                                        <h3 class="mb-0 mt-2 text-white">{{ $vendorOrderStats['total_orders'] }}</h3>
-                                        <small>{{ trans('order::order.vendor_total_orders') }}</small>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="p-3 border rounded text-center" style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);">
-                                    <div class="text-white">
-                                        <i class="uil uil-package" style="font-size: 28px;"></i>
-                                        <h3 class="mb-0 mt-2 text-white">{{ $vendorOrderStats['total_products'] }}</h3>
-                                        <small>{{ trans('order::order.vendor_total_products') }}</small>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="p-3 border rounded text-center" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
-                                    <div class="text-white">
-                                        <i class="uil uil-money-bill" style="font-size: 28px;"></i>
-                                        <h3 class="mb-0 mt-2 text-white">{{ $vendorOrderStats['total_delivery_value'] }} {{ currency() }}</h3>
-                                        <small>{{ trans('order::order.vendor_delivery_total') }}</small>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        {{-- Stats by Stage --}}
-                        <h6 class="fw-500 mb-3">
-                            <i class="uil uil-chart-bar me-1"></i>{{ trans('order::order.stats_by_stage') }}
-                        </h6>
-                        <div class="row">
-                            @foreach($vendorOrderStats['stage_stats'] as $stageStat)
-                            <div class="col-md-3 col-sm-6 mb-3">
-                                <div class="p-3 border rounded h-100">
-                                    <div class="d-flex align-items-center mb-2">
-                                        <span class="badge badge-round me-2" style="background-color: {{ $stageStat['stage_color'] }}; color: #fff;">
-                                            {{ $stageStat['stage_name'] }}
-                                        </span>
-                                    </div>
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <div>
-                                            <small class="text-muted d-block">{{ trans('order::order.orders') }}</small>
-                                            <span class="fw-bold">{{ $stageStat['orders_count'] }}</span>
-                                        </div>
-                                        <div>
-                                            <small class="text-muted d-block">{{ trans('order::order.products') }}</small>
-                                            <span class="fw-bold">{{ $stageStat['products_count'] }}</span>
-                                        </div>
-                                        <div>
-                                            <small class="text-muted d-block">{{ trans('order::order.value') }}</small>
-                                            <span class="fw-bold text-success">{{ $stageStat['total_value'] }} {{ currency() }}</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            @endforeach
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        @endif
-
         <div class="row">
             <div class="col-lg-12">
 
@@ -463,17 +384,39 @@
                     }
                 },
                 {
-                    data: 'stage',
-                    name: 'stage',
+                    data: 'product_stages',
+                    name: 'product_stages',
                     orderable: false,
                     searchable: false,
                     render: function(data, type, row) {
                         let html = '';
                         
-                        // Order Stage
-                        const stageName = data?.name || '-';
-                        const stageColor = data?.color || '#6c757d';
-                        html += `<div class="mb-1"><span class="badge badge-round badge-lg" style="background-color: ${stageColor}; color: white;">{{ trans("order::order.stage") }}: ${stageName}</span></div>`;
+                        // Product Stages - group by stage and show count
+                        if (data && data.length > 0) {
+                            // Group stages by stage name
+                            const stageGroups = {};
+                            data.forEach(function(productStage) {
+                                const stageName = productStage?.name || '-';
+                                const stageColor = productStage?.color || '#6c757d';
+                                const stageKey = stageName + '_' + stageColor;
+                                
+                                if (!stageGroups[stageKey]) {
+                                    stageGroups[stageKey] = {
+                                        name: stageName,
+                                        color: stageColor,
+                                        count: 0
+                                    };
+                                }
+                                stageGroups[stageKey].count++;
+                            });
+                            
+                            // Display each unique stage with count
+                            Object.values(stageGroups).forEach(function(stage) {
+                                html += `<div class="mb-1"><span class="badge badge-round badge-lg" style="background-color: ${stage.color}; color: white;">${stage.name} (${stage.count})</span></div>`;
+                            });
+                        } else {
+                            html += `<div class="mb-1"><span class="badge badge-round badge-lg" style="background-color: #6c757d; color: white;">-</span></div>`;
+                        }
                         
                         // Payment Type (Online / COD)
                         const paymentType = row.payment_type || 'cash_on_delivery';
@@ -533,9 +476,16 @@
                         let paymentsUrl =
                             "{{ route('admin.orders.payments', ':id') }}"
                             .replace(':id', row.id);
-                        // Check if stage is delivered, cancelled, or refund
+                        // Check if ALL product stages are in final stages (deliver, cancel, refund)
                         const finalStages = ['deliver', 'cancel', 'refund'];
-                        const isFinalStage = row.stage && finalStages.includes(row.stage.slug);
+                        const isFinalStage = row.product_stages && row.product_stages.length > 0 
+                            ? row.product_stages.every(ps => ps.slug && finalStages.includes(ps.slug))
+                            : false;
+                        
+                        // Check if any product is in progress
+                        const hasInProgressProduct = row.product_stages && row.product_stages.length > 0
+                            ? row.product_stages.some(ps => ps.type === 'in_progress')
+                            : false;
                         
                         // For vendors: check if order belongs exclusively to them
                         const canEditDelete = isVendorUser ? row.is_exclusive_to_vendor : true;
@@ -569,21 +519,7 @@
                                     ` : ''}
                                 @endcan
                                 @if(isAdmin())
-                                    @can('orders.change-stage')
-                                        ${!isFinalStage ? `
-                                        <button type="button"
-                                        class="change-stage btn btn-info table_action_father"
-                                        data-bs-toggle="modal"
-                                        data-bs-target="#changeStageModal"
-                                        data-id="${row.id}"
-                                        data-stage-id="${row.stage?.id || ''}"
-                                        data-stage-type="${row.stage?.type || ''}"
-                                        title="{{ trans('order::order.change_order_stage') }}">
-                                            <i class="uil uil-exchange-alt table_action_icon"></i>
-                                        </button>
-                                        ` : ''}
-                                    @endcan
-                                    ${row.stage?.type === 'in_progress' ? `
+                                    ${hasInProgressProduct ? `
                                     <a href="${'{{ route('admin.order-fulfillments.allocate', ':id') }}'.replace(':id', row.id)}"
                                     class="btn btn-secondary table_action_father"
                                     title="{{ trans('order::order.allocate') }}">

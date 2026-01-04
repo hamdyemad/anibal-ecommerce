@@ -698,11 +698,15 @@
                         });
                         $subtotalBeforeTax = $totalWithTax - $totalTaxes;
                         
+                        // Calculate shipping based on selected products only
+                        $shippingCost = $productsForSummary->sum('shipping_cost');
+                        
                         // Calculate total for vendor or admin
                         if (isset($isVendorUser) && $isVendorUser && isset($vendorProductTotal)) {
-                            $finalTotal = $vendorProductTotal + ($order->shipping ?? 0);
+                            $finalTotal = $vendorProductTotal + $shippingCost;
                         } else {
-                            $finalTotal = $order->total_price;
+                            // For admin: products total + shipping - discounts
+                            $finalTotal = $totalWithTax + $shippingCost - ($order->customer_promo_code_amount ?? 0) - ($order->points_cost ?? 0);
                         }
                     @endphp
                     <div class="summary-row">
@@ -737,10 +741,10 @@
                             <span class="summary-value discount-value">-{{ number_format($order->points_cost, 2) }} {{ currency() }}</span>
                         </div>
                     @endif
-                    @if($order->shipping > 0)
+                    @if($shippingCost > 0)
                         <div class="summary-row">
                             <span class="summary-label">Shipping</span>
-                            <span class="summary-value">{{ number_format($order->shipping, 2) }} {{ currency() }}</span>
+                            <span class="summary-value">{{ number_format($shippingCost, 2) }} {{ currency() }}</span>
                         </div>
                     @endif
                     <div class="summary-row total">

@@ -13,7 +13,14 @@ class OrderQueryAction
     public function handle(array $filters = [])
     {
         $query = Order::where('customer_id', Auth::id())
-            ->with(['stage', 'products', 'products.vendorProduct', 'products.vendorProductVariant'])
+            ->with([
+                'products', 
+                'products.vendorProduct', 
+                'products.vendorProductVariant',
+                'products.stage' => function($q) {
+                    $q->withoutGlobalScopes();
+                }
+            ])
             ->orderBy('created_at', 'desc')
             ->filter($filters);
 

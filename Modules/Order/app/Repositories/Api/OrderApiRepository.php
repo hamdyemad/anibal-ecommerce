@@ -43,6 +43,9 @@ class OrderApiRepository implements OrderApiRepositoryInterface
                 'products.vendorProduct.product',
                 'products.vendorProductVariant',
                 'products.taxes',
+                'products.stage' => function($q) {
+                    $q->withoutGlobalScopes();
+                },
                 'extraFeesDiscounts',
                 'country',
                 'city',

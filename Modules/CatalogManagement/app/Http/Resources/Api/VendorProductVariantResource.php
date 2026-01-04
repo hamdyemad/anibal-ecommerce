@@ -16,24 +16,10 @@ class VendorProductVariantResource extends JsonResource
     {
         $locale = app()->getLocale();
         
-        // Build configuration object
+        // Build configuration object with tree structure
         $configuration = null;
         if ($this->variantConfiguration) {
-            // Get color value - only if type is 'color', use the value field
-            $colorValue = null;
-            if ($this->variantConfiguration->type === 'color') {
-                $colorValue = $this->variantConfiguration->value;
-            }
-            
-            $configuration = [
-                'id' => $this->variantConfiguration->id,
-                'name' => $this->variantConfiguration->getTranslation('name', $locale) ?? $this->variantConfiguration->name ?? $this->variantConfiguration->value,
-                'color' => $colorValue,
-                'key' => $this->variantConfiguration->key ? [
-                    'id' => $this->variantConfiguration->key->id,
-                    'name' => $this->variantConfiguration->key->getTranslation('name', $locale) ?? $this->variantConfiguration->key->name,
-                ] : null,
-            ];
+            $configuration = $this->buildConfigurationTree($this->variantConfiguration, $locale);
         }
         
         return [
@@ -63,6 +49,35 @@ class VendorProductVariantResource extends JsonResource
             'end_at' => $this->discount_end_at,
             'countDown' => $this->discount_end_date ? OfferExpireDateResource::make($this->getRawOriginal('discount_end_date')) : null,
         ];
+    }
+
+    /**
+     * Build configuration tree recursively
+     */
+    private function buildConfigurationTree($configuration, $locale): array
+    {
+        // Get color value - only if type is 'color', use the value field
+        $colorValue = null;
+        if ($configuration->type === 'color') {
+            $colorValue = $configuration->value;
+        }
+        
+        $configData = [
+            'id' => $configuration->id,
+            'name' => $configuration->getTranslation('name', $locale) ?? $configuration->name ?? $configuration->value,
+            'color' => $colorValue,
+            'key' => $configuration->key ? [
+                'id' => $configuration->key->id,
+                'name' => $configuration->key->getTranslation('name', $locale) ?? $configuration->key->name,
+            ] : null,
+        ];
+        
+        // Add parent if exists
+        if ($configuration->parent_id && $configuration->relationLoaded('parent_data') && $configuration->parent_data) {
+            $configData['parent'] = $this->buildConfigurationTree($configuration->parent_data, $locale);
+        }
+        
+        return $configData;
     }
 
     /**

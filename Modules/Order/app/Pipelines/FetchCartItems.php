@@ -57,6 +57,7 @@ class FetchCartItems
             return [
                 'vendor_product_id' => $item->vendor_product_id,
                 'vendor_product_variant_id' => $item->vendor_product_variant_id,
+                'vendor_id' => $item->vendorProduct->vendor_id ?? null,
                 'quantity' => $item->quantity,
                 'category_id' => $item->vendorProduct->product->category_id ?? null,
                 'category_name' => $item->vendorProduct->product->category->name ?? null,

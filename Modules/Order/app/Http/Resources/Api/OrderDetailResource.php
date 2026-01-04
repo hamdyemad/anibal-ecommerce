@@ -30,11 +30,6 @@ class OrderDetailResource extends JsonResource
             ],
             'order_from' => $this->order_from,
             'payment_type' => $this->payment_type,
-            'stage' => [
-                'id' => $this->stage?->id,
-                'name' => $this->stage?->name,
-                'slug' => $this->stage?->slug,
-            ],
             'products' => OrderProductResource::collection($this->whenLoaded('products')),
             'promo' => [
                 'code' => $this->customer_promo_code_title,

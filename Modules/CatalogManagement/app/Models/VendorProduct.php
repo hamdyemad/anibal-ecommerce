@@ -136,11 +136,28 @@ class VendorProduct extends BaseModel
      */
     public function scopePriceRange(Builder $query, $minPrice = null, $maxPrice = null)
     {
-        if ($minPrice || $maxPrice) {
-            $query->whereRaw(
-                '(SELECT MIN(price) FROM vendor_product_variants WHERE vendor_product_id = vendor_products.id) BETWEEN ? AND ?',
-                [$minPrice ?? 0, $maxPrice ?? PHP_INT_MAX]
-            );
+        if ($minPrice !== null || $maxPrice !== null) {
+            $query->where(function($q) use ($minPrice, $maxPrice) {
+                if ($minPrice !== null && $maxPrice !== null) {
+                    // Both min and max provided - check if product has any variant in range
+                    $q->whereRaw(
+                        'EXISTS (SELECT 1 FROM vendor_product_variants WHERE vendor_product_id = vendor_products.id AND price BETWEEN ? AND ?)',
+                        [$minPrice, $maxPrice]
+                    );
+                } elseif ($minPrice !== null) {
+                    // Only min provided - check if product has any variant >= min
+                    $q->whereRaw(
+                        'EXISTS (SELECT 1 FROM vendor_product_variants WHERE vendor_product_id = vendor_products.id AND price >= ?)',
+                        [$minPrice]
+                    );
+                } elseif ($maxPrice !== null) {
+                    // Only max provided - check if product has any variant <= max
+                    $q->whereRaw(
+                        'EXISTS (SELECT 1 FROM vendor_product_variants WHERE vendor_product_id = vendor_products.id AND price <= ?)',
+                        [$maxPrice]
+                    );
+                }
+            });
         }
         return $query;
     }

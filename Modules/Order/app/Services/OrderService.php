@@ -105,6 +105,14 @@ class OrderService
     }
 
     /**
+     * Change stage for a specific order product
+     */
+    public function changeOrderProductStage($orderProductId, $stageId)
+    {
+        return $this->orderRepository->changeOrderProductStage($orderProductId, $stageId);
+    }
+
+    /**
      * Delete an order
      */
     public function deleteOrder($id)
