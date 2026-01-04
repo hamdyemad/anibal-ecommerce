@@ -14,29 +14,29 @@ class OccasionResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        // Filter occasion products - only approved and active
+        $filteredProducts = $this->occasionProducts->filter(function ($occasionProduct) {
+            $vendorProduct = $occasionProduct->vendorProductVariant?->vendorProduct;
+            if (!$vendorProduct) {
+                return false;
+            }
+            return $vendorProduct->status === 'approved' && $vendorProduct->is_active;
+        });
+
         return [
             'id' => $this->id,
-            'vendor_id' => $this->vendor_id,
-            'vendor' => [
-                'id' => $this->vendor?->id,
-                'name' => $this->vendor?->name,
-                'slug' => $this->vendor?->slug,
-            ],
-            'name' => $this->name ?? '',
+            'name' => $this->getTranslation('name', app()->getLocale()) ?? '',
             'title' => $this->getTranslation('title', app()->getLocale()) ?? '',
-            'sub_title' => $this->getTranslation('sub_title', app()->getLocale()) ?? '',
-            'start_date' => $this->start_date?->format('Y-m-d'),
-            'end_date' => $this->end_date?->format('Y-m-d'),
-            'is_active' => $this->is_active,
+            'subtitle' => $this->getTranslation('sub_title', app()->getLocale()) ?? '',
             'slug' => $this->slug,
-
-            // Image
             'image' => $this->attachments()
                 ->where('type', 'image')
                 ->first()?->path ? asset('storage/' . $this->attachments()->where('type', 'image')->first()->path) : null,
-
-            'created_at' => $this->created_at,
-            'updated_at' => $this->updated_at,
+            'status' => (bool) $this->is_active,
+            'start_date' => $this->start_date?->format('d M, Y'),
+            'end_date' => $this->end_date?->format('d M, Y'),
+            'occasionProductsCount' => $filteredProducts->count(),
+            'occasionProducts' => OccasionProductResource::collection($filteredProducts),
         ];
     }
 }

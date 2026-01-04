@@ -5,7 +5,7 @@ namespace Modules\CatalogManagement\app\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Traits\Res;
 use Illuminate\Http\Request;
-use Modules\CatalogManagement\app\Http\Resources\OccasionResource;
+use Modules\CatalogManagement\app\Http\Resources\Api\OccasionResource;
 use Modules\CatalogManagement\app\Services\OccasionService;
 
 class OccasionApiController extends Controller
@@ -47,6 +47,4 @@ class OccasionApiController extends Controller
         $occasion = $this->occasionService->getOccasionById($id, $filters);
         return $this->sendRes(config('responses.success')[app()->getLocale()], true, new OccasionResource($occasion));
     }
-
-
 }
