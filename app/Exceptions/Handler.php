@@ -147,7 +147,8 @@ class Handler extends ExceptionHandler
      */
     private function handleOrderException(OrderException $e)
     {
-        return $this->sendRes($e->getMessage(), false, [], [], 422);
+        $errors = $e->getErrorData();
+        return $this->sendRes($e->getMessage(), false, [], $errors, 422);
     }
 
     /**

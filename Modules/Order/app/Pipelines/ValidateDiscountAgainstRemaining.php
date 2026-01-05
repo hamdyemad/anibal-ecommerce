@@ -66,12 +66,26 @@ class ValidateDiscountAgainstRemaining
                 }
             }
             
+            // Build error data with promo code info
+            $errorData = [
+                'promo_code' => $promoCode ? [
+                    'code' => $promoCode->code ?? null,
+                    'type' => $promoCode->type ?? null,
+                    'value' => $promoCode->value ?? null,
+                    'discount_amount' => number_format($promoDiscount, 2),
+                ] : null,
+                'max_discount' => number_format($bnaiaRemaining, 2),
+                'currency' => $currencyCode,
+            ];
+            
             throw new OrderException(
                 trans('order::order.discount_exceeds_commission', [
                     'total_discount' => number_format($promoDiscount, 2),
                     'max_discount' => number_format($bnaiaRemaining, 2),
                     'currency' => $currencyCode
-                ])
+                ]),
+                null,
+                $errorData
             );
         }
         
