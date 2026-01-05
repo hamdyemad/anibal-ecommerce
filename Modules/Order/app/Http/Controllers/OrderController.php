@@ -140,7 +140,7 @@ class OrderController extends Controller
             // Return raw data - rendering will be handled by DataTables in the view
             $data = [];
             $index = $start + 1; // Start index from the correct offset
-            $currentVendorId = !isAdmin() ? (auth()->user()->vendor?->id ?? null) : null;
+            $currentVendorId = !isAdmin() ? (auth()->user()->vendorByUser?->id ?? auth()->user()->vendorById?->id ?? null) : null;
             $isVendorUser = !isAdmin();
             
             foreach ($orders as $order) {

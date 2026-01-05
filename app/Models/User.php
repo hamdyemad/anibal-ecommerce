@@ -109,6 +109,14 @@ class User extends Authenticatable
 
     public function getVendorAttribute()
     {
+        // Load relationships if not already loaded
+        if (!$this->relationLoaded('vendorByUser')) {
+            $this->load('vendorByUser');
+        }
+        if (!$this->relationLoaded('vendorById')) {
+            $this->load('vendorById');
+        }
+        
         return $this->vendorByUser ?? $this->vendorById;
     }
 
