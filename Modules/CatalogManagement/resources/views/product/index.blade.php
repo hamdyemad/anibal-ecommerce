@@ -360,36 +360,6 @@
                         </select>
                     </div>
 
-                    <div class="form-group mb-3" id="bank-product-group">
-                        <div class="d-flex align-items-center justify-content-between mb-3">
-                            <div>
-                                <label class="form-label il-gray fs-14 fw-500 mb-0">
-                                    {{ __('catalogmanagement::product.assign_to_bank_product') }}
-                                </label>
-                                <small class="text-muted d-block">{{ __('catalogmanagement::product.assign_to_bank_product_hint') }}</small>
-                            </div>
-                            <div class="form-check form-switch form-switch-lg">
-                                <input class="form-check-input" type="checkbox" role="switch" id="bank-product-switch">
-                            </div>
-                        </div>
-
-                        <div id="bank-product-select-group" style="display: none;">
-                            <div class="alert alert-info mb-2">
-                                <i class="uil uil-info-circle me-1"></i>
-                                <span>{{ __('catalogmanagement::product.related_bank_product_message') }}</span>
-                            </div>
-                            <label for="bank-product-select" class="form-label il-gray fs-14 fw-500 align-center">
-                                {{ __('catalogmanagement::product.select_bank_product') }}
-                            </label>
-                            <select class="form-control ih-medium ip-gray radius-xs b-light px-15 form-select select2" id="bank-product-select">
-                                <option value="">{{ __('common.select_option') }}</option>
-                                @foreach ($bankProducts as $item)
-                                    <option value="{{ $item['id'] }}">{{ $item['name'] }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                    </div>
-
                     <div class="form-group" id="rejection-reason-group" style="display: none;">
                         <label for="rejection-reason" class="form-label il-gray fs-14 fw-500 align-center">
                             {{ __('catalogmanagement::product.rejection_reason') }}
@@ -499,7 +469,7 @@
                             }
 
                             // Product Type
-                            const productType = row.product_type === 'bank' ? 'Bank Product' : 'Regular Product';
+                            const productType = row.product_type === 'bank' ? '{{ __("catalogmanagement::product.bank_product") }}' : '{{ __("catalogmanagement::product.regular_product") }}';
                             const typeClass = row.product_type === 'bank' ? 'bg-info' : 'bg-secondary';
                             html += `<div class="mb-2">
                                 <span class="badge ${typeClass} text-white px-2 py-1 rounded-pill fw-bold" style="font-size: 10px;">
@@ -511,7 +481,7 @@
                             // Configuration Type (Simple or Variant)
                             const configurationType = row.configuration_type || 'simple';
                             const configClass = configurationType === 'variants' ? 'bg-warning' : 'bg-success';
-                            const configLabel = configurationType === 'variants' ? 'Variant Product' : 'Simple Product';
+                            const configLabel = configurationType === 'variants' ? '{{ __("catalogmanagement::product.variant_product") }}' : '{{ __("catalogmanagement::product.simple_product") }}';
                             const configIcon = configurationType === 'variants' ? 'uil-layers' : 'uil-package';
                             html += `<div class="mb-2">
                                 <span class="badge badge-round badge-lg ${configClass} text-white px-2 py-1 rounded-pill fw-bold" style="font-size: 10px;">
@@ -917,22 +887,9 @@
             });
 
 
-            // Bank product switch toggle handler
-            $('#bank-product-switch').on('change', function() {
-                if ($(this).is(':checked')) {
-                    $('#bank-product-select-group').slideDown();
-                } else {
-                    $('#bank-product-select-group').slideUp();
-                    // Clear the selection when hiding
-                    $('#bank-product-select').val(null).trigger('change');
-                }
-            });
-
             // Confirm Status Change
             $('#confirmChangeStatusBtn').on('click', function() {
                 const newStatus = $('#product-status').val();
-                const selectedBankProduct = $('#bank-product-select').val();
-                const bankToggleOn = $('#bank-product-switch').is(':checked');
 
                 // Get rejection reason - check if CKEditor is initialized
                 let rejectionReason = '';
@@ -950,8 +907,6 @@
 
                 console.log('Status:', newStatus);
                 console.log('Rejection Reason:', rejectionReason);
-                console.log('Selected Bank Product:', selectedBankProduct);
-                console.log('Bank Toggle On:', bankToggleOn);
 
                 if (!newStatus) {
                     toastr.error('{{ __("catalogmanagement::product.please_select_status") }}');
@@ -972,14 +927,6 @@
                     status: newStatus,
                     rejection_reason: rejectionReason
                 };
-
-                // Add bank product ID if selected, or empty string if toggle is on (to convert to bank)
-                if (selectedBankProduct) {
-                    requestData.bank_product_id = selectedBankProduct;
-                } else if (bankToggleOn) {
-                    // Toggle is on but no bank product selected - convert current product to bank
-                    requestData.bank_product_id = '';
-                }
 
                 $.ajax({
                     url: '{{ route("admin.products.change-status", ":id") }}'.replace(':id', currentProductId),
@@ -1007,27 +954,9 @@
                 });
             });
 
-            // Initialize Select2 when modal is shown
-            $('#modal-change-status').on('shown.bs.modal', function() {
-                const bankSelect = $('#bank-product-select');
-                if (!bankSelect.hasClass('select2-hidden-accessible')) {
-                    bankSelect.select2({
-                        dropdownParent: $('#modal-change-status'),
-                        width: '100%',
-                        placeholder: '{{ __("common.select_option") }}'
-                    });
-                }
-            });
-
             // Reset modal when closed
             $('#modal-change-status').on('hidden.bs.modal', function() {
                 $('#product-status').val('');
-
-                // Reset bank product switch and selection
-                $('#bank-product-switch').prop('checked', false);
-                $('#bank-product-select-group').hide();
-                const bankSelect = $('#bank-product-select');
-                bankSelect.val(null).trigger('change');
 
                 // Clear rejection reason - check if CKEditor is initialized
                 if (typeof CKEDITOR !== 'undefined' && CKEDITOR.instances['rejection-reason']) {
