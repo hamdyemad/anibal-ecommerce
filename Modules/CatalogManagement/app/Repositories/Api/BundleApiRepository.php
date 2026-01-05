@@ -31,9 +31,7 @@ class BundleApiRepository implements BundleRepositoryApiInterface
                 // Only include products where vendor product is active and product is approved
                 $q->whereHas('vendorProductVariant', function ($vpvQuery) {
                     $vpvQuery->whereHas('vendorProduct', function ($vpQuery) {
-                        $vpQuery->where('vendor_products.status', 'active');
-                    })->whereHas('vendorProduct.product', function ($pQuery) {
-                        $pQuery
+                        $vpQuery
                         ->where('vendor_products.status', 'approved')
                         ->where('is_active', '1');
                     });
