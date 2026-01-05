@@ -38,12 +38,11 @@ return [
 
     // Positions
     'positions' => [
-        'header' => 'Header',
-        'footer' => 'Footer',
-        'sidebar' => 'Sidebar',
-        'home_banner' => 'Home Banner',
-        'product_page' => 'Product Page',
-        'category_page' => 'Category Page',
+        'homepage_mid_content_banner' => 'Homepage Mid-Content Banner',
+        'homepage_main_right_banner' => 'Homepage Main Right Banner',
+        'homepage_left_lower_ad_card' => 'Homepage Left Lower Ad Card',
+        'homepage_left_upper_ad_card' => 'Homepage Left Upper Ad Card',
+        'middle_home_ad' => 'Middle Home Ad',
     ],
 
     // Dimensions

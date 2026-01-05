@@ -22,7 +22,7 @@ class AdRequest extends FormRequest
     public function rules(): array
     {
         $rules = [
-            'position' => 'required|in:header,footer,sidebar,home_banner,product_page,category_page',
+            'position' => 'required|string|max:100',
             'type' => 'required|array',
             'type.*' => 'in:mobile,website',
             'link' => 'nullable|url|max:500',

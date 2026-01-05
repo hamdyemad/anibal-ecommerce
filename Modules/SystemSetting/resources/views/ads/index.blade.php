@@ -25,10 +25,6 @@
                     <div class="d-flex justify-content-between align-items-center mb-25">
                         <h4 class="mb-0 fw-500 fw-bold">{{ __('systemsetting::ads.ads_management') }}</h4>
                         <div class="d-flex gap-2">
-                            <a href="{{ route('admin.system-settings.ads.position-settings') }}"
-                                class="btn btn-outline-secondary btn-default btn-squared text-capitalize">
-                                <i class="uil uil-ruler"></i> {{ __('systemsetting::ads.position_settings') }}
-                            </a>
                             @can('ads.create')
                             <a href="{{ route('admin.system-settings.ads.create') }}"
                                 class="btn btn-primary btn-default btn-squared text-capitalize">

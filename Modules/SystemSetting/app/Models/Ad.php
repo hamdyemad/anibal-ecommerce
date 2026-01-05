@@ -57,11 +57,12 @@ class Ad extends Model
     }
 
     /**
-     * Get position label
+     * Get position label (English)
      */
     public function getPositionLabelAttribute()
     {
-        return __('systemsetting::ads.positions.' . $this->position);
+        $positions = self::getPositions();
+        return $positions[$this->position] ?? $this->position;
     }
 
 
@@ -103,66 +104,16 @@ class Ad extends Model
     }
 
     /**
-     * Available positions
+     * Available positions (English labels for API)
      */
     public static function getPositions()
     {
         return [
-            'header' => __('systemsetting::ads.positions.header'),
-            'footer' => __('systemsetting::ads.positions.footer'),
-            'sidebar' => __('systemsetting::ads.positions.sidebar'),
-            'home_banner' => __('systemsetting::ads.positions.home_banner'),
-            'product_page' => __('systemsetting::ads.positions.product_page'),
-            'category_page' => __('systemsetting::ads.positions.category_page'),
+            'homepage_mid_content_banner' => 'Homepage Mid-Content Banner',
+            'homepage_main_right_banner' => 'Homepage Main Right Banner',
+            'homepage_left_lower_ad_card' => 'Homepage Left Lower Ad Card',
+            'homepage_left_upper_ad_card' => 'Homepage Left Upper Ad Card',
+            'middle_home_ad' => 'Middle Home Ad',
         ];
-    }
-
-    /**
-     * Get position dimensions (width x height in pixels)
-     */
-    public static function getPositionDimensions()
-    {
-        // Get from database if available
-        $settings = AdPositionSetting::all()->keyBy('position');
-        
-        $defaults = [
-            'header' => ['width' => 1920, 'height' => 100],
-            'footer' => ['width' => 1920, 'height' => 150],
-            'sidebar' => ['width' => 300, 'height' => 600],
-            'home_banner' => ['width' => 1200, 'height' => 400],
-            'product_page' => ['width' => 728, 'height' => 90],
-            'category_page' => ['width' => 970, 'height' => 250],
-        ];
-
-        $result = [];
-        foreach ($defaults as $key => $default) {
-            $setting = $settings->get($key);
-            $result[$key] = [
-                'width' => $setting?->width ?? $default['width'],
-                'height' => $setting?->height ?? $default['height'],
-            ];
-        }
-
-        return $result;
-    }
-
-    /**
-     * Get positions with dimensions for API/frontend
-     */
-    public static function getPositionsWithDimensions()
-    {
-        $positions = self::getPositions();
-        $dimensions = self::getPositionDimensions();
-        
-        $result = [];
-        foreach ($positions as $key => $name) {
-            $result[$key] = [
-                'name' => $name,
-                'width' => $dimensions[$key]['width'] ?? 0,
-                'height' => $dimensions[$key]['height'] ?? 0,
-            ];
-        }
-        
-        return $result;
     }
 }

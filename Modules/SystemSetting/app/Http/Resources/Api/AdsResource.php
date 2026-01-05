@@ -4,6 +4,7 @@ namespace Modules\SystemSetting\app\Http\Resources\Api;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Modules\SystemSetting\app\Models\Ad;
 
 class AdsResource extends JsonResource
 {
@@ -36,6 +37,10 @@ class AdsResource extends JsonResource
             }
         }
 
+        // Get position label in English
+        $positions = Ad::getPositions();
+        $positionLabel = $positions[$this->position] ?? $this->position;
+
         return [
             'id' => $this->id,
             'title' => $this->title,
@@ -43,7 +48,7 @@ class AdsResource extends JsonResource
             'image' => ($this->image) ? asset('storage/' . $this->image) : '',
             'link' => $this->link,
             'type' => $this->type,
-            'position' => $this->position,
+            'position' => $positionLabel,
             'width' => $width,
             'height' => $height,
             'created_at' => $this->created_at,

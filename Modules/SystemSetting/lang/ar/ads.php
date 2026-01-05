@@ -38,12 +38,11 @@ return [
 
     // Positions
     'positions' => [
-        'header' => 'الرأس',
-        'footer' => 'التذييل',
-        'sidebar' => 'الشريط الجانبي',
-        'home_banner' => 'بانر الصفحة الرئيسية',
-        'product_page' => 'صفحة المنتج',
-        'category_page' => 'صفحة الفئة',
+        'homepage_mid_content_banner' => 'بانر منتصف الصفحة الرئيسية',
+        'homepage_main_right_banner' => 'البانر الرئيسي الأيمن للصفحة الرئيسية',
+        'homepage_left_lower_ad_card' => 'بطاقة الإعلان السفلية اليسرى',
+        'homepage_left_upper_ad_card' => 'بطاقة الإعلان العلوية اليسرى',
+        'middle_home_ad' => 'إعلان منتصف الصفحة الرئيسية',
     ],
 
     // Dimensions
