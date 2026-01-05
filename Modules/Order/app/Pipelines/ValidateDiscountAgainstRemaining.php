@@ -9,14 +9,15 @@ use Illuminate\Support\Facades\Log;
 class ValidateDiscountAgainstRemaining
 {
     /**
-     * Validate that promo code + points discount doesn't exceed Bnaia's commission (remaining).
-     * Bnaia covers the discounts from their commission, so discount cannot exceed commission.
+     * Validate that promo code discount doesn't exceed Bnaia's commission (remaining).
+     * Bnaia covers promo code discounts from their commission, so promo discount cannot exceed commission.
+     * Points are NOT included in this validation as they are customer's earned value, not Bnaia's cost.
      * 
      * Example:
      * - Order total = 4000 EGP
      * - Promo 50% = 2000 EGP discount
      * - Commission 15% = 600 EGP (Bnaia's remaining)
-     * - If discount (2000) > commission (600) → Error
+     * - If promo discount (2000) > commission (600) → Error
      */
     public function handle($payload, Closure $next)
     {
@@ -27,11 +28,9 @@ class ValidateDiscountAgainstRemaining
         $totalProductPrice = $context['total_product_price'] ?? 0; // Price before tax
         $totalTax = $context['total_tax'] ?? 0;
         $totalCommission = $context['total_commission'] ?? 0; // This is Bnaia's commission amount
-        $shipping = (float) ($data['shipping'] ?? 0);
         
-        // Calculate total with shipping (price including tax + shipping)
+        // Calculate total with tax
         $totalWithTax = $totalProductPrice + $totalTax;
-        $totalWithShipping = $totalWithTax + $shipping;
         
         // Get promo code discount
         $promoCode = $context['promo_code'] ?? null;
@@ -44,55 +43,19 @@ class ValidateDiscountAgainstRemaining
             }
         }
         
-        // Get points cost (estimate max points that could be used)
-        $usePoints = filter_var($data['use_point'] ?? false, FILTER_VALIDATE_BOOLEAN);
-        $maxPointsCost = 0;
-        
-        if ($usePoints) {
-            $customerId = $data['selected_customer_id'] ?? null;
-            if ($customerId) {
-                $customer = \Modules\Customer\app\Models\Customer::find($customerId);
-                if ($customer && $customer->country && $customer->country->currency) {
-                    $currencyId = $customer->country->currency->id;
-                    $pointsSetting = \Modules\SystemSetting\app\Models\PointsSetting::where('currency_id', $currencyId)
-                        ->where('is_active', true)
-                        ->first();
-                    
-                    if ($pointsSetting && $pointsSetting->points_value > 0) {
-                        $userPoints = \Modules\SystemSetting\app\Models\UserPoints::where('user_id', $customerId)->first();
-                        if ($userPoints && $userPoints->total_points > 0) {
-                            // Max points cost = available points / points per currency
-                            $maxPointsCost = $userPoints->total_points / $pointsSetting->points_value;
-                            
-                            // Points cost cannot exceed order total after promo discount
-                            $orderTotalAfterPromo = $totalWithShipping - $promoDiscount;
-                            if ($maxPointsCost > $orderTotalAfterPromo) {
-                                $maxPointsCost = $orderTotalAfterPromo;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        
-        // Total discount = promo discount + points cost
-        $totalDiscount = $promoDiscount + $maxPointsCost;
-        
         // Bnaia's remaining is the commission amount
-        // Bnaia covers the discounts from their commission
+        // Bnaia covers the promo discounts from their commission
         $bnaiaRemaining = $totalCommission;
         
         Log::info('ValidateDiscountAgainstRemaining: Checking discount limits', [
-            'total_with_shipping' => $totalWithShipping,
+            'total_with_tax' => $totalWithTax,
             'total_commission' => $totalCommission,
             'bnaia_remaining' => $bnaiaRemaining,
             'promo_discount' => $promoDiscount,
-            'max_points_cost' => $maxPointsCost,
-            'total_discount' => $totalDiscount,
         ]);
         
-        // Validate: total discount should not exceed Bnaia's commission (remaining)
-        if ($totalDiscount > $bnaiaRemaining) {
+        // Validate: promo discount should not exceed Bnaia's commission (remaining)
+        if ($promoDiscount > $bnaiaRemaining) {
             // Get currency for error message
             $currencyCode = 'EGP';
             $customerId = $data['selected_customer_id'] ?? null;
@@ -103,18 +66,32 @@ class ValidateDiscountAgainstRemaining
                 }
             }
             
+            // Build error data with promo code info
+            $errorData = [
+                'promo_code' => $promoCode ? [
+                    'code' => $promoCode->code ?? null,
+                    'type' => $promoCode->type ?? null,
+                    'value' => $promoCode->value ?? null,
+                    'discount_amount' => number_format($promoDiscount, 2),
+                ] : null,
+                'max_discount' => number_format($bnaiaRemaining, 2),
+                'currency' => $currencyCode,
+            ];
+            
             throw new OrderException(
                 trans('order::order.discount_exceeds_commission', [
-                    'total_discount' => number_format($totalDiscount, 2),
+                    'total_discount' => number_format($promoDiscount, 2),
                     'max_discount' => number_format($bnaiaRemaining, 2),
                     'currency' => $currencyCode
-                ])
+                ]),
+                null,
+                $errorData
             );
         }
         
         // Store in context for later use
         $context['bnaia_remaining'] = $bnaiaRemaining;
-        $context['total_discount_amount'] = $totalDiscount;
+        $context['promo_discount_amount'] = $promoDiscount;
         
         return $next([
             'data' => $data,

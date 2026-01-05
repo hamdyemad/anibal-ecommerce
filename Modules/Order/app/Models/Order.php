@@ -275,7 +275,7 @@ class Order extends BaseModel
         if (!empty($filters['stage_id'])) {
             // Check if current user is a vendor
             $isVendorUser = auth()->check() && auth()->user()->isVendor();
-            $currentVendorId = $isVendorUser ? (auth()->user()->vendor?->id ?? null) : null;
+            $currentVendorId = $isVendorUser ? (auth()->user()->vendorByUser?->id ?? auth()->user()->vendorById?->id ?? null) : null;
             
             if ($isVendorUser && $currentVendorId) {
                 // For vendors: filter by vendor_order_stages

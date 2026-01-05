@@ -380,7 +380,7 @@
                     orderable: false,
                     searchable: false,
                     render: function(data) {
-                        return data ? ` ${parseFloat(data).toFixed(2)} {{ currency() }}` : '-';
+                        return (data !== null && data !== undefined && data !== '') ? `${parseFloat(data).toFixed(2)} {{ currency() }}` : '-';
                     }
                 },
                 {
@@ -527,15 +527,6 @@
                                         <i class="uil uil-credit-card table_action_icon"></i>
                                     </a>
                                 ` : ''}
-                                @can('orders.edit')
-                                    ${!isFinalStage && canEditDelete ? `
-                                    <a href="${editUrl}"
-                                    class="edit btn btn-warning table_action_father"
-                                    title="{{ trans('order::order.edit_order') }}">
-                                        <i class="uil uil-edit table_action_icon"></i>
-                                    </a>
-                                    ` : ''}
-                                @endcan
                                 @if(isAdmin())
                                     ${hasInProgressProduct ? `
                                     <a href="${'{{ route('admin.order-fulfillments.allocate', ':id') }}'.replace(':id', row.id)}"
