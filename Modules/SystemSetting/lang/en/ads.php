@@ -46,6 +46,22 @@ return [
         'category_page' => 'Category Page',
     ],
 
+    // Dimensions
+    'recommended_size' => 'Recommended size',
+    'width' => 'Width',
+    'height' => 'Height',
+    'mobile_width' => 'Mobile Width',
+    'mobile_height' => 'Mobile Height',
+    'website_width' => 'Website Width',
+    'website_height' => 'Website Height',
+    'position_settings' => 'Position Settings',
+    'position_settings_description' => 'Configure the recommended image dimensions for each ad position.',
+    'position_dimensions_reference' => 'Position Dimensions Reference',
+    'save_settings' => 'Save Settings',
+    'settings_saved_successfully' => 'Position settings saved successfully',
+    'error_saving_settings' => 'Error saving position settings',
+    'preview' => 'Preview',
+
     // Placeholders
     'search_placeholder' => 'Search by title, subtitle, or link...',
     'position_placeholder' => 'Select Position',
@@ -53,6 +69,12 @@ return [
     'title_placeholder' => 'Enter ad title',
     'subtitle_placeholder' => 'Enter ad subtitle (optional)',
     'select_type' => 'Select platform...',
+    'width_placeholder' => 'Enter width in pixels',
+    'height_placeholder' => 'Enter height in pixels',
+    'mobile_width_placeholder' => 'Enter mobile width',
+    'mobile_height_placeholder' => 'Enter mobile height',
+    'website_width_placeholder' => 'Enter website width',
+    'website_height_placeholder' => 'Enter website height',
 
     // Messages
     'visit_link' => 'Visit Link',

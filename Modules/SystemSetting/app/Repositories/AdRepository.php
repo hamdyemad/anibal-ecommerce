@@ -26,6 +26,10 @@ class AdRepository implements AdRepositoryInterface
                 'position' => $data['position'],
                 'type' => $data['type'],
                 'link' => $data['link'] ?? null,
+                'mobile_width' => $data['mobile_width'] ?? null,
+                'mobile_height' => $data['mobile_height'] ?? null,
+                'website_width' => $data['website_width'] ?? null,
+                'website_height' => $data['website_height'] ?? null,
                 'active' => $data['active'] ?? 1,
             ]);
 
@@ -72,6 +76,10 @@ class AdRepository implements AdRepositoryInterface
                 'position' => $data['position'],
                 'type' => $data['type'],
                 'link' => $data['link'] ?? null,
+                'mobile_width' => $data['mobile_width'] ?? null,
+                'mobile_height' => $data['mobile_height'] ?? null,
+                'website_width' => $data['website_width'] ?? null,
+                'website_height' => $data['website_height'] ?? null,
                 'active' => $data['active'] ?? 1,
             ]);
 

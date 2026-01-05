@@ -78,6 +78,72 @@
                                                 :selected="isset($ad) ? [$ad->position] : []" :placeholder="__('systemsetting::ads.position_placeholder')" :required="true" :multiple="false" />
                                         </div>
 
+                                        {{-- Mobile Dimensions --}}
+                                        <div class="col-md-6 mb-25">
+                                            <div class="form-group">
+                                                <label for="mobile_width" class="form-label">
+                                                    {{ __('systemsetting::ads.mobile_width') }} (px)
+                                                </label>
+                                                <input type="number" name="mobile_width" id="mobile_width"
+                                                    class="form-control ih-medium ip-gray radius-xs b-light px-15 @error('mobile_width') is-invalid @enderror"
+                                                    placeholder="{{ __('systemsetting::ads.mobile_width_placeholder') }}"
+                                                    value="{{ old('mobile_width', isset($ad) ? $ad->mobile_width : '') }}"
+                                                    min="1">
+                                                @error('mobile_width')
+                                                    <div class="text-danger">{{ $message }}</div>
+                                                @enderror
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-6 mb-25">
+                                            <div class="form-group">
+                                                <label for="mobile_height" class="form-label">
+                                                    {{ __('systemsetting::ads.mobile_height') }} (px)
+                                                </label>
+                                                <input type="number" name="mobile_height" id="mobile_height"
+                                                    class="form-control ih-medium ip-gray radius-xs b-light px-15 @error('mobile_height') is-invalid @enderror"
+                                                    placeholder="{{ __('systemsetting::ads.mobile_height_placeholder') }}"
+                                                    value="{{ old('mobile_height', isset($ad) ? $ad->mobile_height : '') }}"
+                                                    min="1">
+                                                @error('mobile_height')
+                                                    <div class="text-danger">{{ $message }}</div>
+                                                @enderror
+                                            </div>
+                                        </div>
+
+                                        {{-- Website Dimensions --}}
+                                        <div class="col-md-6 mb-25">
+                                            <div class="form-group">
+                                                <label for="website_width" class="form-label">
+                                                    {{ __('systemsetting::ads.website_width') }} (px)
+                                                </label>
+                                                <input type="number" name="website_width" id="website_width"
+                                                    class="form-control ih-medium ip-gray radius-xs b-light px-15 @error('website_width') is-invalid @enderror"
+                                                    placeholder="{{ __('systemsetting::ads.website_width_placeholder') }}"
+                                                    value="{{ old('website_width', isset($ad) ? $ad->website_width : '') }}"
+                                                    min="1">
+                                                @error('website_width')
+                                                    <div class="text-danger">{{ $message }}</div>
+                                                @enderror
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-6 mb-25">
+                                            <div class="form-group">
+                                                <label for="website_height" class="form-label">
+                                                    {{ __('systemsetting::ads.website_height') }} (px)
+                                                </label>
+                                                <input type="number" name="website_height" id="website_height"
+                                                    class="form-control ih-medium ip-gray radius-xs b-light px-15 @error('website_height') is-invalid @enderror"
+                                                    placeholder="{{ __('systemsetting::ads.website_height_placeholder') }}"
+                                                    value="{{ old('website_height', isset($ad) ? $ad->website_height : '') }}"
+                                                    min="1">
+                                                @error('website_height')
+                                                    <div class="text-danger">{{ $message }}</div>
+                                                @enderror
+                                            </div>
+                                        </div>
+
                                         {{-- Link --}}
                                         <div class="col-md-6">
                                             <div class="form-group mb-25">
@@ -97,7 +163,7 @@
                                         {{-- Ad Image --}}
                                         <div class="col-md-6">
                                             <x-image-upload id="image" name="image" :label="__('systemsetting::ads.ad_image')"
-                                                :existingImage="isset($ad) && $ad->image ? $ad->image : null" :placeholder="__('systemsetting::ads.ad_image')" :recommendedSize="'Recommended size: 1200x600px'"
+                                                :existingImage="isset($ad) && $ad->image ? $ad->image : null" :placeholder="__('systemsetting::ads.ad_image')"
                                                 aspectRatio="wide" />
                                         </div>
 

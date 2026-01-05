@@ -46,6 +46,22 @@ return [
         'category_page' => 'صفحة الفئة',
     ],
 
+    // Dimensions
+    'recommended_size' => 'الحجم الموصى به',
+    'width' => 'العرض',
+    'height' => 'الارتفاع',
+    'mobile_width' => 'عرض الجوال',
+    'mobile_height' => 'ارتفاع الجوال',
+    'website_width' => 'عرض الموقع',
+    'website_height' => 'ارتفاع الموقع',
+    'position_settings' => 'إعدادات المواضع',
+    'position_settings_description' => 'قم بتكوين أبعاد الصورة الموصى بها لكل موضع إعلان.',
+    'position_dimensions_reference' => 'مرجع أبعاد المواضع',
+    'save_settings' => 'حفظ الإعدادات',
+    'settings_saved_successfully' => 'تم حفظ إعدادات المواضع بنجاح',
+    'error_saving_settings' => 'خطأ في حفظ إعدادات المواضع',
+    'preview' => 'معاينة',
+
     // Placeholders
     'search_placeholder' => 'البحث بالعنوان أو العنوان الفرعي أو الرابط...',
     'position_placeholder' => 'اختر الموضع',
@@ -53,6 +69,12 @@ return [
     'title_placeholder' => 'أدخل عنوان الإعلان',
     'subtitle_placeholder' => 'أدخل العنوان الفرعي للإعلان (اختياري)',
     'select_type' => 'اختر المنصة...',
+    'width_placeholder' => 'أدخل العرض بالبكسل',
+    'height_placeholder' => 'أدخل الارتفاع بالبكسل',
+    'mobile_width_placeholder' => 'أدخل عرض الجوال',
+    'mobile_height_placeholder' => 'أدخل ارتفاع الجوال',
+    'website_width_placeholder' => 'أدخل عرض الموقع',
+    'website_height_placeholder' => 'أدخل ارتفاع الموقع',
 
     // Messages
     'visit_link' => 'زيارة الرابط',

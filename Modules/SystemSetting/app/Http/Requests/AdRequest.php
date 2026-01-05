@@ -26,6 +26,10 @@ class AdRequest extends FormRequest
             'type' => 'required|array',
             'type.*' => 'in:mobile,website',
             'link' => 'nullable|url|max:500',
+            'mobile_width' => 'nullable|integer|min:1|max:10000',
+            'mobile_height' => 'nullable|integer|min:1|max:10000',
+            'website_width' => 'nullable|integer|min:1|max:10000',
+            'website_height' => 'nullable|integer|min:1|max:10000',
             'translations' => 'required|array',
             'translations.*.title' => 'required|string|max:255',
             'translations.*.subtitle' => 'nullable|string|max:500',
@@ -45,6 +49,10 @@ class AdRequest extends FormRequest
         $attributes = [
             'position' => __('systemsetting::ads.position'),
             'link' => __('systemsetting::ads.link'),
+            'mobile_width' => __('systemsetting::ads.mobile_width'),
+            'mobile_height' => __('systemsetting::ads.mobile_height'),
+            'website_width' => __('systemsetting::ads.website_width'),
+            'website_height' => __('systemsetting::ads.website_height'),
             'image' => __('systemsetting::ads.ad_image'),
         ];
 

@@ -33,4 +33,22 @@ class AdApiController extends Controller
         return $this->sendRes(__('main.success'), true, AdsResource::collection($ads));
     }
 
+    /**
+     * Get available ad positions with dimensions
+     */
+    public function positions()
+    {
+        $positions = Ad::getPositionsWithDimensions();
+        
+        $result = collect($positions)->map(function ($data, $key) {
+            return [
+                'key' => $key,
+                'name' => $data['name'],
+                'width' => $data['width'],
+                'height' => $data['height'],
+            ];
+        })->values();
+
+        return $this->sendRes(__('main.success'), true, $result);
+    }
 }

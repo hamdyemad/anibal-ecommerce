@@ -9,6 +9,7 @@ use Illuminate\Support\Str;
 use Modules\SystemSetting\app\Actions\AdAction;
 use Modules\SystemSetting\app\Http\Requests\AdRequest;
 use Modules\SystemSetting\app\Models\Ad;
+use Modules\SystemSetting\app\Models\AdPositionSetting;
 use Modules\SystemSetting\app\Services\AdService;
 use Yajra\DataTables\Facades\DataTables;
 
@@ -289,6 +290,43 @@ class AdController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => __('systemsetting::ads.error_updating_status') . ': ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Show position settings page
+     */
+    public function positionSettings()
+    {
+        $positions = AdPositionSetting::getAllPositions();
+        return view('systemsetting::ads.position-settings', compact('positions'));
+    }
+
+    /**
+     * Update position settings
+     */
+    public function updatePositionSettings(Request $request)
+    {
+        try {
+            $positions = $request->input('positions', []);
+            
+            foreach ($positions as $key => $data) {
+                AdPositionSetting::updatePosition(
+                    $key,
+                    (int) ($data['width'] ?? 0),
+                    (int) ($data['height'] ?? 0)
+                );
+            }
+
+            return response()->json([
+                'status' => true,
+                'message' => __('systemsetting::ads.settings_saved_successfully'),
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => false,
+                'message' => __('systemsetting::ads.error_saving_settings') . ': ' . $e->getMessage(),
             ], 500);
         }
     }

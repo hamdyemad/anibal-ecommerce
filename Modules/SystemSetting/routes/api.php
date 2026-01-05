@@ -18,6 +18,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
 });
 
+Route::get('ads/positions', [AdApiController::class, 'positions']);
 Route::resource('ads', AdApiController::class);
 Route::resource('features', FeatureApiController::class);
 Route::resource('footer-content', FooterContentApiController::class);

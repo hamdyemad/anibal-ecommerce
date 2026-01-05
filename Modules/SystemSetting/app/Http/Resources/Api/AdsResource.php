@@ -22,6 +22,10 @@ class AdsResource extends JsonResource
             'link' => $this->link,
             'type' => $this->type,
             'position' => $this->position,
+            'mobile_width' => $this->mobile_width,
+            'mobile_height' => $this->mobile_height,
+            'website_width' => $this->website_width,
+            'website_height' => $this->website_height,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];
