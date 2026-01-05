@@ -672,12 +672,12 @@ class OrderRepository implements OrderRepositoryInterface
                 ->where('vendor_id', $vendorId)
                 ->get();
             
+            // Get the order for event dispatch
+            $order = Order::findOrFail($orderId);
+            
             // Update stage for all products of this vendor
             foreach ($orderProducts as $orderProduct) {
                 $orderProduct->update(['stage_id' => $stageId]);
-                
-                // Handle stock booking based on stage type
-                $order = $orderProduct->order;
                 
                 // Create stock booking when moving to 'in_progress' stage
                 if ($newStage->type === 'in_progress' || $newStage->slug === 'in-progress') {
@@ -692,6 +692,15 @@ class OrderRepository implements OrderRepositoryInterface
                 // Update fulfillment status for this product
                 $this->updateFulfillmentByStageForProduct($orderProduct, $newStage);
             }
+            
+            // Dispatch event for accounting processing (vendor-specific)
+            event(new \Modules\Order\app\Events\VendorOrderStageChanged(
+                $order->refresh(),
+                $vendorId,
+                $newStage,
+                $previousStage,
+                $vendorOrderStage->refresh()
+            ));
             
             return $vendorOrderStage->refresh();
         });

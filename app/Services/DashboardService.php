@@ -331,7 +331,8 @@ class DashboardService
 
         $monthlyExpenses = Expense::whereBetween('expense_date', [$startOfMonth, $endOfMonth])->sum('amount');
         $monthlyCommission = (clone $AccountingQuery)->whereBetween('created_at', [$startOfMonth, $endOfMonth])->sum('commission_amount');
-        $monthlyProfit = $monthlyIncome - $monthlyExpenses;
+        // Net profit = Income - Commissions - Expenses
+        $monthlyProfit = $monthlyIncome - $monthlyCommission - $monthlyExpenses;
 
         // This Year data
         $startOfYear = $now->copy()->startOfYear();
@@ -341,7 +342,8 @@ class DashboardService
 
         $yearlyExpenses = Expense::whereBetween('expense_date', [$startOfYear, $endOfYear])->sum('amount');
         $yearlyCommission = (clone $AccountingQuery)->whereBetween('created_at', [$startOfYear, $endOfYear])->sum('commission_amount');
-        $yearlyProfit = $yearlyIncome - $yearlyExpenses;
+        // Net profit = Income - Commissions - Expenses
+        $yearlyProfit = $yearlyIncome - $yearlyCommission - $yearlyExpenses;
 
         // Monthly breakdown for chart (current year)
         $monthlyData = [];
@@ -352,11 +354,14 @@ class DashboardService
             $income = (clone $AccountingQuery)->whereBetween('created_at', [$monthStart, $monthEnd])->sum('amount');
 
             $expenses = Expense::whereBetween('expense_date', [$monthStart, $monthEnd])->sum('amount');
+            
+            $commission = (clone $AccountingQuery)->whereBetween('created_at', [$monthStart, $monthEnd])->sum('commission_amount');
 
             $monthlyData[] = [
                 'month' => $month,
                 'income' => $income,
                 'expenses' => $expenses,
+                'commission' => $commission,
             ];
         }
 
@@ -369,11 +374,14 @@ class DashboardService
             $income = (clone $AccountingQuery)->whereDate('created_at', $dayDate)->sum('amount');
 
             $expenses = Expense::whereDate('expense_date', $dayDate)->sum('amount');
+            
+            $commission = (clone $AccountingQuery)->whereDate('created_at', $dayDate)->sum('commission_amount');
 
             $dailyData[] = [
                 'day' => $day,
                 'income' => $income,
                 'expenses' => $expenses,
+                'commission' => $commission,
             ];
         }
 

@@ -30,8 +30,14 @@ class VendorBalanceAction
         $dataPaginated = $this->vendorBalanceService->getAllVendorBalances($filters, $perPage, $page, $orderDirection);
 
         $formattedData = $dataPaginated->map(function ($balance) {
-            // Get order products for this vendor
+            // Get order products for this vendor (only from delivered orders)
+            $deliverStageIds = \Modules\Order\app\Models\OrderStage::withoutGlobalScopes()
+                ->where('type', 'deliver')
+                ->pluck('id')
+                ->toArray();
+            
             $orderProducts = \Modules\Order\app\Models\OrderProduct::where('vendor_id', $balance->vendor_id)
+                ->whereIn('stage_id', $deliverStageIds)
                 ->with(['vendorProduct.product.department'])
                 ->get();
             
@@ -39,26 +45,23 @@ class VendorBalanceAction
             $orderIds = $orderProducts->pluck('order_id')->unique();
             $vendorOrders = \Modules\Order\app\Models\Order::whereIn('id', $orderIds)->get();
 
-            $totalEarnings = $orderProducts->sum(function($p) {
-                return $p->price * $p->quantity;
+            // price already includes (unit_price * quantity), so just sum it
+            $totalEarnings = $orderProducts->sum('price');
+            
+            // Add shipping cost from order products
+            $totalShipping = $orderProducts->sum('shipping_cost');
+            $totalEarningsWithShipping = $totalEarnings + $totalShipping;
+            
+            // Commission calculation - use commission field from order_products
+            $totalCommission = $orderProducts->sum(function($product) {
+                $productTotal = $product->price + ($product->shipping_cost ?? 0);
+                $commissionPercent = $product->commission > 0 
+                    ? $product->commission 
+                    : ($product->vendorProduct?->product?->department?->commission ?? 0);
+                return $productTotal * ($commissionPercent / 100);
             });
             
-            // Commission calculation - group by order to add shipping only once per order
-            $totalCommission = 0;
-            $productsByOrder = $orderProducts->groupBy('order_id');
-            foreach ($productsByOrder as $orderId => $orderProductsGroup) {
-                $order = $vendorOrders->firstWhere('id', $orderId);
-                $shipping = $order ? $order->shipping : 0;
-                $orderProductsTotal = $orderProductsGroup->sum('price');
-                
-                // Get commission percentage from first product's department
-                $commissionPercent = $orderProductsGroup->first()->vendorProduct?->product?->department?->commission ?? 0;
-                
-                // Commission = (products total + shipping) × percentage / 100
-                $totalCommission += (($orderProductsTotal + $shipping) * $commissionPercent) / 100;
-            }
-            
-            $availableBalance = $totalEarnings - $totalCommission;
+            $availableBalance = $totalEarningsWithShipping - $totalCommission;
 
             $totalWithdrawn = $balance->withdraws()->where('status', 'accepted')->sum('sent_amount');
             $actualAvailableBalance = $availableBalance - $totalWithdrawn;
@@ -67,7 +70,7 @@ class VendorBalanceAction
                 'id' => $balance->id,
                 'vendor_name' => $balance->vendor->user->name ?? $balance->vendor->name ?? 'N/A',
                 'vendor_email' => $balance->vendor->user->email ?? $balance->vendor->email ?? 'N/A',
-                'total_earnings' => number_format($totalEarnings, 2) . ' ' . currency(),
+                'total_earnings' => number_format($totalEarningsWithShipping, 2) . ' ' . currency(),
                 'commission_deducted' => number_format($totalCommission, 2) . ' ' . currency(),
                 'available_balance' => number_format($availableBalance, 2) . ' ' . currency(),
                 'total_withdrawn' => number_format($totalWithdrawn, 2) . ' ' . currency(),

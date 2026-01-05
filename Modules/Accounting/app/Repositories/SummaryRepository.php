@@ -40,7 +40,8 @@ class SummaryRepository implements SummaryRepositoryInterface
             'total_commissions' => (clone $query)->income()->sum('commission_amount'),
             'total_refunds' => abs((clone $query)->refund()->sum('amount')),
             'total_withdraws' => $totalWithdraws,
-            'net_profit' => (clone $query)->income()->sum('amount') - $expenseQuery->sum('amount'),
+            // Net profit = Income - Commissions - Expenses (what vendors receive minus platform costs)
+            'net_profit' => (clone $query)->income()->sum('amount') - (clone $query)->income()->sum('commission_amount') - $expenseQuery->sum('amount'),
             'monthly_data' => $monthlyData,
             'expense_categories' => $expenseCategories
         ];

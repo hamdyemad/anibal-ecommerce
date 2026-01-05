@@ -378,14 +378,15 @@
                                                 <td class="fw-bold">{{ __('accounting.net_profit') }}</td>
                                                 @foreach($monthHeaders as $month)
                                                     @php
-                                                        $monthProfit = ($summary['monthly_data'][$month['key']]['income'] ?? 0) + ($summary['monthly_data'][$month['key']]['commissions'] ?? 0) - ($summary['monthly_data'][$month['key']]['expenses'] ?? 0);
+                                                        // Net Profit = Income - Commissions - Expenses
+                                                        $monthProfit = ($summary['monthly_data'][$month['key']]['income'] ?? 0) - ($summary['monthly_data'][$month['key']]['commissions'] ?? 0) - ($summary['monthly_data'][$month['key']]['expenses'] ?? 0);
                                                     @endphp
                                                     <td class="text-center fw-bold {{ $monthProfit >= 0 ? 'text-success' : 'text-danger' }}">
                                                         {{ number_format($monthProfit, 2) }} {{ currency() }}
                                                     </td>
                                                 @endforeach
-                                                <td class="text-center fw-bold {{ ($summary['net_profit'] + $summary['total_commissions']) >= 0 ? 'text-success' : 'text-danger' }}">
-                                                    {{ number_format($summary['net_profit'] + $summary['total_commissions'], 2) }} {{ currency() }}
+                                                <td class="text-center fw-bold {{ $summary['net_profit'] >= 0 ? 'text-success' : 'text-danger' }}">
+                                                    {{ number_format($summary['net_profit'], 2) }} {{ currency() }}
                                                 </td>
                                             </tr>
                                         </tbody>
@@ -455,6 +456,17 @@
                                                 </td>
                                             </tr>
                                             <tr>
+                                                <td class="fw-bold text-info">{{ __('accounting.commissions') }}</td>
+                                                @foreach($monthHeaders as $month)
+                                                    <td class="text-center text-info">
+                                                        -{{ number_format($summary['monthly_data'][$month['key']]['commissions'] ?? 0, 2) }} {{ currency() }}
+                                                    </td>
+                                                @endforeach
+                                                <td class="text-center text-info fw-bold">
+                                                    -{{ number_format($summary['total_commissions'], 2) }} {{ currency() }}
+                                                </td>
+                                            </tr>
+                                            <tr>
                                                 <td class="fw-bold text-danger">{{ __('accounting.operating_expenses') }}</td>
                                                 @foreach($monthHeaders as $month)
                                                     <td class="text-center text-danger">
@@ -469,7 +481,8 @@
                                                 <td class="fw-bold">{{ __('accounting.net_flow') }}</td>
                                                 @foreach($monthHeaders as $month)
                                                     @php
-                                                        $monthFlow = ($summary['monthly_data'][$month['key']]['income'] ?? 0) - ($summary['monthly_data'][$month['key']]['expenses'] ?? 0);
+                                                        // Net Flow = Income - Commissions - Expenses
+                                                        $monthFlow = ($summary['monthly_data'][$month['key']]['income'] ?? 0) - ($summary['monthly_data'][$month['key']]['commissions'] ?? 0) - ($summary['monthly_data'][$month['key']]['expenses'] ?? 0);
                                                     @endphp
                                                     <td class="text-center fw-bold {{ $monthFlow >= 0 ? 'text-success' : 'text-danger' }}">
                                                         {{ number_format($monthFlow, 2) }} {{ currency() }}
@@ -684,7 +697,8 @@
                 incomeData.push(monthlyData[i]?.income || 0);
                 expenseData.push(monthlyData[i]?.expenses || 0);
                 commissionData.push(monthlyData[i]?.commissions || 0);
-                profitData.push((monthlyData[i]?.income || 0) - (monthlyData[i]?.expenses || 0));
+                // Profit = Income - Commissions - Expenses
+                profitData.push((monthlyData[i]?.income || 0) - (monthlyData[i]?.commissions || 0) - (monthlyData[i]?.expenses || 0));
             }
 
             new Chart(ctx, {
@@ -824,16 +838,93 @@
                     orderable: true,
                     searchable: false,
                     render: function(data, type, row) {
-                        return `<span class="fw-bold">${data} {{ currency() }}</span>`;
+                        return `<span class="fw-bold">${parseFloat(data).toFixed(2)} {{ currency() }}</span>`;
                     }
                 }, {
-                    data: 'stage',
-                    name: 'stage',
+                    data: 'product_stages',
+                    name: 'product_stages',
                     orderable: false,
                     searchable: false,
                     render: function(data, type, row) {
-                        if (!data || !data.name) return '-';
-                        return `<span class="badge" style="background-color: ${data.color || '#6c757d'}; color: white;">${data.name}</span>`;
+                        let html = '';
+                        
+                        // For admin: show vendors with their stages
+                        if (!isVendorUser && row.vendors_with_stages && row.vendors_with_stages.length > 0) {
+                            row.vendors_with_stages.forEach(function(vendor) {
+                                const stageName = vendor.stage?.name || '-';
+                                const stageColor = vendor.stage?.color || '#6c757d';
+                                html += `<div class="mb-1 d-flex align-items-center">
+                                    <img src="${vendor.logo_url}" alt="${vendor.name}" style="width: 24px; height: 24px; border-radius: 50%; margin-right: 6px; object-fit: cover;">
+                                    <span class="me-1" style="font-size: 12px; font-weight: 500;">${vendor.name}:</span>
+                                    <span class="badge badge-round" style="background-color: ${stageColor}; color: white; font-size: 11px;">${stageName}</span>
+                                </div>`;
+                            });
+                        } 
+                        // For vendor: show their own stage
+                        else if (isVendorUser && row.vendor_stage) {
+                            const stageName = row.vendor_stage.name || '-';
+                            const stageColor = row.vendor_stage.color || '#6c757d';
+                            html += `<div class="mb-1"><span class="badge badge-round badge-lg" style="background-color: ${stageColor}; color: white;">${stageName}</span></div>`;
+                        }
+                        // Fallback to product stages
+                        else if (data && data.length > 0) {
+                            // Group stages by stage name
+                            const stageGroups = {};
+                            data.forEach(function(productStage) {
+                                const stageName = productStage?.name || '-';
+                                const stageColor = productStage?.color || '#6c757d';
+                                const stageKey = stageName + '_' + stageColor;
+                                
+                                if (!stageGroups[stageKey]) {
+                                    stageGroups[stageKey] = {
+                                        name: stageName,
+                                        color: stageColor,
+                                        count: 0
+                                    };
+                                }
+                                stageGroups[stageKey].count++;
+                            });
+                            
+                            // Display each unique stage with count
+                            Object.values(stageGroups).forEach(function(stage) {
+                                html += `<div class="mb-1"><span class="badge badge-round badge-lg" style="background-color: ${stage.color}; color: white;">${stage.name} (${stage.count})</span></div>`;
+                            });
+                        } else {
+                            html += `<div class="mb-1"><span class="badge badge-round badge-lg" style="background-color: #6c757d; color: white;">-</span></div>`;
+                        }
+                        
+                        // Payment Type (Online / COD)
+                        const paymentType = row.payment_type || 'cash_on_delivery';
+                        const paymentTypeLabel = paymentType === 'online' ? '{{ trans("order::order.online") }}' : '{{ trans("order::order.cod") }}';
+                        const paymentTypeColor = paymentType === 'online' ? '#17a2b8' : '#6c757d';
+                        html += `<div class="mb-1"><span class="badge badge-round" style="background-color: ${paymentTypeColor}; color: white; font-size: 10px;">{{ trans("order::order.order_type") }}: ${paymentTypeLabel}</span></div>`;
+                        
+                        // Payment Status (only for online payments)
+                        if (paymentType === 'online' && row.payment_visa_status) {
+                            let paymentStatusLabel = '';
+                            let paymentStatusColor = '';
+                            switch(row.payment_visa_status) {
+                                case 'success':
+                                    paymentStatusLabel = '{{ trans("order::order.payment_success") }}';
+                                    paymentStatusColor = '#28a745';
+                                    break;
+                                case 'pending':
+                                    paymentStatusLabel = '{{ trans("order::order.payment_pending") }}';
+                                    paymentStatusColor = '#ffc107';
+                                    break;
+                                case 'fail':
+                                case 'failed':
+                                    paymentStatusLabel = '{{ trans("order::order.payment_failed") }}';
+                                    paymentStatusColor = '#dc3545';
+                                    break;
+                                default:
+                                    paymentStatusLabel = row.payment_visa_status;
+                                    paymentStatusColor = '#6c757d';
+                            }
+                            html += `<div><span class="badge badge-round" style="background-color: ${paymentStatusColor}; color: white; font-size: 10px;">{{ trans("order::order.payment_status") }}: ${paymentStatusLabel}</span></div>`;
+                        }
+                        
+                        return html;
                     }
                 }, {
                     data: 'created_at',

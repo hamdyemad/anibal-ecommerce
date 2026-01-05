@@ -321,6 +321,7 @@
             const dailyLabels = incomeExpenseMonthDaily.map(d => d.day);
             const dailyIncome = incomeExpenseMonthDaily.map(d => d.income);
             const dailyExpenses = incomeExpenseMonthDaily.map(d => d.expenses);
+            const dailyCommission = incomeExpenseMonthDaily.map(d => d.commission || 0);
             
             new Chart(monthlyAccountingCtx, {
                 type: 'line',
@@ -342,12 +343,20 @@
                         borderWidth: 2,
                         fill: true,
                         tension: 0.4
+                    }, {
+                        label: '{{ trans("dashboard.commission") }}',
+                        data: dailyCommission.length ? dailyCommission : Array(31).fill(0),
+                        backgroundColor: 'rgba(0, 123, 255, 0.2)',
+                        borderColor: 'rgba(0, 123, 255, 1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
+                    plugins: { legend: { display: true, position: 'top' } },
                     scales: { x: { grid: { display: false } }, y: { beginAtZero: true } }
                 }
             });
@@ -359,6 +368,7 @@
             const monthLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
             const monthlyIncome = incomeExpenseYearMonthly.map(d => d.income);
             const monthlyExpenses = incomeExpenseYearMonthly.map(d => d.expenses);
+            const monthlyCommission = incomeExpenseYearMonthly.map(d => d.commission || 0);
             
             new Chart(yearlyAccountingCtx, {
                 type: 'line',
@@ -380,12 +390,20 @@
                         borderWidth: 2,
                         fill: true,
                         tension: 0.4
+                    }, {
+                        label: '{{ trans("dashboard.commission") }}',
+                        data: monthlyCommission.length ? monthlyCommission : Array(12).fill(0),
+                        backgroundColor: 'rgba(0, 123, 255, 0.2)',
+                        borderColor: 'rgba(0, 123, 255, 1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
+                    plugins: { legend: { display: true, position: 'top' } },
                     scales: { x: { grid: { display: false } }, y: { beginAtZero: true } }
                 }
             });

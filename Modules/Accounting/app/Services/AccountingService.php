@@ -22,6 +22,23 @@ class AccountingService
         }
     }
 
+    /**
+     * Process vendor-specific stage changes
+     * Called when a vendor changes their order stage (not the main order stage)
+     */
+    public function processVendorOrderStageChange(Order $order, int $vendorId, OrderStage $newStage, ?OrderStage $previousStage = null)
+    {
+        // Process delivered vendor orders
+        if ($newStage->type === 'deliver') {
+            $this->processDeliveredVendorOrder($order, $vendorId);
+        }
+
+        // Process refunded vendor orders
+        if ($newStage->type === 'refund') {
+            $this->processRefundedVendorOrder($order, $vendorId);
+        }
+    }
+
     private function processDeliveredOrder(Order $order)
     {
         // Group order products by vendor
@@ -30,31 +47,49 @@ class AccountingService
         foreach ($vendorGroups as $vendorId => $products) {
             if (!$vendorId) continue;
 
-            $vendorTotal = 0;
-            $totalCommissionAmount = 0;
+            // Check if accounting entry already exists for this vendor and order
+            $existingEntry = AccountingEntry::where('order_id', $order->id)
+                ->where('vendor_id', $vendorId)
+                ->where('type', 'income')
+                ->first();
+
+            if ($existingEntry) {
+                // Already processed, skip
+                continue;
+            }
+
             $vendor = $products->first()->vendorProduct?->vendor;
             $vendorNameEn = $vendor?->getTranslation('name', 'en') ?? $vendor?->name ?? 'Unknown';
             $vendorNameAr = $vendor?->getTranslation('name', 'ar') ?? $vendor?->name ?? 'غير معروف';
 
-            $vendorTotal = $products->sum(function($product) {
-                return $product->price * $product->quantity;
-            });
+            // Calculate totals - price already includes (unit_price * quantity)
+            $vendorTotal = $products->sum('price');
+            
+            // Add shipping cost
+            $vendorShipping = $products->sum('shipping_cost');
+            $vendorTotalWithShipping = $vendorTotal + $vendorShipping;
 
+            // Calculate commission on total with shipping
+            // commission field stores the percentage, fallback to department commission
             $totalCommissionAmount = $products->sum(function($product) {
-                return $product->commission * $product->quantity;
+                $productTotal = $product->price + ($product->shipping_cost ?? 0);
+                $commissionPercent = $product->commission > 0 
+                    ? $product->commission 
+                    : ($product->vendorProduct?->product?->department?->commission ?? 0);
+                return $productTotal * ($commissionPercent / 100);
             });
 
-            $vendorAmount = $vendorTotal - $totalCommissionAmount;
+            $vendorAmount = $vendorTotalWithShipping - $totalCommissionAmount;
 
             // Calculate average commission rate for display
-            $avgCommissionRate = $vendorTotal > 0 ? ($totalCommissionAmount / $vendorTotal) * 100 : 0;
+            $avgCommissionRate = $vendorTotalWithShipping > 0 ? ($totalCommissionAmount / $vendorTotalWithShipping) * 100 : 0;
 
             // Create income entry for each vendor
             AccountingEntry::create([
                 'order_id' => $order->id,
                 'vendor_id' => $vendorId,
                 'type' => 'income',
-                'amount' => $vendorTotal,
+                'amount' => $vendorTotalWithShipping,
                 'commission_rate' => $avgCommissionRate,
                 'commission_amount' => $totalCommissionAmount,
                 'vendor_amount' => $vendorAmount,
@@ -82,19 +117,32 @@ class AccountingService
         foreach ($vendorGroups as $vendorId => $products) {
             if (!$vendorId) continue;
 
+            // Check if refund entry already exists
+            $existingRefund = AccountingEntry::where('order_id', $order->id)
+                ->where('vendor_id', $vendorId)
+                ->where('type', 'refund')
+                ->first();
+
+            if ($existingRefund) {
+                // Already processed, skip
+                continue;
+            }
+
             $vendor = $products->first()->vendorProduct?->vendor;
             $vendorNameEn = $vendor?->getTranslation('name', 'en') ?? $vendor?->name ?? 'Unknown';
             $vendorNameAr = $vendor?->getTranslation('name', 'ar') ?? $vendor?->name ?? 'غير معروف';
-            $vendorTotal = $products->sum(function($product) {
-                return $product->price * $product->quantity;
-            });
+            
+            // Calculate total - price already includes (unit_price * quantity)
+            $vendorTotal = $products->sum('price');
+            $vendorShipping = $products->sum('shipping_cost');
+            $vendorTotalWithShipping = $vendorTotal + $vendorShipping;
 
             // Create refund entry for each vendor
             AccountingEntry::create([
                 'order_id' => $order->id,
                 'vendor_id' => $vendorId,
                 'type' => 'refund',
-                'amount' => -$vendorTotal,
+                'amount' => -$vendorTotalWithShipping,
                 'description' => json_encode([
                     'en' => __('accounting.order_refunded_description', ['order_number' => $order->order_number, 'vendor_name' => $vendorNameEn], 'en'),
                     'ar' => __('accounting.order_refunded_description', ['order_number' => $order->order_number, 'vendor_name' => $vendorNameAr], 'ar'),
@@ -119,6 +167,153 @@ class AccountingService
                     -$previousEntry->commission_amount
                 );
             }
+        }
+    }
+
+    /**
+     * Process delivered order for a specific vendor
+     * Called when vendor changes their stage to deliver
+     */
+    private function processDeliveredVendorOrder(Order $order, int $vendorId)
+    {
+        // Check if accounting entry already exists for this vendor and order
+        $existingEntry = AccountingEntry::where('order_id', $order->id)
+            ->where('vendor_id', $vendorId)
+            ->where('type', 'income')
+            ->first();
+
+        if ($existingEntry) {
+            // Already processed, skip
+            return;
+        }
+
+        // Get products for this specific vendor
+        $products = $order->products()
+            ->where('vendor_id', $vendorId)
+            ->with(['vendorProduct.vendor.translations', 'vendorProduct.product.department'])
+            ->get();
+
+        if ($products->isEmpty()) {
+            return;
+        }
+
+        $vendor = $products->first()->vendorProduct?->vendor;
+        $vendorNameEn = $vendor?->getTranslation('name', 'en') ?? $vendor?->name ?? 'Unknown';
+        $vendorNameAr = $vendor?->getTranslation('name', 'ar') ?? $vendor?->name ?? 'غير معروف';
+
+        // Calculate totals - price already includes (unit_price * quantity)
+        $vendorTotal = $products->sum('price');
+        
+        // Add shipping cost
+        $vendorShipping = $products->sum('shipping_cost');
+        $vendorTotalWithShipping = $vendorTotal + $vendorShipping;
+
+        // Calculate commission on total with shipping
+        // commission field stores the percentage, fallback to department commission
+        $totalCommissionAmount = $products->sum(function($product) {
+            $productTotal = $product->price + ($product->shipping_cost ?? 0);
+            $commissionPercent = $product->commission > 0 
+                ? $product->commission 
+                : ($product->vendorProduct?->product?->department?->commission ?? 0);
+            return $productTotal * ($commissionPercent / 100);
+        });
+
+        $vendorAmount = $vendorTotalWithShipping - $totalCommissionAmount;
+
+        // Calculate average commission rate for display
+        $avgCommissionRate = $vendorTotalWithShipping > 0 ? ($totalCommissionAmount / $vendorTotalWithShipping) * 100 : 0;
+
+        // Create income entry for this vendor
+        AccountingEntry::create([
+            'order_id' => $order->id,
+            'vendor_id' => $vendorId,
+            'type' => 'income',
+            'amount' => $vendorTotalWithShipping,
+            'commission_rate' => $avgCommissionRate,
+            'commission_amount' => $totalCommissionAmount,
+            'vendor_amount' => $vendorAmount,
+            'description' => json_encode([
+                'en' => __('accounting.order_delivered_description', ['order_number' => $order->order_number, 'vendor_name' => $vendorNameEn], 'en'),
+                'ar' => __('accounting.order_delivered_description', ['order_number' => $order->order_number, 'vendor_name' => $vendorNameAr], 'ar'),
+            ]),
+            'metadata' => [
+                'order_number' => $order->order_number,
+                'stage_changed_at' => now(),
+                'product_count' => $products->count(),
+                'vendor_stage_change' => true
+            ]
+        ]);
+
+        // Update vendor balance
+        $this->updateVendorBalance($vendorId, $vendorAmount, $totalCommissionAmount);
+    }
+
+    /**
+     * Process refunded order for a specific vendor
+     * Called when vendor changes their stage to refund
+     */
+    private function processRefundedVendorOrder(Order $order, int $vendorId)
+    {
+        // Get products for this specific vendor
+        $products = $order->products()
+            ->where('vendor_id', $vendorId)
+            ->with(['vendorProduct.vendor.translations'])
+            ->get();
+
+        if ($products->isEmpty()) {
+            return;
+        }
+
+        $vendor = $products->first()->vendorProduct?->vendor;
+        $vendorNameEn = $vendor?->getTranslation('name', 'en') ?? $vendor?->name ?? 'Unknown';
+        $vendorNameAr = $vendor?->getTranslation('name', 'ar') ?? $vendor?->name ?? 'غير معروف';
+
+        // Calculate total - price already includes (unit_price * quantity)
+        $vendorTotal = $products->sum('price');
+        $vendorShipping = $products->sum('shipping_cost');
+        $vendorTotalWithShipping = $vendorTotal + $vendorShipping;
+
+        // Check if refund entry already exists
+        $existingRefund = AccountingEntry::where('order_id', $order->id)
+            ->where('vendor_id', $vendorId)
+            ->where('type', 'refund')
+            ->first();
+
+        if ($existingRefund) {
+            // Already processed, skip
+            return;
+        }
+
+        // Create refund entry for this vendor
+        AccountingEntry::create([
+            'order_id' => $order->id,
+            'vendor_id' => $vendorId,
+            'type' => 'refund',
+            'amount' => -$vendorTotalWithShipping,
+            'description' => json_encode([
+                'en' => __('accounting.order_refunded_description', ['order_number' => $order->order_number, 'vendor_name' => $vendorNameEn], 'en'),
+                'ar' => __('accounting.order_refunded_description', ['order_number' => $order->order_number, 'vendor_name' => $vendorNameAr], 'ar'),
+            ]),
+            'metadata' => [
+                'order_number' => $order->order_number,
+                'refunded_at' => now(),
+                'product_count' => $products->count(),
+                'vendor_stage_change' => true
+            ]
+        ]);
+
+        // Reverse vendor balance if it was previously delivered
+        $previousEntry = AccountingEntry::where('order_id', $order->id)
+            ->where('vendor_id', $vendorId)
+            ->where('type', 'income')
+            ->first();
+
+        if ($previousEntry) {
+            $this->updateVendorBalance(
+                $vendorId,
+                -$previousEntry->vendor_amount,
+                -$previousEntry->commission_amount
+            );
         }
     }
 
@@ -155,7 +350,8 @@ class AccountingService
             'total_expenses' => $expenseQuery->sum('amount'),
             'total_commissions' => (clone $query)->income()->sum('commission_amount'),
             'total_refunds' => abs((clone $query)->refund()->sum('amount')),
-            'net_profit' => (clone $query)->income()->sum('amount') - $expenseQuery->sum('amount')
+            // Net profit = Income - Commissions - Expenses
+            'net_profit' => (clone $query)->income()->sum('amount') - (clone $query)->income()->sum('commission_amount') - $expenseQuery->sum('amount')
         ];
     }
 }
