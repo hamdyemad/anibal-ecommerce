@@ -29,7 +29,9 @@ class BundleCategoryApiRepository implements BundleCategoryApiRepositoryInterfac
     public function getBundleCategoryById($id)
     {
         return BundleCategory::with(['translations', 'attachments', 'bundles' => function($q) {
-            $q->approved();
+            $q->active()
+              ->withCount('bundleProducts')
+              ->with(['bundleProducts.vendorProductVariant', 'vendor', 'bundleCategory']);
         }])
         ->withCount('bundles')
         ->where('slug', $id)
