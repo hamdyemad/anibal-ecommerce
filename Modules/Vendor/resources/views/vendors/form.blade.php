@@ -539,14 +539,14 @@
                                                             <span class="text-danger">*</span>
                                                         @endif
                                                     </label>
-                                                    <div style="position: relative;">
+                                                    <div class="password-input-wrapper" style="position: relative;">
                                                         <input type="password" name="password" id="password"
                                                             class="form-control ih-medium ip-gray radius-xs b-light pw-toggle-init @error('password') is-invalid @enderror"
                                                             style="padding-right: 45px;"
                                                             placeholder="{{ app()->getLocale() == 'ar' ? 'أدخل كلمة المرور' : 'Enter password' }}"
                                                             autocomplete="new-password"
                                                             @if (app()->getLocale() == 'ar') dir="rtl" @else dir="ltr" @endif>
-                                                        <span class="toggle-password" data-target="password" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #9299b8; font-size: 18px; z-index: 5;">
+                                                        <span class="toggle-password" data-target="password" style="position: absolute; right: 12px; top: 22px; transform: translateY(-50%); cursor: pointer; color: #9299b8; font-size: 18px; z-index: 5;">
                                                             <i class="uil uil-eye-slash"></i>
                                                         </span>
                                                     </div>
@@ -586,7 +586,7 @@
                                                             <span class="text-danger">*</span>
                                                         @endif
                                                     </label>
-                                                    <div style="position: relative;">
+                                                    <div class="password-input-wrapper" style="position: relative;">
                                                         <input type="password" name="password_confirmation"
                                                             id="password_confirmation"
                                                             class="form-control ih-medium ip-gray radius-xs b-light pw-toggle-init @error('password_confirmation') is-invalid @enderror"
@@ -594,7 +594,7 @@
                                                             placeholder="{{ app()->getLocale() == 'ar' ? 'أعد إدخال كلمة المرور' : 'Confirm password' }}"
                                                             autocomplete="new-password"
                                                             @if (app()->getLocale() == 'ar') dir="rtl" @else dir="ltr" @endif>
-                                                        <span class="toggle-password" data-target="password_confirmation" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #9299b8; font-size: 18px; z-index: 5;">
+                                                        <span class="toggle-password" data-target="password_confirmation" style="position: absolute; right: 12px; top: 22px; transform: translateY(-50%); cursor: pointer; color: #9299b8; font-size: 18px; z-index: 5;">
                                                             <i class="uil uil-eye-slash"></i>
                                                         </span>
                                                     </div>

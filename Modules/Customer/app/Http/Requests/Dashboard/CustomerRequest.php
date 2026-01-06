@@ -34,15 +34,15 @@ class CustomerRequest extends FormRequest
                 Rule::unique('customers', 'email')->ignore($customerId)->whereNull('deleted_at'),
             ],
             'phone' => ['required', 'string', 'max:20', function ($attribute, $value, $fail) {
-                // Get city_id from request to find country's phone_length
-                $cityId = $this->input('city_id');
-                if ($cityId) {
-                    $city = \Modules\AreaSettings\app\Models\City::with('country')->find($cityId);
-                    if ($city && $city->country && $city->country->phone_length) {
+                // Get country from route parameter (countryCode)
+                $countryCode = $this->route('countryCode');
+                if ($countryCode) {
+                    $country = \Modules\AreaSettings\app\Models\Country::where('code', strtoupper($countryCode))->first();
+                    if ($country && $country->phone_length) {
                         $phoneDigits = preg_replace('/\D/', '', $value);
-                        if (strlen($phoneDigits) !== $city->country->phone_length) {
+                        if (strlen($phoneDigits) !== $country->phone_length) {
                             $fail(trans('customer::customer.phone_length_invalid', [
-                                'length' => $city->country->phone_length
+                                'length' => $country->phone_length
                             ]));
                         }
                     }

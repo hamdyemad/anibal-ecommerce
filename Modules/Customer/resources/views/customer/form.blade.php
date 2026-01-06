@@ -99,7 +99,7 @@
                                         <div class="col-md-6">
                                             <div class="form-group mb-25">
                                                 <label for="phone" class="form-label">
-                                                    {{ __('customer::customer.phone') }}
+                                                    {{ __('customer::customer.phone') }} <span class="text-danger">*</span>
                                                 </label>
                                                 <input
                                                     type="text"

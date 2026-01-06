@@ -602,8 +602,12 @@ html[dir="rtl"] {
 /* Global Password Toggle Style */
 .password-toggle-container {
     position: relative;
-    display: block;
+    display: inline-block;
     width: 100%;
+}
+
+.password-toggle-container input {
+    padding-right: 45px !important;
 }
 
 .password-toggle-icon {
@@ -619,10 +623,35 @@ html[dir="rtl"] {
     background: transparent;
     border: none;
     padding: 0;
+    pointer-events: auto;
 
     &:hover {
         color: var(--color-primary);
     }
+}
+
+/* Fix: Calculate icon position based on input height when there's validation error */
+.password-toggle-container input.is-invalid ~ .password-toggle-icon,
+.password-toggle-container input.form-control.is-invalid ~ .password-toggle-icon {
+    top: 22px; /* Half of typical input height (44px) */
+}
+
+/* Global fix for manual toggle-password spans */
+.password-input-wrapper {
+    position: relative;
+    display: inline-block;
+    width: 100%;
+}
+
+.password-input-wrapper .toggle-password {
+    position: absolute;
+    right: 12px;
+    top: 22px !important; /* Fixed position based on input height */
+    transform: translateY(-50%);
+    cursor: pointer;
+    color: #9299b8;
+    font-size: 18px;
+    z-index: 5;
 }
 
 html[dir="rtl"] .password-toggle-icon {

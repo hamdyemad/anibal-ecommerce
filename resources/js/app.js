@@ -53,14 +53,9 @@ function initPasswordToggle() {
 
         // Create a wrapper to ensure the icon is centered RELATIVE TO THE INPUT ONLY
         const wrapper = document.createElement('div');
-        wrapper.className = 'password-toggle-container position-relative w-100';
-        
-        // Transfer input's margin-bottom to wrapper to maintain layout spacing
-        const inputStyle = window.getComputedStyle(input);
-        if (inputStyle.marginBottom !== '0px') {
-            wrapper.style.marginBottom = inputStyle.marginBottom;
-            input.style.marginBottom = '0';
-        }
+        wrapper.className = 'password-toggle-container position-relative';
+        wrapper.style.display = 'inline-block';
+        wrapper.style.width = '100%';
 
         // Insert wrapper before input, then move input inside it
         input.parentNode.insertBefore(wrapper, input);
@@ -69,6 +64,16 @@ function initPasswordToggle() {
         // Create eye icon
         const icon = document.createElement('i');
         icon.className = 'uil uil-eye-slash password-toggle-icon';
+
+        // Position icon based on input height
+        const updateIconPosition = () => {
+            const inputHeight = input.offsetHeight;
+            icon.style.top = (inputHeight / 2) + 'px';
+        };
+
+        // Update position initially and on window resize
+        setTimeout(updateIconPosition, 0);
+        window.addEventListener('resize', updateIconPosition);
 
         // Add click listener
         icon.addEventListener('click', function(e) {
