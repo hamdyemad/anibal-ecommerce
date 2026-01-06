@@ -114,7 +114,7 @@ class CartRepository implements CartRepositoryInterface
 
     /**
      * Get cart summary with totals
-     * Note: Prices already include tax, so we extract the tax from the total
+     * Note: Prices in database are BEFORE tax, so we calculate tax and add it
      */
     public function getCartSummary($customerId)
     {
@@ -129,21 +129,22 @@ class CartRepository implements CartRepositoryInterface
         $totalProductPrice = 0;
 
         foreach ($carts as $cart) {
-            $lineItemTotal = $this->calculateLineItemTotal($cart);
-            $totalPriceWithTax += $lineItemTotal;
-
-            // Price already includes tax, so we need to extract the tax
+            // Get base price (before tax) from database
+            $lineItemTotalBeforeTax = $this->calculateLineItemTotal($cart);
+            
+            // Calculate tax and price with tax
             if ($cart->vendorProduct && $cart->vendorProduct->taxes) {
                 $taxRate = $cart->vendorProduct->taxes->sum('percentage');
-                // Calculate base price: priceWithTax / (1 + taxRate/100)
-                $basePrice = $lineItemTotal / (1 + ($taxRate / 100));
-                $taxAmount = $lineItemTotal - $basePrice;
+                $taxAmount = $lineItemTotalBeforeTax * ($taxRate / 100);
+                $lineItemTotalWithTax = $lineItemTotalBeforeTax + $taxAmount;
                 
                 $totalTaxAmount += $taxAmount;
-                $totalProductPrice += $basePrice;
+                $totalProductPrice += $lineItemTotalBeforeTax;
+                $totalPriceWithTax += $lineItemTotalWithTax;
             } else {
                 // No tax, so the full amount is product price
-                $totalProductPrice += $lineItemTotal;
+                $totalProductPrice += $lineItemTotalBeforeTax;
+                $totalPriceWithTax += $lineItemTotalBeforeTax;
             }
         }
 

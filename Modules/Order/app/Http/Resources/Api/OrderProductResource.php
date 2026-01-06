@@ -14,6 +14,11 @@ class OrderProductResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        // Calculate price before tax from stored taxes
+        $price = (float) $this->price;
+        $taxRate = $this->taxes ? $this->taxes->sum('percentage') : 0;
+        $priceBeforeTax = $taxRate > 0 ? $price / (1 + $taxRate / 100) : $price;
+        
         return [
             'id' => $this->id,
             'vendor_product_id' => $this->vendor_product_id,
@@ -34,11 +39,12 @@ class OrderProductResource extends JsonResource
                 'name' => $this->vendorProductVariant?->{"variant_path_" . app()->getLocale()},
             ],
             'quantity' => $this->quantity,
-            'price' => (float) $this->price,
+            'price_before_taxes' => round($priceBeforeTax, 2),
+            'price' => $price,
             'commission' => (float) $this->commission,
             'shipping_cost' => (float) $this->shipping_cost,
             'taxes' => OrderProductTaxResource::collection($this->whenLoaded('taxes')),
-            'total' => (float) ($this->price * $this->quantity),
+            'total' => round($price * $this->quantity, 2),
         ];
     }
 }

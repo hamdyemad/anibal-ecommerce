@@ -64,7 +64,14 @@ class SimpleProductResource extends JsonResource
                 'id' => $this->product->sub_category_id,
                 'name' => $this->product->subCategory->name ?? null,
             ],
-            'variants' => VendorProductVariantResource::collection($this->whenLoaded('variants')),
+            'variants' => $this->when($this->relationLoaded('variants'), function() {
+                // Set vendorProduct relation on each variant so it can access taxes
+                $variants = $this->variants;
+                foreach ($variants as $variant) {
+                    $variant->setRelation('vendorProduct', $this->resource);
+                }
+                return VendorProductVariantResource::collection($variants);
+            }),
         ];
     }
 }

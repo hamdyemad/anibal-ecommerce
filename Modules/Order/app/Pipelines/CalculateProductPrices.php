@@ -58,21 +58,27 @@ class CalculateProductPrices
                 throw new \Exception(trans('order::order.vendor_id_not_found', ['id' => $vendorProductId]));
             }
 
-            // Price from database includes tax - this is the unit price with tax
+            // Price from database is the base price BEFORE tax
             // Find the correct variant price based on vendor_product_variant_id
-            $priceWithTax = 0;
+            $priceBeforeTax = 0;
             if ($vendorProductVariantId && isset($vendorProduct['variants'])) {
                 // Find the specific variant by ID
                 foreach ($vendorProduct['variants'] as $variant) {
-                    if (isset($variant['id']) && $variant['id'] == $vendorProductVariantId) {
-                        $priceWithTax = (float) ($variant['price'] ?? 0);
+                    // Handle both array and object access
+                    $variantId = is_array($variant) ? ($variant['id'] ?? null) : ($variant->id ?? null);
+                    $variantPrice = is_array($variant) ? ($variant['price'] ?? 0) : ($variant->price ?? 0);
+                    if ($variantId == $vendorProductVariantId) {
+                        $priceBeforeTax = (float) $variantPrice;
                         break;
                     }
                 }
             }
             // Fallback to first variant if no specific variant found
-            if ($priceWithTax == 0 && isset($vendorProduct['variants'][0])) {
-                $priceWithTax = (float) ($vendorProduct['variants'][0]['price'] ?? 0);
+            if ($priceBeforeTax == 0 && isset($vendorProduct['variants'])) {
+                $firstVariant = is_array($vendorProduct['variants']) ? ($vendorProduct['variants'][0] ?? null) : $vendorProduct['variants']->first();
+                if ($firstVariant) {
+                    $priceBeforeTax = (float) (is_array($firstVariant) ? ($firstVariant['price'] ?? 0) : ($firstVariant->price ?? 0));
+                }
             }
             
             // Calculate total tax rate from all taxes and collect tax data
@@ -112,9 +118,9 @@ class CalculateProductPrices
             // Get commission rate from product's department
             $totalCommissionRate = (float) ($vendorProduct['product']['department']['commission'] ?? 0);
 
-            // Calculate price before tax for subtotal calculation
-            // If price is 100 with 10% tax, price before tax = 100 / 1.10 = 90.91
-            $priceBeforeTax = $taxRate > 0 ? $priceWithTax / (1 + $taxRate / 100) : $priceWithTax;
+            // Calculate price with tax
+            // If price is 100 with 10% tax, price with tax = 100 * 1.10 = 110
+            $priceWithTax = $taxRate > 0 ? $priceBeforeTax * (1 + $taxRate / 100) : $priceBeforeTax;
             
             // Product total with tax (for storing in order_products.price)
             $productTotalWithTax = round($priceWithTax * $quantity, 2);

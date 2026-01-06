@@ -467,7 +467,8 @@ class ProductApiRepository implements ProductApiRepositoryInterface
                     'variantConfiguration.parent_data.key',
                     'variantConfiguration.key',
                     'stocks',
-                    'vendorProduct.vendor'
+                    'vendorProduct.vendor',
+                    'vendorProduct.taxes'
                 ]);
             },
             'taxes'

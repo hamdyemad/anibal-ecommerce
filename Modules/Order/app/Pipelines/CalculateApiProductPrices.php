@@ -62,26 +62,36 @@ class CalculateApiProductPrices
 
             // Determine price based on type (bundle/occasion have special pricing)
             // Returns null if not found, or the actual price (which could be 0)
+            // Note: Bundle/occasion prices from cart are already WITH tax (from real_price)
             $bundleOccasionPrice = $this->getPriceFromCart($type, $formProduct, $vendorProductVariantId);
 
-            // Use bundle/occasion price if found, otherwise use variant price
+            // Use bundle/occasion price if found, otherwise calculate from variant price
             if ($bundleOccasionPrice !== null) {
+                // Bundle/occasion prices from cart are already WITH tax
                 $priceWithTax = $bundleOccasionPrice;
             } else {
-                // Find the specific variant price, not just the first one
-                $priceWithTax = 0;
+                // Find the specific variant price (which is BEFORE tax in database)
+                $priceBeforeTaxFromDb = 0;
                 if (!empty($vendorProduct['variants'])) {
                     foreach ($vendorProduct['variants'] as $variant) {
-                        if (($variant['id'] ?? null) == $vendorProductVariantId) {
-                            $priceWithTax = (float) ($variant['price'] ?? 0);
+                        // Handle both array and object access
+                        $variantId = is_array($variant) ? ($variant['id'] ?? null) : ($variant->id ?? null);
+                        $variantPrice = is_array($variant) ? ($variant['price'] ?? 0) : ($variant->price ?? 0);
+                        if ($variantId == $vendorProductVariantId) {
+                            $priceBeforeTaxFromDb = (float) $variantPrice;
                             break;
                         }
                     }
                     // Fallback to first variant if specific variant not found
-                    if (!$priceWithTax) {
-                        $priceWithTax = (float) ($vendorProduct['variants'][0]['price'] ?? 0);
+                    if (!$priceBeforeTaxFromDb) {
+                        $firstVariant = is_array($vendorProduct['variants']) ? ($vendorProduct['variants'][0] ?? null) : $vendorProduct['variants']->first();
+                        if ($firstVariant) {
+                            $priceBeforeTaxFromDb = (float) (is_array($firstVariant) ? ($firstVariant['price'] ?? 0) : ($firstVariant->price ?? 0));
+                        }
                     }
                 }
+                // Calculate price with tax from database price
+                $priceWithTax = $priceBeforeTaxFromDb;
             }
 
             // Calculate total tax rate from all taxes and collect tax data
@@ -121,9 +131,16 @@ class CalculateApiProductPrices
             // Get commission rate from product's department
             $totalCommissionRate = (float) ($vendorProduct['product']['department']['commission'] ?? 0);
 
-            // Calculate price before tax for subtotal calculation
-            // If price is 100 with 10% tax, price before tax = 100 / 1.10 = 90.91
-            $priceBeforeTax = $taxRate > 0 ? $priceWithTax / (1 + $taxRate / 100) : $priceWithTax;
+            // Calculate prices based on whether we have bundle/occasion price or database price
+            if ($bundleOccasionPrice !== null) {
+                // Bundle/occasion prices are already WITH tax
+                // Calculate price before tax for subtotal calculation
+                $priceBeforeTax = $taxRate > 0 ? $priceWithTax / (1 + $taxRate / 100) : $priceWithTax;
+            } else {
+                // Database price is BEFORE tax, calculate price with tax
+                $priceBeforeTax = $priceWithTax; // This is actually before tax from DB
+                $priceWithTax = $taxRate > 0 ? $priceBeforeTax * (1 + $taxRate / 100) : $priceBeforeTax;
+            }
 
             // Product total with tax (for storing in order_products.price)
             $productTotalWithTax = round($priceWithTax * $quantity, 2);

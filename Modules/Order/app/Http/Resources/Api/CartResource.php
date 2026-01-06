@@ -19,6 +19,8 @@ class CartResource extends JsonResource
     public function toArray(Request $request): array
     {
         $limit = $this->limitation();
+        $prices = $this->calculatePrices();
+        
         return [
             'id' => $this->id,
             'quantity' => $this->quantity,
@@ -28,7 +30,8 @@ class CartResource extends JsonResource
             'occasion' => ($this->occasion && $this->type === "occasion") ? new OccasionResource($this->occasion) : null,
             'limitation' => $limit[0],
             'min' => $limit[1],
-            'price' => round($this->price(), 2),
+            'price_before_taxes' => round($prices['before_tax'], 2),
+            'price' => round($prices['after_tax'], 2),
             'taxes' => TaxResource::collection($this->vendorProduct->taxes),
         ];
     }
@@ -53,23 +56,38 @@ class CartResource extends JsonResource
         return [$this->vendorProductVariant->max_per_order, 0];
     }
 
-    private function price()
+    private function calculatePrices()
     {
+        $priceBeforeTax = 0;
+        
         if ($this->type === 'bundle' && $this->bundle_id) {
             // Query database directly to get bundle product price
             $bundleProduct = BundleProduct::where('bundle_id', $this->bundle_id)
                 ->where('vendor_product_variant_id', $this->vendor_product_variant_id)
                 ->first();
-            return $bundleProduct?->price ?? $this->vendorProductVariant->price ?? 0;
-        }
-
-        if ($this->type === 'occasion' && $this->occasion_id) {
+            $priceBeforeTax = $bundleProduct?->price ?? $this->vendorProductVariant->price ?? 0;
+        } elseif ($this->type === 'occasion' && $this->occasion_id) {
             // Query database directly to get occasion product price
             $occasionProduct = \Modules\CatalogManagement\app\Models\OccasionProduct::where('occasion_id', $this->occasion_id)
                 ->where('vendor_product_variant_id', $this->vendor_product_variant_id)
                 ->first();
-            return $occasionProduct?->special_price ?? $this->vendorProductVariant->price ?? 0;
+            $priceBeforeTax = $occasionProduct?->special_price ?? $this->vendorProductVariant->price ?? 0;
+        } else {
+            $priceBeforeTax = $this->vendorProductVariant->price ?? 0;
         }
-        return $this->vendorProductVariant->price ?? 0;
+        
+        // Calculate price with tax
+        $taxRate = $this->vendorProduct && $this->vendorProduct->taxes 
+            ? $this->vendorProduct->taxes->sum('percentage') 
+            : 0;
+        
+        $priceWithTax = $taxRate > 0 
+            ? $priceBeforeTax * (1 + $taxRate / 100) 
+            : $priceBeforeTax;
+        
+        return [
+            'before_tax' => $priceBeforeTax,
+            'after_tax' => $priceWithTax,
+        ];
     }
 }

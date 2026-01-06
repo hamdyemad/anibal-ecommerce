@@ -830,8 +830,8 @@
                                             if (product.variants && product.variants.length > 0) {
                                                 product.variants.forEach(variant => {
                                                     const price = parseFloat(variant.real_price) || 0;
-                                                    // Calculate unit price before tax for display
-                                                    const unitPriceBeforeTax = taxRate > 0 ? price / (1 + taxRate / 100) : price;
+                                                    // Use price_before_taxes from API if available, otherwise calculate
+                                                    const unitPriceBeforeTax = variant.price_before_taxes ? parseFloat(variant.price_before_taxes) : (taxRate > 0 ? price / (1 + taxRate / 100) : price);
                                                     const variantKey = variant.variant_key;
                                                     const variantValue = variant.variant_value;
                                                     const variantName = variantKey ?
