@@ -107,6 +107,10 @@ Route::get('seeder', function () {
         \Modules\Accounting\app\Models\ExpenseItem::query()->forceDelete();
         \Modules\Accounting\app\Models\VendorBalance::query()->forceDelete();
         
+        // Delete user points and transactions
+        \DB::statement('DELETE FROM user_points_transactions');
+        \DB::statement('DELETE FROM user_points');
+        
         \DB::statement('SET FOREIGN_KEY_CHECKS=1;');
         
         try {
