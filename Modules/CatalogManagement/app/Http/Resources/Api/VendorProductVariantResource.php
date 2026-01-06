@@ -18,8 +18,10 @@ class VendorProductVariantResource extends JsonResource
         
         // Build configuration object with tree structure
         $configuration = null;
+        $configurationTree = null;
         if ($this->variantConfiguration) {
             $configuration = $this->buildConfigurationTree($this->variantConfiguration, $locale);
+            $configurationTree = $this->buildFullKeyTree($this->variantConfiguration, $locale);
         }
 
         // Calculate price after taxes
@@ -60,6 +62,7 @@ class VendorProductVariantResource extends JsonResource
             'variant_value' => $this->variantConfiguration ? 
                 ($this->variantConfiguration->getTranslation('name', $locale) ?? ($this->variantConfiguration->name ?? $this->variantConfiguration->value)) : '',
             'configuration' => $configuration,
+            'configuration_tree' => $configurationTree,
             'vendor_name' => $vendorProduct ? 
                 ($vendorProduct->relationLoaded('vendor') && $vendorProduct->vendor ? $vendorProduct->vendor->name : null) : null,
             'price_before_taxes' => $this->formatPrice($priceBeforeTaxes),
@@ -96,9 +99,16 @@ class VendorProductVariantResource extends JsonResource
             ] : null,
         ];
         
-        // Add parent if exists
+        // Add parent if exists (going up the tree)
         if ($configuration->parent_id && $configuration->relationLoaded('parent_data') && $configuration->parent_data) {
             $configData['parent'] = $this->buildConfigurationTree($configuration->parent_data, $locale);
+        }
+        
+        // Add children if exists (going down the tree)
+        if ($configuration->relationLoaded('childrenRecursive') && $configuration->childrenRecursive && $configuration->childrenRecursive->count() > 0) {
+            $configData['children'] = $configuration->childrenRecursive->map(function ($child) use ($locale) {
+                return $this->buildConfigurationTree($child, $locale);
+            })->toArray();
         }
         
         return $configData;
@@ -110,5 +120,82 @@ class VendorProductVariantResource extends JsonResource
     private function formatPrice(float $price): string
     {
         return number_format($price, 2, '.', '');
+    }
+    
+    /**
+     * Build full key tree with all variants and mark selected
+     */
+    private function buildFullKeyTree($configuration, $locale): ?array
+    {
+        if (!$configuration || !$configuration->key) {
+            return null;
+        }
+        
+        $key = $configuration->key;
+        $selectedId = $configuration->id;
+        $selectedPath = $this->getSelectedPath($configuration);
+        
+        // Load all variants under this key
+        $variants = \Modules\CatalogManagement\app\Models\VariantsConfiguration::where('key_id', $key->id)
+            ->whereNull('parent_id')
+            ->with(['childrenRecursive', 'childrenRecursive.key'])
+            ->get();
+        
+        return [
+            'id' => $key->id,
+            'name' => $key->getTranslation('name', $locale) ?? $key->name,
+            'type' => 'key',
+            'selected_variant_id' => $selectedId,
+            'selected_path' => $selectedPath,
+            'children' => $variants->map(function ($variant) use ($locale, $selectedId, $selectedPath) {
+                return $this->buildVariantNode($variant, $locale, $selectedId, $selectedPath);
+            })->toArray(),
+        ];
+    }
+    
+    /**
+     * Build variant node recursively
+     */
+    private function buildVariantNode($variant, $locale, $selectedId, $selectedPath): array
+    {
+        $isSelected = $variant->id === $selectedId || in_array($variant->id, $selectedPath);
+        
+        $children = [];
+        if ($variant->relationLoaded('childrenRecursive') && $variant->childrenRecursive->count() > 0) {
+            $children = $variant->childrenRecursive->map(function ($child) use ($locale, $selectedId, $selectedPath) {
+                return $this->buildVariantNode($child, $locale, $selectedId, $selectedPath);
+            })->toArray();
+        }
+        
+        return [
+            'id' => $variant->id,
+            'name' => $variant->getTranslation('name', $locale) ?? $variant->name ?? $variant->value,
+            'value' => $variant->value,
+            'type' => $variant->type,
+            'color' => $variant->type === 'color' ? $variant->value : null,
+            'key_id' => $variant->key_id,
+            'parent_id' => $variant->parent_id,
+            'is_selected' => $isSelected,
+            'has_children' => count($children) > 0,
+            'children_count' => count($children),
+            'children' => $children,
+        ];
+    }
+    
+    /**
+     * Get selected path (array of IDs from root to selected)
+     */
+    private function getSelectedPath($configuration): array
+    {
+        $path = [$configuration->id];
+        
+        // Walk up the tree to get parent IDs
+        $current = $configuration;
+        while ($current->parent_id && $current->relationLoaded('parent_data') && $current->parent_data) {
+            array_unshift($path, $current->parent_data->id);
+            $current = $current->parent_data;
+        }
+        
+        return $path;
     }
 }

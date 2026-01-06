@@ -32,6 +32,11 @@ class ProductQueryAction
                     if (!empty($filters['max_price'])) {
                         $q->where('price', '<=', $filters['max_price']);
                     }
+                    $q->with([
+                        'variantConfiguration.parent_data.key',
+                        'variantConfiguration.key',
+                        'variantConfiguration.childrenRecursive.key',
+                    ]);
                 },
                 'vendor',
                 'taxes',
