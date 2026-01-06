@@ -23,6 +23,7 @@ class ProductQueryAction
                 'product.brand.translations',
                 'product.translations',
                 'product.mainImage',
+                'product.additionalImages',
                 'variants' => function ($q) use ($filters) {
                     // Filter variants by price range if provided
                     if (!empty($filters['min_price'])) {

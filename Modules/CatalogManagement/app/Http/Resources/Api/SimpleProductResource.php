@@ -33,6 +33,7 @@ class SimpleProductResource extends JsonResource
             'limitation' => $this->max_per_order,
             'status' => $this->is_featured ? __('catalogmanagement::product.featured') : __('catalogmanagement::product.active'),
             'image' => formatImage($this->product->mainImage),
+            'images' => $this->product->additionalImages?->map(fn($img) => formatImage($img))->filter()->values() ?? [],
             'name' => $this->product->title,
             'details' => $this->product->details,
             'summary' => $this->product->summary,

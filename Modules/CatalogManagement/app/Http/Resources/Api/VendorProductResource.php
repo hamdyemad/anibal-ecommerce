@@ -43,6 +43,9 @@ class VendorProductResource extends JsonResource
             'image' => $this->whenLoaded('product', function() {
                 return formatImage($this->product->mainImage);
             }),
+            'images' => $this->whenLoaded('product', function() {
+                return $this->product->additionalImages?->map(fn($img) => formatImage($img))->filter()->values() ?? [];
+            }),
             'name' => $this->product?->title,
             'details' => $this->product?->details,
             'summary' => $this->product?->summary,
