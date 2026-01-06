@@ -26,7 +26,7 @@ class CustomerApiRepository implements CustomerApiRepositoryInterface
 
     public function getByEmail(string $email): ?Customer
     {
-        return Customer::where('email', $email)->first();
+        return Customer::where('email', $email)->withoutCountryFilter()->first();
     }
 
     public function getById(string $id): ?Customer

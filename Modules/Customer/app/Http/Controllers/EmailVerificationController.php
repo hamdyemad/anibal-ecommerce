@@ -17,7 +17,6 @@ class EmailVerificationController
     public function verify($token)
     {
         $result = $this->authService->verifyEmailToken($token);
-
         if (!$result) {
             return redirect()->route('landing')->with('error', __('Invalid or expired verification link.'));
         }

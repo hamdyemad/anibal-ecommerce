@@ -65,7 +65,7 @@ class CustomerAuthService
             $customer = $this->customerRepository->create($data);
 
             // Send OTP after creating customer
-            $this->fireOtpEvent($customer, "email_verification", 10, true);
+            $this->fireOtpEvent($customer, "email_verification", 60, true);
 
             return true;
         });
@@ -108,7 +108,8 @@ class CustomerAuthService
     /**
      * Verify email via token (from email button link)
      */
-    public function verifyEmailToken(string $token): bool
+    public function verifyEmailToken(string $token)
+    : bool
     {
         return DB::transaction(function () use ($token) {
             // Find the OTP record by verification token
@@ -117,17 +118,14 @@ class CustomerAuthService
                 ->where('expires_at', '>', now())
                 ->whereNull('verified_at')
                 ->first();
-
             if (!$otp) {
                 return false;
             }
 
             // Mark OTP as verified
             $otp->markAsVerified();
-
             // Get customer by email
             $customer = $this->customerRepository->getByEmail($otp->email);
-
             if (!$customer || !$customer->status) {
                 return false;
             }
@@ -259,7 +257,7 @@ class CustomerAuthService
         }
 
         if (!$customer->getRawOriginal('email_verified_at')) {
-            $this->fireOtpEvent($customer, "email_verification", 10, true);
+            $this->fireOtpEvent($customer, "email_verification", 60, true);
 
             return [
                 "status" => "not_verified_otp_sent"
