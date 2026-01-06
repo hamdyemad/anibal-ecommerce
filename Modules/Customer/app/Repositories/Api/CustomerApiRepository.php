@@ -174,7 +174,7 @@ class CustomerApiRepository implements CustomerApiRepositoryInterface
 
     public function getProfile(Customer $customer): Customer
     {
-        $customer->load(["addresses"]);
+        $customer->load(["addresses", "country.currency"]);
 
         return $customer;
     }

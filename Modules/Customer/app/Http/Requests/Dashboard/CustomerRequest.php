@@ -33,7 +33,21 @@ class CustomerRequest extends FormRequest
                 'email',
                 Rule::unique('customers', 'email')->ignore($customerId)->whereNull('deleted_at'),
             ],
-            'phone' => 'nullable|string|max:20',
+            'phone' => ['required', 'string', 'max:20', function ($attribute, $value, $fail) {
+                // Get city_id from request to find country's phone_length
+                $cityId = $this->input('city_id');
+                if ($cityId) {
+                    $city = \Modules\AreaSettings\app\Models\City::with('country')->find($cityId);
+                    if ($city && $city->country && $city->country->phone_length) {
+                        $phoneDigits = preg_replace('/\D/', '', $value);
+                        if (strlen($phoneDigits) !== $city->country->phone_length) {
+                            $fail(trans('customer::customer.phone_length_invalid', [
+                                'length' => $city->country->phone_length
+                            ]));
+                        }
+                    }
+                }
+            }],
             'date_of_birth' => 'nullable|date|before:today',
             'gender' => 'required|in:male,female',
             'city_id' => 'required|exists:cities,id',
@@ -64,6 +78,7 @@ class CustomerRequest extends FormRequest
             'email.email' => __('customer::customer.email') . ' ' . __('validation.email'),
             'email.unique' => __('customer::customer.email') . ' ' . __('validation.unique'),
 
+            'phone.required' => __('customer::customer.phone') . ' ' . __('validation.required'),
             'phone.string' => __('customer::customer.phone') . ' ' . __('validation.string'),
             'phone.max' => __('customer::customer.phone') . ' ' . __('validation.max.string', ['max' => 20]),
 
@@ -130,20 +145,6 @@ class CustomerRequest extends FormRequest
 
                 if (!$region) {
                     $validator->errors()->add('region_id', trans('customer::customer.region_must_belong_to_city'));
-                }
-            }
-
-            // Validate phone length against country's phone_length setting
-            if ($this->phone && $this->city_id) {
-                $city = \Modules\AreaSettings\app\Models\City::with('country')->find($this->city_id);
-                if ($city && $city->country && $city->country->phone_length) {
-                    // Remove any non-digit characters for length check
-                    $phoneDigits = preg_replace('/\D/', '', $this->phone);
-                    if (strlen($phoneDigits) !== $city->country->phone_length) {
-                        $validator->errors()->add('phone', trans('customer::customer.phone_length_invalid', [
-                            'length' => $city->country->phone_length
-                        ]));
-                    }
                 }
             }
         });
