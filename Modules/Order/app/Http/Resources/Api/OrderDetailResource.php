@@ -51,7 +51,7 @@ class OrderDetailResource extends JsonResource
             ],
             'pricing' => [
                 'items_count' => $this->items_count,
-                'total_product_price' => (float) $this->total_product_price,
+                'total_product_price' => $this->calculateTotalProductPrice(),
                 'total_tax' => (float) $this->total_tax,
                 'shipping' => (float) $this->shipping,
                 'extra_fees_discounts' => ExtraFeeDiscountResource::collection($this->whenLoaded('extraFeesDiscounts')),
@@ -92,5 +92,25 @@ class OrderDetailResource extends JsonResource
                 'points_share' => (float) ($vendorOrderStage?->points_share ?? 0),
             ];
         })->values()->toArray();
+    }
+    
+    /**
+     * Calculate total product price (price before tax × quantity)
+     */
+    private function calculateTotalProductPrice(): float
+    {
+        $total = 0;
+        
+        foreach ($this->products as $product) {
+            $priceAfterTax = (float) $product->price;
+            $taxPercentage = $product->taxes->sum('percentage');
+            $priceBeforeTax = $taxPercentage > 0 
+                ? $priceAfterTax / (1 + ($taxPercentage / 100))
+                : $priceAfterTax;
+            
+            $total += $priceBeforeTax * $product->quantity;
+        }
+        
+        return round($total, 2);
     }
 }
