@@ -93,7 +93,9 @@ class ProductApiRepository implements ProductApiRepositoryInterface
      */
     public function findProductForOrder(string $id)
     {
-        $vendorProduct = $this->query->handle([])
+        // Query directly without ProductQueryAction filters (active/approved)
+        // to allow checkout for any valid product
+        $vendorProduct = \Modules\CatalogManagement\app\Models\VendorProduct::query()
             ->where('id', $id)
             ->with([
                 'product' => function ($q) {
