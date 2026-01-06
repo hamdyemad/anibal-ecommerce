@@ -709,6 +709,20 @@
                                                                             <i
                                                                                 class="uil uil-money-bill me-1"></i>{{ number_format($variant->price, 2) }} {{ currency() }}
                                                                         </div>
+                                                                        @php
+                                                                            // Calculate price after tax
+                                                                            $priceAfterTax = $variant->price;
+                                                                            if ($product->taxes && $product->taxes->count() > 0) {
+                                                                                $totalTaxPercentage = $product->taxes->sum('percentage');
+                                                                                $priceAfterTax = $variant->price * (1 + ($totalTaxPercentage / 100));
+                                                                            }
+                                                                        @endphp
+                                                                        @if ($product->taxes && $product->taxes->count() > 0)
+                                                                            <div class="fw-bold text-info mt-1">
+                                                                                <small class="text-muted">{{ __('catalogmanagement::product.price_after_tax') ?? 'Price after tax' }}:</small>
+                                                                                <i class="uil uil-receipt me-1"></i>{{ number_format($priceAfterTax, 2) }} {{ currency() }}
+                                                                            </div>
+                                                                        @endif
                                                                         @if ($variant->has_discount && $variant->discount_end_date)
                                                                             <small class="text-muted d-block mt-2">
                                                                                 <i

@@ -21,6 +21,29 @@ class VendorProductVariantResource extends JsonResource
         if ($this->variantConfiguration) {
             $configuration = $this->buildConfigurationTree($this->variantConfiguration, $locale);
         }
+
+        // Calculate price after taxes
+        $priceBeforeTaxes = (float) $this->price;
+        $fakePriceBeforeTaxes = $this->price_before_discount ? (float) $this->price_before_discount : null;
+        $priceAfterTaxes = $priceBeforeTaxes;
+        $fakePriceAfterTaxes = $fakePriceBeforeTaxes;
+        
+        // Get taxes from vendor product - load if not already loaded
+        $vendorProduct = $this->vendorProduct;
+        if (!$vendorProduct && $this->vendor_product_id) {
+            $vendorProduct = \Modules\CatalogManagement\app\Models\VendorProduct::with('taxes')->find($this->vendor_product_id);
+        } elseif ($vendorProduct && !$vendorProduct->relationLoaded('taxes')) {
+            $vendorProduct->load('taxes');
+        }
+        
+        if ($vendorProduct && $vendorProduct->taxes && $vendorProduct->taxes->count() > 0) {
+            $totalTaxPercentage = $vendorProduct->taxes->sum('percentage');
+            $taxMultiplier = 1 + ($totalTaxPercentage / 100);
+            $priceAfterTaxes = $priceBeforeTaxes * $taxMultiplier;
+            if ($fakePriceBeforeTaxes) {
+                $fakePriceAfterTaxes = $fakePriceBeforeTaxes * $taxMultiplier;
+            }
+        }
         
         return [
             'id' => $this->id,
@@ -37,10 +60,11 @@ class VendorProductVariantResource extends JsonResource
             'variant_value' => $this->variantConfiguration ? 
                 ($this->variantConfiguration->getTranslation('name', $locale) ?? ($this->variantConfiguration->name ?? $this->variantConfiguration->value)) : '',
             'configuration' => $configuration,
-            'vendor_name' => $this->relationLoaded('vendorProduct') && $this->vendorProduct ? 
-                ($this->vendorProduct->relationLoaded('vendor') && $this->vendorProduct->vendor ? $this->vendorProduct->vendor->name : null) : null,
-            'real_price' => $this->formatPrice((float) $this->price),
-            'fake_price' => $this->price_before_discount ? $this->formatPrice((float) $this->price_before_discount) : null,
+            'vendor_name' => $vendorProduct ? 
+                ($vendorProduct->relationLoaded('vendor') && $vendorProduct->vendor ? $vendorProduct->vendor->name : null) : null,
+            'price_before_taxes' => $this->formatPrice($priceBeforeTaxes),
+            'real_price' => $this->formatPrice($priceAfterTaxes),
+            'fake_price' => $fakePriceAfterTaxes ? $this->formatPrice($fakePriceAfterTaxes) : null,
             'discount' => $this->discount,
             'quantity_in_cart' => $this->quantity_in_cart,
             'cart_id' => $this->cart_id,

@@ -103,6 +103,26 @@ class OccasionProductResource extends JsonResource
             ];
         }
 
+        // Calculate price after taxes
+        $priceBeforeTaxes = (float) ($this->special_price ?? $variant->price);
+        $fakePriceBeforeTaxes = $variant->price_before_discount ? (float) $variant->price_before_discount : null;
+        $priceAfterTaxes = $priceBeforeTaxes;
+        $fakePriceAfterTaxes = $fakePriceBeforeTaxes;
+        
+        // Load taxes if not already loaded
+        if ($vendorProduct && !$vendorProduct->relationLoaded('taxes')) {
+            $vendorProduct->load('taxes');
+        }
+        
+        if ($vendorProduct && $vendorProduct->taxes && $vendorProduct->taxes->count() > 0) {
+            $totalTaxPercentage = $vendorProduct->taxes->sum('percentage');
+            $taxMultiplier = 1 + ($totalTaxPercentage / 100);
+            $priceAfterTaxes = $priceBeforeTaxes * $taxMultiplier;
+            if ($fakePriceBeforeTaxes) {
+                $fakePriceAfterTaxes = $fakePriceBeforeTaxes * $taxMultiplier;
+            }
+        }
+
         return [
             'id' => $variant->id,
             'show_end_offer_at_section' => (bool) $variant->has_discount,
@@ -110,8 +130,9 @@ class OccasionProductResource extends JsonResource
             'sku' => $variant->sku,
             'variant_name' => $variant->{"variant_path_{$locale}"} ?? '',
             'configuration' => $configuration,
-            'real_price' => round(($this->special_price ?? $variant->price), 2),
-            'fake_price' => $variant->price_before_discount ? round($variant->price_before_discount, 2) : null,
+            'price_before_taxes' => round($priceBeforeTaxes, 2),
+            'real_price' => round($priceAfterTaxes, 2),
+            'fake_price' => $fakePriceAfterTaxes ? round($fakePriceAfterTaxes, 2) : null,
             'discount' => $variant->discount,
             'special_price' => $this->special_price ? round($this->special_price, 2) : null,
             'quantity_in_cart' => $variant->quantity_in_cart ?? null,

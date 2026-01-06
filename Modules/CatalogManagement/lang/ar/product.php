@@ -40,6 +40,7 @@ return [
     'images' => 'الصور',
     'configuration_type' => 'نوع التكوين',
     'price' => 'السعر',
+    'price_after_tax' => 'السعر بعد الضريبة',
     'cost_price' => 'سعر التكلفة',
     'selling_price' => 'سعر البيع',
     'stock_quantity' => 'كمية المخزون',

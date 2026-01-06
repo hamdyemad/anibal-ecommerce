@@ -63,7 +63,11 @@ class BundleProductResource extends JsonResource
             'num_of_user_review' => $vendorProduct?->reviews_count ?? 0,
 
             // Vendor Product Variant Details
-            'vendor_product_variant' => $this->whenLoaded('vendorProductVariant', function() {
+            'vendor_product_variant' => $this->whenLoaded('vendorProductVariant', function() use ($vendorProduct) {
+                // Set vendorProduct relation on variant so it can access taxes
+                if ($vendorProduct) {
+                    $this->vendorProductVariant->setRelation('vendorProduct', $vendorProduct);
+                }
                 return new VendorProductVariantResource($this->vendorProductVariant);
             }),
         ]);

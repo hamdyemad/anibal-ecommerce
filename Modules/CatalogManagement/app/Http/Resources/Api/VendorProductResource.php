@@ -70,7 +70,14 @@ class VendorProductResource extends JsonResource
                 return $this->product->brand ? GeneralResoruce::make($this->product->brand) : null;
             }),
             'taxes' => TaxResource::collection($this->whenLoaded('taxes')),
-            'variants' => VendorProductVariantResource::collection($this->whenLoaded('variants')),
+            'variants' => $this->when($this->relationLoaded('variants'), function() {
+                // Set vendorProduct relation on each variant so it can access taxes
+                $variants = $this->variants;
+                foreach ($variants as $variant) {
+                    $variant->setRelation('vendorProduct', $this->resource);
+                }
+                return VendorProductVariantResource::collection($variants);
+            }),
             'department' => $this->when($this->relationLoaded('product') && $this->product?->relationLoaded('department'), function() {
                 return LightDepartmentApiResource::make($this->product->department);
             }),

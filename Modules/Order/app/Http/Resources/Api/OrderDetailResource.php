@@ -4,6 +4,7 @@ namespace Modules\Order\app\Http\Resources\Api;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Modules\Order\app\Models\VendorOrderStage;
 
 class OrderDetailResource extends JsonResource
 {
@@ -14,6 +15,9 @@ class OrderDetailResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        // Get vendors with their stages
+        $vendorsWithStages = $this->getVendorsWithStages();
+        
         return [
             'id' => $this->id,
             'order_number' => $this->order_number,
@@ -32,6 +36,7 @@ class OrderDetailResource extends JsonResource
             'payment_type' => $this->payment_type,
             'payment_visa_status' => $this->payment_visa_status ?? '',
             'payment_reference' => $this->payment_reference ?? '',
+            'vendors_stages' => $vendorsWithStages,
             'products' => OrderProductResource::collection($this->whenLoaded('products')),
             'payments' => PaymentResource::collection($this->whenLoaded('payments')),
             'promo' => [
@@ -55,5 +60,37 @@ class OrderDetailResource extends JsonResource
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];
+    }
+    
+    /**
+     * Get vendors with their stages for this order
+     */
+    private function getVendorsWithStages(): array
+    {
+        // Get unique vendors from products
+        $vendors = $this->products->map(function ($orderProduct) {
+            return $orderProduct->vendorProduct->vendor ?? null;
+        })->filter()->unique('id');
+        
+        return $vendors->map(function ($vendor) {
+            $vendorOrderStage = VendorOrderStage::where('order_id', $this->id)
+                ->where('vendor_id', $vendor->id)
+                ->with(['stage' => function($q) {
+                    $q->withoutGlobalScopes();
+                }])
+                ->first();
+            
+            return [
+                'vendor_id' => $vendor->id,
+                'vendor_name' => $vendor->name,
+                'vendor_logo' => $vendor->logo ? asset('storage/' . $vendor->logo->path) : null,
+                'stage_id' => $vendorOrderStage?->stage_id,
+                'stage_name' => $vendorOrderStage?->stage?->name ?? null,
+                'stage_color' => $vendorOrderStage?->stage?->color ?? null,
+                'stage_type' => $vendorOrderStage?->stage?->type ?? null,
+                'promo_code_share' => (float) ($vendorOrderStage?->promo_code_share ?? 0),
+                'points_share' => (float) ($vendorOrderStage?->points_share ?? 0),
+            ];
+        })->values()->toArray();
     }
 }

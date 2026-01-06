@@ -40,6 +40,7 @@ return [
     'images' => 'Images',
     'configuration_type' => 'Configuration Type',
     'price' => 'Price',
+    'price_after_tax' => 'Price after tax',
     'cost_price' => 'Cost Price',
     'selling_price' => 'Selling Price',
     'stock_quantity' => 'Stock Quantity',

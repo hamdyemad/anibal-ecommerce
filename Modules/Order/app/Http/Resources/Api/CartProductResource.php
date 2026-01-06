@@ -28,6 +28,27 @@ class CartProductResource extends JsonResource
         $price = (float) ($this->price ?? 0);
         $points = PointsHelper::calculatePoints($price);
 
+        // Calculate price after taxes
+        $priceBeforeTaxes = (float) ($this->price ?? 0);
+        $fakePriceBeforeTaxes = $this->price_before_discount ? (float) $this->price_before_discount : null;
+        $priceAfterTaxes = $priceBeforeTaxes;
+        $fakePriceAfterTaxes = $fakePriceBeforeTaxes;
+        
+        // Load taxes if not already loaded
+        $vendorProduct = $this->vendorProduct;
+        if ($vendorProduct && !$vendorProduct->relationLoaded('taxes')) {
+            $vendorProduct->load('taxes');
+        }
+        
+        if ($vendorProduct && $vendorProduct->taxes && $vendorProduct->taxes->count() > 0) {
+            $totalTaxPercentage = $vendorProduct->taxes->sum('percentage');
+            $taxMultiplier = 1 + ($totalTaxPercentage / 100);
+            $priceAfterTaxes = $priceBeforeTaxes * $taxMultiplier;
+            if ($fakePriceBeforeTaxes) {
+                $fakePriceAfterTaxes = $fakePriceBeforeTaxes * $taxMultiplier;
+            }
+        }
+
         return [
             'id' => $product->id,
             'image' => formatImage($product->mainImage),
@@ -43,8 +64,9 @@ class CartProductResource extends JsonResource
             'sku' => $this->sku ?? null,
             'variant_id' => $this->id,
             'variant_name' => $this->{"variant_path_{$locale}"} ?? '',
-            'real_price' => round((float) ($this->price ?? 0), 2),
-            'fake_price' => $this->price_before_discount ? round((float) $this->price_before_discount, 2) : null,
+            'price_before_taxes' => round($priceBeforeTaxes, 2),
+            'real_price' => round($priceAfterTaxes, 2),
+            'fake_price' => $fakePriceAfterTaxes ? round($fakePriceAfterTaxes, 2) : null,
             'discount' => $this->discount ?? 0,
             'countDeliveredProduct' => $this->countDeliveredProduct ?? 0,
             'countOfAvailable' => $this->countOfAvailable ?? 0,
