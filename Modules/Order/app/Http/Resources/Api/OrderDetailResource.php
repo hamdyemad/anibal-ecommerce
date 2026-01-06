@@ -38,6 +38,11 @@ class OrderDetailResource extends JsonResource
                 'code' => $this->customer_promo_code_title,
                 'discount_value' => $this->customer_promo_code_value ? (float) $this->customer_promo_code_value : null,
                 'discount_type' => $this->customer_promo_code_type,
+                'discount_amount' => $this->customer_promo_code_amount ? (float) $this->customer_promo_code_amount : null,
+            ],
+            'points' => [
+                'used' => (float) ($this->points_used ?? 0),
+                'cost' => (float) ($this->points_cost ?? 0),
             ],
             'pricing' => [
                 'items_count' => $this->items_count,
