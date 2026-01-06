@@ -14,6 +14,8 @@ return [
     'name_arabic' => 'الاسم',
     'country_code' => 'كود الدولة',
     'phone_code' => 'كود الهاتف',
+    'phone_length' => 'طول رقم الهاتف',
+    'phone_length_hint' => 'عدد أرقام الهاتف (بدون كود الدولة)',
     'activation' => 'التفعيل',
     'status' => 'الحالة',
     'active' => 'نشط',

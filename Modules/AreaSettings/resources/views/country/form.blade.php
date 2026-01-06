@@ -79,6 +79,17 @@
 
                                 <div class="col-md-6">
                                     <div class="form-group mb-3">
+                                        <label for="phone_length" class="form-label">{{ __('areasettings::country.phone_length') }} <span class="text-danger">*</span></label>
+                                        <input type="number" class="form-control ih-medium ip-gray radius-xs b-light px-15" id="phone_length" name="phone_length" value="{{ old('phone_length', isset($country) ? $country->phone_length : '') }}" min="5" max="15" placeholder="e.g., 10 for Egypt, 9 for Saudi">
+                                        <small class="text-muted">{{ __('areasettings::country.phone_length_hint') }}</small>
+                                        @error('phone_length')
+                                            <div class="text-danger small mt-1">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <div class="form-group mb-3">
                                         <label for="currency_id" class="form-label">{{ __('areasettings::country.currency') }} <span class="text-danger">*</span></label>
                                         <select class="form-control ih-medium ip-gray radius-xs b-light px-15" id="currency_id" name="currency_id">
                                             <option value="">{{ __('areasettings::country.select_currency') }}</option>

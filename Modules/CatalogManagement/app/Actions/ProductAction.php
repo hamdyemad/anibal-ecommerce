@@ -372,8 +372,10 @@ class ProductAction {
                 $query->where('category_id', $filters['category_id']);
             }
 
-            if (isset($filters['is_active']) && $filters['is_active'] !== '') {
-                $query->where('is_active', (bool)$filters['is_active']);
+            if (isset($filters['is_active']) && $filters['is_active'] !== '' && $filters['is_active'] !== null) {
+                // active=1 means active, active=2 means inactive
+                $isActive = $filters['is_active'] == '1' || $filters['is_active'] === true || $filters['is_active'] === 1;
+                $query->where('is_active', $isActive);
             }
 
             if (!empty($filters['created_date_from'])) {

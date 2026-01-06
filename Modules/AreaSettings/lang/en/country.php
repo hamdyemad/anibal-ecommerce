@@ -14,6 +14,8 @@ return [
     'name_arabic' => 'Name',
     'country_code' => 'Country Code',
     'phone_code' => 'Phone Code',
+    'phone_length' => 'Phone Number Length',
+    'phone_length_hint' => 'Number of digits in phone number (excluding country code)',
     'activation' => 'Activation',
     'status' => 'Status',
     'active' => 'Active',

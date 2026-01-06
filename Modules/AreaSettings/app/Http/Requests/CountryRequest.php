@@ -34,6 +34,7 @@ class CountryRequest extends FormRequest
                     ->whereNull('deleted_at')
             ],
             'phone_code' => 'required|string|max:10|regex:/^\+/',
+            'phone_length' => 'required|integer|min:5|max:15',
             'currency_id' => 'required|exists:currencies,id',
             'translations' => 'required|array',
             'translations.*.name' => 'required|string|max:255',

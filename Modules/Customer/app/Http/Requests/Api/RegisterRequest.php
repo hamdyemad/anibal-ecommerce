@@ -51,6 +51,20 @@ class RegisterRequest extends FormRequest
                     $validator->errors()->add('region_id', trans('customer::customer.region_must_belong_to_city'));
                 }
             }
+
+            // Validate phone length against country's phone_length setting
+            if ($this->phone && $this->country_id) {
+                $country = \Modules\AreaSettings\app\Models\Country::find($this->country_id);
+                if ($country && $country->phone_length) {
+                    // Remove any non-digit characters for length check
+                    $phoneDigits = preg_replace('/\D/', '', $this->phone);
+                    if (strlen($phoneDigits) !== $country->phone_length) {
+                        $validator->errors()->add('phone', trans('customer::customer.phone_length_invalid', [
+                            'length' => $country->phone_length
+                        ]));
+                    }
+                }
+            }
         });
 
         return $validator;

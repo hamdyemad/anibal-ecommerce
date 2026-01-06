@@ -132,6 +132,20 @@ class CustomerRequest extends FormRequest
                     $validator->errors()->add('region_id', trans('customer::customer.region_must_belong_to_city'));
                 }
             }
+
+            // Validate phone length against country's phone_length setting
+            if ($this->phone && $this->city_id) {
+                $city = \Modules\AreaSettings\app\Models\City::with('country')->find($this->city_id);
+                if ($city && $city->country && $city->country->phone_length) {
+                    // Remove any non-digit characters for length check
+                    $phoneDigits = preg_replace('/\D/', '', $this->phone);
+                    if (strlen($phoneDigits) !== $city->country->phone_length) {
+                        $validator->errors()->add('phone', trans('customer::customer.phone_length_invalid', [
+                            'length' => $city->country->phone_length
+                        ]));
+                    }
+                }
+            }
         });
 
         return $validator;
