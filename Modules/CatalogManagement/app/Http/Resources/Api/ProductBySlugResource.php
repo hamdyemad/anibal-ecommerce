@@ -21,7 +21,10 @@ class ProductBySlugResource extends JsonResource
         $product = $this['product'];
         $vendorProducts = $this['vendorProducts'];
         $reviews = $this['reviews'];
-
+        
+        // Get vendor slug from request params
+        $vendorSlug = $request->query('vendor_slug') ?? $request->query('vendor');
+        
         return [
             'id' => $product->id,
             'name' => $product->name,
@@ -32,9 +35,11 @@ class ProductBySlugResource extends JsonResource
             'department' => new LightDepartmentApiResource($product->department),
             'sub_category' => new LightSubCategoryApiResource($product->subCategory),
             'reviews' => $reviews,
-            'vendors' => $vendorProducts->map(function($vendorProduct) {
+            'vendors' => $vendorProducts->map(function($vendorProduct) use($vendorSlug) {
+                $isSelected = $vendorSlug && $vendorProduct->vendor && $vendorProduct->vendor->slug === $vendorSlug;
                 return [
                     'vendor' => new LightVendorResource($vendorProduct->vendor),
+                    'selected' => $isSelected,
                     'vendor_product' => new VendorProductResource($vendorProduct),
                 ];
             })->values()
