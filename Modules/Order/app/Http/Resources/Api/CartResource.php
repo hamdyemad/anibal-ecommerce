@@ -30,7 +30,15 @@ class CartResource extends JsonResource
             'limitation' => $limit[0],
             'min' => $limit[1],
             'price_before_taxes' => round($prices['before_tax'], 2),
-            'taxes' => TaxResource::collection($this->vendorProduct->taxes),
+            'taxes' => $this->vendorProduct->taxes ? $this->vendorProduct->taxes->map(function ($tax) use ($prices) {
+                $amount = $prices['before_tax'] * ($tax->percentage / 100);
+                return [
+                    'id' => $tax->id,
+                    'name' => $tax->name,
+                    'percentage' => (float) $tax->percentage,
+                    'amount' => round($amount, 2),
+                ];
+            }) : [],
             'price_after_taxes' => round($prices['after_tax'], 2),
             'quantity' => $this->quantity,
             'total' => $this->quantity * round($prices['after_tax'], 2),
