@@ -247,6 +247,19 @@ class OrderController extends Controller
                     ];
                 })->values()->toArray();
 
+                // Check if vendor's products are fully allocated (for vendors only)
+                $isFullyAllocated = false;
+                if ($isVendorUser && $currentVendorId) {
+                    $vendorProducts = $order->products->where('vendor_id', $currentVendorId);
+                    if ($vendorProducts->count() > 0) {
+                        // Check if all vendor products have fulfillments with status 'allocated' or 'fulfilled'
+                        $isFullyAllocated = $vendorProducts->every(function ($product) {
+                            $fulfillment = $product->fulfillment;
+                            return $fulfillment && in_array($fulfillment->status, ['allocated', 'fulfilled']);
+                        });
+                    }
+                }
+
                 $rowData = [
                     'index' => $index++,
                     'id' => $order->id,
@@ -265,6 +278,7 @@ class OrderController extends Controller
                     'payment_visa_status' => $order->payment_visa_status,
                     'created_at' => $order->created_at,
                     'is_exclusive_to_vendor' => $isExclusiveToCurrentVendor,
+                    'is_fully_allocated' => $isFullyAllocated,
                 ];
 
                 $data[] = $rowData;

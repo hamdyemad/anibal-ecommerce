@@ -691,18 +691,16 @@
                             `;
                         }
                         
-                        // Admin-only: Allocate button
-                        @if(isAdmin())
-                        if (hasInProgressProduct) {
+                        // Allocate button - for vendors only when in_progress and not fully allocated
+                        if (isVendorUser && vendorStage && vendorStageType === 'in_progress' && !row.is_fully_allocated) {
                             actionsHtml += `
                                 <a href="${'{{ route('admin.order-fulfillments.allocate', ':id') }}'.replace(':id', row.id)}"
-                                class="btn btn-secondary table_action_father"
+                                class="btn btn-info table_action_father"
                                 title="{{ trans('order::order.allocate') }}">
                                     <i class="uil uil-box table_action_icon"></i>
                                 </a>
                             `;
                         }
-                        @endif
                         
                         actionsHtml += `</div>`;
                         return actionsHtml;
