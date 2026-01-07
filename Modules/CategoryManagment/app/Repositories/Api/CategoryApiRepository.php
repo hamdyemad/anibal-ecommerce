@@ -29,7 +29,30 @@ class CategoryApiRepository implements CategoryApiRepositoryInterface
     public function find(CategoryFilterDTO $dto, $id)
     {
         $filters = $dto->toArray();
-        return $this->query->handle($filters)->with(['activeSubs', 'department'])->where(fn($q) => $q->where('id', $id)->orWhere('slug', $id))->firstOrFail();
+        $sortBy = $filters['sort'] ?? 'sort_number';
+        $sortType = $filters['sort_type'] ?? 'asc';
+        
+        // Determine subcategory sort
+        $subCategorySort = 'sort_number';
+        $subCategorySortType = 'asc';
+        
+        if ($sortBy === 'sub_categories_products') {
+            $subCategorySort = 'active_products_count';
+            $subCategorySortType = $sortType;
+        }
+        
+        return $this->query->handle($filters)
+            ->with([
+                'department' => function($q) {
+                    $q->withCount(['activeProducts as active_products_count']);
+                },
+                'activeSubs' => function($q) use ($subCategorySort, $subCategorySortType) {
+                    $q->withCount(['activeProducts as active_products_count'])
+                      ->orderBy($subCategorySort, $subCategorySortType);
+                }
+            ])
+            ->where(fn($q) => $q->where('id', $id)->orWhere('slug', $id))
+            ->firstOrFail();
     }
 
     /**

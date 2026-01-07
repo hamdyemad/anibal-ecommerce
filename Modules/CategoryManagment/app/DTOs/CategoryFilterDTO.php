@@ -81,7 +81,7 @@ class CategoryFilterDTO extends FilterDTO
             $this->errors['category_id'][] = __('validation.category_id_not_exist');
         }
 
-        if ($this->sort && !in_array($this->sort, ['products', 'sort_number', 'created_at'])) {
+        if ($this->sort && !in_array($this->sort, ['products', 'sub_categories_products', 'sort_number', 'created_at'])) {
             $this->errors['sort'][] = __('validation.invalid_sort_field');
         }
 

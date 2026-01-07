@@ -25,7 +25,7 @@ class SubCategoryApiResource extends JsonResource
             }),
             'image' => formatImage($this->image),
             'icon' => formatImage($this->icon),
-            'products_count' => $this->active_products_count ?? 0,
+            'products_count' => $this->active_products_count ?? $this->activeProducts()->count(),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];
