@@ -16,7 +16,7 @@ class CurrencyResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'name' => $this->getTranslation('name', app()->getLocale()) ?? 'N/A',
+            'name' => $this->getTranslation('name', 'en') ?? 'N/A',
             'name_ar' => $this->getTranslation('name', 'ar') ?? 'N/A',
             'code' => $this->getTranslation('name', app()->getLocale()) ?? 'N/A',
             
