@@ -612,7 +612,7 @@
                                 {{ trans('menu.products.accepted_products') }}
                                 <span class="badge badge-round ms-1"
                                     style="{{ getBadgeStyle(isMenuActive('admin.products.accepted', $currentRoute)) }}">
-                                    @if (in_array($user_type_id, \App\Models\UserType::adminIds()))
+                                    @if (isAdmin())
                                         {{ \Modules\CatalogManagement\app\Models\VendorProduct::where('status', 'approved')->count() }}
                                     @else
                                         {{ \Modules\CatalogManagement\app\Models\VendorProduct::where('status', 'approved')->where('vendor_id', auth()->user()->vendor->id ?? 0)->count() }}
@@ -620,6 +620,7 @@
                                 </span>
                             </a>
                         </li>
+
                     @endcan
 
                     @canany(['variant-keys.index', 'variant-keys.create'])
@@ -642,20 +643,16 @@
                             </a>
                         </li>
                     @endcanany
+                    <li>
+                        <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive('admin.system-catalog.index', $currentRoute) ? 'active' : '' }}"
+                            href="{{ route('admin.system-catalog.index') }}">
+                            {{ trans('menu.system_catalog.title') }}
+                        </a>
+                    </li>
                 </ul>
             </li>
         @endcanany
 
-        {{-- System Catalog (All Users) --}}
-        @auth
-            <li class="{{ isMenuActive('admin.system-catalog.index', $currentRoute) ? 'active' : '' }}">
-                <a href="{{ route('admin.system-catalog.index') }}"
-                    class="{{ isMenuActive('admin.system-catalog.index', $currentRoute) ? 'active' : '' }}">
-                    <span class="nav-icon uil uil-list-ul"></span>
-                    <span class="menu-text">{{ trans('menu.system_catalog.title') }}</span>
-                </a>
-            </li>
-        @endauth
 
         {{-- Bundles Menu --}}
         @canany(['bundle-categories.index', 'bundles.index'])

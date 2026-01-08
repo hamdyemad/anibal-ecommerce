@@ -648,7 +648,7 @@
 
                                 <span class="badge badge-round ms-1"
                                     style="<?php echo e(getBadgeStyle(isMenuActive('admin.products.accepted', $currentRoute))); ?>">
-                                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(in_array($user_type_id, \App\Models\UserType::adminIds())): ?>
+                                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(isAdmin()): ?>
                                         <?php echo e(\Modules\CatalogManagement\app\Models\VendorProduct::where('status', 'approved')->count()); ?>
 
                                     <?php else: ?>
@@ -658,6 +658,7 @@
                                 </span>
                             </a>
                         </li>
+
                     <?php endif; ?>
 
                     <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->any(['variant-keys.index', 'variant-keys.create'])): ?>
@@ -682,20 +683,17 @@
                             </a>
                         </li>
                     <?php endif; ?>
+                    <li>
+                        <a class="d-flex align-items-center justify-content-between fw-bold <?php echo e(isMenuActive('admin.system-catalog.index', $currentRoute) ? 'active' : ''); ?>"
+                            href="<?php echo e(route('admin.system-catalog.index')); ?>">
+                            <?php echo e(trans('menu.system_catalog.title')); ?>
+
+                        </a>
+                    </li>
                 </ul>
             </li>
         <?php endif; ?>
 
-        
-        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(auth()->guard()->check()): ?>
-            <li class="<?php echo e(isMenuActive('admin.system-catalog.index', $currentRoute) ? 'active' : ''); ?>">
-                <a href="<?php echo e(route('admin.system-catalog.index')); ?>"
-                    class="<?php echo e(isMenuActive('admin.system-catalog.index', $currentRoute) ? 'active' : ''); ?>">
-                    <span class="nav-icon uil uil-list-ul"></span>
-                    <span class="menu-text"><?php echo e(trans('menu.system_catalog.title')); ?></span>
-                </a>
-            </li>
-        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 
         
         <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->any(['bundle-categories.index', 'bundles.index'])): ?>
