@@ -337,4 +337,11 @@ return [
     'payment_type_not_online' => 'Order payment type is not online',
     'order_status_not_new' => 'Your order status is not new',
     'order_already_paid' => 'This order has already been paid',
+    
+    // Cancel/Refund API
+    'stages_not_configured' => 'Order stages are not properly configured',
+    'no_vendor_stages_found' => 'No vendor stages found for this order',
+    'cannot_cancel_order_not_all_new' => 'Cannot cancel order. All vendors must be in "New" stage to cancel.',
+    'no_delivered_vendors_to_refund' => 'No delivered vendors found to refund. Only delivered orders can be refunded.',
+    'cannot_change_stage' => 'Cannot change order stage',
 ];

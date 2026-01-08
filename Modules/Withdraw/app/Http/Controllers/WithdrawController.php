@@ -627,7 +627,28 @@ class WithdrawController extends Controller
         }
 
         $withdraw = Withdraw::find($requestData["request_id"]);
+        
+        if (!$withdraw) {
+            return redirect()->back()->with('error', trans('withdraw::withdraw.request_not_found'));
+        }
+
         if ($requestData["status"] == "accepted") {
+            // Check vendor balance before approving
+            $vendor = $withdraw->vendor;
+            if (!$vendor) {
+                return redirect()->back()->with('error', trans('withdraw::withdraw.vendor_not_found'));
+            }
+
+            // Get vendor's available balance (total_remaining)
+            $availableBalance = $vendor->total_remaining;
+            
+            // Check if vendor has enough balance
+            if ($withdraw->sent_amount > $availableBalance) {
+                return redirect()->back()->with('error', trans('withdraw::withdraw.vendor_insufficient_balance', [
+                    'balance' => number_format($availableBalance, 2)
+                ]));
+            }
+
             $data["sender_id"] = auth()->user()->id;
 
             // Handle invoice file upload
@@ -644,6 +665,6 @@ class WithdrawController extends Controller
         }
 
         return redirect()->route('admin.allTransactions')
-            ->with('success', "Request is updated successfully !");
+            ->with('success', trans('withdraw::withdraw.request_updated_successfully'));
     }
 }

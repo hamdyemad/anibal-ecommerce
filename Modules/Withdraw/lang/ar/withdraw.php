@@ -108,6 +108,12 @@ return [
     'amount_required' => 'يرجى إدخال المبلغ',
     'amount_must_be_numeric' => 'يجب أن يكون المبلغ رقماً صحيحاً',
     'amount_min' => 'يجب أن يكون المبلغ أكبر من 0',
+    
+    // Balance check messages
+    'vendor_insufficient_balance' => 'التاجر لا يملك رصيد كافي. الرصيد المتاح: :balance',
+    'request_not_found' => 'طلب السحب غير موجود',
+    'vendor_not_found' => 'التاجر غير موجود',
+    'request_updated_successfully' => 'تم تحديث الطلب بنجاح',
 
     // Transaction Requests Page
     'withdraw_transactions' => 'معاملات السحب',

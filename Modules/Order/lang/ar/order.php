@@ -335,4 +335,11 @@ return [
     'payment_type_not_online' => 'نوع دفع الطلب ليس أونلاين',
     'order_status_not_new' => 'حالة طلبك ليست جديدة',
     'order_already_paid' => 'تم دفع هذا الطلب بالفعل',
+    
+    // Cancel/Refund API
+    'stages_not_configured' => 'مراحل الطلب غير مهيأة بشكل صحيح',
+    'no_vendor_stages_found' => 'لم يتم العثور على مراحل التجار لهذا الطلب',
+    'cannot_cancel_order_not_all_new' => 'لا يمكن إلغاء الطلب. يجب أن يكون جميع التجار في مرحلة "جديد" للإلغاء.',
+    'no_delivered_vendors_to_refund' => 'لم يتم العثور على تجار تم التسليم لهم للاسترداد. يمكن استرداد الطلبات المسلمة فقط.',
+    'cannot_change_stage' => 'لا يمكن تغيير مرحلة الطلب',
 ];

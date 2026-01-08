@@ -82,19 +82,19 @@ class OrderApiService
     }
 
     /**
-     * Cancel order
+     * Cancel order - only if ALL vendors have 'new' stage
      */
     public function cancelOrder($orderId)
     {
-        return $this->orderRepository->changeOrderStage(Auth::id(), $orderId, 4, 1);
+        return $this->orderRepository->cancelOrder(Auth::id(), $orderId);
     }
 
     /**
-     * Return order
+     * Return/Refund order - only for vendors with 'deliver' stage
      */
     public function returnOrder($orderId)
     {
-        return $this->orderRepository->changeOrderStage(Auth::id(), $orderId, 7, 3);
+        return $this->orderRepository->refundOrder(Auth::id(), $orderId);
     }
 
     /**

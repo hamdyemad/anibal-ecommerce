@@ -4,6 +4,7 @@ namespace Modules\Order\app\Http\Resources\Api;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Modules\Order\app\Models\VendorOrderStage;
 use Modules\Order\app\Traits\HasVariantConfigurationTree;
 
 class OrderProductResource extends JsonResource
@@ -26,6 +27,10 @@ class OrderProductResource extends JsonResource
         $unitPriceBeforeTax = round($priceBeforeTax / $this->quantity, 2);
         $unitPriceAfterTax = round($price / $this->quantity, 2);
         
+        // Get vendor stage for this order product
+        $vendorId = $this->vendorProduct?->vendor?->id ?? $this->vendor_id;
+        $stage = $this->getVendorStage($vendorId);
+        
         return [
             'id' => $this->id,
             'vendor_product_id' => $this->vendor_product_id,
@@ -45,6 +50,7 @@ class OrderProductResource extends JsonResource
                 'sku' => $this->vendorProductVariant?->sku,
                 'name' => $this->vendorProductVariant?->{"variant_path_{$locale}"},
             ],
+            'stage' => $stage,
             'configuration_tree' => $this->when(
                 $this->vendorProductVariant && 
                 $this->vendorProductVariant->relationLoaded('variantConfiguration') && 
@@ -75,6 +81,34 @@ class OrderProductResource extends JsonResource
             'total' => $price,
             // 'shipping_cost' => (float) $this->shipping_cost,
             // 'commission' => (float) $this->commission,
+        ];
+    }
+    
+    /**
+     * Get vendor stage for this order product
+     */
+    private function getVendorStage(?int $vendorId): ?array
+    {
+        if (!$vendorId || !$this->order_id) {
+            return null;
+        }
+        
+        $vendorOrderStage = VendorOrderStage::where('order_id', $this->order_id)
+            ->where('vendor_id', $vendorId)
+            ->with(['stage' => function($q) {
+                $q->withoutGlobalScopes();
+            }])
+            ->first();
+        
+        if (!$vendorOrderStage || !$vendorOrderStage->stage) {
+            return null;
+        }
+        
+        return [
+            'id' => $vendorOrderStage->stage->id,
+            'name' => $vendorOrderStage->stage->name,
+            'color' => $vendorOrderStage->stage->color,
+            'type' => $vendorOrderStage->stage->type,
         ];
     }
 }

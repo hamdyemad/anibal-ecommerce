@@ -10,6 +10,7 @@ use Modules\Order\app\Actions\OrderQueryAction;
 use Modules\Order\app\Interfaces\Api\OrderApiRepositoryInterface;
 use Modules\Order\app\Models\Order;
 use Modules\Order\app\Models\OrderStage;
+use Modules\Order\app\Models\VendorOrderStage;
 
 class OrderApiRepository implements OrderApiRepositoryInterface
 {
@@ -69,6 +70,97 @@ class OrderApiRepository implements OrderApiRepositoryInterface
             $order->update(['stage_id' => $stageId]);
 
             return $order;
+        });
+    }
+
+    /**
+     * Cancel order - only if ALL vendors have 'new' stage
+     */
+    public function cancelOrder(int $customerId, int $orderId)
+    {
+        return DB::transaction(function () use ($customerId, $orderId) {
+            $order = Order::where('customer_id', $customerId)
+                ->where('id', $orderId)
+                ->firstOrFail();
+
+            // Get the 'new' and 'cancel' stage IDs
+            $newStage = OrderStage::withoutGlobalScopes()->where('type', 'new')->first();
+            $cancelStage = OrderStage::withoutGlobalScopes()->where('type', 'cancel')->first();
+
+            if (!$newStage || !$cancelStage) {
+                throw new OrderException('order.stages_not_configured', trans('order::order.stages_not_configured'));
+            }
+
+            // Get all vendor stages for this order
+            $vendorStages = VendorOrderStage::where('order_id', $orderId)->get();
+
+            if ($vendorStages->isEmpty()) {
+                throw new OrderException('order.no_vendor_stages_found', trans('order::order.no_vendor_stages_found'));
+            }
+
+            // Check if ALL vendors have 'new' stage
+            $allVendorsNew = $vendorStages->every(function ($vendorStage) use ($newStage) {
+                return $vendorStage->stage_id === $newStage->id;
+            });
+
+            if (!$allVendorsNew) {
+                throw new OrderException('order.cannot_cancel_order_not_all_new', trans('order::order.cannot_cancel_order_not_all_new'));
+            }
+
+            // Update all vendor stages to 'cancel'
+            VendorOrderStage::where('order_id', $orderId)
+                ->update(['stage_id' => $cancelStage->id]);
+
+            // Update main order stage to 'cancel'
+            $order->update(['stage_id' => $cancelStage->id]);
+
+            return $order->fresh();
+        });
+    }
+
+    /**
+     * Refund order - only for vendors with 'deliver' stage
+     */
+    public function refundOrder(int $customerId, int $orderId)
+    {
+        return DB::transaction(function () use ($customerId, $orderId) {
+            $order = Order::where('customer_id', $customerId)
+                ->where('id', $orderId)
+                ->firstOrFail();
+
+            // Get the 'deliver' and 'refund' stage IDs
+            $deliverStage = OrderStage::withoutGlobalScopes()->where('type', 'deliver')->first();
+            $refundStage = OrderStage::withoutGlobalScopes()->where('type', 'refund')->first();
+
+            if (!$deliverStage || !$refundStage) {
+                throw new OrderException('order.stages_not_configured', trans('order::order.stages_not_configured'));
+            }
+
+            // Get all vendor stages for this order that have 'deliver' stage
+            $deliveredVendorStages = VendorOrderStage::where('order_id', $orderId)
+                ->where('stage_id', $deliverStage->id)
+                ->get();
+
+            if ($deliveredVendorStages->isEmpty()) {
+                throw new OrderException('order.no_delivered_vendors_to_refund', trans('order::order.no_delivered_vendors_to_refund'));
+            }
+
+            // Update only delivered vendor stages to 'refund'
+            VendorOrderStage::where('order_id', $orderId)
+                ->where('stage_id', $deliverStage->id)
+                ->update(['stage_id' => $refundStage->id]);
+
+            // Check if all vendors are now refunded to update main order stage
+            $allVendorStages = VendorOrderStage::where('order_id', $orderId)->get();
+            $allRefunded = $allVendorStages->every(function ($vendorStage) use ($refundStage) {
+                return $vendorStage->stage_id === $refundStage->id;
+            });
+
+            if ($allRefunded) {
+                $order->update(['stage_id' => $refundStage->id]);
+            }
+
+            return $order->fresh();
         });
     }
 

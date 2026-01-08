@@ -108,6 +108,12 @@ return [
     'amount_required' => 'Please enter the amount',
     'amount_must_be_numeric' => 'Amount must be a valid number',
     'amount_min' => 'Amount must be greater than 0',
+    
+    // Balance check messages
+    'vendor_insufficient_balance' => 'Vendor does not have enough balance. Available balance: :balance',
+    'request_not_found' => 'Withdraw request not found',
+    'vendor_not_found' => 'Vendor not found',
+    'request_updated_successfully' => 'Request updated successfully',
 
     // Transaction Requests Page
     'withdraw_transactions' => 'Withdraw Transactions',
