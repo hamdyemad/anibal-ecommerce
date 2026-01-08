@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 
 namespace Modules\CatalogManagement\app\Imports;
 
@@ -12,13 +12,6 @@ use Modules\CatalogManagement\app\Models\Product;
 use Modules\CatalogManagement\app\Models\ProductVariant;
 use Modules\CatalogManagement\app\Models\OccasionProduct;
 
-/**
- * Sheet: occasion_products
- * - occasion_id from excel -> lookup in occasionMap
- * - product_id from excel -> lookup in productMap
- * - variant_id from excel -> lookup in variantMap (optional)
- * - upsert occasion_products table (no soft delete checks)
- */
 class OccasionProductsSheetImport implements ToCollection, WithHeadingRow, SkipsOnError
 {
     use SkipsErrors;
@@ -37,7 +30,6 @@ class OccasionProductsSheetImport implements ToCollection, WithHeadingRow, Skips
             $excelProductId = (int)($row['product_id'] ?? 0);
             $excelVariantId = isset($row['variant_id']) ? (int)$row['variant_id'] : null;
 
-            // Validate row data
             $validator = Validator::make($row->toArray(), [
                 'occasion_id' => 'required|integer|min:1',
                 'product_id' => 'required|integer|min:1',
@@ -66,12 +58,10 @@ class OccasionProductsSheetImport implements ToCollection, WithHeadingRow, Skips
                 continue;
             }
 
-            // Skip if occasion not in map
             if (!isset($this->occasionMap[$excelOccasionId])) {
                 continue;
             }
 
-            // Skip if product not in map (soft-deleted or not imported)
             if (!isset($this->productMap[$excelProductId])) {
                 continue;
             }
@@ -79,30 +69,24 @@ class OccasionProductsSheetImport implements ToCollection, WithHeadingRow, Skips
             $dbOccasionId = $this->occasionMap[$excelOccasionId];
             $dbProductId = $this->productMap[$excelProductId];
 
-            // Check if product exists and is not soft-deleted
             $product = Product::whereNull('deleted_at')->find($dbProductId);
             if (!$product) {
                 continue;
             }
 
-            // Get variant id if provided
             $dbVariantId = null;
             if ($excelVariantId && isset($this->variantMap[$excelVariantId])) {
                 $dbVariantId = $this->variantMap[$excelVariantId];
-                
-                // Verify variant exists
                 $variant = ProductVariant::find($dbVariantId);
                 if (!$variant) {
-                    continue; // Skip if variant doesn't exist
+                    continue;
                 }
             }
 
-            // If no variant provided, skip (occasion products require a variant)
             if (!$dbVariantId) {
                 continue;
             }
 
-            // Upsert occasion product
             OccasionProduct::updateOrCreate(
                 [
                     'occasion_id' => $dbOccasionId,

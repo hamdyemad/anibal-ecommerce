@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 
 namespace Modules\CatalogManagement\app\Imports;
 
@@ -21,7 +21,7 @@ class VariantsSheetImport implements ToCollection, WithHeadingRow, SkipsOnError
 {
     use SkipsErrors;
 
-    protected array $variantSkus = []; // Track variant SKUs for uniqueness validation
+    protected array $variantSkus = [];
 
     public function __construct(
         protected array &$productMap,
@@ -37,7 +37,6 @@ class VariantsSheetImport implements ToCollection, WithHeadingRow, SkipsOnError
             $excelVariantId = (int)($row['id'] ?? 0);
             $sku = $this->normalizeSku($row['sku'] ?? '');
 
-            // Validate row data
             $validator = Validator::make($row->toArray(), [
                 'id' => 'required|integer|min:1',
                 'product_id' => 'required|integer|min:1',
@@ -66,7 +65,6 @@ class VariantsSheetImport implements ToCollection, WithHeadingRow, SkipsOnError
                 continue;
             }
 
-            // Check for duplicate variant SKU in the Excel file
             if (isset($this->variantSkus[$sku])) {
                 $this->importErrors[] = [
                     'sheet' => 'variants',
@@ -77,7 +75,6 @@ class VariantsSheetImport implements ToCollection, WithHeadingRow, SkipsOnError
                 continue;
             }
 
-            // Check if variant SKU already exists in database
             $existsInDb = ProductVariant::where('sku', $sku)->exists();
             if ($existsInDb) {
                 $this->importErrors[] = [
@@ -89,10 +86,8 @@ class VariantsSheetImport implements ToCollection, WithHeadingRow, SkipsOnError
                 continue;
             }
 
-            // Mark this variant SKU as seen
             $this->variantSkus[$sku] = $index + 2;
 
-            // Skip if product not in map (soft-deleted or not imported)
             if (!isset($this->productMap[$excelProductId])) {
                 $this->importErrors[] = [
                     'sheet' => 'variants',
@@ -104,43 +99,35 @@ class VariantsSheetImport implements ToCollection, WithHeadingRow, SkipsOnError
             }
 
             $dbProductId = $this->productMap[$excelProductId];
-
-            // Check if product exists and is not soft-deleted
             $product = Product::whereNull('deleted_at')->find($dbProductId);
             if (!$product) {
                 continue;
             }
 
-            // Build variant key for mapping
             $variantKey = "{$dbProductId}|{$sku}";
 
-            // Check cache
             if (isset($this->variantSkuToDbId[$variantKey])) {
                 $this->variantMap[$excelVariantId] = (int)$this->variantSkuToDbId[$variantKey];
                 continue;
             }
 
-            // Upsert variant (update price only if exists)
             $variant = ProductVariant::where('product_id', $dbProductId)
                 ->where('sku', $sku)
                 ->first();
 
             if ($variant) {
-                // Update price only
                 $variant->price = $this->normalizeDecimal($row['price'] ?? 0);
                 $variant->save();
             } else {
-                // Create new variant
                 $variant = ProductVariant::create([
                     'product_id' => $dbProductId,
                     'sku' => $sku,
                     'price' => $this->normalizeDecimal($row['price'] ?? 0),
-                    'stock' => 0, // Will be calculated from variant_stock sheet
+                    'stock' => 0,
                     'variant_configuration_id' => $this->normalizeNullableInt($row['variant_configuration_id'] ?? null),
                 ]);
             }
 
-            // Map excel variant id to db variant id
             $this->variantMap[$excelVariantId] = (int)$variant->id;
             $this->variantSkuToDbId[$variantKey] = (int)$variant->id;
         }

@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 
 namespace Modules\CatalogManagement\app\Imports;
 
@@ -10,11 +10,6 @@ use Maatwebsite\Excel\Concerns\SkipsOnError;
 use Maatwebsite\Excel\Concerns\SkipsErrors;
 use Modules\CatalogManagement\app\Models\Occasion;
 
-/**
- * Sheet: occasions
- * - upsert occasions by id (no soft delete checks)
- * - build occasionMap for occasion_products sheet
- */
 class OccasionsSheetImport implements ToCollection, WithHeadingRow, SkipsOnError
 {
     use SkipsErrors;
@@ -31,7 +26,6 @@ class OccasionsSheetImport implements ToCollection, WithHeadingRow, SkipsOnError
             $nameEn = trim((string)($row['name_en'] ?? ''));
             $nameAr = trim((string)($row['name_ar'] ?? ''));
 
-            // Validate row data
             $validator = Validator::make($row->toArray(), [
                 'id' => 'required|integer|min:1',
                 'name_en' => 'nullable|string|max:255',
@@ -59,7 +53,6 @@ class OccasionsSheetImport implements ToCollection, WithHeadingRow, SkipsOnError
                 continue;
             }
 
-            // Upsert occasion
             $occasion = Occasion::updateOrCreate(
                 ['id' => $excelId],
                 [
@@ -73,7 +66,6 @@ class OccasionsSheetImport implements ToCollection, WithHeadingRow, SkipsOnError
                 ]
             );
 
-            // Map excel occasion id to db occasion id
             $this->occasionMap[$excelId] = (int)$occasion->id;
         }
     }
