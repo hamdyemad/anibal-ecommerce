@@ -17,7 +17,8 @@ class CountryResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'name' => $this->name,
+            'name' => $this->getTranslation('name', 'en') ?? 'N/A',
+            'name_ar' => $this->getTranslation('name', 'ar') ?? 'N/A',
             'code' => strtolower($this->code),
             'slug' => $this->slug,
             'default' => $this->default,
