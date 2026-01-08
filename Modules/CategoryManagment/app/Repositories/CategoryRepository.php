@@ -13,7 +13,7 @@ class CategoryRepository implements CategoryRepositoryInterface
      */
     public function getAllCategories(array $filters = [], int $perPage = 15)
     {
-        $query = Category::with('translations', 'department')->filter($filters);
+        $query = Category::with('translations', 'department', 'subs')->filter($filters);
 
         // Order by latest
         $query->orderBy('sort_number', 'asc');

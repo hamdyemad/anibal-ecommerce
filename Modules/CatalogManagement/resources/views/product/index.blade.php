@@ -80,10 +80,16 @@
                             @endif
                         </h4>
                         @can('products.create')
-                        <a href="{{ route('admin.products.create') }}"
-                            class="btn btn-primary btn-squared shadow-sm px-4">
-                            <i class="uil uil-plus"></i> {{ trans('catalogmanagement::product.add_product') }}
-                        </a>
+                        <div class="d-flex gap-2">
+                            {{-- <a href="{{ route('admin.products.bulk-upload') }}"
+                                class="btn btn-success btn-squared shadow-sm px-4">
+                                <i class="uil uil-upload"></i> {{ trans('catalogmanagement::product.bulk_upload') }}
+                            </a> --}}
+                            <a href="{{ route('admin.products.create') }}"
+                                class="btn btn-primary btn-squared shadow-sm px-4">
+                                <i class="uil uil-plus"></i> {{ trans('catalogmanagement::product.add_product') }}
+                            </a>
+                        </div>
                         @endcan
                     </div>
                     {{-- Search & Filters --}}

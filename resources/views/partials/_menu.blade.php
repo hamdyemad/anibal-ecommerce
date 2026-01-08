@@ -646,6 +646,17 @@
             </li>
         @endcanany
 
+        {{-- System Catalog (All Users) --}}
+        @auth
+            <li class="{{ isMenuActive('admin.system-catalog.index', $currentRoute) ? 'active' : '' }}">
+                <a href="{{ route('admin.system-catalog.index') }}"
+                    class="{{ isMenuActive('admin.system-catalog.index', $currentRoute) ? 'active' : '' }}">
+                    <span class="nav-icon uil uil-list-ul"></span>
+                    <span class="menu-text">{{ trans('menu.system_catalog.title') }}</span>
+                </a>
+            </li>
+        @endauth
+
         {{-- Bundles Menu --}}
         @canany(['bundle-categories.index', 'bundles.index'])
             <li

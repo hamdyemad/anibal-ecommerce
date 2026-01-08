@@ -2,6 +2,9 @@
 
 use Illuminate\Support\Facades\Route;
 
+// System Catalog - Accessible to all authenticated users (admins and vendors)
+Route::get('system-catalog', 'SystemCatalogController@index')->name('system-catalog.index');
+
 Route::group(['middleware' => 'adminGuard'], function() {
     // Reviews
     Route::get('reviews', 'ReviewController@index')->name('reviews.index');
@@ -69,6 +72,12 @@ Route::resource('bundles', 'BundleController');
 Route::group(['prefix' => 'products'], function() {
     // Products - Static routes MUST come before resource routes
     Route::get('datatable', 'ProductController@datatable')->name('products.datatable');
+    
+    // Bulk Upload routes
+    Route::get('bulk-upload', 'ProductController@bulkUpload')->name('products.bulk-upload');
+    Route::post('bulk-upload', 'ProductController@bulkUploadStore')->name('products.bulk-upload.store');
+    Route::get('download-demo', 'ProductController@downloadDemo')->name('products.download-demo');
+    
     // Product status-based routes (must be before resource)
     Route::get('pending', 'ProductController@pending')->name('products.pending');
     Route::get('rejected', 'ProductController@rejected')->name('products.rejected');

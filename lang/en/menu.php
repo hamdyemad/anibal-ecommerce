@@ -268,6 +268,9 @@
             'variant config keys' => 'Variant Configuration Keys',
             'variant config' => 'Variant Configurations',
         ],
+        'system_catalog' => [
+            'title' => 'System Catalog',
+        ],
         'currencies' => [
             'title' => 'Currencies',
         ],

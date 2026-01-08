@@ -687,6 +687,17 @@
         <?php endif; ?>
 
         
+        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(auth()->guard()->check()): ?>
+            <li class="<?php echo e(isMenuActive('admin.system-catalog.index', $currentRoute) ? 'active' : ''); ?>">
+                <a href="<?php echo e(route('admin.system-catalog.index')); ?>"
+                    class="<?php echo e(isMenuActive('admin.system-catalog.index', $currentRoute) ? 'active' : ''); ?>">
+                    <span class="nav-icon uil uil-list-ul"></span>
+                    <span class="menu-text"><?php echo e(trans('menu.system_catalog.title')); ?></span>
+                </a>
+            </li>
+        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+
+        
         <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->any(['bundle-categories.index', 'bundles.index'])): ?>
             <li
                 class="has-child <?php echo e(isParentMenuOpen(['admin.bundle-categories.index', 'admin.bundle-categories.create', 'admin.bundle-categories.show', 'admin.bundle-categories.edit', 'admin.bundles.index', 'admin.bundles.create', 'admin.bundles.show', 'admin.bundles.edit'], ['admin/bundle-categories*', 'admin/bundles*']) ? 'open' : ''); ?>">

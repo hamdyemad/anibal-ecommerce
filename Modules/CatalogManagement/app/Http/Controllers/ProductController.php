@@ -56,7 +56,7 @@ class ProductController extends Controller
         protected BankService $productBankService,
     ) {
         $this->middleware('can:products.index')->only(['index', 'datatable', 'pending', 'rejected', 'accepted']);
-        $this->middleware('can:products.create')->only(['create', 'store', 'searchBankProducts']);
+        $this->middleware('can:products.create')->only(['create', 'store', 'searchBankProducts', 'bulkUpload', 'bulkUploadStore', 'downloadDemo']);
         $this->middleware('can:products.edit')->only(['edit', 'update', 'moveToBank']);
         $this->middleware('can:products.stock-management')->only(['stockManagement', 'updateStockPricing']);
         $this->middleware('can:products.delete')->only(['destroy']);
@@ -933,5 +933,77 @@ class ProductController extends Controller
                 'message' => $e->getMessage()
             ], 500);
         }
+    }
+
+    /**
+     * Show bulk upload page
+     */
+    public function bulkUpload()
+    {
+        return view('catalogmanagement::product.bulk-upload');
+    }
+
+    /**
+     * Handle bulk upload import
+     */
+    public function bulkUploadStore(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|mimes:xlsx,xls|max:10240'
+        ]);
+
+        try {
+            $isAdmin = isAdmin();
+            $import = new \Modules\CatalogManagement\app\Imports\ProductsImport($isAdmin);
+            \Maatwebsite\Excel\Facades\Excel::import($import, $request->file('file'));
+
+            $importedCount = $import->getImportedCount();
+            $errors = $import->getErrors();
+
+            if (count($errors) > 0) {
+                return redirect()->back()->with([
+                    'warning' => __('catalogmanagement::product.bulk_upload_partial_success', [
+                        'imported' => $importedCount,
+                        'failed' => count($errors)
+                    ]),
+                    'import_errors' => $errors
+                ]);
+            }
+
+            return redirect()->back()->with('success', __('catalogmanagement::product.bulk_upload_success', [
+                'count' => $importedCount
+            ]));
+        } catch (\Exception $e) {
+            Log::error('Bulk upload error: ' . $e->getMessage());
+            return redirect()->back()->with('error', __('catalogmanagement::product.bulk_upload_error') . ': ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Download demo Excel file
+     * - Admin users get admin_products_demo.xlsx (with vendor_id column)
+     * - Vendor users get vendor_products_demo.xlsx (without vendor_id column)
+     */
+    public function downloadDemo()
+    {
+        $currentUser = Auth::user();
+        $userType = $currentUser->user_type_id;
+        
+        // Determine which demo file to serve
+        if (isAdmin()) {
+            $fileName = 'admin_products_demo.xlsx';
+            $downloadName = 'admin_products_demo.xlsx';
+        } else {
+            $fileName = 'vendor_products_demo.xlsx';
+            $downloadName = 'vendor_products_demo.xlsx';
+        }
+        
+        $filePath = public_path('assets/' . $fileName);
+        
+        if (!file_exists($filePath)) {
+            return redirect()->back()->with('error', __('catalogmanagement::product.demo_file_not_found'));
+        }
+
+        return response()->download($filePath, $downloadName);
     }
 }

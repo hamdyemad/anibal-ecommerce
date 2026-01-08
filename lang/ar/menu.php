@@ -260,6 +260,9 @@
             'variant config keys' => 'مفاتيح تكوين المتغيرات',
             'variant config' => 'تكوينات المتغيرات',
         ],
+        'system_catalog' => [
+            'title' => 'كتالوج النظام',
+        ],
         'currencies' => [
             'title' => 'العملات',
         ],

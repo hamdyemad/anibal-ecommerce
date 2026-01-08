@@ -49,6 +49,8 @@ Route::group(['prefix' => '/', 'middleware' => 'guest'], function() {
 
 // Protected routes
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+
+
 // Protected routes
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
