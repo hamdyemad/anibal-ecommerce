@@ -18,6 +18,7 @@ use Modules\CatalogManagement\app\Models\VariantsConfiguration;
 use Modules\CatalogManagement\app\Models\Brand;
 use Modules\CatalogManagement\app\Models\Tax;
 use Modules\CatalogManagement\app\Models\Occasion;
+use Modules\CatalogManagement\app\Models\OccasionProduct;
 use Modules\CatalogManagement\app\Models\Product;
 use Modules\CatalogManagement\app\Models\VendorProduct;
 use Modules\CatalogManagement\app\Models\VendorProductVariant;
@@ -33,6 +34,9 @@ use Modules\Order\app\Models\Shipping;
 use Modules\Vendor\app\Models\Vendor;
 use Modules\Customer\app\Models\Customer;
 use Modules\SystemSetting\app\Models\UserPoints;
+use Modules\CatalogManagement\app\Models\BundleCategory;
+use Modules\CatalogManagement\app\Models\Bundle;
+use Modules\CatalogManagement\app\Models\BundleProduct;
 use App\Models\User;
 use App\Models\UserType;
 use App\Models\Role;
@@ -84,7 +88,7 @@ class InjectDataController extends Controller
             'attachable_type' => 'Modules\\CatalogManagement\\app\\Models\\Tax',
         ],
         'occasions' => [
-            'tables' => ['occasions'],
+            'tables' => ['occasions', 'occasion_products'],
             'folders' => ['occasions'],
             'attachable_type' => 'Modules\\CatalogManagement\\app\\Models\\Occasion',
         ],
@@ -122,6 +126,16 @@ class InjectDataController extends Controller
             'tables' => ['user_points', 'customer_addresses', 'customer_fcm_tokens', 'customers'],
             'folders' => ['customer-images'],
             'attachable_type' => null,
+        ],
+        'bundle_categories' => [
+            'tables' => ['bundle_categories'],
+            'folders' => ['bundles_categories-images'],
+            'attachable_type' => 'Modules\\CatalogManagement\\app\\Models\\BundleCategory',
+        ],
+        'bundles' => [
+            'tables' => ['bundle_products', 'bundles'],
+            'folders' => ['bundles-images'],
+            'attachable_type' => 'Modules\\CatalogManagement\\app\\Models\\Bundle',
         ],
     ];
     
@@ -320,7 +334,6 @@ class InjectDataController extends Controller
             'variants' => $this->injectVariants($data),
             'brands' => $this->injectBrands($data),
             'taxes' => $this->injectTaxes($data),
-            'occasions' => $this->injectOccasions($data),
             'blog_categories' => $this->injectBlogCategories($data),
             'blogs' => $this->injectBlogs($data),
             'ads_positions' => $this->injectAdsPositions($data),
@@ -328,6 +341,9 @@ class InjectDataController extends Controller
             'cities' => $this->injectCities($data),
             'products' => $this->injectProducts($data),
             'users' => $this->injectCustomers($data),
+            'occasions' => $this->injectOccasions($data),
+            'bundle_categories' => $this->injectBundleCategories($data),
+            'bundles' => $this->injectBundles($data),
             default => ['message' => "Unknown include type: {$include}"],
         };
     }
@@ -1096,7 +1112,6 @@ class InjectDataController extends Controller
                         'start_date' => $startDate,
                         'end_date' => $endDate,
                         'is_active' => ($item['status'] ?? '0') == '1',
-                        'show_in_mobile' => $item['show_in_mobile'] ?? false,
                         'created_at' => $this->parseDate($item['created_at'] ?? null),
                         'updated_at' => $this->parseDate($item['updated_at'] ?? null),
                     ]);
@@ -1109,7 +1124,6 @@ class InjectDataController extends Controller
                     $occasion->start_date = $startDate;
                     $occasion->end_date = $endDate;
                     $occasion->is_active = ($item['status'] ?? '0') == '1';
-                    $occasion->show_in_mobile = $item['show_in_mobile'] ?? false;
                     $occasion->created_at = $this->parseDate($item['created_at'] ?? null);
                     $occasion->updated_at = $this->parseDate($item['updated_at'] ?? null);
                     $occasion->save();
@@ -1146,7 +1160,59 @@ class InjectDataController extends Controller
                 // Download and attach image
                 if (!empty($item['image'])) {
                     $this->attachImage($occasion, $item['image'], 'image');
-                }} catch (\Exception $e) {$nameEn = $item['name_en'] ?? $item['id'];
+                }
+
+                // Inject occasion products
+                if (!empty($item['occasion_products'])) {
+                    // Clear existing occasion products for this occasion
+                    OccasionProduct::where('occasion_id', $occasion->id)->delete();
+
+                    foreach ($item['occasion_products'] as $op) {
+                        try {
+                            // Get the product SKU from nested data
+                            $productSku = $op['product_size_color']['product']['sku'] ?? null;
+                            $variantSku = $op['product_size_color']['sku'] ?? null;
+
+                            if (!$productSku) {
+                                continue;
+                            }
+
+                            // Find vendor product by SKU
+                            $vendorProduct = VendorProduct::where('sku', $productSku)->first();
+                            if (!$vendorProduct) {
+                                // Try finding by variant SKU as product SKU
+                                $vendorProduct = VendorProduct::where('sku', $variantSku)->first();
+                            }
+
+                            if (!$vendorProduct) {
+                                $errors[] = "Occasion product: VendorProduct not found for SKU: {$productSku}";
+                                continue;
+                            }
+
+                            // Find vendor product variant by SKU (if different from product SKU)
+                            $vendorProductVariantId = null;
+                            if ($variantSku && $variantSku !== $productSku) {
+                                $vendorProductVariant = VendorProductVariant::where('sku', $variantSku)
+                                    ->where('vendor_product_id', $vendorProduct->id)
+                                    ->first();
+                                $vendorProductVariantId = $vendorProductVariant?->id;
+                            }
+
+                            // Create occasion product
+                            OccasionProduct::create([
+                                'country_id' => $occasion->country_id,
+                                'occasion_id' => $occasion->id,
+                                'vendor_product_variant_id' => $vendorProductVariantId ?? $vendorProduct->variants()->first()?->id,
+                                'special_price' => $op['special_price'] ?? null,
+                                'position' => $op['position'] ?? null,
+                            ]);
+                        } catch (\Exception $e) {
+                            $errors[] = "Occasion product error: " . $e->getMessage();
+                        }
+                    }
+                }
+            } catch (\Exception $e) {
+                $nameEn = $item['name_en'] ?? $item['id'];
                 $errors[] = "Occasion {$nameEn} (ID: {$item['id']}): " . $e->getMessage();
                 Log::error("Error injecting occasion: " . $e->getMessage());
             }
@@ -2428,5 +2494,179 @@ class InjectDataController extends Controller
                 return null;
             }
         }
+    }
+
+    /**
+     * Inject bundle categories into database
+     */
+    protected function injectBundleCategories(array $data): array
+    {
+        $items = $data['bundle_categories']['data'] ?? [];
+        $injected = 0;
+        $updated = 0;
+        $errors = [];
+
+        foreach ($items as $item) {
+            try {
+                $bundleCategory = BundleCategory::where('id', $item['id'])->first();
+
+                if ($bundleCategory) {
+                    $bundleCategory->update([
+                        'slug' => $item['slug_en'] ?? $item['slug'] ?? null,
+                        'active' => ($item['status'] ?? '1') == '1',
+                        'created_at' => $this->parseDate($item['created_at'] ?? null),
+                        'updated_at' => $this->parseDate($item['updated_at'] ?? null),
+                    ]);
+                    $updated++;
+                } else {
+                    $bundleCategory = new BundleCategory();
+                    $bundleCategory->id = $item['id'];
+                    $bundleCategory->slug = $item['slug_en'] ?? $item['slug'] ?? null;
+                    $bundleCategory->active = ($item['status'] ?? '1') == '1';
+                    $bundleCategory->created_at = $this->parseDate($item['created_at'] ?? null);
+                    $bundleCategory->updated_at = $this->parseDate($item['updated_at'] ?? null);
+                    $bundleCategory->save();
+                    $injected++;
+                }
+
+                // Set translations
+                if (!empty($item['title_en'])) {
+                    $bundleCategory->setTranslation('name', 'en', $item['title_en']);
+                }
+                if (!empty($item['title_ar'])) {
+                    $bundleCategory->setTranslation('name', 'ar', $item['title_ar']);
+                }
+                if (!empty($item['description_en'])) {
+                    $bundleCategory->setTranslation('description', 'en', $item['description_en']);
+                }
+                if (!empty($item['description_ar'])) {
+                    $bundleCategory->setTranslation('description', 'ar', $item['description_ar']);
+                }
+                $bundleCategory->save();
+
+                // Download and attach image
+                if (!empty($item['image'])) {
+                    $this->attachImage($bundleCategory, $item['image'], 'image');
+                }
+            } catch (\Exception $e) {
+                $titleEn = $item['title_en'] ?? $item['id'];
+                $errors[] = "BundleCategory {$titleEn} (ID: {$item['id']}): " . $e->getMessage();
+                Log::error("Error injecting bundle category: " . $e->getMessage());
+            }
+        }
+
+        return [
+            'type' => 'bundle_categories',
+            'injected' => $injected,
+            'updated' => $updated,
+            'errors' => $errors,
+        ];
+    }
+
+    /**
+     * Inject bundles into database
+     */
+    protected function injectBundles(array $data): array
+    {
+        $items = $data['bundles']['data'] ?? [];
+        $injected = 0;
+        $updated = 0;
+        $bundleProductsCreated = 0;
+        $errors = [];
+
+        // Get default vendor (first one or ID 1)
+        $defaultVendorId = Vendor::first()?->id ?? 1;
+
+        foreach ($items as $item) {
+            try {
+                $bundle = Bundle::where('id', $item['id'])->first();
+
+                if ($bundle) {
+                    $bundle->update([
+                        'slug' => $item['slug_en'] ?? $item['slug'] ?? null,
+                        'sku' => $item['sku'] ?? null,
+                        'bundle_category_id' => $item['bundle_category_id'] ?? null,
+                        'vendor_id' => $item['vendor_id'] ?? $defaultVendorId,
+                        'is_active' => ($item['status'] ?? '1') == '1',
+                        'admin_approval' => 1,
+                        'created_at' => $this->parseDate($item['created_at'] ?? null),
+                        'updated_at' => $this->parseDate($item['updated_at'] ?? null),
+                    ]);
+                    // Delete existing bundle products to re-create
+                    $bundle->bundleProducts()->forceDelete();
+                    $updated++;
+                } else {
+                    $bundle = new Bundle();
+                    $bundle->id = $item['id'];
+                    $bundle->slug = $item['slug_en'] ?? $item['slug'] ?? null;
+                    $bundle->sku = $item['sku'] ?? null;
+                    $bundle->bundle_category_id = $item['bundle_category_id'] ?? null;
+                    $bundle->vendor_id = $item['vendor_id'] ?? $defaultVendorId;
+                    $bundle->is_active = ($item['status'] ?? '1') == '1';
+                    $bundle->admin_approval = 1;
+                    $bundle->created_at = $this->parseDate($item['created_at'] ?? null);
+                    $bundle->updated_at = $this->parseDate($item['updated_at'] ?? null);
+                    $bundle->save();
+                    $injected++;
+                }
+
+                // Set translations
+                if (!empty($item['name_en'])) {
+                    $bundle->setTranslation('name', 'en', $item['name_en']);
+                }
+                if (!empty($item['name_ar'])) {
+                    $bundle->setTranslation('name', 'ar', $item['name_ar']);
+                }
+                if (!empty($item['description_en'])) {
+                    $bundle->setTranslation('description', 'en', $item['description_en']);
+                }
+                if (!empty($item['description_ar'])) {
+                    $bundle->setTranslation('description', 'ar', $item['description_ar']);
+                }
+                if (!empty($item['meta_description_en'])) {
+                    $bundle->setTranslation('meta_description', 'en', $item['meta_description_en']);
+                }
+                if (!empty($item['meta_description_ar'])) {
+                    $bundle->setTranslation('meta_description', 'ar', $item['meta_description_ar']);
+                }
+                $bundle->save();
+
+                // Download and attach image
+                if (!empty($item['image'])) {
+                    $this->attachImage($bundle, $item['image'], 'main_image');
+                }
+
+                // Create bundle products
+                if (!empty($item['bundle_products']) && is_array($item['bundle_products'])) {
+                    foreach ($item['bundle_products'] as $bp) {
+                        $variantId = $bp['product_size_color_id'] ?? null;
+                        // Skip if variant doesn't exist locally
+                        if (!$variantId || !VendorProductVariant::where('id', $variantId)->exists()) {
+                            continue;
+                        }
+                        BundleProduct::create([
+                            'bundle_id' => $bundle->id,
+                            'vendor_product_variant_id' => $variantId,
+                            'min_quantity' => $bp['quantity'] ?? $bp['minimum'] ?? 1,
+                            'limitation_quantity' => $bp['limitation'] ?? null,
+                            'price' => $bp['price'] ?? 0,
+                        ]);
+                        $bundleProductsCreated++;
+                    }
+                }
+            } catch (\Exception $e) {
+                $nameEn = $item['name_en'] ?? $item['id'];
+                $errors[] = "Bundle {$nameEn} (ID: {$item['id']}): " . $e->getMessage();
+                Log::error("Error injecting bundle: " . $e->getMessage());
+            }
+        }
+
+        return [
+            'type' => 'bundles',
+            'injected' => $injected,
+            'updated' => $updated,
+            'bundle_products_created' => $bundleProductsCreated,
+            'errors' => $errors,
+        ];
     }
 }
