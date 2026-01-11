@@ -120,6 +120,26 @@
                                         @endif
                                     </div>
                                 </div>
+
+                                {{-- SubCategory Icon --}}
+                                <div class="card card-holder mt-3">
+                                    <div class="card-header">
+                                        <h3>
+                                            <i class="uil uil-star me-1"></i>{{ trans('categorymanagment::subcategory.icon') }}
+                                        </h3>
+                                    </div>
+                                    <div class="card-body text-center">
+                                        @if($subCategory->icon)
+                                            <div class="image-wrapper">
+                                                <img src="{{ asset('storage/' . $subCategory->icon) }}"
+                                                    alt="{{ $subCategory->getTranslation('name', app()->getLocale()) }} Icon"
+                                                    class="subcategory-icon img-fluid">
+                                            </div>
+                                        @else
+                                            <p class="text-muted">{{ trans('common.no_icon') }}</p>
+                                        @endif
+                                    </div>
+                                </div>
                             </div>
 
                     </div>

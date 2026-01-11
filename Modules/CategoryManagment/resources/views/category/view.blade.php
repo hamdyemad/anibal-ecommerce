@@ -118,6 +118,26 @@
                                         @endif
                                     </div>
                                 </div>
+
+                                {{-- Category Icon --}}
+                                <div class="card card-holder mt-3">
+                                    <div class="card-header">
+                                        <h3>
+                                            <i class="uil uil-star me-1"></i>{{ trans('categorymanagment::category.icon') }}
+                                        </h3>
+                                    </div>
+                                    <div class="card-body text-center">
+                                        @if($category->icon)
+                                            <div class="image-wrapper">
+                                                <img src="{{ asset('storage/' . $category->icon) }}"
+                                                    alt="{{ $category->getTranslation('name', app()->getLocale()) }} Icon"
+                                                    class="category-icon img-fluid" style="">
+                                            </div>
+                                        @else
+                                            <p class="text-muted">{{ trans('common.no_icon') }}</p>
+                                        @endif
+                                    </div>
+                                </div>
                             </div>
 
                     </div>

@@ -16,24 +16,12 @@ use App\Http\Controllers\AreaSettings\CityController;
 use App\Http\Controllers\AreaSettings\RegionController;
 use App\Http\Controllers\AreaSettings\SubRegionController;
 use App\Http\Controllers\DepartmentController;
-use App\Models\Translation;
-use Database\Seeders\AreaSettingsSeeder;
-use Database\Seeders\AutoProductSeeder;
-use Database\Seeders\BrandSeeder;
-use Database\Seeders\CategoryDepartmentSeeder;
-use Database\Seeders\CustomerSeeder;
-use Database\Seeders\OrderSeeder;
-use Database\Seeders\OrderStageSeeder;
+use App\Http\Controllers\Api\InjectDataController;
+use App\Http\Controllers\Admin\TruncateController;
 use Database\Seeders\SyncVendorUsersSeeder;
-use Database\Seeders\TaxSeeder;
-use Database\Seeders\VariantConfigurationSeeder;
-use Database\Seeders\VendorSeeder;
 use Database\Seeders\VendorProductTaxSeeder;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
-use Modules\AreaSettings\app\Models\Country;
-use Modules\CatalogManagement\database\seeders\ReviewSeeder;
-use Modules\Order\database\seeders\OrderDatabaseSeeder;
 
 /*
 |--------------------------------------------------------------------------
@@ -47,6 +35,9 @@ use Modules\Order\database\seeders\OrderDatabaseSeeder;
 
 // Admin dashboard with country code
 Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+// Inject data from external source (with lang and country)
+Route::get('inject-data', [InjectDataController::class, 'inject'])->name('inject-data');
 
 // Admin Notifications
 Route::prefix('notifications')->name('notifications.')->group(function() {
@@ -240,34 +231,7 @@ Route::get('seeder', function () {
         }
 });
 
-Route::get('/truncate', function(Illuminate\Http\Request $request) {
-    if ($request->query('key') !== 'MY_SECRET_KEY_123') {
-        abort(403, 'Unauthorized');
-    }
-    DB::statement('SET FOREIGN_KEY_CHECKS=0;');
-    Translation::latest()->forceDelete();
-    $tables = [
-        'activity_logs','cities', 'regions', 'subregions', 'vendor_regions',
-        'attachments', 'brands', 'bundle_categories', 'categories',
-        'departments',
-        'customers',
-        'customer_addresses', 'customer_fcm_tokens',
-        'customer_otps','customer_password_reset_tokens',
-        'orders', 'order_extra_fees_discounts', 'order_stages',
-        'order_fulfillments', 'order_products', 'order_product_taxes',
-        'products', 'product_variants', 'promocodes', 'reviews', 'sub_categories',
-        'taxes', 'translations', 'variants_configurations', 'variants_configurations_keys',
-        'vendors', 'vendor_products', 'vendor_product_variants',
-        'vendor_product_variant_stocks', 'vendor_requests',
-        'wishlists', 'withdraws'
-    ];
-
-    foreach ($tables as $table) {
-        DB::table($table)->truncate();
-    }
-
-    DB::statement('SET FOREIGN_KEY_CHECKS=1;');
-});
+Route::get('/truncate', [TruncateController::class, 'truncate'])->name('truncate');
 
 
 

@@ -118,6 +118,7 @@ return [
     'remove' => 'Remove',
     'no_image' => 'No Image',
     'no_images' => 'No images uploaded',
+    'no_icon' => 'No Icon',
     'current_image' => 'Current Image',
     'click_to_upload' => 'Click to upload image',
     'recommended_logo_size' => 'Recommended: 400x400px',

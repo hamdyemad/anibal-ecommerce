@@ -121,6 +121,7 @@ return [
     'remove' => 'إزالة',
     'no_image' => 'لا يوجد صورة',
     'no_images' => 'لم يتم رفع صور',
+    'no_icon' => 'لا يوجد أيقونة',
     'current_image' => 'الصورة الحالية',
     'click_to_upload' => 'انقر لرفع الصورة',
     'recommended_logo_size' => 'الحجم الموصى به: 400×400 بكسل',
