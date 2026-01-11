@@ -22,8 +22,8 @@ class AdRequest extends FormRequest
     public function rules(): array
     {
         $rules = [
-            'position' => 'required|string|max:100',
-            'type' => 'required|array',
+            'ad_position_id' => 'required|exists:ads_positions,id',
+            'type' => 'nullable|array',
             'type.*' => 'in:mobile,website',
             'link' => 'nullable|url|max:500',
             'mobile_width' => 'nullable|integer|min:1|max:10000',
@@ -47,7 +47,7 @@ class AdRequest extends FormRequest
     public function attributes(): array
     {
         $attributes = [
-            'position' => __('systemsetting::ads.position'),
+            'ad_position_id' => __('systemsetting::ads.position'),
             'link' => __('systemsetting::ads.link'),
             'mobile_width' => __('systemsetting::ads.mobile_width'),
             'mobile_height' => __('systemsetting::ads.mobile_height'),
@@ -73,7 +73,8 @@ class AdRequest extends FormRequest
     public function messages(): array
     {
         $messages = [
-            'position.required' => __('systemsetting::ads.validation.position_required'),
+            'ad_position_id.required' => __('systemsetting::ads.validation.position_required'),
+            'ad_position_id.exists' => __('systemsetting::ads.validation.position_invalid'),
             'link.url' => __('systemsetting::ads.validation.link_url'),
         ];
 

@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\InjectDataController;
 
 /*
 |--------------------------------------------------------------------------
@@ -12,3 +13,6 @@ use Illuminate\Support\Facades\Route;
 | contains the "api" middleware group. Enjoy building your API!
 |
 */
+
+// Temporary route for testing inject data
+Route::get('inject-data', [InjectDataController::class, 'inject']);

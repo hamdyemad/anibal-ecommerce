@@ -72,10 +72,28 @@
 
                                         {{-- Position --}}
                                         <div class="col-md-6 mb-25">
-                                            <x-searchable-tags name="position" :label="__('systemsetting::ads.position')" :options="collect($positions)
-                                                ->map(fn($val, $key) => ['id' => $key, 'name' => $val])
-                                                ->toArray()"
-                                                :selected="isset($ad) ? [$ad->position] : []" :placeholder="__('systemsetting::ads.position_placeholder')" :required="true" :multiple="false" />
+                                            <div class="form-group">
+                                                <label for="ad_position_id" class="form-label">
+                                                    {{ __('systemsetting::ads.position') }} <span class="text-danger">*</span>
+                                                </label>
+                                                <select name="ad_position_id" id="ad_position_id"
+                                                    class="form-control form-select ih-medium ip-gray radius-xs b-light px-15 @error('ad_position_id') is-invalid @enderror"
+                                                    required>
+                                                    <option value="">{{ __('systemsetting::ads.position_placeholder') }}</option>
+                                                    @foreach ($positions as $position)
+                                                        <option value="{{ $position->id }}"
+                                                            {{ old('ad_position_id', isset($ad) ? $ad->ad_position_id : '') == $position->id ? 'selected' : '' }}
+                                                            data-width="{{ $position->width }}"
+                                                            data-height="{{ $position->height }}"
+                                                            data-device="{{ $position->device }}">
+                                                            {{ $position->position }} ({{ $position->width }}x{{ $position->height }} - {{ $position->device }})
+                                                        </option>
+                                                    @endforeach
+                                                </select>
+                                                @error('ad_position_id')
+                                                    <div class="text-danger">{{ $message }}</div>
+                                                @enderror
+                                            </div>
                                         </div>
 
                                         {{-- Mobile Dimensions --}}

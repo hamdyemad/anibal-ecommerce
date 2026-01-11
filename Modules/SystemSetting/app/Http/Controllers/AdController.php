@@ -9,6 +9,7 @@ use Illuminate\Support\Str;
 use Modules\SystemSetting\app\Actions\AdAction;
 use Modules\SystemSetting\app\Http\Requests\AdRequest;
 use Modules\SystemSetting\app\Models\Ad;
+use Modules\SystemSetting\app\Models\AdPosition;
 use Modules\SystemSetting\app\Services\AdService;
 use Yajra\DataTables\Facades\DataTables;
 
@@ -35,7 +36,7 @@ class AdController extends Controller
      */
     public function index()
     {
-        $positions = Ad::getPositions();
+        $positions = AdPosition::pluck('position', 'id')->toArray();
         return view('systemsetting::ads.index', compact('positions'));
     }
 
@@ -44,7 +45,7 @@ class AdController extends Controller
      */
     public function datatable(Request $request)
     {
-        $query = Ad::with('translations', 'attachments');
+        $query = Ad::with('translations', 'attachments', 'adPosition');
 
         // Apply filters
         if ($request->filled('search')) {
@@ -58,7 +59,7 @@ class AdController extends Controller
         }
 
         if ($request->filled('position')) {
-            $query->where('position', $request->position);
+            $query->where('ad_position_id', $request->position);
         }
 
         if ($request->filled('type')) {
@@ -99,7 +100,8 @@ class AdController extends Controller
                 return $html ?: '-';
             })
             ->addColumn('position_badge', function ($ad) {
-                return '<span class="badge badge-round badge-lg badge-info">' . $ad->position_label . '</span>';
+                $positionName = $ad->adPosition ? $ad->adPosition->position : '-';
+                return '<span class="badge badge-round badge-lg badge-info">' . $positionName . '</span>';
             })
             ->addColumn('image_preview', function ($ad) {
                 if ($ad->image) {
@@ -146,7 +148,7 @@ class AdController extends Controller
     public function create()
     {
         $languages = Language::all();
-        $positions = Ad::getPositions();
+        $positions = AdPosition::all();
         return view('systemsetting::ads.form', compact('languages', 'positions'));
     }
 
@@ -207,7 +209,7 @@ class AdController extends Controller
     {
         $ad = $this->adService->getAdById($id);
         $languages = Language::all();
-        $positions = Ad::getPositions();
+        $positions = AdPosition::all();
         return view('systemsetting::ads.form', compact('ad', 'languages', 'positions'));
     }
 

@@ -57,7 +57,7 @@
                                                         class="il-gray fs-14 fw-500 mb-10">{{ __('systemsetting::ads.position') }}</label>
                                                     <p class="fs-15">
                                                         <span class="badge badge-round badge-info badge-lg">
-                                                            {{ $ad->position_label }}
+                                                            {{ $ad->adPosition?->position ?? '-' }}
                                                         </span>
                                                     </p>
                                                 </div>

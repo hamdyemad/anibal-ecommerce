@@ -24,6 +24,14 @@ class Ad extends Model
     ];
 
     /**
+     * Get the ad position
+     */
+    public function adPosition()
+    {
+        return $this->belongsTo(AdPosition::class, 'ad_position_id');
+    }
+
+    /**
      * Get all attachments for the ad
      */
     public function attachments()
@@ -56,16 +64,6 @@ class Ad extends Model
         return $attachment ? $attachment->path : null;
     }
 
-    /**
-     * Get position label (English)
-     */
-    public function getPositionLabelAttribute()
-    {
-        $positions = self::getPositions();
-        return $positions[$this->position] ?? $this->position;
-    }
-
-
     public function scopeActive(Builder $query) {
         return $query->where('active', 1);
     }
@@ -82,7 +80,7 @@ class Ad extends Model
         }
 
         if (isset($filters['position']) && !empty($filters['position'])) {
-            $query->where('position', $filters['position']);
+            $query->where('ad_position_id', $filters['position']);
         }
         if (isset($filters['type']) && !empty($filters['type'])) {
             $query->whereJsonContains('type', $filters['type']);
@@ -101,19 +99,5 @@ class Ad extends Model
         }
 
         return $query;
-    }
-
-    /**
-     * Available positions (English labels for API)
-     */
-    public static function getPositions()
-    {
-        return [
-            'homepage_mid_content_banner' => 'Homepage Mid-Content Banner',
-            'homepage_main_right_banner' => 'Homepage Main Right Banner',
-            'homepage_left_lower_ad_card' => 'Homepage Left Lower Ad Card',
-            'homepage_left_upper_ad_card' => 'Homepage Left Upper Ad Card',
-            'middle_home_ad' => 'Middle Home Ad',
-        ];
     }
 }

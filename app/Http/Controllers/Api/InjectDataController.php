@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use Modules\CategoryManagment\app\Models\Department;
 use Modules\CategoryManagment\app\Models\Category;
@@ -17,8 +18,21 @@ use Modules\CatalogManagement\app\Models\VariantsConfiguration;
 use Modules\CatalogManagement\app\Models\Brand;
 use Modules\CatalogManagement\app\Models\Tax;
 use Modules\CatalogManagement\app\Models\Occasion;
+use Modules\CatalogManagement\app\Models\Product;
+use Modules\CatalogManagement\app\Models\VendorProduct;
+use Modules\CatalogManagement\app\Models\VendorProductVariant;
+use Modules\CatalogManagement\app\Models\VendorProductVariantStock;
 use Modules\SystemSetting\app\Models\BlogCategory;
+use Modules\SystemSetting\app\Models\Blog;
+use Modules\SystemSetting\app\Models\AdPosition;
+use Modules\SystemSetting\app\Models\Ad;
+use Modules\AreaSettings\app\Models\City;
+use Modules\AreaSettings\app\Models\Region;
+use Modules\AreaSettings\app\Models\Country;
+use Modules\Order\app\Models\Shipping;
 use Modules\Vendor\app\Models\Vendor;
+use Modules\Customer\app\Models\Customer;
+use Modules\SystemSetting\app\Models\UserPoints;
 use App\Models\User;
 use App\Models\UserType;
 use App\Models\Role;
@@ -27,6 +41,89 @@ use App\Models\Attachment;
 class InjectDataController extends Controller
 {
     protected string $sourceBaseUrl = 'https://bnaia.com';
+
+    /**
+     * Configuration for truncating data before injection
+     */
+    protected array $truncateConfig = [
+        'departments' => [
+            'tables' => ['departments'],
+            'folders' => ['department-images'],
+            'attachable_type' => 'Modules\\CategoryManagment\\app\\Models\\Department',
+        ],
+        'categories' => [
+            'tables' => ['categories', 'sub_categories'],
+            'folders' => ['category-images', 'main-category-images', 'sub-category-images'],
+            'attachable_types' => [
+                'Modules\\CategoryManagment\\app\\Models\\Category',
+                'Modules\\CategoryManagment\\app\\Models\\SubCategory',
+            ],
+        ],
+        'variant_keys' => [
+            'tables' => ['variants_configurations_keys'],
+            'folders' => [],
+            'attachable_type' => 'Modules\\CatalogManagement\\app\\Models\\VariantConfigurationKey',
+        ],
+        'variants' => [
+            'tables' => ['variants_configurations'],
+            'folders' => [],
+            'attachable_type' => 'Modules\\CatalogManagement\\app\\Models\\VariantsConfiguration',
+        ],
+        'brands' => [
+            'tables' => ['brands', 'vendors'],
+            'folders' => ['brands-images', 'vendor-images'],
+            'attachable_types' => [
+                'Modules\\CatalogManagement\\app\\Models\\Brand',
+                'Modules\\Vendor\\app\\Models\\Vendor',
+            ],
+            'delete_vendor_users' => true,
+        ],
+        'taxes' => [
+            'tables' => ['taxes'],
+            'folders' => [],
+            'attachable_type' => 'Modules\\CatalogManagement\\app\\Models\\Tax',
+        ],
+        'occasions' => [
+            'tables' => ['occasions'],
+            'folders' => ['occasions'],
+            'attachable_type' => 'Modules\\CatalogManagement\\app\\Models\\Occasion',
+        ],
+        'blog_categories' => [
+            'tables' => ['blog_categories'],
+            'folders' => [],
+            'attachable_type' => 'Modules\\SystemSetting\\app\\Models\\BlogCategory',
+        ],
+        'blogs' => [
+            'tables' => ['blogs'],
+            'folders' => ['blog-images'],
+            'attachable_type' => 'Modules\\SystemSetting\\app\\Models\\Blog',
+        ],
+        'ads_positions' => [
+            'tables' => ['ads_positions'],
+            'folders' => [],
+            'attachable_type' => null,
+        ],
+        'ads' => [
+            'tables' => ['ads'],
+            'folders' => ['ads-images'],
+            'attachable_type' => 'Modules\\SystemSetting\\app\\Models\\Ad',
+        ],
+        'cities' => [
+            'tables' => ['shipping_cities', 'shipping_categories', 'shippings', 'regions', 'cities'],
+            'folders' => ['city-images'],
+            'attachable_type' => 'Modules\\AreaSettings\\app\\Models\\City',
+        ],
+        'products' => [
+            'tables' => ['vendor_product_variant_stocks', 'vendor_product_variants', 'vendor_products', 'products'],
+            'folders' => ['product-images'],
+            'attachable_type' => 'Modules\\CatalogManagement\\app\\Models\\Product',
+        ],
+        'users' => [
+            'tables' => ['user_points', 'customer_addresses', 'customer_fcm_tokens', 'customers'],
+            'folders' => ['customer-images'],
+            'attachable_type' => null,
+        ],
+    ];
     
     /**
      * Inject data from external API
@@ -36,90 +133,133 @@ class InjectDataController extends Controller
      */
     public function inject(Request $request)
     {
-        $include = $request->get('include', 'departments');
+        // Prevent double execution with a simple cache lock
+        $include = $request->get('include', 'departments');        
+        // Increase execution time for large imports
+        set_time_limit(0);
+        ini_set('memory_limit', '512M');
         
-        try {
-            $allData = [];
-            $page = 1;
-            $lastPage = 1;
+        $truncate = $request->get('truncate', '0') === '1';
+        $limitPages = $request->get('limit_pages') ? (int) $request->get('limit_pages') : null; // Optional: limit how many pages to process
+        $startPage = (int) $request->get('page', 1);
+        
+        $truncateResult = null;
+        $page = $startPage;
+        $lastPage = 1;
+        $totalFetched = 0;
+        $combinedResult = [
+            'type' => $include,
+            'injected' => 0,
+            'updated' => 0,
+            'skipped' => 0,
+            'errors' => [],
+        ];
 
-            // Fetch all pages
-            do {
+        try {
+            // Truncate existing data before injection (only if explicitly requested)
+            if ($truncate) {
+                Log::info("Truncating data for {$include}");
+                $truncateResult = $this->truncateBeforeInject($include);
+                Log::info("Truncate complete for {$include}", $truncateResult ?? []);
+            }
+
+            // Fetch and process page by page
+            while (true) {
                 $response = Http::withOptions(['verify' => false])
-                    ->timeout(30)
+                    ->timeout(60)
                     ->get("{$this->sourceBaseUrl}/api/inject-products", [
                         'include' => $include,
                         'page' => $page,
                     ]);
-
+                    
                 if (!$response->successful()) {
-                    return response()->json([
-                        'status' => false,
-                        'message' => "Failed to fetch page {$page} from source",
-                    ], 500);
+                    $combinedResult['errors'][] = "Failed to fetch page {$page} from source";
+                    $page++;
+                    if ($page > $lastPage) break;
+                    continue;
                 }
 
                 $data = $response->json();
-                
-                if (!isset($data['status']) || !$data['status']) {
-                    return response()->json([
-                        'status' => false,
-                        'message' => $data['message'] ?? 'Source returned error',
-                    ], 400);
-                }
 
-                // Handle categories special case (has main_categories and sub_categories)
+                if (!isset($data['status']) || !$data['status']) {
+                    $combinedResult['errors'][] = "Page {$page}: " . ($data['message'] ?? 'Source returned error');
+                    $page++;
+                    if ($page > $lastPage) break;
+                    continue;
+                }
+                
+                // Handle categories special case
                 if ($include === 'categories') {
                     $mainCats = $data['data']['main_categories'] ?? null;
                     $subCats = $data['data']['sub_categories'] ?? null;
                     
-                    if ($mainCats && isset($mainCats['data'])) {
-                        $allData['main_categories'] = array_merge(
-                            $allData['main_categories'] ?? [],
-                            $mainCats['data']
-                        );
-                        $lastPage = max($lastPage, $mainCats['last_page'] ?? 1);
-                    }
+                    $pageData = [
+                        'main_categories' => ['data' => $mainCats['data'] ?? []],
+                        'sub_categories' => ['data' => $subCats['data'] ?? []],
+                    ];
                     
-                    if ($subCats && isset($subCats['data'])) {
-                        $allData['sub_categories'] = array_merge(
-                            $allData['sub_categories'] ?? [],
-                            $subCats['data']
-                        );
-                        $lastPage = max($lastPage, $subCats['last_page'] ?? 1);
-                    }
+                    $lastPage = max($lastPage, $mainCats['last_page'] ?? 1, $subCats['last_page'] ?? 1);
+                    $totalFetched += count($mainCats['data'] ?? []) + count($subCats['data'] ?? []);
+                    
+                    $pageResult = $this->injectData($pageData, $include);
+                    
                 } else {
-                    // Get paginated data for other types
                     $paginatedData = $data['data'][$include] ?? null;
                     
                     if ($paginatedData && isset($paginatedData['data'])) {
-                        $allData = array_merge($allData, $paginatedData['data']);
+                        $pageData = [$include => ['data' => $paginatedData['data']]];
                         $lastPage = $paginatedData['last_page'] ?? 1;
+                        $totalFetched += count($paginatedData['data']);
+                        
+                        $pageResult = $this->injectData($pageData, $include);
+                    } else {
+                        $page++;
+                        if ($page > $lastPage) break;
+                        continue;
                     }
                 }
 
+                // Merge results
+                $combinedResult['injected'] += $pageResult['injected'] ?? 0;
+                $combinedResult['updated'] += $pageResult['updated'] ?? 0;
+                $combinedResult['skipped'] += $pageResult['skipped'] ?? 0;
+                if (!empty($pageResult['errors'])) {
+                    $combinedResult['errors'] = array_merge($combinedResult['errors'], $pageResult['errors']);
+                }
+                foreach ($pageResult as $key => $value) {
+                    if (!in_array($key, ['type', 'injected', 'updated', 'skipped', 'errors']) && is_numeric($value)) {
+                        $combinedResult[$key] = ($combinedResult[$key] ?? 0) + $value;
+                    }
+                }
+
+                Log::info("Processed page {$page}/{$lastPage} for {$include}");
+                
                 $page++;
 
-            } while ($page <= $lastPage);
-
-            // Process and inject all data
-            if ($include === 'categories') {
-                $result = $this->injectData([
-                    'main_categories' => ['data' => $allData['main_categories'] ?? []],
-                    'sub_categories' => ['data' => $allData['sub_categories'] ?? []],
-                ], $include);
-                $totalFetched = count($allData['main_categories'] ?? []) + count($allData['sub_categories'] ?? []);
-            } else {
-                $result = $this->injectData([$include => ['data' => $allData]], $include);
-                $totalFetched = count($allData);
+                // Stop conditions
+                if ($page > $lastPage) {
+                    break;
+                }
+                // Optional: stop after processing a limited number of pages
+                if ($limitPages !== null && ($page - $startPage) >= $limitPages) {
+                    break;
+                }
             }
-            
+
+            // Limit errors in response
+            if (count($combinedResult['errors']) > 50) {
+                $combinedResult['errors'] = array_slice($combinedResult['errors'], 0, 50);
+                $combinedResult['errors'][] = '... and more errors (truncated)';
+            }
+
             return response()->json([
                 'status' => true,
                 'message' => 'Data injected successfully',
                 'total_fetched' => $totalFetched,
-                'pages_fetched' => $lastPage,
-                'injected' => $result,
+                'pages_processed' => $page - $startPage,
+                'last_page' => $lastPage,
+                'truncated' => $truncateResult,
+                'result' => $combinedResult,
             ]);
 
         } catch (\Exception $e) {
@@ -145,8 +285,105 @@ class InjectDataController extends Controller
             'taxes' => $this->injectTaxes($data),
             'occasions' => $this->injectOccasions($data),
             'blog_categories' => $this->injectBlogCategories($data),
+            'blogs' => $this->injectBlogs($data),
+            'ads_positions' => $this->injectAdsPositions($data),
+            'ads' => $this->injectAds($data),
+            'cities' => $this->injectCities($data),
+            'products' => $this->injectProducts($data),
+            'users' => $this->injectCustomers($data),
             default => ['message' => "Unknown include type: {$include}"],
         };
+    }
+
+    /**
+     * Truncate existing data before injection
+     */
+    protected function truncateBeforeInject(string $include): ?array
+    {
+        if (!isset($this->truncateConfig[$include])) {
+            return null;
+        }
+
+        $config = $this->truncateConfig[$include];
+        $deletedRecords = 0;
+        $deletedFiles = 0;
+        $deletedAttachments = 0;
+        $deletedUsers = 0;
+
+        DB::statement('SET FOREIGN_KEY_CHECKS=0;');
+
+        try {
+            // Delete vendor users if configured
+            if (!empty($config['delete_vendor_users'])) {
+                $vendorUserTypeIds = [UserType::VENDOR_TYPE, UserType::VENDOR_USER_TYPE];
+                
+                $vendorUserIds = DB::table('users')
+                    ->whereIn('user_type_id', $vendorUserTypeIds)
+                    ->pluck('id');
+                
+                if ($vendorUserIds->count() > 0) {
+                    DB::table('user_role')->whereIn('user_id', $vendorUserIds)->delete();
+                    DB::table('translations')
+                        ->where('translatable_type', 'App\\Models\\User')
+                        ->whereIn('translatable_id', $vendorUserIds)
+                        ->delete();
+                }
+                
+                $deletedUsers = DB::table('users')
+                    ->whereIn('user_type_id', $vendorUserTypeIds)
+                    ->delete();
+            }
+
+            // Delete attachments
+            if (!empty($config['attachable_type'])) {
+                $deletedAttachments += DB::table('attachments')
+                    ->where('attachable_type', $config['attachable_type'])
+                    ->delete();
+                DB::table('translations')
+                    ->where('translatable_type', $config['attachable_type'])
+                    ->delete();
+            }
+
+            // Delete attachments for multiple types
+            if (!empty($config['attachable_types'])) {
+                foreach ($config['attachable_types'] as $type) {
+                    $deletedAttachments += DB::table('attachments')
+                        ->where('attachable_type', $type)
+                        ->delete();
+                    DB::table('translations')
+                        ->where('translatable_type', $type)
+                        ->delete();
+                }
+            }
+
+            // Truncate tables
+            foreach ($config['tables'] as $table) {
+                if (Schema::hasTable($table)) {
+                    $count = DB::table($table)->count();
+                    $deletedRecords += $count;
+                    DB::table($table)->truncate();
+                }
+            }
+
+            // Delete storage folders
+            foreach ($config['folders'] as $folder) {
+                if (Storage::disk('public')->exists($folder)) {
+                    $files = Storage::disk('public')->allFiles($folder);
+                    $deletedFiles += count($files);
+                    Storage::disk('public')->deleteDirectory($folder);
+                }
+            }
+
+        } finally {
+            DB::statement('SET FOREIGN_KEY_CHECKS=1;');
+        }
+
+        return [
+            'records_deleted' => $deletedRecords,
+            'files_deleted' => $deletedFiles,
+            'attachments_deleted' => $deletedAttachments,
+            'users_deleted' => $deletedUsers,
+        ];
     }
 
     /**
@@ -174,10 +411,7 @@ class InjectDataController extends Controller
         $errors = [];
 
         foreach ($items as $item) {
-            try {
-                DB::beginTransaction();
-
-                // Check if department exists by ID (keep same ID from source)
+            try {// Check if department exists by ID (keep same ID from source)
                 $department = Department::where('id', $item['id'])
                     ->first();
 
@@ -215,13 +449,7 @@ class InjectDataController extends Controller
                 // Download and attach icon
                 if (!empty($item['icon'])) {
                     $this->attachImage($department, $item['icon'], 'icon');
-                }
-
-                DB::commit();
-
-            } catch (\Exception $e) {
-                DB::rollBack();
-                $errors[] = "Department {$item['title_en']} (ID: {$item['id']}): " . $e->getMessage();
+                }} catch (\Exception $e) {$errors[] = "Department {$item['title_en']} (ID: {$item['id']}): " . $e->getMessage();
                 Log::error("Error injecting department: " . $e->getMessage());
             }
         }
@@ -245,10 +473,7 @@ class InjectDataController extends Controller
         $errors = [];
 
         foreach ($items as $item) {
-            try {
-                DB::beginTransaction();
-
-                // Check if category exists by ID
+            try {// Check if category exists by ID
                 $category = Category::where('id', $item['id'])
                     ->first();
 
@@ -292,13 +517,7 @@ class InjectDataController extends Controller
                 // Download and attach icon
                 if (!empty($item['icon'])) {
                     $this->attachImage($category, $item['icon'], 'icon');
-                }
-
-                DB::commit();
-
-            } catch (\Exception $e) {
-                DB::rollBack();
-                $titleEn = $item['title_en'] ?? $item['id'];
+                }} catch (\Exception $e) {$titleEn = $item['title_en'] ?? $item['id'];
                 $errors[] = "Category {$titleEn} (ID: {$item['id']}): " . $e->getMessage();
                 Log::error("Error injecting category: " . $e->getMessage());
             }
@@ -324,16 +543,18 @@ class InjectDataController extends Controller
         $errors = [];
 
         foreach ($items as $item) {
-            try {
-                DB::beginTransaction();
-
-                // Get category_id - try different possible keys
+            try {// Get category_id - try different possible keys
                 $categoryId = $item['category_id'] ?? $item['main_category_id'] ?? $item['parent_id'] ?? null;
                 
                 // Skip if no category_id (can't create orphan subcategory)
                 if (!$categoryId) {
-                    $skipped++;
-                    DB::rollBack();
+                    $skipped++;continue;
+                }
+
+                // Validate that parent category exists
+                if (!Category::where('id', $categoryId)->exists()) {
+                    $skipped++;$titleEn = $item['title_en'] ?? $item['id'];
+                    $errors[] = "SubCategory {$titleEn} (ID: {$item['id']}): Parent category {$categoryId} not found";
                     continue;
                 }
 
@@ -381,13 +602,7 @@ class InjectDataController extends Controller
                 // Download and attach icon
                 if (!empty($item['icon'])) {
                     $this->attachImage($subCategory, $item['icon'], 'icon');
-                }
-
-                DB::commit();
-
-            } catch (\Exception $e) {
-                DB::rollBack();
-                $titleEn = $item['title_en'] ?? $item['id'];
+                }} catch (\Exception $e) {$titleEn = $item['title_en'] ?? $item['id'];
                 $errors[] = "SubCategory {$titleEn} (ID: {$item['id']}): " . $e->getMessage();
                 Log::error("Error injecting subcategory: " . $e->getMessage());
             }
@@ -425,10 +640,7 @@ class InjectDataController extends Controller
         });
 
         foreach ($items as $item) {
-            try {
-                DB::beginTransaction();
-
-                // Check if variant key exists by ID
+            try {// Check if variant key exists by ID
                 $variantKey = VariantConfigurationKey::where('id', $item['id'])->first();
 
                 if ($variantKey) {
@@ -457,13 +669,7 @@ class InjectDataController extends Controller
                 if (!empty($item['name_ar'])) {
                     $variantKey->setTranslation('name', 'ar', $item['name_ar']);
                 }
-                $variantKey->save();
-
-                DB::commit();
-
-            } catch (\Exception $e) {
-                DB::rollBack();
-                $nameEn = $item['name_en'] ?? $item['id'];
+                $variantKey->save();} catch (\Exception $e) {$nameEn = $item['name_en'] ?? $item['id'];
                 $errors[] = "VariantKey {$nameEn} (ID: {$item['id']}): " . $e->getMessage();
                 Log::error("Error injecting variant key: " . $e->getMessage());
             }
@@ -504,10 +710,7 @@ class InjectDataController extends Controller
                 continue;
             }
 
-            try {
-                DB::beginTransaction();
-
-                // Check if variant exists by ID
+            try {// Check if variant exists by ID
                 $variant = VariantsConfiguration::where('id', $item['id'])->first();
 
                 if ($variant) {
@@ -542,13 +745,7 @@ class InjectDataController extends Controller
                 if (!empty($item['name_ar'])) {
                     $variant->setTranslation('name', 'ar', $item['name_ar']);
                 }
-                $variant->save();
-
-                DB::commit();
-
-            } catch (\Exception $e) {
-                DB::rollBack();
-                $nameEn = $item['name_en'] ?? $item['id'];
+                $variant->save();} catch (\Exception $e) {$nameEn = $item['name_en'] ?? $item['id'];
                 $errors[] = "Variant {$nameEn} (ID: {$item['id']}): " . $e->getMessage();
                 Log::error("Error injecting variant: " . $e->getMessage());
             }
@@ -574,10 +771,7 @@ class InjectDataController extends Controller
         $errors = [];
 
         foreach ($items as $item) {
-            try {
-                DB::beginTransaction();
-
-                // Check if brand exists by ID
+            try {// Check if brand exists by ID
                 $brand = Brand::where('id', $item['id'])->first();
 
                 if ($brand) {
@@ -634,13 +828,7 @@ class InjectDataController extends Controller
                 }
 
                 // Create or update vendor for this brand (same ID)
-                $this->createOrUpdateVendorForBrand($item);
-
-                DB::commit();
-
-            } catch (\Exception $e) {
-                DB::rollBack();
-                $nameEn = $item['name_en'] ?? $item['id'];
+                $this->createOrUpdateVendorForBrand($item);} catch (\Exception $e) {$nameEn = $item['name_en'] ?? $item['id'];
                 $errors[] = "Brand {$nameEn} (ID: {$item['id']}): " . $e->getMessage();
                 Log::error("Error injecting brand: " . $e->getMessage());
             }
@@ -732,6 +920,8 @@ class InjectDataController extends Controller
             }
         }
 
+        $departments = Department::pluck('id');
+        $vendor->departments()->sync($departments);
         // Set vendor translations
         if (!empty($item['name_en'])) {
             $vendor->setTranslation('name', 'en', $item['name_en']);
@@ -776,10 +966,7 @@ class InjectDataController extends Controller
                 continue;
             }
 
-            try {
-                DB::beginTransaction();
-
-                // Check if tax exists by ID
+            try {// Check if tax exists by ID
                 $tax = Tax::where('id', $item['id'])->first();
 
                 if ($tax) {
@@ -810,13 +997,7 @@ class InjectDataController extends Controller
                 if (!empty($item['title_ar'])) {
                     $tax->setTranslation('name', 'ar', $item['title_ar']);
                 }
-                $tax->save();
-
-                DB::commit();
-
-            } catch (\Exception $e) {
-                DB::rollBack();
-                $titleEn = $item['title_en'] ?? $item['id'];
+                $tax->save();} catch (\Exception $e) {$titleEn = $item['title_en'] ?? $item['id'];
                 $errors[] = "Tax {$titleEn} (ID: {$item['id']}): " . $e->getMessage();
                 Log::error("Error injecting tax: " . $e->getMessage());
             }
@@ -849,10 +1030,7 @@ class InjectDataController extends Controller
                 continue;
             }
 
-            try {
-                DB::beginTransaction();
-
-                // Check if occasion exists by ID
+            try {// Check if occasion exists by ID
                 $occasion = Occasion::where('id', $item['id'])->first();
 
                 // Parse dates
@@ -916,13 +1094,7 @@ class InjectDataController extends Controller
                 // Download and attach image
                 if (!empty($item['image'])) {
                     $this->attachImage($occasion, $item['image'], 'image');
-                }
-
-                DB::commit();
-
-            } catch (\Exception $e) {
-                DB::rollBack();
-                $nameEn = $item['name_en'] ?? $item['id'];
+                }} catch (\Exception $e) {$nameEn = $item['name_en'] ?? $item['id'];
                 $errors[] = "Occasion {$nameEn} (ID: {$item['id']}): " . $e->getMessage();
                 Log::error("Error injecting occasion: " . $e->getMessage());
             }
@@ -955,10 +1127,7 @@ class InjectDataController extends Controller
                 continue;
             }
 
-            try {
-                DB::beginTransaction();
-
-                // Check if blog category exists by ID
+            try {// Check if blog category exists by ID
                 $blogCategory = BlogCategory::where('id', $item['id'])->first();
 
                 if ($blogCategory) {
@@ -995,18 +1164,36 @@ class InjectDataController extends Controller
                 if (!empty($item['description_ar'])) {
                     $blogCategory->setTranslation('description', 'ar', $item['description_ar']);
                 }
+
+                // Handle meta_keywords from array of objects
+                if (!empty($item['meta_keywords']) && is_array($item['meta_keywords'])) {
+                    $keywordsEn = [];
+                    $keywordsAr = [];
+                    
+                    foreach ($item['meta_keywords'] as $keyword) {
+                        if (isset($keyword['keyword']) && isset($keyword['lang'])) {
+                            if ($keyword['lang'] === 'en') {
+                                $keywordsEn[] = $keyword['keyword'];
+                            } elseif ($keyword['lang'] === 'ar') {
+                                $keywordsAr[] = $keyword['keyword'];
+                            }
+                        }
+                    }
+                    
+                    if (!empty($keywordsEn)) {
+                        $blogCategory->setTranslation('meta_keywords', 'en', implode(', ', $keywordsEn));
+                    }
+                    if (!empty($keywordsAr)) {
+                        $blogCategory->setTranslation('meta_keywords', 'ar', implode(', ', $keywordsAr));
+                    }
+                }
+
                 $blogCategory->save();
 
                 // Download and attach image
                 if (!empty($item['image'])) {
                     $this->attachImage($blogCategory, $item['image'], 'image');
-                }
-
-                DB::commit();
-
-            } catch (\Exception $e) {
-                DB::rollBack();
-                $titleEn = $item['title_en'] ?? $item['id'];
+                }} catch (\Exception $e) {$titleEn = $item['title_en'] ?? $item['id'];
                 $errors[] = "BlogCategory {$titleEn} (ID: {$item['id']}): " . $e->getMessage();
                 Log::error("Error injecting blog category: " . $e->getMessage());
             }
@@ -1020,6 +1207,1073 @@ class InjectDataController extends Controller
             'errors' => $errors,
         ];
     }
+
+    /**
+     * Inject blogs into database
+     */
+    protected function injectBlogs(array $data): array
+    {
+        $items = $data['blogs']['data'] ?? [];
+        $injected = 0;
+        $updated = 0;
+        $skipped = 0;
+        $errors = [];
+
+        foreach ($items as $item) {
+            // Skip empty items
+            if (empty($item) || !isset($item['id'])) {
+                $skipped++;
+                continue;
+            }
+
+            try {// Check if blog exists by ID
+                $blog = Blog::where('id', $item['id'])->first();
+
+                if ($blog) {
+                    // Update existing
+                    $blog->update([
+                        'slug' => $item['slug_en'] ?? $item['slug'] ?? null,
+                        'blog_category_id' => $item['blog_category_id'] ?? $item['category_id'] ?? null,
+                        'active' => ($item['status'] ?? '0') == '1',
+                        'views_count' => $item['views_count'] ?? 0,
+                        'created_at' => $this->parseDate($item['created_at'] ?? null),
+                        'updated_at' => $this->parseDate($item['updated_at'] ?? null),
+                    ]);
+                    $updated++;
+                } else {
+                    // Create new with same ID
+                    $blog = new Blog();
+                    $blog->id = $item['id'];
+                    $blog->slug = $item['slug_en'] ?? $item['slug'] ?? null;
+                    $blog->blog_category_id = $item['blog_category_id'] ?? $item['category_id'] ?? null;
+                    $blog->active = ($item['status'] ?? '0') == '1';
+                    $blog->views_count = $item['views_count'] ?? 0;
+                    $blog->created_at = $this->parseDate($item['created_at'] ?? null);
+                    $blog->updated_at = $this->parseDate($item['updated_at'] ?? null);
+                    $blog->save();
+                    $injected++;
+                }
+
+                // Set translations
+                if (!empty($item['title_en'])) {
+                    $blog->setTranslation('title', 'en', $item['title_en']);
+                }
+                if (!empty($item['title_ar'])) {
+                    $blog->setTranslation('title', 'ar', $item['title_ar']);
+                }
+                if (!empty($item['content_en'])) {
+                    $blog->setTranslation('content', 'en', $item['content_en']);
+                }
+                if (!empty($item['content_ar'])) {
+                    $blog->setTranslation('content', 'ar', $item['content_ar']);
+                }
+                if (!empty($item['meta_title_en'])) {
+                    $blog->setTranslation('meta_title', 'en', $item['meta_title_en']);
+                }
+                if (!empty($item['meta_title_ar'])) {
+                    $blog->setTranslation('meta_title', 'ar', $item['meta_title_ar']);
+                }
+                if (!empty($item['meta_description_en'])) {
+                    $blog->setTranslation('meta_description', 'en', $item['meta_description_en']);
+                }
+                if (!empty($item['meta_description_ar'])) {
+                    $blog->setTranslation('meta_description', 'ar', $item['meta_description_ar']);
+                }
+
+                // Handle meta_keywords from array of objects
+                if (!empty($item['meta_keywords']) && is_array($item['meta_keywords'])) {
+                    $keywordsEn = [];
+                    $keywordsAr = [];
+                    
+                    foreach ($item['meta_keywords'] as $keyword) {
+                        if (isset($keyword['keyword']) && isset($keyword['lang'])) {
+                            if ($keyword['lang'] === 'en') {
+                                $keywordsEn[] = $keyword['keyword'];
+                            } elseif ($keyword['lang'] === 'ar') {
+                                $keywordsAr[] = $keyword['keyword'];
+                            }
+                        }
+                    }
+                    
+                    if (!empty($keywordsEn)) {
+                        $blog->setTranslation('meta_keywords', 'en', implode(', ', $keywordsEn));
+                    }
+                    if (!empty($keywordsAr)) {
+                        $blog->setTranslation('meta_keywords', 'ar', implode(', ', $keywordsAr));
+                    }
+                }
+
+                $blog->save();
+
+                // Download and attach image
+                if (!empty($item['image'])) {
+                    $this->attachImage($blog, $item['image'], 'image');
+                }} catch (\Exception $e) {$titleEn = $item['title_en'] ?? $item['id'];
+                $errors[] = "Blog {$titleEn} (ID: {$item['id']}): " . $e->getMessage();
+                Log::error("Error injecting blog: " . $e->getMessage());
+            }
+        }
+
+        return [
+            'type' => 'blogs',
+            'injected' => $injected,
+            'updated' => $updated,
+            'skipped' => $skipped,
+            'errors' => $errors,
+        ];
+    }
+
+    /**
+     * Inject ads positions into database
+     */
+    protected function injectAdsPositions(array $data): array
+    {
+        $items = $data['ads_positions']['data'] ?? [];
+        $injected = 0;
+        $updated = 0;
+        $skipped = 0;
+        $errors = [];
+
+        foreach ($items as $item) {
+            // Skip empty items
+            if (empty($item) || !isset($item['id'])) {
+                $skipped++;
+                continue;
+            }
+
+            try {// Check if ad position exists by ID
+                $adPosition = AdPosition::where('id', $item['id'])->first();
+
+                if ($adPosition) {
+                    // Update existing
+                    $adPosition->update([
+                        'position' => $item['position'] ?? null,
+                        'width' => $item['width'] ?? null,
+                        'height' => $item['height'] ?? null,
+                        'device' => $item['device'] ?? 'web',
+                        'created_at' => $item['created_at'] ? \Carbon\Carbon::parse($item['created_at']) : null,
+                        'updated_at' => $item['updated_at'] ? \Carbon\Carbon::parse($item['updated_at']) : null,
+                    ]);
+                    $updated++;
+                } else {
+                    // Create new with same ID
+                    $adPosition = new AdPosition();
+                    $adPosition->id = $item['id'];
+                    $adPosition->position = $item['position'] ?? null;
+                    $adPosition->width = $item['width'] ?? null;
+                    $adPosition->height = $item['height'] ?? null;
+                    $adPosition->device = $item['device'] ?? 'web';
+                    $adPosition->created_at = $item['created_at'] ? \Carbon\Carbon::parse($item['created_at']) : null;
+                    $adPosition->updated_at = $item['updated_at'] ? \Carbon\Carbon::parse($item['updated_at']) : null;
+                    $adPosition->save();
+                    $injected++;
+                }} catch (\Exception $e) {$errors[] = "AdPosition {$item['position']} (ID: {$item['id']}): " . $e->getMessage();
+                Log::error("Error injecting ad position: " . $e->getMessage());
+            }
+        }
+
+        return [
+            'type' => 'ads_positions',
+            'injected' => $injected,
+            'updated' => $updated,
+            'skipped' => $skipped,
+            'errors' => $errors,
+        ];
+    }
+
+    /**
+     * Inject ads into database
+     */
+    protected function injectAds(array $data): array
+    {
+        $items = $data['ads']['data'] ?? [];
+        $injected = 0;
+        $updated = 0;
+        $skipped = 0;
+        $errors = [];
+
+        foreach ($items as $item) {
+            // Skip empty items
+            if (empty($item) || !isset($item['id'])) {
+                $skipped++;
+                continue;
+            }
+
+            try {// Get the type, width, height from ad_position's device
+                $type = null;
+                $mobileWidth = null;
+                $mobileHeight = null;
+                $websiteWidth = null;
+                $websiteHeight = null;
+                
+                if (!empty($item['ad_position_id'])) {
+                    $adPosition = AdPosition::find($item['ad_position_id']);
+                    if ($adPosition) {
+                        // Map device to type: 'web' -> 'website', 'mobile' -> 'mobile'
+                        $device = $adPosition->device ?? 'web';
+                        $type = [$device === 'web' ? 'website' : 'mobile'];
+                        
+                        // Set width/height based on device type
+                        if ($device === 'mobile') {
+                            $mobileWidth = $adPosition->width;
+                            $mobileHeight = $adPosition->height;
+                        } else {
+                            $websiteWidth = $adPosition->width;
+                            $websiteHeight = $adPosition->height;
+                        }
+                    }
+                }
+
+                // Check if ad exists by ID
+                $ad = Ad::where('id', $item['id'])->first();
+
+                if ($ad) {
+                    // Update existing
+                    $ad->update([
+                        'ad_position_id' => $item['ad_position_id'] ?? null,
+                        'type' => $type,
+                        'mobile_width' => $mobileWidth,
+                        'mobile_height' => $mobileHeight,
+                        'website_width' => $websiteWidth,
+                        'website_height' => $websiteHeight,
+                        'link' => $item['link'] ?? null,
+                        'active' => true,
+                        'created_at' => $item['created_at'] ? \Carbon\Carbon::parse($item['created_at']) : null,
+                        'updated_at' => $item['updated_at'] ? \Carbon\Carbon::parse($item['updated_at']) : null,
+                    ]);
+                    $updated++;
+                } else {
+                    // Create new with same ID
+                    $ad = new Ad();
+                    $ad->id = $item['id'];
+                    $ad->ad_position_id = $item['ad_position_id'] ?? null;
+                    $ad->type = $type;
+                    $ad->mobile_width = $mobileWidth;
+                    $ad->mobile_height = $mobileHeight;
+                    $ad->website_width = $websiteWidth;
+                    $ad->website_height = $websiteHeight;
+                    $ad->link = $item['link'] ?? null;
+                    $ad->active = true;
+                    $ad->created_at = $item['created_at'] ? \Carbon\Carbon::parse($item['created_at']) : null;
+                    $ad->updated_at = $item['updated_at'] ? \Carbon\Carbon::parse($item['updated_at']) : null;
+                    $ad->save();
+                    $injected++;
+                }
+
+                // Set translations
+                if (!empty($item['ads_big_text'])) {
+                    $ad->setTranslation('title', 'en', $item['ads_big_text']);
+                }
+                if (!empty($item['ads_big_text_ar'])) {
+                    $ad->setTranslation('title', 'ar', $item['ads_big_text_ar']);
+                }
+                if (!empty($item['ads_small_text'])) {
+                    $ad->setTranslation('subtitle', 'en', $item['ads_small_text']);
+                }
+                if (!empty($item['ads_small_text_ar'])) {
+                    $ad->setTranslation('subtitle', 'ar', $item['ads_small_text_ar']);
+                }
+                $ad->save();
+
+                // Download and attach image
+                if (!empty($item['ads_image'])) {
+                    $this->attachImage($ad, $item['ads_image'], 'image');
+                }} catch (\Exception $e) {$title = $item['ads_big_text'] ?? $item['id'];
+                $errors[] = "Ad {$title} (ID: {$item['id']}): " . $e->getMessage();
+                Log::error("Error injecting ad: " . $e->getMessage());
+            }
+        }
+
+        return [
+            'type' => 'ads',
+            'injected' => $injected,
+            'updated' => $updated,
+            'skipped' => $skipped,
+            'errors' => $errors,
+        ];
+    }
+
+    /**
+     * Inject cities with regions and shipping into database
+     */
+    protected function injectCities(array $data): array
+    {
+        $items = $data['cities']['data'] ?? [];
+        $injected = 0;
+        $updated = 0;
+        $skipped = 0;
+        $regionsInjected = 0;
+        $shippingsInjected = 0;
+        $errors = [];
+
+        // Get Egypt country (use the local Egypt country)
+        $egyptCountry = Country::where('code', 'eg')->first();
+        if (!$egyptCountry) {
+            return [
+                'type' => 'cities',
+                'error' => 'Egypt country not found in database. Please create it first.',
+            ];
+        }
+
+        foreach ($items as $item) {
+            // Skip empty items
+            if (empty($item) || !isset($item['id'])) {
+                $skipped++;
+                continue;
+            }
+
+            try {// Check if city exists by ID
+                $city = City::where('id', $item['id'])->first();
+
+                if ($city) {
+                    // Update existing
+                    $city->update([
+                        'slug' => $item['title_en'] ? Str::slug($item['title_en']) : null,
+                        'country_id' => $egyptCountry->id,
+                        'active' => ($item['status'] ?? '1') == '1',
+                        'created_at' => $this->parseDate($item['created_at'] ?? null),
+                        'updated_at' => $this->parseDate($item['updated_at'] ?? null),
+                    ]);
+                    $updated++;
+                } else {
+                    // Create new with same ID
+                    $city = new City();
+                    $city->id = $item['id'];
+                    $city->slug = $item['title_en'] ? Str::slug($item['title_en']) : null;
+                    $city->country_id = $egyptCountry->id;
+                    $city->active = ($item['status'] ?? '1') == '1';
+                    $city->created_at = $this->parseDate($item['created_at'] ?? null);
+                    $city->updated_at = $this->parseDate($item['updated_at'] ?? null);
+                    $city->save();
+                    $injected++;
+                }
+
+                // Set translations
+                if (!empty($item['title_en'])) {
+                    $city->setTranslation('name', 'en', $item['title_en']);
+                }
+                if (!empty($item['title_ar'])) {
+                    $city->setTranslation('name', 'ar', $item['title_ar']);
+                }
+                $city->save();
+
+                // Download and attach image
+                if (!empty($item['image'])) {
+                    $this->attachImage($city, $item['image'], 'image');
+                }
+
+                // Inject regions for this city
+                if (!empty($item['regions']) && is_array($item['regions'])) {
+                    foreach ($item['regions'] as $regionData) {
+                        $regionsInjected += $this->injectRegion($regionData, $city->id);
+                    }
+                }
+
+                // Inject shipping for this city
+                if (!empty($item['shipping']) && is_array($item['shipping'])) {
+                    foreach ($item['shipping'] as $shippingData) {
+                        $shippingsInjected += $this->injectShipping($shippingData, $city->id, $egyptCountry->id);
+                    }
+                }} catch (\Exception $e) {$titleEn = $item['title_en'] ?? $item['id'];
+                $errors[] = "City {$titleEn} (ID: {$item['id']}): " . $e->getMessage();
+                Log::error("Error injecting city: " . $e->getMessage());
+            }
+        }
+
+        return [
+            'type' => 'cities',
+            'injected' => $injected,
+            'updated' => $updated,
+            'skipped' => $skipped,
+            'regions_injected' => $regionsInjected,
+            'shippings_injected' => $shippingsInjected,
+            'errors' => $errors,
+        ];
+    }
+
+    /**
+     * Inject a single region
+     */
+    protected function injectRegion(array $item, int $cityId): int
+    {
+        if (empty($item) || !isset($item['id'])) {
+            return 0;
+        }
+
+        try {
+            $region = Region::where('id', $item['id'])->first();
+
+            if ($region) {
+                $region->update([
+                    'slug' => $item['title_en'] ? Str::slug($item['title_en']) : null,
+                    'city_id' => $cityId,
+                    'active' => ($item['status'] ?? '1') == '1',
+                    'created_at' => $this->parseDate($item['created_at'] ?? null),
+                    'updated_at' => $this->parseDate($item['updated_at'] ?? null),
+                ]);
+            } else {
+                $region = new Region();
+                $region->id = $item['id'];
+                $region->slug = $item['title_en'] ? Str::slug($item['title_en']) : null;
+                $region->city_id = $cityId;
+                $region->active = ($item['status'] ?? '1') == '1';
+                $region->created_at = $this->parseDate($item['created_at'] ?? null);
+                $region->updated_at = $this->parseDate($item['updated_at'] ?? null);
+                $region->save();
+            }
+
+            // Set translations
+            if (!empty($item['title_en'])) {
+                $region->setTranslation('name', 'en', $item['title_en']);
+            }
+            if (!empty($item['title_ar'])) {
+                $region->setTranslation('name', 'ar', $item['title_ar']);
+            }
+            $region->save();
+
+            // Download and attach image if exists
+            if (!empty($item['image'])) {
+                $this->attachImage($region, $item['image'], 'image');
+            }
+
+            return 1;
+        } catch (\Exception $e) {
+            Log::error("Error injecting region {$item['id']}: " . $e->getMessage());
+            return 0;
+        }
+    }
+
+    /**
+     * Inject a single shipping record
+     */
+    protected function injectShipping(array $item, int $cityId, int $countryId): int
+    {
+        if (empty($item) || !isset($item['id'])) {
+            return 0;
+        }
+
+        try {
+            $shipping = Shipping::where('id', $item['id'])->first();
+
+            if ($shipping) {
+                $shipping->update([
+                    'cost' => $item['cost'] ?? 0,
+                    'active' => ($item['status'] ?? 'active') == 'active',
+                    'country_id' => $countryId,
+                    'created_at' => $this->parseDate($item['created_at'] ?? null),
+                    'updated_at' => $this->parseDate($item['updated_at'] ?? null),
+                ]);
+            } else {
+                $shipping = new Shipping();
+                $shipping->id = $item['id'];
+                $shipping->cost = $item['cost'] ?? 0;
+                $shipping->active = ($item['status'] ?? 'active') == 'active';
+                $shipping->country_id = $countryId;
+                $shipping->created_at = $this->parseDate($item['created_at'] ?? null);
+                $shipping->updated_at = $this->parseDate($item['updated_at'] ?? null);
+                $shipping->save();
+            }
+
+            // Set translations
+            if (!empty($item['title_en'])) {
+                $shipping->setTranslation('name', 'en', $item['title_en']);
+            }
+            if (!empty($item['title_ar'])) {
+                $shipping->setTranslation('name', 'ar', $item['title_ar']);
+            }
+            $shipping->save();
+
+            // Attach city to shipping (many-to-many)
+            if (!$shipping->cities()->where('city_id', $cityId)->exists()) {
+                $shipping->cities()->attach($cityId);
+            }
+
+            // Attach category to shipping if category_id exists
+            if (!empty($item['category_id'])) {
+                if (!$shipping->categories()->where('type_id', $item['category_id'])->exists()) {
+                    $shipping->categories()->attach($item['category_id'], ['type' => 'category']);
+                }
+            }
+
+            return 1;
+        } catch (\Exception $e) {
+            Log::error("Error injecting shipping {$item['id']}: " . $e->getMessage());
+            return 0;
+        }
+    }
+
+    /**
+     * Inject products into database
+     * brand_id is used as both brand_id and vendor_id
+     */
+    protected function injectProducts(array $data): array
+    {
+        $items = $data['products']['data'] ?? [];
+        $injected = 0;
+        $updated = 0;
+        $skipped = 0;
+        $vendorProductsCreated = 0;
+        $variantsCreated = 0;
+        $stocksCreated = 0;
+        $errors = [];
+
+        // Get Egypt country
+        $egyptCountry = Country::where('code', 'eg')->first();
+        if (!$egyptCountry) {
+            return [
+                'type' => 'products',
+                'error' => 'Egypt country not found in database.',
+            ];
+        }
+
+        // Get default user for created_by_user_id (first admin user)
+        $defaultUser = User::first();
+        if (!$defaultUser) {
+            return [
+                'type' => 'products',
+                'error' => 'No user found in database for created_by_user_id.',
+            ];
+        }
+
+        foreach ($items as $item) {
+            // Skip empty items
+            if (empty($item) || !isset($item['id'])) {
+                $skipped++;
+                continue;
+            }
+
+            try {// Validate foreign key references exist
+                $departmentId = $item['department_id'] ?? null;
+                $categoryId = $item['main_category_id'] ?? null;
+                $subCategoryId = $item['sub_category_id'] ?? null;
+                $brandId = $item['brand_id'] ?? null;
+
+                // Check if department exists (required)
+                if ($departmentId && !Department::where('id', $departmentId)->exists()) {
+                    $skipped++;$errors[] = "Product {$item['id']}: Department {$departmentId} not found";
+                    continue;
+                }
+
+                // Check if category exists (required)
+                if ($categoryId && !Category::where('id', $categoryId)->exists()) {
+                    $skipped++;$errors[] = "Product {$item['id']}: Category {$categoryId} not found";
+                    continue;
+                }
+
+                // Check if sub_category exists (optional - set to null if not found)
+                if ($subCategoryId && !SubCategory::where('id', $subCategoryId)->exists()) {
+                    $subCategoryId = null;
+                }
+
+                // Check if brand/vendor exists (required for vendor_product)
+                if ($brandId && !Vendor::where('id', $brandId)->exists()) {
+                    $brandId = null; // Will skip vendor_product creation
+                }
+
+                // Check if product exists by ID
+                $product = Product::where('id', $item['id'])->first();
+
+                // Map size_color_type to configuration_type enum values
+                $configurationType = 'simple'; // default
+                $sizeColorType = $item['size_color_type'] ?? null;
+                if ($sizeColorType === 'with_size_color' || $sizeColorType === 'with_size' || $sizeColorType === 'with_color') {
+                    $configurationType = 'with_variants';
+                }
+
+                // Prepare product data - only columns that exist in products table
+                $productData = [
+                    'slug' => $item['slug_en'] ?? null,
+                    'is_active' => ($item['status'] ?? '0') == '1',
+                    'configuration_type' => $configurationType,
+                    'type' => 'product', // default type
+                    'vendor_id' => $brandId, // brand_id = vendor_id
+                    'brand_id' => $brandId,
+                    'department_id' => $departmentId,
+                    'category_id' => $categoryId,
+                    'sub_category_id' => $subCategoryId,
+                    'created_by_user_id' => $defaultUser->id,
+                    'country_id' => $egyptCountry->id,
+                    'created_at' => $this->parseDate($item['created_at'] ?? null),
+                    'updated_at' => $this->parseDate($item['updated_at'] ?? null),
+                ];
+
+                if ($product) {
+                    // Update existing
+                    $product->update($productData);
+                    $updated++;
+                } else {
+                    // Create new with same ID
+                    $product = new Product();
+                    $product->id = $item['id'];
+                    $product->fill($productData);
+                    $product->save();
+                    $injected++;
+                }
+
+                // Set translations
+                $this->setProductTranslations($product, $item);
+                $product->save();
+
+                // Download and attach main image
+                if (!empty($item['image'])) {
+                    $this->attachImage($product, $item['image'], 'main_image');
+                }
+
+                // Download and attach additional images
+                if (!empty($item['product_images']) && is_array($item['product_images'])) {
+                    foreach ($item['product_images'] as $additionalImage) {
+                        if (!empty($additionalImage['image'])) {
+                            $this->attachImage($product, $additionalImage['image'], 'additional_image');
+                        }
+                    }
+                }
+
+                // Create VendorProduct if brand_id exists (brand_id = vendor_id)
+                $vendorProduct = null;
+                if (!empty($brandId)) {
+                    $result = $this->createVendorProduct($product, $item, $egyptCountry->id);
+                    $vendorProductsCreated += $result['created'];
+                    $vendorProduct = $result['vendor_product'];
+                }
+
+                // Create VendorProductVariants from product_size_colors
+                if ($vendorProduct) {
+                    $sizeColors = $item['product_size_colors'] ?? $item['product_size_color'] ?? [];
+                    
+                    if (!empty($sizeColors) && is_array($sizeColors)) {
+                        foreach ($sizeColors as $sizeColor) {
+                            if (empty($sizeColor) || !isset($sizeColor['id'])) {
+                                continue;
+                            }
+                            $variantResult = $this->createVendorProductVariant($vendorProduct, $sizeColor, $egyptCountry->id);
+                            $variantsCreated += $variantResult['variant_created'];
+                            $stocksCreated += $variantResult['stocks_created'];
+                        }
+                    }
+                    
+                    // If no variants were created but product has stock, create a default variant
+                    if ($variantsCreated === 0 && isset($item['stock']) && $item['stock'] > 0) {
+                        $defaultVariantData = [
+                            'id' => $item['id'] * 10000, // Generate unique ID based on product ID
+                            'real_price' => $item['real_price'] ?? $item['price'] ?? 0,
+                            'fake_price' => $item['fake_price'] ?? null,
+                            'discount' => $item['discount'] ?? 0,
+                            'sku' => $item['sku'] ?? null,
+                            'stock' => $item['stock'],
+                            'variants_configuration_id' => null,
+                            'created_at' => $item['created_at'] ?? null,
+                            'updated_at' => $item['updated_at'] ?? null,
+                        ];
+                        $variantResult = $this->createVendorProductVariant($vendorProduct, $defaultVariantData, $egyptCountry->id);
+                        $variantsCreated += $variantResult['variant_created'];
+                        $stocksCreated += $variantResult['stocks_created'];
+                    }
+                }} catch (\Exception $e) {$titleEn = $item['title_en'] ?? $item['id'];
+                $errors[] = "Product {$titleEn} (ID: {$item['id']}): " . $e->getMessage();
+                Log::error("Error injecting product: " . $e->getMessage());
+            }
+        }
+
+        return [
+            'type' => 'products',
+            'injected' => $injected,
+            'updated' => $updated,
+            'skipped' => $skipped,
+            'vendor_products_created' => $vendorProductsCreated,
+            'variants_created' => $variantsCreated,
+            'stocks_created' => $stocksCreated,
+            'errors' => $errors,
+        ];
+    }
+
+    /**
+     * Inject customers (users) into database
+     */
+    protected function injectCustomers(array $data): array
+    {
+        $items = $data['users']['data'] ?? [];
+        $injected = 0;
+        $updated = 0;
+        $skipped = 0;
+        $pointsCreated = 0;
+        $errors = [];
+
+        foreach ($items as $item) {
+            // Skip empty items
+            if (empty($item) || !isset($item['id'])) {
+                $skipped++;
+                continue;
+            }
+
+            try {// Check if customer exists by ID or email
+                $customer = Customer::where('id', $item['id'])->first();
+                if (!$customer) {
+                    $customer = Customer::where('email', $item['email'])->first();
+                }
+
+                // Split name into first_name and last_name
+                $nameParts = explode(' ', $item['name'] ?? '', 2);
+                $firstName = $nameParts[0] ?? '';
+                $lastName = $nameParts[1] ?? '';
+
+                $cityId = $item['city_id'] ?? null;
+                $regionId = $item['region_id'] ?? null;
+                // Check if city exists
+                if ($cityId && !City::where('id', $cityId)->exists()) {
+                    $cityId = null;
+                }
+
+                // Check if region exists
+                if ($regionId && !Region::where('id', $regionId)->exists()) {
+                    $regionId = null;
+                }
+
+                $customerData = [
+                    'first_name' => $firstName,
+                    'last_name' => $lastName,
+                    'email' => $item['email'] ?? null,
+                    'phone' => $item['phone'] ?? null,
+                    'gender' => $item['gender'] ?? 'male',
+                    'status' => ($item['status'] ?? '1') == '1',
+                    'lang' => $item['lang'] ?? 'en',
+                    'email_verified_at' => !empty($item['email_verified_at']) ? $this->parseDate($item['email_verified_at']) : null,
+                    'city_id' => $cityId,
+                    'region_id' => $regionId,
+                    'created_at' => $this->parseDate($item['created_at'] ?? null),
+                    'updated_at' => $this->parseDate($item['updated_at'] ?? null),
+                ];
+
+                if ($customer) {
+                    // Update existing - don't update password
+                    $customer->update($customerData);
+                    $updated++;
+                } else {
+                    // Create new with same ID
+                    $customer = new Customer();
+                    $customer->id = $item['id'];
+                    $customer->fill($customerData);
+                    $customer->password = 'password123'; // Default password
+                    $customer->save();
+                    $injected++;
+                }
+
+                // Create or update user points
+                if (!empty($item['points'])) {
+                    $pointsData = $item['points'];
+                    $userPoints = UserPoints::where('user_id', $customer->id)->first();
+
+                    if ($userPoints) {
+                        $userPoints->update([
+                            'total_points' => $pointsData['total_points'] ?? 0,
+                            'earned_points' => $pointsData['earned_points'] ?? 0,
+                            'redeemed_points' => $pointsData['redeemed_points'] ?? 0,
+                            'expired_points' => $pointsData['expired_points'] ?? 0,
+                        ]);
+                    } else {
+                        $newPoints = new UserPoints();
+                        if (!empty($pointsData['id'])) {
+                            $newPoints->id = $pointsData['id'];
+                        }
+                        $newPoints->user_id = $customer->id;
+                        $newPoints->total_points = $pointsData['total_points'] ?? 0;
+                        $newPoints->earned_points = $pointsData['earned_points'] ?? 0;
+                        $newPoints->redeemed_points = $pointsData['redeemed_points'] ?? 0;
+                        $newPoints->expired_points = $pointsData['expired_points'] ?? 0;
+                        $newPoints->adjusted_points = 0;
+                        $newPoints->save();
+                        $pointsCreated++;
+                    }
+                }
+
+                // Download and attach image if exists
+                if (!empty($item['image'])) {
+                    $localPath = $this->downloadImage($item['image']);
+                    if ($localPath) {
+                        $customer->update(['image' => $localPath]);
+                    }
+                }} catch (\Exception $e) {$errors[] = "Customer {$item['name']} (ID: {$item['id']}): " . $e->getMessage();
+                Log::error("Error injecting customer: " . $e->getMessage());
+            }
+        }
+
+        return [
+            'type' => 'customers',
+            'injected' => $injected,
+            'updated' => $updated,
+            'skipped' => $skipped,
+            'points_created' => $pointsCreated,
+            'errors' => $errors,
+        ];
+    }
+
+    /**
+     * Set product translations
+     */
+    protected function setProductTranslations(Product $product, array $item): void
+    {
+        // Title
+        if (!empty($item['title_en'])) {
+            $product->setTranslation('title', 'en', $item['title_en']);
+        }
+        if (!empty($item['title_ar'])) {
+            $product->setTranslation('title', 'ar', $item['title_ar']);
+        }
+
+        // Description
+        if (!empty($item['description_en'])) {
+            $product->setTranslation('description', 'en', $item['description_en']);
+        }
+        if (!empty($item['description_ar'])) {
+            $product->setTranslation('description', 'ar', $item['description_ar']);
+        }
+
+        // Details
+        if (!empty($item['details_en'])) {
+            $product->setTranslation('details', 'en', $item['details_en']);
+        }
+        if (!empty($item['details_ar'])) {
+            $product->setTranslation('details', 'ar', $item['details_ar']);
+        }
+
+        // Summary
+        if (!empty($item['summary_en'])) {
+            $product->setTranslation('summary', 'en', $item['summary_en']);
+        }
+        if (!empty($item['summary_ar'])) {
+            $product->setTranslation('summary', 'ar', $item['summary_ar']);
+        }
+
+        // Instructions
+        if (!empty($item['instructions_en'])) {
+            $product->setTranslation('instructions', 'en', $item['instructions_en']);
+        }
+        if (!empty($item['instructions_ar'])) {
+            $product->setTranslation('instructions', 'ar', $item['instructions_ar']);
+        }
+
+        // Features
+        if (!empty($item['features_en'])) {
+            $product->setTranslation('features', 'en', $item['features_en']);
+        }
+        if (!empty($item['features_ar'])) {
+            $product->setTranslation('features', 'ar', $item['features_ar']);
+        }
+
+        // Extra description (extras)
+        if (!empty($item['extras_en'])) {
+            $product->setTranslation('extra_description', 'en', $item['extras_en']);
+        }
+        if (!empty($item['extras_ar'])) {
+            $product->setTranslation('extra_description', 'ar', $item['extras_ar']);
+        }
+
+        // Material
+        if (!empty($item['material_en'])) {
+            $product->setTranslation('material', 'en', $item['material_en']);
+        }
+        if (!empty($item['material_ar'])) {
+            $product->setTranslation('material', 'ar', $item['material_ar']);
+        }
+
+        // Meta title
+        if (!empty($item['meta_title_en'])) {
+            $product->setTranslation('meta_title', 'en', $item['meta_title_en']);
+        }
+        if (!empty($item['meta_title_ar'])) {
+            $product->setTranslation('meta_title', 'ar', $item['meta_title_ar']);
+        }
+
+        // Meta keywords (keywords)
+        if (!empty($item['keywords_en'])) {
+            $product->setTranslation('meta_keywords', 'en', $item['keywords_en']);
+        }
+        if (!empty($item['keywords_ar'])) {
+            $product->setTranslation('meta_keywords', 'ar', $item['keywords_ar']);
+        }
+    }
+
+    /**
+     * Create VendorProduct for a product
+     */
+    protected function createVendorProduct(Product $product, array $item, int $countryId): array
+    {
+        try {
+            $vendorId = $item['brand_id']; // brand_id = vendor_id
+
+            // Check if VendorProduct already exists
+            $vendorProduct = VendorProduct::where('product_id', $product->id)
+                ->where('vendor_id', $vendorId)
+                ->first();
+
+            // Prepare vendor product data - only columns that exist in vendor_products table
+            $vendorProductData = [
+                'sku' => $item['sku'] ?? null,
+                'video_link' => $item['video_link'] ?? null,
+                'max_per_order' => $item['limitation'] ?? null,
+                'offer_date_view' => ($item['show_end_offer_at_section'] ?? false) == true,
+                'is_active' => ($item['status'] ?? '0') == '1',
+                'is_featured' => ($item['featured_product'] ?? '0') == '1',
+                'status' => VendorProduct::STATUS_APPROVED,
+                'sales' => 0,
+                'views' => $item['views'] ?? 0,
+                'country_id' => $countryId,
+                'created_at' => $this->parseDate($item['created_at'] ?? null),
+                'updated_at' => $this->parseDate($item['updated_at'] ?? null),
+            ];
+
+            if ($vendorProduct) {
+                // Update existing
+                $vendorProduct->update($vendorProductData);
+                return ['created' => 0, 'vendor_product' => $vendorProduct];
+            }
+
+            // Create new VendorProduct
+            $vendorProduct = new VendorProduct();
+            $vendorProduct->product_id = $product->id;
+            $vendorProduct->id = $item['id'];
+            $vendorProduct->vendor_id = $vendorId;
+            $vendorProduct->fill($vendorProductData);
+            $vendorProduct->save();
+
+            return ['created' => 1, 'vendor_product' => $vendorProduct];
+        } catch (\Exception $e) {
+            Log::error("Error creating VendorProduct for product {$product->id}: " . $e->getMessage());
+            return ['created' => 0, 'vendor_product' => null];
+        }
+    }
+
+    /**
+     * Create VendorProductVariant from product_size_colors data
+     */
+    protected function createVendorProductVariant(VendorProduct $vendorProduct, array $sizeColor, int $countryId): array
+    {
+        $variantCreated = 0;
+        $stocksCreated = 0;
+
+        try {
+            // Check if variant exists by ID
+            $variant = VendorProductVariant::where('id', $sizeColor['id'])->first();
+
+            // Calculate price and discount
+            $realPrice = $sizeColor['real_price'] ?? 0;
+            $fakePrice = $sizeColor['fake_price'] ?? null;
+            $discount = $sizeColor['discount'] ?? 0;
+            
+            // Determine if has discount
+            $hasDiscount = $discount > 0 || ($fakePrice && $fakePrice > $realPrice);
+            
+            // Price is the selling price (after discount), price_before_discount is the original price
+            $price = $realPrice;
+            // price_before_discount cannot be null - use price if no discount
+            $priceBeforeDiscount = $hasDiscount && $fakePrice ? $fakePrice : $price;
+
+            $variantData = [
+                'vendor_product_id' => $vendorProduct->id,
+                'variant_configuration_id' => $sizeColor['variants_configuration_id'] ?? null,
+                'sku' => $sizeColor['sku'] ?? null,
+                'price' => $price,
+                'has_discount' => $hasDiscount,
+                'price_before_discount' => $priceBeforeDiscount,
+                'discount_end_date' => !empty($sizeColor['end_at']) ? $this->parseDate($sizeColor['end_at']) : null,
+                'country_id' => $countryId,
+                'created_at' => $this->parseDate($sizeColor['created_at'] ?? null),
+                'updated_at' => $this->parseDate($sizeColor['updated_at'] ?? null),
+            ];
+
+            if ($variant) {
+                // Update existing
+                $variant->update($variantData);
+            } else {
+                // Create new with same ID
+                $variant = new VendorProductVariant();
+                $variant->id = $sizeColor['id'];
+                $variant->fill($variantData);
+                $variant->save();
+                $variantCreated = 1;
+            }
+
+            // Create region stocks
+            if (!empty($sizeColor['region_stocks']) && is_array($sizeColor['region_stocks'])) {
+                foreach ($sizeColor['region_stocks'] as $regionStock) {
+                    $stocksCreated += $this->createVariantRegionStock($variant, $regionStock);
+                }
+            }
+
+            // If no region_stocks but has stock field, create a default stock entry
+            if (empty($sizeColor['region_stocks']) && isset($sizeColor['stock']) && $sizeColor['stock'] > 0) {
+                // Get first region as default
+                $defaultRegion = Region::first();
+                if ($defaultRegion) {
+                    $stocksCreated += $this->createVariantRegionStock($variant, [
+                        'region_id' => $defaultRegion->id,
+                        'stock' => $sizeColor['stock'],
+                    ]);
+                }
+            }
+
+        } catch (\Exception $e) {
+            Log::error("Error creating VendorProductVariant ID {$sizeColor['id']}: " . $e->getMessage());
+        }
+
+        return [
+            'variant_created' => $variantCreated,
+            'stocks_created' => $stocksCreated,
+        ];
+    }
+
+    /**
+     * Create VendorProductVariantStock from region_stocks data
+     */
+    protected function createVariantRegionStock(VendorProductVariant $variant, array $regionStock): int
+    {
+        try {
+            $stockId = $regionStock['id'] ?? null;
+            $regionId = $regionStock['region_id'] ?? null;
+            $quantity = $regionStock['stock'] ?? $regionStock['quantity'] ?? 0;
+
+            if (!$regionId) {
+                return 0;
+            }
+
+            // Validate region exists
+            if (!Region::where('id', $regionId)->exists()) {
+                return 0;
+            }
+
+            // Check if stock exists by ID first, then by variant+region
+            $stock = null;
+            if ($stockId) {
+                $stock = VendorProductVariantStock::where('id', $stockId)->first();
+            }
+            if (!$stock) {
+                $stock = VendorProductVariantStock::where('vendor_product_variant_id', $variant->id)
+                    ->where('region_id', $regionId)
+                    ->first();
+            }
+
+            if ($stock) {
+                // Update existing
+                $stock->update(['quantity' => $quantity]);
+                return 0;
+            }
+
+            // Create new with same ID from source
+            $newStock = new VendorProductVariantStock();
+            if ($stockId) {
+                $newStock->id = $stockId;
+            }
+            $newStock->vendor_product_variant_id = $variant->id;
+            $newStock->region_id = $regionId;
+            $newStock->quantity = $quantity;
+            $newStock->save();
+
+            return 1;
+        } catch (\Exception $e) {
+            Log::error("Error creating VendorProductVariantStock for variant {$variant->id}: " . $e->getMessage());
+            return 0;
+        }
+    }
+
     /**
      * Download image and attach to model
      */
