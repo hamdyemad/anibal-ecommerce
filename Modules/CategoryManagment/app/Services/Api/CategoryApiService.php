@@ -34,7 +34,7 @@ class CategoryApiService
 
     /**
      * Get categories by filters (handles department, category, and sub-category hierarchy)
-     * Returns both categories and sub-categories when applicable
+     * Returns categories or sub-categories based on filter combination
      */
     public function getCategoriesByFilters(array $filters)
     {
@@ -45,7 +45,7 @@ class CategoryApiService
             return [];
         }
 
-        // If main_category_id or category_id is provided, return sub-categories (priority over department_id)
+        // If category_id is provided, return sub-categories
         $categoryId = $filters['main_category_id'] ?? $filters['category_id'] ?? null;
         if (!empty($categoryId)) {
             $subCategories = $this->SubCategoryRepository->getSubCategoriesByCategory($categoryId);
@@ -66,12 +66,12 @@ class CategoryApiService
             return $result;
         }
         
-        // If department_id is provided, return main categories AND their sub-categories for that department
+        // If department_id only is provided, return categories (without sub-categories)
         if (!empty($filters['department_id'])) {
             $dto = new CategoryFilterDTO(department_id: $filters['department_id']);
             $categories = $this->CategoryRepository->getAllCategories($dto);
             
-            // Add categories with type
+            // Add categories only
             foreach ($categories as $category) {
                 $result[] = [
                     'id' => $category->id,
@@ -81,20 +81,6 @@ class CategoryApiService
                     'icon' => $category->icon ? asset('storage/' . $category->icon) : null,
                     'type' => 'category',
                 ];
-                
-                // Get sub-categories from the already eager-loaded activeSubs relationship
-                $subCategories = $category->activeSubs ?? collect();
-                foreach ($subCategories as $subCategory) {
-                    $result[] = [
-                        'id' => $subCategory->id,
-                        'title' => $subCategory->name,
-                        'slug' => $subCategory->slug,
-                        'image' => $subCategory->image ? asset('storage/' . $subCategory->image) : null,
-                        'icon' => $subCategory->icon ? asset('storage/' . $subCategory->icon) : null,
-                        'type' => 'sub_category',
-                        'parent_id' => $category->id,
-                    ];
-                }
             }
             
             return $result;
