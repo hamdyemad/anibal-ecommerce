@@ -171,6 +171,16 @@ class ShippingRepository implements ShippingRepositoryInterface
     public function deleteShipping($id)
     {
         $shipping = $this->getShippingById($id);
+        
+        // Detach all relationships before deleting
+        $shipping->cities()->detach();
+        $shipping->categories()->detach();
+        $shipping->departments()->detach();
+        $shipping->subCategories()->detach();
+        
+        // Delete translations
+        $shipping->translations()->delete();
+        
         return $shipping->delete();
     }
 
