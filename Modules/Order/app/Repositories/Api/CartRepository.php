@@ -157,6 +157,7 @@ class CartRepository implements CartRepositoryInterface
 
     /**
      * Calculate line item total based on cart type
+     * For bundles: if quantity exceeds limitation_quantity, extra items use original variant price
      */
     private function calculateLineItemTotal($cart)
     {
@@ -167,7 +168,27 @@ class CartRepository implements CartRepositoryInterface
                 ->first();
 
             if ($bundleProduct) {
-                return (float) $bundleProduct->price * $cart->quantity;
+                $bundlePrice = (float) $bundleProduct->price;
+                $limitQty = $bundleProduct->limitation_quantity ?? $cart->quantity;
+                $cartQty = $cart->quantity;
+                
+                // If quantity is within limit, use bundle price for all
+                if ($cartQty <= $limitQty) {
+                    return $bundlePrice * $cartQty;
+                }
+                
+                // Quantity exceeds limit: bundle price for limit, original price for extra
+                $bundleTotal = $bundlePrice * $limitQty;
+                $extraQty = $cartQty - $limitQty;
+                
+                // Get original variant price for extra items
+                $originalPrice = 0;
+                if ($cart->vendorProductVariant) {
+                    $originalPrice = (float) ($cart->vendorProductVariant->price ?? 0);
+                }
+                $extraTotal = $originalPrice * $extraQty;
+                
+                return $bundleTotal + $extraTotal;
             }
         }
         

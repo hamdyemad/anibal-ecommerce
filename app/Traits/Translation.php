@@ -4,6 +4,7 @@ namespace App\Traits;
 
 use App\Models\Language;
 use App\Models\Translation as TranslationModel;
+use Illuminate\Support\Facades\Cache;
 
 trait Translation
 {
@@ -18,15 +19,31 @@ trait Translation
 
   public function getTranslation(string $key, string $locale = 'en')
   {
-    $lang = Language::where('code', $locale)->first();
-    if($lang) {
-      $translation = $this->translations()
-          ->where('lang_id', $lang->id)
-          ->where('lang_key', $key)
-          ->first();
-      return $translation ? $translation->lang_value : null;
+    // Cache language IDs to avoid repeated queries
+    $langId = Cache::remember("language_id_{$locale}", 3600, function () use ($locale) {
+        $lang = Language::where('code', $locale)->first();
+        return $lang ? $lang->id : null;
+    });
+    
+    if (!$langId) {
+        return null;
     }
-    return null;
+    
+    // If translations are already eager loaded, use them
+    if ($this->relationLoaded('translations')) {
+        $translation = $this->translations
+            ->where('lang_id', $langId)
+            ->where('lang_key', $key)
+            ->first();
+        return $translation ? $translation->lang_value : null;
+    }
+    
+    // Fallback to query if not eager loaded
+    $translation = $this->translations()
+        ->where('lang_id', $langId)
+        ->where('lang_key', $key)
+        ->first();
+    return $translation ? $translation->lang_value : null;
   }
 
   public function setTranslation(string $key, string $locale, string $value)

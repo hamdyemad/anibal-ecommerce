@@ -1,6 +1,6 @@
 @extends('layout.app')
 @section('title')
-    {{ __('systemsetting::activity_log.activity_logs') }} | E-RAMO
+    {{ __('systemsetting::activity_log.activity_logs') }} | Bnaia
 @endsection
 @push('styles')
     <!-- Select2 CSS loaded via Vite -->

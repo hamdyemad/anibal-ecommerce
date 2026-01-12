@@ -19,7 +19,10 @@ class CartResource extends JsonResource
     public function toArray(Request $request): array
     {
         $limit = $this->limitation();
-        $prices = $this->calculatePrices();
+        $prices = $this->calculatePricesWithLimitation();
+        
+        // Calculate total tax amount
+        $totalTaxAmount = $prices['total_after_tax'] - $prices['total_before_tax'];
         
         return [
             'id' => $this->id,
@@ -29,9 +32,8 @@ class CartResource extends JsonResource
             'occasion' => ($this->occasion && $this->type === "occasion") ? new OccasionResource($this->occasion) : null,
             'limitation' => $limit[0],
             'min' => $limit[1],
-            'price_before_taxes' => round($prices['before_tax'], 2),
-            'taxes' => $this->vendorProduct->taxes ? $this->vendorProduct->taxes->map(function ($tax) use ($prices) {
-                $amount = $prices['before_tax'] * ($tax->percentage / 100);
+            'taxes' => $this->vendorProduct && $this->vendorProduct->taxes ? $this->vendorProduct->taxes->map(function ($tax) use ($prices) {
+                $amount = $prices['total_before_tax'] * ($tax->percentage / 100);
                 return [
                     'id' => $tax->id,
                     'name' => $tax->name,
@@ -39,9 +41,10 @@ class CartResource extends JsonResource
                     'amount' => round($amount, 2),
                 ];
             }) : [],
-            'price_after_taxes' => round($prices['after_tax'], 2),
             'quantity' => $this->quantity,
-            'total' => $this->quantity * round($prices['after_tax'], 2),
+            'total_before_taxes' => round($prices['total_before_tax'], 2),
+            'total_tax_amount' => round($totalTaxAmount, 2),
+            'total_after_taxes' => round($prices['total_after_tax'], 2),
         ];
     }
 
@@ -61,42 +64,77 @@ class CartResource extends JsonResource
             ];
         }
 
-
-        return [$this->vendorProductVariant->max_per_order, 0];
+        return [$this->vendorProductVariant?->max_per_order ?? 0, 0];
     }
 
-    private function calculatePrices()
+    /**
+     * Calculate prices considering bundle limitation
+     * If quantity exceeds limitation, extra items use original variant price
+     */
+    private function calculatePricesWithLimitation()
     {
-        $priceBeforeTax = 0;
+        $quantity = $this->quantity;
+        $originalPriceBeforeTax = $this->vendorProductVariant?->price ?? 0;
         
-        if ($this->type === 'bundle' && $this->bundle_id) {
-            // Query database directly to get bundle product price
-            $bundleProduct = BundleProduct::where('bundle_id', $this->bundle_id)
-                ->where('vendor_product_variant_id', $this->vendor_product_variant_id)
-                ->first();
-            $priceBeforeTax = $bundleProduct?->price ?? $this->vendorProductVariant->price ?? 0;
-        } elseif ($this->type === 'occasion' && $this->occasion_id) {
-            // Query database directly to get occasion product price
-            $occasionProduct = \Modules\CatalogManagement\app\Models\OccasionProduct::where('occasion_id', $this->occasion_id)
-                ->where('vendor_product_variant_id', $this->vendor_product_variant_id)
-                ->first();
-            $priceBeforeTax = $occasionProduct?->special_price ?? $this->vendorProductVariant->price ?? 0;
-        } else {
-            $priceBeforeTax = $this->vendorProductVariant->price ?? 0;
-        }
-        
-        // Calculate price with tax
+        // Calculate tax rate
         $taxRate = $this->vendorProduct && $this->vendorProduct->taxes 
             ? $this->vendorProduct->taxes->sum('percentage') 
             : 0;
+        $taxMultiplier = 1 + ($taxRate / 100);
         
-        $priceWithTax = $taxRate > 0 
-            ? $priceBeforeTax * (1 + $taxRate / 100) 
-            : $priceBeforeTax;
+        $originalPriceAfterTax = $originalPriceBeforeTax * $taxMultiplier;
+        
+        // Default: use original price
+        $priceBeforeTax = $originalPriceBeforeTax;
+        $priceAfterTax = $originalPriceAfterTax;
+        $totalBeforeTax = $originalPriceBeforeTax * $quantity;
+        $totalAfterTax = $originalPriceAfterTax * $quantity;
+        
+        if ($this->type === 'bundle' && $this->bundle_id) {
+            $bundleProduct = BundleProduct::where('bundle_id', $this->bundle_id)
+                ->where('vendor_product_variant_id', $this->vendor_product_variant_id)
+                ->first();
+            
+            if ($bundleProduct) {
+                $bundlePriceBeforeTax = (float) $bundleProduct->price;
+                $bundlePriceAfterTax = $bundlePriceBeforeTax * $taxMultiplier;
+                $limitQty = $bundleProduct->limitation_quantity ?? $quantity;
+                
+                // Use bundle price as the display price
+                $priceBeforeTax = $bundlePriceBeforeTax;
+                $priceAfterTax = $bundlePriceAfterTax;
+                
+                // Calculate quantities
+                $bundleQty = min($quantity, $limitQty);
+                $extraQty = max(0, $quantity - $limitQty);
+                
+                // Calculate totals
+                $bundleTotalBeforeTax = $bundlePriceBeforeTax * $bundleQty;
+                $extraTotalBeforeTax = $originalPriceBeforeTax * $extraQty;
+                $totalBeforeTax = $bundleTotalBeforeTax + $extraTotalBeforeTax;
+                
+                $bundleTotalAfterTax = $bundlePriceAfterTax * $bundleQty;
+                $extraTotalAfterTax = $originalPriceAfterTax * $extraQty;
+                $totalAfterTax = $bundleTotalAfterTax + $extraTotalAfterTax;
+            }
+        } elseif ($this->type === 'occasion' && $this->occasion_id) {
+            $occasionProduct = \Modules\CatalogManagement\app\Models\OccasionProduct::where('occasion_id', $this->occasion_id)
+                ->where('vendor_product_variant_id', $this->vendor_product_variant_id)
+                ->first();
+            
+            if ($occasionProduct) {
+                $priceBeforeTax = (float) $occasionProduct->special_price;
+                $priceAfterTax = $priceBeforeTax * $taxMultiplier;
+                $totalBeforeTax = $priceBeforeTax * $quantity;
+                $totalAfterTax = $priceAfterTax * $quantity;
+            }
+        }
         
         return [
-            'before_tax' => $priceBeforeTax,
-            'after_tax' => $priceWithTax,
+            'price_before_tax' => $priceBeforeTax,
+            'price_after_tax' => $priceAfterTax,
+            'total_before_tax' => $totalBeforeTax,
+            'total_after_tax' => $totalAfterTax,
         ];
     }
 }

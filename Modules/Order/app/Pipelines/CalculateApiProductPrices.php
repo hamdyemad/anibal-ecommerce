@@ -214,34 +214,63 @@ class CalculateApiProductPrices
      * Get price from cart data (occasion/bundle pricing)
      * Falls back to database query if cart data doesn't have the products
      * Returns null if not found, or the actual price (which could be 0)
+     * 
+     * For bundles: if quantity exceeds limitation_quantity, returns weighted average price
+     * (bundle price for limited qty + original price for extra qty) / total qty
      */
     private function getPriceFromCart(string $type, array $formProduct, $vendorProductVariantId): ?float
     {
         $variantId = (int) $vendorProductVariantId;
+        $quantity = (int) ($formProduct['quantity'] ?? 1);
         
         if ($type === 'bundle' && !empty($formProduct['bundle_id'])) {
             $bundleId = (int) $formProduct['bundle_id'];
+            $bundlePrice = null;
+            $limitQty = null;
             
             // First try to get from cart data
             if (!empty($formProduct['bundle']['bundleProducts'])) {
                 foreach ($formProduct['bundle']['bundleProducts'] as $bundleProduct) {
                     if ((int) ($bundleProduct['vendor_product_variant_id'] ?? 0) === $variantId) {
                         if (array_key_exists('price', $bundleProduct)) {
-                            return (float) $bundleProduct['price'];
+                            $bundlePrice = (float) $bundleProduct['price'];
+                            $limitQty = $bundleProduct['limitation_quantity'] ?? null;
+                            break;
                         }
                     }
                 }
             }
 
             // Fallback: query database directly (without global scopes to ensure we get the data)
-            $bundleProduct = \Modules\CatalogManagement\app\Models\BundleProduct::withoutGlobalScopes()
-                ->where('bundle_id', $bundleId)
-                ->where('vendor_product_variant_id', $variantId)
-                ->whereNull('deleted_at')
-                ->first();
+            if ($bundlePrice === null) {
+                $bundleProduct = \Modules\CatalogManagement\app\Models\BundleProduct::withoutGlobalScopes()
+                    ->where('bundle_id', $bundleId)
+                    ->where('vendor_product_variant_id', $variantId)
+                    ->whereNull('deleted_at')
+                    ->first();
 
-            if ($bundleProduct) {
-                return (float) $bundleProduct->price;
+                if ($bundleProduct) {
+                    $bundlePrice = (float) $bundleProduct->price;
+                    $limitQty = $bundleProduct->limitation_quantity;
+                }
+            }
+            
+            if ($bundlePrice !== null) {
+                // If no limit or quantity within limit, return bundle price
+                if ($limitQty === null || $quantity <= $limitQty) {
+                    return $bundlePrice;
+                }
+                
+                // Quantity exceeds limit: calculate weighted average price
+                // Get original variant price for extra items
+                $originalPrice = $this->getOriginalVariantPrice($formProduct, $variantId);
+                
+                $bundleTotal = $bundlePrice * $limitQty;
+                $extraQty = $quantity - $limitQty;
+                $extraTotal = $originalPrice * $extraQty;
+                
+                // Return average price per unit (total / quantity)
+                return ($bundleTotal + $extraTotal) / $quantity;
             }
         }
 
@@ -272,5 +301,25 @@ class CalculateApiProductPrices
 
         // Return null to indicate price not found - will use regular product price
         return null;
+    }
+    
+    /**
+     * Get original variant price from database
+     */
+    private function getOriginalVariantPrice(array $formProduct, int $variantId): float
+    {
+        // Try to get from vendor product variants in form data
+        if (!empty($formProduct['vendor_product']['variants'])) {
+            foreach ($formProduct['vendor_product']['variants'] as $variant) {
+                $vId = is_array($variant) ? ($variant['id'] ?? null) : ($variant->id ?? null);
+                if ((int) $vId === $variantId) {
+                    return (float) (is_array($variant) ? ($variant['price'] ?? 0) : ($variant->price ?? 0));
+                }
+            }
+        }
+        
+        // Fallback: query database
+        $variant = \Modules\CatalogManagement\app\Models\VendorProductVariant::find($variantId);
+        return $variant ? (float) $variant->price : 0;
     }
 }

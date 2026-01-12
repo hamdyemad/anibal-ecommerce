@@ -36,13 +36,49 @@ class BundleProductResource extends JsonResource
         $vendorProductData = $vendorProduct ? (new VendorProductResource($vendorProduct))->toArray($request) : [];
         
         // Remove keys from vendor product that will be overridden by bundle product data
+        // Also remove variants and configuration_tree as they show all variants, not just the bundle one
         unset(
             $vendorProductData['id'],
             $vendorProductData['star'],
             $vendorProductData['num_of_user_review'],
             $vendorProductData['created_at'],
-            $vendorProductData['updated_at']
+            $vendorProductData['updated_at'],
+            $vendorProductData['variants'],
+            $vendorProductData['configuration_tree']
         );
+
+        // Calculate bundle price with taxes
+        $bundlePriceBeforeTaxes = (float) $this->price;
+        $bundlePriceAfterTaxes = $bundlePriceBeforeTaxes;
+        $taxAmount = 0;
+        $totalTaxPercentage = 0;
+        $taxes = [];
+        
+        // Get taxes from vendor product
+        if ($vendorProduct) {
+            // Ensure taxes are loaded
+            if (!$vendorProduct->relationLoaded('taxes')) {
+                $vendorProduct->load('taxes');
+            }
+            
+            if ($vendorProduct->taxes && $vendorProduct->taxes->count() > 0) {
+                $totalTaxPercentage = $vendorProduct->taxes->sum('percentage');
+                $taxMultiplier = 1 + ($totalTaxPercentage / 100);
+                $bundlePriceAfterTaxes = $bundlePriceBeforeTaxes * $taxMultiplier;
+                $taxAmount = $bundlePriceAfterTaxes - $bundlePriceBeforeTaxes;
+                
+                // Build taxes array
+                $taxes = $vendorProduct->taxes->map(function ($tax) use ($bundlePriceBeforeTaxes) {
+                    $taxValue = $bundlePriceBeforeTaxes * ($tax->percentage / 100);
+                    return [
+                        'id' => $tax->id,
+                        'name' => $tax->name,
+                        'percentage' => $tax->percentage,
+                        'amount' => round($taxValue, 2),
+                    ];
+                })->toArray();
+            }
+        }
 
         // Merge vendor product data first, then bundle product data (bundle data takes precedence)
         return array_merge($vendorProductData, [
@@ -50,7 +86,11 @@ class BundleProductResource extends JsonResource
             'bundle_id' => $this->bundle_id,
             'vendor_product_id' => $vendorProduct?->id,
             'vendor_product_variant_id' => $this->vendor_product_variant_id,
-            'price' => round($this->price, 2),
+            'price_before_taxes' => round($bundlePriceBeforeTaxes, 2),
+            'tax_amount' => round($taxAmount, 2),
+            'tax_percentage' => $totalTaxPercentage,
+            'taxes' => $taxes,
+            'price_after_taxes' => round($bundlePriceAfterTaxes, 2),
             'min_quantity' => $this->min_quantity,
             'is_gift' => ($this->price == 0) ? true : false,
             'limitation_quantity' => $this->limitation_quantity,
@@ -62,13 +102,18 @@ class BundleProductResource extends JsonResource
             'star' => round($vendorProduct?->reviews_avg_star ?? 0, 1),
             'num_of_user_review' => $vendorProduct?->reviews_count ?? 0,
 
-            // Vendor Product Variant Details
-            'vendor_product_variant' => $this->whenLoaded('vendorProductVariant', function() use ($vendorProduct) {
+            // Vendor Product Variant Details (with bundle price override)
+            'vendor_product_variant' => $this->whenLoaded('vendorProductVariant', function() use ($vendorProduct, $bundlePriceBeforeTaxes, $bundlePriceAfterTaxes, $taxAmount, $totalTaxPercentage) {
                 // Set vendorProduct relation on variant so it can access taxes
                 if ($vendorProduct) {
                     $this->vendorProductVariant->setRelation('vendorProduct', $vendorProduct);
                 }
-                return new VendorProductVariantResource($this->vendorProductVariant);
+                // Pass bundle prices to the variant resource
+                $this->vendorProductVariant->bundle_price_before_taxes = $bundlePriceBeforeTaxes;
+                $this->vendorProductVariant->bundle_price_after_taxes = $bundlePriceAfterTaxes;
+                $this->vendorProductVariant->bundle_tax_amount = $taxAmount;
+                $this->vendorProductVariant->bundle_tax_percentage = $totalTaxPercentage;
+                return new BundleVariantResource($this->vendorProductVariant);
             }),
         ]);
     }

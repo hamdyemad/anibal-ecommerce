@@ -138,7 +138,7 @@ return [
         'team' => ':app_name Team',
         'footer_copyright' => '© :year :app_name. All rights reserved.',
         'footer_note' => 'This is an automated email. Please do not reply to this message.',
-        'app_name' => 'E-RAMO Store',
+        'app_name' => 'Bnaia Store',
     ],
 
     // Order Statistics

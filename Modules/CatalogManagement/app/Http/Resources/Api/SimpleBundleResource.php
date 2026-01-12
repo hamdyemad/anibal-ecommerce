@@ -14,6 +14,16 @@ class SimpleBundleResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        // Calculate bundle products count from loaded relationship or use pre-calculated value
+        $bundleProductsCount = $this->bundle_products_count 
+            ?? ($this->relationLoaded('bundleProducts') ? $this->bundleProducts->count() : 0);
+        
+        // Calculate total price (sum of prices without min_quantity multiplier)
+        $totalPrice = $this->total_price_sum 
+            ?? ($this->relationLoaded('bundleProducts') 
+                ? $this->bundleProducts->sum('price') 
+                : 0);
+
         return [
             'id' => $this->id,
             'sku' => $this->sku,
@@ -21,15 +31,17 @@ class SimpleBundleResource extends JsonResource
             'country_id' => $this->country_id,
             // Translations
             'name' => $this->name,
-            'description' => $this->description,
-            'image' => ($this->main_image) ? asset('storage/' . $this->main_image->path) : '',
-            'category' => $this->when('bundleCategory', function() {
+            'description' => $this->getTranslation('description', app()->getLocale()),
+            'image' => $this->whenLoaded('main_image', function() {
+                return $this->main_image ? asset('storage/' . $this->main_image->path) : '';
+            }, ''),
+            'category' => $this->whenLoaded('bundleCategory', function() {
                 return new BundleCategoryResource($this->bundleCategory);
             }),
-            'bundle_products_count' => $this->bundle_products_count ?? 0,
-            'total_price' => round($this->bundleTotalPrice(), 2),
+            'bundle_products_count' => $bundleProductsCount,
+            'total_price' => round($totalPrice, 2),
             // Relationships
-            'vendor' => $this->when('vendor', function() {
+            'vendor' => $this->whenLoaded('vendor', function() {
                 return new LightVendorResource($this->vendor);
             }),
         ];

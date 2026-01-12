@@ -93,7 +93,7 @@ class AddBulkToCartRequest extends FormRequest
                         continue;
                     }
 
-                    // Validate bundle product quantity
+                    // Validate bundle product exists
                     $bundleProduct = BundleProduct::where(function ($query) use ($bundleId, $variantId) {
                         $query->where('bundle_id', $bundleId)
                             ->where('vendor_product_variant_id', $variantId);
@@ -108,11 +108,11 @@ class AddBulkToCartRequest extends FormRequest
                         continue;
                     }
 
-                    if ($bundleProduct && ($quantity < $bundleProduct->min_quantity || $quantity > $bundleProduct->limitation_quantity)) {
+                    // Validate minimum quantity only (no max limit - extra items use original price)
+                    if ($bundleProduct && $quantity < $bundleProduct->min_quantity) {
                         $validator->errors()->add(
                             "items.$index.quantity",
-                            __('validation.quantity_exceeds_bundle_max_per_order', [
-                                'max' => $bundleProduct->limitation_quantity,
+                            __('validation.quantity_below_bundle_min', [
                                 'min' => $bundleProduct->min_quantity
                             ])
                         );

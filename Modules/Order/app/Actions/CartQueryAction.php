@@ -22,7 +22,11 @@ class CartQueryAction
                 'vendorProduct.variants',
                 'vendorProductVariant.variantConfiguration.key',
                 'vendorProductVariant.variantConfiguration.parent_data.key',
+                'bundle.translations',
+                'bundle.main_image',
+                'bundle.bundleCategory.translations',
                 'bundle.bundleProducts',
+                'bundle.vendor.translations',
                 'occasion.occasionProducts'
             ])
             ->orderBy('created_at', 'desc')
