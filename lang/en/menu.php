@@ -58,6 +58,12 @@
             'my_new_requests' => 'my new requests',
             'my_accepted_requests' => 'my accepted requests',
             'my_rejected_requests' => 'my rejected requests',
+            'vendors_withdraw_requests' => 'Vendors Withdraw Requests',
+            'bnaia_sent_money' => 'Bnaia sent money to you',
+            'bnaia_rejected_request' => 'Bnaia rejected your request',
+            'vendor_sent_request' => ':vendor sent a new withdraw request',
+            'request_value' => 'Request Value',
+            'see_all_requests' => 'See All Requests',
         ],
         'withdrawl module' => [
             'title' => 'withdrawl module',

@@ -48,7 +48,7 @@
             </span>
         </a>
         <div class="dropdown-wrapper">
-            <h2 class="dropdown-wrapper__title">Vendors Withdraw Requests <span
+            <h2 class="dropdown-wrapper__title"><?php echo e(trans('menu.withdraw module.vendors_withdraw_requests')); ?> <span
                     class="badge-circle badge-warning ms-1"><?php echo e(count($all_transactions)); ?></span></h2>
             <ul>
                 <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__currentLoopData = $all_transactions; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
@@ -60,25 +60,25 @@
                             <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($vendor): ?>
                                 <p>
                                     <a href="<?php echo e($item->status == "accepted" ? route('admin.transactionsRequests', 'accepted') : route('admin.transactionsRequests', 'rejected')); ?>" class="subject stretched-link text-truncate"
-                                        style="max-width: 180px;">Bnaia is <?php echo e($item->status == "accepted" ? "Sent money to you" : "Reject your request"); ?></a>
+                                        style="max-width: 180px;"><?php echo e($item->status == "accepted" ? trans('menu.withdraw module.bnaia_sent_money') : trans('menu.withdraw module.bnaia_rejected_request')); ?></a>
                                 </p>
                                 <p>
-                                    <span class="time-posted">Request Value : <?php echo e($item->sent_amount); ?> <?php echo e(currency()); ?></span>
+                                    <span class="time-posted"><?php echo e(trans('menu.withdraw module.request_value')); ?>: <?php echo e($item->sent_amount); ?> <?php echo e(currency()); ?></span>
                                 </p>
                             <?php else: ?>
                                 <p>
                                     <a href="<?php echo e(route('admin.transactionsRequests', 'new')); ?>" class="subject stretched-link text-truncate"
-                                        style="max-width: 180px;"><?php echo e($item->vendor->translations->first()->lang_value); ?> is sent new withdraw request</a>
+                                        style="max-width: 180px;"><?php echo e(trans('menu.withdraw module.vendor_sent_request', ['vendor' => $item->vendor->translations->first()->lang_value ?? $item->vendor->name ?? 'N/A'])); ?></a>
                                 </p>
                                 <p>
-                                    <span class="time-posted">Request Value : <?php echo e($item->sent_amount); ?> <?php echo e(currency()); ?></span>
+                                    <span class="time-posted"><?php echo e(trans('menu.withdraw module.request_value')); ?>: <?php echo e($item->sent_amount); ?> <?php echo e(currency()); ?></span>
                                 </p>
                             <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                         </div>
                     </li>
                 <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
             </ul>
-            <a href="" class="dropdown-wrapper__more">See All Requests</a>
+            <a href="<?php echo e(route('admin.transactionsRequests', 'new')); ?>" class="dropdown-wrapper__more"><?php echo e(trans('menu.withdraw module.see_all_requests')); ?></a>
         </div>
     </div>
 </li>

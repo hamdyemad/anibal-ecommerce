@@ -58,6 +58,12 @@
             'my_new_requests' => 'طلباتي الجديدة',
             'my_accepted_requests' => 'طلباتي المقبولة',
             'my_rejected_requests' => 'طلباتي المرفوضة',
+            'vendors_withdraw_requests' => 'طلبات سحب التجار',
+            'bnaia_sent_money' => 'بنايه أرسلت لك المبلغ',
+            'bnaia_rejected_request' => 'بنايه رفضت طلبك',
+            'vendor_sent_request' => ':vendor أرسل طلب سحب جديد',
+            'request_value' => 'قيمة الطلب',
+            'see_all_requests' => 'عرض جميع الطلبات',
         ],
         'products' => [
             'title' => 'المنتجات',

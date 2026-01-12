@@ -28,10 +28,12 @@
                             <div class="user-message">
                                 <p>
                                     <a href="{{ route('admin.messages.show', $message->id) }}" class="subject stretched-link text-truncate" style="max-width: 180px;">{{ $message->name }}</a>
-                                    <span class="time-posted">{{ $message->created_at }}</span>
                                 </p>
                                 <p>
                                     <span class="desc text-truncate" style="max-width: 215px;">{{ $message->title }}</span>
+                                </p>
+                                <p>
+                                    <span class="time-posted">{{ \Carbon\Carbon::parse($message->getRawOriginal('created_at'))->diffForHumans() }}</span>
                                 </p>
                             </div>
                         </li>

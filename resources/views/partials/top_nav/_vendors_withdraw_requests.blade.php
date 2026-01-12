@@ -47,7 +47,7 @@
             </span>
         </a>
         <div class="dropdown-wrapper">
-            <h2 class="dropdown-wrapper__title">Vendors Withdraw Requests <span
+            <h2 class="dropdown-wrapper__title">{{ trans('menu.withdraw module.vendors_withdraw_requests') }} <span
                     class="badge-circle badge-warning ms-1">{{ count($all_transactions) }}</span></h2>
             <ul>
                 @foreach ($all_transactions as $item)
@@ -59,25 +59,25 @@
                             @if ($vendor)
                                 <p>
                                     <a href="{{ $item->status == "accepted" ? route('admin.transactionsRequests', 'accepted') : route('admin.transactionsRequests', 'rejected') }}" class="subject stretched-link text-truncate"
-                                        style="max-width: 180px;">Bnaia is {{ $item->status == "accepted" ? "Sent money to you" : "Reject your request"  }}</a>
+                                        style="max-width: 180px;">{{ $item->status == "accepted" ? trans('menu.withdraw module.bnaia_sent_money') : trans('menu.withdraw module.bnaia_rejected_request') }}</a>
                                 </p>
                                 <p>
-                                    <span class="time-posted">Request Value : {{ $item->sent_amount }} {{ currency() }}</span>
+                                    <span class="time-posted">{{ trans('menu.withdraw module.request_value') }}: {{ $item->sent_amount }} {{ currency() }}</span>
                                 </p>
                             @else
                                 <p>
                                     <a href="{{ route('admin.transactionsRequests', 'new') }}" class="subject stretched-link text-truncate"
-                                        style="max-width: 180px;">{{ $item->vendor->translations->first()->lang_value }} is sent new withdraw request</a>
+                                        style="max-width: 180px;">{{ trans('menu.withdraw module.vendor_sent_request', ['vendor' => $item->vendor->translations->first()->lang_value ?? $item->vendor->name ?? 'N/A']) }}</a>
                                 </p>
                                 <p>
-                                    <span class="time-posted">Request Value : {{ $item->sent_amount }} {{ currency() }}</span>
+                                    <span class="time-posted">{{ trans('menu.withdraw module.request_value') }}: {{ $item->sent_amount }} {{ currency() }}</span>
                                 </p>
                             @endif
                         </div>
                     </li>
                 @endforeach
             </ul>
-            <a href="" class="dropdown-wrapper__more">See All Requests</a>
+            <a href="{{ route('admin.transactionsRequests', 'new') }}" class="dropdown-wrapper__more">{{ trans('menu.withdraw module.see_all_requests') }}</a>
         </div>
     </div>
 </li>

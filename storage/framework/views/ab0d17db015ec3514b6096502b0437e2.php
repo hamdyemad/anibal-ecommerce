@@ -29,10 +29,12 @@
                             <div class="user-message">
                                 <p>
                                     <a href="<?php echo e(route('admin.messages.show', $message->id)); ?>" class="subject stretched-link text-truncate" style="max-width: 180px;"><?php echo e($message->name); ?></a>
-                                    <span class="time-posted"><?php echo e($message->created_at); ?></span>
                                 </p>
                                 <p>
                                     <span class="desc text-truncate" style="max-width: 215px;"><?php echo e($message->title); ?></span>
+                                </p>
+                                <p>
+                                    <span class="time-posted"><?php echo e(\Carbon\Carbon::parse($message->getRawOriginal('created_at'))->diffForHumans()); ?></span>
                                 </p>
                             </div>
                         </li>
