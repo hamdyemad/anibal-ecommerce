@@ -67,6 +67,33 @@ class Ad extends Model
     public function scopeActive(Builder $query) {
         return $query->where('active', 1);
     }
+
+    /**
+     * Get all ad positions with their dimensions
+     */
+    public static function getPositionsWithDimensions()
+    {
+        $positions = AdPosition::all();
+        
+        $result = [];
+        foreach ($positions as $position) {
+            $result[$position->id] = [
+                'name' => $position->position ?? 'Position ' . $position->id,
+                'width' => $position->width ?? 0,
+                'height' => $position->height ?? 0,
+            ];
+        }
+        
+        return $result;
+    }
+
+    /**
+     * Get all ad positions as key => label array
+     */
+    public static function getPositions()
+    {
+        return AdPosition::pluck('position', 'id')->toArray();
+    }
     /**
      * Scope for filtering
      */
