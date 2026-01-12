@@ -4,7 +4,6 @@ namespace Modules\SystemSetting\app\Http\Resources\Api;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
-use Modules\SystemSetting\app\Models\Ad;
 
 class AdsResource extends JsonResource
 {
@@ -15,31 +14,12 @@ class AdsResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        // Determine which width/height to return based on requested type
-        $requestedType = $request->input('type');
+        // Get position data from relationship
+        $positionLabel = $this->adPosition ? $this->adPosition->position : null;
         
-        // If type is specified, return dimensions for that type
-        // Otherwise return based on the ad's type array (prefer website if both)
-        if ($requestedType === 'mobile') {
-            $width = $this->mobile_width;
-            $height = $this->mobile_height;
-        } elseif ($requestedType === 'website') {
-            $width = $this->website_width;
-            $height = $this->website_height;
-        } else {
-            // Default: if ad supports website, use website dimensions, otherwise mobile
-            if (is_array($this->type) && in_array('website', $this->type)) {
-                $width = $this->website_width;
-                $height = $this->website_height;
-            } else {
-                $width = $this->mobile_width;
-                $height = $this->mobile_height;
-            }
-        }
-
-        // Get position label in English
-        $positions = Ad::getPositions();
-        $positionLabel = $positions[$this->position] ?? $this->position;
+        // Get width/height from adPosition relationship
+        $width = $this->adPosition ? $this->adPosition->width : null;
+        $height = $this->adPosition ? $this->adPosition->height : null;
 
         return [
             'id' => $this->id,

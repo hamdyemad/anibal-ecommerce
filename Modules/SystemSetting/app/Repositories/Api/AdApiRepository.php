@@ -9,12 +9,12 @@ class AdApiRepository implements AdApiRepositoryInterface
 {
     public function all($data = [])
     {
-        return Ad::with('translations', 'attachments')->active()->filter($data)->get();
+        return Ad::with('translations', 'attachments', 'adPosition')->active()->filter($data)->get();
     }
 
     public function find($id)
     {
-        return Ad::with('translations', 'attachments')->findOrFail($id);
+        return Ad::with('translations', 'attachments', 'adPosition')->findOrFail($id);
     }
 
 }
