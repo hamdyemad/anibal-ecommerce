@@ -13,24 +13,8 @@ class BundleProductResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        // Load the vendor product with its relations if variant is loaded
-        $vendorProduct = null;
-        if ($this->vendorProductVariant) {
-            $vendorProduct = VendorProduct::with([
-                'product.mainImage', 
-                'product.brand', 
-                'product.department', 
-                'product.category', 
-                'product.subCategory', 
-                'vendor', 
-                'taxes', 
-                'variants.variantConfiguration.parent_data.key',
-                'variants.variantConfiguration.key'
-            ])
-                ->withCount('reviews')
-                ->withAvg('reviews', 'star')
-                ->find($this->vendorProductVariant->vendor_product_id);
-        }
+        // Use eager-loaded vendor product from vendorProductVariant relationship
+        $vendorProduct = $this->vendorProductVariant?->vendorProduct;
 
         // Get vendor product data as array
         $vendorProductData = $vendorProduct ? (new VendorProductResource($vendorProduct))->toArray($request) : [];
@@ -54,30 +38,23 @@ class BundleProductResource extends JsonResource
         $totalTaxPercentage = 0;
         $taxes = [];
         
-        // Get taxes from vendor product
-        if ($vendorProduct) {
-            // Ensure taxes are loaded
-            if (!$vendorProduct->relationLoaded('taxes')) {
-                $vendorProduct->load('taxes');
-            }
+        // Get taxes from vendor product (already eager loaded)
+        if ($vendorProduct && $vendorProduct->relationLoaded('taxes') && $vendorProduct->taxes->count() > 0) {
+            $totalTaxPercentage = $vendorProduct->taxes->sum('percentage');
+            $taxMultiplier = 1 + ($totalTaxPercentage / 100);
+            $bundlePriceAfterTaxes = $bundlePriceBeforeTaxes * $taxMultiplier;
+            $taxAmount = $bundlePriceAfterTaxes - $bundlePriceBeforeTaxes;
             
-            if ($vendorProduct->taxes && $vendorProduct->taxes->count() > 0) {
-                $totalTaxPercentage = $vendorProduct->taxes->sum('percentage');
-                $taxMultiplier = 1 + ($totalTaxPercentage / 100);
-                $bundlePriceAfterTaxes = $bundlePriceBeforeTaxes * $taxMultiplier;
-                $taxAmount = $bundlePriceAfterTaxes - $bundlePriceBeforeTaxes;
-                
-                // Build taxes array
-                $taxes = $vendorProduct->taxes->map(function ($tax) use ($bundlePriceBeforeTaxes) {
-                    $taxValue = $bundlePriceBeforeTaxes * ($tax->percentage / 100);
-                    return [
-                        'id' => $tax->id,
-                        'name' => $tax->name,
-                        'percentage' => $tax->percentage,
-                        'amount' => round($taxValue, 2),
-                    ];
-                })->toArray();
-            }
+            // Build taxes array
+            $taxes = $vendorProduct->taxes->map(function ($tax) use ($bundlePriceBeforeTaxes) {
+                $taxValue = $bundlePriceBeforeTaxes * ($tax->percentage / 100);
+                return [
+                    'id' => $tax->id,
+                    'name' => $tax->name,
+                    'percentage' => $tax->percentage,
+                    'amount' => round($taxValue, 2),
+                ];
+            })->toArray();
         }
 
         // Merge vendor product data first, then bundle product data (bundle data takes precedence)
@@ -98,7 +75,7 @@ class BundleProductResource extends JsonResource
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
 
-            // Product Rating
+            // Product Rating (use eager loaded counts)
             'star' => round($vendorProduct?->reviews_avg_star ?? 0, 1),
             'num_of_user_review' => $vendorProduct?->reviews_count ?? 0,
 

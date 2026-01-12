@@ -28,6 +28,27 @@ class BundleApiRepository implements BundleRepositoryApiInterface
             'bundleCategory.translations',
             'main_image',
             'translations',
+            'bundleProducts' => function ($q) {
+                $q->with([
+                    'vendorProductVariant.vendorProduct' => function ($vpQuery) {
+                        $vpQuery->with([
+                            'product.mainImage',
+                            'product.brand.translations',
+                            'product.department.translations',
+                            'product.category.translations',
+                            'product.subCategory.translations',
+                            'vendor.translations',
+                            'taxes',
+                            'variants.variantConfiguration.parent_data.key',
+                            'variants.variantConfiguration.key'
+                        ])
+                        ->withCount('reviews')
+                        ->withAvg('reviews', 'star');
+                    },
+                    'vendorProductVariant.variantConfiguration.parent_data.key',
+                    'vendorProductVariant.variantConfiguration.key'
+                ]);
+            }
         ])
         ->withCount('bundleProducts')
         ->withSum('bundleProducts as total_price_sum', 'price')
@@ -66,9 +87,23 @@ class BundleApiRepository implements BundleRepositoryApiInterface
                     });
                 }
                 
-                // Eager load relationships
+                // Eager load relationships with optimized loading
                 $q->with([
-                    'vendorProductVariant.vendorProduct',
+                    'vendorProductVariant.vendorProduct' => function ($vpQuery) {
+                        $vpQuery->with([
+                            'product.mainImage',
+                            'product.brand.translations',
+                            'product.department.translations',
+                            'product.category.translations',
+                            'product.subCategory.translations',
+                            'vendor.translations',
+                            'taxes',
+                            'variants.variantConfiguration.parent_data.key',
+                            'variants.variantConfiguration.key'
+                        ])
+                        ->withCount('reviews')
+                        ->withAvg('reviews', 'star');
+                    },
                     'vendorProductVariant.variantConfiguration.parent_data.key',
                     'vendorProductVariant.variantConfiguration.key'
                 ]);

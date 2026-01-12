@@ -143,6 +143,37 @@
                 color: #6c757d;
             }
 
+            /* Text truncation for product cards */
+            .product-card .text-truncate-2 {
+                display: -webkit-box;
+                -webkit-line-clamp: 2;
+                -webkit-box-orient: vertical;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                max-height: 2.8em;
+                line-height: 1.4em;
+            }
+
+            .product-card .flex-grow-1 {
+                min-width: 0;
+                overflow: hidden;
+            }
+
+            .product-card h6.text-truncate {
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                max-width: 100%;
+            }
+
+            .product-card small.text-truncate {
+                display: block;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                max-width: 100%;
+            }
+
             /* No results message */
             .no-results-message {
                 padding: 20px;
@@ -617,9 +648,9 @@
                                                         <div class="d-flex gap-2 mb-2">
                                                             <img src="${productImage}" alt="${productName}"
                                                                  class="rounded" style="width: 50px; height: 50px;  flex-shrink: 0;">
-                                                            <div class="flex-grow-1">
-                                                                <h6 class="mb-1 fw-semibold text-truncate">${productName}</h6>
-                                                                ${variantKey ? `<small class="text-primary d-block"><strong>${variantKey}:</strong> ${variantValue}</small>` : ''}
+                                                            <div class="flex-grow-1" style="min-width: 0; overflow: hidden;">
+                                                                <h6 class="mb-1 fw-semibold text-truncate" title="${productName}">${productName}</h6>
+                                                                ${variantKey ? `<small class="text-primary d-block text-truncate"><strong>${variantKey}:</strong> ${variantValue}</small>` : ''}
                                                             </div>
                                                         </div>
                                                         <div class="d-flex flex-column gap-1 mb-2">
@@ -628,9 +659,9 @@
                                                             <small class="text-muted"><strong>{{ trans('catalogmanagement::occasion.original_price') }}:</strong> ${price} ${currencySymbol}</small>
                                                             ${priceBeforeDiscount ? `<small class="text-muted"><strong>{{ trans('common.before_discount') }}:</strong> ${priceBeforeDiscount} ${currencySymbol}</small>` : ''}
                                                         </div>
-                                                        <div class="d-flex align-items-center mb-2 pt-2 border-top">
-                                                            <img src="${vendorLogo}" alt="${vendorName}" class="rounded-circle me-2" style="width: 20px; height: 20px;">
-                                                            <small class="text-primary fw-500">${vendorName}</small>
+                                                        <div class="d-flex align-items-center mb-2 pt-2 border-top" style="min-width: 0;">
+                                                            <img src="${vendorLogo}" alt="${vendorName}" class="rounded-circle me-2" style="width: 20px; height: 20px; flex-shrink: 0;">
+                                                            <small class="text-primary fw-500 text-truncate" style="min-width: 0;">${vendorName}</small>
                                                         </div>
                                                         <button type="button" class="btn btn-sm ${isSelected ? 'btn-success' : 'btn-primary'} w-100 add-product-btn"
                                                                 data-product-id="${variantId}" ${isSelected || isOutOfStock ? 'disabled' : ''}>
@@ -714,14 +745,14 @@
                                             <div class="d-flex gap-2 mb-2">
                                                 <img src="${variant.image}" alt="${variant.productName}"
                                                      class="rounded" style="width: 50px; height: 50px;  flex-shrink: 0;">
-                                                <div class="flex-grow-1">
-                                                    <h6 class="mb-1 fw-semibold text-truncate">${variant.productName}</h6>
-                                                    ${variant.variantKey ? `<small class="text-primary d-block"><strong>${variant.variantKey}:</strong> ${variant.variantValue || variant.variantName}</small>` : (variant.variantName ? `<small class="text-primary d-block">${variant.variantName}</small>` : '')}
+                                                <div class="flex-grow-1" style="min-width: 0; overflow: hidden;">
+                                                    <h6 class="mb-1 fw-semibold text-truncate" title="${variant.productName}">${variant.productName}</h6>
+                                                    ${variant.variantKey ? `<small class="text-primary d-block text-truncate"><strong>${variant.variantKey}:</strong> ${variant.variantValue || variant.variantName}</small>` : (variant.variantName ? `<small class="text-primary d-block text-truncate">${variant.variantName}</small>` : '')}
                                                 </div>
                                             </div>
-                                            <div class="d-flex align-items-center mb-2">
-                                                <img src="${vendorLogo}" alt="${vendorName}" class="rounded-circle me-2" style="width: 20px; height: 20px; ">
-                                                <small class="text-primary fw-500">${vendorName}</small>
+                                            <div class="d-flex align-items-center mb-2" style="min-width: 0;">
+                                                <img src="${vendorLogo}" alt="${vendorName}" class="rounded-circle me-2" style="width: 20px; height: 20px; flex-shrink: 0;">
+                                                <small class="text-primary fw-500 text-truncate" style="min-width: 0;" title="${vendorName}">${vendorName}</small>
                                             </div>
                                             <div class="d-flex flex-column gap-1 mb-2">
                                                 <small class="text-muted"><strong>{{ trans('catalogmanagement::occasion.sku') }}:</strong> ${variant.sku}</small>
