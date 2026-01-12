@@ -62,7 +62,7 @@ class RequestQuotationApiRepository implements RequestQuotationApiRepositoryInte
             'customer_id' => $customerId,
         ]);
 
-        return $quotation->fresh();
+        return $quotation->fresh(['customer', 'customerAddress.city', 'customerAddress.region', 'customerAddress.subregion', 'customerAddress.country', 'order']);
     }
 
     public function rejectOffer(int $id, int $customerId)
@@ -75,6 +75,6 @@ class RequestQuotationApiRepository implements RequestQuotationApiRepositoryInte
             'customer_id' => $customerId,
         ]);
 
-        return $quotation->fresh();
+        return $quotation->fresh(['customer', 'customerAddress.city', 'customerAddress.region', 'customerAddress.subregion', 'customerAddress.country', 'order']);
     }
 }
