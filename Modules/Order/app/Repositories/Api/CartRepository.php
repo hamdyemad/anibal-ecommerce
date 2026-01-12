@@ -19,7 +19,7 @@ class CartRepository implements CartRepositoryInterface
     public function getCustomerCart(array $data, $customerId)
     {
         $query = $this->query->handle($customerId, $data);
-        $result = $this->paginated->handle($query, $data['per_page'] ?? 15, $data['paginated'] ?? false);
+        $result = $this->paginated->handle($query, $data['per_page'] ?? 15, $data['paginated'] ?? null);
         return $result;
     }
 

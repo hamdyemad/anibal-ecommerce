@@ -37,7 +37,7 @@ class AboutUsController extends Controller
         $languages = Language::all();
         $aboutUs = $this->aboutUsService->getByPlatform('mobile');
         $platform = 'mobile';
-        return view('systemsetting::about-us.form', compact('aboutUs', 'languages', 'platform'));
+        return view('systemsetting::about-us.mobile-form', compact('aboutUs', 'languages', 'platform'));
     }
 
     /**

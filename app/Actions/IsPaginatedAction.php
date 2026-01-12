@@ -4,9 +4,14 @@ namespace App\Actions;
 
 class IsPaginatedAction
 {
-    public function handle($query, $per_page, $paginated = false)
+    public function handle($query, $per_page, $paginated = null)
     {
         $per_page = $per_page ?? 15;
+        
+        // If paginated is null (not passed), return all results without pagination
+        if ($paginated === null) {
+            return $query->get();
+        }
         
         // Convert string values to boolean
         if (is_string($paginated)) {
@@ -17,9 +22,7 @@ class IsPaginatedAction
             return $query->paginate($per_page);
         }
         
-        // When not paginated, still limit results to prevent loading too many records
-        // Use per_page as the limit, or default to 50 max
-        $limit = min($per_page, 50);
-        return $query->limit($limit)->get();
+        // When paginated is explicitly false, return all results
+        return $query->get();
     }
 }
