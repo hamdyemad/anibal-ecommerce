@@ -342,7 +342,7 @@ function currency(): \Illuminate\Contracts\Support\Htmlable
                         return '<img src="' . $imageUrl . '" alt="' . e($currency->code) . '" class="currency-image" style="height: 18px; width: auto; vertical-align: middle;">';
                     }
                     
-                    return e($currency->symbol);
+                    return e($currency->name);
                 }
 
                 return 'EGP';
