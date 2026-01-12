@@ -5,9 +5,9 @@
         <div class="logo-area">
             <a class="navbar-brand" href="<?php echo e(route('admin.dashboard')); ?>">
                 <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(app()->getLocale() == 'ar'): ?>
-                    <img src="<?php echo e(asset('assets/img/logo_ar.png')); ?>" alt="svg">
+                    <img src="<?php echo e(asset('assets/img/logo_ar.png')); ?>" alt="Bnaia Logo">
                 <?php else: ?>
-                    <img src="<?php echo e(asset('assets/img/logo.png')); ?>" alt="svg">
+                    <img src="<?php echo e(asset('assets/img/logo.png')); ?>" alt="Bnaia Logo">
                 <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
             </a>
             <a href="#" class="sidebar-toggle">

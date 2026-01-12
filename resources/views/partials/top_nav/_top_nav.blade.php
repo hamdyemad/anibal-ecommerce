@@ -5,9 +5,9 @@
         <div class="logo-area">
             <a class="navbar-brand" href="{{ route('admin.dashboard') }}">
                 @if(app()->getLocale() == 'ar')
-                    <img src="{{ asset('assets/img/logo_ar.png') }}" alt="svg">
+                    <img src="{{ asset('assets/img/logo_ar.png') }}" alt="Bnaia Logo">
                 @else
-                    <img src="{{ asset('assets/img/logo.png') }}" alt="svg">
+                    <img src="{{ asset('assets/img/logo.png') }}" alt="Bnaia Logo">
                 @endif
             </a>
             <a href="#" class="sidebar-toggle">
