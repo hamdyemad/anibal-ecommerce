@@ -598,7 +598,7 @@
                                                             style="background-color: #28a745; color: white; padding: 8px 12px; border-radius: 20px;">
                                                             <i
                                                                 class="uil uil-box me-1"></i>{{ __('catalogmanagement::product.stock') }}:
-                                                            {{ $variant->total_stock ?? 0 }}
+                                                            {{ number_format($variant->total_stock ?? 0) }}
                                                         </span>
 
                                                         {{-- Hierarchical Variant Tree --}}
@@ -757,23 +757,23 @@
                                                             </h6>
                                                             <span class="badge badge-round badge-lg badge-success">
                                                                 <i class="uil uil-package me-1"></i>{{ __('catalogmanagement::product.total') ?? 'Total' }}:
-                                                                {{ $variantTotalStock }}
+                                                                {{ number_format($variantTotalStock) }}
                                                             </span>
                                                             <span class="badge badge-round badge-lg badge-warning">
                                                                 <i class="uil uil-lock me-1"></i>{{ __('common.booked') ?? 'Booked' }}:
-                                                                {{ $variantBookedStock }}
+                                                                {{ number_format($variantBookedStock) }}
                                                             </span>
                                                             <span class="badge badge-round badge-lg badge-info">
                                                                 <i class="uil uil-tag me-1"></i>{{ __('common.allocated') ?? 'Allocated' }}:
-                                                                {{ $variantAllocatedStock }}
+                                                                {{ number_format($variantAllocatedStock) }}
                                                             </span>
                                                             <span class="badge badge-round badge-lg badge-primary">
                                                                 <i class="uil uil-check-circle me-1"></i>{{ __('common.fulfilled') ?? 'Delivered' }}:
-                                                                {{ $variantFulfilledStock }}
+                                                                {{ number_format($variantFulfilledStock) }}
                                                             </span>
                                                             <span class="badge badge-round badge-lg badge-secondary">
                                                                 <i class="uil uil-box me-1"></i>{{ __('catalogmanagement::product.remaining') ?? 'Remaining' }}:
-                                                                {{ $variantRemainingStock }}
+                                                                {{ number_format($variantRemainingStock) }}
                                                             </span>
                                                         </div>
                                                         <h6 class="fw-600 mb-3">
@@ -831,19 +831,19 @@
                                                                                 @endif
                                                                             </td>
                                                                             <td class="text-center">
-                                                                                <span class="badge badge-round badge-primary badge-lg">{{ $stock->quantity ?? 0 }}</span>
+                                                                                <span class="badge badge-round badge-primary badge-lg">{{ number_format($stock->quantity ?? 0) }}</span>
                                                                             </td>
                                                                             <td class="text-center">
-                                                                                <span class="badge badge-round badge-warning badge-lg">{{ $bookedInRegion }}</span>
+                                                                                <span class="badge badge-round badge-warning badge-lg">{{ number_format($bookedInRegion) }}</span>
                                                                             </td>
                                                                             <td class="text-center">
-                                                                                <span class="badge badge-round badge-info badge-lg">{{ $allocatedInRegion }}</span>
+                                                                                <span class="badge badge-round badge-info badge-lg">{{ number_format($allocatedInRegion) }}</span>
                                                                             </td>
                                                                             <td class="text-center">
-                                                                                <span class="badge badge-round badge-success badge-lg">{{ $fulfilledInRegion }}</span>
+                                                                                <span class="badge badge-round badge-success badge-lg">{{ number_format($fulfilledInRegion) }}</span>
                                                                             </td>
                                                                             <td class="text-center">
-                                                                                <span class="badge badge-round badge-secondary badge-lg">{{ $remainingInRegion }}</span>
+                                                                                <span class="badge badge-round badge-secondary badge-lg">{{ number_format($remainingInRegion) }}</span>
                                                                             </td>
                                                                         </tr>
                                                                     @empty
@@ -859,19 +859,19 @@
                                                                     <tr>
                                                                         <th class="fw-bold">{{ __('common.total') ?? 'Total' }}</th>
                                                                         <th class="text-center">
-                                                                            <span class="badge badge-round badge-primary badge-lg">{{ $totalStock }}</span>
+                                                                            <span class="badge badge-round badge-primary badge-lg">{{ number_format($totalStock) }}</span>
                                                                         </th>
                                                                         <th class="text-center">
-                                                                            <span class="badge badge-round badge-warning badge-lg">{{ $totalBooked }}</span>
+                                                                            <span class="badge badge-round badge-warning badge-lg">{{ number_format($totalBooked) }}</span>
                                                                         </th>
                                                                         <th class="text-center">
-                                                                            <span class="badge badge-round badge-info badge-lg">{{ $totalAllocated }}</span>
+                                                                            <span class="badge badge-round badge-info badge-lg">{{ number_format($totalAllocated) }}</span>
                                                                         </th>
                                                                         <th class="text-center">
-                                                                            <span class="badge badge-round badge-success badge-lg">{{ $totalFulfilled }}</span>
+                                                                            <span class="badge badge-round badge-success badge-lg">{{ number_format($totalFulfilled) }}</span>
                                                                         </th>
                                                                         <th class="text-center">
-                                                                            <span class="badge badge-round badge-secondary badge-lg">{{ $totalRemaining }}</span>
+                                                                            <span class="badge badge-round badge-secondary badge-lg">{{ number_format($totalRemaining) }}</span>
                                                                         </th>
                                                                     </tr>
                                                                 </tfoot>

@@ -21,9 +21,9 @@
                         <td>{{ $index + 1 }}</td>
                         <td>
                             <a href="{{ route('admin.vendors.show', $vendor->id) }}" target="_blank">
-                                @if($vendor->media && $vendor->media->first())
+                                @if($vendor->logo)
                                     <img class="rounded-circle"
-                                        src="{{ asset('storage/' . $vendor->media->first()->path) }}"
+                                        src="{{ asset('storage/' . $vendor->logo->path) }}"
                                         alt="vendor" style="width: 40px; height: 40px;">
                                 @else
                                     <img class="rounded-circle"

@@ -522,11 +522,11 @@
                             const stockBadgeClass = remainingStock > 0 ? 'badge-success' : 'badge-danger';
                             html += `<div class="mb-1">
                                 <small class="text-muted">{{ __('catalogmanagement::product.total_stock') }}:</small>
-                                <span class="badge badge-secondary badge-round badge-lg ms-1">${totalStock}</span>
+                                <span class="badge badge-secondary badge-round badge-lg ms-1">${totalStock.toLocaleString()}</span>
                             </div>`;
                             html += `<div class="mb-1">
                                 <small class="text-muted">{{ __('catalogmanagement::product.remaining_stock') }}:</small>
-                                <span class="badge ${stockBadgeClass} badge-round badge-lg ms-1">${remainingStock > 0 ? remainingStock : '{{ __('dashboard.out_of_stock') }}'}</span>
+                                <span class="badge ${stockBadgeClass} badge-round badge-lg ms-1">${remainingStock > 0 ? remainingStock.toLocaleString() : '{{ __('dashboard.out_of_stock') }}'}</span>
                             </div>`;
                             html += '</div>';
 

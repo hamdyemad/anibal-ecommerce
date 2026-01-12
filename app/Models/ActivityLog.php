@@ -135,9 +135,45 @@ class ActivityLog extends Model
                                 $params['identifier'] = $translatedName;
                             }
                         }
+                        // Special handling for Order model - use order_number
+                        elseif ($modelClass === 'Modules\Order\app\Models\Order' || class_basename($modelClass) === 'Order') {
+                            if (isset($modelInstance->order_number)) {
+                                $params['identifier'] = $modelInstance->order_number;
+                            }
+                        }
+                        // Special handling for User model - use name or email
+                        elseif (class_basename($modelClass) === 'User') {
+                            $params['identifier'] = $modelInstance->name ?? $modelInstance->email ?? $params['identifier'];
+                        }
                     }
                 } catch (\Exception $e) {
                     // Silent fail - use the original identifier (ID)
+                }
+            }
+        }
+        
+        // For updated action, try to show what changed (especially for stage changes)
+        if ($this->action === 'updated' && !empty($this->properties['new'])) {
+            $changes = $this->properties['new'];
+            
+            // Check if stage_id was changed
+            if (isset($changes['stage_id'])) {
+                try {
+                    $stageClass = 'Modules\Order\app\Models\OrderStage';
+                    if (class_exists($stageClass)) {
+                        $stage = $stageClass::withoutGlobalScopes()->find($changes['stage_id']);
+                        if ($stage) {
+                            $locale = app()->getLocale() ?? 'en';
+                            $stageName = method_exists($stage, 'getTranslation') 
+                                ? $stage->getTranslation('name', $locale) 
+                                : ($stage->name ?? $changes['stage_id']);
+                            
+                            // Update identifier to show stage name
+                            $params['identifier'] = ($params['identifier'] ?? $this->model_id) . ' → ' . $stageName;
+                        }
+                    }
+                } catch (\Exception $e) {
+                    // Silent fail
                 }
             }
         }
