@@ -25,12 +25,38 @@ class BundleVariantResource extends JsonResource
         }
 
         // Use bundle prices passed from BundleProductResource
-        $priceBeforeTaxes = $this->bundle_price_before_taxes ?? (float) $this->price;
-        $priceAfterTaxes = $this->bundle_price_after_taxes ?? $priceBeforeTaxes;
-        $taxAmount = $this->bundle_tax_amount ?? 0;
-        $taxPercentage = $this->bundle_tax_percentage ?? 0;
+        $bundlePriceBeforeTaxes = $this->bundle_price_before_taxes ?? (float) $this->price;
+        $bundlePriceAfterTaxes = $this->bundle_price_after_taxes ?? $bundlePriceBeforeTaxes;
+        $bundleTaxAmount = $this->bundle_tax_amount ?? 0;
+        $bundleTaxPercentage = $this->bundle_tax_percentage ?? 0;
         
         $vendorProduct = $this->vendorProduct;
+        
+        // Calculate original variant prices (before bundle pricing)
+        $originalPriceBeforeTaxes = (float) $this->price;
+        $originalPriceAfterTaxes = $originalPriceBeforeTaxes;
+        $originalTaxAmount = 0;
+        $originalTaxPercentage = 0;
+        $originalTaxes = [];
+        
+        // Get taxes from vendor product
+        if ($vendorProduct && $vendorProduct->relationLoaded('taxes') && $vendorProduct->taxes->count() > 0) {
+            $originalTaxPercentage = $vendorProduct->taxes->sum('percentage');
+            $taxMultiplier = 1 + ($originalTaxPercentage / 100);
+            $originalPriceAfterTaxes = $originalPriceBeforeTaxes * $taxMultiplier;
+            $originalTaxAmount = $originalPriceAfterTaxes - $originalPriceBeforeTaxes;
+            
+            // Build taxes array
+            $originalTaxes = $vendorProduct->taxes->map(function ($tax) use ($originalPriceBeforeTaxes) {
+                $taxValue = $originalPriceBeforeTaxes * ($tax->percentage / 100);
+                return [
+                    'id' => $tax->id,
+                    'name' => $tax->name,
+                    'percentage' => $tax->percentage,
+                    'amount' => round($taxValue, 2),
+                ];
+            })->toArray();
+        }
         
         return [
             'id' => $this->id,
@@ -49,10 +75,17 @@ class BundleVariantResource extends JsonResource
             'configuration' => $configuration,
             'vendor_name' => $vendorProduct ? 
                 ($vendorProduct->relationLoaded('vendor') && $vendorProduct->vendor ? $vendorProduct->vendor->name : null) : null,
-            'price_before_taxes' => $this->formatPrice($priceBeforeTaxes),
-            'price_after_taxes' => $this->formatPrice($priceAfterTaxes),
-            'tax_amount' => $this->formatPrice($taxAmount),
-            'tax_percentage' => $taxPercentage,
+            // Bundle prices (what customer pays in bundle)
+            'price_before_taxes' => $this->formatPrice($bundlePriceBeforeTaxes),
+            'price_after_taxes' => $this->formatPrice($bundlePriceAfterTaxes),
+            'tax_amount' => $this->formatPrice($bundleTaxAmount),
+            'tax_percentage' => $bundleTaxPercentage,
+            // Original variant prices (actual variant price without bundle discount)
+            'original_price_before_taxes' => $this->formatPrice($originalPriceBeforeTaxes),
+            'original_price_after_taxes' => $this->formatPrice($originalPriceAfterTaxes),
+            'original_tax_amount' => $this->formatPrice($originalTaxAmount),
+            'original_tax_percentage' => $originalTaxPercentage,
+            'original_taxes' => $originalTaxes,
             'fake_price' => null, // Bundles don't have fake prices
             'discount' => null, // Bundles don't show variant discounts
             'quantity_in_cart' => $this->quantity_in_cart,
