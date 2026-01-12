@@ -33,14 +33,7 @@ class BundleController extends Controller
      */
     public function index($lang, $countryCode)
     {
-        $vendors = $this->vendorService->getAllVendors([], 0);
-        $vendors = $vendors->map(function($vendor) {
-            return [
-                'id' => $vendor->id,
-                'name' => $vendor->name,
-            ];
-        });
-        return view('catalogmanagement::bundles.index', compact('vendors'));
+        return view('catalogmanagement::bundles.index');
     }
 
     /**

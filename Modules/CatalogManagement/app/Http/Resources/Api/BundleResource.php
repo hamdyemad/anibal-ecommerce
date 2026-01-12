@@ -32,10 +32,6 @@ class BundleResource extends JsonResource
             }),
             'bundle_products_count' => $this->bundle_products_count ?? 0,
             'total_price' => round($this->bundleTotalPrice(), 2),
-            // Relationships
-            'vendor' => $this->when('vendor', function() {
-                return new VendorApiResource($this->vendor);
-            }),
             'bundle_products' => $this->when('bundleProducts', function() {
                 return BundleProductResource::collection($this->bundleProducts);
             }),

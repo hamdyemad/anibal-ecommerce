@@ -250,26 +250,7 @@
                             <div class="row">
                                 <div class="col-md-12 mb-25">
                                     <div class="form-group">
-                                        @if ($isAdmin)
-                                            {{-- Admin: Show vendor dropdown --}}
-                                            <label for="vendor_id" class="il-gray fs-14 fw-500 mb-10">
-                                                {{ trans('catalogmanagement::bundle.vendor') }} <span
-                                                    class="text-danger">*</span>
-                                            </label>
-                                            <select name="vendor_id" id="vendor_id" class="form-control select2" required>
-                                                <option value="">
-                                                    {{ trans('catalogmanagement::bundle.select_vendor') }}</option>
-                                                @foreach ($vendors as $vendor)
-                                                    <option value="{{ $vendor->id }}"
-                                                        {{ old('vendor_id', $bundle->vendor_id ?? '') == $vendor->id ? 'selected' : '' }}>
-                                                        {{ $vendor->getTranslation('name', 'en') }}
-                                                    </option>
-                                                @endforeach
-                                            </select>
-                                            @error('vendor_id')
-                                                <div class="invalid-feedback d-block">{{ $message }}</div>
-                                            @enderror
-                                        @else
+                                        @if (!$isAdmin)
                                             {{-- Vendor: Auto-set vendor ID and hide dropdown --}}
                                             <input type="hidden" name="vendor_id" id="vendor_id"
                                                 value="{{ $userVendorId }}">
@@ -279,7 +260,7 @@
                             </div>
 
                             {{-- Bundle Products Section --}}
-                            <div class="row" id="productsSection" style="display: none;">
+                            <div class="row" id="productsSection" style="{{ $isAdmin ? 'display: block;' : 'display: none;' }}">
                                 <div class="col-12">
                                     <h6 class="mb-20 fw-500">{{ trans('catalogmanagement::bundle.bundle_products') }}</h6>
                                 </div>
@@ -375,6 +356,11 @@
                 const isAdmin = @json($isAdmin ?? true);
                 const userVendorId = @json($userVendorId ?? null);
 
+                // If admin, show products section immediately
+                if (isAdmin) {
+                    $('#productsSection').show();
+                }
+
                 // If vendor user, automatically show products section (but don't load products yet)
                 if (!isAdmin && userVendorId) {
                     $('#productsSection').show();
@@ -429,7 +415,7 @@
                 @endif
             });
 
-            // Show/hide products section based on vendor selection
+            // Show/hide products section based on vendor selection (only for vendors, not admin)
             $('#vendor_id').on('change', function() {
                 const vendorId = $(this).val();
                 if (vendorId) {
@@ -456,9 +442,11 @@
 
             // Search products function
             function searchProducts(searchTerm = '', page = 1) {
+                const isAdmin = @json($isAdmin ?? true);
                 const vendorId = $('#vendor_id').val();
 
-                if (!vendorId) {
+                // For vendors, require vendor selection
+                if (!isAdmin && !vendorId) {
                     alert('{{ trans('catalogmanagement::bundle.select_vendor_first') }}');
                     return;
                 }
@@ -478,20 +466,28 @@
 
                 isLoadingMore = true;
 
+                // Build request data
+                const requestData = {
+                    search: searchTerm,
+                    country_id: $("meta[name='current_country_id']").attr("content"),
+                    per_page: 10,
+                    page: page,
+                    paginated: 'ok'
+                };
+
+                // Only add vendor_id if not admin (vendors must filter by their vendor)
+                const isAdminUser = @json($isAdmin ?? true);
+                if (!isAdminUser && vendorId) {
+                    requestData.vendor_id = vendorId;
+                }
+
                 $.ajax({
                     url: '/api/products',
                     type: 'GET',
                     headers: {
                         'lang': "{{ app()->getLocale() }}"
                     },
-                    data: {
-                        search: searchTerm,
-                        vendor_id: vendorId,
-                        country_id: $("meta[name='current_country_id']").attr("content"),
-                        per_page: 10,
-                        page: page,
-                        paginated: 'ok'
-                    },
+                    data: requestData,
                     success: function(response) {
                         // Hide loader
                         $('#products-loader').hide();
@@ -681,8 +677,8 @@
                     html += `
                         <div class="col-md-6 col-lg-4 mb-3">
                             <div class="card border-0 shadow-sm h-100 product-card">
-                                <div style="width: 100%; height: 180px; overflow: hidden; border-radius: 8px 8px 0 0;">
-                                    <img src="${product.image}" alt="${product.name}" style="width: 100%; height: 100%;">
+                                <div style="width: 100%; height: 180px; overflow: hidden; border-radius: 8px 8px 0 0; background: #f8f9fa;">
+                                    <img src="${product.image}" alt="${product.name}" style="width: 100%; height: 100%; object-fit: contain;">
                                 </div>
                                 <div class="card-body">
                                     <h6 class="card-title mb-2 fw-semibold">${product.name}</h6>

@@ -24,6 +24,7 @@ use Database\Seeders\VendorProductTaxSeeder;
 use Database\Seeders\VendorSeeder;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
+use Modules\Customer\app\Models\Customer;
 
 /*
 |--------------------------------------------------------------------------
@@ -86,6 +87,10 @@ Route::get('seeder', function () {
         permessions_reset();
         roles_reset();
         
+        // Set email_verified_at for all customers
+        \Modules\Customer\app\Models\Customer::whereNull('email_verified_at')
+            ->update(['email_verified_at' => now()]);
+        
         // Delete orders and withdraws data
         \DB::statement('SET FOREIGN_KEY_CHECKS=0;');
         \Modules\Order\app\Models\OrderProduct::query()->forceDelete();
@@ -106,7 +111,7 @@ Route::get('seeder', function () {
         \DB::statement('DELETE FROM user_points');
         
         \DB::statement('SET FOREIGN_KEY_CHECKS=1;');
-        
+    
         try {
         // Seeders in order of dependency
         $seeders = [

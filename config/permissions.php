@@ -283,16 +283,16 @@ return [
     'Bundles' => [
         'name' => ['en' => 'Bundles', 'ar' => 'الحزم'],
         'icon' => 'uil-box',
-        'type' => 'all',
+        'type' => 'admin',
         'sub_modules' => [
             'Bundles' => [
                 'name' => ['en' => 'Bundles', 'ar' => 'الحزم'],
                 'permissions' => [
-                    'read' => ['name' => ['en' => 'Read', 'ar' => 'قراءة'], 'key' => 'bundles.index', 'type' => 'all'],
-                    'create' => ['name' => ['en' => 'Create', 'ar' => 'إنشاء'], 'key' => 'bundles.create', 'type' => 'all'],
-                    'edit' => ['name' => ['en' => 'Edit', 'ar' => 'تعديل'], 'key' => 'bundles.edit', 'type' => 'all'],
-                    'delete' => ['name' => ['en' => 'Delete', 'ar' => 'حذف'], 'key' => 'bundles.delete', 'type' => 'all'],
-                    'status' => ['name' => ['en' => 'Toggle Status', 'ar' => 'تبديل الحالة'], 'key' => 'bundles.toggle-status', 'type' => 'all'],
+                    'read' => ['name' => ['en' => 'Read', 'ar' => 'قراءة'], 'key' => 'bundles.index', 'type' => 'admin'],
+                    'create' => ['name' => ['en' => 'Create', 'ar' => 'إنشاء'], 'key' => 'bundles.create', 'type' => 'admin'],
+                    'edit' => ['name' => ['en' => 'Edit', 'ar' => 'تعديل'], 'key' => 'bundles.edit', 'type' => 'admin'],
+                    'delete' => ['name' => ['en' => 'Delete', 'ar' => 'حذف'], 'key' => 'bundles.delete', 'type' => 'admin'],
+                    'status' => ['name' => ['en' => 'Toggle Status', 'ar' => 'تبديل الحالة'], 'key' => 'bundles.toggle-status', 'type' => 'admin'],
                     'approval' => ['name' => ['en' => 'Change Approval', 'ar' => 'تغيير الموافقة'], 'key' => 'bundles.change-approval', 'type' => 'admin'],
                 ]
             ],

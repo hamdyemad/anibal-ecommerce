@@ -70,7 +70,7 @@ class BundleRepository implements BundleRepositoryInterface
     {
         (isAdmin()) ? $isAdmin = true: $isAdmin = false;
         $bundle = Bundle::create([
-            'vendor_id' => $data['vendor_id'],
+            'vendor_id' => $data['vendor_id'] ?? null,
             'bundle_category_id' => $data['bundle_category_id'],
             'sku' => $data['sku'],
             'slug' => uniqid(),

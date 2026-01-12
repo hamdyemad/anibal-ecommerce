@@ -19,8 +19,11 @@ class BundleRequest extends FormRequest
      */
     public function rules(): array
     {
+        // Check if user is admin
+        $isAdmin = in_array(auth()->user()->user_type_id, \App\Models\UserType::adminIds());
+        
         return [
-            'vendor_id' => 'required|exists:vendors,id',
+            'vendor_id' => $isAdmin ? 'nullable|exists:vendors,id' : 'required|exists:vendors,id',
             'bundle_category_id' => 'required|exists:bundle_categories,id',
             'sku' => 'required|string|unique:bundles,sku,' . $this->route('bundle'),
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
