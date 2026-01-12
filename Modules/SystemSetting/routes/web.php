@@ -68,6 +68,11 @@ Route::group(['prefix' => 'system-settings', 'as' => 'system-settings.'], functi
     Route::get('site-information', [SiteInformationController::class, 'index'])->name('site-information.index');
     Route::put('site-information', [SiteInformationController::class, 'update'])->name('site-information.update');
 
+    // About Us (Frontend Settings)
+    Route::get('about-us/website', [\Modules\SystemSetting\app\Http\Controllers\AboutUsController::class, 'website'])->name('about-us.website');
+    Route::get('about-us/mobile', [\Modules\SystemSetting\app\Http\Controllers\AboutUsController::class, 'mobile'])->name('about-us.mobile');
+    Route::put('about-us/{platform}', [\Modules\SystemSetting\app\Http\Controllers\AboutUsController::class, 'update'])->name('about-us.update');
+
     // Return Policy (Frontend Settings)
     Route::get('return-policy', [ReturnPolicyController::class, 'index'])->name('return-policy.index');
     Route::put('return-policy', [ReturnPolicyController::class, 'update'])->name('return-policy.update');

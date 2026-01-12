@@ -766,6 +766,7 @@ return [
                 'name' => ['en' => 'Information Pages', 'ar' => 'صفحات المعلومات'],
                 'permissions' => [
                     'site_info' => ['name' => ['en' => 'Site Information', 'ar' => 'معلومات الموقع'], 'key' => 'site-information.index', 'type' => 'admin'],
+                    'about_us' => ['name' => ['en' => 'About Us', 'ar' => 'من نحن'], 'key' => 'about-us.index', 'type' => 'admin'],
                     'privacy_policy' => ['name' => ['en' => 'Privacy Policy', 'ar' => 'سياسة الخصوصية'], 'key' => 'privacy-policy.index', 'type' => 'admin'],
                     'return_policy' => ['name' => ['en' => 'Return Policy', 'ar' => 'سياسة الاسترجاع'], 'key' => 'return-policy.index', 'type' => 'admin'],
                     'service_terms' => ['name' => ['en' => 'Service Terms', 'ar' => 'شروط الخدمة'], 'key' => 'service-terms.index', 'type' => 'admin'],

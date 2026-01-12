@@ -281,6 +281,8 @@
             'sliders' => 'المنزلقات',
             'site information' => 'معلومات الموقع',
             'contact us' => 'اتصل بنا',
+            'about us website' => 'من نحن (الموقع)',
+            'about us mobile' => 'من نحن (التطبيق)',
             'return policy' => 'سياسة الإرجاع',
             'service terms' => 'شروط الخدمة',
             'privacy policy' => 'سياسة الخصوصية',

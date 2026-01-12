@@ -1483,11 +1483,11 @@
         @endcanany
 
         {{-- Site Information --}}
-        @canany(['site-information.index', 'return-policy.index', 'service-terms.index',
+        @canany(['site-information.index', 'about-us.index', 'return-policy.index', 'service-terms.index',
             'privacy-policy.index', 'terms-conditions.index'])
             <li class="has-child">
                 <a href="#"
-                    class="{{ isMenuActive(['admin.system-settings.site-information.index'], $currentRoute) ? 'active' : '' }}">
+                    class="{{ isMenuActive(['admin.system-settings.site-information.index', 'admin.system-settings.about-us.website', 'admin.system-settings.about-us.mobile'], $currentRoute) ? 'active' : '' }}">
                     <span class="nav-icon uil uil-info-circle"></span>
                     <span class="fw-bold">{{ trans('menu.frontend settings.site information') }}</span>
                     <span class="toggle-icon"></span>
@@ -1498,6 +1498,20 @@
                             <a href="{{ route('admin.system-settings.site-information.index') }}"
                                 class="{{ isMenuActive('admin.system-settings.site-information.index', $currentRoute) ? 'active' : '' }}">
                                 <span class="fw-bold">{{ trans('menu.frontend settings.contact us') }}</span>
+                            </a>
+                        </li>
+                    @endcan
+                    @can('about-us.index')
+                        <li>
+                            <a href="{{ route('admin.system-settings.about-us.website') }}"
+                                class="{{ isMenuActive('admin.system-settings.about-us.website', $currentRoute) ? 'active' : '' }}">
+                                <span class="fw-bold">{{ trans('menu.frontend settings.about us website') }}</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ route('admin.system-settings.about-us.mobile') }}"
+                                class="{{ isMenuActive('admin.system-settings.about-us.mobile', $currentRoute) ? 'active' : '' }}">
+                                <span class="fw-bold">{{ trans('menu.frontend settings.about us mobile') }}</span>
                             </a>
                         </li>
                     @endcan

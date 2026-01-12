@@ -289,6 +289,8 @@
             'sliders' => 'Sliders',
             'site information' => 'Site Information',
             'contact us' => 'Contact Us',
+            'about us website' => 'About Us (Website)',
+            'about us mobile' => 'About Us (Mobile)',
             'return policy' => 'Return Policy',
             'service terms' => 'Service Terms',
             'privacy policy' => 'Privacy & Policy',

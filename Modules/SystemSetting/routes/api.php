@@ -11,6 +11,7 @@ use Modules\SystemSetting\app\Http\Controllers\Api\SiteInformationController;
 use Modules\SystemSetting\app\Http\Controllers\Api\SliderApiController;
 use Modules\SystemSetting\app\Http\Controllers\Api\BlogCategoryApiController;
 use Modules\SystemSetting\app\Http\Controllers\Api\BlogApiController;
+use Modules\SystemSetting\app\Http\Controllers\Api\AboutUsApiController;
 
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::apiResource('systemsettings', SystemSettingController::class)->names('systemsetting');
@@ -26,6 +27,10 @@ Route::resource('faqs', FaqApiController::class);
 Route::resource('sliders', SliderApiController::class);
 Route::resource('site-information', SiteInformationController::class);
 
+// About Us API
+Route::get('about-us/website', [AboutUsApiController::class, 'website']);
+Route::get('about-us/mobile', [AboutUsApiController::class, 'mobile']);
+Route::get('about-us/{platform}', [AboutUsApiController::class, 'show']);
 
 // Messages API
 Route::post('messages/send', [MessageApiController::class, 'sendMessage']);

@@ -1573,11 +1573,11 @@
         <?php endif; ?>
 
         
-        <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->any(['site-information.index', 'return-policy.index', 'service-terms.index',
+        <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->any(['site-information.index', 'about-us.index', 'return-policy.index', 'service-terms.index',
             'privacy-policy.index', 'terms-conditions.index'])): ?>
             <li class="has-child">
                 <a href="#"
-                    class="<?php echo e(isMenuActive(['admin.system-settings.site-information.index'], $currentRoute) ? 'active' : ''); ?>">
+                    class="<?php echo e(isMenuActive(['admin.system-settings.site-information.index', 'admin.system-settings.about-us.website', 'admin.system-settings.about-us.mobile'], $currentRoute) ? 'active' : ''); ?>">
                     <span class="nav-icon uil uil-info-circle"></span>
                     <span class="fw-bold"><?php echo e(trans('menu.frontend settings.site information')); ?></span>
                     <span class="toggle-icon"></span>
@@ -1588,6 +1588,20 @@
                             <a href="<?php echo e(route('admin.system-settings.site-information.index')); ?>"
                                 class="<?php echo e(isMenuActive('admin.system-settings.site-information.index', $currentRoute) ? 'active' : ''); ?>">
                                 <span class="fw-bold"><?php echo e(trans('menu.frontend settings.contact us')); ?></span>
+                            </a>
+                        </li>
+                    <?php endif; ?>
+                    <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('about-us.index')): ?>
+                        <li>
+                            <a href="<?php echo e(route('admin.system-settings.about-us.website')); ?>"
+                                class="<?php echo e(isMenuActive('admin.system-settings.about-us.website', $currentRoute) ? 'active' : ''); ?>">
+                                <span class="fw-bold"><?php echo e(trans('menu.frontend settings.about us website')); ?></span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="<?php echo e(route('admin.system-settings.about-us.mobile')); ?>"
+                                class="<?php echo e(isMenuActive('admin.system-settings.about-us.mobile', $currentRoute) ? 'active' : ''); ?>">
+                                <span class="fw-bold"><?php echo e(trans('menu.frontend settings.about us mobile')); ?></span>
                             </a>
                         </li>
                     <?php endif; ?>
