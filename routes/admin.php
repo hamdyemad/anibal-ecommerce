@@ -111,6 +111,27 @@ Route::get('seeder', function () {
         \DB::statement('DELETE FROM user_points');
         
         \DB::statement('SET FOREIGN_KEY_CHECKS=1;');
+        
+        // Update product configuration_type based on vendor product variants
+        // If any variant has variant_configuration_id, set product to 'variants'
+        $productsToUpdate = \DB::table('products as p')
+            ->join('vendor_products as vp', 'vp.product_id', '=', 'p.id')
+            ->join('vendor_product_variants as vpv', 'vpv.vendor_product_id', '=', 'vp.id')
+            ->whereNotNull('vpv.variant_configuration_id')
+            ->where('p.configuration_type', 'simple')
+            ->distinct()
+            ->pluck('p.id');
+        
+        $productsUpdatedCount = 0;
+        if ($productsToUpdate->count() > 0) {
+            $productsUpdatedCount = \DB::table('products')
+                ->whereIn('id', $productsToUpdate)
+                ->update(['configuration_type' => 'variants']);
+        }
+        
+        // Log how many products were updated
+        $variantProductsCount = \Modules\CatalogManagement\app\Models\Product::where('configuration_type', 'variants')->count();
+        \Illuminate\Support\Facades\Log::info("Products updated to variants: {$productsUpdatedCount}, Total variant products: {$variantProductsCount}");
     
         try {
         // Seeders in order of dependency
@@ -224,6 +245,8 @@ Route::get('seeder', function () {
             'message' => 'All seeders completed!',
             'total_duration' => $totalDuration . 's',
             'seeders_count' => count($seeders),
+            'products_updated_to_variants' => $productsUpdatedCount,
+            'total_variant_products' => $variantProductsCount,
             'results' => $results,
         ]);
 

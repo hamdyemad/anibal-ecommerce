@@ -215,6 +215,7 @@ class InjectDataController extends Controller
                     ->get("{$this->sourceBaseUrl}/api/inject-products", [
                         'include' => $include,
                         'page' => $page,
+                        'keyword' => 'CPD-T001-U03',
                     ]);
                 if (!$response->successful()) {
                     $combinedResult['errors'][] = "Failed to fetch page {$page} from source";
@@ -1984,6 +1985,10 @@ class InjectDataController extends Controller
                 // Download and attach additional images
                 if (!empty($item['product_images']) && is_array($item['product_images'])) {
                     foreach ($item['product_images'] as $additionalImage) {
+                        // Skip empty arrays/objects
+                        if (empty($additionalImage) || !is_array($additionalImage)) {
+                            continue;
+                        }
                         if (!empty($additionalImage['image'])) {
                             $this->attachImage($product, $additionalImage['image'], 'additional_image');
                         }
@@ -2462,20 +2467,40 @@ class InjectDataController extends Controller
                 return;
             }
 
-            // Check if attachment already exists
-            $existingAttachment = $model->attachments()->where('type', $type)->first();
-            
-            if ($existingAttachment) {
-                // Update existing attachment
-                $existingAttachment->update(['path' => $localPath]);
+            // For additional images, allow multiple attachments (don't check for existing)
+            // For other types (main_image, icon, etc.), update existing if found
+            if ($type === 'additional_image') {
+                // Check if this specific image path already exists to avoid duplicates
+                $existingAttachment = $model->attachments()
+                    ->where('type', $type)
+                    ->where('path', $localPath)
+                    ->first();
+                
+                if (!$existingAttachment) {
+                    // Create new attachment for additional image
+                    Attachment::create([
+                        'attachable_type' => get_class($model),
+                        'attachable_id' => $model->id,
+                        'path' => $localPath,
+                        'type' => $type,
+                    ]);
+                }
             } else {
-                // Create new attachment
-                Attachment::create([
-                    'attachable_type' => get_class($model),
-                    'attachable_id' => $model->id,
-                    'path' => $localPath,
-                    'type' => $type,
-                ]);
+                // For main_image, icon, etc. - update existing or create new
+                $existingAttachment = $model->attachments()->where('type', $type)->first();
+                
+                if ($existingAttachment) {
+                    // Update existing attachment
+                    $existingAttachment->update(['path' => $localPath]);
+                } else {
+                    // Create new attachment
+                    Attachment::create([
+                        'attachable_type' => get_class($model),
+                        'attachable_id' => $model->id,
+                        'path' => $localPath,
+                        'type' => $type,
+                    ]);
+                }
             }
 
         } catch (\Exception $e) {
