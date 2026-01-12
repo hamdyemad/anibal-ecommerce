@@ -86,20 +86,61 @@ class Order extends BaseModel
         });
     }
 
-    public static function generateOrderNumber()
+    /**
+     * Generate a unique order number with database locking to prevent race conditions.
+     * Uses pessimistic locking and retry mechanism for concurrent requests.
+     */
+    public static function generateOrderNumber(): string
     {
-        // Get the last order number and increment it
-        $lastOrder = self::orderBy('id', 'desc')->first();
+        $maxRetries = 5;
+        $attempt = 0;
         
-        if ($lastOrder && $lastOrder->order_number) {
-            // Extract the number from the last order number (e.g., "ORD-000103" -> 103)
-            $lastNumber = (int) str_replace('ORD-', '', $lastOrder->order_number);
-            $nextNumber = $lastNumber + 1;
-        } else {
-            $nextNumber = 1;
+        while ($attempt < $maxRetries) {
+            try {
+                return \Illuminate\Support\Facades\DB::transaction(function () {
+                    // Lock the orders table for update to prevent race conditions
+                    $lastOrder = self::query()
+                        ->lockForUpdate()
+                        ->orderBy('id', 'desc')
+                        ->first();
+                    
+                    if ($lastOrder && $lastOrder->order_number) {
+                        // Extract the number from the last order number (e.g., "ORD-000103" -> 103)
+                        $lastNumber = (int) str_replace('ORD-', '', $lastOrder->order_number);
+                        $nextNumber = $lastNumber + 1;
+                    } else {
+                        $nextNumber = 1;
+                    }
+                    
+                    $orderNumber = 'ORD-' . str_pad($nextNumber, 6, '0', STR_PAD_LEFT);
+                    
+                    // Double-check uniqueness before returning
+                    if (self::where('order_number', $orderNumber)->exists()) {
+                        throw new \Exception('Duplicate order number detected');
+                    }
+                    
+                    return $orderNumber;
+                });
+            } catch (\Illuminate\Database\QueryException $e) {
+                $attempt++;
+                if ($attempt >= $maxRetries) {
+                    // Fallback: generate unique order number with timestamp and random suffix
+                    return 'ORD-' . date('ymd') . '-' . strtoupper(substr(uniqid(), -6));
+                }
+                // Small delay before retry
+                usleep(rand(10000, 50000)); // 10-50ms
+            } catch (\Exception $e) {
+                $attempt++;
+                if ($attempt >= $maxRetries) {
+                    // Fallback: generate unique order number with timestamp and random suffix
+                    return 'ORD-' . date('ymd') . '-' . strtoupper(substr(uniqid(), -6));
+                }
+                usleep(rand(10000, 50000));
+            }
         }
         
-        return 'ORD-' . str_pad($nextNumber, 6, '0', STR_PAD_LEFT);
+        // Final fallback
+        return 'ORD-' . date('ymd') . '-' . strtoupper(substr(uniqid(), -6));
     }
 
     /**

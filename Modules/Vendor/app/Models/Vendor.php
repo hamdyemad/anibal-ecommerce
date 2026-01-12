@@ -347,21 +347,107 @@ class Vendor extends BaseModel
     }
 
     /**
-     * Static method to get all vendors statistics
+     * Static method to get all vendors statistics using optimized database queries
+     * Replaces in-memory aggregation with single database queries for performance
      */
     public static function getVendorsStatistics()
     {
-        $vendors = static::all();
-        $totalBalance = 0;
-        $totalSent = 0;
-        $totalRemaining = 0;
-
-        foreach ($vendors as $vendor) {
-            // Add to totals
-            $totalBalance += $vendor->total_balance;
-            $totalSent += $vendor->total_sent;
-            $totalRemaining += $vendor->total_remaining;
+        // Get the deliver stage ID once
+        $deliverStageId = \Modules\Order\app\Models\OrderStage::withoutGlobalScopes()
+            ->where('type', 'deliver')
+            ->value('id');
+        
+        if (!$deliverStageId) {
+            return [
+                'total_balance' => number_format(0, 2),
+                'total_sent' => number_format(0, 2),
+                'total_remaining' => number_format(0, 2),
+            ];
         }
+
+        // Calculate total orders price for all vendors in one query
+        $ordersResult = \Illuminate\Support\Facades\DB::table('order_products as op')
+            ->join('orders as o', 'op.order_id', '=', 'o.id')
+            ->join('vendor_order_stages as vos', function ($join) {
+                $join->on('vos.order_id', '=', 'o.id')
+                     ->on('vos.vendor_id', '=', 'op.vendor_id');
+            })
+            ->where('vos.stage_id', $deliverStageId)
+            ->select(
+                \Illuminate\Support\Facades\DB::raw('SUM(op.price) as products_total'),
+                \Illuminate\Support\Facades\DB::raw('SUM(COALESCE(op.shipping_cost, 0)) as shipping_total')
+            )
+            ->first();
+
+        $productsTotal = $ordersResult->products_total ?? 0;
+        $shippingTotal = $ordersResult->shipping_total ?? 0;
+
+        // Get fees and discounts for all vendors
+        $extrasResult = \Illuminate\Support\Facades\DB::table('order_extra_fees_discounts as oefd')
+            ->join('orders as o', 'oefd.order_id', '=', 'o.id')
+            ->join('vendor_order_stages as vos', function ($join) {
+                $join->on('vos.order_id', '=', 'o.id')
+                     ->on('vos.vendor_id', '=', 'oefd.vendor_id');
+            })
+            ->where('vos.stage_id', $deliverStageId)
+            ->select(
+                \Illuminate\Support\Facades\DB::raw('SUM(CASE WHEN oefd.type = "fee" THEN oefd.cost ELSE 0 END) as fees_total'),
+                \Illuminate\Support\Facades\DB::raw('SUM(CASE WHEN oefd.type = "discount" THEN oefd.cost ELSE 0 END) as discounts_total')
+            )
+            ->first();
+
+        $feesTotal = $extrasResult->fees_total ?? 0;
+        $discountsTotal = $extrasResult->discounts_total ?? 0;
+
+        // Get promo code and points shares for all vendors
+        $sharesResult = \Illuminate\Support\Facades\DB::table('vendor_order_stages as vos')
+            ->where('vos.stage_id', $deliverStageId)
+            ->select(
+                \Illuminate\Support\Facades\DB::raw('SUM(COALESCE(vos.promo_code_share, 0)) as promo_code_total'),
+                \Illuminate\Support\Facades\DB::raw('SUM(COALESCE(vos.points_share, 0)) as points_total')
+            )
+            ->first();
+
+        $promoCodeTotal = $sharesResult->promo_code_total ?? 0;
+        $pointsTotal = $sharesResult->points_total ?? 0;
+
+        // Calculate total orders price
+        $totalOrdersPrice = $productsTotal + $shippingTotal + $feesTotal - $discountsTotal - $promoCodeTotal - $pointsTotal;
+
+        // Calculate total commission for all vendors in one query
+        $commissionResult = \Illuminate\Support\Facades\DB::table('order_products as op')
+            ->join('orders as o', 'op.order_id', '=', 'o.id')
+            ->join('vendor_order_stages as vos', function ($join) {
+                $join->on('vos.order_id', '=', 'o.id')
+                     ->on('vos.vendor_id', '=', 'op.vendor_id');
+            })
+            ->leftJoin('vendor_products as vp', 'op.vendor_product_id', '=', 'vp.id')
+            ->leftJoin('products as p', 'vp.product_id', '=', 'p.id')
+            ->leftJoin('departments as d', 'p.department_id', '=', 'd.id')
+            ->where('vos.stage_id', $deliverStageId)
+            ->select(
+                \Illuminate\Support\Facades\DB::raw('SUM(
+                    (op.price + COALESCE(op.shipping_cost, 0)) * 
+                    CASE 
+                        WHEN op.commission > 0 THEN op.commission 
+                        ELSE COALESCE(d.commission, 0) 
+                    END / 100
+                ) as total_commission')
+            )
+            ->first();
+
+        $totalCommission = $commissionResult->total_commission ?? 0;
+
+        // Total balance = orders price - commission
+        $totalBalance = $totalOrdersPrice - $totalCommission;
+
+        // Get total sent (accepted withdrawals) for all vendors in one query
+        $totalSent = \Illuminate\Support\Facades\DB::table('withdraws')
+            ->where('status', 'accepted')
+            ->sum('sent_amount') ?? 0;
+
+        // Total remaining = balance - sent
+        $totalRemaining = $totalBalance - $totalSent;
 
         return [
             'total_balance' => number_format($totalBalance, 2),

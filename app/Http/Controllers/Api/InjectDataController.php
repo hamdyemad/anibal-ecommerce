@@ -172,7 +172,7 @@ class InjectDataController extends Controller
                 'message' => "Injection for {$include} is already running. Please wait.",
             ], 429);
         }
-        
+
         // Set running lock (expires in 2 hours)
         cache()->put($lockKey, now()->toDateTimeString(), 7200);
         
@@ -216,7 +216,6 @@ class InjectDataController extends Controller
                         'include' => $include,
                         'page' => $page,
                     ]);
-                    
                 if (!$response->successful()) {
                     $combinedResult['errors'][] = "Failed to fetch page {$page} from source";
                     $page++;
@@ -1859,6 +1858,13 @@ class InjectDataController extends Controller
                 $skipped++;
                 continue;
             }
+            
+            // Log the product data for debugging
+            Log::info("Processing product ID: {$item['id']}", [
+                'size_color_type' => $item['size_color_type'] ?? 'not set',
+                'product_size_colors_count' => count($item['product_size_colors'] ?? []),
+                'product_size_colors' => array_slice($item['product_size_colors'] ?? [], 0, 3), // Log first 3 variants
+            ]);
 
             try {// Validate foreign key references exist
                 $departmentId = $item['department_id'] ?? null;
@@ -1892,11 +1898,49 @@ class InjectDataController extends Controller
                 $product = Product::where('id', $item['id'])->first();
 
                 // Map size_color_type to configuration_type enum values
+                // Also check if product_size_colors has variant configurations
                 $configurationType = 'simple'; // default
                 $sizeColorType = $item['size_color_type'] ?? null;
-                if ($sizeColorType === 'with_size_color' || $sizeColorType === 'with_size' || $sizeColorType === 'with_color') {
-                    $configurationType = 'with_variants';
+                
+                // Try multiple possible keys for variants
+                $sizeColors = $item['product_size_colors'] 
+                    ?? $item['product_size_color'] 
+                    ?? $item['variants'] 
+                    ?? $item['product_variants']
+                    ?? $item['size_colors']
+                    ?? [];
+                
+                // Log variant detection
+                Log::info("Product {$item['id']} variant detection", [
+                    'size_color_type' => $sizeColorType,
+                    'sizeColors_count' => is_array($sizeColors) ? count($sizeColors) : 0,
+                    'sizeColors_is_array' => is_array($sizeColors),
+                    'available_keys' => array_keys($item),
+                ]);
+                
+                // Check if any variant has a variant_configuration_id or variants_configuration_id
+                $hasVariantConfigs = false;
+                if (!empty($sizeColors) && is_array($sizeColors)) {
+                    foreach ($sizeColors as $sc) {
+                        if (!empty($sc['variants_configuration_id']) || !empty($sc['variant_configuration_id'])) {
+                            $hasVariantConfigs = true;
+                            break;
+                        }
+                    }
                 }
+                
+                // Also check if there are multiple variants (more than 1 means it's a variant product)
+                $hasMultipleVariants = is_array($sizeColors) && count($sizeColors) > 1;
+                
+                // Database ENUM values are: 'simple', 'variants' (not 'with_variants')
+                if ($hasVariantConfigs || $hasMultipleVariants || $sizeColorType === 'with_variants' || $sizeColorType === 'with_size_color' || $sizeColorType === 'with_size' || $sizeColorType === 'with_color') {
+                    $configurationType = 'variants';
+                }
+                
+                Log::info("Product {$item['id']} configuration_type: {$configurationType}", [
+                    'hasVariantConfigs' => $hasVariantConfigs,
+                    'hasMultipleVariants' => $hasMultipleVariants,
+                ]);
 
                 // Prepare product data - only columns that exist in products table
                 $productData = [
@@ -1955,6 +1999,7 @@ class InjectDataController extends Controller
                 }
 
                 // Create VendorProductVariants from product_size_colors
+                $productVariantsCreated = 0; // Track variants for THIS product
                 if ($vendorProduct) {
                     $sizeColors = $item['product_size_colors'] ?? $item['product_size_color'] ?? [];
                     
@@ -1964,13 +2009,14 @@ class InjectDataController extends Controller
                                 continue;
                             }
                             $variantResult = $this->createVendorProductVariant($vendorProduct, $sizeColor, $egyptCountry->id);
+                            $productVariantsCreated += $variantResult['variant_created'];
                             $variantsCreated += $variantResult['variant_created'];
                             $stocksCreated += $variantResult['stocks_created'];
                         }
                     }
                     
-                    // If no variants were created but product has stock, create a default variant
-                    if ($variantsCreated === 0 && isset($item['stock']) && $item['stock'] > 0) {
+                    // If no variants were created for THIS product but product has stock, create a default variant
+                    if ($productVariantsCreated === 0 && isset($item['stock']) && $item['stock'] > 0) {
                         $defaultVariantData = [
                             'id' => $item['id'] * 10000, // Generate unique ID based on product ID
                             'real_price' => $item['real_price'] ?? $item['price'] ?? 0,
@@ -1985,6 +2031,17 @@ class InjectDataController extends Controller
                         $variantResult = $this->createVendorProductVariant($vendorProduct, $defaultVariantData, $egyptCountry->id);
                         $variantsCreated += $variantResult['variant_created'];
                         $stocksCreated += $variantResult['stocks_created'];
+                    }
+                    
+                    // Update product configuration_type based on actual variants created
+                    // Database ENUM values are: 'simple', 'variants'
+                    $hasVariantConfig = VendorProductVariant::where('vendor_product_id', $vendorProduct->id)
+                        ->whereNotNull('variant_configuration_id')
+                        ->exists();
+                    
+                    if ($hasVariantConfig && $product->configuration_type !== 'variants') {
+                        $product->configuration_type = 'variants';
+                        $product->save();
                     }
                 }} catch (\Exception $e) {$titleEn = $item['title_en'] ?? $item['id'];
                 $errors[] = "Product {$titleEn} (ID: {$item['id']}): " . $e->getMessage();
