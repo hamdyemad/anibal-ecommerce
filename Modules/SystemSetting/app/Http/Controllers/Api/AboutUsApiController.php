@@ -4,8 +4,8 @@ namespace Modules\SystemSetting\app\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Traits\Res;
-use Illuminate\Http\Request;
 use Modules\SystemSetting\app\Http\Resources\Api\AboutUsResource;
+use Modules\SystemSetting\app\Http\Resources\Api\AboutUsMobileResource;
 use Modules\SystemSetting\app\Services\AboutUsService;
 
 class AboutUsApiController extends Controller
@@ -43,7 +43,7 @@ class AboutUsApiController extends Controller
         return $this->sendRes(
             config('responses.success')[app()->getLocale()],
             true,
-            new AboutUsResource($aboutUs)
+            new AboutUsMobileResource($aboutUs)
         );
     }
 
@@ -64,10 +64,15 @@ class AboutUsApiController extends Controller
         }
 
         $aboutUs = $this->aboutUsService->getByPlatform($platform);
+        
+        $resource = $platform === 'mobile' 
+            ? new AboutUsMobileResource($aboutUs) 
+            : new AboutUsResource($aboutUs);
+            
         return $this->sendRes(
             config('responses.success')[app()->getLocale()],
             true,
-            new AboutUsResource($aboutUs)
+            $resource
         );
     }
 }
