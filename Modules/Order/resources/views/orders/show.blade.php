@@ -22,6 +22,22 @@
             <div class="col-lg-12">
                 <div id="printableArea" class="bg-white p-40 radius-xl">
                     <!-- Order Info & Customer Details with QR Code -->
+                    <!-- Order Actions -->
+                    <div class="mb-4 p-3 rounded d-flex align-items-center justify-content-between">
+                        <h5 class="mb-0 fw-bold">
+                            <i class="uil uil-receipt me-2" style="color: #5f63f2;"></i>
+                            {{ trans('order::order.order') }} #{{ $order->order_number }}
+                        </h5>
+                        <x-order::order-actions 
+                            :order="$order" 
+                            :order-stages="$orderStages ?? []"
+                            :is-vendor-user="$isVendorUser ?? false"
+                            :current-vendor-id="$currentVendorId ?? null"
+                            :show-view-button="false"
+                            context="show"
+                        />
+                    </div>
+
                     <div class="row mb-40">
                         <!-- Order Details Card -->
                         <div class="col-lg-6 mb-3">
@@ -42,7 +58,9 @@
                                             <span class="detail-value">{{ $order->created_at }}</span>
                                         </div>
                                         <div class="detail-row mb-15 flex-column">
-                                            <span class="detail-label mb-2">{{ trans('order::order.vendor_stages') }}:</span>
+                                            <span class="detail-label mb-2">
+                                                {{ trans('order::order.vendor_stages') }}:
+                                            </span>
                                             <div class="w-100">
                                                 @php
                                                     $hasVendorStages = isset($order->vendorStages) && $order->vendorStages->count() > 0;
@@ -80,22 +98,12 @@
                                                                 @endif
                                                                 <span class="fw-500">{{ $vendor->getTranslation('name', app()->getLocale()) }}</span>
                                                             </div>
-                                                            <div class="d-flex align-items-center gap-2">
-                                                                <x-protected-badge 
-                                                                    :color="$stage->color ?? '#6c757d'"
-                                                                    :text="$stage->getTranslation('name', app()->getLocale()) ?? 'N/A'"
-                                                                    size="md"
-                                                                    :id="'vendor-stage-badge-' . $vendor->id"
-                                                                />
-                                                                @if($isCurrentVendor && isset($orderStages) && count($orderStages) > 0)
-                                                                    <button type="button" class="btn btn-sm btn-outline-primary" 
-                                                                            data-bs-toggle="modal" 
-                                                                            data-bs-target="#changeVendorStageModal"
-                                                                            style="padding: 2px 8px; font-size: 12px;">
-                                                                        <i class="uil uil-exchange m-0" style="font-size: 14px;"></i>
-                                                                    </button>
-                                                                @endif
-                                                            </div>
+                                                            <x-protected-badge 
+                                                                :color="$stage->color ?? '#6c757d'"
+                                                                :text="$stage->getTranslation('name', app()->getLocale()) ?? 'N/A'"
+                                                                size="md"
+                                                                :id="'vendor-stage-badge-' . $vendor->id"
+                                                            />
                                                         </div>
                                                     @endforeach
                                                 @else
@@ -1432,68 +1440,6 @@
             }, 100);
         }
     </script>
-
-    <!-- Change Vendor Stage Modal (Vendor Only) -->
-    @if($isVendorUser && isset($currentVendorId) && isset($orderStages) && count($orderStages) > 0)
-    <div class="modal fade" id="changeVendorStageModal" tabindex="-1" aria-labelledby="changeVendorStageModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="changeVendorStageModalLabel">
-                        <i class="uil uil-exchange me-2"></i>{{ trans('order::order.change_vendor_stage') }}
-                    </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <form id="changeVendorStageForm">
-                    <div class="modal-body">
-                        <!-- Current Stage Info -->
-                        @if(isset($currentVendorStage) && $currentVendorStage->stage)
-                        <div class="alert alert-light border mb-3">
-                            <div class="d-flex align-items-center justify-content-between">
-                                <div>
-                                    <small class="text-muted d-block mb-1">{{ trans('order::order.current_stage') }}</small>
-                                    <x-protected-badge 
-                                        :color="$currentVendorStage->stage->color ?? '#6c757d'"
-                                        :text="$currentVendorStage->stage->getTranslation('name', app()->getLocale())"
-                                        size="lg"
-                                        id="current-stage-badge"
-                                    />
-                                </div>
-                            </div>
-                        </div>
-                        @endif
-
-                        <!-- Stage Selection -->
-                        <div class="mb-3">
-                            <label for="vendorStageSelect" class="form-label fw-bold">
-                                {{ trans('order::order.select_new_stage') }}
-                                <span class="text-danger">*</span>
-                            </label>
-                            <select name="stage_id" id="vendorStageSelect" class="form-control form-control-lg" required>
-                                <option value="">{{ trans('order::order.select_stage') }}</option>
-                            </select>
-                            <div id="vendorStageWarning" class="alert alert-warning mt-2" style="display: none;"></div>
-                        </div>
-
-                        <!-- Info Alert -->
-                        <div class="alert alert-info mb-0">
-                            <i class="uil uil-info-circle me-2"></i>
-                            <strong>{{ trans('common.note') }}:</strong> {{ trans('order::order.vendor_stage_change_info') }}
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                            <i class="uil uil-times me-1"></i>{{ trans('common.cancel') }}
-                        </button>
-                        <button type="submit" class="btn btn-primary">
-                            <i class="uil uil-check me-1"></i>{{ trans('order::order.update_stage') }}
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-    @endif
     
     @push('scripts')
     <script>
@@ -1553,188 +1499,5 @@
             });
         });
     </script>
-    
-    @if($isVendorUser && isset($currentVendorId) && isset($orderStages) && count($orderStages) > 0)
-    <script>
-        $(document).ready(function() {
-            let orderStages = @json($orderStages);
-            
-            // Stage step mapping (must match OrderStage::STAGE_STEPS in PHP)
-            const STAGE_STEPS = {
-                'new': 1,
-                'in_progress': 2,
-                'deliver': 3,
-                'cancel': 3,
-                'refund': 4
-            };
-
-            // Final stages that cannot transition
-            const FINAL_STAGES = ['deliver', 'cancel'];
-
-            // Get step for a stage type (default to 0 if type is null/undefined)
-            function getStageStep(type) {
-                if (!type) return 0;
-                return STAGE_STEPS[type] || 0;
-            }
-
-            // Check if stage is final
-            function isFinalStage(type) {
-                if (!type) return false;
-                return FINAL_STAGES.includes(type);
-            }
-
-            // Check if transition is allowed
-            function canTransitionTo(currentType, newType, currentId, newId) {
-                // Cannot transition to same stage
-                if (currentId == newId) {
-                    return false;
-                }
-
-                // Cannot change from final stages
-                if (isFinalStage(currentType)) {
-                    return false;
-                }
-
-                // If current type is null/undefined, allow only to step 1 or 2
-                if (!currentType) {
-                    const newStep = getStageStep(newType);
-                    return newStep <= 2; // Can go to new or in_progress
-                }
-
-                // If new type is null/undefined, allow transition
-                if (!newType) {
-                    return true;
-                }
-
-                const currentStep = getStageStep(currentType);
-                const newStep = getStageStep(newType);
-
-                // Cannot go backwards
-                if (newStep < currentStep) {
-                    return false;
-                }
-
-                // Can always cancel from any non-final stage
-                if (newType === 'cancel') {
-                    return true;
-                }
-
-                // Cannot skip steps - must go to next step only
-                if (newStep > currentStep + 1) {
-                    return false;
-                }
-
-                // Refund only after deliver
-                if (newType === 'refund' && currentType !== 'deliver') {
-                    return false;
-                }
-
-                return true;
-            }
-
-            // Populate vendor stage select dropdown with step-based restrictions
-            function populateVendorStageSelect() {
-                const vendorStageSelect = $('#vendorStageSelect');
-                const stageWarning = $('#vendorStageWarning');
-                
-                @if(isset($currentVendorStage) && $currentVendorStage->stage)
-                const currentStageId = {{ $currentVendorStage->stage_id }};
-                const currentStageType = '{{ $currentVendorStage->stage->type }}';
-                @else
-                const currentStageId = null;
-                const currentStageType = null;
-                @endif
-                
-                vendorStageSelect.find('option:not(:first)').remove();
-                stageWarning.hide();
-
-                // Check if current stage is final
-                if (isFinalStage(currentStageType)) {
-                    stageWarning.text('{{ trans("order::order.cannot_change_final_stage") }}').show();
-                    vendorStageSelect.prop('disabled', true);
-                    return;
-                }
-
-                let hasOptions = false;
-                orderStages.forEach(stage => {
-                    const stageName = stage.name;
-                    const stageType = stage.type;
-                    
-                    // Check if transition is allowed
-                    if (canTransitionTo(currentStageType, stageType, currentStageId, stage.id)) {
-                        vendorStageSelect.append(
-                            `<option value="${stage.id}" data-type="${stageType}">${stageName}</option>`
-                        );
-                        hasOptions = true;
-                    }
-                });
-
-                if (!hasOptions) {
-                    stageWarning.text('{{ trans("order::order.no_available_stages") }}').show();
-                    vendorStageSelect.prop('disabled', true);
-                }
-            }
-            
-            // Populate stages when modal is shown
-            $('#changeVendorStageModal').on('shown.bs.modal', function() {
-                populateVendorStageSelect();
-            });
-            
-            // Handle vendor stage change submission
-            $('#changeVendorStageForm').on('submit', function(e) {
-                e.preventDefault();
-                
-                const stageId = $('#vendorStageSelect').val();
-                const selectedOption = $('#vendorStageSelect option:selected');
-                const stageType = selectedOption.data('type');
-                
-                if (!stageId) {
-                    toastr.error('{{ trans("order::order.please_select_stage") }}');
-                    return;
-                }
-                
-                const submitBtn = $(this).find('button[type="submit"]');
-                const originalText = submitBtn.html();
-                submitBtn.prop('disabled', true).html('<i class="uil uil-spinner-alt spin me-1"></i>{{ trans("order::order.updating_stage") }}');
-                
-                $.ajax({
-                    url: '{{ route("admin.orders.vendor-stage.change", ["orderId" => $order->id, "vendorId" => $currentVendorId ?? 0]) }}',
-                    method: 'POST',
-                    data: {
-                        _token: '{{ csrf_token() }}',
-                        stage_id: stageId
-                    },
-                    success: function(response) {
-                        if (response.status) {
-                            toastr.success(response.message);
-                            
-                            // If stage changed to in_progress, redirect to allocate page
-                            if (stageType === 'in_progress') {
-                                setTimeout(() => {
-                                    window.location.href = '{{ route("admin.order-fulfillments.show", $order->id) }}';
-                                }, 1000);
-                            } else {
-                                // Otherwise reload page to show updated stage
-                                setTimeout(() => {
-                                    window.location.reload();
-                                }, 1000);
-                            }
-                        } else {
-                            toastr.error(response.message || '{{ trans("order::order.error_updating_stage") }}');
-                        }
-                    },
-                    error: function(xhr) {
-                        const errorMessage = xhr.responseJSON?.message || '{{ trans("order::order.error_updating_stage") }}';
-                        toastr.error(errorMessage);
-                    },
-                    complete: function() {
-                        submitBtn.prop('disabled', false).html(originalText);
-                        $('#changeVendorStageModal').modal('hide');
-                    }
-                });
-            });
-        });
-    </script>
-    @endif
     @endpush
 @endsection

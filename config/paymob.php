@@ -40,5 +40,5 @@ return [
     |--------------------------------------------------------------------------
     */
     'callback_url' => env('FRONT_END_URL') . '/paymob/call_back',
-    'webhook_url' => env('APP_URL') . '/api/paymob/webhook',
+    'webhook_url' => env('APP_URL') . '/api/v1/paymob/webhook',
 ];

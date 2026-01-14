@@ -108,6 +108,14 @@ return [
     'mark_delivered' => 'Mark Delivered',
     'cancel_order' => 'Cancel Order',
     'change_stage' => 'Change Stage',
+    'confirm_mark_in_progress' => 'Are you sure you want to mark this order as In Progress?',
+    'confirm_mark_in_progress_all' => 'Are you sure you want to mark all vendors as In Progress?',
+    'confirm_mark_delivered' => 'Are you sure you want to mark this order as Delivered?',
+    'confirm_mark_delivered_all' => 'Are you sure you want to mark all vendors as Delivered?',
+    'confirm_cancel' => 'Are you sure you want to cancel this order?',
+    'confirm_cancel_all' => 'Are you sure you want to cancel all vendor orders?',
+    'update_all_stages' => 'Update All Stages',
+    'current_vendor_stages' => 'Current Vendor Stages',
 
     // Payment Types
     'cash_on_delivery' => 'Cash on Delivery',
@@ -132,6 +140,7 @@ return [
     'unpaid' => 'Unpaid',
     'payment_transactions' => 'Payment Transactions',
     'view_payments' => 'View Payments',
+    'view_online_payment' => 'View Online Payment',
     'back_to_order' => 'Back to Order',
     'transactions_count' => 'Transactions Count',
     'paymob_order_id' => 'Paymob Order ID',

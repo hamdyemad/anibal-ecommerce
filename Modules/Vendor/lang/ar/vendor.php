@@ -102,6 +102,10 @@ return [
     'created_at' => 'تاريخ الإنشاء',
     'actions' => 'الإجراءات',
     'departments' => 'الأقسام',
+    'products_count' => 'المنتجات',
+    'price' => 'السعر',
+    'variants' => 'المتغيرات',
+    'product_information' => 'معلومات المنتج',
 
     // Status
     'active' => 'نشط',

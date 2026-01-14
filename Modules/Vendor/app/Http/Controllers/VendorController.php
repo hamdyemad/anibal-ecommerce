@@ -161,13 +161,6 @@ class VendorController extends Controller {
         $vendor = $this->vendorService->getVendorById($id);
         $languages = $this->languageService->getAll();
 
-        // Get vendor products with variants
-        $vendorProducts = \Modules\CatalogManagement\app\Models\VendorProduct::with([
-            'product.translations',
-            'product.mainImage',
-            'variants.stocks'
-        ])->where('vendor_id', $id)->orderBy('created_at', 'desc')->get();
-
         // Get order products for this vendor with pagination
         $orderProducts = \Modules\Order\app\Models\OrderProduct::with([
             'order',
@@ -214,7 +207,6 @@ class VendorController extends Controller {
             'total_revenue' => $allOrderProducts->sum(function($op) {
                 return $op->price * $op->quantity;
             }),
-            'total_products' => $vendorProducts->count(),
             'total_quantity_sold' => $allOrderProducts->sum('quantity'),
             'stages' => $stageStats,
         ];
@@ -235,6 +227,301 @@ class VendorController extends Controller {
         ];
         return view('vendor::vendors.show', $data);
     }
+
+    /**
+     * DataTable endpoint for vendor products using Yajra DataTables
+     */
+    public function productsDatatable(Request $request, $lang, $countryCode, $id)
+    {
+        try {
+            $query = \Modules\CatalogManagement\app\Models\VendorProduct::with([
+                'product.translations',
+                'product.mainImage',
+                'product.department.translations',
+                'product.category.translations',
+                'product.brand.translations',
+                'variants.stocks'
+            ])->where('vendor_id', $id);
+
+            return \DataTables::of($query)
+                ->addIndexColumn()
+                ->addColumn('product_name_en', function ($vendorProduct) {
+                    return $vendorProduct->product ? $vendorProduct->product->getTranslation('title', 'en') : '-';
+                })
+                ->addColumn('product_name_ar', function ($vendorProduct) {
+                    return $vendorProduct->product ? $vendorProduct->product->getTranslation('title', 'ar') : '-';
+                })
+                ->addColumn('product_image', function ($vendorProduct) {
+                    return $vendorProduct->product && $vendorProduct->product->mainImage 
+                        ? asset('storage/' . $vendorProduct->product->mainImage->path) 
+                        : null;
+                })
+                ->addColumn('product_type', function ($vendorProduct) {
+                    return $vendorProduct->product ? $vendorProduct->product->product_type : 'product';
+                })
+                ->addColumn('configuration_type', function ($vendorProduct) {
+                    return $vendorProduct->variants->count() > 1 ? 'variants' : 'simple';
+                })
+                ->addColumn('variants_count', function ($vendorProduct) {
+                    return $vendorProduct->variants->count();
+                })
+                ->addColumn('total_stock', function ($vendorProduct) {
+                    return $vendorProduct->variants->sum(function($variant) {
+                        return $variant->stocks->sum('quantity');
+                    });
+                })
+                ->addColumn('remaining_stock', function ($vendorProduct) {
+                    return $vendorProduct->remaining_stock ?? 0;
+                })
+                ->addColumn('department', function ($vendorProduct) {
+                    return $vendorProduct->product && $vendorProduct->product->department 
+                        ? $vendorProduct->product->department->getTranslation('name', app()->getLocale()) 
+                        : '-';
+                })
+                ->addColumn('category', function ($vendorProduct) {
+                    return $vendorProduct->product && $vendorProduct->product->category 
+                        ? $vendorProduct->product->category->getTranslation('name', app()->getLocale()) 
+                        : '-';
+                })
+                ->addColumn('brand', function ($vendorProduct) {
+                    return $vendorProduct->product && $vendorProduct->product->brand 
+                        ? $vendorProduct->product->brand->getTranslation('name', app()->getLocale()) 
+                        : '-';
+                })
+                ->addColumn('is_active', function ($vendorProduct) {
+                    return $vendorProduct->active;
+                })
+                ->addColumn('approval_status', function ($vendorProduct) {
+                    return $vendorProduct->status;
+                })
+                ->addColumn('sku', function ($vendorProduct) {
+                    return $vendorProduct->sku ?? '-';
+                })
+                ->addColumn('price', function ($vendorProduct) {
+                    return $vendorProduct->price;
+                })
+                ->filterColumn('product_name_en', function($query, $keyword) {
+                    $query->whereHas('product.translations', function($q) use ($keyword) {
+                        $q->where('lang_key', 'title')
+                          ->where('lang', 'en')
+                          ->where('lang_value', 'like', "%{$keyword}%");
+                    });
+                })
+                ->filterColumn('product_name_ar', function($query, $keyword) {
+                    $query->whereHas('product.translations', function($q) use ($keyword) {
+                        $q->where('lang_key', 'title')
+                          ->where('lang', 'ar')
+                          ->where('lang_value', 'like', "%{$keyword}%");
+                    });
+                })
+                ->filter(function ($query) use ($request) {
+                    if ($request->has('search') && $request->get('search')['value']) {
+                        $search = $request->get('search')['value'];
+                        $query->where(function($q) use ($search) {
+                            // Search in product translations (name)
+                            $q->whereHas('product.translations', function($subQ) use ($search) {
+                                $subQ->where('lang_value', 'like', "%{$search}%");
+                            })
+                            // Search in vendor product SKU
+                            ->orWhere('sku', 'like', "%{$search}%")
+                            // Search in variant SKUs
+                            ->orWhereHas('variants', function($subQ) use ($search) {
+                                $subQ->where('sku', 'like', "%{$search}%");
+                            });
+                        });
+                    }
+                })
+                ->orderColumn('index', function ($query, $order) {
+                    $query->orderBy('created_at', $order);
+                })
+                ->rawColumns([])
+                ->make(true);
+
+        } catch (\Exception $e) {
+            \Log::error('Vendor products datatable error', [
+                'vendor_id' => $id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'draw' => intval($request->input('draw', 1)),
+                'data' => [],
+                'recordsTotal' => 0,
+                'recordsFiltered' => 0,
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * DataTable endpoint for vendor order products using Yajra DataTables
+     */
+    public function orderProductsDatatable(Request $request, $lang, $countryCode, $id)
+    {
+        try {
+            $query = \Modules\Order\app\Models\OrderProduct::with([
+                'order',
+                'order.customer',
+                'vendorProduct.product.mainImage',
+                'vendorProduct.product.translations',
+                'vendorProductVariant.variantConfiguration',
+                'taxes'
+            ])->where('vendor_id', $id);
+
+            return \DataTables::of($query)
+                ->addIndexColumn()
+                ->addColumn('order_number', function ($orderProduct) {
+                    return $orderProduct->order ? $orderProduct->order->order_number : $orderProduct->order_id;
+                })
+                ->addColumn('product_name', function ($orderProduct) {
+                    return $orderProduct->name ?? ($orderProduct->vendorProduct && $orderProduct->vendorProduct->product 
+                        ? $orderProduct->vendorProduct->product->getTranslation('name', app()->getLocale()) 
+                        : '-');
+                })
+                ->addColumn('product_image', function ($orderProduct) {
+                    return $orderProduct->vendorProduct && $orderProduct->vendorProduct->product && $orderProduct->vendorProduct->product->mainImage
+                        ? asset('storage/' . $orderProduct->vendorProduct->product->mainImage->path)
+                        : null;
+                })
+                ->addColumn('sku', function ($orderProduct) {
+                    return $orderProduct->vendorProductVariant 
+                        ? ($orderProduct->vendorProductVariant->sku ?? '-') 
+                        : ($orderProduct->vendorProduct ? ($orderProduct->vendorProduct->sku ?? '-') : '-');
+                })
+                ->addColumn('variant_name', function ($orderProduct) {
+                    return ($orderProduct->vendorProductVariant && $orderProduct->vendorProductVariant->variantConfiguration) 
+                        ? $orderProduct->vendorProductVariant->variant_name 
+                        : null;
+                })
+                ->addColumn('order_stage', function ($orderProduct) {
+                    if ($orderProduct->order) {
+                        $stage = \Modules\Order\app\Models\OrderStage::withoutGlobalScopes()->find($orderProduct->order->stage_id);
+                        return $stage ? [
+                            'name' => $stage->getTranslation('name', app()->getLocale()),
+                            'color' => $stage->color ?? '#6c757d'
+                        ] : null;
+                    }
+                    return null;
+                })
+                ->addColumn('price_before_tax', function ($orderProduct) {
+                    // price is already the line total (unit_price * quantity)
+                    $lineTotal = $orderProduct->price ?? 0;
+                    $taxAmount = $orderProduct->taxes ? $orderProduct->taxes->sum('amount') : 0;
+                    $quantity = $orderProduct->quantity ?? 1;
+                    // Calculate unit price before tax
+                    $lineTotalBeforeTax = $lineTotal - $taxAmount;
+                    return $quantity > 0 ? $lineTotalBeforeTax / $quantity : 0;
+                })
+                ->addColumn('tax_percentage', function ($orderProduct) {
+                    return $orderProduct->taxes ? $orderProduct->taxes->sum('percentage') : 0;
+                })
+                ->addColumn('tax_amount', function ($orderProduct) {
+                    return $orderProduct->taxes ? $orderProduct->taxes->sum('amount') : 0;
+                })
+                ->addColumn('taxes_detail', function ($orderProduct) {
+                    return $orderProduct->taxes ? $orderProduct->taxes->map(function($tax) {
+                        return [
+                            'name' => $tax->name,
+                            'percentage' => $tax->percentage
+                        ];
+                    })->toArray() : [];
+                })
+                ->addColumn('price_with_tax', function ($orderProduct) {
+                    // price is already the line total, calculate unit price with tax
+                    $lineTotal = $orderProduct->price ?? 0;
+                    $quantity = $orderProduct->quantity ?? 1;
+                    return $quantity > 0 ? $lineTotal / $quantity : 0;
+                })
+                ->addColumn('quantity', function ($orderProduct) {
+                    return $orderProduct->quantity;
+                })
+                ->addColumn('total_price', function ($orderProduct) {
+                    // price is already the line total (unit_price * quantity)
+                    return $orderProduct->price ?? 0;
+                })
+                ->addColumn('order_id', function ($orderProduct) {
+                    return $orderProduct->order_id;
+                })
+                ->orderColumn('DT_RowIndex', function ($query, $order) {
+                    $query->orderBy('created_at', $order);
+                })
+                ->rawColumns([])
+                ->make(true);
+
+        } catch (\Exception $e) {
+            \Log::error('Vendor order products datatable error', [
+                'vendor_id' => $id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'draw' => intval($request->input('draw', 1)),
+                'data' => [],
+                'recordsTotal' => 0,
+                'recordsFiltered' => 0,
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * DataTable endpoint for vendor withdraws using Yajra DataTables
+     */
+    public function withdrawsDatatable(Request $request, $lang, $countryCode, $id)
+    {
+        try {
+            $vendor = $this->vendorService->getVendorById($id);
+            $query = \Modules\Withdraw\app\Models\Withdraw::with(['admin'])
+                ->where('reciever_id', $id);
+
+            return \DataTables::of($query)
+                ->addIndexColumn()
+                ->addColumn('balance_before', function ($withdraw) use ($vendor) {
+                    return $vendor->total_balance ?? 0;
+                })
+                ->addColumn('sent_amount', function ($withdraw) {
+                    return $withdraw->sent_amount ?? 0;
+                })
+                ->addColumn('balance_after', function ($withdraw) use ($vendor) {
+                    return $vendor->total_remaining ?? 0;
+                })
+                ->addColumn('status', function ($withdraw) {
+                    return $withdraw->status;
+                })
+                ->addColumn('invoice', function ($withdraw) {
+                    return $withdraw->invoice ? asset('storage/invoices/' . $withdraw->invoice) : null;
+                })
+                ->addColumn('sent_by', function ($withdraw) {
+                    return $withdraw->admin->name ?? '-';
+                })
+                ->addColumn('created_at', function ($withdraw) {
+                    return $withdraw->created_at->format('Y-m-d H:i:s');
+                })
+                ->orderColumn('DT_RowIndex', function ($query, $order) {
+                    $query->orderBy('created_at', $order);
+                })
+                ->rawColumns([])
+                ->make(true);
+
+        } catch (\Exception $e) {
+            \Log::error('Vendor withdraws datatable error', [
+                'vendor_id' => $id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'draw' => intval($request->input('draw', 1)),
+                'data' => [],
+                'recordsTotal' => 0,
+                'recordsFiltered' => 0,
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
 
     public function edit($lang, $countryCode, $id) {
         $vendor = $this->vendorService->getVendorById($id);

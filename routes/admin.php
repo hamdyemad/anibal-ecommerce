@@ -97,8 +97,10 @@ Route::get('seeder', function () {
         \Modules\Order\app\Models\Order::query()->forceDelete();
         \Modules\Order\app\Models\OrderExtraFeeDiscount::query()->forceDelete();
         \Modules\Order\app\Models\VendorOrderStage::query()->forceDelete();
+        \Modules\Order\app\Models\RequestQuotation::query()->forceDelete();
         \Modules\Withdraw\app\Models\Withdraw::query()->forceDelete();
         \Modules\CatalogManagement\app\Models\StockBooking::query()->forceDelete();
+        \Modules\CatalogManagement\app\Models\Review::query()->forceDelete();
         
         // Delete accounting entries
         \Modules\Accounting\app\Models\AccountingEntry::query()->forceDelete();

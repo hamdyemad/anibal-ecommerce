@@ -135,4 +135,9 @@ return [
     // Country Selector
     'select_country' => 'Select Country',
     'current_country' => 'Current Country',
+
+    // Chart Labels
+    'earnings' => 'Earnings',
+    'all_orders' => 'All Orders',
+    'deliver_orders' => 'Deliver Orders',
 ];

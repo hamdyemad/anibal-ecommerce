@@ -135,4 +135,9 @@ return [
     // Country Selector
     'select_country' => 'اختر الدولة',
     'current_country' => 'الدولة الحالية',
+
+    // Chart Labels
+    'earnings' => 'الأرباح',
+    'all_orders' => 'جميع الطلبات',
+    'deliver_orders' => 'طلبات التسليم',
 ];

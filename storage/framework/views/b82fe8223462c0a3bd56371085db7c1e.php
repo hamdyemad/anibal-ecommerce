@@ -1,6 +1,6 @@
 <!-- WhatsApp Button -->
 <span class="whats_app_modern_design">
-    <a href="https://wa.me/+201011559674" target="_blank" class="whatsapp-float" title="الدردشة على واتساب">
+    <a href="https://wa.me/+201273000046" target="_blank" class="whatsapp-float" title="الدردشة على واتساب">
         <i class="uil uil-whatsapp"></i>
         <span class="whatsapp-text">Whatsapp</span>
     </a>

@@ -2,61 +2,48 @@
 
 namespace Modules\CatalogManagement\app\Exports;
 
-use Maatwebsite\Excel\Concerns\FromQuery;
+use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithTitle;
-use Modules\CatalogManagement\app\Models\VendorProductVariant;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Collection;
 
 /**
  * Sheet: variants
  * Exports product variants with pricing
  */
-class VariantsSheetExport implements FromQuery, WithHeadings, WithMapping, WithTitle
+class VariantsSheetExport implements FromCollection, WithHeadings, WithMapping, WithTitle
 {
     protected bool $isAdmin;
-    protected array $filters;
+    protected $vendorProducts;
+    protected array $productIdMapping;
 
-    public function __construct(bool $isAdmin = false, array $filters = [])
+    public function __construct(bool $isAdmin = false, $vendorProducts = null, array $productIdMapping = [])
     {
         $this->isAdmin = $isAdmin;
-        $this->filters = $filters;
+        $this->vendorProducts = $vendorProducts;
+        $this->productIdMapping = $productIdMapping;
     }
 
-    public function query()
+    public function collection()
     {
-        $query = VendorProductVariant::with([
-            'vendorProduct',
-            'variantConfiguration.key'
-        ]);
-
-        // Filter by vendor if not admin
-        if (!$this->isAdmin) {
-            $vendorId = Auth::user()->vendor?->id;
-            if ($vendorId) {
-                $query->whereHas('vendorProduct', function($q) use ($vendorId) {
-                    $q->where('vendor_id', $vendorId);
-                });
+        // Extract all variants from vendor products
+        $variants = new Collection();
+        
+        foreach ($this->vendorProducts as $vendorProduct) {
+            foreach ($vendorProduct->variants as $variant) {
+                $variants->push($variant);
             }
         }
-
-        // Apply additional filters
-        if (!empty($this->filters['vendor_id'])) {
-            $query->whereHas('vendorProduct', function($q) {
-                $q->where('vendor_id', $this->filters['vendor_id']);
-            });
-        }
-
-        return $query->orderBy('vendor_product_id')->orderBy('id');
+        
+        return $variants;
     }
 
     public function headings(): array
     {
         return [
-            'id',
             'product_id',
-            'variant_sku',
+            'sku',
             'variant_configuration_id',
             'price',
             'price_before_discount',
@@ -67,10 +54,12 @@ class VariantsSheetExport implements FromQuery, WithHeadings, WithMapping, WithT
 
     public function map($variant): array
     {
+        // Use the incremental index from the mapping
+        $productId = $this->productIdMapping[$variant->vendor_product_id] ?? $variant->vendor_product_id;
+        
         return [
-            $variant->id,
-            $variant->vendor_product_id,
-            $variant->variant_sku ?? '',
+            $productId,
+            $variant->sku ?? '',
             $variant->variant_configuration_id ?? '',
             $variant->price ?? 0,
             $variant->price_before_discount ?? '',

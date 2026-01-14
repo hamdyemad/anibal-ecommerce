@@ -2,85 +2,31 @@
 
 namespace Modules\CatalogManagement\app\Exports;
 
-use Maatwebsite\Excel\Concerns\FromQuery;
+use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithTitle;
-use Modules\CatalogManagement\app\Models\VendorProduct;
-use Illuminate\Support\Facades\Auth;
 
 /**
  * Sheet: products
  * Exports Product and VendorProduct data
  */
-class ProductsSheetExport implements FromQuery, WithHeadings, WithMapping, WithTitle
+class ProductsSheetExport implements FromCollection, WithHeadings, WithMapping, WithTitle
 {
     protected bool $isAdmin;
-    protected array $filters;
+    protected $vendorProducts;
+    protected array $productIdMapping;
 
-    public function __construct(bool $isAdmin = false, array $filters = [])
+    public function __construct(bool $isAdmin = false, $vendorProducts = null, array $productIdMapping = [])
     {
         $this->isAdmin = $isAdmin;
-        $this->filters = $filters;
+        $this->vendorProducts = $vendorProducts;
+        $this->productIdMapping = $productIdMapping;
     }
 
-    public function query()
+    public function collection()
     {
-        $query = VendorProduct::with([
-            'product.brand',
-            'product.department',
-            'product.category',
-            'product.subCategory',
-            'product.translations',
-            'vendor'
-        ]);
-
-        // Apply filters based on user role
-        if (!$this->isAdmin) {
-            $vendorId = Auth::user()->vendor?->id;
-            if ($vendorId) {
-                $query->where('vendor_id', $vendorId);
-            }
-        }
-
-        // Apply additional filters from request
-        if (!empty($this->filters['vendor_id'])) {
-            $query->where('vendor_id', $this->filters['vendor_id']);
-        }
-
-        if (!empty($this->filters['department_id'])) {
-            $query->whereHas('product', function($q) {
-                $q->where('department_id', $this->filters['department_id']);
-            });
-        }
-
-        if (!empty($this->filters['category_id'])) {
-            $query->whereHas('product', function($q) {
-                $q->where('category_id', $this->filters['category_id']);
-            });
-        }
-
-        if (!empty($this->filters['brand_id'])) {
-            $query->whereHas('product', function($q) {
-                $q->where('brand_id', $this->filters['brand_id']);
-            });
-        }
-
-        if (!empty($this->filters['search'])) {
-            $search = $this->filters['search'];
-            $query->where(function($q) use ($search) {
-                $q->where('sku', 'like', "%{$search}%")
-                  ->orWhereHas('product.translations', function($tq) use ($search) {
-                      $tq->where('lang_value', 'like', "%{$search}%");
-                  });
-            });
-        }
-
-        if (isset($this->filters['status'])) {
-            $query->where('status', $this->filters['status']);
-        }
-
-        return $query->orderBy('id');
+        return $this->vendorProducts;
     }
 
     public function headings(): array
@@ -130,8 +76,11 @@ class ProductsSheetExport implements FromQuery, WithHeadings, WithMapping, WithT
     {
         $product = $vendorProduct->product;
         
+        // Use the mapping to get incremental index
+        $incrementalId = $this->productIdMapping[$vendorProduct->id] ?? $vendorProduct->id;
+        
         $row = [
-            $vendorProduct->id,
+            $incrementalId,
             $vendorProduct->sku,
         ];
 

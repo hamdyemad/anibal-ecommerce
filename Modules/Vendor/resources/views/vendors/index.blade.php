@@ -144,6 +144,9 @@
                                     <th><span
                                             class="userDatatable-title">{{ __('vendor::vendor.departments') ?? 'Departments' }}</span>
                                     </th>
+                                    <th><span
+                                            class="userDatatable-title">{{ __('vendor::vendor.products_count') ?? 'Products' }}</span>
+                                    </th>
                                     <th><span class="userDatatable-title">{{ __('vendor::vendor.active_status') }}</span>
                                     </th>
                                     <th><span class="userDatatable-title">{{ __('common.actions') }}</span></th>
@@ -356,6 +359,21 @@
                             }
 
                             return `<div class="department-list">${visibleHtml}</div>`;
+                        }
+                    },
+
+                    // Products Count column
+                    {
+                        data: 'products_count',
+                        name: 'products_count',
+                        orderable: false,
+                        searchable: false,
+                        render: function(data, type, row) {
+                            return `<div class="text-center">
+                                <span class="badge badge-round badge-lg badge-info">
+                                    <i class="uil uil-box me-1"></i>${data || 0}
+                                </span>
+                            </div>`;
                         }
                     },
 

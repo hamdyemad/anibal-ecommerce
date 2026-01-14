@@ -113,6 +113,10 @@ return [
     'created_at' => 'Created At',
     'actions' => 'Actions',
     'departments' => 'Departments',
+    'products_count' => 'Products',
+    'price' => 'Price',
+    'variants' => 'Variants',
+    'product_information' => 'Product Information',
 
     // Status
     'active' => 'Active',

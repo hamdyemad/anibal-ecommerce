@@ -293,6 +293,75 @@ class VendorProduct extends BaseModel
             unset($filters['search']);
         }
 
+        // Vendor filter
+        if (!empty($filters['vendor_id'])) {
+            $query->where('vendor_id', $filters['vendor_id']);
+        }
+
+        // Brand filter
+        if (!empty($filters['brand_id'])) {
+            $query->byBrand($filters['brand_id']);
+        }
+
+        // Department filter
+        if (!empty($filters['department_id'])) {
+            $query->byDepartment($filters['department_id']);
+        }
+
+        // Category filter
+        if (!empty($filters['category_id'])) {
+            $query->byCategory($filters['category_id']);
+        }
+
+        // Product Type filter (product/bank)
+        if (!empty($filters['product_type'])) {
+            $query->whereHas('product', function($q) use ($filters) {
+                $q->where('type', $filters['product_type']);
+            });
+        }
+
+        // Configuration Type filter (simple/variants)
+        if (!empty($filters['configuration_type'])) {
+            $query->whereHas('product', function($q) use ($filters) {
+                $q->where('configuration_type', $filters['configuration_type']);
+            });
+        }
+
+        // Active Status filter (is_active)
+        if (isset($filters['is_active']) && $filters['is_active'] !== '') {
+            $query->where('is_active', $filters['is_active']);
+        }
+
+        // Stock Status filter
+        if (!empty($filters['stock_status'])) {
+            if ($filters['stock_status'] === 'in_stock') {
+                $query->whereHas('variants', function($q) {
+                    $q->whereHas('stocks', function($sq) {
+                        $sq->where('quantity', '>', 0);
+                    });
+                });
+            } elseif ($filters['stock_status'] === 'out_of_stock') {
+                $query->whereDoesntHave('variants.stocks', function($sq) {
+                    $sq->where('quantity', '>', 0);
+                });
+            }
+        }
+
+        // Approval Status filter (status: pending/approved/rejected)
+        if (!empty($filters['status'])) {
+            $query->where('status', $filters['status']);
+        }
+
+        // Created From date filter
+        if (!empty($filters['created_from'])) {
+            $query->whereDate('created_at', '>=', $filters['created_from']);
+        }
+
+        // Created To date filter
+        if (!empty($filters['created_to'])) {
+            $query->whereDate('created_at', '<=', $filters['created_to']);
+        }
+
         // Call parent filter scope from trait (without search)
         parent::scopeFilter($query, $filters);
 

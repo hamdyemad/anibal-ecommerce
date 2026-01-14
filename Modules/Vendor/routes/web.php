@@ -9,6 +9,9 @@ use Modules\Vendor\app\Http\Controllers\VendorReviewController;
 // Vendors
 Route::group(['prefix' => 'vendors', 'as' => 'vendors.'], function() {
     Route::get('datatable', [VendorController::class, 'datatable'])->name('datatable');
+    Route::get('{id}/products-datatable', [VendorController::class, 'productsDatatable'])->name('products-datatable');
+    Route::get('{id}/order-products-datatable', [VendorController::class, 'orderProductsDatatable'])->name('order-products-datatable');
+    Route::get('{id}/withdraws-datatable', [VendorController::class, 'withdrawsDatatable'])->name('withdraws-datatable');
     Route::post('{id}/change-status', [VendorController::class, 'changeStatus'])->name('change-status');
     Route::delete('{vendor}/documents/{document}', [VendorController::class, 'destroyDocument'])->name('documents.destroy');
     Route::resource('', VendorController::class);

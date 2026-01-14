@@ -11,6 +11,9 @@ Route::get('system-catalog/brands', 'SystemCatalogController@brands')->name('sys
 Route::get('system-catalog/regions', 'SystemCatalogController@regions')->name('system-catalog.regions');
 Route::get('system-catalog/vendors', 'SystemCatalogController@vendors')->name('system-catalog.vendors');
 
+// Products Export - Accessible to all authenticated users (admins and vendors)
+Route::get('products/export', 'ProductController@export')->name('products.export');
+
 Route::group(['middleware' => 'adminGuard'], function() {
     // Reviews
     Route::get('reviews', 'ReviewController@index')->name('reviews.index');
@@ -83,9 +86,6 @@ Route::group(['prefix' => 'products'], function() {
     Route::get('bulk-upload', 'ProductController@bulkUpload')->name('products.bulk-upload');
     Route::post('bulk-upload', 'ProductController@bulkUploadStore')->name('products.bulk-upload.store');
     Route::get('download-demo', 'ProductController@downloadDemo')->name('products.download-demo');
-    
-    // Export route
-    Route::get('export', 'ProductController@export')->name('products.export');
     
     // Product status-based routes (must be before resource)
     Route::get('pending', 'ProductController@pending')->name('products.pending');

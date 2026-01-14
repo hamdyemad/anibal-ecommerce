@@ -22,7 +22,7 @@
                         <td class="userDatatable-title">
                             @if($item->vendorProduct && $item->vendorProduct->product)
                                 @php $product = $item->vendorProduct->product; @endphp
-                                <a href="{{ route('admin.products.show', $product->id) }}" target="_blank" class="d-flex align-items-center">
+                                <a href="{{ route('admin.products.show', $product->id) }}" target="_blank" class="d-flex align-items-center" title="{{ $product->title }}">
                                     @if($product->mainImage)
                                         <img class="rounded-circle"
                                             src="{{ asset('storage/' . $product->mainImage->path) }}"
@@ -32,7 +32,7 @@
                                             src="{{ asset('assets/img/default.png') }}"
                                             alt="product" style="width: 40px; height: 40px;">
                                     @endif
-                                    <span class="ms-3">{{ $product->title }}</span>
+                                    <span class="ms-3">{{ truncateString($product->title, 40) }}</span>
                                 </a>
                             @else
                                 <span class="text-muted">-</span>

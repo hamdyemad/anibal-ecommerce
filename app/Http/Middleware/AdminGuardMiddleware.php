@@ -17,7 +17,7 @@ class AdminGuardMiddleware
     public function handle(Request $request, Closure $next): Response
     {
         if(auth()->user()) {
-            if(in_array(auth()->user()->user_type_id, UserType::adminIds())) {
+            if(isAdmin()) {
                 return $next($request);
             } else {
                 return abort(401);

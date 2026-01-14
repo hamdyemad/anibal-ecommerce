@@ -108,6 +108,14 @@ return [
     'mark_delivered' => 'تسليم الطلب',
     'cancel_order' => 'إلغاء الطلب',
     'change_stage' => 'تغيير المرحلة',
+    'confirm_mark_in_progress' => 'هل أنت متأكد من تحويل هذا الطلب إلى قيد التنفيذ؟',
+    'confirm_mark_in_progress_all' => 'هل أنت متأكد من تحويل جميع البائعين إلى قيد التنفيذ؟',
+    'confirm_mark_delivered' => 'هل أنت متأكد من تسليم هذا الطلب؟',
+    'confirm_mark_delivered_all' => 'هل أنت متأكد من تسليم جميع طلبات البائعين؟',
+    'confirm_cancel' => 'هل أنت متأكد من إلغاء هذا الطلب؟',
+    'confirm_cancel_all' => 'هل أنت متأكد من إلغاء جميع طلبات البائعين؟',
+    'update_all_stages' => 'تحديث جميع المراحل',
+    'current_vendor_stages' => 'مراحل البائعين الحالية',
 
     // Payment Types
     'cash_on_delivery' => 'الدفع عند الاستلام',
@@ -130,6 +138,7 @@ return [
     'unpaid' => 'غير مدفوع',
     'payment_transactions' => 'معاملات الدفع',
     'view_payments' => 'عرض المدفوعات',
+    'view_online_payment' => 'عرض الدفع الإلكتروني',
     'back_to_order' => 'العودة للطلب',
     'transactions_count' => 'عدد المعاملات',
     'paymob_order_id' => 'رقم طلب باي موب',

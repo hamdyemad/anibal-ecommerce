@@ -1012,6 +1012,15 @@ class ProductController extends Controller
     {
         try {
             $isAdmin = isAdmin();
+            $isVendor = isVendor();
+            
+            // Vendors can only export their own products
+            if ($isVendor) {
+                $vendor = Auth::user()->vendor;
+                if (!$vendor) {
+                    return redirect()->back()->with('error', __('catalogmanagement::product.vendor_not_found'));
+                }
+            }
             
             // Get filters from request
             $filters = [

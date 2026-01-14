@@ -2,63 +2,45 @@
 
 namespace Modules\CatalogManagement\app\Exports;
 
-use Maatwebsite\Excel\Concerns\FromQuery;
+use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithTitle;
-use App\Models\Attachment;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Collection;
 
 /**
  * Sheet: images
  * Exports product images from Attachment morph model
  */
-class ImagesSheetExport implements FromQuery, WithHeadings, WithMapping, WithTitle
+class ImagesSheetExport implements FromCollection, WithHeadings, WithMapping, WithTitle
 {
     protected bool $isAdmin;
-    protected array $filters;
+    protected $vendorProducts;
+    protected array $productIdMapping;
 
-    public function __construct(bool $isAdmin = false, array $filters = [])
+    public function __construct(bool $isAdmin = false, $vendorProducts = null, array $productIdMapping = [])
     {
         $this->isAdmin = $isAdmin;
-        $this->filters = $filters;
+        $this->vendorProducts = $vendorProducts;
+        $this->productIdMapping = $productIdMapping;
     }
 
-    public function query()
+    public function collection()
     {
-        $query = Attachment::where('attachable_type', 'Modules\CatalogManagement\app\Models\Product')
-            ->whereIn('type', ['main_image', 'additional_image'])
-            ->with(['attachmentable.vendorProducts']);
-
-        // Filter by vendor if not admin
-        if (!$this->isAdmin) {
-            $vendorId = Auth::user()->vendor?->id;
-            if ($vendorId) {
-                $query->whereHas('attachmentable.vendorProducts', function($q) use ($vendorId) {
-                    $q->where('vendor_id', $vendorId);
-                });
+        // Extract all images from vendor products
+        $images = new Collection();
+        
+        foreach ($this->vendorProducts as $vendorProduct) {
+            if ($vendorProduct->product && $vendorProduct->product->attachments) {
+                foreach ($vendorProduct->product->attachments as $image) {
+                    // Store vendor product ID with the image for mapping
+                    $image->vendor_product_id = $vendorProduct->id;
+                    $images->push($image);
+                }
             }
         }
-
-        // Apply additional filters
-        if (!empty($this->filters['vendor_id'])) {
-            $query->whereHas('attachmentable.vendorProducts', function($q) {
-                $q->where('vendor_id', $this->filters['vendor_id']);
-            });
-        }
-
-        if (!empty($this->filters['search'])) {
-            $search = $this->filters['search'];
-            $query->whereHas('attachmentable', function($q) use ($search) {
-                $q->whereHas('vendorProducts', function($vq) use ($search) {
-                    $vq->where('sku', 'like', "%{$search}%");
-                })->orWhereHas('translations', function($tq) use ($search) {
-                    $tq->where('lang_value', 'like', "%{$search}%");
-                });
-            });
-        }
-
-        return $query->orderBy('attachable_id')->orderBy('id');
+        
+        return $images;
     }
 
     public function headings(): array
@@ -70,16 +52,15 @@ class ImagesSheetExport implements FromQuery, WithHeadings, WithMapping, WithTit
         ];
     }
 
-    public function map($attachment): array
+    public function map($image): array
     {
-        // Get the vendor product ID for this product
-        $product = $attachment->attachmentable;
-        $vendorProduct = $product ? $product->vendorProducts->first() : null;
+        // Use the vendor_product_id we stored in collection()
+        $productId = $this->productIdMapping[$image->vendor_product_id] ?? '';
         
         return [
-            $vendorProduct ? $vendorProduct->id : ($product ? $product->id : ''),
-            $attachment->path ? asset('storage/' . $attachment->path) : '',
-            $attachment->type === 'main_image' ? 'yes' : 'no',
+            $productId,
+            $image->path ? asset('storage/' . $image->path) : '',
+            $image->type === 'main_image' ? 'yes' : 'no',
         ];
     }
 

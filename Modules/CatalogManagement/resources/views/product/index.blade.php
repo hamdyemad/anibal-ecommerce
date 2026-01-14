@@ -603,6 +603,13 @@
                                     <span class="badge badge-secondary badge-round badge-lg ms-1">${$('<div/>').text(row.brand.name).html()}</span>
                                 </div>`;
                             }
+                            // SKU
+                            if (row.sku && row.sku !== '-') {
+                                html += `<div class="mb-1">
+                                    <small class="text-muted">{{ __('catalogmanagement::product.sku') }}:</small>
+                                    <code class="ms-1">${$('<div/>').text(row.sku).html()}</code>
+                                </div>`;
+                            }
                             // Stock Information (Total Stock & Remaining Stock)
                             const totalStock = row.total_stock || 0;
                             const remainingStock = row.remaining_stock || 0;
@@ -1160,7 +1167,7 @@
             });
 
             // Move to bank handler
-            @if(auth()->user() && in_array(auth()->user()->user_type_id, \App\Models\UserType::adminIds()))
+            @if(isAdmin())
             $(document).on('click', '.move-to-bank', function() {
                 const btn = $(this);
                 const productId = btn.data('item-id');
@@ -1288,14 +1295,20 @@
                 btn.prop('disabled', true);
                 btn.html('<i class="uil uil-spinner-alt rotating"></i> {{ __('common.processing') }}');
                 
-                // Get current filter values
+                // Get current filter values - check if elements exist first
                 const filters = {
-                    search: $('#search').val(),
-                    vendor_id: typeof CustomSelect !== 'undefined' ? CustomSelect.getValue('vendor_filter') : '',
-                    department_id: typeof CustomSelect !== 'undefined' ? CustomSelect.getValue('department_filter') : '',
-                    category_id: typeof CustomSelect !== 'undefined' ? CustomSelect.getValue('category_filter') : '',
-                    brand_id: typeof CustomSelect !== 'undefined' ? CustomSelect.getValue('brand_filter') : '',
-                    status: typeof CustomSelect !== 'undefined' ? CustomSelect.getValue('status') : ''
+                    search: $('#search').val() || '',
+                    vendor_id: (typeof CustomSelect !== 'undefined' && document.getElementById('vendor_filter')) ? CustomSelect.getValue('vendor_filter') : '',
+                    department_id: (typeof CustomSelect !== 'undefined' && document.getElementById('department_filter')) ? CustomSelect.getValue('department_filter') : '',
+                    category_id: (typeof CustomSelect !== 'undefined' && document.getElementById('category_filter')) ? CustomSelect.getValue('category_filter') : '',
+                    brand_id: (typeof CustomSelect !== 'undefined' && document.getElementById('brand_filter')) ? CustomSelect.getValue('brand_filter') : '',
+                    status: (typeof CustomSelect !== 'undefined' && document.getElementById('status')) ? CustomSelect.getValue('status') : '',
+                    product_type: (typeof CustomSelect !== 'undefined' && document.getElementById('product_type')) ? CustomSelect.getValue('product_type') : '',
+                    configuration_type: (typeof CustomSelect !== 'undefined' && document.getElementById('configuration_filter')) ? CustomSelect.getValue('configuration_filter') : '',
+                    is_active: (typeof CustomSelect !== 'undefined' && document.getElementById('active_status')) ? CustomSelect.getValue('active_status') : '',
+                    stock_status: (typeof CustomSelect !== 'undefined' && document.getElementById('stock_status')) ? CustomSelect.getValue('stock_status') : '',
+                    created_from: $('#created_date_from').val() || '',
+                    created_to: $('#created_date_to').val() || ''
                 };
                 
                 // Build query string

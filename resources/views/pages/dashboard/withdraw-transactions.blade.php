@@ -26,7 +26,7 @@
             ->sum('op.price') ?? 0;
             
         $totalVendorBalance = (float) str_replace(',', '', $statistics['total_balance']);
-        $bnaiaBalance = $ordersPrice - $totalVendorBalance;
+        $bnaiaBalance = max(0, $ordersPrice - $totalVendorBalance);
         
         $totalNeeded = $totalVendorBalance;
         $totalSentMoney = (float) str_replace(',', '', $statistics['total_sent']);
@@ -39,7 +39,7 @@
         
         if ($vendor) {
             $ordersPrice = $vendor->orders_price;
-            $bnaiaBalance = $vendor->bnaia_commission;
+            $bnaiaBalance = max(0, $vendor->bnaia_commission);
             $totalVendorBalance = $vendor->total_balance;
             
             $totalNeeded = $vendor->total_balance;

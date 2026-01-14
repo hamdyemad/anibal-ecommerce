@@ -87,7 +87,9 @@ class VendorAction {
         // Apply pagination
         $perPage = $data['length'];
         $page = $data['page'];
-        $vendors = $query->with(['translations', 'user', 'country', 'logo', 'departments'])->paginate($perPage, ['*'], 'page', $page);
+        $vendors = $query->with(['translations', 'user', 'country', 'logo', 'departments'])
+            ->withCount('vendorProducts')
+            ->paginate($perPage, ['*'], 'page', $page);
 
         // Return raw data - rendering will be handled by DataTables in the view
         $tableData = [];
@@ -102,6 +104,7 @@ class VendorAction {
                 'departments' => $vendor->departments->map(function($d) {
                     return ['name' => $d->name];
                 }),
+                'products_count' => $vendor->vendor_products_count ?? 0,
                 'active' => $vendor->active,
                 'created_at' => $vendor->created_at,
             ];

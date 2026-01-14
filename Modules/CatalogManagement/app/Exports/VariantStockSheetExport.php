@@ -2,59 +2,49 @@
 
 namespace Modules\CatalogManagement\app\Exports;
 
-use Maatwebsite\Excel\Concerns\FromQuery;
+use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithTitle;
-use Modules\CatalogManagement\app\Models\VendorProductVariantStock;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Collection;
 
 /**
  * Sheet: variant_stock
  * Exports variant stock per region
  */
-class VariantStockSheetExport implements FromQuery, WithHeadings, WithMapping, WithTitle
+class VariantStockSheetExport implements FromCollection, WithHeadings, WithMapping, WithTitle
 {
     protected bool $isAdmin;
-    protected array $filters;
+    protected $vendorProducts;
+    protected array $productIdMapping;
 
-    public function __construct(bool $isAdmin = false, array $filters = [])
+    public function __construct(bool $isAdmin = false, $vendorProducts = null, array $productIdMapping = [])
     {
         $this->isAdmin = $isAdmin;
-        $this->filters = $filters;
+        $this->vendorProducts = $vendorProducts;
+        $this->productIdMapping = $productIdMapping;
     }
 
-    public function query()
+    public function collection()
     {
-        $query = VendorProductVariantStock::with([
-            'vendorProductVariant.vendorProduct',
-            'region'
-        ]);
-
-        // Filter by vendor if not admin
-        if (!$this->isAdmin) {
-            $vendorId = Auth::user()->vendor?->id;
-            if ($vendorId) {
-                $query->whereHas('vendorProductVariant.vendorProduct', function($q) use ($vendorId) {
-                    $q->where('vendor_id', $vendorId);
-                });
+        // Extract all variant stocks from vendor products
+        $stocks = new Collection();
+        
+        foreach ($this->vendorProducts as $vendorProduct) {
+            foreach ($vendorProduct->variants as $variant) {
+                foreach ($variant->stocks as $stock) {
+                    $stocks->push($stock);
+                }
             }
         }
-
-        // Apply additional filters
-        if (!empty($this->filters['vendor_id'])) {
-            $query->whereHas('vendorProductVariant.vendorProduct', function($q) {
-                $q->where('vendor_id', $this->filters['vendor_id']);
-            });
-        }
-
-        return $query->orderBy('vendor_product_variant_id')->orderBy('region_id');
+        
+        return $stocks;
     }
 
     public function headings(): array
     {
         return [
-            'variant_id',
+            'variant_sku',
             'region_id',
             'quantity',
         ];
@@ -63,7 +53,7 @@ class VariantStockSheetExport implements FromQuery, WithHeadings, WithMapping, W
     public function map($stock): array
     {
         return [
-            $stock->vendor_product_variant_id,
+            $stock->vendorProductVariant->sku ?? '',
             $stock->region_id,
             $stock->quantity ?? 0,
         ];
