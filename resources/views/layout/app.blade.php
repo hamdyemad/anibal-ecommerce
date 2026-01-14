@@ -62,8 +62,6 @@
             mapClockIcon: "{{ asset('assets/img/svg/clock-ticket1.svg') }}"
         }
     </script>
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDduF2tLXicDEPDMAtC6-NLOekX0A5vlnY"></script>
-
     <script src="{{ asset('assets/js/plugins.min.js') }}"></script>
     <script src="{{ asset('assets/js/select2.min.js') }}"></script>
 
@@ -102,7 +100,7 @@
     <script src="{{ asset('js/plugins/toastr.min.js') }}"></script>
 
     <!-- CKEditor CDN -->
-    <script src="https://cdn.ckeditor.com/4.22.1/standard/ckeditor.js"></script>
+    <script src="{{ asset('assets/js/ckeditor.js') }}"></script>
 
     @vite('resources/js/app.js')
     <script src="{{ asset('assets/js/sweetalert2@11.js') }}"></script>
@@ -293,8 +291,6 @@
 
     @stack('scripts')
 
-    {{-- Menu Badge Counter Script --}}
-    <script src="{{ asset('assets/js/menu-badges.js') }}"></script>
 
     {{-- Protect dynamic badge values from being reset by global scripts --}}
     <script>

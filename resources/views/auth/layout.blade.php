@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>{{ $title }} - Bnaia</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="{{ asset('css/goolefont.css') }}" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('assets/css/plugin.min.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/style.min.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/variables.css') }}">
