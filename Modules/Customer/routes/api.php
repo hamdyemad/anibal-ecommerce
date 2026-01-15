@@ -5,7 +5,7 @@ use Modules\Customer\app\Http\Controllers\Api\CustomerApiController;
 use Modules\Customer\app\Http\Controllers\Api\CustomerAuthController;
 use Modules\Customer\app\Http\Controllers\Api\CustomerAddressController;
 use Modules\Customer\app\Http\Controllers\Api\CustomerPointsApiController;
-
+use Modules\Customer\app\Http\Controllers\Api\CustomerNotificationController;
 use Modules\Customer\app\Http\Controllers\Api\SubscriptionController;
 
 // Auth routes (no authentication required) - with strict rate limiting
@@ -64,6 +64,15 @@ Route::middleware(['auth:sanctum', 'check.customer.auth'])->prefix('points')->gr
     Route::get('my-points', [CustomerPointsApiController::class, 'myPoints'])->name('my-points');
     Route::get('transactions', [CustomerPointsApiController::class, 'transactions'])->name('transactions');
     Route::get('settings', [CustomerPointsApiController::class, 'settings'])->name('settings');
+});
+
+// Notifications routes (authentication required)
+Route::middleware(['auth:sanctum', 'check.customer.auth'])->prefix('notifications')->group(function () {
+    Route::get('', [CustomerNotificationController::class, 'index']);
+    Route::get('unread-count', [CustomerNotificationController::class, 'unreadCount']);
+    Route::get('{id}', [CustomerNotificationController::class, 'show']);
+    Route::post('{id}/read', [CustomerNotificationController::class, 'markAsRead']);
+    Route::post('read-all', [CustomerNotificationController::class, 'markAllAsRead']);
 });
 
 Route::post('subscriptions', [SubscriptionController::class, 'store']);

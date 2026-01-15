@@ -70,8 +70,6 @@ class SystemSettingServiceProvider extends ServiceProvider
             \Modules\SystemSetting\app\Interfaces\AdRepositoryInterface::class,
             \Modules\SystemSetting\app\Repositories\AdRepository::class
         );
-
-        // Blog Repository Bindings
         $this->app->bind(
             \Modules\SystemSetting\app\Interfaces\BlogCategoryRepositoryInterface::class,
             \Modules\SystemSetting\app\Repositories\BlogCategoryRepository::class
@@ -80,12 +78,6 @@ class SystemSettingServiceProvider extends ServiceProvider
         $this->app->bind(
             \Modules\SystemSetting\app\Interfaces\BlogRepositoryInterface::class,
             \Modules\SystemSetting\app\Repositories\BlogRepository::class
-        );
-
-        // Push Notification Repository Binding
-        $this->app->bind(
-            \Modules\SystemSetting\app\Interfaces\PushNotificationRepositoryInterface::class,
-            \Modules\SystemSetting\app\Repositories\PushNotificationRepository::class
         );
 
         // Bind Services
@@ -140,6 +132,17 @@ class SystemSettingServiceProvider extends ServiceProvider
 
         $this->app->bind(
             \Modules\SystemSetting\app\Services\Api\BlogApiService::class
+        );
+
+        // Notification Api Repository Binding
+        $this->app->bind(
+            \Modules\SystemSetting\app\Interfaces\Api\NotificationApiRepositoryInterface::class,
+            \Modules\SystemSetting\app\Repositories\Api\NotificationApiRepository::class
+        );
+
+        // Notification Api Service
+        $this->app->bind(
+            \Modules\SystemSetting\app\Services\Api\NotificationApiService::class
         );
     }
 
