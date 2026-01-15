@@ -143,14 +143,14 @@
                                                 </div>
                                             </div>
                                             @if($activity_log->properties)
-                                                <div class="col-md-12">
+                                                {{-- <div class="col-md-12">
                                                     <div class="view-item">
                                                         <label class="il-gray fs-14 fw-500 mb-10">{{ __('systemsetting::activity_log.properties') }}</label>
                                                         <div class="fs-15 color-dark">
                                                             <pre class="p-2 rounded" style="max-height: 200px; overflow-y: auto;">{{ json_encode($activity_log->properties, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) }}</pre>
                                                         </div>
                                                     </div>
-                                                </div>
+                                                </div> --}}
                                             @endif
                                         </div>
                                     </div>
