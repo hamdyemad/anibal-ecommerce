@@ -108,7 +108,7 @@ class ReportRepository implements ReportRepositoryInterface
     }
 
     /**
-     * Get area users report (Customers by current country_code and selected city)
+     * Get area users report (Customers by customer_addresses table)
      */
     public function getAreaUsersReport(ReportFilterDTO $filter): array
     {
@@ -118,15 +118,20 @@ class ReportRepository implements ReportRepositoryInterface
             ? \Modules\AreaSettings\app\Models\Country::where('code', $countryCode)->value('id')
             : null;
 
-        // Start with customers query
+        // Start with customers query - filter by customer_addresses table
         $query = Customer::query();
 
-        // If city is selected, filter by city/area
+        // Filter by customer_addresses table
         if ($filter->city_id) {
-            $query->where('city_id', $filter->city_id);
+            // Filter customers who have an address in the selected city
+            $query->whereHas('addresses', function ($q) use ($filter) {
+                $q->where('city_id', $filter->city_id);
+            });
         } elseif ($countryId) {
-            // Otherwise filter by country
-            $query->where('country_id', $countryId);
+            // Filter customers who have an address in the current country
+            $query->whereHas('addresses', function ($q) use ($countryId) {
+                $q->where('country_id', $countryId);
+            });
         }
 
         // Date range filter
@@ -154,8 +159,8 @@ class ReportRepository implements ReportRepositoryInterface
 
         $total = $query->count();
 
-        // Get all data for statistics and charts
-        $allData = $query->with(['city'])->get();
+        // Get all data for statistics and charts - load addresses with city
+        $allData = $query->with(['addresses.city'])->get();
 
         // Calculate statistics
         $activeCount = $allData->where('status', 1)->count();
@@ -171,20 +176,64 @@ class ReportRepository implements ReportRepositoryInterface
         }
         ksort($registrationTrend);
 
-        // Calculate city distribution
+        // Calculate city distribution - count unique customers per city from customer_addresses
+        // Query directly from customer_addresses with all filters applied
+        $addressQuery = \Modules\Customer\app\Models\CustomerAddress::query()
+            ->select('customer_addresses.city_id')
+            ->selectRaw('COUNT(DISTINCT customer_addresses.customer_id) as customer_count')
+            ->join('customers', 'customers.id', '=', 'customer_addresses.customer_id')
+            ->whereNotNull('customer_addresses.city_id')
+            ->groupBy('customer_addresses.city_id');
+        
+        // Apply city filter
+        if ($filter->city_id) {
+            $addressQuery->where('customer_addresses.city_id', $filter->city_id);
+        }
+        
+        // Apply country filter
+        if ($countryId) {
+            $addressQuery->where('customer_addresses.country_id', $countryId);
+        }
+        
+        // Apply date range filter on customer created_at
+        if ($filter->from) {
+            $addressQuery->whereDate('customers.created_at', '>=', $filter->from);
+        }
+        if ($filter->to) {
+            $addressQuery->whereDate('customers.created_at', '<=', $filter->to);
+        }
+        
+        // Apply status filter
+        if ($filter->status) {
+            $addressQuery->where('customers.status', $filter->status === 'active' ? 1 : 0);
+        }
+        
+        // Apply search filter
+        if ($filter->search) {
+            $addressQuery->where(function ($q) use ($filter) {
+                $q->where('customers.first_name', 'like', '%' . $filter->search . '%')
+                  ->orWhere('customers.last_name', 'like', '%' . $filter->search . '%')
+                  ->orWhere('customers.email', 'like', '%' . $filter->search . '%')
+                  ->orWhere('customers.phone', 'like', '%' . $filter->search . '%');
+            });
+        }
+        
+        $cityCounts = $addressQuery->get();
+        
         $cityDistribution = [];
-        foreach ($allData as $customer) {
-            $cityName = $customer->city?->name ?? 'Unknown';
-            $cityDistribution[$cityName] = ($cityDistribution[$cityName] ?? 0) + 1;
+        foreach ($cityCounts as $item) {
+            $city = \Modules\AreaSettings\app\Models\City::find($item->city_id);
+            $cityName = $city?->name ?? 'Unknown';
+            $cityDistribution[$cityName] = (int) $item->customer_count;
         }
         arsort($cityDistribution); // Sort by count descending
 
         // Now paginate for table display
-        $data = $query->with(['city'])
+        $data = $query->with(['addresses.city'])
             ->paginate(
                 perPage: $filter->per_page,
                 page: $filter->page,
-                columns: ['id', 'first_name', 'last_name', 'email', 'phone', 'status', 'created_at', 'city_id']
+                columns: ['id', 'first_name', 'last_name', 'email', 'phone', 'status', 'created_at']
             );
 
         // Add index and city name to each item
@@ -193,7 +242,21 @@ class ReportRepository implements ReportRepositoryInterface
         foreach ($items as $index => $item) {
             $item->index = $startIndex + $index;
             $item->name = trim(($item->first_name ?? '') . ' ' . ($item->last_name ?? '')) ?: 'N/A';
-            $item->city_name = $item->city?->name ?? 'N/A';
+            
+            // Count addresses per city for this customer
+            $cityCounts = [];
+            foreach ($item->addresses as $address) {
+                $cityName = $address->city?->name ?? 'Unknown';
+                $cityCounts[$cityName] = ($cityCounts[$cityName] ?? 0) + 1;
+            }
+            
+            // Format as "1 Cairo, 2 Alex"
+            $cityParts = [];
+            foreach ($cityCounts as $cityName => $count) {
+                $cityParts[] = $count . ' ' . $cityName;
+            }
+            $item->city_name = !empty($cityParts) ? implode(', ', $cityParts) : 'N/A';
+            $item->address_count = $item->addresses->count();
         }
 
         return [

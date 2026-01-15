@@ -543,36 +543,11 @@
                         console.log('City Distribution from backend:', json.city_distribution);
                         console.log('Registration Trend from backend:', json.registration_trend);
 
-                        // Check if we have city distribution data
+                        // Use city distribution directly from backend (unique customers per city)
                         let cityData = json.city_distribution || {};
                         let registrationData = json.registration_trend || {};
 
-                        // If city_distribution is empty but we have data, build it from the data array
-                        if (Object.keys(cityData).length === 0 && json.data && json.data.length > 0) {
-                            console.log('Building city distribution from data array');
-                            cityData = {};
-                            json.data.forEach(function(customer) {
-                                if (customer.city_name) {
-                                    cityData[customer.city_name] = (cityData[customer.city_name] || 0) + 1;
-                                }
-                            });
-                            console.log('Calculated city distribution:', cityData);
-                        }
-
-                        // If registration_trend is empty but we have data, build it
-                        if (Object.keys(registrationData).length === 0 && json.data && json.data.length > 0) {
-                            console.log('Building registration trend from data array');
-                            registrationData = {};
-                            json.data.forEach(function(customer) {
-                                if (customer.created_at) {
-                                    const date = customer.created_at.split(' ')[0]; // Get just the date part
-                                    registrationData[date] = (registrationData[date] || 0) + 1;
-                                }
-                            });
-                            console.log('Calculated registration trend:', registrationData);
-                        }
-
-                        // Update charts
+                        // Update charts with backend data
                         if (Object.keys(cityData).length > 0) {
                             updateChartsWithData(cityData, registrationData);
                         } else {

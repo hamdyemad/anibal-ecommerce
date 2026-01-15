@@ -155,4 +155,5 @@ return [
     'order_status' => 'Order Status',
     'order_date' => 'Order Date',
     'no_orders_found' => 'No orders found for this customer',
+    'no_addresses_found' => 'No addresses found for this customer',
 ];

@@ -6,6 +6,7 @@ use Modules\Customer\app\Http\Controllers\EmailVerificationController;
 
 
 Route::get('customers/datatable', [CustomerController::class, 'datatable'])->name('customers.datatable');
+Route::get('customers/{id}/addresses-datatable', [CustomerController::class, 'addressesDatatable'])->name('customers.addresses-datatable');
 Route::post('customers/{id}/change-status', [CustomerController::class, 'changeStatus'])->name('customers.change-status');
 Route::post('customers/{id}/change-verification', [CustomerController::class, 'changeVerification'])->name('customers.change-verification');
 Route::resource('customers', CustomerController::class)->names('customers');

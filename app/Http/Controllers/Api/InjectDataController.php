@@ -2182,10 +2182,9 @@ class InjectDataController extends Controller
                 if (!empty($addressList) && is_array($addressList)) {
                     foreach ($addressList as $addressData) {
                         if (empty($addressData)) continue;
-
+                        $egyptCountry = Country::where('code', 'eg')->first();
                         $addressCityId = $addressData['city_id'] ?? null;
                         $addressRegionId = $addressData['region_id'] ?? null;
-                        $addressCountryId = $addressData['country_id'] ?? null;
                         $addressSubregionId = $addressData['subregion_id'] ?? null;
 
                         // Validate foreign keys exist
@@ -2194,9 +2193,6 @@ class InjectDataController extends Controller
                         }
                         if ($addressRegionId && !Region::where('id', $addressRegionId)->exists()) {
                             $addressRegionId = null;
-                        }
-                        if ($addressCountryId && !Country::where('id', $addressCountryId)->exists()) {
-                            $addressCountryId = null;
                         }
                         if ($addressSubregionId && !\Modules\AreaSettings\app\Models\Subregion::where('id', $addressSubregionId)->exists()) {
                             $addressSubregionId = null;
@@ -2209,7 +2205,7 @@ class InjectDataController extends Controller
                             'customer_id' => $customer->id,
                             'title' => $addressTitle,
                             'address' => $addressData['address'] ?? '',
-                            'country_id' => $addressCountryId,
+                            'country_id' => $egyptCountry->id,
                             'city_id' => $addressCityId,
                             'region_id' => $addressRegionId,
                             'subregion_id' => $addressSubregionId,

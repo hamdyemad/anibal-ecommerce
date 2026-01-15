@@ -155,4 +155,5 @@ return [
     'order_status' => 'حالة الطلب',
     'order_date' => 'تاريخ الطلب',
     'no_orders_found' => 'لا توجد طلبات لهذا العميل',
+    'no_addresses_found' => 'لا توجد عناوين لهذا العميل',
 ];

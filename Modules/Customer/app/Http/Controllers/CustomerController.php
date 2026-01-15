@@ -438,6 +438,58 @@ class CustomerController extends Controller
     }
 
     /**
+     * Get customer addresses datatable
+     */
+    public function addressesDatatable(Request $request, $lang, $countryCode, $id)
+    {
+        $customer = $this->customerService->findById($id, []);
+        
+        if (!$customer) {
+            return response()->json([
+                'draw' => intval($request->get('draw', 1)),
+                'recordsTotal' => 0,
+                'recordsFiltered' => 0,
+                'data' => [],
+            ]);
+        }
+
+        $query = \Modules\Customer\app\Models\CustomerAddress::where('customer_id', $id)
+            ->with(['country', 'city', 'region', 'subregion']);
+
+        $total = $query->count();
+
+        $perPage = $request->get('per_page', 10);
+        $page = $request->get('page', 1);
+
+        $addresses = $query->orderBy('is_primary', 'desc')
+            ->orderBy('created_at', 'desc')
+            ->paginate($perPage, ['*'], 'page', $page);
+
+        $data = $addresses->map(function ($address, $index) use ($page, $perPage) {
+            return [
+                'index' => ($page - 1) * $perPage + $index + 1,
+                'id' => $address->id,
+                'title' => $address->title ?? '-',
+                'address' => $address->address ?? '-',
+                'country_name' => $address->country?->name ?? '-',
+                'city_name' => $address->city?->name ?? '-',
+                'region_name' => $address->region?->name ?? '-',
+                'subregion_name' => $address->subregion?->name ?? '-',
+                'is_primary' => $address->is_primary,
+            ];
+        })->toArray();
+
+        return response()->json([
+            'draw' => intval($request->get('draw', 1)),
+            'recordsTotal' => $total,
+            'recordsFiltered' => $total,
+            'data' => $data,
+            'total' => $addresses->total(),
+            'current_page' => $addresses->currentPage(),
+        ]);
+    }
+
+    /**
      * Calculate vendor's total for a specific order
      * Includes: products + shipping + fees - discounts - promo_code - points
      */

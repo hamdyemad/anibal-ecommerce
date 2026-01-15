@@ -203,100 +203,44 @@
                             </div>
                         </div>
 
-                        {{-- Addresses Section --}}
-                        @if ($customer->addresses && $customer->addresses->count() > 0)
-                            <div class="row mt-4">
-                                <div class="col-md-12">
-                                    <div class="card card-holder">
-                                        <div class="card-header">
-                                            <h3>
-                                                <i
-                                                    class="uil uil-map-marker me-1"></i>{{ __('customer::customer.addresses') }}
-                                            </h3>
-                                        </div>
-                                        <div class="card-body p-0">
-                                            <div class="userDatatable global-shadow border-light-0 bg-white w-100">
-                                                <div class="table-responsive">
-                                                    <table class="table mb-0 table-bordered table-hover">
-                                                        <thead>
-                                                            <tr class="userDatatable-header">
-                                                                <th><span class="userDatatable-title">#</span></th>
-                                                                <th><span
-                                                                        class="userDatatable-title">{{ __('customer::customer.address_title') }}</span>
-                                                                </th>
-                                                                <th><span
-                                                                        class="userDatatable-title">{{ __('customer::customer.address') }}</span>
-                                                                </th>
-                                                                <th><span
-                                                                        class="userDatatable-title">{{ __('customer::customer.country') }}</span>
-                                                                </th>
-                                                                <th><span
-                                                                        class="userDatatable-title">{{ __('customer::customer.city') }}</span>
-                                                                </th>
-                                                                <th><span
-                                                                        class="userDatatable-title">{{ __('customer::customer.region') }}</span>
-                                                                </th>
-                                                                <th><span
-                                                                        class="userDatatable-title">{{ __('customer::customer.sub_region') }}</span>
-                                                                </th>
-                                                                <th><span
-                                                                        class="userDatatable-title">{{ __('customer::customer.is_primary') }}</span>
-                                                                </th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody>
-                                                            @foreach ($customer->addresses as $index => $address)
-                                                                <tr>
-                                                                    <td>
-                                                                        <div class="userDatatable-content">
-                                                                            {{ $index + 1 }}</div>
-                                                                    </td>
-                                                                    <td>
-                                                                        <div class="userDatatable-content">
-                                                                            {{ $address->title ?? '-' }}</div>
-                                                                    </td>
-                                                                    <td>
-                                                                        <div class="userDatatable-content">
-                                                                            {{ $address->address ?? '-' }}</div>
-                                                                    </td>
-                                                                    <td>
-                                                                        <div class="userDatatable-content">
-                                                                            {{ $address->country?->name ?? '-' }}</div>
-                                                                    </td>
-                                                                    <td>
-                                                                        <div class="userDatatable-content">
-                                                                            {{ $address->city?->name ?? '-' }}</div>
-                                                                    </td>
-                                                                    <td>
-                                                                        <div class="userDatatable-content">
-                                                                            {{ $address->region?->name ?? '-' }}</div>
-                                                                    </td>
-                                                                    <td>
-                                                                        <div class="userDatatable-content">
-                                                                            {{ $address->subregion?->name ?? '-' }}</div>
-                                                                    </td>
-                                                                    <td>
-                                                                        <div class="userDatatable-content">
-                                                                            @if ($address->is_primary)
-                                                                                <span
-                                                                                    class="badge badge-primary badge-round badge-sm">{{ __('customer::customer.primary') }}</span>
-                                                                            @else
-                                                                                <span
-                                                                                    class="badge badge-light badge-round badge-sm">{{ __('customer::customer.non_primary') }}</span>
-                                                                            @endif
-                                                                        </div>
-                                                                    </td>
-                                                                </tr>
-                                                            @endforeach
-                                                        </tbody>
-                                                    </table>
-                                                </div>
+                        {{-- Addresses Section (Paginated DataTable) --}}
+                        <div class="row mt-4">
+                            <div class="col-md-12">
+                                <div class="card card-holder">
+                                    <div class="card-header">
+                                        <h3>
+                                            <i class="uil uil-map-marker me-1"></i>{{ __('customer::customer.addresses') }}
+                                        </h3>
+                                    </div>
+                                    <div class="card-body p-0">
+                                        <div class="userDatatable global-shadow border-light-0 bg-white w-100">
+                                            <div class="table-responsive">
+                                                <table class="table mb-0 table-bordered table-hover" id="addresses-table">
+                                                    <thead>
+                                                        <tr class="userDatatable-header">
+                                                            <th><span class="userDatatable-title">#</span></th>
+                                                            <th><span class="userDatatable-title">{{ __('customer::customer.address_title') }}</span></th>
+                                                            <th><span class="userDatatable-title">{{ __('customer::customer.address') }}</span></th>
+                                                            <th><span class="userDatatable-title">{{ __('customer::customer.country') }}</span></th>
+                                                            <th><span class="userDatatable-title">{{ __('customer::customer.city') }}</span></th>
+                                                            <th><span class="userDatatable-title">{{ __('customer::customer.region') }}</span></th>
+                                                            <th><span class="userDatatable-title">{{ __('customer::customer.sub_region') }}</span></th>
+                                                            <th><span class="userDatatable-title">{{ __('customer::customer.is_primary') }}</span></th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody id="addresses-tbody">
+                                                        {{-- Data loaded via AJAX --}}
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                            <div id="addresses-pagination" class="d-flex justify-content-between align-items-center p-3">
+                                                {{-- Pagination loaded via AJAX --}}
                                             </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                        @endif
+                        </div>
 
                         {{-- Order Statistics Section --}}
                         <div class="row mt-4">
@@ -461,3 +405,113 @@
         </div>
     </div>
 @endsection
+
+@push('scripts')
+<script>
+    // Addresses DataTable
+    const addressesConfig = {
+        url: '{{ route("admin.customers.addresses-datatable", $customer->id) }}',
+        currentPage: 1,
+        perPage: 10,
+        total: 0,
+        loading: false
+    };
+
+    function truncateStr(str, maxLength = 30) {
+        if (!str) return '-';
+        return str.length > maxLength ? str.substring(0, maxLength) + '...' : str;
+    }
+
+    function loadAddresses(page = 1) {
+        if (addressesConfig.loading) return;
+        addressesConfig.loading = true;
+        addressesConfig.currentPage = page;
+
+        const tbody = document.getElementById('addresses-tbody');
+        tbody.innerHTML = '<tr><td colspan="8" class="text-center py-4"><i class="uil uil-spinner-alt fa-spin"></i> {{ __("common.loading") }}...</td></tr>';
+
+        fetch(`${addressesConfig.url}?page=${page}&per_page=${addressesConfig.perPage}`)
+            .then(response => response.json())
+            .then(data => {
+                addressesConfig.total = data.total || 0;
+                renderAddressesTable(data.data || []);
+                renderAddressesPagination(data);
+                addressesConfig.loading = false;
+            })
+            .catch(error => {
+                console.error('Error loading addresses:', error);
+                tbody.innerHTML = '<tr><td colspan="8" class="text-center text-danger py-4">{{ __("common.error_loading_data") }}</td></tr>';
+                addressesConfig.loading = false;
+            });
+    }
+
+    function renderAddressesTable(addresses) {
+        const tbody = document.getElementById('addresses-tbody');
+        
+        if (addresses.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted py-4">{{ __("customer::customer.no_addresses_found") }}</td></tr>';
+            return;
+        }
+
+        tbody.innerHTML = addresses.map(address => `
+            <tr>
+                <td><div class="userDatatable-content">${address.index}</div></td>
+                <td><div class="userDatatable-content" title="${address.title || ''}">${truncateStr(address.title, 20)}</div></td>
+                <td><div class="userDatatable-content" title="${address.address || ''}">${truncateStr(address.address, 40)}</div></td>
+                <td><div class="userDatatable-content">${address.country_name || '-'}</div></td>
+                <td><div class="userDatatable-content">${address.city_name || '-'}</div></td>
+                <td><div class="userDatatable-content">${address.region_name || '-'}</div></td>
+                <td><div class="userDatatable-content">${address.subregion_name || '-'}</div></td>
+                <td><div class="userDatatable-content">
+                    ${address.is_primary 
+                        ? '<span class="badge badge-primary badge-round badge-sm">{{ __("customer::customer.primary") }}</span>'
+                        : '<span class="badge badge-light badge-round badge-sm">{{ __("customer::customer.non_primary") }}</span>'
+                    }
+                </div></td>
+            </tr>
+        `).join('');
+    }
+
+    function renderAddressesPagination(data) {
+        const container = document.getElementById('addresses-pagination');
+        const totalPages = Math.ceil(data.total / addressesConfig.perPage);
+        
+        if (totalPages <= 1) {
+            container.innerHTML = `<span class="text-muted small">{{ __("common.showing") }} ${data.data?.length || 0} {{ __("common.of") }} ${data.total || 0}</span>`;
+            return;
+        }
+
+        let paginationHtml = `<span class="text-muted small">{{ __("common.showing") }} ${data.data?.length || 0} {{ __("common.of") }} ${data.total || 0}</span>`;
+        paginationHtml += '<nav><ul class="pagination pagination-sm mb-0">';
+        
+        // Previous button
+        paginationHtml += `<li class="page-item ${addressesConfig.currentPage === 1 ? 'disabled' : ''}">
+            <a class="page-link" href="javascript:void(0)" onclick="loadAddresses(${addressesConfig.currentPage - 1})">&laquo;</a>
+        </li>`;
+        
+        // Page numbers
+        for (let i = 1; i <= totalPages; i++) {
+            if (i === 1 || i === totalPages || (i >= addressesConfig.currentPage - 2 && i <= addressesConfig.currentPage + 2)) {
+                paginationHtml += `<li class="page-item ${i === addressesConfig.currentPage ? 'active' : ''}">
+                    <a class="page-link" href="javascript:void(0)" onclick="loadAddresses(${i})">${i}</a>
+                </li>`;
+            } else if (i === addressesConfig.currentPage - 3 || i === addressesConfig.currentPage + 3) {
+                paginationHtml += '<li class="page-item disabled"><span class="page-link">...</span></li>';
+            }
+        }
+        
+        // Next button
+        paginationHtml += `<li class="page-item ${addressesConfig.currentPage === totalPages ? 'disabled' : ''}">
+            <a class="page-link" href="javascript:void(0)" onclick="loadAddresses(${addressesConfig.currentPage + 1})">&raquo;</a>
+        </li>`;
+        
+        paginationHtml += '</ul></nav>';
+        container.innerHTML = paginationHtml;
+    }
+
+    // Load addresses on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        loadAddresses(1);
+    });
+</script>
+@endpush

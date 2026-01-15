@@ -110,7 +110,7 @@ class ReportController extends Controller
                     'to' => $reportData['to'],
                     'statistics' => $reportData['statistics'] ?? [],
                     'registration_trend' => $reportData['registration_trend'] ?? [],
-                    'status_distribution' => $reportData['status_distribution'] ?? [],
+                    'city_distribution' => $reportData['city_distribution'] ?? [],
                 ],
             ], 200, [], JSON_UNESCAPED_SLASHES);
         } catch (\Exception $e) {
