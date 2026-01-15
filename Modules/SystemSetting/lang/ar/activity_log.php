@@ -38,7 +38,15 @@ return [
         'deleted' => 'تم الحذف',
         'restored' => 'تم الاستعادة',
         'force_deleted' => 'تم الحذف نهائياً',
+        'api_read' => 'قراءة API',
+        'api_create' => 'إنشاء API',
+        'api_update' => 'تحديث API',
+        'api_delete' => 'حذف API',
+        'api_request' => 'طلب API',
     ],
+
+    // API Request Description
+    'api_request' => ':method :endpoint (الحالة: :status)',
 
     // Sections
     'basic_information' => 'المعلومات الأساسية',

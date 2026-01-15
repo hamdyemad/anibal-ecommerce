@@ -27,6 +27,7 @@ class SetCountryCodeFromHeader
             if ($country) {
                 // Store in session
                 session(['country_code' => $country->code]);
+                session(['country_id' => $country->id]);
             }
         } else {
 
@@ -35,6 +36,7 @@ class SetCountryCodeFromHeader
                 $country = Country::where('id', $country_id)->first();
                 if ($country) {
                     session(['country_code' => $country->code]);
+                    session(['country_id' => $country->id]);
                 }
             }
             // If no header provided, use default or existing session value
@@ -42,6 +44,7 @@ class SetCountryCodeFromHeader
                 $defaultCountry = Country::default()->first();
                 if ($defaultCountry) {
                     session(['country_code' => $defaultCountry->code]);
+                    session(['country_id' => $defaultCountry->id]);
                 }
             }
         }

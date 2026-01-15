@@ -1,15 +1,17 @@
 <?php
 
 namespace App\Models;
-
+use App\Models\Traits\CountryCheckIdTrait;
+use App\Models\Traits\AutoStoreCountryId;
 use App\Models\Traits\HumanDates;
 use Illuminate\Database\Eloquent\Model;
 
 class ActivityLog extends Model
 {
-    use HumanDates;
+    use HumanDates, CountryCheckIdTrait, AutoStoreCountryId;
     protected $fillable = [
         'user_id',
+        'customer_id',
         'action',
         'model',
         'model_id',
@@ -53,6 +55,14 @@ class ActivityLog extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Get the customer who performed the action
+     */
+    public function customer()
+    {
+        return $this->belongsTo(\Modules\Customer\app\Models\Customer::class);
     }
 
     /**
@@ -208,7 +218,34 @@ class ActivityLog extends Model
      */
     public function getUserNameAttribute(): string
     {
-        return $this->user ? $this->user->email : __('System');
+        // Check if this is a customer action
+        if ($this->customer_id && $this->customer) {
+            $customer = $this->customer;
+            return __('dashboard.customer') . ': ' . ($customer->name ?? $customer->email ?? "ID: {$this->customer_id}");
+        }
+        
+        // Check if this is an API request with actor info in properties
+        if (!empty($this->properties['actor'])) {
+            $actor = $this->properties['actor'];
+            $type = $actor['type'] ?? 'unknown';
+            $name = $actor['name'] ?? $actor['email'] ?? 'Unknown';
+            
+            if ($type === 'guest') {
+                return __('common.guest');
+            }
+            
+            // Format: "Customer: John Doe" or "Vendor: Shop Name"
+            $typeLabel = match ($type) {
+                'customer' => __('dashboard.customer'),
+                'vendor' => __('activity_log.models.Vendor'),
+                'admin' => __('common.admin'),
+                default => ucfirst($type),
+            };
+            
+            return "{$typeLabel}: {$name}";
+        }
+        
+        return $this->user ? $this->user->email : __('common.system');
     }
 
     /**

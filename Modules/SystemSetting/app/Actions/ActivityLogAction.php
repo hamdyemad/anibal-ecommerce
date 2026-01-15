@@ -119,7 +119,7 @@ class ActivityLogAction
             
             $data[] = [
                 'id' => $log->id,
-                'user_name' => $log->user ? $log->user->email : __('System'),
+                'user_name' => $log->user_name, // Uses the accessor which handles customer, user, and actor info
                 'action' => __("activity_log.actions.{$log->action}"),
                 'model' => __("activity_log.models." . class_basename($log->model ?? 'Unknown')),
                 'description' => $log->translated_description,

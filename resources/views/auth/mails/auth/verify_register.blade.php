@@ -282,7 +282,7 @@
                         <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
                             <tr>
                                 <td class="logo" style="text-align: center;">
-                                    <h1><a href="#">{{ env('APP_NAME') }}</a></h1>
+                                    <h1><a href="#">Bnaia</a></h1>
                                 </td>
                             </tr>
                         </table>
@@ -295,7 +295,7 @@
                                 <td style="padding: 0 2.5em; text-align: center;">
                                     <div class="text">
                                         <h2>Verify Your Email Address</h2>
-                                        <h3>Welcome to {{ env('APP_NAME') }}</h3>
+                                        <h3>Welcome to Bnaia</h3>
                                     </div>
                                 </td>
                             </tr>
@@ -309,7 +309,7 @@
                                 <td class="bg_white email-section" style="padding-top:0;">
                                     <div class="heading-section" style="text-align: center; padding: 0 30px;">
                                         <p style="color: rgba(0,0,0,.4); font-size: 16px; line-height: 1.8; margin-bottom: 30px;">
-                                            Thanks for signing up for {{ env('APP_NAME') }}! We're excited to have you on board.
+                                            Thanks for signing up for Bnaia! We're excited to have you on board.
                                             To complete your registration, please verify your email address by entering the verification code below.
                                         </p>
 
@@ -383,7 +383,7 @@
                                         <tr>
                                             <td style="text-align: left; padding-right: 10px;">
                                                 <h3 class="heading">About</h3>
-                                                <p style="color: rgba(0,0,0,.4); font-size: 13px;">{{ env('APP_NAME') }} makes it easy to manage your digital life with powerful tools and seamless integration.</p>
+                                                <p style="color: rgba(0,0,0,.4); font-size: 13px;">Bnaia makes it easy to manage your digital life with powerful tools and seamless integration.</p>
                                             </td>
                                         </tr>
                                     </table>

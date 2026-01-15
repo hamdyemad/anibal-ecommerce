@@ -38,7 +38,15 @@ return [
         'deleted' => 'Deleted',
         'restored' => 'Restored',
         'force_deleted' => 'Force Deleted',
+        'api_read' => 'API Read',
+        'api_create' => 'API Create',
+        'api_update' => 'API Update',
+        'api_delete' => 'API Delete',
+        'api_request' => 'API Request',
     ],
+
+    // API Request Description
+    'api_request' => ':method :endpoint (Status: :status)',
 
     // Sections
     'basic_information' => 'Basic Information',

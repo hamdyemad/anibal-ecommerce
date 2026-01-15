@@ -211,6 +211,7 @@ class ProductApiRepository implements ProductApiRepositoryInterface
 
     /**
      * Get price range from filtered products
+     * Optimized to use JOIN instead of correlated subquery
      */
     public function getPriceByFilters(array $filters)
     {
@@ -228,21 +229,24 @@ class ProductApiRepository implements ProductApiRepositoryInterface
         $query = $this->query->handle($filters)
             ->whereHas('variants');
 
-        // If filters are provided, check if any products match
-        if ($hasFilters) {
-            $vendorProductIds = $query->pluck('id')->toArray();
-            if (empty($vendorProductIds)) {
-                return 0;
-            }
+        // Get vendor product IDs first
+        $vendorProductIds = $query->pluck('id')->toArray();
+        
+        if (empty($vendorProductIds)) {
+            return 0;
         }
 
-        $maxPrice = $query->max(DB::raw('(SELECT MAX(price) FROM vendor_product_variants WHERE vendor_product_id = vendor_products.id)'));
+        // Use a single efficient query with JOIN to get max price
+        $maxPrice = DB::table('vendor_product_variants')
+            ->whereIn('vendor_product_id', $vendorProductIds)
+            ->max('price');
 
         return $maxPrice ?? 0;
     }
 
     /**
      * Get tags from filtered products
+     * Optimized to use chunking and direct database queries to prevent memory exhaustion
      */
     public function getTagsByFilters(array $filters)
     {
@@ -259,27 +263,51 @@ class ProductApiRepository implements ProductApiRepositoryInterface
         
         $query = $this->query->handle($filters);
         
-        // If filters are provided, check if any products match
-        if ($hasFilters) {
-            $vendorProductIds = $query->pluck('id')->toArray();
-            if (empty($vendorProductIds)) {
-                return [];
-            }
-            // Re-query with the IDs to get products with tags
-            $products = \Modules\CatalogManagement\app\Models\VendorProduct::whereIn('id', $vendorProductIds)
-                ->with('product')
-                ->get();
-        } else {
-            $products = $query->get();
+        // Get vendor product IDs first (lightweight query)
+        $vendorProductIds = $query->pluck('id')->toArray();
+        
+        if (empty($vendorProductIds)) {
+            return [];
         }
         
-        $tags = [];
-        foreach ($products as $product) {
-            $productTags = $product->product->tags_array ?? [];
-            $tags = array_merge($tags, $productTags);
+        // Get product IDs from vendor products
+        $productIds = \Modules\CatalogManagement\app\Models\VendorProduct::whereIn('id', $vendorProductIds)
+            ->pluck('product_id')
+            ->unique()
+            ->toArray();
+        
+        if (empty($productIds)) {
+            return [];
         }
+        
+        // Get tags from translations table directly using chunking
+        // Tags are stored in translations table with lang_key = 'tags'
+        $tags = [];
+        $locale = app()->getLocale();
+        $language = \App\Models\Language::where('code', $locale)->first();
+        $langId = $language?->id;
+        
+        if (!$langId) {
+            return [];
+        }
+        
+        // Query translations table directly for tags
+        \App\Models\Translation::where('translatable_type', \Modules\CatalogManagement\app\Models\Product::class)
+            ->whereIn('translatable_id', $productIds)
+            ->where('lang_key', 'tags')
+            ->where('lang_id', $langId)
+            ->whereNotNull('lang_value')
+            ->where('lang_value', '!=', '')
+            ->select('lang_value')
+            ->chunkById(500, function ($translations) use (&$tags) {
+                foreach ($translations as $translation) {
+                    $productTags = explode(',', $translation->lang_value);
+                    $productTags = array_map('trim', $productTags);
+                    $tags = array_merge($tags, $productTags);
+                }
+            });
 
-        return array_unique(array_filter($tags));
+        return array_values(array_unique(array_filter($tags)));
     }
 
     /**

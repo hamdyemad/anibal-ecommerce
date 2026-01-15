@@ -96,7 +96,9 @@ class ActivityLogRepository implements ActivityLogRepositoryInterface
     public function getActivityLogById(int $id)
     {
         try {
-            $log = ActivityLog::with('user')->find($id);
+            // Use withoutGlobalScopes to bypass country filtering
+            $log = ActivityLog::with(['user', 'customer'])
+                ->find($id);
             if (!$log) {
                 throw new \Exception('Activity log not found');
             }

@@ -242,6 +242,7 @@ return [
     'phone' => 'الهاتف',
     'date' => 'التاريخ',
     'system' => 'النظام',
+    'admin' => 'مدير',
     'no_roles_found' => 'لا توجد أدوار',
     'error_loading_roles' => 'خطأ في تحميل الأدوار',
     'vendor_country_restriction' => 'يمكنك الوصول فقط إلى الدولة المخصصة لك.',

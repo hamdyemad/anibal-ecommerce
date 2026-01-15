@@ -3,6 +3,7 @@
 namespace Modules\Customer\app\Http\Requests\Api;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class RegisterRequest extends FormRequest
 {
@@ -18,60 +19,76 @@ class RegisterRequest extends FormRequest
             'last_name' => 'nullable|string|max:255',
             'email' => 'required|email|unique:customers,email',
             'password' => 'required|string|min:8|confirmed',
-            'phone' => 'nullable|string|unique:customers,phone',
+            'phone' => [
+                'nullable',
+                'string',
+                'unique:customers,phone',
+                // Phone length validation using custom rule
+                function ($attribute, $value, $fail) {
+                    if ($value && $this->country_id) {
+                        $this->validatePhoneLength($value, $fail);
+                    }
+                },
+            ],
             'lang' => 'nullable|string|in:en,ar',
             'country_id' => 'required|exists:countries,id',
-            'city_id' => 'required|exists:cities,id',
-            'region_id' => 'required|exists:regions,id',
+            // City must exist AND belong to the specified country (single query)
+            'city_id' => [
+                'required',
+                Rule::exists('cities', 'id')->where(function ($query) {
+                    if ($this->country_id) {
+                        $query->where('country_id', $this->country_id);
+                    }
+                }),
+            ],
+            // Region must exist AND belong to the specified city (single query)
+            'region_id' => [
+                'required',
+                Rule::exists('regions', 'id')->where(function ($query) {
+                    if ($this->city_id) {
+                        $query->where('city_id', $this->city_id);
+                    }
+                }),
+            ],
             'gender' => 'required|in:male,female',
         ];
     }
 
-    public function withValidator($validator)
+    /**
+     * Validate phone length against country's phone_length setting
+     * Uses cached country data to avoid repeated queries
+     */
+    protected function validatePhoneLength(string $phone, callable $fail): void
     {
-        $validator->after(function ($validator) {
-            // Validate that city belongs to the country if both are provided
-            if ($this->country_id && $this->city_id) {
-                $city = \Modules\AreaSettings\app\Models\City::where('id', $this->city_id)
-                    ->where('country_id', $this->country_id)
-                    ->first();
-
-                if (!$city) {
-                    $validator->errors()->add('city_id', trans('customer::customer.city_must_belong_to_country'));
-                }
+        // Cache the country lookup within the request lifecycle
+        static $countryCache = [];
+        
+        $countryId = $this->country_id;
+        
+        if (!isset($countryCache[$countryId])) {
+            $countryCache[$countryId] = \Modules\AreaSettings\app\Models\Country::find($countryId, ['id', 'phone_length']);
+        }
+        
+        $country = $countryCache[$countryId];
+        
+        if ($country && $country->phone_length) {
+            $phoneDigits = preg_replace('/\D/', '', $phone);
+            if (strlen($phoneDigits) !== $country->phone_length) {
+                $fail(trans('customer::customer.phone_length_invalid', [
+                    'length' => $country->phone_length
+                ]));
             }
-
-            // Validate that region belongs to the city if both are provided
-            if ($this->city_id && $this->region_id) {
-                $region = \Modules\AreaSettings\app\Models\Region::where('id', $this->region_id)
-                    ->where('city_id', $this->city_id)
-                    ->first();
-
-                if (!$region) {
-                    $validator->errors()->add('region_id', trans('customer::customer.region_must_belong_to_city'));
-                }
-            }
-
-            // Validate phone length against country's phone_length setting
-            if ($this->phone && $this->country_id) {
-                $country = \Modules\AreaSettings\app\Models\Country::find($this->country_id);
-                if ($country && $country->phone_length) {
-                    // Remove any non-digit characters for length check
-                    $phoneDigits = preg_replace('/\D/', '', $this->phone);
-                    if (strlen($phoneDigits) !== $country->phone_length) {
-                        $validator->errors()->add('phone', trans('customer::customer.phone_length_invalid', [
-                            'length' => $country->phone_length
-                        ]));
-                    }
-                }
-            }
-        });
-
-        return $validator;
+        }
     }
 
-    public function validated($key = null, $default = null)
+    /**
+     * Get custom error messages for validation rules
+     */
+    public function messages(): array
     {
-        return parent::validated($key, $default);
+        return [
+            'city_id.exists' => trans('customer::customer.city_must_belong_to_country'),
+            'region_id.exists' => trans('customer::customer.region_must_belong_to_city'),
+        ];
     }
 }

@@ -14,9 +14,15 @@ return [
         'password_reset_requested' => 'Password Reset Requested',
         'password_reset_success' => 'Password Reset Success',
         'password_reset_failed' => 'Password Reset Failed',
+        'api_read' => 'API Read',
+        'api_create' => 'API Create',
+        'api_update' => 'API Update',
+        'api_delete' => 'API Delete',
+        'api_request' => 'API Request',
     ],
 
     // Descriptions
+    'api_request' => ':method :endpoint (Status: :status)',
     'created_model' => 'Created :model: :identifier',
     'updated_model' => 'Updated :model: :identifier',
     'deleted_model' => 'Deleted :model: :identifier',
@@ -159,5 +165,6 @@ return [
         // Other
         'Address' => 'Address',
         'Tree' => 'Tree',
+        'ApiRequest' => 'API Request',
     ],
 ];

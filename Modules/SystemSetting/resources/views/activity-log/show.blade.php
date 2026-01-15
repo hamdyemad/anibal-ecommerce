@@ -40,12 +40,38 @@
                                                 <div class="view-item">
                                                     <label class="il-gray fs-14 fw-500 mb-10">{{ __('systemsetting::activity_log.user') }}</label>
                                                     <p class="fs-15 color-dark fw-500">
-                                                        @if($activity_log->user)
+                                                        @if($activity_log->customer_id && $activity_log->customer)
+                                                            <span class="badge badge-round badge-lg badge-info">{{ __('dashboard.customer') }}</span>
+                                                            {{ $activity_log->customer->name ?? $activity_log->customer->email }}
+                                                            <br>
+                                                            <small class="text-muted">
+                                                                ID: {{ $activity_log->customer_id }}
+                                                                @if($activity_log->customer->email)
+                                                                    | {{ $activity_log->customer->email }}
+                                                                @endif
+                                                                @if($activity_log->customer->phone)
+                                                                    | {{ $activity_log->customer->phone }}
+                                                                @endif
+                                                            </small>
+                                                        @elseif($activity_log->user)
+                                                            <span class="badge badge-round badge-lg badge-primary">{{ __('common.admin') }}</span>
                                                             {{ $activity_log->user->email }}
                                                             <br>
                                                             <small class="text-muted">{{ $activity_log->user->name ?? 'N/A' }}</small>
+                                                        @elseif(!empty($activity_log->properties['actor']))
+                                                            @php $actor = $activity_log->properties['actor']; @endphp
+                                                            <span class="badge badge-round badge-lg badge-{{ $actor['type'] === 'customer' ? 'info' : ($actor['type'] === 'vendor' ? 'warning' : 'secondary') }}">
+                                                                {{ ucfirst($actor['type'] ?? 'Unknown') }}
+                                                            </span>
+                                                            {{ $actor['name'] ?? $actor['email'] ?? 'Unknown' }}
+                                                            <br>
+                                                            <small class="text-muted">
+                                                                @if(!empty($actor['id'])) ID: {{ $actor['id'] }} @endif
+                                                                @if(!empty($actor['email'])) | {{ $actor['email'] }} @endif
+                                                                @if(!empty($actor['phone'])) | {{ $actor['phone'] }} @endif
+                                                            </small>
                                                         @else
-                                                            <span class="badge badge-secondary">{{ __('System') }}</span>
+                                                            <span class="badge badge-round badge-lg badge-secondary">{{ __('common.system') }}</span>
                                                         @endif
                                                     </p>
                                                 </div>
@@ -63,7 +89,7 @@
                                                             ];
                                                             $actionColor = $actionColors[$activity_log->action] ?? 'secondary';
                                                         @endphp
-                                                        <span class="badge badge-{{ $actionColor }} badge-round badge-lg">
+                                                        <span class="badge badge-round badge-lg badge-{{ $actionColor }} badge-round badge-lg">
                                                             {{ __("activity_log.actions.{$activity_log->action}") }}
                                                         </span>
                                                     </p>
@@ -121,7 +147,7 @@
                                                     <div class="view-item">
                                                         <label class="il-gray fs-14 fw-500 mb-10">{{ __('systemsetting::activity_log.properties') }}</label>
                                                         <div class="fs-15 color-dark">
-                                                            <pre class="bg-light p-2 rounded" style="max-height: 200px; overflow-y: auto;">{{ json_encode($activity_log->properties, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) }}</pre>
+                                                            <pre class="p-2 rounded" style="max-height: 200px; overflow-y: auto;">{{ json_encode($activity_log->properties, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) }}</pre>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -146,14 +172,12 @@
                                                 <div class="view-item">
                                                     <label class="il-gray fs-14 fw-500 mb-10">{{ __('common.created_at') }}</label>
                                                     <p class="fs-15 color-dark">{{ $activity_log->created_at }}</p>
-                                                    <small class="text-muted">{{ $activity_log->created_at->diffForHumans() }}</small>
                                                 </div>
                                             </div>
                                             <div class="col-md-6">
                                                 <div class="view-item">
                                                     <label class="il-gray fs-14 fw-500 mb-10">{{ trans('common.updated_at') }}</label>
                                                     <p class="fs-15 color-dark">{{ $activity_log->updated_at }}</p>
-                                                    <small class="text-muted">{{ $activity_log->updated_at->diffForHumans() }}</small>
                                                 </div>
                                             </div>
                                         </div>

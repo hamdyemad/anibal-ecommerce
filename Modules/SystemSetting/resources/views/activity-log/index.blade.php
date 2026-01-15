@@ -274,12 +274,13 @@
                         orderable: false,
                         searchable: false,
                         render: function(data, type, row) {
+                            let url = "{{ route('admin.system-settings.activity-logs.show', ['id' => '__ID__']) }}".replace('__ID__', row.id);
                             return `
                                 <div class="orderDatatable_actions d-inline-flex gap-1">
                                     @can('settings.logs.view')
-                                    <a href="{{ url('admin/system-settings/activity-logs') }}/${row.id}"
-                                    class="view btn btn-primary btn-sm table_action_father"
-                                    title="{{ trans('common.view') }}">
+                                    <a href="${url}"
+                                        class="view btn btn-primary btn-sm table_action_father"
+                                        title="{{ trans('common.view') }}">
                                         <i class="uil uil-eye table_action_icon"></i>
                                     </a>
                                     @endcan

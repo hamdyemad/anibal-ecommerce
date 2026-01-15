@@ -14,9 +14,15 @@ return [
         'password_reset_requested' => 'طلب إعادة تعيين كلمة المرور',
         'password_reset_success' => 'نجح إعادة تعيين كلمة المرور',
         'password_reset_failed' => 'فشل إعادة تعيين كلمة المرور',
+        'api_read' => 'قراءة API',
+        'api_create' => 'إنشاء API',
+        'api_update' => 'تحديث API',
+        'api_delete' => 'حذف API',
+        'api_request' => 'طلب API',
     ],
 
     // Descriptions
+    'api_request' => ':method :endpoint (الحالة: :status)',
     'created_model' => 'تم إنشاء :model: :identifier',
     'updated_model' => 'تم تحديث :model: :identifier',
     'deleted_model' => 'تم حذف :model: :identifier',
@@ -159,5 +165,6 @@ return [
         // Other
         'Address' => 'عنوان',
         'Tree' => 'شجرة',
+        'ApiRequest' => 'طلب API',
     ],
 ];

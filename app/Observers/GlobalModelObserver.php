@@ -19,6 +19,8 @@ class GlobalModelObserver
         'App\Models\FailedJob',
         'App\Models\Translation',
         'Modules\AreaSettings\app\Models\Country',
+        'Modules\Order\app\Models\OrderStage', // Exclude - gets touched during various operations
+        'Modules\Order\app\Models\VendorOrderStage', // Exclude - gets touched during various operations
     ];
 
 
@@ -119,26 +121,15 @@ class GlobalModelObserver
             }
         }
 
-        // Skip if no authenticated user (check both web and admin guards)
-        $user = auth()->user() ?? auth('web')->user();
+        // Get user from request (works for both web and API)
+        $user = request()->user() ?? auth()->user() ?? auth('web')->user();
+        
+        // Skip if no authenticated user
         if (!$user) {
             return false;
         }
 
-        // Skip if request is from API routes
-        if ($this->isApiRequest()) {
-            return false;
-        }
-
         return true;
-    }
-
-    /**
-     * Check if current request is from API
-     */
-    private function isApiRequest(): bool
-    {
-        return request()->is('api/*');
     }
 
     /**
@@ -165,8 +156,8 @@ class GlobalModelObserver
             $modelName = class_basename($model);
             $identifier = $model->id;
             
-            // Get user from any available guard
-            $user = auth()->user() ?? auth('web')->user();
+            // Get user from request (works for both web and API)
+            $user = request()->user() ?? auth()->user() ?? auth('web')->user();
             $userId = $user?->id;
 
             // Map actions to translation keys
