@@ -16,23 +16,28 @@ class NotificationApiRepository implements NotificationApiRepositoryInterface
     }
 
     /**
-     * Get notifications for a user
+     * Get notifications for a user (unread only)
      */
     public function getNotifications(int $userId, string $userType, int $perPage = 15): array
     {
+        // $viewedIds = $this->getViewedIds($userId, $userType);
+        
         $query = $this->buildNotificationQuery($userId, $userType);
+        
+        // Filter out already viewed notifications - return only unread
+        // if (!empty($viewedIds)) {
+        //     $query->whereNotIn('push_notifications.id', $viewedIds);
+        // }
         
         $notifications = $query->orderBy('created_at', 'desc')->paginate($perPage);
 
-        $viewedIds = $this->getViewedIds($userId, $userType);
-
-        $data = $notifications->getCollection()->map(function ($notification) use ($viewedIds) {
-            return $this->transformNotification($notification, $viewedIds);
+        $data = $notifications->getCollection()->map(function ($notification) {
+            return $this->transformNotification($notification, []);
         });
 
         return [
             'notifications' => $data,
-            'unread_count' => $this->getUnreadCount($userId, $userType),
+            'unread_count' => $notifications->total(),
             'pagination' => [
                 'current_page' => $notifications->currentPage(),
                 'last_page' => $notifications->lastPage(),

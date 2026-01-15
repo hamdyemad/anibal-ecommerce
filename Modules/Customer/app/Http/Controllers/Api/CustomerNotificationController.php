@@ -11,6 +11,7 @@ use Modules\SystemSetting\app\Services\Api\NotificationApiService;
 class CustomerNotificationController extends Controller
 {
     use Res;
+    
     protected string $userType = 'customer';
 
     public function __construct(
@@ -23,7 +24,7 @@ class CustomerNotificationController extends Controller
     public function index(Request $request): JsonResponse
     {
         $customer = $request->user();
-        $perPage = $request->get('per_page', 15);
+        $perPage = $request->get('per_page', 10);
 
         $data = $this->notificationService->getNotifications(
             $customer->id,
@@ -31,7 +32,11 @@ class CustomerNotificationController extends Controller
             $perPage
         );
 
-        return Res::success($data, 'Notifications retrieved successfully');
+        return $this->sendRes(
+            config('responses.data_retrieved')[app()->getLocale()] ?? 'Notifications retrieved successfully',
+            true,
+            $data
+        );
     }
 
     /**
@@ -48,10 +53,20 @@ class CustomerNotificationController extends Controller
         );
 
         if (!$notification) {
-            return Res::error('Notification not found', 404);
+            return $this->sendRes(
+                config('responses.not_found')[app()->getLocale()] ?? 'Notification not found',
+                false,
+                [],
+                [],
+                404
+            );
         }
 
-        return Res::success($notification, 'Notification retrieved successfully');
+        return $this->sendRes(
+            config('responses.data_retrieved')[app()->getLocale()] ?? 'Notification retrieved successfully',
+            true,
+            $notification
+        );
     }
 
     /**
@@ -68,10 +83,19 @@ class CustomerNotificationController extends Controller
         );
 
         if (!$success) {
-            return Res::error('Notification not found', 404);
+            return $this->sendRes(
+                config('responses.not_found')[app()->getLocale()] ?? 'Notification not found',
+                false,
+                [],
+                [],
+                404
+            );
         }
 
-        return Res::success(null, 'Notification marked as read');
+        return $this->sendRes(
+            config('responses.success')[app()->getLocale()] ?? 'Notification marked as read',
+            true
+        );
     }
 
     /**
@@ -86,7 +110,11 @@ class CustomerNotificationController extends Controller
             $this->userType
         );
 
-        return Res::success(['marked_count' => $count], 'All notifications marked as read');
+        return $this->sendRes(
+            config('responses.success')[app()->getLocale()] ?? 'All notifications marked as read',
+            true,
+            ['marked_count' => $count]
+        );
     }
 
     /**
@@ -101,6 +129,10 @@ class CustomerNotificationController extends Controller
             $this->userType
         );
 
-        return Res::success(['unread_count' => $count], 'Unread count retrieved successfully');
+        return $this->sendRes(
+            config('responses.data_retrieved')[app()->getLocale()] ?? 'Unread count retrieved successfully',
+            true,
+            ['unread_count' => $count]
+        );
     }
 }
