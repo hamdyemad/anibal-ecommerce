@@ -19,6 +19,7 @@ class GeneralResoruce extends JsonResource
             'image' => formatImage($this->image),
             'icon' => formatImage($this->image),
             'cover' => formatImage($this->cover),
+            
             'type' => $this->type ?? 'General',
         ];
     }
