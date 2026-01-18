@@ -4,11 +4,13 @@ namespace Modules\CategoryManagment\app\Repositories;
 
 use Modules\CategoryManagment\app\Interfaces\SubCategoryRepositoryInterface;
 use Modules\CategoryManagment\app\Models\SubCategory;
+use Modules\CategoryManagment\app\Traits\HandlesSortNumber;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
 
 class SubCategoryRepository implements SubCategoryRepositoryInterface
 {
+    use HandlesSortNumber;
     /**
      * Get all sub-categories with filters and pagination
      */
@@ -96,12 +98,18 @@ class SubCategoryRepository implements SubCategoryRepositoryInterface
      */
     public function createSubCategory(array $data)
     {
-        $subCategory = SubCategory::create([
-            'category_id' => $data['category_id'],
-            'active' => $data['active'] ?? 1,
-            'sort_number' => $data['sort_number'] ?? 0,
-            'view_status' => $data['view_status'] ?? 1,
-        ]);
+        return \DB::transaction(function () use ($data) {
+            $sortNumber = $data['sort_number'] ?? 0;
+            
+            // Handle sort number before creating (global scope)
+            $this->handleSortNumber(SubCategory::class, null, $sortNumber);
+            
+            $subCategory = SubCategory::create([
+                'category_id' => $data['category_id'],
+                'active' => $data['active'] ?? 1,
+                'sort_number' => $sortNumber,
+                'view_status' => $data['view_status'] ?? 1,
+            ]);
 
         // Store translations
         if (isset($data['translations'])) {
@@ -142,7 +150,8 @@ class SubCategoryRepository implements SubCategoryRepositoryInterface
             ]);
         }
 
-        return $subCategory;
+            return $subCategory;
+        });
     }
 
     /**
@@ -150,19 +159,29 @@ class SubCategoryRepository implements SubCategoryRepositoryInterface
      */
     public function updateSubCategory(int $id, array $data)
     {
-        $subCategory = SubCategory::findOrFail($id);
-        $updatedData = [];
-        (isset($data['category_id'])) ? $updatedData['category_id'] = $data['category_id'] : null;
-        if(isset($data['active'])) {
-            $updatedData['active'] = $data['active'] == 1 ? 1 : 0;
-        }
-        if(isset($data['sort_number'])) {
-            $updatedData['sort_number'] = (int) $data['sort_number'];
-        }
-        if(isset($data['view_status'])) {
-            $updatedData['view_status'] = $data['view_status'] == 1 ? 1 : 0;
-        }
-        $subCategory->update($updatedData);
+        return \DB::transaction(function () use ($id, $data) {
+            $subCategory = SubCategory::findOrFail($id);
+            $updatedData = [];
+            (isset($data['category_id'])) ? $updatedData['category_id'] = $data['category_id'] : null;
+            if(isset($data['active'])) {
+                $updatedData['active'] = $data['active'] == 1 ? 1 : 0;
+            }
+            
+            // Handle sort_number to prevent duplicates globally
+            if(isset($data['sort_number'])) {
+                $newSortNumber = (int) $data['sort_number'];
+                $oldSortNumber = $subCategory->sort_number;
+                
+                // Use the trait handler function (global scope)
+                $this->handleSortNumber(SubCategory::class, $id, $newSortNumber, $oldSortNumber);
+                
+                $updatedData['sort_number'] = $newSortNumber;
+            }
+            
+            if(isset($data['view_status'])) {
+                $updatedData['view_status'] = $data['view_status'] == 1 ? 1 : 0;
+            }
+            $subCategory->update($updatedData);
 
         // Update translations
         if (isset($data['translations'])) {
@@ -230,7 +249,8 @@ class SubCategoryRepository implements SubCategoryRepositoryInterface
         // Touch the model to trigger GlobalModelObserver for activity logging
         $subCategory->touch();
 
-        return $subCategory;
+            return $subCategory;
+        });
     }
 
     /**
@@ -238,18 +258,26 @@ class SubCategoryRepository implements SubCategoryRepositoryInterface
      */
     public function deleteSubCategory(int $id)
     {
-        $subCategory = SubCategory::findOrFail($id);
-        $oldImage = $subCategory->attachments()->where('type', 'image')->first();
-        $oldIcon = $subCategory->attachments()->where('type', 'icon')->first();
-        if ($oldImage) {
-            $oldImage->delete();
-        }
-        if ($oldIcon) {
-            $oldIcon->delete();
-        }
-        $subCategory->translations()->delete();
-        $subCategory->delete();
-        return true;
+        return \DB::transaction(function () use ($id) {
+            $subCategory = SubCategory::findOrFail($id);
+            $deletedSortNumber = $subCategory->sort_number;
+            
+            $oldImage = $subCategory->attachments()->where('type', 'image')->first();
+            $oldIcon = $subCategory->attachments()->where('type', 'icon')->first();
+            if ($oldImage) {
+                $oldImage->delete();
+            }
+            if ($oldIcon) {
+                $oldIcon->delete();
+            }
+            $subCategory->translations()->delete();
+            $subCategory->delete();
+            
+            // Shift down all subcategories with higher sort numbers to fill the gap (global scope)
+            $this->handleSortNumberAfterDelete(SubCategory::class, $deletedSortNumber);
+            
+            return true;
+        });
     }
 
     /**

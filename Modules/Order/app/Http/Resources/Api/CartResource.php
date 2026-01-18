@@ -116,7 +116,29 @@ class CartResource extends JsonResource
             ];
         }
 
-        return [$this->vendorProductVariant?->max_per_order ?? 0, 0];
+        // For regular products, check if vendorProductVariant exists
+        if (!$this->vendorProductVariant) {
+            return [999, 0]; // No variant loaded, return unlimited
+        }
+        
+        // Try to get max_per_order from variant first, then from parent vendorProduct
+        $maxPerOrder = $this->vendorProductVariant->max_per_order 
+                    ?? $this->vendorProduct?->max_per_order 
+                    ?? null;
+        
+        // If max_per_order is set and greater than 0, use it
+        if ($maxPerOrder !== null && $maxPerOrder > 0) {
+            return [(int) $maxPerOrder, 0];
+        }
+        
+        // Otherwise, use total_stock if available and greater than 0
+        $totalStock = $this->vendorProductVariant->total_stock ?? 0;
+        if ($totalStock > 0) {
+            return [(int) $totalStock, 0];
+        }
+        
+        // If both are 0 or null, return a reasonable default (999 = unlimited)
+        return [999, 0];
     }
 
     /**

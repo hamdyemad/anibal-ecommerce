@@ -240,7 +240,6 @@
                                     <th style="width: 40px;"><span class="userDatatable-title"><i class="uil uil-sort"></i></span></th>
                                     <th class="text-center"><span class="userDatatable-title">#</span></th>
                                     <th><span class="userDatatable-title">{{ __('categorymanagment::category.category_information') }}</span></th>
-                                    <th><span class="userDatatable-title">{{ __('activity.department') }}</span></th>
                                     <th><span class="userDatatable-title">{{ __('categorymanagment::category.view_status') }}</span></th>
                                     <th><span class="userDatatable-title">{{ __('activity.activation') }}</span></th>
                                     <th><span class="userDatatable-title">{{ __('activity.created_at') }}</span></th>
@@ -330,8 +329,16 @@
                                 }
                             @endforeach
 
-                            // Sort Number
+                            // Department info
                             html += '<div class="category-meta-info">';
+                            if (row.department && row.department.name) {
+                                html += `<div class="mb-1">
+                                    <small class="text-muted">{{ trans('activity.department') }}:</small>
+                                    <span class="badge badge-info badge-round badge-lg ms-1">${$('<div/>').text(row.department.name).html()}</span>
+                                </div>`;
+                            }
+                            
+                            // Sort Number
                             html += `<div class="mb-1">
                                 <small class="text-muted">{{ trans('categorymanagment::category.sort_number') }}:</small>
                                 <span class="badge badge-secondary badge-round badge-lg ms-1">${row.sort_number ?? 0}</span>
@@ -342,15 +349,6 @@
                             return html;
                         },
                         className: 'text-start'
-                    },
-                    {
-                        data: 'department',
-                        name: 'department',
-                        orderable: false,
-                        render: function(data) {
-                            if (!data?.name) return '<span class="text-muted">—</span>';
-                            return `<span class="badge badge-info badge-round badge-lg">${$('<div/>').text(data.name).html()}</span>`;
-                        }
                     },
                     {
                         data: 'view_status',

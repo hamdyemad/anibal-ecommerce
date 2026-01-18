@@ -7,9 +7,11 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Modules\CategoryManagment\app\Interfaces\DepartmentRepositoryInterface;
 use Modules\CategoryManagment\app\Models\Department;
+use Modules\CategoryManagment\app\Traits\HandlesSortNumber;
 
 class DepartmentRepository implements DepartmentRepositoryInterface
 {
+    use HandlesSortNumber;
     /**
      * Get all departments with filters and pagination
      */
@@ -51,12 +53,18 @@ class DepartmentRepository implements DepartmentRepositoryInterface
      */
     public function createDepartment(array $data)
     {
-        $department = Department::create([
-            'active' => $data['active'] ?? 1,
-            'commission' => $data['commission'] ?? 0,
-            'sort_number' => $data['sort_number'] ?? 0,
-            'view_status' => $data['view_status'] ?? 1,
-        ]);
+        return \DB::transaction(function () use ($data) {
+            $sortNumber = $data['sort_number'] ?? 0;
+            
+            // Handle sort number before creating (global scope)
+            $this->handleSortNumber(Department::class, null, $sortNumber);
+            
+            $department = Department::create([
+                'active' => $data['active'] ?? 1,
+                'commission' => $data['commission'] ?? 0,
+                'sort_number' => $sortNumber,
+                'view_status' => $data['view_status'] ?? 1,
+            ]);
 
         // Store translations
         if (isset($data['translations'])) {
@@ -97,7 +105,8 @@ class DepartmentRepository implements DepartmentRepositoryInterface
             ]);
         }
 
-        return $department;
+            return $department;
+        });
     }
 
     /**
@@ -105,16 +114,27 @@ class DepartmentRepository implements DepartmentRepositoryInterface
      */
     public function updateDepartment(int $id, array $data)
     {
-        $department = Department::findOrFail($id);
+        return \DB::transaction(function () use ($id, $data) {
+            $department = Department::findOrFail($id);
 
-        $updateData = [
-            'active' => $data['active'] ?? 1,
-            'commission' => $data['commission'] ?? 0,
-            'sort_number' => $data['sort_number'] ?? 0,
-            'view_status' => $data['view_status'] ?? 1,
-        ];
+            $updateData = [
+                'active' => $data['active'] ?? 1,
+                'commission' => $data['commission'] ?? 0,
+                'view_status' => $data['view_status'] ?? 1,
+            ];
+            
+            // Handle sort_number to prevent duplicates globally
+            if (isset($data['sort_number'])) {
+                $newSortNumber = (int) $data['sort_number'];
+                $oldSortNumber = $department->sort_number;
+                
+                // Use the trait handler function (global scope)
+                $this->handleSortNumber(Department::class, $id, $newSortNumber, $oldSortNumber);
+                
+                $updateData['sort_number'] = $newSortNumber;
+            }
 
-        $department->update($updateData);
+            $department->update($updateData);
 
         // Handle image upload
         if (isset($data['image']) && $data['image']) {
@@ -180,7 +200,8 @@ class DepartmentRepository implements DepartmentRepositoryInterface
         // Touch the model to trigger GlobalModelObserver for activity logging
         $department->touch();
 
-        return $department;
+            return $department;
+        });
     }
 
     /**
@@ -188,17 +209,25 @@ class DepartmentRepository implements DepartmentRepositoryInterface
      */
     public function deleteDepartment(int $id)
     {
-        $department = Department::findOrFail($id);
-        $oldImage = $department->attachments()->where('type', 'image')->first();
-        $oldIcon = $department->attachments()->where('type', 'icon')->first();
-        if ($oldImage) {
-            $oldImage->forceDelete();
-        }
-        if ($oldIcon) {
-            $oldIcon->forceDelete();
-        }
-        $department->translations()->delete();
-        $department->delete();
-        return true;
+        return \DB::transaction(function () use ($id) {
+            $department = Department::findOrFail($id);
+            $deletedSortNumber = $department->sort_number;
+            
+            $oldImage = $department->attachments()->where('type', 'image')->first();
+            $oldIcon = $department->attachments()->where('type', 'icon')->first();
+            if ($oldImage) {
+                $oldImage->forceDelete();
+            }
+            if ($oldIcon) {
+                $oldIcon->forceDelete();
+            }
+            $department->translations()->delete();
+            $department->delete();
+            
+            // Shift down all departments with higher sort numbers to fill the gap (global scope)
+            $this->handleSortNumberAfterDelete(Department::class, $deletedSortNumber);
+            
+            return true;
+        });
     }
 }

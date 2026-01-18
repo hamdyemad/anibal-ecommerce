@@ -4,10 +4,13 @@ namespace Modules\CategoryManagment\app\Repositories;
 
 use Modules\CategoryManagment\app\Interfaces\CategoryRepositoryInterface;
 use Modules\CategoryManagment\app\Models\Category;
+use Modules\CategoryManagment\app\Traits\HandlesSortNumber;
 use Illuminate\Support\Facades\Storage;
 
 class CategoryRepository implements CategoryRepositoryInterface
 {
+    use HandlesSortNumber;
+
     /**
      * Get all categories with filters and pagination
      */
@@ -52,54 +55,61 @@ class CategoryRepository implements CategoryRepositoryInterface
      */
     public function createCategory(array $data)
     {
-        $category = Category::create([
-            'department_id' => $data['department_id'],
-            'active' => $data['active'] ?? 1,
-            'sort_number' => $data['sort_number'] ?? 0,
-            'view_status' => $data['view_status'] ?? 1,
-        ]);
+        return \DB::transaction(function () use ($data) {
+            $sortNumber = $data['sort_number'] ?? 0;
+            
+            // Handle sort number before creating (global scope - no additional conditions)
+            $this->handleSortNumber(Category::class, null, $sortNumber);
+            
+            $category = Category::create([
+                'department_id' => $data['department_id'],
+                'active' => $data['active'] ?? 1,
+                'sort_number' => $sortNumber,
+                'view_status' => $data['view_status'] ?? 1,
+            ]);
 
-        // Store translations
-        if (isset($data['translations'])) {
-            foreach ($data['translations'] as $langId => $translation) {
-                if (!empty($translation['name'])) {
-                    $category->translations()->create([
-                        'lang_id' => $langId,
-                        'lang_key' => 'name',
-                        'lang_value' => $translation['name'],
-                    ]);
-                }
+            // Store translations
+            if (isset($data['translations'])) {
+                foreach ($data['translations'] as $langId => $translation) {
+                    if (!empty($translation['name'])) {
+                        $category->translations()->create([
+                            'lang_id' => $langId,
+                            'lang_key' => 'name',
+                            'lang_value' => $translation['name'],
+                        ]);
+                    }
 
-                if (!empty($translation['description'])) {
-                    $category->translations()->create([
-                        'lang_id' => $langId,
-                        'lang_key' => 'description',
-                        'lang_value' => $translation['description'],
-                    ]);
+                    if (!empty($translation['description'])) {
+                        $category->translations()->create([
+                            'lang_id' => $langId,
+                            'lang_key' => 'description',
+                            'lang_value' => $translation['description'],
+                        ]);
+                    }
                 }
             }
-        }
 
 
-        // Handle image upload
-        if (isset($data['image'])) {
-            $path = $data['image']->store("categories/$category->id", 'public');
-            $category->attachments()->create([
-                'path' => $path,
-                'type' => 'image'
-            ]);
-        }
+            // Handle image upload
+            if (isset($data['image'])) {
+                $path = $data['image']->store("categories/$category->id", 'public');
+                $category->attachments()->create([
+                    'path' => $path,
+                    'type' => 'image'
+                ]);
+            }
 
-        // Handle icon upload
-        if (isset($data['icon'])) {
-            $path = $data['icon']->store("categories/$category->id", 'public');
-            $category->attachments()->create([
-                'path' => $path,
-                'type' => 'icon'
-            ]);
-        }
+            // Handle icon upload
+            if (isset($data['icon'])) {
+                $path = $data['icon']->store("categories/$category->id", 'public');
+                $category->attachments()->create([
+                    'path' => $path,
+                    'type' => 'icon'
+                ]);
+            }
 
-        return $category;
+            return $category;
+        });
     }
 
     /**
@@ -107,23 +117,33 @@ class CategoryRepository implements CategoryRepositoryInterface
      */
     public function updateCategory(int $id, array $data)
     {
-        $category = Category::findOrFail($id);
-        $updatedData = [];
-        (isset($data['department_id'])) ? $updatedData['department_id'] = $data['department_id'] : null;
-        if(isset($data['active'])) {
-            if($data['active'] == 1) {
-                $updatedData['active'] = 1;
-            } else {
-                $updatedData['active'] = 0;
+        return \DB::transaction(function () use ($id, $data) {
+            $category = Category::findOrFail($id);
+            $updatedData = [];
+            (isset($data['department_id'])) ? $updatedData['department_id'] = $data['department_id'] : null;
+            if(isset($data['active'])) {
+                if($data['active'] == 1) {
+                    $updatedData['active'] = 1;
+                } else {
+                    $updatedData['active'] = 0;
+                }
             }
-        }
-        if(isset($data['sort_number'])) {
-            $updatedData['sort_number'] = (int) $data['sort_number'];
-        }
-        if(isset($data['view_status'])) {
-            $updatedData['view_status'] = $data['view_status'] == 1 ? 1 : 0;
-        }
-        $category->update($updatedData);
+            
+            // Handle sort_number to prevent duplicates GLOBALLY (across all departments)
+            if(isset($data['sort_number'])) {
+                $newSortNumber = (int) $data['sort_number'];
+                $oldSortNumber = $category->sort_number;
+                
+                // Use the trait handler function (global scope - no additional conditions)
+                $this->handleSortNumber(Category::class, $id, $newSortNumber, $oldSortNumber);
+                
+                $updatedData['sort_number'] = $newSortNumber;
+            }
+            
+            if(isset($data['view_status'])) {
+                $updatedData['view_status'] = $data['view_status'] == 1 ? 1 : 0;
+            }
+            $category->update($updatedData);
 
         // Update translations
         if (isset($data['translations'])) {
@@ -192,6 +212,7 @@ class CategoryRepository implements CategoryRepositoryInterface
         $category->touch();
 
         return $category;
+        });
     }
 
     /**
@@ -199,18 +220,26 @@ class CategoryRepository implements CategoryRepositoryInterface
      */
     public function deleteCategory(int $id)
     {
-        $category = Category::findOrFail($id);
-        $oldImage = $category->attachments()->where('type', 'image')->first();
-        $oldIcon = $category->attachments()->where('type', 'icon')->first();
-        if ($oldImage) {
-            $oldImage->delete();
-        }
-        if ($oldIcon) {
-            $oldIcon->delete();
-        }
-        $category->translations()->delete();
-        $category->delete();
-        return true;
+        return \DB::transaction(function () use ($id) {
+            $category = Category::findOrFail($id);
+            $deletedSortNumber = $category->sort_number;
+            
+            $oldImage = $category->attachments()->where('type', 'image')->first();
+            $oldIcon = $category->attachments()->where('type', 'icon')->first();
+            if ($oldImage) {
+                $oldImage->delete();
+            }
+            if ($oldIcon) {
+                $oldIcon->delete();
+            }
+            $category->translations()->delete();
+            $category->delete();
+            
+            // Shift down all categories with higher sort numbers to fill the gap (global scope)
+            $this->handleSortNumberAfterDelete(Category::class, $deletedSortNumber);
+            
+            return true;
+        });
     }
 
     /**
