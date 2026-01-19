@@ -65,7 +65,7 @@ class ProductFilterDTO extends FilterDTO
             city_id: $request->input('city_id', null),
             region_id: $request->input('region_id', null),
             subregion_id: $request->input('subregion_id', null),
-            per_page: $request->integer('per_page', 15),
+            per_page: $request->integer('per_page', 12),
             paginated: $request->input('paginated', null),
             limit: $request->integer('limit', null),
             rate: $request->integer('rate', null),

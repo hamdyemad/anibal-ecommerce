@@ -101,6 +101,9 @@ class VendorProductVariant extends Model
 
     public function getTotalStockAttribute()
     {
+        if (array_key_exists('total_stock_sum', $this->attributes)) {
+            return (int) ($this->attributes['total_stock_sum'] ?? 0);
+        }
         return $this->stocks->sum('quantity') ?? 0;
     }
 
@@ -110,6 +113,10 @@ class VendorProductVariant extends Model
      */
     public function getBookedStockAttribute()
     {
+        if (array_key_exists('booked_stock_sum', $this->attributes)) {
+            return (int) ($this->attributes['booked_stock_sum'] ?? 0);
+        }
+
         return (int) StockBooking::where('vendor_product_variant_id', $this->id)
             ->where('status', StockBooking::STATUS_BOOKED)
             ->sum('booked_quantity');
@@ -121,6 +128,10 @@ class VendorProductVariant extends Model
      */
     public function getAllocatedStockAttribute()
     {
+        if (array_key_exists('allocated_stock_sum', $this->attributes)) {
+            return (int) ($this->attributes['allocated_stock_sum'] ?? 0);
+        }
+
         return (int) StockBooking::where('vendor_product_variant_id', $this->id)
             ->where('status', StockBooking::STATUS_ALLOCATED)
             ->sum('booked_quantity');
@@ -132,6 +143,10 @@ class VendorProductVariant extends Model
      */
     public function getFulfilledStockAttribute()
     {
+        if (array_key_exists('fulfilled_stock_sum', $this->attributes)) {
+            return (int) ($this->attributes['fulfilled_stock_sum'] ?? 0);
+        }
+
         return (int) StockBooking::where('vendor_product_variant_id', $this->id)
             ->where('status', StockBooking::STATUS_FULFILLED)
             ->sum('booked_quantity');
@@ -232,6 +247,10 @@ class VendorProductVariant extends Model
 
     public function getCountDeliveredProductAttribute()
     {
+        if (array_key_exists('delivered_stock_sum', $this->attributes)) {
+            return (int) ($this->attributes['delivered_stock_sum'] ?? 0);
+        }
+
         return (int) $this->fulfillments()
             ->where('status', 'delivered')
             ->sum('allocated_quantity');

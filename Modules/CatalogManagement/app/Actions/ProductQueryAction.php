@@ -17,9 +17,9 @@ class ProductQueryAction
             ->active()
             ->status(VendorProduct::STATUS_APPROVED)
             ->with([
-                'product.category',
-                'product.subCategory',
-                'product.brand',
+                'product.department.translations',
+                'product.category.translations',
+                'product.subCategory.translations',
                 'product.brand.translations',
                 'product.translations',
                 'product.mainImage',
@@ -33,20 +33,38 @@ class ProductQueryAction
                         $q->where('price', '<=', $filters['max_price']);
                     }
                     $q->with([
-                        'variantConfiguration.parent_data.key',
-                        'variantConfiguration.key',
-                        'variantConfiguration.childrenRecursive.key',
-                    ]);
+                        'variantConfiguration.translations',
+                        'variantConfiguration.key.translations',
+                        'variantConfiguration.parent_data.translations',
+                        'variantConfiguration.parent_data.key.translations',
+                    ])
+                    ->withSum('stocks as total_stock_sum', 'quantity')
+                    ->withSum(['stockBookings as booked_stock_sum' => fn($q) => $q->where('status', 'booked')], 'booked_quantity')
+                    ->withSum(['stockBookings as allocated_stock_sum' => fn($q) => $q->where('status', 'allocated')], 'booked_quantity')
+                    ->withSum(['stockBookings as fulfilled_stock_sum' => fn($q) => $q->where('status', 'fulfilled')], 'booked_quantity')
+                    ->withSum(['fulfillments as delivered_stock_sum' => fn($q) => $q->where('status', 'delivered')], 'allocated_quantity');
                 },
                 'vendor',
                 'taxes',
             ])
+            ->withSum(['stockBookings as booked_stock_sum' => fn($q) => $q->where('status', 'booked')], 'booked_quantity')
+            ->withSum(['stockBookings as allocated_stock_sum' => fn($q) => $q->where('status', 'allocated')], 'booked_quantity')
+            ->withSum(['stockBookings as fulfilled_stock_sum' => fn($q) => $q->where('status', 'fulfilled')], 'booked_quantity')
             ->withCount(['reviews' => function($q) {
                 $q->withoutGlobalScope('country_filter');
             }])
             ->withAvg(['reviews' => function($q) {
                 $q->withoutGlobalScope('country_filter');
-            }], 'star');
+            }], 'star')
+            ->withExists(['wishlist as is_fav' => function($q) {
+                // Use default and sanctum guards
+                $user = auth()->user() ?? auth()->guard('sanctum')->user();
+                if (!$user) {
+                    $q->whereRaw('1=0');
+                } else {
+                    $q->where('customer_id', $user->id);
+                }
+            }]);
 
         if (!empty($filters)) {
             $query->filter($filters);
