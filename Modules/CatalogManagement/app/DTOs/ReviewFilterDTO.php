@@ -40,7 +40,7 @@ class ReviewFilterDTO extends FilterDTO
             max_star: $request->filled('max_star') ? $request->integer('max_star') : null,
             sort_by: $request->filled('sort_by') ? $request->input('sort_by') : null,
             sort_type: $request->filled('sort_type') ? $request->input('sort_type') : null,
-            per_page: $request->filled('per_page') ? $request->integer('per_page') : 15,
+            per_page: $request->filled('per_page') ? $request->integer('per_page') : 12,
             paginated: $request->filled('paginated') ? $request->input('paginated') : null,
         );
     }

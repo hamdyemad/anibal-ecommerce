@@ -111,6 +111,47 @@ class VendorProductResource extends JsonResource
             return [];
         }
         
+        // Use taxes for price calculation
+        $taxes = $this->taxes ?? collect();
+        $totalTaxPercentage = $taxes->sum('percentage');
+        $taxMultiplier = 1 + ($totalTaxPercentage / 100);
+
+        // Handle simple products
+        if ($this->product?->configuration_type === 'simple') {
+            $variant = $variants->first();
+            
+            $priceBeforeTax = (float) ($variant->price ?? 0);
+            $priceAfterTax = $priceBeforeTax * $taxMultiplier;
+            $fakePriceBeforeTax = $variant->price_before_discount ? (float) $variant->price_before_discount : null;
+            $fakePriceAfterTax = $fakePriceBeforeTax ? $fakePriceBeforeTax * $taxMultiplier : null;
+
+            return [[
+                'id' => 0,
+                'name' => $this->product->title ?? __('catalogmanagement::product.simple'),
+                'type' => 'simple',
+                'children' => [[
+                    'id' => 0,
+                    'name' => $this->product->title ?? __('catalogmanagement::product.simple'),
+                    'value' => null,
+                    'type' => 'simple',
+                    'key_id' => 0,
+                    'parent_id' => null,
+                    'variant' => [
+                        'id' => $variant->id,
+                        'sku' => $variant->sku,
+                        'stock' => $variant->total_stock ?? 0,
+                        'remaining_stock' => $variant->remaining_stock ?? 0,
+                        'price_before_taxes' => number_format($priceBeforeTax, 2, '.', ''),
+                        'real_price' => number_format($priceAfterTax, 2, '.', ''),
+                        'fake_price' => $fakePriceAfterTax ? number_format($fakePriceAfterTax, 2, '.', '') : null,
+                        'discount' => $variant->discount,
+                        'quantity_in_cart' => $variant->quantity_in_cart,
+                        'cart_id' => $variant->cart_id,
+                    ]
+                ]]
+            ]];
+        }
+        
         // Build a map of configuration_id => variant data
         $variantMap = [];
         foreach ($variants as $variant) {
@@ -126,15 +167,8 @@ class VendorProductResource extends JsonResource
         // Get all unique configuration IDs from variants
         $configIds = array_keys($variantMap);
         
-        // Load configurations with their keys
-        $configurations = \Modules\CatalogManagement\app\Models\VariantsConfiguration::whereIn('id', $configIds)
-            ->with(['key', 'parent_data.key'])
-            ->get();
-        
-        // Get taxes for price calculation
-        $taxes = $this->taxes ?? collect();
-        $totalTaxPercentage = $taxes->sum('percentage');
-        $taxMultiplier = 1 + ($totalTaxPercentage / 100);
+        // Use already loaded variant configurations to avoid N+1 query
+        $configurations = $variants->pluck('variantConfiguration')->filter()->unique('id');
         
         // Group by key
         $keyGroups = [];

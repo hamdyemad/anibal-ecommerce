@@ -42,7 +42,7 @@ class BrandFilterDTO extends FilterDTO
             sort_by: $request->input('sort_by'),
             sort_type: $request->input('sort_type'),
             char: $request->input('char'),
-            per_page: $request->integer('per_page', 15),
+            per_page: $request->integer('per_page', 12),
             paginated: $request->input('paginated', null),
         );
     }

@@ -6,6 +6,9 @@ use Modules\SystemSetting\app\Models\PointsSetting;
 
 class PointsHelper
 {
+    protected static $countryCache = [];
+    protected static $pointsSettingCache = [];
+
     /**
      * Calculate points based on price and currency points settings
      * 
@@ -25,8 +28,14 @@ class PointsHelper
             return 0;
         }
 
-        // Get country and its currency
-        $country = \Modules\AreaSettings\app\Models\Country::where('code', strtoupper($countryCode))->first();
+        if (isset(self::$countryCache[$countryCode])) {
+            $country = self::$countryCache[$countryCode];
+        } else {
+            // Get country and its currency
+            $country = \Modules\AreaSettings\app\Models\Country::where('code', strtoupper($countryCode))->first();
+            self::$countryCache[$countryCode] = $country;
+        }
+
         $currencyId = $country?->currency_id;
         
         if (!$currencyId) {
@@ -49,10 +58,15 @@ class PointsHelper
             return 0;
         }
 
-        // Get points setting for this currency
-        $pointsSetting = PointsSetting::where('currency_id', $currencyId)
-            ->where('is_active', true)
-            ->first();
+        if (isset(self::$pointsSettingCache[$currencyId])) {
+            $pointsSetting = self::$pointsSettingCache[$currencyId];
+        } else {
+            // Get points setting for this currency
+            $pointsSetting = PointsSetting::where('currency_id', $currencyId)
+                ->where('is_active', true)
+                ->first();
+            self::$pointsSettingCache[$currencyId] = $pointsSetting;
+        }
 
         if (!$pointsSetting || $pointsSetting->points_value <= 0) {
             return 0;

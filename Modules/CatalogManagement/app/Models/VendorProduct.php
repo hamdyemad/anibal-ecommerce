@@ -103,6 +103,21 @@ class VendorProduct extends BaseModel
         return $this->hasMany(\Modules\Order\app\Models\OrderProduct::class);
     }
 
+    /**
+     * Get all stock bookings for all variants of this product
+     */
+    public function stockBookings()
+    {
+        return $this->hasManyThrough(
+            StockBooking::class,
+            VendorProductVariant::class,
+            'vendor_product_id',
+            'vendor_product_variant_id',
+            'id',
+            'id'
+        );
+    }
+
     public function highestDiscountVariant()
     {
         return $this->hasOne(VendorProductVariant::class)
@@ -440,6 +455,10 @@ class VendorProduct extends BaseModel
 
     public function getIsFavAttribute()
     {
+        if (array_key_exists('is_fav', $this->attributes)) {
+            return (bool) $this->attributes['is_fav'];
+        }
+
         // Check both default and sanctum guards for authenticated user
         $user = auth()->user() ?? auth()->guard('sanctum')->user();
         
@@ -471,6 +490,10 @@ class VendorProduct extends BaseModel
      */
     public function getBookedStockAttribute()
     {
+        if (array_key_exists('booked_stock_sum', $this->attributes)) {
+            return (int) ($this->attributes['booked_stock_sum'] ?? 0);
+        }
+
         return (int) StockBooking::whereIn('vendor_product_variant_id', 
             $this->variants()->pluck('id')
         )->where('status', StockBooking::STATUS_BOOKED)
@@ -482,6 +505,10 @@ class VendorProduct extends BaseModel
      */
     public function getAllocatedStockAttribute()
     {
+        if (array_key_exists('allocated_stock_sum', $this->attributes)) {
+            return (int) ($this->attributes['allocated_stock_sum'] ?? 0);
+        }
+
         return (int) StockBooking::whereIn('vendor_product_variant_id', 
             $this->variants()->pluck('id')
         )->where('status', StockBooking::STATUS_ALLOCATED)
@@ -493,6 +520,10 @@ class VendorProduct extends BaseModel
      */
     public function getFulfilledStockAttribute()
     {
+        if (array_key_exists('fulfilled_stock_sum', $this->attributes)) {
+            return (int) ($this->attributes['fulfilled_stock_sum'] ?? 0);
+        }
+
         return (int) StockBooking::whereIn('vendor_product_variant_id', 
             $this->variants()->pluck('id')
         )->where('status', StockBooking::STATUS_FULFILLED)

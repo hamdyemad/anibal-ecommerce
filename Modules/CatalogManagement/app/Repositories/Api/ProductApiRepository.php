@@ -27,7 +27,7 @@ class ProductApiRepository implements ProductApiRepositoryInterface
     {
         $filters = $dto->toArray();
         $query = $this->query->handle($filters);
-        $result = $this->paginated->handle($query, $dto->per_page, $dto->paginated);
+        $result = $this->paginated->handle($query, $dto->per_page, 'true');
         return $result;
     }
 
@@ -261,24 +261,13 @@ class ProductApiRepository implements ProductApiRepositoryInterface
                       !empty($filters['min_price']) ||
                       !empty($filters['max_price']);
         
-        $query = $this->query->handle($filters);
+        // Get filtered vendor products query
+        $vendorProductQuery = $this->query->handle($filters);
         
-        // Get vendor product IDs first (lightweight query)
-        $vendorProductIds = $query->pluck('id')->toArray();
-        
-        if (empty($vendorProductIds)) {
-            return [];
-        }
-        
-        // Get product IDs from vendor products
-        $productIds = \Modules\CatalogManagement\app\Models\VendorProduct::whereIn('id', $vendorProductIds)
-            ->pluck('product_id')
-            ->unique()
-            ->toArray();
-        
-        if (empty($productIds)) {
-            return [];
-        }
+        // Get product IDs using a subquery
+        $productIdsQuery = DB::table('vendor_products')
+            ->whereIn('id', $vendorProductQuery->select('id'))
+            ->select('product_id');
         
         // Get tags from translations table directly using chunking
         // Tags are stored in translations table with lang_key = 'tags'
@@ -291,9 +280,9 @@ class ProductApiRepository implements ProductApiRepositoryInterface
             return [];
         }
         
-        // Query translations table directly for tags
+        // Query translations table directly for tags using a subquery for product IDs
         \App\Models\Translation::where('translatable_type', \Modules\CatalogManagement\app\Models\Product::class)
-            ->whereIn('translatable_id', $productIds)
+            ->whereIn('translatable_id', $productIdsQuery)
             ->where('lang_key', 'tags')
             ->where('lang_id', $langId)
             ->whereNotNull('lang_value')
@@ -343,22 +332,21 @@ class ProductApiRepository implements ProductApiRepositoryInterface
                 })->toArray();
         }
 
-        // Get filtered vendor products using ProductQueryAction
-        $query = $this->query->handle($filters);
-        $vendorProductIds = $query->pluck('id')->toArray();
+        // Get filtered vendor products query using ProductQueryAction
+        $vendorProductQuery = $this->query->handle($filters);
         
-        // If no products match the filters, return empty array
-        if (empty($vendorProductIds)) {
-            return [];
-        }
-
-        // Get product IDs from vendor products
-        $productIds = \Modules\CatalogManagement\app\Models\VendorProduct::whereIn('id', $vendorProductIds)
-            ->pluck('product_id')
-            ->unique()
-            ->toArray();
+        // Get brand IDs directly using a subquery for better performance
+        $brandIds = Product::whereIn('id', function($query) use ($vendorProductQuery) {
+            $query->select('product_id')
+                ->from('vendor_products')
+                ->whereIn('id', $vendorProductQuery->select('id'));
+        })
+        ->whereNotNull('brand_id')
+        ->pluck('brand_id')
+        ->unique()
+        ->toArray();
         
-        if (empty($productIds)) {
+        if (empty($brandIds)) {
             return [];
         }
         
