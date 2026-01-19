@@ -112,6 +112,7 @@ return [
     'created_at' => 'Created At',
     'updated_at' => 'Updated At',
     'back_to_list' => 'Back to List',
+    'go_to_details' => 'Go to Details',
     'quick_actions' => 'Quick Actions',
     'activity' => 'Activity',
     'select_activity' => 'Select Activity',
@@ -239,6 +240,7 @@ return [
     'email' => 'Email',
     'phone' => 'Phone',
     'date' => 'Date',
+    'amount' => 'Amount',
     'system' => 'System',
     'admin' => 'Admin',
     'no_roles_found' => 'No roles found',
@@ -265,4 +267,6 @@ return [
     'print' => 'Print',
     'print_invoice' => 'Print Invoice',
     'days' => 'Days',
+    'unauthorized' => 'Unauthorized',
+    'error' => 'Error',
 ];

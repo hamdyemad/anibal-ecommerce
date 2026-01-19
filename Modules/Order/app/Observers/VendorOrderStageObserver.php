@@ -11,9 +11,18 @@ use Modules\Order\app\Models\VendorOrderStage;
 use Modules\SystemSetting\app\Models\PointsSystem;
 use Modules\SystemSetting\app\Models\UserPoints;
 use Modules\SystemSetting\app\Models\UserPointsTransaction;
+use Modules\Order\app\Models\VendorOrderStageHistory;
 
 class VendorOrderStageObserver
 {
+    /**
+     * Handle the VendorOrderStage "created" event.
+     */
+    public function created(VendorOrderStage $vendorOrderStage): void
+    {
+        $this->recordHistory($vendorOrderStage, null, $vendorOrderStage->stage_id);
+    }
+
     /**
      * Handle the VendorOrderStage "updated" event.
      */
@@ -21,8 +30,30 @@ class VendorOrderStageObserver
     {
         // Check if stage_id was changed
         if ($vendorOrderStage->isDirty('stage_id')) {
+            $this->recordHistory($vendorOrderStage, $vendorOrderStage->getOriginal('stage_id'), $vendorOrderStage->stage_id);
             $this->handleStageChange($vendorOrderStage);
         }
+    }
+
+    /**
+     * Record stage history
+     */
+    protected function recordHistory(VendorOrderStage $vendorOrderStage, ?int $oldStageId, int $newStageId): void
+    {
+        $userId = null;
+        $user = auth()->user();
+        
+        // Only record user_id if it's an admin/vendor (User model), not a Customer
+        if ($user instanceof \App\Models\User) {
+            $userId = $user->id;
+        }
+
+        VendorOrderStageHistory::create([
+            'vendor_order_stage_id' => $vendorOrderStage->id,
+            'old_stage_id' => $oldStageId,
+            'new_stage_id' => $newStageId,
+            'user_id' => $userId,
+        ]);
     }
 
     /**

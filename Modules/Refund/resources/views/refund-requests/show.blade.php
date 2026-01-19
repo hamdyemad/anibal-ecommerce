@@ -2,82 +2,441 @@
 
 @section('title', trans('refund::refund.titles.view_refund'))
 
+@push('styles')
+<style>
+    .timeline-wrapper {
+        position: relative;
+        padding-left: 30px;
+    }
+
+    .timeline-wrapper::before {
+        content: '';
+        position: absolute;
+        left: 5px;
+        top: 10px;
+        bottom: 10px;
+        width: 2px;
+        background: #e9ecef;
+    }
+
+    .timeline-item {
+        position: relative;
+    }
+
+    .timeline-marker {
+        position: absolute;
+        left: -30px;
+        top: 5px;
+    }
+
+    .marker-dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        border: 2px solid #fff;
+        box-shadow: 0 0 0 2px #e9ecef;
+    }
+
+    .timeline-content {
+        background: #f8f9fa;
+        padding: 15px;
+        border-radius: 8px;
+        border-left: 3px solid #5f63f2;
+    }
+</style>
+@endpush
+
 @section('content')
 <div class="container-fluid">
     <div class="row">
         <div class="col-lg-12">
-            <div class="breadcrumb-main">
-                <h4 class="text-capitalize breadcrumb-title">{{ trans('refund::refund.titles.view_refund') }}</h4>
-                <div class="breadcrumb-action justify-content-center flex-wrap">
-                    <nav aria-label="breadcrumb">
-                        <ol class="breadcrumb">
-                            <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}"><i class="uil uil-estate"></i>{{ trans('menu.dashboard.title') }}</a></li>
-                            <li class="breadcrumb-item"><a href="{{ route('admin.refunds.index') }}">{{ trans('menu.refunds.title') }}</a></li>
-                            <li class="breadcrumb-item active" aria-current="page">{{ $refundRequest->refund_number }}</li>
-                        </ol>
-                    </nav>
-                </div>
-            </div>
+            <x-breadcrumb :items="[
+                [
+                    'title' => trans('dashboard.title'),
+                    'url' => route('admin.dashboard'),
+                    'icon' => 'uil uil-estate',
+                ],
+                [
+                    'title' => trans('refund::refund.titles.refunds'),
+                    'url' => route('admin.refunds.index'),
+                ],
+                ['title' => trans('refund::refund.titles.view_refund')],
+            ]" />
         </div>
     </div>
 
     <div class="row">
         <div class="col-lg-12">
-            <div class="card card-default card-md mb-4">
-                <div class="card-header">
-                    <h6>{{ trans('refund::refund.titles.refund_details') }}</h6>
+            <div class="card border-0 shadow-sm mb-3">
+                <div class="card-header bg-white border-bottom py-20 d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 fw-500">{{ trans('refund::refund.titles.refund_details') }}</h5>
+                    <div class="d-flex gap-10">
+                        <a href="{{ route('admin.refunds.index') }}" class="btn btn-light btn-sm">
+                            <i class="uil uil-arrow-left me-2"></i>{{ trans('common.back_to_list') }}
+                        </a>
+                    </div>
                 </div>
                 <div class="card-body">
-                    <div class="row mb-4">
-                        <div class="col-md-6">
-                            <p><strong>{{ trans('refund::refund.fields.refund_number') }}:</strong> {{ $refundRequest->refund_number }}</p>
-                            <p><strong>{{ trans('refund::refund.fields.customer') }}:</strong> {{ $refundRequest->customer->name }}</p>
-                            <p><strong>{{ trans('refund::refund.fields.vendor') }}:</strong> {{ $refundRequest->vendor->name }}</p>
+                    <div class="row">
+                        {{-- Main Details --}}
+                        <div class="col-md-8">
+                            {{-- Basic Information --}}
+                            <div class="card card-holder">
+                                <div class="card-header">
+                                    <h3>
+                                        <i class="uil uil-info-circle me-1"></i>{{ trans('refund::refund.titles.refund_information') }}
+                                    </h3>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        {{-- Refund Number --}}
+                                        <div class="col-md-6">
+                                            <div class="view-item">
+                                                <label class="il-gray fs-14 fw-500 mb-10">{{ trans('refund::refund.fields.refund_number') }}</label>
+                                                <p class="fs-15 color-dark fw-500">
+                                                    <code>{{ $refundRequest->refund_number }}</code>
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        {{-- Order Number --}}
+                                        <div class="col-md-6">
+                                            <div class="view-item">
+                                                <label class="il-gray fs-14 fw-500 mb-10">{{ trans('refund::refund.fields.order_number') }}</label>
+                                                <p class="fs-15 color-dark fw-500">
+                                                    @if($refundRequest->order)
+                                                        <a href="{{ route('admin.orders.show', $refundRequest->order_id) }}" class="text-primary">
+                                                            {{ $refundRequest->order->order_number }}
+                                                        </a>
+                                                    @else
+                                                        <span class="text-muted">-</span>
+                                                    @endif
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        {{-- Customer --}}
+                                        <div class="col-md-6">
+                                            <div class="view-item">
+                                                <label class="il-gray fs-14 fw-500 mb-10">{{ trans('refund::refund.fields.customer') }}</label>
+                                                <p class="fs-15 color-dark">
+                                                    @if($refundRequest->customer)
+                                                        <span class="badge badge-round badge-primary badge-lg">
+                                                            {{ $refundRequest->customer->full_name }}
+                                                        </span>
+                                                    @else
+                                                        <span class="text-muted">-</span>
+                                                    @endif
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        {{-- Vendor --}}
+                                        @if(isAdmin())
+                                        <div class="col-md-6">
+                                            <div class="view-item">
+                                                <label class="il-gray fs-14 fw-500 mb-10">{{ trans('refund::refund.fields.vendor') }}</label>
+                                                <p class="fs-15 color-dark">
+                                                    @if($refundRequest->vendor)
+                                                        <span class="badge badge-round badge-info badge-lg">
+                                                            {{ $refundRequest->vendor->name }}
+                                                        </span>
+                                                    @else
+                                                        <span class="text-muted">-</span>
+                                                    @endif
+                                                </p>
+                                            </div>
+                                        </div>
+                                        @endif
+
+                                        {{-- Reason --}}
+                                        @if($refundRequest->reason)
+                                        <div class="col-md-12">
+                                            <div class="view-item">
+                                                <label class="il-gray fs-14 fw-500 mb-10">{{ trans('refund::refund.fields.reason') }}</label>
+                                                <p class="fs-15 color-dark">
+                                                    {{ $refundRequest->reason }}
+                                                </p>
+                                            </div>
+                                        </div>
+                                        @endif
+
+                                        {{-- Customer Notes --}}
+                                        @if($refundRequest->customer_notes)
+                                        <div class="col-md-12">
+                                            <div class="view-item">
+                                                <label class="il-gray fs-14 fw-500 mb-10">{{ trans('refund::refund.fields.customer_notes') }}</label>
+                                                <p class="fs-15 color-dark">
+                                                    {{ $refundRequest->customer_notes }}
+                                                </p>
+                                            </div>
+                                        </div>
+                                        @endif
+
+                                        {{-- Vendor Notes --}}
+                                        @if($refundRequest->vendor_notes)
+                                        <div class="col-md-12">
+                                            <div class="view-item">
+                                                <label class="il-gray fs-14 fw-500 mb-10">{{ trans('refund::refund.fields.vendor_notes') }}</label>
+                                                <p class="fs-15 color-dark">
+                                                    {{ $refundRequest->vendor_notes }}
+                                                </p>
+                                            </div>
+                                        </div>
+                                        @endif
+
+                                        {{-- Admin Notes --}}
+                                        @if(isAdmin() && $refundRequest->admin_notes)
+                                        <div class="col-md-12">
+                                            <div class="view-item">
+                                                <label class="il-gray fs-14 fw-500 mb-10">{{ trans('refund::refund.fields.admin_notes') }}</label>
+                                                <p class="fs-15 color-dark">
+                                                    {{ $refundRequest->admin_notes }}
+                                                </p>
+                                            </div>
+                                        </div>
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
+
+                            {{-- Financial Information --}}
+                            <div class="card card-holder mt-3">
+                                <div class="card-header">
+                                    <h3>
+                                        <i class="uil uil-money-bill me-1"></i>{{ trans('refund::refund.titles.financial_details') }}
+                                    </h3>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        {{-- Total Products Amount --}}
+                                        <div class="col-md-6 mb-3">
+                                            <div class="p-3 border rounded" style="background: #e7f3ff;">
+                                                <small class="text-muted d-block mb-1">{{ trans('refund::refund.fields.total_products_amount') }}</small>
+                                                <div class="fw-bold text-info" style="font-size: 18px;">
+                                                    <i class="uil uil-box me-1"></i>{{ number_format($refundRequest->total_products_amount, 2) }} {{ trans('common.currency') ?? 'EGP' }}
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {{-- Total Tax Amount --}}
+                                        <div class="col-md-6 mb-3">
+                                            <div class="p-3 border rounded" style="background: #fff3cd;">
+                                                <small class="text-muted d-block mb-1">{{ trans('refund::refund.fields.total_tax_amount') }}</small>
+                                                <div class="fw-bold text-warning" style="font-size: 18px;">
+                                                    <i class="uil uil-percentage me-1"></i>{{ number_format($refundRequest->total_tax_amount, 2) }} {{ trans('common.currency') ?? 'EGP' }}
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {{-- Total Shipping Amount --}}
+                                        <div class="col-md-6 mb-3">
+                                            <div class="p-3 border rounded" style="background: #f8f9fa;">
+                                                <small class="text-muted d-block mb-1">{{ trans('refund::refund.fields.total_shipping_amount') }}</small>
+                                                <div class="fw-bold text-dark" style="font-size: 18px;">
+                                                    <i class="uil uil-truck me-1"></i>{{ number_format($refundRequest->total_shipping_amount, 2) }} {{ trans('common.currency') ?? 'EGP' }}
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {{-- Total Discount Amount --}}
+                                        <div class="col-md-6 mb-3">
+                                            <div class="p-3 border rounded" style="background: #d4edda;">
+                                                <small class="text-muted d-block mb-1">{{ trans('refund::refund.fields.total_discount_amount') }}</small>
+                                                <div class="fw-bold text-success" style="font-size: 18px;">
+                                                    <i class="uil uil-tag-alt me-1"></i>{{ number_format($refundRequest->total_discount_amount, 2) }} {{ trans('common.currency') ?? 'EGP' }}
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {{-- Total Refund Amount --}}
+                                        <div class="col-md-12 mb-3">
+                                            <div class="p-3 border rounded" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                                                <small class="d-block mb-1" style="opacity: 0.9;">{{ trans('refund::refund.fields.total_refund_amount') }}</small>
+                                                <div class="fw-bold" style="font-size: 24px;">
+                                                    <i class="uil uil-money-withdraw me-1"></i>{{ number_format($refundRequest->total_refund_amount, 2) }} {{ trans('common.currency') ?? 'EGP' }}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {{-- Refund Items --}}
+                            <div class="card card-holder mt-3">
+                                <div class="card-header">
+                                    <h3>
+                                        <i class="uil uil-list-ul me-1"></i>{{ trans('refund::refund.titles.refund_items') }}
+                                    </h3>
+                                </div>
+                                <div class="card-body p-0">
+                                    <x-refund::refund-items-table :refundRequest="$refundRequest" />
+                                </div>
+                            </div>
                         </div>
-                        <div class="col-md-6">
-                            <p><strong>{{ trans('refund::refund.fields.status') }}:</strong> 
-                                <span class="badge badge-{{ $refundRequest->status == 'refunded' ? 'success' : ($refundRequest->status == 'rejected' ? 'danger' : 'warning') }}">
-                                    {{ trans('refund::refund.statuses.' . $refundRequest->status) }}
-                                </span>
-                            </p>
-                            <p><strong>{{ trans('refund::refund.fields.total_refund_amount') }}:</strong> {{ number_format($refundRequest->total_refund_amount, 2) }} {{ trans('common.currency') }}</p>
-                            <p><strong>{{ trans('refund::refund.fields.created_at') }}:</strong> {{ $refundRequest->created_at->format('Y-m-d H:i') }}</p>
+
+                        {{-- Status & Actions Sidebar --}}
+                        <div class="col-md-4">
+                            <div class="card card-holder">
+                                <div class="card-header">
+                                    <h3>
+                                        <i class="uil uil-info-circle me-1"></i>{{ trans('refund::refund.titles.status_information') }}
+                                    </h3>
+                                </div>
+                                <div class="card-body">
+                                    {{-- Status --}}
+                                    <div class="mb-3">
+                                        <label class="il-gray fs-14 fw-500 mb-10">{{ trans('refund::refund.fields.status') }}</label>
+                                        <div class="p-3 border rounded text-center"
+                                            style="background: {{ $refundRequest->getStatusBackgroundColor() }};">
+                                            <div class="fw-bold {{ $refundRequest->getStatusTextColor() }}"
+                                                style="font-size: 18px;">
+                                                <i class="uil {{ $refundRequest->getStatusIcon() }} me-1"></i>
+                                                {{ $refundRequest->status_label }}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {{-- Created At --}}
+                                    <div class="mb-3">
+                                        <label class="il-gray fs-14 fw-500 mb-10">{{ trans('common.created_at') }}</label>
+                                        <p class="fs-15 color-dark">
+                                            <i class="uil uil-calendar-alt me-1"></i>{{ $refundRequest->created_at->format('Y-m-d H:i') }}
+                                        </p>
+                                    </div>
+
+                                    {{-- Approved At --}}
+                                    @if($refundRequest->approved_at)
+                                    <div class="mb-3">
+                                        <label class="il-gray fs-14 fw-500 mb-10">{{ trans('refund::refund.fields.approved_at') }}</label>
+                                        <p class="fs-15 color-dark">
+                                            <i class="uil uil-check me-1"></i>{{ $refundRequest->approved_at->format('Y-m-d H:i') }}
+                                        </p>
+                                    </div>
+                                    @endif
+
+                                    {{-- Refunded At --}}
+                                    @if($refundRequest->refunded_at)
+                                    <div class="mb-3">
+                                        <label class="il-gray fs-14 fw-500 mb-10">{{ trans('refund::refund.fields.refunded_at') }}</label>
+                                        <p class="fs-15 color-dark">
+                                            <i class="uil uil-money-withdraw me-1"></i>{{ $refundRequest->refunded_at->format('Y-m-d H:i') }}
+                                        </p>
+                                    </div>
+                                    @endif
+
+                                    {{-- Status Change Actions --}}
+                                    @if($refundRequest->canChangeStatus() && count($refundRequest->getNextStatuses()) > 0)
+                                    <div class="mt-4">
+                                        <label class="il-gray fs-14 fw-500 mb-10">{{ trans('refund::refund.actions.change_status') }}</label>
+                                        <div class="d-grid gap-2">
+                                            @foreach($refundRequest->getNextStatuses() as $nextStatus)
+                                                @if($nextStatus === 'rejected')
+                                                    <button type="button" class="btn btn-danger w-100" data-bs-toggle="modal" data-bs-target="#rejectModal">
+                                                        <i class="uil uil-times me-2"></i>{{ trans('refund::refund.statuses.' . $nextStatus) }}
+                                                    </button>
+                                                @elseif($nextStatus === 'cancelled')
+                                                    <button type="button" class="btn btn-secondary w-100 confirm-action" 
+                                                        data-action="{{ route('admin.refunds.change-status', $refundRequest->id) }}"
+                                                        data-title="{{ trans('common.confirm') }}"
+                                                        data-text="{{ trans('refund::refund.messages.confirm_cancel') }}"
+                                                        data-status="cancelled">
+                                                        <i class="uil uil-ban me-2"></i>{{ trans('refund::refund.statuses.cancelled') }}
+                                                    </button>
+                                                @elseif($nextStatus === 'approved')
+                                                    <button type="button" class="btn btn-success w-100 confirm-action"
+                                                        data-action="{{ route('admin.refunds.approve', $refundRequest->id) }}"
+                                                        data-title="{{ trans('common.confirm') }}"
+                                                        data-text="{{ trans('refund::refund.messages.confirm_approve') }}">
+                                                        <i class="uil uil-check me-2"></i>{{ trans('refund::refund.statuses.approved') }}
+                                                    </button>
+                                                @elseif($nextStatus === 'in_progress')
+                                                    <button type="button" class="btn btn-primary w-100 confirm-action"
+                                                        data-action="{{ route('admin.refunds.change-status', $refundRequest->id) }}"
+                                                        data-title="{{ trans('common.confirm') }}"
+                                                        data-text="{{ trans('refund::refund.messages.confirm_in_progress') }}"
+                                                        data-status="in_progress">
+                                                        <i class="uil uil-sync me-2"></i>{{ trans('refund::refund.statuses.in_progress') }}
+                                                    </button>
+                                                @elseif($nextStatus === 'picked_up')
+                                                    <button type="button" class="btn btn-info w-100 confirm-action"
+                                                        data-action="{{ route('admin.refunds.change-status', $refundRequest->id) }}"
+                                                        data-title="{{ trans('common.confirm') }}"
+                                                        data-text="{{ trans('refund::refund.messages.confirm_picked_up') }}"
+                                                        data-status="picked_up">
+                                                        <i class="uil uil-package me-2"></i>{{ trans('refund::refund.statuses.picked_up') }}
+                                                    </button>
+                                                @elseif($nextStatus === 'refunded')
+                                                    <button type="button" class="btn btn-success w-100 confirm-action"
+                                                        data-action="{{ route('admin.refunds.change-status', $refundRequest->id) }}"
+                                                        data-title="{{ trans('common.confirm') }}"
+                                                        data-text="{{ trans('refund::refund.messages.confirm_refunded') }}"
+                                                        data-status="refunded">
+                                                        <i class="uil uil-money-withdraw me-2"></i>{{ trans('refund::refund.statuses.refunded') }}
+                                                    </button>
+                                                @endif
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                    @endif
+                                </div>
+                            </div>
                         </div>
                     </div>
 
-                    <h6 class="mb-3">{{ trans('refund::refund.titles.refund_items') }}</h6>
-                    <div class="table-responsive">
-                        <table class="table table-bordered">
-                            <thead>
-                                <tr>
-                                    <th>{{ trans('refund::refund.fields.product') }}</th>
-                                    <th>{{ trans('refund::refund.fields.quantity') }}</th>
-                                    <th>{{ trans('refund::refund.fields.unit_price') }}</th>
-                                    <th>{{ trans('refund::refund.fields.total_price') }}</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach($refundRequest->items as $item)
-                                <tr>
-                                    <td>{{ $item->orderProduct->vendorProduct->product->name ?? 'N/A' }}</td>
-                                    <td>{{ $item->quantity }}</td>
-                                    <td>{{ number_format($item->unit_price, 2) }}</td>
-                                    <td>{{ number_format($item->total_price, 2) }}</td>
-                                </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    </div>
+                    {{-- History Section --}}
+                    @if($refundRequest->history && $refundRequest->history->count() > 0)
+                    <div class="row mt-3">
+                        <div class="col-12">
+                            <div class="card card-holder">
+                                <div class="card-header">
+                                    <h3>
+                                        <i class="uil uil-history me-1"></i>{{ trans('refund::refund.titles.status_history') }}
+                                    </h3>
+                                </div>
+                                <div class="card-body">
+                                    <div class="timeline-wrapper">
+                                        @foreach($refundRequest->history as $history)
+                                            <div class="timeline-item d-flex gap-3 mb-4 position-relative">
+                                                <div class="timeline-marker position-relative">
+                                                    <div class="marker-dot shadow-sm" style="background: #5f63f2; width: 12px; height: 12px; border-radius: 50%;"></div>
+                                                </div>
+                                                <div class="timeline-content flex-grow-1">
+                                                    <div class="d-flex justify-content-between align-items-start mb-1">
+                                                        <div class="d-flex align-items-center gap-2 flex-wrap">
+                                                            @if($history->old_status)
+                                                                <span class="badge badge-secondary badge-round">
+                                                                    {{ trans('refund::refund.statuses.' . $history->old_status) }}
+                                                                </span>
+                                                                <i class="uil uil-arrow-{{ app()->getLocale() == 'ar' ? 'left' : 'right' }} text-muted"></i>
+                                                            @endif
+                                                            <span class="badge badge-primary badge-round">
+                                                                {{ trans('refund::refund.statuses.' . $history->new_status) }}
+                                                            </span>
+                                                        </div>
+                                                        <small class="text-muted fw-500">
+                                                            <i class="uil uil-clock me-1"></i>{{ $history->created_at->format('d M, Y h:i A') }}
+                                                        </small>
+                                                    </div>
 
-                    @if($refundRequest->status == 'pending')
-                    <div class="mt-4">
-                        <form action="{{ route('admin.refunds.approve', $refundRequest) }}" method="POST" class="d-inline">
-                            @csrf
-                            <button type="submit" class="btn btn-success">{{ trans('refund::refund.actions.approve') }}</button>
-                        </form>
-                        <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#rejectModal">
-                            {{ trans('refund::refund.actions.reject') }}
-                        </button>
+                                                    <div class="d-flex align-items-center gap-3 mt-2">
+                                                        <small class="text-muted d-flex align-items-center">
+                                                            <i class="uil uil-user me-1"></i>
+                                                            {{ $history->user ? $history->user->name : trans('common.system') }}
+                                                        </small>
+                                                        @if($history->notes)
+                                                            <small class="bg-light px-2 py-1 rounded border" style="font-style: italic; color: #555;">
+                                                                <i class="uil uil-notes me-1"></i>{{ $history->notes }}
+                                                            </small>
+                                                        @endif
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     @endif
                 </div>
@@ -87,25 +446,23 @@
 </div>
 
 <!-- Reject Modal -->
-<div class="modal fade" id="rejectModal" tabindex="-1" role="dialog">
-    <div class="modal-dialog" role="document">
+<div class="modal fade" id="rejectModal" tabindex="-1" aria-labelledby="rejectModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
         <div class="modal-content">
-            <form action="{{ route('admin.refunds.reject', $refundRequest) }}" method="POST">
+            <form action="{{ route('admin.refunds.reject', $refundRequest->id) }}" method="POST">
                 @csrf
                 <div class="modal-header">
-                    <h5 class="modal-title">{{ trans('refund::refund.actions.reject') }}</h5>
-                    <button type="button" class="close" data-dismiss="modal">
-                        <span>&times;</span>
-                    </button>
+                    <h5 class="modal-title" id="rejectModalLabel">{{ trans('refund::refund.actions.reject') }}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     <div class="form-group">
-                        <label>{{ trans('refund::refund.fields.rejection_reason') }}</label>
+                        <label class="il-gray fs-14 fw-500 mb-10">{{ trans('refund::refund.fields.rejection_reason') }}</label>
                         <textarea name="rejection_reason" class="form-control" rows="4" required></textarea>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ trans('common.cancel') }}</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ trans('common.cancel') }}</button>
                     <button type="submit" class="btn btn-danger">{{ trans('refund::refund.actions.reject') }}</button>
                 </div>
             </form>
@@ -113,3 +470,59 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+$(document).ready(function() {
+    // Handle confirmation for status change actions
+    $('.confirm-action').on('click', function() {
+        const button = $(this);
+        const action = button.data('action');
+        const title = button.data('title');
+        const text = button.data('text');
+        const status = button.data('status');
+        
+        Swal.fire({
+            title: title,
+            text: text,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#5f63f2',
+            cancelButtonColor: '#d33',
+            confirmButtonText: '{{ trans("common.yes") }}',
+            cancelButtonText: '{{ trans("common.cancel") }}'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Show loading
+                LoadingOverlay.show({
+                    text: '{{ trans("common.please_wait") }}...'
+                });
+                
+                // Create form and submit
+                const form = $('<form>', {
+                    'method': 'POST',
+                    'action': action
+                });
+                
+                form.append($('<input>', {
+                    'type': 'hidden',
+                    'name': '_token',
+                    'value': '{{ csrf_token() }}'
+                }));
+                
+                if (status) {
+                    form.append($('<input>', {
+                        'type': 'hidden',
+                        'name': 'status',
+                        'value': status
+                    }));
+                }
+                
+                $('body').append(form);
+                form.submit();
+            }
+        });
+    });
+});
+</script>
+@endpush

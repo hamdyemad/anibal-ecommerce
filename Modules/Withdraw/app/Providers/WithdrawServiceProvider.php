@@ -6,6 +6,8 @@ use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\ServiceProvider;
 use Modules\Withdraw\app\Interfaces\WithdrawRepositoryInterface;
 use Modules\Withdraw\app\Repositories\WithdrawRepository;
+use Modules\Withdraw\app\Models\Withdraw;
+use Modules\Withdraw\app\Observers\WithdrawObserver;
 use Nwidart\Modules\Traits\PathNamespace;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
@@ -29,6 +31,9 @@ class WithdrawServiceProvider extends ServiceProvider
         $this->registerConfig();
         $this->registerViews();
         $this->loadMigrationsFrom(module_path($this->name, 'database/migrations'));
+        
+        // Register observers
+        Withdraw::observe(WithdrawObserver::class);
     }
 
     /**

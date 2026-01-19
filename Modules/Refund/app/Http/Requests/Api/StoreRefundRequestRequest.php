@@ -51,7 +51,7 @@ class StoreRefundRequestRequest extends FormRequest
                     $orderId = $this->input('order_id');
                     
                     // Validate that order_product belongs to the order
-                    $orderProduct = \Modules\Order\app\Models\OrderProduct::with('product')->find($value);
+                    $orderProduct = \Modules\Order\app\Models\OrderProduct::with('vendorProduct.product')->find($value);
                     if (!$orderProduct || $orderProduct->order_id != $orderId) {
                         $fail(trans('refund::refund.validation.order_product_not_in_order'));
                         return;
@@ -73,8 +73,14 @@ class StoreRefundRequestRequest extends FormRequest
                         return;
                     }
                     
+                    // Validate that product allows refunds
+                    if (!$orderProduct->vendorProduct || !$orderProduct->vendorProduct->is_able_to_refund) {
+                        $fail(trans('refund::refund.validation.product_not_refundable'));
+                        return;
+                    }
+                    
                     // Get vendor_id from the product
-                    $vendorId = $orderProduct->product->vendor_id ?? null;
+                    $vendorId = $orderProduct->vendorProduct?->vendor_id ?? $orderProduct->vendor_id ?? null;
                     
                     if (!$vendorId) {
                         $fail(trans('refund::refund.validation.product_no_vendor'));
@@ -93,8 +99,15 @@ class StoreRefundRequestRequest extends FormRequest
                     }
                     
                     // Check if vendor has delivered
-                    if (!$vendorStage->stage || $vendorStage->stage->type !== 'delivered') {
+                    if (!$vendorStage->stage || $vendorStage->stage->type !== 'deliver') {
                         $fail(trans('refund::refund.validation.vendor_not_delivered'));
+                        return;
+                    }
+
+                    // Check if within refund window
+                    $deliveredAt = \Modules\Refund\app\Helpers\RefundHelper::getVendorDeliveryDate($orderId, $vendorId);
+                    if (!\Modules\Refund\app\Helpers\RefundHelper::isEligibleForRefund($orderProduct->vendorProduct, $deliveredAt)) {
+                        $fail(trans('refund::refund.validation.not_eligible_for_refund'));
                         return;
                     }
                 },

@@ -1,6 +1,9 @@
 <?php
 
 return [
+    // General
+    'vendor_name' => 'اسم المورد',
+    
     // Page Titles
     'vendors_management' => 'إدارة الموردين',
     'create_vendor' => 'إنشاء مورد',

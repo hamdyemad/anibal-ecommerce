@@ -10,11 +10,19 @@ return [
     'refunded' => 'Refunded',
     'rejected_refunds' => 'Rejected Refunds',
     'titles' => [
+        'refunds' => 'Refunds',
         'refund_requests' => 'Refund Requests',
         'view_refund' => 'View Refund Request',
         'refund_details' => 'Refund Details',
+        'refund_information' => 'Refund Information',
+        'financial_details' => 'Financial Details',
+        'status_information' => 'Status Information',
+        'status_history' => 'Status History',
         'refund_items' => 'Refund Items',
         'refund_settings' => 'Refund Settings',
+        'vendor_refund_settings' => 'Vendor Refund Settings',
+        'manage_vendor_refund_settings' => 'Manage Vendor Refund Settings',
+        'edit_vendor_refund_settings' => 'Edit Vendor Refund Settings',
     ],
 
     'fields' => [
@@ -28,6 +36,7 @@ return [
         'total_products_amount' => 'Products Amount',
         'total_shipping_amount' => 'Shipping Amount',
         'total_tax_amount' => 'Tax Amount',
+        'total_discount_amount' => 'Discount Amount',
         'return_shipping_cost' => 'Return Shipping Cost',
         'reason' => 'Reason',
         'customer_notes' => 'Customer Notes',
@@ -71,6 +80,15 @@ return [
         'status_updated' => 'Refund status updated successfully',
         'notes_updated' => 'Notes updated successfully',
         'settings_updated' => 'Refund settings updated successfully',
+        'product_not_refundable' => 'Product does not allow refunds',
+        'product_not_delivered' => 'Product not yet delivered',
+        'product_already_refunded' => 'Product already has a refund request',
+        'refund_window_expired' => 'Refund window has expired',
+        'confirm_approve' => 'Are you sure you want to approve this refund request?',
+        'confirm_cancel' => 'Are you sure you want to cancel this refund request?',
+        'confirm_in_progress' => 'Are you sure you want to mark this refund as in progress?',
+        'confirm_picked_up' => 'Are you sure you want to mark this refund as picked up?',
+        'confirm_refunded' => 'Are you sure you want to mark this refund as completed?',
     ],
 
     'errors' => [
@@ -81,6 +99,22 @@ return [
     'help' => [
         'customer_pays_return_shipping' => 'If enabled, return shipping cost will be deducted from refund amount',
         'refund_processing_days' => 'Default number of days after delivery that customers can request refunds (used when product has no custom refund days)',
+    ],
+
+    'vendor_settings' => [
+        'refund_enabled' => 'Enable Refunds',
+        'refund_enabled_help' => 'Enable or disable refund requests for your products',
+        'vendor_refund_days' => 'Refund Days',
+        'vendor_refund_days_help' => 'Number of days after delivery that customers can request refunds for your products',
+    ],
+
+    'admin_settings' => [
+        'title' => 'Manage Vendor Refund Settings',
+        'all_statuses' => 'All Statuses',
+        'refunds_enabled' => 'Refunds Enabled',
+        'refunds_disabled' => 'Refunds Disabled',
+        'no_vendors_found' => 'No vendors found',
+        'editing_settings_for' => 'Editing refund settings for this vendor',
     ],
 
     'notifications' => [
@@ -110,9 +144,11 @@ return [
         'order_product_not_in_order' => 'The selected order product does not belong to this order.',
         'order_product_already_refunded' => 'This product has already been refunded.',
         'order_product_pending_refund' => 'This product already has a pending refund request.',
+        'product_not_refundable' => 'This product does not allow refunds.',
         'product_no_vendor' => 'This product has no vendor assigned.',
         'vendor_no_stage' => 'The vendor has no delivery stage for this order.',
         'vendor_not_delivered' => 'The vendor must deliver the product before requesting a refund.',
+        'not_eligible_for_refund' => 'This product is no longer eligible for a refund as the refund window has expired.',
         'quantity_required' => 'The quantity is required.',
         'quantity_integer' => 'The quantity must be an integer.',
         'quantity_min' => 'The quantity must be at least :min.',

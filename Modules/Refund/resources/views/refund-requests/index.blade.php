@@ -22,57 +22,18 @@
     // Build table headers
     $headers = [
         ['label' => '#', 'class' => 'text-center'],
-        ['label' => trans('refund::refund.fields.refund_number')],
-        ['label' => trans('refund::refund.fields.order_number')],
-        ['label' => trans('refund::refund.fields.customer')],
+        ['label' => trans('refund::refund.titles.refund_details')],
+        ['label' => trans('refund::refund.fields.status'), 'class' => 'text-center'],
+        ['label' => trans('common.actions'), 'class' => 'text-center'],
     ];
-
-    if (isAdmin()) {
-        $headers[] = ['label' => trans('refund::refund.fields.vendor')];
-    }
-
-    $headers = array_merge($headers, [
-        ['label' => trans('refund::refund.fields.total_refund_amount')],
-        ['label' => trans('refund::refund.fields.status')],
-        ['label' => trans('common.created_at')],
-        ['label' => trans('common.actions')],
-    ]);
 
     // Build columns array
     $columns = [
         ['data' => 'index', 'name' => 'index', 'orderable' => false, 'searchable' => false, 'className' => 'text-center fw-bold'],
-        ['data' => 'refund_number', 'name' => 'refund_number', 'orderable' => false, 'searchable' => true],
-        ['data' => 'order_number', 'name' => 'order_number', 'orderable' => false, 'searchable' => false],
-        ['data' => 'customer_name', 'name' => 'customer_name', 'orderable' => false, 'searchable' => false],
-    ];
-
-    if (isAdmin()) {
-        $columns[] = ['data' => 'vendor_name', 'name' => 'vendor_name', 'orderable' => false, 'searchable' => false];
-    }
-
-    $columns = array_merge($columns, [
-        ['data' => 'total_amount', 'name' => 'total_amount', 'orderable' => false, 'searchable' => false],
+        ['data' => 'refund_info', 'name' => 'refund_info', 'orderable' => false, 'searchable' => false],
         ['data' => 'status', 'name' => 'status', 'orderable' => false, 'searchable' => false, 'className' => 'text-center'],
-        ['data' => 'created_at', 'name' => 'created_at', 'orderable' => false, 'searchable' => false],
-        ['data' => null, 'orderable' => false, 'searchable' => false, 'className' => 'text-center'],
-    ]);
-
-    // Convert to JSON and add render functions
-    $columnsJson = json_encode($columns);
-    
-    // Add render function for total_amount
-    $columnsJson = str_replace(
-        '"data":"total_amount"',
-        '"data":"total_amount","render":function(data){return data+" ' . (trans('common.currency') ?? 'SAR') . '";}',
-        $columnsJson
-    );
-    
-    // Add render function for actions
-    $columnsJson = str_replace(
-        '"className":"text-center","data":null',
-        '"className":"text-center","data":null,"render":function(data){const showUrl="' . route('admin.refunds.show', ':id') . '".replace(":id",data.id);return `<div class=\"orderDatatable_actions d-inline-flex gap-1 justify-content-center\"><a href=\"${showUrl}\" class=\"view btn btn-primary table_action_father\" title=\"' . trans('common.view') . '\"><i class=\"uil uil-eye table_action_icon\"></i></a></div>`;}',
-        $columnsJson
-    );
+        ['data' => 'actions', 'orderable' => false, 'searchable' => false, 'className' => 'text-center'],
+    ];
     @endphp
 
     {{-- DataTable Wrapper Component with Built-in Script --}}
@@ -83,9 +44,9 @@
         tableId="refundsDataTable"
         ajaxUrl="{{ route('admin.refunds.datatable') }}"
         :headers="$headers"
-        :columnsJson="$columnsJson"
+        :columnsJson="json_encode($columns)"
         :customSelectIds="['status_filter']"
-        :order="[[isAdmin() ? 7 : 6, 'desc']]"
+        :order="[[0, 'desc']]"
         :pageLength="10">
         
         {{-- Search & Filters Component --}}
@@ -109,7 +70,3 @@
     </x-datatable-wrapper>
 </div>
 @endsection
-
-@push('after-body')
-    <x-loading-overlay />
-@endpush

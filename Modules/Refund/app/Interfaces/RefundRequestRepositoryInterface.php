@@ -29,4 +29,10 @@ interface RefundRequestRepositoryInterface
     
     // Helper methods
     public function getRefundWithRelations(int $refundId, array $relations = []);
+    
+    public function approveRefund(int $id);
+    
+    public function rejectRefund(int $id, string $rejectionReason);
+    
+    public function updateNotes(int $id, string $notes, bool $isAdmin = false);
 }

@@ -3,16 +3,20 @@
 namespace Modules\Refund\app\Models;
 
 use App\Models\BaseModel;
+use App\Traits\HasCountries;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Modules\Order\app\Models\Order;
 use Modules\Customer\app\Models\Customer;
 use Modules\Vendor\app\Models\Vendor;
-
+use Modules\AreaSettings\app\Models\Country;
+use App\Models\Traits\CountryCheckIdTrait;
+use App\Models\Traits\HumanDates;
+use App\Models\Traits\AutoStoreCountryId;
 class RefundRequest extends BaseModel
 {
-    use SoftDeletes;
+    use SoftDeletes, HumanDates, AutoStoreCountryId,CountryCheckIdTrait;
 
     const STATUSES = [
         'pending' => 'refund::refund.statuses.pending',
@@ -43,11 +47,10 @@ class RefundRequest extends BaseModel
     }
 
     protected $fillable = [
-        'parent_refund_id',
-        'is_parent',
         'order_id',
         'customer_id',
         'vendor_id',
+        'country_id',
         'refund_number',
         'status',
         'total_products_amount',
@@ -70,7 +73,6 @@ class RefundRequest extends BaseModel
     ];
 
     protected $casts = [
-        'is_parent' => 'boolean',
         'total_products_amount' => 'decimal:2',
         'total_shipping_amount' => 'decimal:2',
         'total_tax_amount' => 'decimal:2',
@@ -145,35 +147,19 @@ class RefundRequest extends BaseModel
     }
 
     /**
-     * Get the parent refund request (for vendor refunds)
+     * Get the country
      */
-    public function parentRefund(): BelongsTo
+    public function country(): BelongsTo
     {
-        return $this->belongsTo(RefundRequest::class, 'parent_refund_id');
+        return $this->belongsTo(Country::class);
     }
 
     /**
-     * Get the child vendor refund requests (for customer refunds)
+     * Get the refund history
      */
-    public function vendorRefunds(): HasMany
+    public function history(): HasMany
     {
-        return $this->hasMany(RefundRequest::class, 'parent_refund_id');
-    }
-
-    /**
-     * Scope to get only parent (customer) refunds
-     */
-    public function scopeParentOnly($query)
-    {
-        return $query->where('is_parent', true);
-    }
-
-    /**
-     * Scope to get only vendor refunds
-     */
-    public function scopeVendorOnly($query)
-    {
-        return $query->where('is_parent', false);
+        return $this->hasMany(RefundRequestHistory::class)->orderBy('created_at', 'desc');
     }
 
     /**
@@ -198,6 +184,76 @@ class RefundRequest extends BaseModel
     public function canBeRejected(): bool
     {
         return $this->status === 'pending';
+    }
+    
+    /**
+     * Check if status can be changed
+     */
+    public function canChangeStatus(): bool
+    {
+        return !in_array($this->status, ['rejected', 'cancelled', 'refunded']);
+    }
+    
+    /**
+     * Get next available statuses
+     */
+    public function getNextStatuses(): array
+    {
+        $nextStatuses = [];
+        
+        if ($this->status === 'pending') {
+            $nextStatuses = ['approved', 'rejected', 'cancelled'];
+        } elseif ($this->status === 'approved') {
+            $nextStatuses = ['in_progress'];
+        } elseif ($this->status === 'in_progress') {
+            $nextStatuses = ['picked_up'];
+        } elseif ($this->status === 'picked_up') {
+            $nextStatuses = ['refunded'];
+        }
+        
+        return $nextStatuses;
+    }
+    
+    /**
+     * Get status background color
+     */
+    public function getStatusBackgroundColor(): string
+    {
+        return match($this->status) {
+            'refunded' => '#d4edda',
+            'rejected' => '#f8d7da',
+            'approved' => '#d1ecf1',
+            'cancelled' => '#f8d7da',
+            default => '#fff3cd',
+        };
+    }
+    
+    /**
+     * Get status text color class
+     */
+    public function getStatusTextColor(): string
+    {
+        return match($this->status) {
+            'refunded' => 'text-success',
+            'rejected' => 'text-danger',
+            'approved' => 'text-info',
+            'cancelled' => 'text-danger',
+            default => 'text-warning',
+        };
+    }
+    
+    /**
+     * Get status icon class
+     */
+    public function getStatusIcon(): string
+    {
+        return match($this->status) {
+            'refunded' => 'uil-check-circle',
+            'rejected' => 'uil-times-circle',
+            'approved' => 'uil-check',
+            'cancelled' => 'uil-ban',
+            default => 'uil-clock',
+        };
     }
     
     /**

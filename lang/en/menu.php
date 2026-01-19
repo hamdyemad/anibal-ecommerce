@@ -19,9 +19,11 @@
             'accepted' => 'accepted',
             'rejected' => 'rejected',
             'pending' => 'Pending Vendor Requests',
+            'new_request' => 'New Vendor Request',
             'wants_to_become' => 'wants to become a vendor',
             'no_pending' => 'No pending vendor requests',
             'see_all' => 'See All Requests',
+            'vendor_request_id' => 'Vendor Request ID',
         ],
 
         'layouts' => [
@@ -64,6 +66,7 @@
             'vendor_sent_request' => ':vendor sent a new withdraw request',
             'request_value' => 'Request Value',
             'see_all_requests' => 'See All Requests',
+            'no_requests' => 'No withdraw requests',
         ],
         'withdrawl module' => [
             'title' => 'withdrawl module',
@@ -195,6 +198,7 @@
             'refunded' => 'Refunded',
             'rejected' => 'Rejected',
             'settings' => 'Refund Settings',
+            'admin_settings' => 'Manage Vendor Settings',
         ],
         'request_quotations' => [
             'title' => 'Request Quotations',
@@ -219,6 +223,7 @@
             'send notification' => 'send notification',
             'all notification' => 'all notifications',
         ],
+        'notification_details' => 'Notification Details',
         'push_notifications' => [
             'title' => 'Push Notifications',
             'send_notification' => 'Send Notification',

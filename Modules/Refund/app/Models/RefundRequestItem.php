@@ -20,6 +20,7 @@ class RefundRequestItem extends Model
         'discount_amount',
         'shipping_amount',
         'refund_amount',
+        'reason',
     ];
 
     protected $casts = [

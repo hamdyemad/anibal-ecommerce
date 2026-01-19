@@ -1,9 +1,13 @@
 @php
-    $pendingRequests = \Modules\Vendor\app\Models\VendorRequest::where('status', 'pending')
-        ->latest()
-        ->take(5)
+    // Get vendor request notifications from admin_notifications table
+    $vendorRequestNotifications = \App\Models\AdminNotification::notViewedBy(auth()->id())
+        ->where('type', 'vendor_request')
+        ->whereNull('vendor_id')
+        ->orderBy('created_at', 'desc')
+        ->limit(5)
         ->get();
-    $pendingCount = \Modules\Vendor\app\Models\VendorRequest::where('status', 'pending')->count();
+    
+    $pendingCount = $vendorRequestNotifications->count();
 @endphp
 
 <li class="nav-notification">
@@ -22,18 +26,18 @@
         <div class="dropdown-wrapper">
             <h2 class="dropdown-wrapper__title">{{ trans('menu.become a vendor requests.pending') }} <span class="badge-circle badge-info ms-1">{{ $pendingCount }}</span></h2>
             <ul>
-                @forelse($pendingRequests as $request)
+                @forelse($vendorRequestNotifications as $notification)
                     <li class="nav-notification__single d-flex flex-wrap">
-                        <div class="nav-notification__type nav-notification__type--info">
-                            <i class="uil uil-user"></i>
+                        <div class="nav-notification__type nav-notification__type--{{ $notification->color }}">
+                            <i class="{{ $notification->icon }}"></i>
                         </div>
                         <div class="nav-notification__details">
                             <p>
-                                <a href="{{ route('admin.vendor-requests.index') }}" class="subject stretched-link text-truncate" style="max-width: 180px;">{{ $request->company_name }}</a>
-                                <span>{{ trans('menu.become a vendor requests.wants_to_become') }}</span>
+                                <a href="{{ route('admin.notifications.show', $notification->id) }}" class="subject stretched-link text-truncate" style="max-width: 180px;">{{ $notification->getTranslatedTitle() }}</a>
+                                <span>{{ $notification->getTranslatedDescription() }}</span>
                             </p>
                             <p>
-                                <span class="time-posted">{{ $request->created_at }}</span>
+                                <span class="time-posted">{{ $notification->created_at }}</span>
                             </p>
                         </div>
                     </li>

@@ -1,9 +1,13 @@
 <?php
-    $pendingRequests = \Modules\Vendor\app\Models\VendorRequest::where('status', 'pending')
-        ->latest()
-        ->take(5)
+    // Get vendor request notifications from admin_notifications table
+    $vendorRequestNotifications = \App\Models\AdminNotification::notViewedBy(auth()->id())
+        ->where('type', 'vendor_request')
+        ->whereNull('vendor_id')
+        ->orderBy('created_at', 'desc')
+        ->limit(5)
         ->get();
-    $pendingCount = \Modules\Vendor\app\Models\VendorRequest::where('status', 'pending')->count();
+    
+    $pendingCount = $vendorRequestNotifications->count();
 ?>
 
 <li class="nav-notification">
@@ -22,18 +26,18 @@
         <div class="dropdown-wrapper">
             <h2 class="dropdown-wrapper__title"><?php echo e(trans('menu.become a vendor requests.pending')); ?> <span class="badge-circle badge-info ms-1"><?php echo e($pendingCount); ?></span></h2>
             <ul>
-                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__empty_1 = true; $__currentLoopData = $pendingRequests; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $request): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__empty_1 = true; $__currentLoopData = $vendorRequestNotifications; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $notification): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
                     <li class="nav-notification__single d-flex flex-wrap">
-                        <div class="nav-notification__type nav-notification__type--info">
-                            <i class="uil uil-user"></i>
+                        <div class="nav-notification__type nav-notification__type--<?php echo e($notification->color); ?>">
+                            <i class="<?php echo e($notification->icon); ?>"></i>
                         </div>
                         <div class="nav-notification__details">
                             <p>
-                                <a href="<?php echo e(route('admin.vendor-requests.index')); ?>" class="subject stretched-link text-truncate" style="max-width: 180px;"><?php echo e($request->company_name); ?></a>
-                                <span><?php echo e(trans('menu.become a vendor requests.wants_to_become')); ?></span>
+                                <a href="<?php echo e(route('admin.notifications.show', $notification->id)); ?>" class="subject stretched-link text-truncate" style="max-width: 180px;"><?php echo e($notification->getTranslatedTitle()); ?></a>
+                                <span><?php echo e($notification->getTranslatedDescription()); ?></span>
                             </p>
                             <p>
-                                <span class="time-posted"><?php echo e($request->created_at); ?></span>
+                                <span class="time-posted"><?php echo e($notification->created_at); ?></span>
                             </p>
                         </div>
                     </li>

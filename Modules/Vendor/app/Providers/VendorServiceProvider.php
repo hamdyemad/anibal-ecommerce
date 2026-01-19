@@ -33,6 +33,12 @@ class VendorServiceProvider extends ServiceProvider
         $this->registerConfig();
         $this->registerViews();
         $this->loadMigrationsFrom(module_path($this->name, 'database/migrations'));
+        
+        // Register Vendor Observer
+        \Modules\Vendor\app\Models\Vendor::observe(\Modules\Vendor\app\Observers\VendorObserver::class);
+        
+        // Register VendorRequest Observer
+        \Modules\Vendor\app\Models\VendorRequest::observe(\Modules\Vendor\app\Observers\VendorRequestObserver::class);
     }
 
     /**

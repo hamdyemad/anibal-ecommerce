@@ -8,6 +8,7 @@ use App\Models\Traits\AutoStoreCountryId;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class AdminNotification extends Model
 {
@@ -34,6 +35,8 @@ class AdminNotification extends Model
         'data' => 'array',
         'is_read' => 'boolean',
         'read_at' => 'datetime',
+        'title' => \App\Casts\TranslatableCast::class,
+        'description' => \App\Casts\TranslatableCast::class,
     ];
 
     /**
@@ -50,6 +53,34 @@ class AdminNotification extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Get the views for this notification
+     */
+    public function views(): HasMany
+    {
+        return $this->hasMany(AdminNotificationView::class);
+    }
+
+    /**
+     * Check if notification has been viewed by user
+     */
+    public function hasBeenViewedBy(int $userId): bool
+    {
+        return $this->views()->where('user_id', $userId)->exists();
+    }
+
+    /**
+     * Mark as viewed by user
+     */
+    public function markAsViewedBy(int $userId): void
+    {
+        $this->views()->firstOrCreate([
+            'user_id' => $userId,
+        ], [
+            'viewed_at' => now(),
+        ]);
     }
 
     /**
@@ -96,6 +127,34 @@ class AdminNotification extends Model
             $q->where('vendor_id', $vendorId)
               ->orWhereNull('vendor_id');
         });
+    }
+
+    /**
+     * Scope for notifications not viewed by user
+     */
+    public function scopeNotViewedBy($query, int $userId)
+    {
+        return $query->whereDoesntHave('views', function($q) use ($userId) {
+            $q->where('user_id', $userId);
+        });
+    }
+
+    /**
+     * Get translated description
+     * The TranslatableCast automatically handles translation
+     */
+    public function getTranslatedDescription(): string
+    {
+        return $this->description ?? '';
+    }
+
+    /**
+     * Get translated title
+     * Returns the title as-is since it's usually a name or identifier
+     */
+    public function getTranslatedTitle(): string
+    {
+        return $this->title ?? '';
     }
 
     /**

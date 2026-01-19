@@ -3,6 +3,7 @@
 return [
     // General
     'vendor' => 'Vendor',
+    'vendor_name' => 'Vendor Name',
     
     // Page Titles
     'vendors_management' => 'Vendors Management',

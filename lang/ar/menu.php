@@ -19,9 +19,11 @@
             'accepted' => 'مقبول',
             'rejected' => 'مرفوض',
             'pending' => 'طلبات المورد المعلقة',
+            'new_request' => 'طلب مورد جديد',
             'wants_to_become' => 'يريد أن يصبح مورد',
             'no_pending' => 'لا توجد طلبات معلقة',
             'see_all' => 'عرض جميع الطلبات',
+            'vendor_request_id' => 'رقم طلب المورد',
         ],
 
         'layouts' => [
@@ -64,6 +66,7 @@
             'vendor_sent_request' => ':vendor أرسل طلب سحب جديد',
             'request_value' => 'قيمة الطلب',
             'see_all_requests' => 'عرض جميع الطلبات',
+            'no_requests' => 'لا توجد طلبات سحب',
         ],
         'products' => [
             'title' => 'المنتجات',
@@ -187,6 +190,7 @@
             'refunded' => 'تم الاسترجاع',
             'rejected' => 'مرفوض',
             'settings' => 'إعدادات الاسترجاع',
+            'admin_settings' => 'إدارة إعدادات الموردين',
         ],
         'request_quotations' => [
             'title' => 'طلبات عروض الأسعار',
@@ -211,6 +215,7 @@
             'send notification' => 'إرسال إشعار',
             'all notification' => 'جميع الإشعارات',
         ],
+        'notification_details' => 'تفاصيل الإشعار',
         'push_notifications' => [
             'title' => 'الإشعارات',
             'send_notification' => 'إرسال إشعار',

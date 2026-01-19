@@ -15,13 +15,21 @@ class OrderQueryAction
         $query = Order::where('customer_id', Auth::id())
             ->with([
                 'products', 
+                'products.order',
+                'products.order.vendorStages',
+                'products.order.vendorStages.stage',
+                'products.order.vendorStages.history',
+                'products.order.vendorStages.history.newStage',
                 'products.vendorProduct', 
                 'products.vendorProductVariant.variantConfiguration.key',
                 'products.vendorProductVariant.variantConfiguration.parent_data.key',
                 'products.stage' => function($q) {
                     $q->withoutGlobalScopes();
                 },
-                'payments'
+                'payments',
+                'vendorStages',
+                'vendorStages.history',
+                'vendorStages.history.newStage'
             ])
             ->orderBy('created_at', 'desc')
             ->filter($filters);

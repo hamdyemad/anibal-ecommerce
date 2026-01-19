@@ -229,5 +229,9 @@
         }
     });
 </script>
+
+{{-- Loading Overlay --}}
+<x-loading-overlay />
+
 @endpush
 @endif

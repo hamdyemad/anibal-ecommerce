@@ -548,5 +548,31 @@ return [
     "action_invalid" => [
         "en" => "Action must be accept or reject",
         "ar" => "الإجراء يجب أن يكون قبول أو رفض"
-    ]
+    ],
+
+    // Refund Requests
+    "refund_request_created_successfully" => [
+        "en" => "Refund Request Created Successfully",
+        "ar" => "تم انشاء طلب الاسترجاع بنجاح"
+    ],
+    "refund_request_status_updated_successfully" => [
+        "en" => "Refund Request Status Updated Successfully",
+        "ar" => "تم تحديث حالة طلب الاسترجاع بنجاح"
+    ],
+    "refund_request_cancelled_successfully" => [
+        "en" => "Refund Request Cancelled Successfully",
+        "ar" => "تم الغاء طلب الاسترجاع بنجاح"
+    ],
+    "refund_requests_retrieved_successfully" => [
+        "en" => "Refund Requests Retrieved Successfully",
+        "ar" => "تم استرجاع طلبات الاسترجاع بنجاح"
+    ],
+    "refund_request_retrieved_successfully" => [
+        "en" => "Refund Request Retrieved Successfully",
+        "ar" => "تم استرجاع طلب الاسترجاع بنجاح"
+    ],
+    "statistics_retrieved_successfully" => [
+        "en" => "Statistics Retrieved Successfully",
+        "ar" => "تم استرجاع الاحصائيات بنجاح"
+    ],
 ];

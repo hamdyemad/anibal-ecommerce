@@ -125,4 +125,12 @@ class OrderProduct extends Model
     {
         return $this->belongsTo(OrderStage::class, 'stage_id');
     }
+
+    /**
+     * Get the refund request items for this order product.
+     */
+    public function refundItems(): HasMany
+    {
+        return $this->hasMany(\Modules\Refund\app\Models\RefundRequestItem::class, 'order_product_id');
+    }
 }

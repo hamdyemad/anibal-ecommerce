@@ -24,6 +24,8 @@ return [
     'sku' => 'رمز المنتج',
     'ordered_qty' => 'الكمية المطلوبة',
     'total_price' => 'السعر الإجمالي',
+    'stage_history' => 'سجل الحالات',
+    'system' => 'النظام',
     'items_count' => 'عدد العناصر',
     'products_count' => 'عدد المنتجات',
     'product_stages' => 'مراحل المنتجات',

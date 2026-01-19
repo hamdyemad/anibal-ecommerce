@@ -19,7 +19,7 @@ class CustomerResource extends JsonResource
             'phone' => $this->phone,
             'points' => (float) ($this->points ?? 0),
             'image' => $this->image_url ?? null,
-            'created_at' => $this->created_at?->toISOString(),
+            'created_at' => is_string($this->created_at) ? $this->created_at : $this->created_at?->toISOString(),
         ];
     }
 }

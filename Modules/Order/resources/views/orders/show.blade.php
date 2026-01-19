@@ -28,14 +28,8 @@
                             <i class="uil uil-receipt me-2" style="color: #5f63f2;"></i>
                             {{ trans('order::order.order') }} #{{ $order->order_number }}
                         </h5>
-                        <x-order::order-actions 
-                            :order="$order" 
-                            :order-stages="$orderStages ?? []"
-                            :is-vendor-user="$isVendorUser ?? false"
-                            :current-vendor-id="$currentVendorId ?? null"
-                            :show-view-button="false"
-                            context="show"
-                        />
+                        <x-order::order-actions :order="$order" :order-stages="$orderStages ?? []" :is-vendor-user="$isVendorUser ?? false" :current-vendor-id="$currentVendorId ?? null"
+                            :show-view-button="false" context="show" />
                     </div>
 
                     <div class="row mb-40">
@@ -63,53 +57,59 @@
                                             </span>
                                             <div class="w-100">
                                                 @php
-                                                    $hasVendorStages = isset($order->vendorStages) && $order->vendorStages->count() > 0;
+                                                    $hasVendorStages =
+                                                        isset($order->vendorStages) &&
+                                                        $order->vendorStages->count() > 0;
                                                 @endphp
-                                                
-                                                @if($hasVendorStages)
-                                                    @foreach($order->vendorStages as $vendorStage)
+
+                                                @if ($hasVendorStages)
+                                                    @foreach ($order->vendorStages as $vendorStage)
                                                         @php
                                                             $vendor = $vendorStage->vendor;
                                                             $stage = $vendorStage->stage;
-                                                            
+
                                                             if (!$vendor || !$stage) {
                                                                 continue;
                                                             }
-                                                            
-                                                            $isCurrentVendor = $isVendorUser && isset($currentVendorId) && $vendor->id == $currentVendorId;
-                                                            
+
+                                                            $isCurrentVendor =
+                                                                $isVendorUser &&
+                                                                isset($currentVendorId) &&
+                                                                $vendor->id == $currentVendorId;
+
                                                             // If viewing as vendor, only show their own stage
                                                             if ($isVendorUser && !$isCurrentVendor) {
                                                                 continue;
                                                             }
                                                         @endphp
-                                                        <div class="d-flex align-items-center justify-content-between p-2 mb-2 border rounded" style="background: #f8f9fa;">
+                                                        <div class="d-flex align-items-center justify-content-between p-2 mb-2 border rounded"
+                                                            style="background: #f8f9fa;">
                                                             <div class="d-flex align-items-center gap-2">
-                                                                @if($vendor->logo)
-                                                                    <img src="{{ asset('storage/' . $vendor->logo->path) }}" 
-                                                                         alt="{{ $vendor->name }}"
-                                                                         class="rounded"
-                                                                         style="width: 30px; height: 30px;">
+                                                                @if ($vendor->logo)
+                                                                    <img src="{{ asset('storage/' . $vendor->logo->path) }}"
+                                                                        alt="{{ $vendor->name }}" class="rounded"
+                                                                        style="width: 30px; height: 30px;">
                                                                 @else
-                                                                    <div class="rounded d-flex align-items-center justify-content-center" 
-                                                                         style="width: 30px; height: 30px; background: #fff;">
+                                                                    <div class="rounded d-flex align-items-center justify-content-center"
+                                                                        style="width: 30px; height: 30px; background: #fff;">
                                                                         <i class="uil uil-store text-muted"></i>
                                                                     </div>
                                                                 @endif
-                                                                <span class="fw-500">{{ $vendor->getTranslation('name', app()->getLocale()) }}</span>
+                                                                <span
+                                                                    class="fw-500">{{ $vendor->getTranslation('name', app()->getLocale()) }}</span>
                                                             </div>
-                                                            <x-protected-badge 
-                                                                :color="$stage->color ?? '#6c757d'"
-                                                                :text="$stage->getTranslation('name', app()->getLocale()) ?? 'N/A'"
-                                                                size="md"
-                                                                :id="'vendor-stage-badge-' . $vendor->id"
-                                                            />
+                                                            <x-protected-badge :color="$stage->color ?? '#6c757d'" :text="$stage->getTranslation(
+                                                                'name',
+                                                                app()->getLocale(),
+                                                            ) ?? 'N/A'"
+                                                                size="md" :id="'vendor-stage-badge-' . $vendor->id" />
                                                         </div>
                                                     @endforeach
                                                 @else
                                                     <div class="alert alert-warning mb-0">
                                                         <i class="uil uil-exclamation-triangle me-2"></i>
-                                                        No vendor stages found for this order. Vendor stages are created automatically when the order is placed.
+                                                        No vendor stages found for this order. Vendor stages are created
+                                                        automatically when the order is placed.
                                                     </div>
                                                 @endif
                                             </div>
@@ -118,50 +118,42 @@
                                             <span class="detail-label">{{ trans('order::order.order_from') }}:</span>
                                             <span class="detail-value">
                                                 @if ($order->order_from === 'web')
-                                                    <x-protected-badge 
-                                                        color="#17a2b8"
-                                                        text="🌐 {{ trans('order::order.web') }}"
-                                                        size="lg"
-                                                        id="order-from-badge"
-                                                    />
+                                                    <x-protected-badge color="#17a2b8"
+                                                        text="🌐 {{ trans('order::order.web') }}" size="lg"
+                                                        id="order-from-badge" />
                                                 @elseif($order->order_from === 'ios')
-                                                    <x-protected-badge 
-                                                        color="#343a40"
-                                                        text="🍎 {{ trans('order::order.ios') }}"
-                                                        size="lg"
-                                                        id="order-from-badge"
-                                                    />
+                                                    <x-protected-badge color="#343a40"
+                                                        text="🍎 {{ trans('order::order.ios') }}" size="lg"
+                                                        id="order-from-badge" />
                                                 @elseif($order->order_from === 'android')
-                                                    <x-protected-badge 
-                                                        color="#28a745"
-                                                        text="🤖 {{ trans('order::order.android') }}"
-                                                        size="lg"
-                                                        id="order-from-badge"
-                                                    />
+                                                    <x-protected-badge color="#28a745"
+                                                        text="🤖 {{ trans('order::order.android') }}" size="lg"
+                                                        id="order-from-badge" />
                                                 @else
-                                                    <x-protected-badge 
-                                                        color="#6c757d"
-                                                        :text="$order->order_from"
-                                                        size="lg"
-                                                        id="order-from-badge"
-                                                    />
+                                                    <x-protected-badge color="#6c757d" :text="$order->order_from" size="lg"
+                                                        id="order-from-badge" />
                                                 @endif
                                             </span>
                                         </div>
-                                        @if($order->requestQuotation)
-                                        <div class="detail-row">
-                                            <span class="detail-label">{{ trans('order::request-quotation.request_quotations') }}:</span>
-                                            <span class="detail-value">
-                                                <a target="_blank" href="{{ route('admin.request-quotations.index') }}?search={{ $order->order_number }}" class="btn btn-sm btn-outline-primary">
-                                                    <i class="uil uil-file-question-alt me-1"></i>{{ trans('common.view') }}
-                                                </a>
-                                            </span>
-                                        </div>
+                                        @if ($order->requestQuotation)
+                                            <div class="detail-row">
+                                                <span
+                                                    class="detail-label">{{ trans('order::request-quotation.request_quotations') }}:</span>
+                                                <span class="detail-value">
+                                                    <a target="_blank"
+                                                        href="{{ route('admin.request-quotations.index') }}?search={{ $order->order_number }}"
+                                                        class="btn btn-sm btn-outline-primary">
+                                                        <i
+                                                            class="uil uil-file-question-alt me-1"></i>{{ trans('common.view') }}
+                                                    </a>
+                                                </span>
+                                            </div>
                                         @endif
                                         <hr class="my-15">
                                         <h6 class="fw-bold mb-15 d-flex align-items-center justify-content-between">
                                             <span>
-                                                <i class="uil uil-credit-card me-2" style="color: #5f63f2; font-size: 18px;"></i>
+                                                <i class="uil uil-credit-card me-2"
+                                                    style="color: #5f63f2; font-size: 18px;"></i>
                                                 {{ trans('order::order.payment_information') }}
                                             </span>
                                         </h6>
@@ -169,84 +161,56 @@
                                             <span class="detail-label">{{ trans('order::order.payment_type') }}:</span>
                                             <span class="detail-value">
                                                 @if ($order->payment_type === 'cash_on_delivery')
-                                                    <x-protected-badge 
-                                                        color="#28a745"
+                                                    <x-protected-badge color="#28a745"
                                                         text="💵 {{ trans('order::order.cash_on_delivery') }}"
-                                                        size="md"
-                                                        id="payment-type-badge"
-                                                    />
+                                                        size="md" id="payment-type-badge" />
                                                 @elseif($order->payment_type === 'visa')
-                                                    <x-protected-badge 
-                                                        color="#5f63f2"
-                                                        text="💳 {{ trans('order::order.visa') }}"
-                                                        size="md"
-                                                        id="payment-type-badge"
-                                                    />
+                                                    <x-protected-badge color="#5f63f2"
+                                                        text="💳 {{ trans('order::order.visa') }}" size="md"
+                                                        id="payment-type-badge" />
                                                 @elseif($order->payment_type === 'online')
-                                                    <x-protected-badge 
-                                                        color="#17a2b8"
-                                                        text="🌐 {{ trans('order::order.online') }}"
-                                                        size="md"
-                                                        id="payment-type-badge"
-                                                    />
+                                                    <x-protected-badge color="#17a2b8"
+                                                        text="🌐 {{ trans('order::order.online') }}" size="md"
+                                                        id="payment-type-badge" />
                                                 @else
-                                                    <x-protected-badge 
-                                                        color="#6c757d"
-                                                        :text="$order->payment_type ?? 'N/A'"
-                                                        size="md"
-                                                        id="payment-type-badge"
-                                                    />
+                                                    <x-protected-badge color="#6c757d" :text="$order->payment_type ?? 'N/A'" size="md"
+                                                        id="payment-type-badge" />
                                                 @endif
                                             </span>
                                         </div>
-                                        @if($order->payment_type !== 'cash_on_delivery')
-                                        <div class="detail-row mb-15">
-                                            <span class="detail-label">{{ trans('order::order.payment_status') }}:</span>
-                                            <span class="detail-value">
-                                                @if ($order->payment_visa_status === 'paid' || $order->payment_visa_status === 'success')
-                                                    <x-protected-badge 
-                                                        color="#28a745"
-                                                        text="✓ {{ trans('order::order.paid') }}"
-                                                        size="md"
-                                                        id="payment-status-badge"
-                                                    />
-                                                @elseif($order->payment_visa_status === 'pending' || empty($order->payment_visa_status))
-                                                    <x-protected-badge 
-                                                        color="#ffc107"
-                                                        text="⏳ {{ trans('order::order.pending') }}"
-                                                        size="md"
-                                                        id="payment-status-badge"
-                                                    />
-                                                @elseif($order->payment_visa_status === 'failed')
-                                                    <x-protected-badge 
-                                                        color="#dc3545"
-                                                        text="✗ {{ trans('order::order.failed') }}"
-                                                        size="md"
-                                                        id="payment-status-badge"
-                                                    />
-                                                @else
-                                                    <x-protected-badge 
-                                                        color="#6c757d"
-                                                        :text="$order->payment_visa_status"
-                                                        size="md"
-                                                        id="payment-status-badge"
-                                                    />
-                                                @endif
-                                            </span>
-                                        </div>
-                                        @if($order->payment_reference)
-                                        <div class="detail-row">
-                                            <span class="detail-label">{{ trans('order::order.payment_reference') }}:</span>
-                                            <span class="detail-value">
-                                                <x-protected-badge 
-                                                    color="#5f63f2"
-                                                    :text="$order->payment_reference"
-                                                    size="md"
-                                                    id="payment-reference-badge"
-                                                />
-                                            </span>
-                                        </div>
-                                        @endif
+                                        @if ($order->payment_type !== 'cash_on_delivery')
+                                            <div class="detail-row mb-15">
+                                                <span
+                                                    class="detail-label">{{ trans('order::order.payment_status') }}:</span>
+                                                <span class="detail-value">
+                                                    @if ($order->payment_visa_status === 'paid' || $order->payment_visa_status === 'success')
+                                                        <x-protected-badge color="#28a745"
+                                                            text="✓ {{ trans('order::order.paid') }}" size="md"
+                                                            id="payment-status-badge" />
+                                                    @elseif($order->payment_visa_status === 'pending' || empty($order->payment_visa_status))
+                                                        <x-protected-badge color="#ffc107"
+                                                            text="⏳ {{ trans('order::order.pending') }}" size="md"
+                                                            id="payment-status-badge" />
+                                                    @elseif($order->payment_visa_status === 'failed')
+                                                        <x-protected-badge color="#dc3545"
+                                                            text="✗ {{ trans('order::order.failed') }}" size="md"
+                                                            id="payment-status-badge" />
+                                                    @else
+                                                        <x-protected-badge color="#6c757d" :text="$order->payment_visa_status"
+                                                            size="md" id="payment-status-badge" />
+                                                    @endif
+                                                </span>
+                                            </div>
+                                            @if ($order->payment_reference)
+                                                <div class="detail-row">
+                                                    <span
+                                                        class="detail-label">{{ trans('order::order.payment_reference') }}:</span>
+                                                    <span class="detail-value">
+                                                        <x-protected-badge color="#5f63f2" :text="$order->payment_reference"
+                                                            size="md" id="payment-reference-badge" />
+                                                    </span>
+                                                </div>
+                                            @endif
                                         @endif
                                     </div>
                                 </div>
@@ -287,7 +251,8 @@
                                         @if ($order->country || $order->city || $order->region)
                                             <hr class="my-15">
                                             <h6 class="fw-bold mb-15 d-flex align-items-center">
-                                                <i class="uil uil-location-point me-2" style="color: #5f63f2; font-size: 18px;"></i>
+                                                <i class="uil uil-location-point me-2"
+                                                    style="color: #5f63f2; font-size: 18px;"></i>
                                                 {{ trans('order::order.location') }}
                                             </h6>
                                             <div class="detail-row mb-15">
@@ -309,6 +274,149 @@
                         </div>
                     </div>
 
+                    {{-- Stage History Section --}}
+                    @php
+                        $hasAnyHistory = false;
+                        foreach ($order->vendorStages as $vs) {
+                            if ($vs->history->count() > 0) {
+                                $hasAnyHistory = true;
+                                break;
+                            }
+                        }
+                    @endphp
+
+                    @if ($hasAnyHistory)
+                        <div class="row mb-40 no-print">
+                            <div class="col-12">
+                                <div class="card border-0 shadow-sm">
+                                    <div class="card-body">
+                                        <h6 class="card-title fw-bold mb-20 d-flex align-items-center">
+                                            <i class="uil uil-history me-2" style="color: #5f63f2; font-size: 20px;"></i>
+                                            {{ trans('order::order.stage_history') }}
+                                        </h6>
+
+                                        <div class="history-container">
+                                            @foreach ($order->vendorStages as $vendorStage)
+                                                @php
+                                                    if ($isVendorUser && $vendorStage->vendor_id != $currentVendorId) {
+                                                        continue;
+                                                    }
+                                                    if ($vendorStage->history->count() == 0) {
+                                                        continue;
+                                                    }
+                                                @endphp
+
+                                                <div class="vendor-history-group mb-4">
+                                                    <div class="d-flex align-items-center gap-2 mb-3 p-2 rounded"
+                                                        style="background: #f8f9fa; border-{{ app()->getLocale() == 'ar' ? 'right' : 'left' }}: 4px solid #5f63f2;">
+                                                        @if ($vendorStage->vendor->logo)
+                                                            <img src="{{ asset('storage/' . $vendorStage->vendor->logo->path) }}"
+                                                                alt="{{ $vendorStage->vendor->name }}" class="rounded"
+                                                                style="width: 24px; height: 24px;">
+                                                        @else
+                                                            <div class="rounded d-flex align-items-center justify-content-center"
+                                                                style="width: 24px; height: 24px; background: #fff;">
+                                                                <i class="uil uil-store text-muted"
+                                                                    style="font-size: 14px;"></i>
+                                                            </div>
+                                                        @endif
+                                                        <span
+                                                            class="fw-bold">{{ $vendorStage->vendor->getTranslation('name', app()->getLocale()) }}</span>
+                                                    </div>
+
+                                                    <div class="timeline-wrapper ms-2">
+                                                        @foreach ($vendorStage->history as $history)
+                                                            <div class="timeline-item d-flex gap-3 mb-4 position-relative">
+                                                                <div class="timeline-marker position-relative">
+                                                                    <div class="marker-dot shadow-sm"
+                                                                        style="background: {{ $history->newStage->color ?? '#5f63f2' }};">
+                                                                    </div>
+                                                                </div>
+                                                                <div class="timeline-content flex-grow-1">
+                                                                    <div
+                                                                        class="d-flex justify-content-between align-items-start mb-1">
+                                                                        <div
+                                                                            class="d-flex align-items-center gap-2 flex-wrap">
+                                                                            @if ($history->oldStage)
+                                                                                <x-protected-badge :color="$history->oldStage->color ??
+                                                                                    '#6c757d'"
+                                                                                    :text="$history->oldStage->getTranslation(
+                                                                                        'name',
+                                                                                        app()->getLocale(),
+                                                                                    )" size="sm" />
+                                                                                <i
+                                                                                    class="uil uil-arrow-{{ app()->getLocale() == 'ar' ? 'left' : 'right' }} text-muted"></i>
+                                                                            @endif
+                                                                            <x-protected-badge :color="$history->newStage->color ??
+                                                                                '#5f63f2'"
+                                                                                :text="$history->newStage->getTranslation(
+                                                                                    'name',
+                                                                                    app()->getLocale(),
+                                                                                )" size="sm" />
+                                                                        </div>
+                                                                        <small class="text-muted fw-500">
+                                                                            <i
+                                                                                class="uil uil-clock me-1"></i>{{ $history->created_at->translatedFormat('d M, Y h:i A') }}
+                                                                        </small>
+                                                                    </div>
+
+                                                                    <div class="d-flex align-items-center gap-3 mt-2">
+                                                                        <small
+                                                                            class="text-muted d-flex align-items-center">
+                                                                            <i class="uil uil-user me-1"></i>
+                                                                            {{ $history->user ? $history->user->name : trans('order::order.system') }}
+                                                                        </small>
+                                                                        @if ($history->notes)
+                                                                            <small
+                                                                                class="bg-light px-2 py-1 rounded border"
+                                                                                style="font-style: italic; color: #555;">
+                                                                                <i
+                                                                                    class="uil uil-notes me-1"></i>{{ $history->notes }}
+                                                                            </small>
+                                                                        @endif
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        @endforeach
+                                                    </div>
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <style>
+                            .timeline-wrapper {
+                                border-{{ app()->getLocale() == 'ar' ? 'right' : 'left' }}: 2px dashed #e3e6ef;
+                                padding-{{ app()->getLocale() == 'ar' ? 'right' : 'left' }}: 20px;
+                                margin-{{ app()->getLocale() == 'ar' ? 'right' : 'left' }}: 10px;
+                            }
+
+                            .timeline-marker {
+                                width: 12px;
+                                margin-{{ app()->getLocale() == 'ar' ? 'right' : 'left' }}: -27px;
+                                z-index: 1;
+                            }
+
+                            .marker-dot {
+                                width: 12px;
+                                height: 12px;
+                                border-radius: 50%;
+                                border: 2px solid #fff;
+                            }
+
+                            .timeline-content {
+                                padding-bottom: 5px;
+                            }
+
+                            .timeline-item:last-child {
+                                margin-bottom: 0 !important;
+                            }
+                        </style>
+                    @endif
+
                     <style>
                         .detail-row {
                             display: flex;
@@ -317,7 +425,7 @@
                             padding: 10px 0;
                             border-bottom: 1px solid #f0f0f0;
                         }
-                        
+
                         .detail-row.flex-column {
                             flex-direction: column;
                             align-items: flex-start !important;
@@ -363,7 +471,8 @@
                                     <i class="uil uil-print me-1"></i>{{ trans('order::order.print_invoice') }}
                                 </button>
                                 <button type="button" class="btn btn-info btn-sm" id="printSelectedBtn" disabled>
-                                    <i class="uil uil-print me-1"></i>{{ trans('order::order.print_selected') }} (<span id="selectedCount">0</span>)
+                                    <i class="uil uil-print me-1"></i>{{ trans('order::order.print_selected') }} (<span
+                                        id="selectedCount">0</span>)
                                 </button>
                             </div>
                         </div>
@@ -372,15 +481,19 @@
                                 <thead class="userDatatable-header" style="background-color: #003d82; color: white;">
                                     <tr>
                                         <th class="text-white fw-bold text-center">
-                                            <input type="checkbox" id="selectAllProducts" class="form-check-input" style="cursor: pointer;">
+                                            <input type="checkbox" id="selectAllProducts" class="form-check-input"
+                                                style="cursor: pointer;">
                                         </th>
                                         <th class="text-white fw-bold text-center">#</th>
-                                        <th class="text-white fw-bold text-center">{{ trans('order::order.product') }}</th>
-                                        <th class="text-white fw-bold text-center">{{ trans('order::order.price_before_taxes') }}
+                                        <th class="text-white fw-bold text-center">{{ trans('order::order.product') }}
+                                        </th>
+                                        <th class="text-white fw-bold text-center">
+                                            {{ trans('order::order.price_before_taxes') }}
                                         </th>
                                         <th class="text-white fw-bold text-center">{{ trans('order::order.taxes') }}
                                         </th>
-                                        <th class="text-white fw-bold text-center">{{ trans('order::order.price_including_taxes') }}
+                                        <th class="text-white fw-bold text-center">
+                                            {{ trans('order::order.price_including_taxes') }}
                                         </th>
                                         <th class="text-white fw-bold text-center">{{ trans('order::order.quantity') }}
                                         </th>
@@ -388,90 +501,106 @@
                                         </th>
                                         <th class="text-white fw-bold text-center">{{ trans('order::order.shipping') }}
                                         </th>
-                                        <th class="text-white fw-bold text-center">{{ trans('order::order.total_with_shipping') }}
+                                        <th class="text-white fw-bold text-center">
+                                            {{ trans('order::order.total_with_shipping') }}
                                         </th>
-                                        <th class="text-white fw-bold text-center">{{ trans('order::order.bnaia_commission') }}
+                                        <th class="text-white fw-bold text-center">
+                                            {{ trans('order::order.bnaia_commission') }}
                                         </th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     @php
                                         // Use vendor-filtered products if available, otherwise use all products
-                                        $displayProducts = isset($vendorProducts) && $vendorProducts !== null ? $vendorProducts : $order->products;
+                                        $displayProducts =
+                                            isset($vendorProducts) && $vendorProducts !== null
+                                                ? $vendorProducts
+                                                : $order->products;
                                     @endphp
                                     @forelse($displayProducts as $key => $product)
                                         @php
                                             $productImage = $product->vendorProduct?->product?->mainImage?->path;
-                                            $vendorName = $product->vendorProduct?->vendor?->getTranslation('name', app()->getLocale()) ?? 'N/A';
-                                            
+                                            $vendorName =
+                                                $product->vendorProduct?->vendor?->getTranslation(
+                                                    'name',
+                                                    app()->getLocale(),
+                                                ) ?? 'N/A';
+
                                             // Build variant path: Key → Value
                                             $variantConfig = $product->vendorProductVariant?->variantConfiguration;
-                                            $variantKey = $variantConfig?->key?->getTranslation('name', app()->getLocale()) ?? null;
-                                            $variantValue = $variantConfig?->getTranslation('name', app()->getLocale()) ?? null;
+                                            $variantKey =
+                                                $variantConfig?->key?->getTranslation('name', app()->getLocale()) ??
+                                                null;
+                                            $variantValue =
+                                                $variantConfig?->getTranslation('name', app()->getLocale()) ?? null;
                                             $variantPath = null;
                                             if ($variantKey && $variantValue) {
                                                 $variantPath = $variantKey . ' → ' . $variantValue;
                                             } elseif ($variantValue) {
                                                 $variantPath = $variantValue;
                                             }
-                                            
+
                                             // Price stored is total price INCLUDING tax
                                             $productTotalWithTax = $product->price;
-                                            
+
                                             // Get tax amount (sum of all taxes)
                                             $taxAmount = $product->taxes->sum('amount') ?? 0;
-                                            
+
                                             // Calculate price before tax
                                             $productTotalBeforeTax = $productTotalWithTax - $taxAmount;
-                                            
+
                                             // Unit prices
-                                            $unitPriceWithTax = $product->quantity > 0 ? $productTotalWithTax / $product->quantity : 0;
-                                            $unitPriceBeforeTax = $product->quantity > 0 ? $productTotalBeforeTax / $product->quantity : 0;
-                                            $unitTaxAmount = $product->quantity > 0 ? $taxAmount / $product->quantity : 0;
-                                            
+                                            $unitPriceWithTax =
+                                                $product->quantity > 0 ? $productTotalWithTax / $product->quantity : 0;
+                                            $unitPriceBeforeTax =
+                                                $product->quantity > 0
+                                                    ? $productTotalBeforeTax / $product->quantity
+                                                    : 0;
+                                            $unitTaxAmount =
+                                                $product->quantity > 0 ? $taxAmount / $product->quantity : 0;
+
                                             // Shipping cost per product (must be defined before commission calculation)
                                             $productShippingCost = $product->shipping_cost ?? 0;
-                                            
+
                                             // Total tax percentage
                                             $totalTaxPercentage = $product->taxes->sum('percentage') ?? 0;
-                                            
+
                                             // Commission is stored as percentage
                                             $bnaiaCommission = $product->commission;
                                             $commissionPercent = $bnaiaCommission;
-                                            
+
                                             // Calculate commission amount from percentage (on total with shipping)
                                             $productTotalWithShipping = $productTotalWithTax + $productShippingCost;
                                             $commissionAmount = ($productTotalWithShipping * $commissionPercent) / 100;
-                                            
+
                                             // Remaining = Total with shipping - Commission amount
                                             $remaining = $productTotalWithShipping - $commissionAmount;
                                         @endphp
                                         <tr>
                                             <td class="text-center">
-                                                <input type="checkbox" class="form-check-input product-checkbox" 
-                                                       data-product-id="{{ $product->id }}" 
-                                                       style="cursor: pointer;">
+                                                <input type="checkbox" class="form-check-input product-checkbox"
+                                                    data-product-id="{{ $product->id }}" style="cursor: pointer;">
                                             </td>
                                             <td class="fw-bold text-center">{{ $key + 1 }}</td>
                                             <td class="text-center">
                                                 <div class="d-flex align-items-center justify-content-center gap-3">
-                                                    @if($productImage)
-                                                        <img src="{{ asset('storage/' . $productImage) }}" 
-                                                             alt="{{ $product->vendorProduct->product->name ?? 'Product' }}"
-                                                             class="rounded"
-                                                             style="width: 60px; height: 60px;  border: 1px solid #dee2e6;">
+                                                    @if ($productImage)
+                                                        <img src="{{ asset('storage/' . $productImage) }}"
+                                                            alt="{{ $product->vendorProduct->product->name ?? 'Product' }}"
+                                                            class="rounded"
+                                                            style="width: 60px; height: 60px;  border: 1px solid #dee2e6;">
                                                     @else
-                                                        <img src="{{ asset('assets/img/default.png') }}" 
-                                                             alt="{{ $product->vendorProduct->product->name ?? 'Product' }}"
-                                                             class="rounded"
-                                                             style="width: 60px; height: 60px;  border: 1px solid #dee2e6;">
+                                                        <img src="{{ asset('assets/img/default.png') }}"
+                                                            alt="{{ $product->vendorProduct->product->name ?? 'Product' }}"
+                                                            class="rounded"
+                                                            style="width: 60px; height: 60px;  border: 1px solid #dee2e6;">
                                                     @endif
                                                     <div class="text-start">
                                                         <p class="fw-bold mb-2">
                                                             {{ $product->vendorProduct->product->name ?? 'N/A' }}</p>
                                                         <small class="text-muted d-block mb-1">
                                                             <strong>{{ trans('order::order.sku') }}:</strong>
-                                                            {{ $product->vendorProductVariant?->sku ?? $product->vendorProduct?->sku ?? 'N/A' }}
+                                                            {{ $product->vendorProductVariant?->sku ?? ($product->vendorProduct?->sku ?? 'N/A') }}
                                                         </small>
                                                         @if ($variantPath)
                                                             <small class="text-muted d-block mb-1">
@@ -493,26 +622,24 @@
                                                 {{ currency() }}
                                             </td>
                                             <td class="text-center">
-                                                @if($product->taxes && $product->taxes->count() > 0)
-                                                    <x-protected-badge 
-                                                        color="#5f63f2"
-                                                        :text="trans('order::order.total') . ': ' . $totalTaxPercentage . '%'"
-                                                        size="lg"
-                                                        :id="'tax-total-' . $product->id"
-                                                        class="mb-1"
-                                                    />
+                                                @if ($product->taxes && $product->taxes->count() > 0)
+                                                    <x-protected-badge color="#5f63f2" :text="trans('order::order.total') .
+                                                        ': ' .
+                                                        $totalTaxPercentage .
+                                                        '%'" size="lg"
+                                                        :id="'tax-total-' . $product->id" class="mb-1" />
                                                     <div>
-                                                        @foreach($product->taxes as $tax)
+                                                        @foreach ($product->taxes as $tax)
                                                             @php
-                                                                $taxName = $tax->tax?->getTranslation('name', app()->getLocale()) ?? $tax->tax_title ?? '';
+                                                                $taxName =
+                                                                    $tax->tax?->getTranslation(
+                                                                        'name',
+                                                                        app()->getLocale(),
+                                                                    ) ??
+                                                                    ($tax->tax_title ?? '');
                                                             @endphp
-                                                            <x-protected-badge 
-                                                                color="#6c757d"
-                                                                :text="$taxName . ' ' . $tax->percentage . '%'"
-                                                                size="md"
-                                                                :id="'tax-' . $tax->id . '-' . $product->id"
-                                                                class="me-1 mb-1"
-                                                            />
+                                                            <x-protected-badge color="#6c757d" :text="$taxName . ' ' . $tax->percentage . '%'"
+                                                                size="md" :id="'tax-' . $tax->id . '-' . $product->id" class="me-1 mb-1" />
                                                         @endforeach
                                                     </div>
                                                 @else
@@ -537,7 +664,8 @@
                                             </td>
                                             <td class="text-center text-danger">
                                                 <div>{{ $commissionPercent }}%</div>
-                                                <div class="fw-bold">{{ number_format($commissionAmount, 2) }} {{ currency() }}</div>
+                                                <div class="fw-bold">{{ number_format($commissionAmount, 2) }}
+                                                    {{ currency() }}</div>
                                             </td>
                                         </tr>
                                     @empty
@@ -562,7 +690,8 @@
                                             <th class="text-white fw-bold">{{ trans('order::order.type') }}</th>
                                             <th class="text-white fw-bold">{{ trans('order::order.vendor') }}</th>
                                             <th class="text-white fw-bold">{{ trans('order::order.reason') }}</th>
-                                            <th class="text-white fw-bold text-end">{{ trans('order::order.amount') }}</th>
+                                            <th class="text-white fw-bold text-end">{{ trans('order::order.amount') }}
+                                            </th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -571,40 +700,36 @@
                                             $extrasToDisplay = $order->extraFeesDiscounts;
                                             if (isset($isVendorUser) && $isVendorUser && isset($currentVendorId)) {
                                                 // Vendor: show only their extras
-                                                $extrasToDisplay = $extrasToDisplay->where('vendor_id', $currentVendorId);
+                                                $extrasToDisplay = $extrasToDisplay->where(
+                                                    'vendor_id',
+                                                    $currentVendorId,
+                                                );
                                             }
                                         @endphp
                                         @foreach ($extrasToDisplay as $extra)
                                             <tr>
                                                 <td>
                                                     @if ($extra->type === 'fee')
-                                                        <x-protected-badge 
-                                                            color="#28a745"
-                                                            :text="trans('order::order.fee')"
-                                                            size="lg"
-                                                            :id="'extra-' . $extra->id"
-                                                        />
+                                                        <x-protected-badge color="#28a745" :text="trans('order::order.fee')"
+                                                            size="lg" :id="'extra-' . $extra->id" />
                                                     @else
-                                                        <x-protected-badge 
-                                                            color="#dc3545"
-                                                            :text="trans('order::order.discount')"
-                                                            size="lg"
-                                                            :id="'extra-' . $extra->id"
-                                                        />
+                                                        <x-protected-badge color="#dc3545" :text="trans('order::order.discount')"
+                                                            size="lg" :id="'extra-' . $extra->id" />
                                                     @endif
                                                 </td>
                                                 <td>
-                                                    @if($extra->vendor)
-                                                        <div class="d-flex align-items-center gap-2 justify-content-center">
-                                                            @if($extra->vendor->logo)
-                                                                <img src="{{ asset('storage/' . $extra->vendor->logo->path) }}" 
-                                                                     alt="{{ $extra->vendor->name }}"
-                                                                     class="rounded"
-                                                                     style="width: 24px; height: 24px;">
+                                                    @if ($extra->vendor)
+                                                        <div
+                                                            class="d-flex align-items-center gap-2 justify-content-center">
+                                                            @if ($extra->vendor->logo)
+                                                                <img src="{{ asset('storage/' . $extra->vendor->logo->path) }}"
+                                                                    alt="{{ $extra->vendor->name }}" class="rounded"
+                                                                    style="width: 24px; height: 24px;">
                                                             @else
-                                                                <div class="rounded d-flex align-items-center justify-content-center" 
-                                                                     style="width: 24px; height: 24px; background: #f0f0f0;">
-                                                                    <i class="uil uil-store text-muted" style="font-size: 14px;"></i>
+                                                                <div class="rounded d-flex align-items-center justify-content-center"
+                                                                    style="width: 24px; height: 24px; background: #f0f0f0;">
+                                                                    <i class="uil uil-store text-muted"
+                                                                        style="font-size: 14px;"></i>
                                                                 </div>
                                                             @endif
                                                             <span>{{ $extra->vendor->getTranslation('name', app()->getLocale()) }}</span>
@@ -627,70 +752,79 @@
                     @endif
 
                     {{-- Order Summary - Full Width (Admin Only) --}}
-                    @if(!isset($isVendorUser) || !$isVendorUser)
+                    @if (!isset($isVendorUser) || !$isVendorUser)
                         @php
                             // Calculate total commission and remaining for all displayed products
                             $totalProductsPriceBeforeTax = 0;
                             $totalCommission = 0;
                             $totalRemaining = 0;
                             $totalProductsTax = 0;
-                            
-                            $productsToCalculate = isset($vendorProducts) && $vendorProducts !== null ? $vendorProducts : $order->products;
-                            
+
+                            $productsToCalculate =
+                                isset($vendorProducts) && $vendorProducts !== null ? $vendorProducts : $order->products;
+
                             foreach ($productsToCalculate as $prod) {
                                 // Price stored is total price INCLUDING tax
                                 $prodTotalWithTax = $prod->price;
-                                
+
                                 // Get tax amount (sum of all taxes)
                                 $prodTax = $prod->taxes->sum('amount') ?? 0;
-                                
+
                                 // Calculate price before tax
                                 $prodTotalBeforeTax = $prodTotalWithTax - $prodTax;
-                                
+
                                 // Get shipping cost for this product
                                 $prodShippingCost = $prod->shipping_cost ?? 0;
-                                
+
                                 // Commission is stored as percentage, calculate the amount
-                                $commPercent = $prod->commission > 0 ? $prod->commission : ($prod->vendorProduct?->product?->department?->commission ?? 0);
+                                $commPercent =
+                                    $prod->commission > 0
+                                        ? $prod->commission
+                                        : $prod->vendorProduct?->product?->department?->commission ?? 0;
                                 $prodTotalWithShipping = $prodTotalWithTax + $prodShippingCost;
                                 $commAmount = ($prodTotalWithShipping * $commPercent) / 100;
-                                
+
                                 $totalProductsPriceBeforeTax += $prodTotalBeforeTax;
                                 $totalProductsTax += $prodTax;
                                 $totalCommission += $commAmount;
-                                $totalRemaining += ($prodTotalWithShipping - $commAmount);
+                                $totalRemaining += $prodTotalWithShipping - $commAmount;
                             }
-                            
+
                             // Total with tax for vendor remaining calculation
                             $totalProductsPriceWithTax = $totalProductsPriceBeforeTax + $totalProductsTax;
-                            
+
                             // Calculate total with shipping
-                            $totalWithShippingOrder = $totalProductsPriceWithTax - $order->customer_promo_code_amount + $order->shipping;
+                            $totalWithShippingOrder =
+                                $totalProductsPriceWithTax - $order->customer_promo_code_amount + $order->shipping;
                         @endphp
                         <div class="row mb-40">
                             <div class="col-12">
                                 <div class="card border-0"
                                     style="background: white; color: #333; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);">
                                     <div class="card-body">
-                                        <h6 class="card-title fw-bold mb-20 d-flex align-items-center" style="color: #5f63f2;">
+                                        <h6 class="card-title fw-bold mb-20 d-flex align-items-center"
+                                            style="color: #5f63f2;">
                                             <i class="uil uil-receipt me-2" style="font-size: 20px;"></i>
                                             {{ trans('order::order.order_summary') }}
                                         </h6>
                                         <div class="summary-details">
                                             <div class="summary-row mb-12">
                                                 <span class="fw-bold">{{ trans('order::order.subtotal') }}</span>
-                                                <span class="fw-bold">{{ number_format($totalProductsPriceBeforeTax, 2) }}
+                                                <span
+                                                    class="fw-bold">{{ number_format($totalProductsPriceBeforeTax, 2) }}
                                                     {{ currency() }}</span>
                                             </div>
                                             @if ($order->customer_promo_code_amount > 0)
                                                 <div class="summary-row mb-12">
                                                     <span class="fw-bold">
                                                         {{ trans('order::order.promo_discount') }}
-                                                        @if($order->customer_promo_code_title)
-                                                            <small style="color: #999;">({{ $order->customer_promo_code_title }})</small>
+                                                        @if ($order->customer_promo_code_title)
+                                                            <small
+                                                                style="color: #999;">({{ $order->customer_promo_code_title }})</small>
                                                         @endif
                                                     </span>
-                                                    <span class="fw-bold" style="color: #dc3545;">-{{ number_format($order->customer_promo_code_amount, 2) }}
+                                                    <span class="fw-bold"
+                                                        style="color: #dc3545;">-{{ number_format($order->customer_promo_code_amount, 2) }}
                                                         {{ currency() }}</span>
                                                 </div>
                                             @endif
@@ -700,14 +834,17 @@
                                                     {{ currency() }}</span>
                                             </div>
                                             <div class="summary-row mb-12">
-                                                <span class="fw-bold">{{ trans('order::order.subtotal_including_tax') }}</span>
-                                                <span class="fw-bold">{{ number_format($totalProductsPriceWithTax - $order->customer_promo_code_amount, 2) }}
+                                                <span
+                                                    class="fw-bold">{{ trans('order::order.subtotal_including_tax') }}</span>
+                                                <span
+                                                    class="fw-bold">{{ number_format($totalProductsPriceWithTax - $order->customer_promo_code_amount, 2) }}
                                                     {{ currency() }}</span>
                                             </div>
                                             @if ($order->total_discounts > 0)
                                                 <div class="summary-row mb-12">
                                                     <span class="fw-bold">{{ trans('order::order.discounts') }}</span>
-                                                    <span class="fw-bold" style="color: #dc3545;">-{{ number_format($order->total_discounts, 2) }}
+                                                    <span class="fw-bold"
+                                                        style="color: #dc3545;">-{{ number_format($order->total_discounts, 2) }}
                                                         {{ currency() }}</span>
                                                 </div>
                                             @endif
@@ -724,32 +861,38 @@
                                                     {{ currency() }}</span>
                                             </div>
                                             <div class="summary-row mb-12">
-                                                <span class="fw-bold">{{ trans('order::order.total_with_shipping') }}</span>
+                                                <span
+                                                    class="fw-bold">{{ trans('order::order.total_with_shipping') }}</span>
                                                 <span class="fw-bold">{{ number_format($totalWithShippingOrder, 2) }}
                                                     {{ currency() }}</span>
                                             </div>
                                             @if ($order->points_used > 0)
                                                 <div class="summary-row mb-12">
                                                     <span class="fw-bold">{{ trans('order::order.points_used') }}</span>
-                                                    <span class="fw-bold" style="color: #dc3545;">-{{ number_format($order->points_cost, 2) }}
-                                                        {{ currency() }} ({{ number_format($order->points_used, 0) }} {{ trans('order::order.points') }})</span>
+                                                    <span class="fw-bold"
+                                                        style="color: #dc3545;">-{{ number_format($order->points_cost, 2) }}
+                                                        {{ currency() }} ({{ number_format($order->points_used, 0) }}
+                                                        {{ trans('order::order.points') }})</span>
                                                 </div>
                                             @endif
                                             <hr style="border-color: rgba(0,0,0,0.1); margin: 15px 0;">
                                             <div class="summary-row" style="font-size: 18px;">
                                                 <span class="fw-bold">{{ trans('order::order.total') }}</span>
-                                                <span class="fw-bold" style="color: #5f63f2;">{{ number_format($order->total_price, 2) }}
+                                                <span class="fw-bold"
+                                                    style="color: #5f63f2;">{{ number_format($order->total_price, 2) }}
                                                     {{ currency() }}</span>
                                             </div>
                                             <hr style="border-color: rgba(0,0,0,0.1); margin: 15px 0;">
                                             <div class="summary-row mb-12" style="font-size: 16px;">
                                                 <span class="fw-bold">{{ trans('order::order.bnaia_commission') }}</span>
-                                                <span class="fw-bold" style="color: #dc3545;">{{ number_format($totalCommission, 2) }}
+                                                <span class="fw-bold"
+                                                    style="color: #dc3545;">{{ number_format($totalCommission, 2) }}
                                                     {{ currency() }}</span>
                                             </div>
                                             <div class="summary-row" style="font-size: 16px;">
                                                 <span class="fw-bold">{{ trans('order::order.remaining') }}</span>
-                                                <span class="fw-bold" style="color: #28a745;">{{ number_format($totalRemaining, 2) }}
+                                                <span class="fw-bold"
+                                                    style="color: #28a745;">{{ number_format($totalRemaining, 2) }}
                                                     {{ currency() }}</span>
                                             </div>
                                         </div>
@@ -763,133 +906,145 @@
                     <div class="row mb-40">
                         @php
                             // Calculate totals from products
-                            $productsToCalculate = isset($vendorProducts) && $vendorProducts !== null ? $vendorProducts : $order->products;
-                            
+                            $productsToCalculate =
+                                isset($vendorProducts) && $vendorProducts !== null ? $vendorProducts : $order->products;
+
                             $totalProductsPriceBeforeTax = 0;
                             $totalProductsTax = 0;
                             $vendorShippingCost = 0;
                             $totalCommission = 0;
                             $totalCommissionPercentage = 0;
                             $productCount = $productsToCalculate->count();
-                            
+
                             foreach ($productsToCalculate as $prod) {
                                 $prodTotalWithTax = $prod->price;
                                 $prodTax = $prod->taxes->sum('amount') ?? 0;
                                 $prodTotalBeforeTax = $prodTotalWithTax - $prodTax;
                                 $prodShippingCost = $prod->shipping_cost ?? 0;
-                                
+
                                 $totalProductsPriceBeforeTax += $prodTotalBeforeTax;
                                 $totalProductsTax += $prodTax;
                                 $vendorShippingCost += $prodShippingCost;
-                                
+
                                 // Calculate commission from each product (on total with shipping)
-                                $commPercent = $prod->commission > 0 ? $prod->commission : ($prod->vendorProduct?->product?->department?->commission ?? 0);
+                                $commPercent =
+                                    $prod->commission > 0
+                                        ? $prod->commission
+                                        : $prod->vendorProduct?->product?->department?->commission ?? 0;
                                 $prodTotalWithShipping = $prodTotalWithTax + $prodShippingCost;
                                 $prodCommissionAmount = ($prodTotalWithShipping * $commPercent) / 100;
                                 $totalCommission += $prodCommissionAmount;
                                 $totalCommissionPercentage += $commPercent;
                             }
-                            
+
                             // Calculate average commission percentage for display
                             if ($productCount > 0) {
                                 $totalCommissionPercentage = $totalCommissionPercentage / $productCount;
                             }
-                            
+
                             // Total with tax for vendor remaining calculation
                             $totalProductsPriceWithTax = $totalProductsPriceBeforeTax + $totalProductsTax;
-                            
+
                             // Use vendor-specific shipping if vendor user, otherwise use total order shipping
-                            $shippingToUse = (isset($isVendorUser) && $isVendorUser) ? $vendorShippingCost : $order->shipping;
-                            
+                            $shippingToUse =
+                                isset($isVendorUser) && $isVendorUser ? $vendorShippingCost : $order->shipping;
+
                             // Get vendor name for display
-                            if (isset($isVendorUser) && $isVendorUser && isset($vendorProducts) && $vendorProducts->count() > 0) {
-                                $currentVendorName = $vendorProducts->first()->vendorProduct?->vendor?->getTranslation('name', app()->getLocale()) ?? 'Vendor';
+                            if (
+                                isset($isVendorUser) &&
+                                $isVendorUser &&
+                                isset($vendorProducts) &&
+                                $vendorProducts->count() > 0
+                            ) {
+                                $currentVendorName =
+                                    $vendorProducts
+                                        ->first()
+                                        ->vendorProduct?->vendor?->getTranslation('name', app()->getLocale()) ??
+                                    'Vendor';
                                 $currentVendorId = $vendorProducts->first()->vendorProduct?->vendor_id;
                             } else {
                                 $currentVendorName = 'Vendor';
                                 $currentVendorId = null;
                             }
-                            
+
                             // Get vendor_order_stage for discount shares (vendor view)
                             $vendorOrderStageForVendor = null;
                             $vendorPromoCodeShare = 0;
                             $vendorPointsShare = 0;
                             if ($currentVendorId) {
-                                $vendorOrderStageForVendor = \Modules\Order\app\Models\VendorOrderStage::where('order_id', $order->id)
+                                $vendorOrderStageForVendor = \Modules\Order\app\Models\VendorOrderStage::where(
+                                    'order_id',
+                                    $order->id,
+                                )
                                     ->where('vendor_id', $currentVendorId)
                                     ->first();
                                 $vendorPromoCodeShare = $vendorOrderStageForVendor?->promo_code_share ?? 0;
                                 $vendorPointsShare = $vendorOrderStageForVendor?->points_share ?? 0;
                             }
-                            
+
                             // Recalculate remaining: Total with Shipping - Commission
                             $totalRemaining = $totalProductsPriceWithTax + $shippingToUse - $totalCommission;
                             $totalWithShipping = $totalProductsPriceWithTax + $shippingToUse;
                         @endphp
 
-                        @if(isset($isVendorUser) && $isVendorUser && isset($vendorProductTotal))
+                        @if (isset($isVendorUser) && $isVendorUser && isset($vendorProductTotal))
                             {{-- Vendor view: show Vendor Remaining Summary with products inside --}}
                             @php
                                 // Get vendor-specific fees and discounts (already distributed and stored with vendor_id)
-                                $vendorFees = \Modules\Order\app\Models\OrderExtraFeeDiscount::where('order_id', $order->id)
+                                $vendorFees = \Modules\Order\app\Models\OrderExtraFeeDiscount::where(
+                                    'order_id',
+                                    $order->id,
+                                )
                                     ->where('vendor_id', $currentVendorId)
                                     ->where('type', 'fee')
                                     ->sum('cost');
-                                
-                                $vendorDiscounts = \Modules\Order\app\Models\OrderExtraFeeDiscount::where('order_id', $order->id)
+
+                                $vendorDiscounts = \Modules\Order\app\Models\OrderExtraFeeDiscount::where(
+                                    'order_id',
+                                    $order->id,
+                                )
                                     ->where('vendor_id', $currentVendorId)
                                     ->where('type', 'discount')
                                     ->sum('cost');
-                                
+
                                 // Update total with fees and discounts
                                 $totalWithShippingAndExtras = $totalWithShipping + $vendorFees - $vendorDiscounts;
-                                
+
                                 // Update remaining: Total - Commission
                                 $totalRemainingWithExtras = $totalWithShippingAndExtras - $totalCommission;
                             @endphp
                             <div class="col-12 mb-3">
-                                <x-order::vendor-remaining-with-products
-                                    :vendorName="$currentVendorName"
-                                    :products="$displayProducts"
-                                    :subtotalBeforeTax="$totalProductsPriceBeforeTax"
-                                    :taxAmount="$totalProductsTax"
-                                    :subtotalWithTax="$totalProductsPriceWithTax"
-                                    :shipping="$vendorShippingCost"
-                                    :total="$totalWithShippingAndExtras"
-                                    :commissionPercentage="$totalCommissionPercentage"
-                                    :commissionAmount="$totalCommission"
-                                    :remaining="$totalRemainingWithExtras"
-                                    :promoCodeShare="$vendorPromoCodeShare"
-                                    :pointsShare="$vendorPointsShare"
-                                    :fees="$vendorFees"
-                                    :discounts="$vendorDiscounts"
-                                    :colors="['#28a745', '#5dd879']"
-                                />
+                                <x-order::vendor-remaining-with-products :vendorName="$currentVendorName" :products="$displayProducts"
+                                    :subtotalBeforeTax="$totalProductsPriceBeforeTax" :taxAmount="$totalProductsTax" :subtotalWithTax="$totalProductsPriceWithTax" :shipping="$vendorShippingCost"
+                                    :total="$totalWithShippingAndExtras" :commissionPercentage="$totalCommissionPercentage" :commissionAmount="$totalCommission" :remaining="$totalRemainingWithExtras"
+                                    :promoCodeShare="$vendorPromoCodeShare" :pointsShare="$vendorPointsShare" :fees="$vendorFees" :discounts="$vendorDiscounts"
+                                    :colors="['#28a745', '#5dd879']" />
                             </div>
                         @else
                             {{-- Admin view: show per-vendor boxes with products inside --}}
-                            
+
                             @php
                                 // Group products by vendor
-                                $productsByVendor = $order->products->groupBy(function($product) {
+                                $productsByVendor = $order->products->groupBy(function ($product) {
                                     return $product->vendorProduct?->vendor_id;
                                 });
-                                
+
                                 // Use single green color for all vendors
                                 $vendorColors = [
                                     ['#28a745', '#5dd879'], // Green
                                 ];
                                 $colorIndex = 0;
-                                
+
                                 // Check if order has promo code or points discount
                                 $hasPromoCode = $order->customer_promo_code_amount > 0;
                                 $hasPointsDiscount = $order->points_cost > 0;
                             @endphp
-                            
+
                             {{-- Explanation box for promo code and points share --}}
-                            @if($hasPromoCode || $hasPointsDiscount)
+                            @if ($hasPromoCode || $hasPointsDiscount)
                                 <div class="col-12 mb-4">
-                                    <div class="card border-0 shadow-sm" style="background: #f8f9fa; border-radius: 12px;">
+                                    <div class="card border-0 shadow-sm"
+                                        style="background: #f8f9fa; border-radius: 12px;">
                                         <div class="card-body p-4">
                                             <h6 class="fw-bold mb-3 d-flex align-items-center" style="color: #1565c0;">
                                                 <i class="uil uil-info-circle me-2" style="font-size: 22px;"></i>
@@ -899,24 +1054,36 @@
                                                 {{ trans('order::order.discount_share_explanation_text') }}
                                             </p>
                                             <div class="row">
-                                                @if($hasPromoCode)
+                                                @if ($hasPromoCode)
                                                     <div class="col-md-6 mb-2">
-                                                        <div class="d-flex align-items-start p-3" style="background: #e8f5e9; border-radius: 8px;">
-                                                            <i class="uil uil-tag-alt me-2" style="color: #28a745; font-size: 18px; margin-top: 2px;"></i>
+                                                        <div class="d-flex align-items-start p-3"
+                                                            style="background: #e8f5e9; border-radius: 8px;">
+                                                            <i class="uil uil-tag-alt me-2"
+                                                                style="color: #28a745; font-size: 18px; margin-top: 2px;"></i>
                                                             <div>
-                                                                <strong style="color: #28a745;">{{ trans('order::order.promo_code_share') }}</strong>
-                                                                <p class="mb-0 mt-1" style="color: #555; font-size: 13px;">{{ trans('order::order.promo_code_share_explanation') }}</p>
+                                                                <strong
+                                                                    style="color: #28a745;">{{ trans('order::order.promo_code_share') }}</strong>
+                                                                <p class="mb-0 mt-1"
+                                                                    style="color: #555; font-size: 13px;">
+                                                                    {{ trans('order::order.promo_code_share_explanation') }}
+                                                                </p>
                                                             </div>
                                                         </div>
                                                     </div>
                                                 @endif
-                                                @if($hasPointsDiscount)
+                                                @if ($hasPointsDiscount)
                                                     <div class="col-md-6 mb-2">
-                                                        <div class="d-flex align-items-start p-3" style="background: #e8f5e9; border-radius: 8px;">
-                                                            <i class="uil uil-star me-2" style="color: #28a745; font-size: 18px; margin-top: 2px;"></i>
+                                                        <div class="d-flex align-items-start p-3"
+                                                            style="background: #e8f5e9; border-radius: 8px;">
+                                                            <i class="uil uil-star me-2"
+                                                                style="color: #28a745; font-size: 18px; margin-top: 2px;"></i>
                                                             <div>
-                                                                <strong style="color: #28a745;">{{ trans('order::order.points_share') }}</strong>
-                                                                <p class="mb-0 mt-1" style="color: #555; font-size: 13px;">{{ trans('order::order.points_share_explanation') }}</p>
+                                                                <strong
+                                                                    style="color: #28a745;">{{ trans('order::order.points_share') }}</strong>
+                                                                <p class="mb-0 mt-1"
+                                                                    style="color: #555; font-size: 13px;">
+                                                                    {{ trans('order::order.points_share_explanation') }}
+                                                                </p>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -926,91 +1093,99 @@
                                     </div>
                                 </div>
                             @endif
-                            
-                            @foreach($productsByVendor as $vendorId => $vendorProducts)
+
+                            @foreach ($productsByVendor as $vendorId => $vendorProducts)
                                 @php
                                     // Get vendor name
-                                    $vendorName = $vendorProducts->first()->vendorProduct?->vendor?->getTranslation('name', app()->getLocale()) ?? 'N/A';
-                                    
+                                    $vendorName =
+                                        $vendorProducts
+                                            ->first()
+                                            ->vendorProduct?->vendor?->getTranslation('name', app()->getLocale()) ??
+                                        'N/A';
+
                                     // Get vendor_order_stage for discount shares
-                                    $vendorOrderStage = \Modules\Order\app\Models\VendorOrderStage::where('order_id', $order->id)
+                                    $vendorOrderStage = \Modules\Order\app\Models\VendorOrderStage::where(
+                                        'order_id',
+                                        $order->id,
+                                    )
                                         ->where('vendor_id', $vendorId)
                                         ->first();
                                     $promoCodeShare = $vendorOrderStage?->promo_code_share ?? 0;
                                     $pointsShare = $vendorOrderStage?->points_share ?? 0;
-                                    
+
                                     // Calculate totals for this vendor
                                     $vendorSubtotalBeforeTax = 0;
                                     $vendorTotalTax = 0;
                                     $vendorShipping = 0;
                                     $vendorTotalCommission = 0;
                                     $totalCommissionPercentage = 0;
-                                    
+
                                     foreach ($vendorProducts as $prod) {
                                         $prodTotalWithTax = $prod->price;
                                         $prodTax = $prod->taxes->sum('amount') ?? 0;
                                         $prodTotalBeforeTax = $prodTotalWithTax - $prodTax;
                                         $prodShippingCost = $prod->shipping_cost ?? 0;
-                                        
+
                                         $vendorSubtotalBeforeTax += $prodTotalBeforeTax;
                                         $vendorTotalTax += $prodTax;
                                         $vendorShipping += $prodShippingCost;
-                                        
+
                                         // Calculate commission from each product (on total with shipping)
-                                        $commPercent = $prod->commission > 0 ? $prod->commission : ($prod->vendorProduct?->product?->department?->commission ?? 0);
+                                        $commPercent =
+                                            $prod->commission > 0
+                                                ? $prod->commission
+                                                : $prod->vendorProduct?->product?->department?->commission ?? 0;
                                         $prodTotalWithShipping = $prodTotalWithTax + $prodShippingCost;
                                         $prodCommissionAmount = ($prodTotalWithShipping * $commPercent) / 100;
                                         $vendorTotalCommission += $prodCommissionAmount;
                                         $totalCommissionPercentage += $commPercent;
                                     }
-                                    
+
                                     // Calculate average commission percentage for display
-                                    $avgCommissionPercentage = $vendorProducts->count() > 0 ? $totalCommissionPercentage / $vendorProducts->count() : 0;
-                                    
+                                    $avgCommissionPercentage =
+                                        $vendorProducts->count() > 0
+                                            ? $totalCommissionPercentage / $vendorProducts->count()
+                                            : 0;
+
                                     $vendorSubtotalWithTax = $vendorSubtotalBeforeTax + $vendorTotalTax;
                                     $vendorTotalWithShipping = $vendorSubtotalWithTax + $vendorShipping;
-                                    
+
                                     // Get vendor-specific fees and discounts (already distributed and stored with vendor_id)
-                                    $vendorFees = \Modules\Order\app\Models\OrderExtraFeeDiscount::where('order_id', $order->id)
+                                    $vendorFees = \Modules\Order\app\Models\OrderExtraFeeDiscount::where(
+                                        'order_id',
+                                        $order->id,
+                                    )
                                         ->where('vendor_id', $vendorId)
                                         ->where('type', 'fee')
                                         ->sum('cost');
-                                    
-                                    $vendorDiscounts = \Modules\Order\app\Models\OrderExtraFeeDiscount::where('order_id', $order->id)
+
+                                    $vendorDiscounts = \Modules\Order\app\Models\OrderExtraFeeDiscount::where(
+                                        'order_id',
+                                        $order->id,
+                                    )
                                         ->where('vendor_id', $vendorId)
                                         ->where('type', 'discount')
                                         ->sum('cost');
-                                    
+
                                     // Update total with fees and discounts
-                                    $vendorTotalWithShippingAndExtras = $vendorTotalWithShipping + $vendorFees - $vendorDiscounts;
-                                    
+                                    $vendorTotalWithShippingAndExtras =
+                                        $vendorTotalWithShipping + $vendorFees - $vendorDiscounts;
+
                                     // Calculate remaining: Total with Shipping and Extras - Commission
                                     $vendorTotalRemaining = $vendorTotalWithShippingAndExtras - $vendorTotalCommission;
-                                    
+
                                     // Get color for this vendor
                                     $colors = $vendorColors[$colorIndex % count($vendorColors)];
                                     $colorIndex++;
                                 @endphp
-                                
+
                                 {{-- Per-Vendor Remaining Summary Box with Products Inside --}}
                                 <div class="col-12 mb-3">
-                                    <x-order::vendor-remaining-with-products
-                                        :vendorName="$vendorName"
-                                        :products="$vendorProducts"
-                                        :subtotalBeforeTax="$vendorSubtotalBeforeTax"
-                                        :taxAmount="$vendorTotalTax"
-                                        :subtotalWithTax="$vendorSubtotalWithTax"
-                                        :shipping="$vendorShipping"
-                                        :total="$vendorTotalWithShippingAndExtras"
-                                        :commissionPercentage="$avgCommissionPercentage"
-                                        :commissionAmount="$vendorTotalCommission"
-                                        :remaining="$vendorTotalRemaining"
-                                        :promoCodeShare="$promoCodeShare"
-                                        :pointsShare="$pointsShare"
-                                        :fees="$vendorFees"
-                                        :discounts="$vendorDiscounts"
-                                        :colors="$colors"
-                                    />
+                                    <x-order::vendor-remaining-with-products :vendorName="$vendorName" :products="$vendorProducts"
+                                        :subtotalBeforeTax="$vendorSubtotalBeforeTax" :taxAmount="$vendorTotalTax" :subtotalWithTax="$vendorSubtotalWithTax" :shipping="$vendorShipping"
+                                        :total="$vendorTotalWithShippingAndExtras" :commissionPercentage="$avgCommissionPercentage" :commissionAmount="$vendorTotalCommission" :remaining="$vendorTotalRemaining"
+                                        :promoCodeShare="$promoCodeShare" :pointsShare="$pointsShare" :fees="$vendorFees" :discounts="$vendorDiscounts"
+                                        :colors="$colors" />
                                 </div>
                             @endforeach
                         @endif
@@ -1021,7 +1196,7 @@
     </div>
 
     <!-- Include Change Stage Modal Component (Vendor Only) -->
-    @if(!isAdmin())
+    @if (!isAdmin())
         <x-order::change-stage-modal :order-id="$order->id" :current-stage-id="$order->stage_id" :order-stages="$orderStages ?? []" />
     @endif
 
@@ -1440,64 +1615,64 @@
             }, 100);
         }
     </script>
-    
+
     @push('scripts')
-    <script>
-        $(document).ready(function() {
-            // ===== PRINT FUNCTIONALITY =====
-            let selectedProductsForPrint = [];
-            
-            // Handle select all checkbox
-            $('#selectAllProducts').on('change', function() {
-                const isChecked = $(this).prop('checked');
-                $('.product-checkbox').prop('checked', isChecked);
-                updateSelectedProductsForPrint();
-            });
-            
-            // Handle individual product checkbox
-            $('.product-checkbox').on('change', function() {
-                updateSelectedProductsForPrint();
-                
-                // Update select all checkbox state
-                const totalCheckboxes = $('.product-checkbox').length;
-                const checkedCheckboxes = $('.product-checkbox:checked').length;
-                $('#selectAllProducts').prop('checked', totalCheckboxes === checkedCheckboxes);
-            });
-            
-            // Update selected products for print
-            function updateSelectedProductsForPrint() {
-                selectedProductsForPrint = [];
-                $('.product-checkbox:checked').each(function() {
-                    selectedProductsForPrint.push($(this).data('product-id'));
+        <script>
+            $(document).ready(function() {
+                // ===== PRINT FUNCTIONALITY =====
+                let selectedProductsForPrint = [];
+
+                // Handle select all checkbox
+                $('#selectAllProducts').on('change', function() {
+                    const isChecked = $(this).prop('checked');
+                    $('.product-checkbox').prop('checked', isChecked);
+                    updateSelectedProductsForPrint();
                 });
-                
-                // Update button state and count
-                $('#selectedCount').text(selectedProductsForPrint.length);
-                $('#printSelectedBtn').prop('disabled', selectedProductsForPrint.length === 0);
-            }
-            
-            // Handle print all button
-            $('#printAllBtn').on('click', function() {
-                // Print all products without filtering
-                const printUrl = '{{ route("admin.orders.print", $order->id) }}';
-                window.open(printUrl, '_blank');
-            });
-            
-            // Handle print selected button
-            $('#printSelectedBtn').on('click', function() {
-                if (selectedProductsForPrint.length === 0) {
-                    toastr.warning('{{ trans('order::order.please_select_products_to_print') }}');
-                    return;
+
+                // Handle individual product checkbox
+                $('.product-checkbox').on('change', function() {
+                    updateSelectedProductsForPrint();
+
+                    // Update select all checkbox state
+                    const totalCheckboxes = $('.product-checkbox').length;
+                    const checkedCheckboxes = $('.product-checkbox:checked').length;
+                    $('#selectAllProducts').prop('checked', totalCheckboxes === checkedCheckboxes);
+                });
+
+                // Update selected products for print
+                function updateSelectedProductsForPrint() {
+                    selectedProductsForPrint = [];
+                    $('.product-checkbox:checked').each(function() {
+                        selectedProductsForPrint.push($(this).data('product-id'));
+                    });
+
+                    // Update button state and count
+                    $('#selectedCount').text(selectedProductsForPrint.length);
+                    $('#printSelectedBtn').prop('disabled', selectedProductsForPrint.length === 0);
                 }
-                
-                // Build URL with selected product IDs
-                const productIds = selectedProductsForPrint.join(',');
-                const printUrl = '{{ route("admin.orders.print", $order->id) }}?products=' + productIds;
-                
-                // Open in new window
-                window.open(printUrl, '_blank');
+
+                // Handle print all button
+                $('#printAllBtn').on('click', function() {
+                    // Print all products without filtering
+                    const printUrl = '{{ route('admin.orders.print', $order->id) }}';
+                    window.open(printUrl, '_blank');
+                });
+
+                // Handle print selected button
+                $('#printSelectedBtn').on('click', function() {
+                    if (selectedProductsForPrint.length === 0) {
+                        toastr.warning('{{ trans('order::order.please_select_products_to_print') }}');
+                        return;
+                    }
+
+                    // Build URL with selected product IDs
+                    const productIds = selectedProductsForPrint.join(',');
+                    const printUrl = '{{ route('admin.orders.print', $order->id) }}?products=' + productIds;
+
+                    // Open in new window
+                    window.open(printUrl, '_blank');
+                });
             });
-        });
-    </script>
+        </script>
     @endpush
 @endsection

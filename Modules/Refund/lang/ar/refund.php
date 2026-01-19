@@ -10,11 +10,19 @@ return [
     'refunded' => 'المستردة',
     'rejected_refunds' => 'المرفوضة',
     'titles' => [
+        'refunds' => 'الاسترجاعات',
         'refund_requests' => 'طلبات الاسترجاع',
         'view_refund' => 'عرض طلب الاسترجاع',
         'refund_details' => 'تفاصيل الاسترجاع',
+        'refund_information' => 'معلومات الاسترجاع',
+        'financial_details' => 'التفاصيل المالية',
+        'status_information' => 'معلومات الحالة',
+        'status_history' => 'سجل الحالات',
         'refund_items' => 'المنتجات المسترجعة',
         'refund_settings' => 'إعدادات الاسترجاع',
+        'vendor_refund_settings' => 'إعدادات الاسترجاع للمورد',
+        'manage_vendor_refund_settings' => 'إدارة إعدادات الاسترجاع للموردين',
+        'edit_vendor_refund_settings' => 'تعديل إعدادات الاسترجاع للمورد',
     ],
 
     'fields' => [
@@ -28,6 +36,7 @@ return [
         'total_products_amount' => 'قيمة المنتجات',
         'total_shipping_amount' => 'قيمة الشحن',
         'total_tax_amount' => 'قيمة الضريبة',
+        'total_discount_amount' => 'قيمة الخصم',
         'return_shipping_cost' => 'تكلفة شحن الإرجاع',
         'reason' => 'السبب',
         'customer_notes' => 'ملاحظات العميل',
@@ -71,6 +80,15 @@ return [
         'status_updated' => 'تم تحديث حالة الاسترجاع بنجاح',
         'notes_updated' => 'تم تحديث الملاحظات بنجاح',
         'settings_updated' => 'تم تحديث إعدادات الاسترجاع بنجاح',
+        'product_not_refundable' => 'المنتج لا يسمح بالاسترجاع',
+        'product_not_delivered' => 'المنتج لم يتم توصيله بعد',
+        'product_already_refunded' => 'المنتج لديه بالفعل طلب استرجاع',
+        'refund_window_expired' => 'انتهت فترة الاسترجاع المسموح بها',
+        'confirm_approve' => 'هل أنت متأكد من قبول طلب الاسترجاع هذا؟',
+        'confirm_cancel' => 'هل أنت متأكد من إلغاء طلب الاسترجاع هذا؟',
+        'confirm_in_progress' => 'هل أنت متأكد من تحديث حالة الاسترجاع إلى قيد التنفيذ؟',
+        'confirm_picked_up' => 'هل أنت متأكد من تحديث حالة الاسترجاع إلى تم الاستلام؟',
+        'confirm_refunded' => 'هل أنت متأكد من تحديث حالة الاسترجاع إلى مكتمل؟',
     ],
 
     'errors' => [
@@ -81,6 +99,22 @@ return [
     'help' => [
         'customer_pays_return_shipping' => 'إذا تم التفعيل، سيتم خصم تكلفة شحن الإرجاع من المبلغ المسترجع',
         'refund_processing_days' => 'عدد الأيام الافتراضية بعد التوصيل التي يمكن للعملاء طلب الاسترجاع فيها (يستخدم عندما لا يكون للمنتج أيام استرجاع مخصصة)',
+    ],
+
+    'vendor_settings' => [
+        'refund_enabled' => 'تفعيل الاسترجاع',
+        'refund_enabled_help' => 'تفعيل أو تعطيل طلبات الاسترجاع لمنتجاتك',
+        'vendor_refund_days' => 'أيام الاسترجاع',
+        'vendor_refund_days_help' => 'عدد الأيام بعد التوصيل التي يمكن للعملاء طلب الاسترجاع فيها لمنتجاتك',
+    ],
+
+    'admin_settings' => [
+        'title' => 'إدارة إعدادات الاسترجاع للموردين',
+        'all_statuses' => 'كل الحالات',
+        'refunds_enabled' => 'الاسترجاع مفعل',
+        'refunds_disabled' => 'الاسترجاع معطل',
+        'no_vendors_found' => 'لا يوجد موردين',
+        'editing_settings_for' => 'تعديل إعدادات الاسترجاع لهذا المورد',
     ],
 
     'notifications' => [
@@ -110,9 +144,11 @@ return [
         'order_product_not_in_order' => 'منتج الطلب المحدد لا ينتمي إلى هذا الطلب.',
         'order_product_already_refunded' => 'تم استرجاع هذا المنتج بالفعل.',
         'order_product_pending_refund' => 'هذا المنتج لديه بالفعل طلب استرجاع قيد الانتظار.',
+        'product_not_refundable' => 'هذا المنتج لا يسمح بالاسترجاع.',
         'product_no_vendor' => 'هذا المنتج ليس لديه مورد مخصص.',
         'vendor_no_stage' => 'المورد ليس لديه مرحلة تسليم لهذا الطلب.',
         'vendor_not_delivered' => 'يجب على المورد تسليم المنتج قبل طلب الاسترجاع.',
+        'not_eligible_for_refund' => 'هذا المنتج لم يعد مؤهلاً للاسترجاع بسبب انتهاء فترة الاسترجاع المسموح بها.',
         'quantity_required' => 'الكمية مطلوبة.',
         'quantity_integer' => 'يجب أن تكون الكمية رقماً صحيحاً.',
         'quantity_min' => 'يجب أن تكون الكمية :min على الأقل.',

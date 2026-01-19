@@ -1,33 +1,28 @@
 @php
     $vendor = auth()->user()->vendor ?? null;
-    $all_transactions = [];
+    $withdrawNotifications = [];
 
     try {
         if ($vendor) {
-            $all_transactions = Modules\Withdraw\app\Models\Withdraw::with([
-                'vendor' => function ($vendor) {
-                    $vendor->with('translations')->first();
-                },
-            ])
-                ->whereIn('status', ['accepted', 'rejected'])
-                ->where('reciever_id', $vendor->id)
-                ->latest()
+            // For vendors: show accepted/rejected withdraw notifications
+            $withdrawNotifications = \App\Models\AdminNotification::notViewedBy(auth()->id())
+                ->where('type', 'withdraw_status')
+                ->where('vendor_id', $vendor->id)
+                ->orderBy('created_at', 'desc')
                 ->limit(10)
                 ->get();
         } else {
-            $all_transactions = Modules\Withdraw\app\Models\Withdraw::with([
-                'vendor' => function ($vendor) {
-                    $vendor->with('translations')->first();
-                },
-            ])
-                ->whereIn('status', ['new'])
-                ->latest()
+            // For admin: show new withdraw requests
+            $withdrawNotifications = \App\Models\AdminNotification::notViewedBy(auth()->id())
+                ->where('type', 'withdraw_request')
+                ->whereNull('vendor_id')
+                ->orderBy('created_at', 'desc')
                 ->limit(10)
                 ->get();
         }
     } catch (\Exception $e) {
         // Silently fail
-        $all_transactions = [];
+        $withdrawNotifications = collect([]);
     }
 @endphp
 <li class="nav-notification">
@@ -43,39 +38,38 @@
                 dir="ltr">
                 <style>[dir="rtl"] .nav-item__badge { left: -8px !important; right: auto !important; } [dir="ltr"]
                 .nav-item__badge { right: -8px !important; left: auto !important; }</style>
-                {{ count($all_transactions) }}
+                {{ $withdrawNotifications->count() }}
             </span>
         </a>
         <div class="dropdown-wrapper">
             <h2 class="dropdown-wrapper__title">{{ trans('menu.withdraw module.vendors_withdraw_requests') }} <span
-                    class="badge-circle badge-warning ms-1">{{ count($all_transactions) }}</span></h2>
+                    class="badge-circle badge-warning ms-1">{{ $withdrawNotifications->count() }}</span></h2>
             <ul>
-                @foreach ($all_transactions as $item)
+                @forelse ($withdrawNotifications as $notification)
                     <li class="nav-notification__single d-flex flex-wrap">
-                        <div class="nav-notification__type nav-notification__type--warning">
-                            <i class="uil uil-wallet"></i>
+                        <div class="nav-notification__type nav-notification__type--{{ $notification->color }}">
+                            <i class="{{ $notification->icon }}"></i>
                         </div>
                         <div class="nav-notification__details">
-                            @if ($vendor)
-                                <p>
-                                    <a href="{{ $item->status == "accepted" ? route('admin.transactionsRequests', 'accepted') : route('admin.transactionsRequests', 'rejected') }}" class="subject stretched-link text-truncate"
-                                        style="max-width: 180px;">{{ $item->status == "accepted" ? trans('menu.withdraw module.bnaia_sent_money') : trans('menu.withdraw module.bnaia_rejected_request') }}</a>
-                                </p>
-                                <p>
-                                    <span class="time-posted">{{ trans('menu.withdraw module.request_value') }}: {{ $item->sent_amount }} {{ currency() }}</span>
-                                </p>
-                            @else
-                                <p>
-                                    <a href="{{ route('admin.transactionsRequests', 'new') }}" class="subject stretched-link text-truncate"
-                                        style="max-width: 180px;">{{ trans('menu.withdraw module.vendor_sent_request', ['vendor' => $item->vendor->translations->first()->lang_value ?? $item->vendor->name ?? 'N/A']) }}</a>
-                                </p>
-                                <p>
-                                    <span class="time-posted">{{ trans('menu.withdraw module.request_value') }}: {{ $item->sent_amount }} {{ currency() }}</span>
-                                </p>
-                            @endif
+                            <p>
+                                <a href="{{ route('admin.notifications.show', $notification->id) }}" class="subject stretched-link text-truncate"
+                                    style="max-width: 180px;">{{ $notification->getTranslatedTitle() }}</a>
+                            </p>
+                            <p>
+                                <span class="time-posted">{{ $notification->getTranslatedDescription() }}</span>
+                            </p>
+                            <p>
+                                <span class="time-posted text-muted">{{ $notification->created_at }}</span>
+                            </p>
                         </div>
                     </li>
-                @endforeach
+                @empty
+                    <li class="nav-notification__single d-flex flex-wrap">
+                        <div class="nav-notification__details">
+                            <p class="text-muted">{{ trans('menu.withdraw module.no_requests') }}</p>
+                        </div>
+                    </li>
+                @endforelse
             </ul>
             <a href="{{ route('admin.transactionsRequests', 'new') }}" class="dropdown-wrapper__more">{{ trans('menu.withdraw module.see_all_requests') }}</a>
         </div>

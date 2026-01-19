@@ -1342,6 +1342,16 @@
                 {{-- Settings (Admin Only) --}}
                 @if(isAdmin())
                     <li class="l_sidebar">
+                        <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive('admin.refunds.admin-settings.index', $currentRoute) ? 'active' : '' }}"
+                            href="{{ route('admin.refunds.admin-settings.index') }}">
+                            {{ trans('menu.refunds.admin_settings') }}
+                        </a>
+                    </li>
+                @endif
+                
+                {{-- Vendor Settings --}}
+                @if(!isAdmin())
+                    <li class="l_sidebar">
                         <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive('admin.refunds.settings', $currentRoute) ? 'active' : '' }}"
                             href="{{ route('admin.refunds.settings') }}">
                             {{ trans('menu.refunds.settings') }}

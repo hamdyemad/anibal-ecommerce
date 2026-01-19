@@ -26,24 +26,22 @@ class RefundRequestApiController extends Controller
      */
     public function index(Request $request)
     {
-        try {
-            $filters = [
-                'status' => $request->get('status'),
-                'customer_id' => $request->get('customer_id'),
-                'vendor_id' => $request->get('vendor_id'),
-                'date_from' => $request->get('date_from'),
-                'date_to' => $request->get('date_to'),
-                'search' => $request->get('search'),
-                'show_parent' => $request->get('show_parent'), // For customer view
-            ];
-
-            $perPage = $request->get('per_page', 15);
-            $refunds = $this->refundService->getAllRefunds($filters, $perPage);
-
-            return new RefundRequestCollection($refunds);
-        } catch (\Exception $e) {
-            return $this->sendRes($e->getMessage(), false, [], [], 500);
-        }
+        $filters = [
+            'status' => $request->get('status'),
+            'customer_id' => $request->get('customer_id'),
+            'vendor_id' => $request->get('vendor_id'),
+            'date_from' => $request->get('date_from'),
+            'date_to' => $request->get('date_to'),
+            'search' => $request->get('search'),
+            'show_parent' => $request->get('show_parent'), // For customer view
+        ];
+        $perPage = $request->get('per_page', 12);
+        $refunds = $this->refundService->getAllRefunds($filters, $perPage);
+        return $this->sendRes(
+            config('responses.refund_requests_retrieved_successfully')[app()->getLocale()],
+            true,
+            \Modules\Refund\app\Http\Resources\RefundRequestResource::collection($refunds)
+        );
     }
 
     /**
@@ -51,22 +49,17 @@ class RefundRequestApiController extends Controller
      */
     public function show($id)
     {
-        try {
-            $refund = $this->refundService->getRefundById($id);
+        $refund = $this->refundService->getRefundById($id);
 
-            // Check authorization
-            if (!$this->refundService->canUserAccessRefund($id, auth()->user())) {
-                return $this->sendRes('Unauthorized', false, [], [], 403);
-            }
-
-            return $this->sendRes(
-                'Refund request retrieved successfully',
-                true,
-                new RefundRequestResource($refund)
-            );
-        } catch (\Exception $e) {
-            return $this->sendRes($e->getMessage(), false, [], [], 404);
+        // Check authorization
+        if (!$this->refundService->canUserAccessRefund($id, auth()->user())) {
+            return $this->sendRes('Unauthorized', false, [], [], 403);
         }
+        return $this->sendRes(
+            config('responses.refund_request_retrieved_successfully')[app()->getLocale()],
+            true,
+            new RefundRequestResource($refund)
+        );
     }
 
     /**
@@ -74,46 +67,18 @@ class RefundRequestApiController extends Controller
      */
     public function store(StoreRefundRequestRequest $request)
     {
-        try {
-            $refund = $this->refundService->createRefund(
-                $request->validated(),
-                auth()->user()
-            );
+        $refunds = $this->refundService->createRefund(
+            $request->validated(),
+            auth()->user()
+        );
 
-            return $this->sendRes(
-                trans('refund::refund.messages.request_created'),
-                true,
-                new RefundRequestResource($refund),
-                [],
-                201
-            );
-        } catch (\Exception $e) {
-            $code = $e->getMessage() === 'Unauthorized access to this order' ? 403 : 500;
-            return $this->sendRes($e->getMessage(), false, [], [], $code);
-        }
-    }
-
-    /**
-     * Update refund request status
-     */
-    public function updateStatus(UpdateRefundStatusRequest $request, $id)
-    {
-        try {
-            $refund = $this->refundService->updateRefundStatus(
-                $id,
-                $request->validated(),
-                auth()->user()
-            );
-
-            return $this->sendRes(
-                trans('refund::refund.messages.status_updated'),
-                true,
-                new RefundRequestResource($refund)
-            );
-        } catch (\Exception $e) {
-            $code = $e->getMessage() === 'Unauthorized' ? 403 : 500;
-            return $this->sendRes($e->getMessage(), false, [], [], $code);
-        }
+        return $this->sendRes(
+            config('responses.refund_request_created_successfully')[app()->getLocale()],
+            true,
+            [],
+            [],
+            201
+        );
     }
 
     /**
@@ -121,18 +86,12 @@ class RefundRequestApiController extends Controller
      */
     public function cancel($id)
     {
-        try {
-            $refund = $this->refundService->cancelRefund($id, auth()->user());
-
-            return $this->sendRes(
-                trans('refund::refund.messages.request_cancelled'),
-                true,
-                new RefundRequestResource($refund)
-            );
-        } catch (\Exception $e) {
-            $code = $e->getMessage() === 'Cannot cancel refund request in current status' ? 400 : 500;
-            return $this->sendRes($e->getMessage(), false, [], [], $code);
-        }
+        $refund = $this->refundService->cancelRefund($id, auth()->user());
+        return $this->sendRes(
+            config('responses.refund_request_cancelled_successfully')[app()->getLocale()],
+            true,
+            new RefundRequestResource($refund)
+        );
     }
 
     /**
@@ -140,21 +99,15 @@ class RefundRequestApiController extends Controller
      */
     public function statistics(Request $request)
     {
-        try {
-            $filters = [
-                'customer_id' => $request->get('customer_id'),
-                'vendor_id' => $request->get('vendor_id'),
-            ];
-
-            $statistics = $this->refundService->getStatistics($filters);
-
-            return $this->sendRes(
-                'Statistics retrieved successfully',
-                true,
-                $statistics
-            );
-        } catch (\Exception $e) {
-            return $this->sendRes($e->getMessage(), false, [], [], 500);
-        }
+        $filters = [
+            'customer_id' => $request->get('customer_id'),
+            'vendor_id' => $request->get('vendor_id'),
+        ];
+        $statistics = $this->refundService->getStatistics($filters);
+        return $this->sendRes(
+            config('responses.statistics_retrieved_successfully')[app()->getLocale()], // Using same key as list or new one
+            true,
+            $statistics
+        );
     }
 }

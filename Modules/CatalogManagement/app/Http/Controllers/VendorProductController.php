@@ -427,6 +427,8 @@ class VendorProductController extends Controller
             $vendorProduct->update([
                 'is_active' => $request->boolean('is_active'),
                 'is_featured' => $request->boolean('is_featured'),
+                'is_able_to_refund' => $request->boolean('is_able_to_refund'),
+                'refund_days' => $request->refund_days,
                 'points' => $request->points ?? $vendorProduct->points,
                 'max_per_order' => $request->max_per_order ?? $vendorProduct->max_per_order,
             ]);

@@ -3,6 +3,7 @@
 return [
     // General
     'vendor' => 'المورد',
+    'vendor_name' => 'اسم المورد',
     
     // Page Titles
     'vendors_management' => 'إدارة البائعين',

@@ -62,6 +62,9 @@ class OrderServiceProvider extends ServiceProvider
 
         // Register Order Observer
         Order::observe(OrderObserver::class);
+        
+        // Register RequestQuotation Observer
+        \Modules\Order\app\Models\RequestQuotation::observe(\Modules\Order\app\Observers\RequestQuotationObserver::class);
     }
 
     /**

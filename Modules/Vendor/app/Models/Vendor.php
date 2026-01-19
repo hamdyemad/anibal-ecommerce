@@ -88,6 +88,14 @@ class Vendor extends BaseModel
         return $this->hasMany(VendorFcmToken::class);
     }
 
+    /**
+     * Get the vendor's refund settings
+     */
+    public function refundSettings()
+    {
+        return $this->hasOne(\Modules\Refund\app\Models\VendorRefundSetting::class);
+    }
+
     public function scopeActive(Builder $query)
     {
         return $query->where('active', true);

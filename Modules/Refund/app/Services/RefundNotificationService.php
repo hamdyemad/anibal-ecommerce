@@ -76,6 +76,20 @@ class RefundNotificationService
             return;
         }
 
+        // Create admin notification for vendor dashboard
+        $this->createAdminNotification(
+            refundRequest: $refundRequest,
+            type: 'refund_status_changed',
+            title: trans('refund::refund.notifications.status_changed_title'),
+            description: trans('refund::refund.notifications.status_changed_body', [
+                'refund_number' => $refundRequest->refund_number,
+                'status' => trans('refund::refund.statuses.' . $newStatus),
+            ]),
+            icon: $this->getStatusIcon($newStatus),
+            color: $this->getStatusColor($newStatus),
+            vendorId: $vendor->id
+        );
+
         // Send Laravel notification if class exists
         if ($vendor->user && class_exists('\Modules\Refund\app\Notifications\RefundVendorStatusChangedNotification')) {
             try {
@@ -147,6 +161,21 @@ class RefundNotificationService
             return;
         }
 
+        // Create admin notification for vendor dashboard
+        $this->createAdminNotification(
+            refundRequest: $refundRequest,
+            type: 'new_refund_request',
+            title: trans('refund::refund.notifications.new_refund_vendor_title'),
+            description: trans('refund::refund.notifications.new_refund_vendor_body', [
+                'refund_number' => $refundRequest->refund_number,
+                'customer' => $refundRequest->customer->full_name ?? 'Customer',
+            ]),
+            icon: 'uil-redo',
+            color: 'warning',
+            vendorId: $vendor->id
+        );
+
+        // Send Firebase notification
         $this->sendFirebaseToVendor(
             vendor: $vendor,
             title: trans('refund::refund.notifications.new_refund_vendor_title'),
@@ -254,5 +283,83 @@ class RefundNotificationService
         } catch (\Exception $e) {
             Log::error('Failed to send Firebase notification to vendor: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * Create admin notification for dashboard
+     */
+    protected function createAdminNotification(
+        RefundRequest $refundRequest,
+        string $type,
+        string $title,
+        ?string $description = null,
+        string $icon = 'uil-bell',
+        string $color = 'primary',
+        ?int $userId = null,
+        ?int $vendorId = null
+    ): void {
+        $notification = app(\App\Services\AdminNotificationService::class)->create(
+            type: $type,
+            title: $title,
+            description: $description,
+            url: route('admin.refunds.show', $refundRequest->id),
+            icon: $icon,
+            color: $color,
+            notifiable: $refundRequest,
+            data: [
+                'refund_id' => $refundRequest->id,
+                'refund_number' => $refundRequest->refund_number,
+                'order_id' => $refundRequest->order_id,
+                'customer_id' => $refundRequest->customer_id,
+                'vendor_id' => $refundRequest->vendor_id,
+                'status' => $refundRequest->status,
+                'total_amount' => $refundRequest->total_refund_amount,
+            ],
+            userId: $userId,
+            vendorId: $vendorId
+        );
+        
+        if ($notification) {
+            Log::info('Admin notification created for refund', [
+                'notification_id' => $notification->id,
+                'refund_id' => $refundRequest->id,
+                'vendor_id' => $vendorId,
+                'type' => $type,
+            ]);
+        }
+    }
+
+    /**
+     * Get icon for status
+     */
+    protected function getStatusIcon(string $status): string
+    {
+        return match($status) {
+            'pending' => 'uil-clock',
+            'approved' => 'uil-check',
+            'in_progress' => 'uil-sync',
+            'picked_up' => 'uil-package',
+            'refunded' => 'uil-check-circle',
+            'rejected' => 'uil-times-circle',
+            'cancelled' => 'uil-ban',
+            default => 'uil-bell',
+        };
+    }
+
+    /**
+     * Get color for status
+     */
+    protected function getStatusColor(string $status): string
+    {
+        return match($status) {
+            'pending' => 'warning',
+            'approved' => 'info',
+            'in_progress' => 'primary',
+            'picked_up' => 'secondary',
+            'refunded' => 'success',
+            'rejected' => 'danger',
+            'cancelled' => 'danger',
+            default => 'primary',
+        };
     }
 }

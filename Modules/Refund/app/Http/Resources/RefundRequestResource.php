@@ -47,16 +47,7 @@ class RefundRequestResource extends JsonResource
             'refunded_at' => $this->refunded_at?->toISOString(),
             
             // Relationships
-            'order' => new \Modules\Order\app\Http\Resources\Api\OrderResource($this->whenLoaded('order')),
-            'customer' => new \Modules\Customer\app\Http\Resources\CustomerResource($this->whenLoaded('customer')),
-            'vendor' => new \Modules\Vendor\app\Http\Resources\VendorResource($this->whenLoaded('vendor')),
             'items' => RefundRequestItemResource::collection($this->whenLoaded('items')),
-            
-            // Parent/Child relationships
-            'is_parent' => $this->is_parent,
-            'parent_refund_id' => $this->parent_refund_id,
-            'vendor_refunds' => RefundRequestResource::collection($this->whenLoaded('vendorRefunds')),
-            'parent_refund' => new RefundRequestResource($this->whenLoaded('parentRefund')),
         ];
     }
 }

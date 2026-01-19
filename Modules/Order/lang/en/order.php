@@ -123,6 +123,8 @@ return [
     'online' => 'Online',
     'cod' => 'COD',
     'visa' => 'Visa',
+    'stage_history' => 'Stage History',
+    'system' => 'System',
     'order_type' => 'Order Type',
     'payment_success' => 'Paid',
     'payment_pending' => 'Payment Pending',

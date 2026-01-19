@@ -63,4 +63,12 @@ class VendorOrderStage extends BaseModel
     {
         return $this->belongsTo(OrderStage::class, 'stage_id')->withoutGlobalScope('country_filter');
     }
+
+    /**
+     * Get the history of stage changes
+     */
+    public function history(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(VendorOrderStageHistory::class, 'vendor_order_stage_id')->latest();
+    }
 }

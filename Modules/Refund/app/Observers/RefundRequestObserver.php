@@ -22,14 +22,23 @@ class RefundRequestObserver
      */
     public function created(RefundRequest $refundRequest): void
     {
-        // Only send notifications for vendor refunds (not parent)
-        if (!$refundRequest->is_parent && $refundRequest->vendor_id) {
-            // Notify vendor about new refund request
+        // Create initial history record for the 'pending' status
+        // user_id is null for customer-created refunds (customers are not in users table)
+        \Modules\Refund\app\Models\RefundRequestHistory::create([
+            'refund_request_id' => $refundRequest->id,
+            'old_status' => null,
+            'new_status' => $refundRequest->status,
+            'user_id' => null,
+            'notes' => 'Refund request created by customer',
+        ]);
+        
+        // Notify vendor about new refund request
+        if ($refundRequest->vendor_id) {
             $this->notificationService->notifyVendorNewRefund($refundRequest);
         }
         
-        // If it's a parent refund, notify customer
-        if ($refundRequest->is_parent) {
+        // Notify customer about refund creation
+        if ($refundRequest->customer_id) {
             $this->notificationService->notifyRefundCreated($refundRequest);
         }
     }
@@ -39,10 +48,19 @@ class RefundRequestObserver
      */
     public function updated(RefundRequest $refundRequest): void
     {
-        // Handle status change notifications
+        // Handle status change notifications and history
         if ($refundRequest->wasChanged('status')) {
             $oldStatus = $refundRequest->getOriginal('status');
             $newStatus = $refundRequest->status;
+            
+            // Create history record for status change
+            \Modules\Refund\app\Models\RefundRequestHistory::create([
+                'refund_request_id' => $refundRequest->id,
+                'old_status' => $oldStatus,
+                'new_status' => $newStatus,
+                'user_id' => auth()->id(),
+                'notes' => null,
+            ]);
             
             // Notify customer about status change
             $this->notificationService->notifyCustomerStatusChange(
@@ -96,20 +114,11 @@ class RefundRequestObserver
                 );
             }
             
-            // 2. Mark Order Products as Refunded
-            foreach ($refundRequest->items as $item) {
-                $orderProduct = $item->orderProduct;
-                $orderProduct->is_refunded = true;
-                $orderProduct->refunded_amount = $item->refund_amount;
-                $orderProduct->refunded_at = now();
-                $orderProduct->save();
-            }
-            
-            // 3. Update Order - Track Total Refunded Amount
+            // 2. Update Order - Track Total Refunded Amount
             $order->refunded_amount = ($order->refunded_amount ?? 0) + $refundRequest->total_refund_amount;
             $order->save();
             
-            // 4. Reverse Stock Bookings using service
+            // 3. Reverse Stock Bookings using service
             $orderProductIds = $refundRequest->items->pluck('order_product_id')->toArray();
             $this->stockBookingService->releaseRefundedStock(
                 orderId: $order->id,
@@ -117,13 +126,13 @@ class RefundRequestObserver
                 refundNumber: $refundRequest->refund_number
             );
             
-            // 5. Log the refund completion
+            // 4. Log the refund completion
             $commissionReversed = $this->calculateCommissionReversal($refundRequest);
             
             Log::info('Refund completed', [
                 'refund_number' => $refundRequest->refund_number,
                 'order_id' => $order->id,
-                'vendor_id' => $vendor->id,
+                'vendor_id' => $vendor?->id,
                 'total_refund' => $refundRequest->total_refund_amount,
                 'commission_reversed' => $commissionReversed,
             ]);

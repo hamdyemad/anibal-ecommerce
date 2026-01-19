@@ -27,6 +27,9 @@ class SystemSettingServiceProvider extends ServiceProvider
         $this->registerConfig();
         $this->registerViews();
         $this->loadMigrationsFrom(module_path($this->name, 'database/migrations'));
+        
+        // Register Message Observer
+        \Modules\SystemSetting\app\Models\Message::observe(\Modules\SystemSetting\app\Observers\MessageObserver::class);
     }
 
     /**

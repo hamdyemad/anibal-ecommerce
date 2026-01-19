@@ -1,33 +1,28 @@
 <?php
     $vendor = auth()->user()->vendor ?? null;
-    $all_transactions = [];
+    $withdrawNotifications = [];
 
     try {
         if ($vendor) {
-            $all_transactions = Modules\Withdraw\app\Models\Withdraw::with([
-                'vendor' => function ($vendor) {
-                    $vendor->with('translations')->first();
-                },
-            ])
-                ->whereIn('status', ['accepted', 'rejected'])
-                ->where('reciever_id', $vendor->id)
-                ->latest()
+            // For vendors: show accepted/rejected withdraw notifications
+            $withdrawNotifications = \App\Models\AdminNotification::notViewedBy(auth()->id())
+                ->where('type', 'withdraw_status')
+                ->where('vendor_id', $vendor->id)
+                ->orderBy('created_at', 'desc')
                 ->limit(10)
                 ->get();
         } else {
-            $all_transactions = Modules\Withdraw\app\Models\Withdraw::with([
-                'vendor' => function ($vendor) {
-                    $vendor->with('translations')->first();
-                },
-            ])
-                ->whereIn('status', ['new'])
-                ->latest()
+            // For admin: show new withdraw requests
+            $withdrawNotifications = \App\Models\AdminNotification::notViewedBy(auth()->id())
+                ->where('type', 'withdraw_request')
+                ->whereNull('vendor_id')
+                ->orderBy('created_at', 'desc')
                 ->limit(10)
                 ->get();
         }
     } catch (\Exception $e) {
         // Silently fail
-        $all_transactions = [];
+        $withdrawNotifications = collect([]);
     }
 ?>
 <li class="nav-notification">
@@ -43,40 +38,39 @@
                 dir="ltr">
                 <style>[dir="rtl"] .nav-item__badge { left: -8px !important; right: auto !important; } [dir="ltr"]
                 .nav-item__badge { right: -8px !important; left: auto !important; }</style>
-                <?php echo e(count($all_transactions)); ?>
+                <?php echo e($withdrawNotifications->count()); ?>
 
             </span>
         </a>
         <div class="dropdown-wrapper">
             <h2 class="dropdown-wrapper__title"><?php echo e(trans('menu.withdraw module.vendors_withdraw_requests')); ?> <span
-                    class="badge-circle badge-warning ms-1"><?php echo e(count($all_transactions)); ?></span></h2>
+                    class="badge-circle badge-warning ms-1"><?php echo e($withdrawNotifications->count()); ?></span></h2>
             <ul>
-                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__currentLoopData = $all_transactions; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__empty_1 = true; $__currentLoopData = $withdrawNotifications; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $notification): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
                     <li class="nav-notification__single d-flex flex-wrap">
-                        <div class="nav-notification__type nav-notification__type--warning">
-                            <i class="uil uil-wallet"></i>
+                        <div class="nav-notification__type nav-notification__type--<?php echo e($notification->color); ?>">
+                            <i class="<?php echo e($notification->icon); ?>"></i>
                         </div>
                         <div class="nav-notification__details">
-                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($vendor): ?>
-                                <p>
-                                    <a href="<?php echo e($item->status == "accepted" ? route('admin.transactionsRequests', 'accepted') : route('admin.transactionsRequests', 'rejected')); ?>" class="subject stretched-link text-truncate"
-                                        style="max-width: 180px;"><?php echo e($item->status == "accepted" ? trans('menu.withdraw module.bnaia_sent_money') : trans('menu.withdraw module.bnaia_rejected_request')); ?></a>
-                                </p>
-                                <p>
-                                    <span class="time-posted"><?php echo e(trans('menu.withdraw module.request_value')); ?>: <?php echo e($item->sent_amount); ?> <?php echo e(currency()); ?></span>
-                                </p>
-                            <?php else: ?>
-                                <p>
-                                    <a href="<?php echo e(route('admin.transactionsRequests', 'new')); ?>" class="subject stretched-link text-truncate"
-                                        style="max-width: 180px;"><?php echo e(trans('menu.withdraw module.vendor_sent_request', ['vendor' => $item->vendor->translations->first()->lang_value ?? $item->vendor->name ?? 'N/A'])); ?></a>
-                                </p>
-                                <p>
-                                    <span class="time-posted"><?php echo e(trans('menu.withdraw module.request_value')); ?>: <?php echo e($item->sent_amount); ?> <?php echo e(currency()); ?></span>
-                                </p>
-                            <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                            <p>
+                                <a href="<?php echo e(route('admin.notifications.show', $notification->id)); ?>" class="subject stretched-link text-truncate"
+                                    style="max-width: 180px;"><?php echo e($notification->getTranslatedTitle()); ?></a>
+                            </p>
+                            <p>
+                                <span class="time-posted"><?php echo e($notification->getTranslatedDescription()); ?></span>
+                            </p>
+                            <p>
+                                <span class="time-posted text-muted"><?php echo e($notification->created_at); ?></span>
+                            </p>
                         </div>
                     </li>
-                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
+                    <li class="nav-notification__single d-flex flex-wrap">
+                        <div class="nav-notification__details">
+                            <p class="text-muted"><?php echo e(trans('menu.withdraw module.no_requests')); ?></p>
+                        </div>
+                    </li>
+                <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
             </ul>
             <a href="<?php echo e(route('admin.transactionsRequests', 'new')); ?>" class="dropdown-wrapper__more"><?php echo e(trans('menu.withdraw module.see_all_requests')); ?></a>
         </div>

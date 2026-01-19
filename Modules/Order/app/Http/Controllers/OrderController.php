@@ -447,8 +447,8 @@ class OrderController extends Controller
                 return abort(404, trans('order::order.order_not_found'));
             }
             
-            // Load vendor stages with stage and vendor relationships
-            $order->load(['vendorStages.stage', 'vendorStages.vendor', 'products']);
+            // Load vendor stages with stage, vendor, and history relationships
+            $order->load(['vendorStages.stage', 'vendorStages.vendor', 'vendorStages.history.oldStage', 'vendorStages.history.newStage', 'vendorStages.history.user', 'products']);
             
             // Ensure vendor stages exist (for old orders created before this feature)
             if ($order->products->count() > 0 && $order->vendorStages->count() == 0) {

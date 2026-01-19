@@ -53,4 +53,24 @@ class RefundRequestService
     {
         return $this->repository->canUserAccessRefund($id, $user);
     }
+
+    public function approveRefund(int $id)
+    {
+        return $this->repository->approveRefund($id);
+    }
+
+    public function rejectRefund(int $id, string $rejectionReason)
+    {
+        return $this->repository->rejectRefund($id, $rejectionReason);
+    }
+
+    public function updateNotes(int $id, string $notes, bool $isAdmin = false)
+    {
+        return $this->repository->updateNotes($id, $notes, $isAdmin);
+    }
+
+    public function getRefundWithRelations(int $id, array $relations = [])
+    {
+        return $this->repository->getRefundWithRelations($id, $relations);
+    }
 }

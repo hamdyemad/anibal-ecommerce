@@ -1,11 +1,22 @@
 @php
-    $latestOrders = isAdmin() 
-        ? \Modules\Order\app\Models\Order::orderBy('id', 'desc')->take(5)->get()
-        : \Modules\Order\app\Models\Order::whereHas('products', function($q) {
-            $q->where('vendor_id', auth()->user()->vendor_id ?? auth()->id());
-        })->orderBy('id', 'desc')->take(5)->get();
+    // Get order notifications from admin_notifications table (not viewed by current user)
+    $orderNotificationsQuery = \App\Models\AdminNotification::notViewedBy(auth()->id())
+        ->where('type', 'new_order')
+        ->orderBy('created_at', 'desc');
     
-    $ordersCount = $latestOrders->count();
+    // Filter by vendor if not admin
+    if (isAdmin()) {
+        $orderNotificationsQuery->whereNull('vendor_id');
+    } else {
+        $vendorId = auth()->user()->vendor->id;
+        $orderNotificationsQuery->where(function($q) use ($vendorId) {
+            $q->where('vendor_id', $vendorId)
+              ->orWhereNull('vendor_id');
+        });
+    }
+    
+    $orderNotifications = $orderNotificationsQuery->limit(5)->get();
+    $ordersCount = $orderNotifications->count();
 @endphp
 
 <li class="nav-order">
@@ -24,18 +35,18 @@
             <h2 class="dropdown-wrapper__title">{{ trans('menu.latest_orders') }} <span class="badge-circle badge-primary ms-1">{{ $ordersCount }}</span></h2>
             @if($ordersCount > 0)
                 <ul>
-                    @foreach($latestOrders as $order)
+                    @foreach($orderNotifications as $notification)
                         <li class="nav-notification__single d-flex flex-wrap">
-                            <div class="nav-notification__type nav-notification__type--primary">
-                                <i class="uil uil-shopping-bag"></i>
+                            <div class="nav-notification__type nav-notification__type--{{ $notification->color }}">
+                                <i class="{{ $notification->icon }}"></i>
                             </div>
                             <div class="nav-notification__details">
                                 <p>
-                                    <a href="{{ route('admin.orders.show', $order->id) }}" class="subject stretched-link text-truncate" style="max-width: 180px;">{{ trans('menu.order') }} #{{ $order->order_number }}</a>
-                                    <span>{{ $order->customer_name }}</span>
+                                    <a href="{{ route('admin.notifications.show', $notification->id) }}" class="subject stretched-link text-truncate" style="max-width: 180px;">{{ $notification->getTranslatedTitle() }}</a>
+                                    <span>{{ $notification->getTranslatedDescription() }}</span>
                                 </p>
                                 <p>
-                                    <span class="time-posted">{{ number_format($order->total_price, 2) }} {{ currency() }}</span>
+                                    <span class="time-posted">{{ $notification->created_at }}</span>
                                 </p>
                             </div>
                         </li>

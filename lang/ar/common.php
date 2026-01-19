@@ -115,6 +115,7 @@ return [
     'created_at' => 'تاريخ الإنشاء',
     'updated_at' => 'تاريخ التحديث',
     'back_to_list' => 'العودة للقائمة',
+    'go_to_details' => 'الذهاب للتفاصيل',
     'quick_actions' => 'إجراءات سريعة',
     'activity' => 'النشاط',
     'select_activity' => 'اختر النشاط',
@@ -244,6 +245,7 @@ return [
     'email' => 'البريد الإلكتروني',
     'phone' => 'الهاتف',
     'date' => 'التاريخ',
+    'amount' => 'المبلغ',
     'system' => 'النظام',
     'admin' => 'مدير',
     'no_roles_found' => 'لا توجد أدوار',
@@ -270,4 +272,6 @@ return [
     'print' => 'طباعة',
     'print_invoice' => 'طباعة الفاتورة',
     'days' => 'أيام',
+    'unauthorized' => 'غير مصرح',
+    'error' => 'خطأ',
 ];

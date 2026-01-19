@@ -1,156 +1,36 @@
 <?php
-    // Collect all notifications from different sources
-    $notifications = collect();
-
-    // 1. Vendor Requests (pending vendors where active = 0)
+    // Get admin notifications from database (not viewed by current user)
+    $adminNotificationsQuery = \App\Models\AdminNotification::notViewedBy(auth()->id())->orderBy('created_at', 'desc');
+    
+    // Filter by vendor if not admin
     if (isAdmin()) {
-        $vendorRequests = \Modules\Vendor\app\Models\Vendor::where('active', 0)
-            ->with(['user', 'translations'])
-            ->get()
-            ->map(function($vendor) {
-                return [
-                    'type' => 'vendor_request',
-                    'icon' => 'uil-user-plus',
-                    'color' => 'warning',
-                    'title' => $vendor->name,
-                    'description' => trans('menu.become a vendor requests.wants_to_become'),
-                    'url' => route('admin.vendors.show', $vendor->id),
-                    'created_at' => $vendor->getRawOriginal('created_at'),
-                    'source' => 'vendors',
-                ];
-            });
-        $notifications = $notifications->merge($vendorRequests);
+        // Admin sees all notifications without vendor_id
+        $adminNotificationsQuery->whereNull('vendor_id');
+    } else {
+        // Vendors see their own notifications, but exclude admin-only types
+        $vendorId = auth()->user()->vendor->id;
+        $adminNotificationsQuery->where(function($q) use ($vendorId) {
+            $q->where('vendor_id', $vendorId)
+              ->orWhereNull('vendor_id');
+        })->whereNotIn('type', ['vendor_request', 'new_message']);
     }
-
-    // 2. Recent Orders
-    $ordersQuery = \Modules\Order\app\Models\Order::with('customer');
-    if (!isAdmin() && auth()->user()->vendor) {
-        $ordersQuery->whereHas('products', function($q) {
-            $q->where('vendor_id', auth()->user()->vendor->id);
-        });
-    }
-    $recentOrders = $ordersQuery->orderBy('created_at', 'desc')
-        ->limit(10)
+    
+    $notifications = $adminNotificationsQuery->limit(20)
         ->get()
-        ->map(function($order) {
+        ->map(function($notification) {
             return [
-                'type' => 'order',
-                'icon' => 'uil-shopping-bag',
-                'color' => 'primary',
-                'title' => trans('menu.order') . ' #' . $order->order_number,
-                'description' => $order->customer_name ?? 'N/A',
-                'url' => route('admin.orders.show', $order->id),
-                'created_at' => $order->getRawOriginal('created_at'),
-                'source' => 'orders',
+                'id' => $notification->id,
+                'type' => $notification->type,
+                'icon' => $notification->icon,
+                'color' => $notification->color,
+                'title' => $notification->getTranslatedTitle(),
+                'description' => $notification->getTranslatedDescription(),
+                'url' => $notification->url ?? '#',
+                'created_at' => $notification->getRawOriginal('created_at'),
+                'source' => 'admin_notifications',
             ];
         });
-    $notifications = $notifications->merge($recentOrders);
-
-    // 3. User Messages (pending messages)
-    if (isAdmin()) {
-        $messages = \Modules\SystemSetting\app\Models\Message::where('status', 'pending')
-            ->orderBy('created_at', 'desc')
-            ->limit(10)
-            ->get()
-            ->map(function($message) {
-                return [
-                    'type' => 'message',
-                    'icon' => 'uil-envelope',
-                    'color' => 'success',
-                    'title' => $message->name,
-                    'description' => trans('menu.new_message'),
-                    'url' => route('admin.messages.show', $message->id),
-                    'created_at' => $message->getRawOriginal('created_at'),
-                    'source' => 'messages',
-                ];
-            });
-        $notifications = $notifications->merge($messages);
-    }
-
-    // 4. Request Quotations (new requests, accepted offers, rejected offers)
-    if (isAdmin()) {
-        $requestQuotations = \Modules\Order\app\Models\RequestQuotation::whereIn('status', [
-                \Modules\Order\app\Models\RequestQuotation::STATUS_PENDING,
-                \Modules\Order\app\Models\RequestQuotation::STATUS_ACCEPTED_OFFER,
-                \Modules\Order\app\Models\RequestQuotation::STATUS_REJECTED_OFFER,
-            ])
-            ->orderBy('created_at', 'desc')
-            ->limit(10)
-            ->get()
-            ->map(function($quotation) {
-                $isAccepted = $quotation->status === \Modules\Order\app\Models\RequestQuotation::STATUS_ACCEPTED_OFFER;
-                $isRejected = $quotation->status === \Modules\Order\app\Models\RequestQuotation::STATUS_REJECTED_OFFER;
-                
-                if ($isAccepted) {
-                    $icon = 'uil-check-circle';
-                    $color = 'success';
-                    $description = trans('order::request-quotation.notification_accepted');
-                } elseif ($isRejected) {
-                    $icon = 'uil-times-circle';
-                    $color = 'danger';
-                    $description = trans('order::request-quotation.notification_rejected');
-                } else {
-                    $icon = 'uil-file-question-alt';
-                    $color = 'warning';
-                    $description = trans('order::request-quotation.notification_new_request');
-                }
-                
-                $rawDate = $isAccepted || $isRejected 
-                    ? $quotation->getRawOriginal('offer_responded_at') 
-                    : $quotation->getRawOriginal('created_at');
-                
-                return [
-                    'type' => 'request_quotation',
-                    'icon' => $icon,
-                    'color' => $color,
-                    'title' => $quotation->customer_name,
-                    'description' => $description,
-                    'url' => route('admin.request-quotations.index'),
-                    'created_at' => $rawDate,
-                    'source' => 'request_quotations',
-                ];
-            });
-        $notifications = $notifications->merge($requestQuotations);
-    }
-
-    // 5. Push Notifications for Vendors (only unviewed)
-    if (!isAdmin() && auth()->user()->vendor) {
-        $vendorId = auth()->user()->vendor->id;
-        $userId = auth()->id();
-        $pushNotifications = \Modules\SystemSetting\app\Models\PushNotification::where(function($q) use ($vendorId) {
-                $q->where('type', 'all_vendors')
-                ->orWhere(function($q2) use ($vendorId) {
-                    $q2->where('type', 'specific_vendors')
-                       ->whereHas('vendors', function($q3) use ($vendorId) {
-                           $q3->where('vendors.id', $vendorId);
-                       });
-                });
-            })
-            ->whereDoesntHave('views', function($q) use ($userId) {
-                $q->where('user_id', $userId);
-            })
-            ->orderBy('created_at', 'desc')
-            ->limit(10)
-            ->get()
-            ->map(function($notification) {
-                $locale = app()->getLocale();
-                return [
-                    'type' => 'push_notification',
-                    'icon' => 'uil-bell',
-                    'color' => 'info',
-                    'title' => $notification->getTranslation('title', $locale) ?? $notification->getTranslation('title', 'en'),
-                    'description' => \Illuminate\Support\Str::limit(strip_tags($notification->getTranslation('description', $locale) ?? $notification->getTranslation('description', 'en')), 50),
-                    'url' => route('admin.system-settings.push-notifications.view', ['id' => $notification->id]),
-                    'created_at' => $notification->getRawOriginal('created_at'),
-                    'image' => $notification->image ? formatImage($notification->image) : null,
-                    'source' => 'push_notifications',
-                ];
-            });
-        $notifications = $notifications->merge($pushNotifications);
-    }
-
-    // Sort by created_at and take latest 10
-    $notifications = $notifications->sortByDesc('created_at')->take(10);
+    
     $notificationsCount = $notifications->count();
 ?>
 
@@ -173,11 +53,11 @@
                             </div>
                             <div class="nav-notification__details">
                                 <p>
-                                    <a href="<?php echo e($notification['url']); ?>" class="subject stretched-link text-truncate" style="max-width: 180px;"><?php echo e($notification['title']); ?></a>
+                                    <a href="<?php echo e(route('admin.notifications.show', $notification['id'])); ?>" class="subject stretched-link text-truncate" style="max-width: 180px;"><?php echo e($notification['title']); ?></a>
                                     <span><?php echo e($notification['description']); ?></span>
                                 </p>
                                 <p>
-                                    <span class="time-posted"><?php echo e(\Carbon\Carbon::parse($notification['created_at'])->diffForHumans()); ?></span>
+                                    <span class="time-posted"><?php echo e($notification['created_at']); ?></span>
                                 </p>
                             </div>
                         </li>

@@ -1424,6 +1424,17 @@
                 
                 <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(isAdmin()): ?>
                     <li class="l_sidebar">
+                        <a class="d-flex align-items-center justify-content-between fw-bold <?php echo e(isMenuActive('admin.refunds.admin-settings.index', $currentRoute) ? 'active' : ''); ?>"
+                            href="<?php echo e(route('admin.refunds.admin-settings.index')); ?>">
+                            <?php echo e(trans('menu.refunds.admin_settings')); ?>
+
+                        </a>
+                    </li>
+                <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                
+                
+                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(!isAdmin()): ?>
+                    <li class="l_sidebar">
                         <a class="d-flex align-items-center justify-content-between fw-bold <?php echo e(isMenuActive('admin.refunds.settings', $currentRoute) ? 'active' : ''); ?>"
                             href="<?php echo e(route('admin.refunds.settings')); ?>">
                             <?php echo e(trans('menu.refunds.settings')); ?>

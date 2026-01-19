@@ -19,10 +19,6 @@ class RefundRequestRepository implements RefundRequestRepositoryInterface
         $query = $this->model
             ->with(['order', 'customer', 'vendor', 'items.orderProduct']);
         
-        // By default, show vendor refunds in dashboard (not parent refunds)
-        if (!isset($filters['show_parent'])) {
-            $query->vendorOnly();
-        }
         
         return $query->filter($filters)
             ->orderBy('created_at', 'desc')
@@ -32,7 +28,7 @@ class RefundRequestRepository implements RefundRequestRepositoryInterface
     public function findById(int $id)
     {
         return $this->model
-            ->with(['order', 'customer', 'vendor', 'items.orderProduct', 'vendorRefunds.items.orderProduct', 'parentRefund'])
+            ->with(['order', 'customer', 'vendor', 'items.orderProduct'])
             ->findOrFail($id);
     }
 
@@ -124,34 +120,45 @@ class RefundRequestRepository implements RefundRequestRepositoryInterface
 
             // Group items by vendor
             $itemsByVendor = $this->groupItemsByVendor($data['items']);
+            $createdRefunds = [];
 
-            // Create parent (customer) refund request
-            $parentRefund = $this->create([
-                'parent_refund_id' => null,
-                'is_parent' => true,
-                'order_id' => $order->id,
-                'customer_id' => $order->customer_id,
-                'vendor_id' => null,
-                'status' => 'pending',
-                'reason' => $data['reason'],
-                'customer_notes' => $data['customer_notes'] ?? null,
-            ]);
-
-            // Create vendor-specific refund requests
+            // Create independent refund requests for each vendor
             foreach ($itemsByVendor as $vendorId => $vendorItems) {
-                $this->createVendorRefund($parentRefund, $order, $vendorId, $vendorItems, $data);
-            }
+                // Create basic refund request
+                $refundRequest = $this->create([
+                    'order_id' => $order->id,
+                    'customer_id' => $order->customer_id,
+                    'vendor_id' => $vendorId,
+                    'country_id' => $order->country_id,
+                    'status' => 'pending',
+                    'reason' => $data['reason'],
+                    'customer_notes' => $data['customer_notes'] ?? null,
+                ]);
 
-            // Calculate totals for parent refund
-            $parentRefund->calculateTotals();
+                // Add items
+                foreach ($vendorItems as $item) {
+                    $orderProduct = $item['order_product'];
+
+                    \Modules\Refund\app\Models\RefundRequestItem::create([
+                        'refund_request_id' => $refundRequest->id,
+                        'order_product_id' => $orderProduct->id,
+                        'vendor_id' => $vendorId,
+                        'quantity' => $item['quantity'],
+                        'unit_price' => $orderProduct->price,
+                        'total_price' => $orderProduct->price * $item['quantity'],
+                        'reason' => $item['reason'],
+                    ]);
+                }
+
+                // Calculate totals
+                $refundRequest->calculateTotals();
+                $createdRefunds[] = $refundRequest->fresh(['items.orderProduct', 'order', 'vendor']);
+            }
 
             \Illuminate\Support\Facades\DB::commit();
 
-            // Reload with relationships
-            return $this->getRefundWithRelations(
-                $parentRefund->id,
-                ['vendorRefunds.items.orderProduct', 'items']
-            );
+            return $createdRefunds;
+
         } catch (\Exception $e) {
             \Illuminate\Support\Facades\DB::rollBack();
             throw $e;
@@ -165,10 +172,20 @@ class RefundRequestRepository implements RefundRequestRepositoryInterface
             throw new \Exception('Unauthorized');
         }
 
-        return $this->update($id, [
-            'status' => $data['status'],
+        $refund = $this->findById($id);
+        $oldStatus = $refund->status;
+        $newStatus = $data['status'];
+
+        // Update status
+        $refund = $this->update($id, [
+            'status' => $newStatus,
             'vendor_notes' => $data['notes'] ?? null,
         ]);
+
+        // Create history record
+        $this->createHistoryRecord($id, $oldStatus, $newStatus, $user->id, $data['notes'] ?? null);
+
+        return $refund;
     }
 
     public function cancelRefund(int $id, $user)
@@ -178,12 +195,71 @@ class RefundRequestRepository implements RefundRequestRepositoryInterface
             throw new \Exception('Cannot cancel refund request in current status');
         }
 
-        return $this->update($id, ['status' => 'cancelled']);
+        $refund = $this->findById($id);
+        $oldStatus = $refund->status;
+
+        $refund = $this->update($id, ['status' => 'cancelled']);
+
+        // Create history record
+        $this->createHistoryRecord($id, $oldStatus, 'cancelled', $user->id);
+
+        return $refund;
     }
 
     public function getRefundWithRelations(int $refundId, array $relations = [])
     {
         return $this->model->with($relations)->findOrFail($refundId);
+    }
+
+    public function approveRefund(int $id)
+    {
+        $refund = $this->findById($id);
+        
+        if ($refund->status != 'pending') {
+            throw new \Exception('Cannot approve this refund request');
+        }
+
+        $oldStatus = $refund->status;
+        
+        $refund = $this->update($id, [
+            'status' => 'approved',
+            'approved_at' => now(),
+        ]);
+
+        // Create history record
+        $this->createHistoryRecord($id, $oldStatus, 'approved', auth()->id());
+
+        return $refund;
+    }
+
+    public function rejectRefund(int $id, string $rejectionReason)
+    {
+        $refund = $this->findById($id);
+        
+        if ($refund->status != 'pending') {
+            throw new \Exception('Cannot reject this refund request');
+        }
+
+        $oldStatus = $refund->status;
+        
+        $refund = $this->update($id, [
+            'status' => 'rejected',
+            'vendor_notes' => $rejectionReason,
+        ]);
+
+        // Create history record
+        $this->createHistoryRecord($id, $oldStatus, 'rejected', auth()->id(), $rejectionReason);
+
+        return $refund;
+    }
+
+    public function updateNotes(int $id, string $notes, bool $isAdmin = false)
+    {
+        $notesField = $isAdmin ? 'admin_notes' : 'vendor_notes';
+        
+        return $this->update($id, [
+            $notesField => $notes,
+        ]);
     }
 
     /**
@@ -213,57 +289,18 @@ class RefundRequestRepository implements RefundRequestRepositoryInterface
     }
 
     /**
-     * Create vendor-specific refund request
+     * Create history record for status change
      */
-    protected function createVendorRefund(
-        $parentRefund,
-        $order,
-        int $vendorId,
-        array $items,
-        array $originalData
-    ) {
-        // Create vendor refund request
-        $vendorRefund = $this->create([
-            'parent_refund_id' => $parentRefund->id,
-            'is_parent' => false,
-            'order_id' => $order->id,
-            'customer_id' => $order->customer_id,
-            'vendor_id' => $vendorId,
-            'status' => 'pending',
-            'reason' => $originalData['reason'],
-            'customer_notes' => $originalData['customer_notes'] ?? null,
+    protected function createHistoryRecord(int $refundId, ?string $oldStatus, string $newStatus, ?int $userId, ?string $notes = null): void
+    {
+        \Modules\Refund\app\Models\RefundRequestHistory::create([
+            'refund_request_id' => $refundId,
+            'old_status' => $oldStatus,
+            'new_status' => $newStatus,
+            'user_id' => $userId,
+            'notes' => $notes,
         ]);
-
-        // Create refund items for this vendor
-        foreach ($items as $item) {
-            $orderProduct = $item['order_product'];
-
-            // Create vendor refund item
-            \Modules\Refund\app\Models\RefundRequestItem::create([
-                'refund_request_id' => $vendorRefund->id,
-                'order_product_id' => $orderProduct->id,
-                'vendor_id' => $vendorId,
-                'quantity' => $item['quantity'],
-                'unit_price' => $orderProduct->price,
-                'total_price' => $orderProduct->price * $item['quantity'],
-                'reason' => $item['reason'],
-            ]);
-            
-            // Also create item reference in parent refund
-            \Modules\Refund\app\Models\RefundRequestItem::create([
-                'refund_request_id' => $parentRefund->id,
-                'order_product_id' => $orderProduct->id,
-                'vendor_id' => $vendorId,
-                'quantity' => $item['quantity'],
-                'unit_price' => $orderProduct->price,
-                'total_price' => $orderProduct->price * $item['quantity'],
-                'reason' => $item['reason'],
-            ]);
-        }
-
-        // Calculate totals for vendor refund
-        $vendorRefund->calculateTotals();
-
-        return $vendorRefund;
     }
+
+    // Method removed
 }

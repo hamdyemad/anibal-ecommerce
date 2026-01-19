@@ -40,6 +40,11 @@ class OrderApiRepository implements OrderApiRepositoryInterface
             ->with([
                 'stage',
                 'products',
+                'products.order',
+                'products.order.vendorStages',
+                'products.order.vendorStages.stage',
+                'products.order.vendorStages.history',
+                'products.order.vendorStages.history.newStage',
                 'products.vendorProduct',
                 'products.vendorProduct.product',
                 'products.vendorProductVariant',
@@ -51,7 +56,10 @@ class OrderApiRepository implements OrderApiRepositoryInterface
                 'country',
                 'city',
                 'region',
-                'payments'
+                'payments',
+                'vendorStages',
+                'vendorStages.history',
+                'vendorStages.history.newStage'
             ])
             ->firstOrFail();
     }
