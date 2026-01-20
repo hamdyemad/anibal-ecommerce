@@ -50,6 +50,8 @@
                                             'new_message' => trans('menu.messages'),
                                             'withdraw_request' => trans('menu.withdraw module.title'),
                                             'withdraw_status' => trans('menu.withdraw module.title'),
+                                            'new_refund_request' => trans('refund::refund.refund_requests'),
+                                            'refund_status_changed' => trans('refund::refund.refund_requests'),
                                             default => ucfirst(str_replace('_', ' ', $notification->type))
                                         };
                                         

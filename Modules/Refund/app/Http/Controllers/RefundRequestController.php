@@ -24,7 +24,17 @@ class RefundRequestController extends Controller
      */
     public function index()
     {
-        return view('refund::refund-requests.index');
+        // Get vendor ID if user is vendor
+        $vendorId = null;
+        if (!isAdmin()) {
+            $vendor = auth()->user()->vendorByUser ?? auth()->user()->vendorById;
+            $vendorId = $vendor?->id;
+        }
+        
+        // Get refund statistics
+        $statistics = $this->refundService->getRefundStatistics($vendorId);
+        
+        return view('refund::refund-requests.index', compact('statistics'));
     }
     
     /**
@@ -72,7 +82,7 @@ class RefundRequestController extends Controller
     /**
      * Approve refund request
      */
-    public function approve($id)
+    public function approve(Request $request, $lang, $countryCode, $id)
     {
         try {
             // Convert ID to integer
@@ -85,62 +95,136 @@ class RefundRequestController extends Controller
                     abort(403, 'Unauthorized');
                 }
                 
-                $refundRequest = $this->refundService->getRefundById($id);
-                if ($refundRequest->vendor_id != $vendor->id) {
+                $refundRequestModel = $this->refundService->getRefundById($id);
+                if ($refundRequestModel->vendor_id != $vendor->id) {
                     abort(403, 'Unauthorized');
                 }
             }
             
             $this->refundService->approveRefund($id);
             
+            // Return JSON response for AJAX requests
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => trans('refund::refund.messages.approved_successfully'),
+                ]);
+            }
+            
             return back()->with('success', trans('refund::refund.messages.approved_successfully'));
             
         } catch (\Exception $e) {
+            // Return JSON response for AJAX requests
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $e->getMessage(),
+                ], 400);
+            }
+            
             return back()->with('error', $e->getMessage());
         }
     }
     
     /**
-     * Reject refund request
+     * Cancel refund request
      */
-    public function reject(RejectRefundRequest $request, $id)
+    public function cancel(Request $request, $lang, $countryCode, $id)
     {
+        \Log::info('=== CANCEL REFUND START ===');
+        \Log::info('Received ID parameter: ' . var_export($id, true));
+        \Log::info('Request data: ' . json_encode($request->all()));
+        
         try {
+            // Validate the request
+            $validated = $request->validate([
+                'cancellation_reason' => 'required|string|max:1000',
+            ], [
+                'cancellation_reason.required' => trans('refund::refund.validation.cancellation_reason_required'),
+                'cancellation_reason.max' => trans('validation.max.string', ['attribute' => trans('refund::refund.fields.cancellation_reason'), 'max' => 1000]),
+            ]);
+            
+            \Log::info('Validation passed');
+            
             // Convert ID to integer
             $id = (int) $id;
             
-            // Check if vendor can reject this refund request
+            \Log::info('Converted ID to integer: ' . $id);
+            
+            // Check if vendor can cancel this refund request
             if (!isAdmin()) {
+                \Log::info('User is not admin, checking vendor access');
                 $vendor = auth()->user()->vendorByUser ?? auth()->user()->vendorById;
                 if (!$vendor) {
+                    \Log::error('No vendor found for user');
                     abort(403, 'Unauthorized');
                 }
                 
-                $refundRequest = $this->refundService->getRefundById($id);
-                if ($refundRequest->vendor_id != $vendor->id) {
+                \Log::info('Getting refund by ID: ' . $id);
+                $refundRequestModel = $this->refundService->getRefundById($id);
+                \Log::info('Refund found: ' . $refundRequestModel->id);
+                
+                if ($refundRequestModel->vendor_id != $vendor->id) {
+                    \Log::error('Vendor ID mismatch');
                     abort(403, 'Unauthorized');
                 }
             }
             
-            $this->refundService->rejectRefund($id, $request->rejection_reason);
+            \Log::info('Calling cancelRefund service method');
+            $this->refundService->cancelRefund($id, $validated['cancellation_reason']);
+            \Log::info('Cancel refund completed successfully');
             
-            return back()->with('success', trans('refund::refund.messages.rejected_successfully'));
+            // Return JSON response for AJAX requests
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => trans('refund::refund.messages.cancelled_successfully'),
+                ]);
+            }
             
+            return back()->with('success', trans('refund::refund.messages.cancelled_successfully'));
+            
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            \Log::error('Validation exception: ' . $e->getMessage());
+            \Log::error('Validation errors: ' . json_encode($e->errors()));
+            
+            // Return JSON response for AJAX requests
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Validation failed.',
+                    'errors' => $e->errors(),
+                ], 422);
+            }
+            throw $e;
         } catch (\Exception $e) {
+            \Log::error('=== CANCEL REFUND ERROR ===');
+            \Log::error('Error message: ' . $e->getMessage());
+            \Log::error('Error file: ' . $e->getFile() . ':' . $e->getLine());
+            \Log::error('Stack trace: ' . $e->getTraceAsString());
+            
+            // Return JSON response for AJAX requests
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $e->getMessage(),
+                ], 400);
+            }
+            
             return back()->with('error', $e->getMessage());
         }
     }
     
     /**
-     * Change refund request status
+     * Mark refund as in progress
      */
-    public function changeStatus(ChangeRefundStatusRequest $request, $id)
+    public function markAsInProgress(Request $request, $lang, $countryCode, $id)
     {
         try {
             // Convert ID to integer
             $id = (int) $id;
             
-            // Check if vendor can change status
+            // Check if vendor can update this refund request
             if (!isAdmin()) {
                 $vendor = auth()->user()->vendorByUser ?? auth()->user()->vendorById;
                 if (!$vendor) {
@@ -153,11 +237,121 @@ class RefundRequestController extends Controller
                 }
             }
             
-            $this->refundService->updateRefundStatus($id, ['status' => $request->status], auth()->user());
+            $this->refundService->updateRefundStatus($id, ['status' => 'in_progress'], auth()->user());
+            
+            // Return JSON response for AJAX requests
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => trans('refund::refund.messages.status_updated'),
+                ]);
+            }
             
             return back()->with('success', trans('refund::refund.messages.status_updated'));
             
         } catch (\Exception $e) {
+            // Return JSON response for AJAX requests
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $e->getMessage(),
+                ], 400);
+            }
+            
+            return back()->with('error', $e->getMessage());
+        }
+    }
+    
+    /**
+     * Mark refund as picked up
+     */
+    public function markAsPickedUp(Request $request, $lang, $countryCode, $id)
+    {
+        try {
+            // Convert ID to integer
+            $id = (int) $id;
+            
+            // Check if vendor can update this refund request
+            if (!isAdmin()) {
+                $vendor = auth()->user()->vendorByUser ?? auth()->user()->vendorById;
+                if (!$vendor) {
+                    abort(403, 'Unauthorized');
+                }
+                
+                $refundRequest = $this->refundService->getRefundById($id);
+                if ($refundRequest->vendor_id != $vendor->id) {
+                    abort(403, 'Unauthorized');
+                }
+            }
+            
+            $this->refundService->updateRefundStatus($id, ['status' => 'picked_up'], auth()->user());
+            
+            // Return JSON response for AJAX requests
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => trans('refund::refund.messages.status_updated'),
+                ]);
+            }
+            
+            return back()->with('success', trans('refund::refund.messages.status_updated'));
+            
+        } catch (\Exception $e) {
+            // Return JSON response for AJAX requests
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $e->getMessage(),
+                ], 400);
+            }
+            
+            return back()->with('error', $e->getMessage());
+        }
+    }
+    
+    /**
+     * Mark refund as refunded
+     */
+    public function markAsRefunded(Request $request, $lang, $countryCode, $id)
+    {
+        try {
+            // Convert ID to integer
+            $id = (int) $id;
+            
+            // Check if vendor can update this refund request
+            if (!isAdmin()) {
+                $vendor = auth()->user()->vendorByUser ?? auth()->user()->vendorById;
+                if (!$vendor) {
+                    abort(403, 'Unauthorized');
+                }
+                
+                $refundRequest = $this->refundService->getRefundById($id);
+                if ($refundRequest->vendor_id != $vendor->id) {
+                    abort(403, 'Unauthorized');
+                }
+            }
+            
+            $this->refundService->updateRefundStatus($id, ['status' => 'refunded', 'refunded_at' => now()], auth()->user());
+            
+            // Return JSON response for AJAX requests
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => trans('refund::refund.messages.refunded_successfully'),
+                ]);
+            }
+            
+            return back()->with('success', trans('refund::refund.messages.refunded_successfully'));
+            
+        } catch (\Exception $e) {
+            // Return JSON response for AJAX requests
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $e->getMessage(),
+                ], 400);
+            }
+            
             return back()->with('error', $e->getMessage());
         }
     }
@@ -165,7 +359,7 @@ class RefundRequestController extends Controller
     /**
      * Update vendor notes
      */
-    public function updateNotes(UpdateRefundNotesRequest $request, $id)
+    public function updateNotes(UpdateRefundNotesRequest $request, $lang, $countryCode, $id)
     {
         try {
             // Convert ID to integer

@@ -24,9 +24,27 @@ class RefundRequest extends BaseModel
         'in_progress' => 'refund::refund.statuses.in_progress',
         'picked_up' => 'refund::refund.statuses.picked_up',
         'refunded' => 'refund::refund.statuses.refunded',
-        'rejected' => 'refund::refund.statuses.rejected',
         'cancelled' => 'refund::refund.statuses.cancelled',
     ];
+
+    /**
+     * Get status configurations (icon and color)
+     * Keys are dynamically built from STATUSES constant
+     */
+    public static function getStatusConfigurations(): array
+    {
+        $configs = [
+            'pending' => ['icon' => 'uil-clock', 'color' => 'warning'],
+            'approved' => ['icon' => 'uil-check', 'color' => 'info'],
+            'in_progress' => ['icon' => 'uil-sync', 'color' => 'primary'],
+            'picked_up' => ['icon' => 'uil-package', 'color' => 'secondary'],
+            'refunded' => ['icon' => 'uil-check-circle', 'color' => 'success'],
+            'cancelled' => ['icon' => 'uil-ban', 'color' => 'danger'],
+        ];
+
+        // Only return configs for statuses that exist in STATUSES constant
+        return array_intersect_key($configs, self::STATUSES);
+    }
 
     /**
      * Get translated status label
@@ -44,6 +62,23 @@ class RefundRequest extends BaseModel
         return collect(self::STATUSES)->mapWithKeys(function ($translationKey, $statusKey) {
             return [$statusKey => trans($translationKey)];
         })->toArray();
+    }
+
+    /**
+     * Get status configuration (icon and color)
+     */
+    public static function getStatusConfig(string $status): array
+    {
+        $configs = self::getStatusConfigurations();
+        return $configs[$status] ?? ['icon' => 'uil-redo', 'color' => 'primary'];
+    }
+
+    /**
+     * Get all status configurations
+     */
+    public static function getAllStatusConfigs(): array
+    {
+        return self::getStatusConfigurations();
     }
 
     protected $fillable = [
@@ -177,21 +212,13 @@ class RefundRequest extends BaseModel
     {
         return $this->status === 'pending';
     }
-
-    /**
-     * Check if refund can be rejected
-     */
-    public function canBeRejected(): bool
-    {
-        return $this->status === 'pending';
-    }
     
     /**
      * Check if status can be changed
      */
     public function canChangeStatus(): bool
     {
-        return !in_array($this->status, ['rejected', 'cancelled', 'refunded']);
+        return !in_array($this->status, ['cancelled', 'refunded']);
     }
     
     /**
@@ -202,7 +229,7 @@ class RefundRequest extends BaseModel
         $nextStatuses = [];
         
         if ($this->status === 'pending') {
-            $nextStatuses = ['approved', 'rejected', 'cancelled'];
+            $nextStatuses = ['approved', 'cancelled'];
         } elseif ($this->status === 'approved') {
             $nextStatuses = ['in_progress'];
         } elseif ($this->status === 'in_progress') {
@@ -219,12 +246,16 @@ class RefundRequest extends BaseModel
      */
     public function getStatusBackgroundColor(): string
     {
-        return match($this->status) {
-            'refunded' => '#d4edda',
-            'rejected' => '#f8d7da',
-            'approved' => '#d1ecf1',
-            'cancelled' => '#f8d7da',
-            default => '#fff3cd',
+        $config = self::getStatusConfig($this->status);
+        
+        return match($config['color']) {
+            'success' => '#d4edda',
+            'info' => '#d1ecf1',
+            'danger' => '#f8d7da',
+            'warning' => '#fff3cd',
+            'primary' => '#cfe2ff',
+            'secondary' => '#e2e3e5',
+            default => '#f8f9fa',
         };
     }
     
@@ -233,13 +264,8 @@ class RefundRequest extends BaseModel
      */
     public function getStatusTextColor(): string
     {
-        return match($this->status) {
-            'refunded' => 'text-success',
-            'rejected' => 'text-danger',
-            'approved' => 'text-info',
-            'cancelled' => 'text-danger',
-            default => 'text-warning',
-        };
+        $config = self::getStatusConfig($this->status);
+        return 'text-' . $config['color'];
     }
     
     /**
@@ -247,13 +273,8 @@ class RefundRequest extends BaseModel
      */
     public function getStatusIcon(): string
     {
-        return match($this->status) {
-            'refunded' => 'uil-check-circle',
-            'rejected' => 'uil-times-circle',
-            'approved' => 'uil-check',
-            'cancelled' => 'uil-ban',
-            default => 'uil-clock',
-        };
+        $config = self::getStatusConfig($this->status);
+        return $config['icon'];
     }
     
     /**

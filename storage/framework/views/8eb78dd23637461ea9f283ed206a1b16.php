@@ -1,13 +1,19 @@
 <?php
     // Get admin notifications from database (not viewed by current user)
+    // Note: AdminNotification uses CountryCheckIdTrait, so it automatically filters by session country_id
     $adminNotificationsQuery = \App\Models\AdminNotification::notViewedBy(auth()->id())->orderBy('created_at', 'desc');
     
     // Filter by vendor if not admin
     if (isAdmin()) {
-        // Admin sees all notifications without vendor_id
-        $adminNotificationsQuery->whereNull('vendor_id');
+        // Admin sees:
+        // 1. General notifications (vendor_id is NULL) - like vendor requests, messages
+        // 2. Refund notifications (which have vendor_id set) - to monitor vendor refunds
+        $adminNotificationsQuery->where(function($q) {
+            $q->whereNull('vendor_id')
+              ->orWhereIn('type', ['new_refund_request', 'refund_status_changed']);
+        });
     } else {
-        // Vendors see their own notifications, but exclude admin-only types
+        // Vendors see their own notifications (including refunds) for current country, but exclude admin-only types
         $vendorId = auth()->user()->vendor->id;
         $adminNotificationsQuery->where(function($q) use ($vendorId) {
             $q->where('vendor_id', $vendorId)
@@ -53,7 +59,7 @@
                             </div>
                             <div class="nav-notification__details">
                                 <p>
-                                    <a href="<?php echo e(route('admin.notifications.show', $notification['id'])); ?>" class="subject stretched-link text-truncate" style="max-width: 180px;"><?php echo e($notification['title']); ?></a>
+                                    <a href="<?php echo e(route('admin.notifications.show', ['lang' => app()->getLocale(), 'countryCode' => strtolower(session('country_code', 'eg')), 'id' => $notification['id']])); ?>" class="subject stretched-link text-truncate" style="max-width: 180px;"><?php echo e($notification['title']); ?></a>
                                     <span><?php echo e($notification['description']); ?></span>
                                 </p>
                                 <p>

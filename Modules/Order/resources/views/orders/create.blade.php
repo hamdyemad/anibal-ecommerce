@@ -660,6 +660,12 @@
         @push('scripts')
             <script>
                 $(document).ready(function() {
+                    // Define translations object
+                    const translations = {
+                        fieldRequired: '{{ __('validation.required', ['attribute' => __('common.field')]) }}',
+                        fillRequiredFields: '{{ __('validation.fill_required_fields') }}'
+                    };
+                    
                     // Get country code from session
                     const countryCode = '{{ strtoupper(session('country_code', 'EG')) }}';
 
@@ -779,8 +785,8 @@
                                 },
                                 data: {
                                     search: searchTerm,
-                                    per_page: 10,
-                                    paginated: false,
+                                    per_page: 20, // Limit to 20 results for performance
+                                    paginated: true, // Enable pagination
                                     vendor_id: "{{ !isAdmin() && auth()->user()->vendor ? auth()->user()->vendor->id : '' }}"
                                 },
                                 headers: {
@@ -790,7 +796,8 @@
                                     'lang': "{{ app()->getLocale() }}"
                                 },
                                 success: function(response) {
-                                    const products = response.data || [];
+                                    // Handle both paginated and non-paginated responses
+                                    const products = response.data?.data || response.data || [];
 
                                     if (products.length > 0) {
                                         let html = '';

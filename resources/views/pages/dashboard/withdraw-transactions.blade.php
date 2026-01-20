@@ -12,17 +12,23 @@
     $totalVendorBalance = 0;
 
     if (isAdmin()) {
-        // For admin: use optimized aggregate queries instead of loading all vendors
-        $statistics = \Modules\Vendor\app\Models\Vendor::getVendorsStatistics();
+        // Get current country_id from session
+        $countryCode = session('country_code', 'eg');
+        $countryId = \Modules\AreaSettings\app\Models\Country::where('code', $countryCode)->value('id');
         
-        // Get aggregated values using DB queries
+        // For admin: use optimized aggregate queries instead of loading all vendors
+        $statistics = \Modules\Vendor\app\Models\Vendor::getVendorsStatistics($countryId);
+        
+        // Get aggregated values using DB queries with country filter
         $ordersPrice = \Illuminate\Support\Facades\DB::table('order_products as op')
+            ->join('orders as o', 'op.order_id', '=', 'o.id')
             ->join('vendor_order_stages as vos', function ($join) {
                 $join->on('vos.order_id', '=', 'op.order_id')
                      ->on('vos.vendor_id', '=', 'op.vendor_id');
             })
             ->join('order_stages as os', 'vos.stage_id', '=', 'os.id')
             ->where('os.type', 'deliver')
+            ->where('o.country_id', $countryId)
             ->sum('op.price') ?? 0;
             
         $totalVendorBalance = (float) str_replace(',', '', $statistics['total_balance']);

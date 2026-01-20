@@ -12,6 +12,7 @@ use Modules\CatalogManagement\app\Models\VariantConfigurationKey;
 use Modules\CatalogManagement\app\Models\VariantsConfiguration;
 use Illuminate\Support\Facades\Auth;
 use Modules\CatalogManagement\app\DTOs\ProductFilterDTO;
+use Modules\CatalogManagement\app\Models\VendorProduct;
 
 class ProductApiRepository implements ProductApiRepositoryInterface
 {
@@ -473,26 +474,24 @@ class ProductApiRepository implements ProductApiRepositoryInterface
 
     public function getVariantsWithProduct(array $filters)
     {
-        $query = $this->query->handle($filters);
+        // Use a lightweight query for order creation - skip the heavy ProductQueryAction
+        $query = VendorProduct::query()
+            ->active()
+            ->status(VendorProduct::STATUS_APPROVED)
+            ->filter($filters);
+    
+        // Note: category, department, subCategory are on Product, not VendorProduct
         $query->with([
-            'product' => function ($subQ) {
-                $subQ->with(['brand', 'department', 'category', 'subCategory']);
-            },
-            'variants' => function ($subQ) {
-                $subQ->with([
-                    'variantConfiguration.parent_data.key',
-                    'variantConfiguration.key',
-                    'stocks',
-                    'vendorProduct.vendor',
-                    'vendorProduct.taxes'
-                ]);
-            },
-            'taxes'
+            'product.translations',
+            'product.category.translations',
+            'product.department.translations',
+            'product.subCategory.translations',
+            'variants.variantConfiguration.key',
+            'variants.stocks',
+            'vendor.translations',
+            'taxes.translations'
         ]);
-
-        $result = $this->paginated->handle($query, $filters['per_page'] ?? 15, $filters['paginated'] ?? false);
-
-        return $result;
+        return $query->paginate(10);
     }
 
     /**

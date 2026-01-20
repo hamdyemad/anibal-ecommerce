@@ -25,6 +25,17 @@ return [
         'edit_vendor_refund_settings' => 'تعديل إعدادات الاسترجاع للمورد',
     ],
 
+    'statistics' => [
+        'title' => 'إحصائيات الاسترجاع',
+        'total_refunds' => 'إجمالي الاسترجاعات',
+        'pending_refunds' => 'قيد الانتظار',
+        'in_progress_refunds' => 'قيد المعالجة',
+        'completed_refunds' => 'المكتملة',
+        'cancelled_refunds' => 'الملغاة',
+        'total_refunded_amount' => 'إجمالي المبالغ المستردة',
+        'pending_refund_amount' => 'المبالغ قيد الانتظار',
+    ],
+
     'fields' => [
         'refund_number' => 'رقم الاسترجاع',
         'order_number' => 'رقم الطلب',
@@ -50,6 +61,7 @@ return [
         'unit_price' => 'سعر الوحدة',
         'total_price' => 'السعر الإجمالي',
         'rejection_reason' => 'سبب الرفض',
+        'cancellation_reason' => 'سبب الإلغاء',
         'customer_pays_return_shipping' => 'العميل يدفع شحن الإرجاع',
         'refund_processing_days' => 'أيام الاسترجاع الافتراضية',
     ],
@@ -67,8 +79,13 @@ return [
     'actions' => [
         'approve' => 'قبول',
         'reject' => 'رفض',
+        'cancel' => 'إلغاء',
         'change_status' => 'تغيير الحالة',
         'update_notes' => 'تحديث الملاحظات',
+        'status_change_warning' => 'سيؤدي هذا الإجراء إلى تغيير حالة الاسترجاع. يرجى التأكيد للمتابعة.',
+        'confirm_status_change_to' => 'تغيير الحالة إلى',
+        'status_changed_successfully' => 'تم تغيير حالة الاسترجاع بنجاح',
+        'status_change_failed' => 'فشل تغيير حالة الاسترجاع',
     ],
 
     'messages' => [
@@ -77,6 +94,8 @@ return [
         'request_cancelled' => 'تم إلغاء طلب الاسترجاع بنجاح',
         'approved_successfully' => 'تم قبول طلب الاسترجاع بنجاح',
         'rejected_successfully' => 'تم رفض طلب الاسترجاع بنجاح',
+        'cancelled_successfully' => 'تم إلغاء طلب الاسترجاع بنجاح',
+        'refunded_successfully' => 'تم إكمال الاسترجاع بنجاح',
         'status_updated' => 'تم تحديث حالة الاسترجاع بنجاح',
         'notes_updated' => 'تم تحديث الملاحظات بنجاح',
         'settings_updated' => 'تم تحديث إعدادات الاسترجاع بنجاح',
@@ -128,6 +147,14 @@ return [
         'new_refund_vendor_body' => 'طلب استرجاع جديد :refund_number من :customer',
     ],
 
+    'history' => [
+        'created_by_customer' => 'تم إنشاء طلب الاسترجاع من قبل العميل',
+        'status_changed_to_approved' => 'تم قبول طلب الاسترجاع',
+        'status_changed_to_in_progress' => 'بدأت معالجة الاسترجاع',
+        'status_changed_to_picked_up' => 'تم استلام المنتج للاسترجاع',
+        'status_changed_to_refunded' => 'تم إكمال الاسترجاع',
+    ],
+
     'validation' => [
         'order_required' => 'حقل الطلب مطلوب.',
         'order_invalid' => 'الطلب المحدد غير صالح.',
@@ -159,6 +186,8 @@ return [
         'notes_max' => 'يجب ألا تتجاوز الملاحظات :max حرفاً.',
         'rejection_reason_required' => 'سبب الرفض مطلوب.',
         'rejection_reason_max' => 'يجب ألا يتجاوز سبب الرفض :max حرفاً.',
+        'cancellation_reason_required' => 'سبب الإلغاء مطلوب.',
+        'cancellation_reason_max' => 'يجب ألا يتجاوز سبب الإلغاء :max حرفاً.',
         'admin_notes_max' => 'يجب ألا تتجاوز ملاحظات الإدارة :max حرفاً.',
         'vendor_notes_max' => 'يجب ألا تتجاوز ملاحظات المورد :max حرفاً.',
         'refund_processing_days_required' => 'حقل أيام معالجة الاسترجاع مطلوب.',

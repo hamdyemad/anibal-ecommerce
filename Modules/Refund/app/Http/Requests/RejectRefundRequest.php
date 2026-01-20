@@ -20,8 +20,22 @@ class RejectRefundRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'rejection_reason' => 'required|string|max:1000',
+            'cancellation_reason' => 'required|string|max:1000',
+            'rejection_reason' => 'nullable|string|max:1000',
         ];
+    }
+
+    /**
+     * Prepare the data for validation.
+     */
+    protected function prepareForValidation(): void
+    {
+        // If rejection_reason is provided but cancellation_reason is not, use rejection_reason
+        if ($this->has('rejection_reason') && !$this->has('cancellation_reason')) {
+            $this->merge([
+                'cancellation_reason' => $this->input('rejection_reason'),
+            ]);
+        }
     }
 
     /**
@@ -30,7 +44,7 @@ class RejectRefundRequest extends FormRequest
     public function attributes(): array
     {
         return [
-            'rejection_reason' => trans('refund::refund.fields.rejection_reason'),
+            'cancellation_reason' => trans('refund::refund.fields.cancellation_reason'),
         ];
     }
 
@@ -40,8 +54,8 @@ class RejectRefundRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'rejection_reason.required' => trans('validation.required', ['attribute' => trans('refund::refund.fields.rejection_reason')]),
-            'rejection_reason.max' => trans('validation.max.string', ['attribute' => trans('refund::refund.fields.rejection_reason'), 'max' => 1000]),
+            'cancellation_reason.required' => trans('refund::refund.validation.cancellation_reason_required'),
+            'cancellation_reason.max' => trans('validation.max.string', ['attribute' => trans('refund::refund.fields.cancellation_reason'), 'max' => 1000]),
         ];
     }
 }

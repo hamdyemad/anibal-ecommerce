@@ -25,14 +25,12 @@ interface RefundRequestRepositoryInterface
     
     public function updateRefundStatus(int $id, array $data, $user);
     
-    public function cancelRefund(int $id, $user);
-    
     // Helper methods
     public function getRefundWithRelations(int $refundId, array $relations = []);
     
     public function approveRefund(int $id);
     
-    public function rejectRefund(int $id, string $rejectionReason);
+    public function cancelRefund(int $id, string $cancellationReason);
     
     public function updateNotes(int $id, string $notes, bool $isAdmin = false);
 }

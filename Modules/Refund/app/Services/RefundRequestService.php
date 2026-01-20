@@ -39,11 +39,6 @@ class RefundRequestService
         return $this->repository->updateRefundStatus($id, $data, $user);
     }
 
-    public function cancelRefund(int $id, $user)
-    {
-        return $this->repository->cancelRefund($id, $user);
-    }
-
     public function getStatistics(array $filters)
     {
         return $this->repository->getStatistics($filters);
@@ -59,9 +54,9 @@ class RefundRequestService
         return $this->repository->approveRefund($id);
     }
 
-    public function rejectRefund(int $id, string $rejectionReason)
+    public function cancelRefund(int $id, string $cancellationReason)
     {
-        return $this->repository->rejectRefund($id, $rejectionReason);
+        return $this->repository->cancelRefund($id, $cancellationReason);
     }
 
     public function updateNotes(int $id, string $notes, bool $isAdmin = false)
@@ -72,5 +67,44 @@ class RefundRequestService
     public function getRefundWithRelations(int $id, array $relations = [])
     {
         return $this->repository->getRefundWithRelations($id, $relations);
+    }
+
+    /**
+     * Get refund statistics for dashboard cards
+     */
+    public function getRefundStatistics(?int $vendorId = null): array
+    {
+        $query = \Modules\Refund\app\Models\RefundRequest::query();
+        
+        // Filter by vendor if provided
+        if ($vendorId) {
+            $query->where('vendor_id', $vendorId);
+        }
+        
+        // Get all statuses from model
+        $statuses = array_keys(\Modules\Refund\app\Models\RefundRequest::STATUSES);
+        
+        // Build status data array with count and amount for each status
+        $statusData = [];
+        foreach ($statuses as $status) {
+            $statusQuery = (clone $query)->where('status', $status);
+            $statusData[$status] = [
+                'count' => $statusQuery->count(),
+                'amount' => $statusQuery->sum('total_refund_amount'),
+                'amount_formatted' => number_format($statusQuery->sum('total_refund_amount'), 2),
+            ];
+        }
+        
+        // Total refund requests
+        $totalRefunds = (clone $query)->count();
+        
+        // Total refunded amount (only completed refunds)
+        $totalRefundedAmount = (clone $query)->where('status', 'refunded')->sum('total_refund_amount');
+        
+        return [
+            'total_refunds' => $totalRefunds,
+            'total_refunded_amount' => number_format($totalRefundedAmount, 2),
+            'status_data' => $statusData,
+        ];
     }
 }

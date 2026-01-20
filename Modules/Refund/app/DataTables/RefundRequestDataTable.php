@@ -123,7 +123,7 @@ class RefundRequestDataTable
         }
         
         $html .= '<div class="mb-1"><strong>' . trans('refund::refund.fields.total_refund_amount') . ':</strong> ' . number_format($refund->total_refund_amount, 2) . ' ' . $currency . '</div>';
-        $html .= '<div><strong>' . trans('common.created_at') . ':</strong> ' . $refund->created_at->format('Y-m-d H:i') . '</div>';
+        $html .= '<div><strong>' . trans('common.created_at') . ':</strong> ' . $refund->created_at . '</div>';
         $html .= '</div>';
 
         return $html;
@@ -140,25 +140,80 @@ class RefundRequestDataTable
             'in_progress' => '<span class="badge badge-primary badge-round badge-lg"><i class="uil uil-sync"></i> ' . trans('refund::refund.statuses.in_progress') . '</span>',
             'picked_up' => '<span class="badge badge-secondary badge-round badge-lg"><i class="uil uil-package"></i> ' . trans('refund::refund.statuses.picked_up') . '</span>',
             'refunded' => '<span class="badge badge-success badge-round badge-lg"><i class="uil uil-check-circle"></i> ' . trans('refund::refund.statuses.refunded') . '</span>',
-            'rejected' => '<span class="badge badge-danger badge-round badge-lg"><i class="uil uil-times-circle"></i> ' . trans('refund::refund.statuses.rejected') . '</span>',
+            'cancelled' => '<span class="badge badge-danger badge-round badge-lg"><i class="uil uil-ban"></i> ' . trans('refund::refund.statuses.cancelled') . '</span>',
         ];
 
         return $badges[$status] ?? $status;
     }
 
     /**
-     * Build actions HTML
+     * Build actions HTML with status change buttons
      */
     protected function buildActions($refund): string
     {
-        $showUrl = route('admin.refunds.show', $refund->id);
+        $showUrl = route('admin.refunds.show', ['lang' => app()->getLocale(), 'countryCode' => strtolower(session('country_code', 'eg')), 'id' => $refund->id]);
         
-        $html = '<div class="orderDatatable_actions d-inline-flex gap-1 justify-content-center">';
+        $html = '<div class="orderDatatable_actions d-flex flex-column gap-2 align-items-center">';
+        
+        // View button
+        $html .= '<div class="d-inline-flex gap-1">';
         $html .= '<a href="' . $showUrl . '" class="view btn btn-sm btn-primary" title="' . trans('common.view') . '">';
         $html .= '<i class="uil uil-eye m-0"></i>';
         $html .= '</a>';
+        $html .= $this->buildStatusChangeButtons($refund);
         $html .= '</div>';
 
+        return $html;
+    }
+    
+    /**
+     * Build status change buttons based on current status
+     * Note: The modals and JavaScript are handled by the refund-actions component in index.blade.php
+     */
+    protected function buildStatusChangeButtons($refund): string
+    {
+        if (!$refund->canChangeStatus()) {
+            return '';
+        }
+
+        $html = '';
+        $nextStatuses = $refund->getNextStatuses();
+        
+        // Status button configuration
+        $statusConfig = [
+            'approved' => ['color' => 'info', 'icon' => 'uil-check'],
+            'cancelled' => ['color' => 'danger', 'icon' => 'uil-ban'],
+            'in_progress' => ['color' => 'primary', 'icon' => 'uil-sync'],
+            'picked_up' => ['color' => 'secondary', 'icon' => 'uil-package'],
+            'refunded' => ['color' => 'success', 'icon' => 'uil-check-circle'],
+        ];
+        
+        foreach ($nextStatuses as $nextStatus) {
+            $config = $statusConfig[$nextStatus] ?? ['color' => 'secondary', 'icon' => 'uil-arrow-right'];
+            $label = trans('refund::refund.statuses.' . $nextStatus);
+            
+            // Cancel button opens modal (handled by component)
+            if ($nextStatus === 'cancelled') {
+                $html .= '<button type="button" ';
+                $html .= 'class="btn btn-sm btn-' . $config['color'] . '" ';
+                $html .= 'data-bs-toggle="modal" ';
+                $html .= 'data-bs-target="#cancelModal" ';
+                $html .= 'data-refund-id="' . $refund->id . '" ';
+                $html .= 'title="' . $label . '">';
+                $html .= '<i class="uil ' . $config['icon'] . ' m-0"></i>';
+                $html .= '</button>';
+            } else {
+                // Other status changes use the change-refund-status class (handled by component JS)
+                $html .= '<button type="button" ';
+                $html .= 'class="btn btn-sm btn-' . $config['color'] . ' change-refund-status" ';
+                $html .= 'data-refund-id="' . $refund->id . '" ';
+                $html .= 'data-status="' . $nextStatus . '" ';
+                $html .= 'title="' . $label . '">';
+                $html .= '<i class="uil ' . $config['icon'] . ' m-0"></i>';
+                $html .= '</button>';
+            }
+        }
+        
         return $html;
     }
 }

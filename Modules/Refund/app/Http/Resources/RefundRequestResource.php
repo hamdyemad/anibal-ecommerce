@@ -4,6 +4,8 @@ namespace Modules\Refund\app\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Modules\Customer\app\Transformers\CustomerApiResource;
+use Modules\Vendor\app\Http\Resources\Api\VendorApiResource;
 
 class RefundRequestResource extends JsonResource
 {
@@ -15,14 +17,10 @@ class RefundRequestResource extends JsonResource
         return [
             'id' => $this->id,
             'refund_number' => $this->refund_number,
-            'order_id' => $this->order_id,
-            'customer_id' => $this->customer_id,
-            'vendor_id' => $this->vendor_id,
-            'status' => $this->status,
-            'status_label' => trans('refund::refund.statuses.' . $this->status),
-            
-            // Amounts
-            'total_refund_amount' => (float) $this->total_refund_amount,
+            'order_number' => $this->order->order_number,
+            'vendor' => $this->whenLoaded('vendor', new VendorApiResource($this->vendor)),
+            'label' => trans('refund::refund.statuses.' . $this->status),
+            // Amounts - Ordered logically (components first, then total at the end)
             'total_products_amount' => (float) $this->total_products_amount,
             'total_shipping_amount' => (float) $this->total_shipping_amount,
             'total_tax_amount' => (float) $this->total_tax_amount,
@@ -33,21 +31,13 @@ class RefundRequestResource extends JsonResource
             'return_shipping_cost' => (float) $this->return_shipping_cost,
             'points_used' => (float) $this->points_used,
             'points_to_deduct' => $this->points_to_deduct,
-            
-            // Notes
-            'reason' => $this->reason,
-            'customer_notes' => $this->customer_notes,
-            'vendor_notes' => $this->vendor_notes,
-            'admin_notes' => $this->admin_notes,
-            
+            'total_refund_amount' => (float) $this->total_refund_amount, // Total at the end
             // Timestamps
-            'created_at' => $this->created_at?->toISOString(),
-            'updated_at' => $this->updated_at?->toISOString(),
-            'approved_at' => $this->approved_at?->toISOString(),
-            'refunded_at' => $this->refunded_at?->toISOString(),
-            
+            'created_at' => $this->created_at,
+            'updated_at' => $this->updated_at,
             // Relationships
             'items' => RefundRequestItemResource::collection($this->whenLoaded('items')),
+            'history' => RefundRequestHistoryResource::collection($this->whenLoaded('history')),
         ];
     }
 }

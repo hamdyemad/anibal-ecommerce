@@ -25,6 +25,17 @@ return [
         'edit_vendor_refund_settings' => 'Edit Vendor Refund Settings',
     ],
 
+    'statistics' => [
+        'title' => 'Refund Statistics',
+        'total_refunds' => 'Total Refunds',
+        'pending_refunds' => 'Pending Refunds',
+        'in_progress_refunds' => 'In Progress',
+        'completed_refunds' => 'Completed Refunds',
+        'cancelled_refunds' => 'Cancelled Refunds',
+        'total_refunded_amount' => 'Total Refunded Amount',
+        'pending_refund_amount' => 'Pending Refund Amount',
+    ],
+
     'fields' => [
         'refund_number' => 'Refund Number',
         'order_number' => 'Order Number',
@@ -50,6 +61,7 @@ return [
         'unit_price' => 'Unit Price',
         'total_price' => 'Total Price',
         'rejection_reason' => 'Rejection Reason',
+        'cancellation_reason' => 'Cancellation Reason',
         'customer_pays_return_shipping' => 'Customer Pays Return Shipping',
         'refund_processing_days' => 'Default Refund Days',
     ],
@@ -67,8 +79,13 @@ return [
     'actions' => [
         'approve' => 'Approve',
         'reject' => 'Reject',
+        'cancel' => 'Cancel',
         'change_status' => 'Change Status',
         'update_notes' => 'Update Notes',
+        'status_change_warning' => 'This action will change the refund status. Please confirm to proceed.',
+        'confirm_status_change_to' => 'Change status to',
+        'status_changed_successfully' => 'Refund status changed successfully',
+        'status_change_failed' => 'Failed to change refund status',
     ],
 
     'messages' => [
@@ -77,6 +94,8 @@ return [
         'request_cancelled' => 'Refund request cancelled successfully',
         'approved_successfully' => 'Refund request approved successfully',
         'rejected_successfully' => 'Refund request rejected successfully',
+        'cancelled_successfully' => 'Refund request cancelled successfully',
+        'refunded_successfully' => 'Refund completed successfully',
         'status_updated' => 'Refund status updated successfully',
         'notes_updated' => 'Notes updated successfully',
         'settings_updated' => 'Refund settings updated successfully',
@@ -128,6 +147,14 @@ return [
         'new_refund_vendor_body' => 'New refund request :refund_number from :customer',
     ],
 
+    'history' => [
+        'created_by_customer' => 'Refund request created by customer',
+        'status_changed_to_approved' => 'Refund request approved',
+        'status_changed_to_in_progress' => 'Refund processing started',
+        'status_changed_to_picked_up' => 'Product picked up for refund',
+        'status_changed_to_refunded' => 'Refund completed',
+    ],
+
     'validation' => [
         'order_required' => 'The order field is required.',
         'order_invalid' => 'The selected order is invalid.',
@@ -159,6 +186,8 @@ return [
         'notes_max' => 'The notes must not exceed :max characters.',
         'rejection_reason_required' => 'The rejection reason is required.',
         'rejection_reason_max' => 'The rejection reason must not exceed :max characters.',
+        'cancellation_reason_required' => 'The cancellation reason is required.',
+        'cancellation_reason_max' => 'The cancellation reason must not exceed :max characters.',
         'admin_notes_max' => 'The admin notes must not exceed :max characters.',
         'vendor_notes_max' => 'The vendor notes must not exceed :max characters.',
         'refund_processing_days_required' => 'The refund processing days field is required.',

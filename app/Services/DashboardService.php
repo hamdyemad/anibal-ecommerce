@@ -30,7 +30,6 @@ class DashboardService
 {
     protected $vendorId = null;
     protected $isVendor = false;
-    protected $countryId = null;
 
     protected function initVendorCheck()
     {
@@ -45,9 +44,6 @@ class DashboardService
     {
         // Initialize vendor check here instead of constructor
         $this->initVendorCheck();
-        
-        // Get country_id from country code
-        $this->countryId = Country::where('code', $countryCode)->value('id');
 
         $stats = $this->getStats();
         $salesChart = $this->getSalesChartData();
@@ -94,72 +90,72 @@ class DashboardService
             'total_admins' => $adminsQuery->count(),
             'vendor_users' => User::where('user_type_id', UserType::VENDOR_USER_TYPE)->count(),
 
-            // Vendors (filter by country)
-            'total_vendors' => Vendor::where('country_id', $this->countryId)->count(),
-            'become_vendor_requests' => VendorRequest::where('country_id', $this->countryId)->where('status', 'pending')->count(),
-            'accepted_vendors' => Vendor::where('country_id', $this->countryId)->where('active', 1)->count(),
-            'rejected_vendors' => Vendor::where('country_id', $this->countryId)->where('active', 0)->count(),
-            'new_vendors' => Vendor::where('country_id', $this->countryId)->whereDate('created_at', '>=', Carbon::now()->subDays(30))->count(),
+            // Vendors
+            'total_vendors' => Vendor::count(),
+            'become_vendor_requests' => VendorRequest::where('status', 'pending')->count(),
+            'accepted_vendors' => Vendor::where('active', 1)->count(),
+            'rejected_vendors' => Vendor::where('active', 0)->count(),
+            'new_vendors' => Vendor::whereDate('created_at', '>=', Carbon::now()->subDays(30))->count(),
 
-            // Customers (filter by country)
-            'total_customers' => Customer::where('country_id', $this->countryId)->count(),
-            'total_male_users' => Customer::where('country_id', $this->countryId)->where('gender', 'male')->count(),
-            'total_female_users' => Customer::where('country_id', $this->countryId)->where('gender', 'female')->count(),
+            // Customers
+            'total_customers' => Customer::count(),
+            'total_male_users' => Customer::where('gender', 'male')->count(),
+            'total_female_users' => Customer::where('gender', 'female')->count(),
 
             // Roles
             'admins_total_roles' => Role::where('type', 'admin')->count(),
             'vendor_users_total_roles' => Role::where('type', 'vendor')->count(),
 
-            // Products & Stock (filter by country)
-            'total_products' => Product::where('country_id', $this->countryId)->count(),
-            'instock' => VendorProduct::where('country_id', $this->countryId)->whereHas('variants', function($q) {
+            // Products & Stock
+            'total_products' => Product::count(),
+            'instock' => VendorProduct::whereHas('variants', function($q) {
                 $q->whereHas('stocks', function($sq) {
                     $sq->where('quantity', '>', 0);
                 });
             })->count(),
-            'out_of_stock' => VendorProduct::where('country_id', $this->countryId)->where(function($q) {
+            'out_of_stock' => VendorProduct::where(function($q) {
                 $q->whereDoesntHave('variants')
                   ->orWhereDoesntHave('variants.stocks', function($sq) {
                       $sq->where('quantity', '>', 0);
                   });
             })->count(),
 
-            // Orders (filter by country)
-            'total_orders' => Order::where('country_id', $this->countryId)->count(),
-            'total_sales' => Order::where('country_id', $this->countryId)->whereHas('stage', function($q) {
+            // Orders
+            'total_orders' => Order::count(),
+            'total_sales' => Order::whereHas('stage', function($q) {
                 $q->where('type', 'deliver');
             })->sum('total_price'),
-            'today_sales' => Order::where('country_id', $this->countryId)->whereHas('stage', function($q) {
+            'today_sales' => Order::whereHas('stage', function($q) {
                 $q->where('type', 'deliver');
             })->whereDate('created_at', $today)->sum('total_price'),
-            'today_orders' => Order::where('country_id', $this->countryId)->whereDate('created_at', $today)->count(),
+            'today_orders' => Order::whereDate('created_at', $today)->count(),
             'total_order_stages' => OrderStage::withoutCountryFilter()->count(),
 
-            // Taxes (filter by country)
-            'total_taxes' => Tax::where('country_id', $this->countryId)->count(),
+            // Taxes
+            'total_taxes' => Tax::count(),
 
-            // Messages (filter by country)
-            'total_messages' => Message::where('country_id', $this->countryId)->count(),
+            // Messages
+            'total_messages' => Message::count(),
 
-            // Promo Codes (filter by country)
-            'promocodes' => Promocode::where('country_id', $this->countryId)->count(),
+            // Promo Codes
+            'promocodes' => Promocode::count(),
 
             // Area Settings
             'country' => Country::count(),
-            'city' => City::where('country_id', $this->countryId)->count(),
-            'region' => Region::where('country_id', $this->countryId)->count(),
+            'city' => City::count(),
+            'region' => Region::count(),
             'subregion' => 0,
 
             // Offers
             'total_offers' => 0,
 
-            // Reviews (filter by country)
-            'all_products_reviews' => Review::where('country_id', $this->countryId)->count(),
-            'accept_products_reviews' => Review::where('country_id', $this->countryId)->where('status', 'approved')->count(),
-            'reject_products_reviews' => Review::where('country_id', $this->countryId)->where('status', 'rejected')->count(),
+            // Reviews
+            'all_products_reviews' => Review::count(),
+            'accept_products_reviews' => Review::where('status', 'approved')->count(),
+            'reject_products_reviews' => Review::where('status', 'rejected')->count(),
 
-            // Advertisements (filter by country)
-            'total_advertisments' => Ad::where('country_id', $this->countryId)->count(),
+            // Advertisements
+            'total_advertisments' => Ad::count(),
         ];
     }
 
@@ -285,12 +281,14 @@ class DashboardService
             $newOrdersCount = $newStage
                 ? \Modules\Order\app\Models\VendorOrderStage::where('vendor_id', $this->vendorId)
                     ->where('stage_id', $newStage->id)
+                    ->whereHas('order') // Apply country filter through order relationship
                     ->count()
                 : 0;
 
             $inProgressOrdersCount = $inProgressStage
                 ? \Modules\Order\app\Models\VendorOrderStage::where('vendor_id', $this->vendorId)
                     ->where('stage_id', $inProgressStage->id)
+                    ->whereHas('order') // Apply country filter through order relationship
                     ->count()
                 : 0;
         } else {
@@ -299,11 +297,15 @@ class DashboardService
 
             // Admin: count based on vendor_order_stages (per-vendor stage counts)
             $newOrdersCount = $newStage 
-                ? \Modules\Order\app\Models\VendorOrderStage::where('stage_id', $newStage->id)->count() 
+                ? \Modules\Order\app\Models\VendorOrderStage::where('stage_id', $newStage->id)
+                    ->whereHas('order') // Apply country filter through order relationship
+                    ->count() 
                 : 0;
 
             $inProgressOrdersCount = $inProgressStage 
-                ? \Modules\Order\app\Models\VendorOrderStage::where('stage_id', $inProgressStage->id)->count() 
+                ? \Modules\Order\app\Models\VendorOrderStage::where('stage_id', $inProgressStage->id)
+                    ->whereHas('order') // Apply country filter through order relationship
+                    ->count() 
                 : 0;
         }
 
@@ -327,13 +329,17 @@ class DashboardService
         foreach ($stages as $stage) {
             if ($this->isVendor && $this->vendorId) {
                 // Vendor-specific: count based on vendor's specific stage in vendor_order_stages table
+                // Filter through order relationship since VendorOrderStage doesn't have country_id
                 $count = \Modules\Order\app\Models\VendorOrderStage::where('vendor_id', $this->vendorId)
                     ->where('stage_id', $stage->id)
+                    ->whereHas('order') // This will apply the country filter from Order model's global scope
                     ->count();
             } else {
                 // Admin: count all vendor stages (each vendor in an order has their own stage)
-                // This gives accurate count: if order has 2 vendors - 1 new, 1 deliver = counts as 1 new + 1 deliver
-                $count = \Modules\Order\app\Models\VendorOrderStage::where('stage_id', $stage->id)->count();
+                // Filter through order relationship for country filtering
+                $count = \Modules\Order\app\Models\VendorOrderStage::where('stage_id', $stage->id)
+                    ->whereHas('order') // This will apply the country filter from Order model's global scope
+                    ->count();
             }
 
             $overview[] = [
@@ -446,8 +452,7 @@ class DashboardService
         // Monthly data (last 12 months) - all orders
         $endDate = $now->copy();
         $startDate = $now->copy()->subYear();
-        $monthlySales = Order::withoutCountryFilter()
-            ->whereBetween('created_at', [$startDate, $endDate])
+        $monthlySales = Order::whereBetween('created_at', [$startDate, $endDate])
             ->selectRaw('DATE_FORMAT(created_at, "%Y-%m") as month, SUM(total_price) as total_sales')
             ->groupBy('month')
             ->orderBy('month', 'asc')
@@ -461,8 +466,7 @@ class DashboardService
         for ($i = 0; $i < 12; $i++) {
             $hourStart = $now->copy()->startOfDay()->addHours($i);
             $hourEnd = $now->copy()->startOfDay()->addHours($i + 1);
-            $hourly[] = Order::withoutCountryFilter()
-                ->whereBetween('created_at', [$hourStart, $hourEnd])->sum('total_price') ?? 0;
+            $hourly[] = Order::whereBetween('created_at', [$hourStart, $hourEnd])->sum('total_price') ?? 0;
         }
 
         // Weekly data (this week) - all orders
@@ -471,8 +475,7 @@ class DashboardService
         for ($i = 0; $i < 7; $i++) {
             $dayStart = $startOfWeek->copy()->addDays($i)->startOfDay();
             $dayEnd = $startOfWeek->copy()->addDays($i)->endOfDay();
-            $weekly[] = Order::withoutCountryFilter()
-                ->whereBetween('created_at', [$dayStart, $dayEnd])->sum('total_price') ?? 0;
+            $weekly[] = Order::whereBetween('created_at', [$dayStart, $dayEnd])->sum('total_price') ?? 0;
         }
 
         // Daily data (current month) - all orders
@@ -480,8 +483,7 @@ class DashboardService
         $daysInMonth = $now->daysInMonth;
         for ($day = 1; $day <= $daysInMonth; $day++) {
             $dayDate = Carbon::create($now->year, $now->month, $day);
-            $daily[] = Order::withoutCountryFilter()
-                ->whereDate('created_at', $dayDate)->sum('total_price') ?? 0;
+            $daily[] = Order::whereDate('created_at', $dayDate)->sum('total_price') ?? 0;
         }
 
         // Monthly breakdown for current year - all orders
@@ -489,8 +491,7 @@ class DashboardService
         for ($month = 1; $month <= 12; $month++) {
             $monthStart = Carbon::create($now->year, $month, 1)->startOfMonth();
             $monthEnd = Carbon::create($now->year, $month, 1)->endOfMonth();
-            $monthly[] = Order::withoutCountryFilter()
-                ->whereBetween('created_at', [$monthStart, $monthEnd])->sum('total_price') ?? 0;
+            $monthly[] = Order::whereBetween('created_at', [$monthStart, $monthEnd])->sum('total_price') ?? 0;
         }
 
         // Yearly data (last 5 years) - all orders
@@ -501,8 +502,7 @@ class DashboardService
             $yearlyLabels[] = $year;
             $yearStart = Carbon::create($year, 1, 1)->startOfYear();
             $yearEnd = Carbon::create($year, 12, 31)->endOfYear();
-            $yearlyData[] = Order::withoutCountryFilter()
-                ->whereBetween('created_at', [$yearStart, $yearEnd])->sum('total_price') ?? 0;
+            $yearlyData[] = Order::whereBetween('created_at', [$yearStart, $yearEnd])->sum('total_price') ?? 0;
         }
 
         return [
@@ -889,7 +889,8 @@ class DashboardService
         $query = \Modules\Order\app\Models\OrderProduct::select('vendor_product_id', 'vendor_id')
             ->selectRaw('SUM(quantity) as total_sold')
             ->selectRaw('SUM(price) as total_revenue')
-            ->whereNotNull('vendor_product_id');
+            ->whereNotNull('vendor_product_id')
+            ->whereHas('order'); // Apply country filter through order relationship
 
         // Filter by vendor if logged in as vendor
         if ($this->isVendor && $this->vendorId) {
@@ -921,6 +922,10 @@ class DashboardService
 
     private function getBestCustomers($limit = 5)
     {
+        // Get current country_id from session
+        $countryCode = session('country_code', 'eg');
+        $countryId = Country::where('code', $countryCode)->value('id');
+        
         if ($this->isVendor && $this->vendorId) {
             // For vendors: Get all customers (registered + external) who bought from this vendor
             // Registered customers
@@ -939,6 +944,7 @@ class DashboardService
                 ->join('customers', 'orders.customer_id', '=', 'customers.id')
                 ->join('order_products', 'orders.id', '=', 'order_products.order_id')
                 ->where('order_products.vendor_id', $this->vendorId)
+                ->where('orders.country_id', $countryId)
                 ->whereNotNull('orders.customer_id')
                 ->groupBy('customers.id', 'customers.first_name', 'customers.last_name', 'customers.email', 'customers.image', 'customers.created_at');
 
@@ -957,6 +963,7 @@ class DashboardService
                 ->selectRaw('SUM(order_products.price) as orders_sum_total_price')
                 ->join('order_products', 'orders.id', '=', 'order_products.order_id')
                 ->where('order_products.vendor_id', $this->vendorId)
+                ->where('orders.country_id', $countryId)
                 ->whereNull('orders.customer_id')
                 ->whereNotNull('orders.customer_name')
                 ->groupBy('orders.customer_name', 'orders.customer_email');
@@ -989,6 +996,7 @@ class DashboardService
             ->selectRaw('COUNT(orders.id) as orders_count')
             ->selectRaw('SUM(orders.total_price) as orders_sum_total_price')
             ->join('customers', 'orders.customer_id', '=', 'customers.id')
+            ->where('orders.country_id', $countryId)
             ->whereNotNull('orders.customer_id')
             ->groupBy('customers.id', 'customers.first_name', 'customers.last_name', 'customers.email', 'customers.image', 'customers.created_at');
 
@@ -1005,6 +1013,7 @@ class DashboardService
             )
             ->selectRaw('COUNT(id) as orders_count')
             ->selectRaw('SUM(total_price) as orders_sum_total_price')
+            ->where('country_id', $countryId)
             ->whereNull('customer_id')
             ->whereNotNull('customer_name')
             ->groupBy('customer_name', 'customer_email');

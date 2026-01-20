@@ -17,7 +17,7 @@ class RefundRequestRepository implements RefundRequestRepositoryInterface
     public function getAllPaginated(array $filters = [], int $perPage = 15)
     {
         $query = $this->model
-            ->with(['order', 'customer', 'vendor', 'items.orderProduct']);
+            ->with(['order', 'customer', 'vendor', 'items.orderProduct', 'history']);
         
         
         return $query->filter($filters)
@@ -173,35 +173,14 @@ class RefundRequestRepository implements RefundRequestRepositoryInterface
         }
 
         $refund = $this->findById($id);
-        $oldStatus = $refund->status;
-        $newStatus = $data['status'];
 
         // Update status
         $refund = $this->update($id, [
-            'status' => $newStatus,
+            'status' => $data['status'],
             'vendor_notes' => $data['notes'] ?? null,
         ]);
 
-        // Create history record
-        $this->createHistoryRecord($id, $oldStatus, $newStatus, $user->id, $data['notes'] ?? null);
-
-        return $refund;
-    }
-
-    public function cancelRefund(int $id, $user)
-    {
-        // Check if user can cancel
-        if (!$this->canUserCancelRefund($id, $user)) {
-            throw new \Exception('Cannot cancel refund request in current status');
-        }
-
-        $refund = $this->findById($id);
-        $oldStatus = $refund->status;
-
-        $refund = $this->update($id, ['status' => 'cancelled']);
-
-        // Create history record
-        $this->createHistoryRecord($id, $oldStatus, 'cancelled', $user->id);
+        // History record will be created by the observer
 
         return $refund;
     }
@@ -218,37 +197,31 @@ class RefundRequestRepository implements RefundRequestRepositoryInterface
         if ($refund->status != 'pending') {
             throw new \Exception('Cannot approve this refund request');
         }
-
-        $oldStatus = $refund->status;
         
         $refund = $this->update($id, [
             'status' => 'approved',
             'approved_at' => now(),
         ]);
 
-        // Create history record
-        $this->createHistoryRecord($id, $oldStatus, 'approved', auth()->id());
+        // History record will be created by the observer
 
         return $refund;
     }
 
-    public function rejectRefund(int $id, string $rejectionReason)
+    public function cancelRefund(int $id, string $cancellationReason)
     {
         $refund = $this->findById($id);
         
         if ($refund->status != 'pending') {
-            throw new \Exception('Cannot reject this refund request');
+            throw new \Exception('Cannot cancel this refund request');
         }
 
-        $oldStatus = $refund->status;
-        
         $refund = $this->update($id, [
-            'status' => 'rejected',
-            'vendor_notes' => $rejectionReason,
+            'status' => 'cancelled',
+            'vendor_notes' => $cancellationReason,
         ]);
 
-        // Create history record
-        $this->createHistoryRecord($id, $oldStatus, 'rejected', auth()->id(), $rejectionReason);
+        // History record will be created by the observer
 
         return $refund;
     }
@@ -287,20 +260,4 @@ class RefundRequestRepository implements RefundRequestRepositoryInterface
         
         return $grouped;
     }
-
-    /**
-     * Create history record for status change
-     */
-    protected function createHistoryRecord(int $refundId, ?string $oldStatus, string $newStatus, ?int $userId, ?string $notes = null): void
-    {
-        \Modules\Refund\app\Models\RefundRequestHistory::create([
-            'refund_request_id' => $refundId,
-            'old_status' => $oldStatus,
-            'new_status' => $newStatus,
-            'user_id' => $userId,
-            'notes' => $notes,
-        ]);
-    }
-
-    // Method removed
 }

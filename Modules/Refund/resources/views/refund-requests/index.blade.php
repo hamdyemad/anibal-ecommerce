@@ -18,6 +18,44 @@
         </div>
     </div>
 
+    {{-- Refund Statistics Cards --}}
+    <div class="row mb-4">
+        <div class="col-12">
+            <h5 class="mb-3">{{ trans('refund::refund.statistics.title') }}</h5>
+        </div>
+        
+        {{-- Loop through all statuses and create cards --}}
+        @foreach($statistics['status_data'] as $status => $data)
+            @php
+            $config = \Modules\Refund\app\Models\RefundRequest::getStatusConfig($status);
+            @endphp
+            <div class="col-xl-4 col-md-6 mb-2">
+                <div class="card card-h-100">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <div class="flex-grow-1">
+                                <span class="text-muted mb-2 lh-1 d-block text-truncate">{{ trans('refund::refund.statuses.' . $status) }}</span>
+                                <h4 class="mb-2">
+                                    <span class="counter-value" data-target="{{ $data['count'] }}">{{ $data['count'] }}</span>
+                                </h4>
+                                <p class="text-muted mb-0">
+                                    <strong>{{ $data['amount_formatted'] }}</strong> {{ trans('common.currency') }}
+                                </p>
+                            </div>
+                            <div class="flex-shrink-0 text-end dash-widget">
+                                <div class="avatar-sm rounded-circle bg-soft-{{ $config['color'] }} align-self-center mini-stat-icon">
+                                    <span class="avatar-title rounded-circle bg-soft-{{ $config['color'] }}">
+                                        <i class="uil {{ $config['icon'] }} font-size-24 text-{{ $config['color'] }}"></i>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        @endforeach
+    </div>
+
     @php
     // Build table headers
     $headers = [
@@ -69,4 +107,7 @@
         </x-slot>
     </x-datatable-wrapper>
 </div>
+
+{{-- Include Refund Actions Component (for modals and JS helper) --}}
+<x-refund::refund-actions />
 @endsection

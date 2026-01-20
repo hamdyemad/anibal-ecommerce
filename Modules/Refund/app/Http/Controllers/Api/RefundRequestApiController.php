@@ -7,9 +7,7 @@ use App\Traits\Res;
 use Illuminate\Http\Request;
 use Modules\Refund\app\Services\RefundRequestService;
 use Modules\Refund\app\Http\Requests\Api\StoreRefundRequestRequest;
-use Modules\Refund\app\Http\Requests\Api\UpdateRefundStatusRequest;
 use Modules\Refund\app\Http\Resources\RefundRequestResource;
-use Modules\Refund\app\Http\Resources\RefundRequestCollection;
 
 class RefundRequestApiController extends Controller
 {
@@ -19,6 +17,17 @@ class RefundRequestApiController extends Controller
     public function __construct(RefundRequestService $refundService)
     {
         $this->refundService = $refundService;
+    }
+
+    /**
+     * Get localized message from config with fallback
+     */
+    private function getMessage(string $key): string
+    {
+        $locale = app()->getLocale();
+        $messages = config('responses.' . $key);
+        
+        return $messages[$locale] ?? $messages['en'] ?? 'Success';
     }
 
     /**
@@ -37,10 +46,11 @@ class RefundRequestApiController extends Controller
         ];
         $perPage = $request->get('per_page', 12);
         $refunds = $this->refundService->getAllRefunds($filters, $perPage);
+        
         return $this->sendRes(
-            config('responses.refund_requests_retrieved_successfully')[app()->getLocale()],
+            $this->getMessage('refund_requests_retrieved_successfully'),
             true,
-            \Modules\Refund\app\Http\Resources\RefundRequestResource::collection($refunds)
+            RefundRequestResource::collection($refunds)
         );
     }
 
@@ -49,14 +59,15 @@ class RefundRequestApiController extends Controller
      */
     public function show($id)
     {
-        $refund = $this->refundService->getRefundById($id);
+        $refund = $this->refundService->getRefundWithRelations($id, ['items', 'history.user', 'order', 'customer', 'vendor']);
 
         // Check authorization
         if (!$this->refundService->canUserAccessRefund($id, auth()->user())) {
             return $this->sendRes('Unauthorized', false, [], [], 403);
         }
+        
         return $this->sendRes(
-            config('responses.refund_request_retrieved_successfully')[app()->getLocale()],
+            $this->getMessage('refund_request_retrieved_successfully'),
             true,
             new RefundRequestResource($refund)
         );
@@ -73,7 +84,7 @@ class RefundRequestApiController extends Controller
         );
 
         return $this->sendRes(
-            config('responses.refund_request_created_successfully')[app()->getLocale()],
+            $this->getMessage('refund_request_created_successfully'),
             true,
             [],
             [],
@@ -87,8 +98,9 @@ class RefundRequestApiController extends Controller
     public function cancel($id)
     {
         $refund = $this->refundService->cancelRefund($id, auth()->user());
+        
         return $this->sendRes(
-            config('responses.refund_request_cancelled_successfully')[app()->getLocale()],
+            $this->getMessage('refund_request_cancelled_successfully'),
             true,
             new RefundRequestResource($refund)
         );
@@ -104,8 +116,9 @@ class RefundRequestApiController extends Controller
             'vendor_id' => $request->get('vendor_id'),
         ];
         $statistics = $this->refundService->getStatistics($filters);
+        
         return $this->sendRes(
-            config('responses.statistics_retrieved_successfully')[app()->getLocale()], // Using same key as list or new one
+            $this->getMessage('statistics_retrieved_successfully'),
             true,
             $statistics
         );

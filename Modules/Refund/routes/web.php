@@ -34,9 +34,11 @@ Route::group(['prefix' => 'refunds', 'as' => 'refunds.'], function () {
     Route::put('/settings', [VendorRefundSettingController::class, 'update'])->name('settings.update');
     
     // Dynamic routes (must be last)
-    Route::get('/{refundRequest}', [RefundRequestController::class, 'show'])->name('show');
-    Route::post('/{refundRequest}/approve', [RefundRequestController::class, 'approve'])->name('approve');
-    Route::post('/{refundRequest}/reject', [RefundRequestController::class, 'reject'])->name('reject');
-    Route::post('/{refundRequest}/change-status', [RefundRequestController::class, 'changeStatus'])->name('change-status');
-    Route::put('/{refundRequest}/notes', [RefundRequestController::class, 'updateNotes'])->name('update-notes');
+    Route::get('/{id}', [RefundRequestController::class, 'show'])->name('show');
+    Route::post('/{id}/approve', [RefundRequestController::class, 'approve'])->name('approve');
+    Route::post('/{id}/cancel', [RefundRequestController::class, 'cancel'])->name('cancel');
+    Route::post('/{id}/in-progress', [RefundRequestController::class, 'markAsInProgress'])->name('in-progress');
+    Route::post('/{id}/picked-up', [RefundRequestController::class, 'markAsPickedUp'])->name('picked-up');
+    Route::post('/{id}/refunded', [RefundRequestController::class, 'markAsRefunded'])->name('refunded');
+    Route::put('/{id}/notes', [RefundRequestController::class, 'updateNotes'])->name('update-notes');
 });

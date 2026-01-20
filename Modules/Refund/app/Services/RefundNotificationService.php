@@ -28,21 +28,6 @@ class RefundNotificationService
             return;
         }
 
-        // Send Laravel notification if class exists
-        if ($customer->user && class_exists('\Modules\Refund\app\Notifications\RefundStatusChangedNotification')) {
-            try {
-                $customer->user->notify(
-                    new \Modules\Refund\app\Notifications\RefundStatusChangedNotification(
-                        $refundRequest,
-                        $oldStatus,
-                        $newStatus
-                    )
-                );
-            } catch (\Exception $e) {
-                Log::error('Failed to send refund status notification: ' . $e->getMessage());
-            }
-        }
-
         // Send Firebase notification
         $this->sendFirebaseToCustomer(
             customer: $customer,
@@ -80,32 +65,14 @@ class RefundNotificationService
         $this->createAdminNotification(
             refundRequest: $refundRequest,
             type: 'refund_status_changed',
-            title: trans('refund::refund.notifications.status_changed_title'),
-            description: trans('refund::refund.notifications.status_changed_body', [
-                'refund_number' => $refundRequest->refund_number,
-                'status' => trans('refund::refund.statuses.' . $newStatus),
-            ]),
+            title: 'refund::refund.notifications.status_changed_title',
+            description: 'refund::refund.notifications.status_changed_body',
             icon: $this->getStatusIcon($newStatus),
             color: $this->getStatusColor($newStatus),
             vendorId: $vendor->id
         );
 
-        // Send Laravel notification if class exists
-        if ($vendor->user && class_exists('\Modules\Refund\app\Notifications\RefundVendorStatusChangedNotification')) {
-            try {
-                $vendor->user->notify(
-                    new \Modules\Refund\app\Notifications\RefundVendorStatusChangedNotification(
-                        $refundRequest,
-                        $oldStatus,
-                        $newStatus
-                    )
-                );
-            } catch (\Exception $e) {
-                Log::error('Failed to send refund vendor status notification: ' . $e->getMessage());
-            }
-        }
-
-        // Send Firebase notification
+        // Send Firebase notification (use translated text for push notifications)
         $this->sendFirebaseToVendor(
             vendor: $vendor,
             title: trans('refund::refund.notifications.status_changed_title'),
@@ -160,35 +127,50 @@ class RefundNotificationService
         if (!$vendor) {
             return;
         }
-
-        // Create admin notification for vendor dashboard
+        
+        // Load customer if not already loaded
+        if (!$refundRequest->relationLoaded('customer')) {
+            $refundRequest->load('customer');
+        }
+        
+        $customer = $refundRequest->customer;
+        $customerName = 'Customer';
+        
+        if ($customer) {
+            // Try to get full_name (first_name + last_name)
+            if (!empty($customer->first_name) && !empty($customer->last_name)) {
+                $customerName = $customer->first_name . ' ' . $customer->last_name;
+            } elseif (!empty($customer->first_name)) {
+                $customerName = $customer->first_name;
+            } elseif (!empty($customer->name)) {
+                $customerName = $customer->name;
+            }
+        }
+        
+        // Create admin notification for vendor dashboard with translation keys
         $this->createAdminNotification(
             refundRequest: $refundRequest,
             type: 'new_refund_request',
-            title: trans('refund::refund.notifications.new_refund_vendor_title'),
-            description: trans('refund::refund.notifications.new_refund_vendor_body', [
-                'refund_number' => $refundRequest->refund_number,
-                'customer' => $refundRequest->customer->full_name ?? 'Customer',
-            ]),
+            title: 'refund::refund.notifications.new_refund_vendor_title',
+            description: 'refund::refund.notifications.new_refund_vendor_body',
             icon: 'uil-redo',
             color: 'warning',
             vendorId: $vendor->id
         );
 
-        // Send Firebase notification
+        // Send Firebase notification (use translated text for push notifications)
         $this->sendFirebaseToVendor(
             vendor: $vendor,
             title: trans('refund::refund.notifications.new_refund_vendor_title'),
             body: trans('refund::refund.notifications.new_refund_vendor_body', [
                 'refund_number' => $refundRequest->refund_number,
-                'customer' => $refundRequest->customer->name ?? 'Customer',
+                'customer' => $customerName,
             ]),
             data: [
                 'type' => 'new_refund_request',
                 'refund_id' => (string) $refundRequest->id,
                 'refund_number' => $refundRequest->refund_number,
-                'order_id' => (string) $refundRequest->order_id,
-                'customer_id' => (string) $refundRequest->customer_id,
+                'order_number' => $refundRequest->order->order_number,
             ]
         );
     }
@@ -298,23 +280,52 @@ class RefundNotificationService
         ?int $userId = null,
         ?int $vendorId = null
     ): void {
-        $notification = app(\App\Services\AdminNotificationService::class)->create(
+        $adminNotificationService = app(\App\Services\AdminNotificationService::class);
+        
+        // Prepare data array with translation keys
+        $data = [
+            'refund::refund.fields.refund_number' => $refundRequest->refund_number,
+            'order::order.order_number' => $refundRequest->order->order_number,
+        ];
+        // Add status for status change notifications
+        if ($type === 'refund_status_changed') {
+            $data['admin.status'] = trans('refund::refund.statuses.' . $refundRequest->status);
+        }
+        // Add customer full name for new refund notifications
+        if ($type === 'new_refund_request') {
+            // Load customer if not already loaded
+            if (!$refundRequest->relationLoaded('customer')) {
+                $refundRequest->load('customer');
+            }
+            
+            $customer = $refundRequest->customer;
+            $customerName = 'Customer';
+            
+            if ($customer) {
+                // Try to get full_name (first_name + last_name)
+                if (!empty($customer->first_name) && !empty($customer->last_name)) {
+                    $customerName = $customer->first_name . ' ' . $customer->last_name;
+                } elseif (!empty($customer->first_name)) {
+                    $customerName = $customer->first_name;
+                } elseif (!empty($customer->name)) {
+                    $customerName = $customer->name;
+                }
+            }
+            
+            // Use 'refund::refund.fields.customer' as key for the label translation
+            // The placeholder ':customer' will still be replaced because we extract the last part 'customer'
+            $data['refund::refund.fields.customer'] = $customerName;
+        }
+        
+        $notification = $adminNotificationService->create(
             type: $type,
             title: $title,
             description: $description,
-            url: route('admin.refunds.show', $refundRequest->id),
+            url: $adminNotificationService->generateAdminUrl('admin.refunds.show', ['refundRequest' => $refundRequest->id]),
             icon: $icon,
             color: $color,
             notifiable: $refundRequest,
-            data: [
-                'refund_id' => $refundRequest->id,
-                'refund_number' => $refundRequest->refund_number,
-                'order_id' => $refundRequest->order_id,
-                'customer_id' => $refundRequest->customer_id,
-                'vendor_id' => $refundRequest->vendor_id,
-                'status' => $refundRequest->status,
-                'total_amount' => $refundRequest->total_refund_amount,
-            ],
+            data: $data,
             userId: $userId,
             vendorId: $vendorId
         );

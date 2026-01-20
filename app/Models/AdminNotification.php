@@ -140,21 +140,44 @@ class AdminNotification extends Model
     }
 
     /**
-     * Get translated description
-     * The TranslatableCast automatically handles translation
+     * Get translated description with data replacements
+     * The TranslatableCast automatically handles translation, but we need to replace placeholders
      */
     public function getTranslatedDescription(): string
     {
-        return $this->description ?? '';
+        $description = $this->description ?? '';
+        
+        // If we have data array, replace placeholders
+        if ($this->data && is_array($this->data)) {
+            foreach ($this->data as $key => $value) {
+                // Replace :key with value (e.g., :refund_number with actual refund number)
+                // Extract the last part of the translation key (e.g., 'refund_number' from 'refund::refund.refund_number')
+                $placeholder = str_contains($key, '.') ? substr($key, strrpos($key, '.') + 1) : $key;
+                $description = str_replace(':' . $placeholder, $value, $description);
+            }
+        }
+        
+        return $description;
     }
 
     /**
-     * Get translated title
-     * Returns the title as-is since it's usually a name or identifier
+     * Get translated title with data replacements
+     * Returns the title with placeholders replaced from data array
      */
     public function getTranslatedTitle(): string
     {
-        return $this->title ?? '';
+        $title = $this->title ?? '';
+        
+        // If we have data array, replace placeholders
+        if ($this->data && is_array($this->data)) {
+            foreach ($this->data as $key => $value) {
+                // Replace :key with value
+                $placeholder = str_contains($key, '.') ? substr($key, strrpos($key, '.') + 1) : $key;
+                $title = str_replace(':' . $placeholder, $value, $title);
+            }
+        }
+        
+        return $title;
     }
 
     /**
