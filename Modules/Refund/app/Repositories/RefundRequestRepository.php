@@ -72,12 +72,12 @@ class RefundRequestRepository implements RefundRequestRepositoryInterface
         $refund = $this->findById($refundId);
 
         // Admin can access all
-        if ($user->isAdmin()) {
+        if (isAdmin()) {
             return true;
         }
 
         // Vendor can access their refunds
-        if ($user->vendor_id && $refund->vendor_id === $user->vendor_id) {
+        if ($user->vendor->id) {
             return true;
         }
 
@@ -138,14 +138,35 @@ class RefundRequestRepository implements RefundRequestRepositoryInterface
                 // Add items
                 foreach ($vendorItems as $item) {
                     $orderProduct = $item['order_product'];
+                    
+                    // Calculate actual unit price (order product price is total for all quantities)
+                    $actualUnitPrice = $orderProduct->quantity > 0 
+                        ? $orderProduct->price / $orderProduct->quantity 
+                        : $orderProduct->price;
+                    
+                    // Calculate proportional shipping cost for refunded quantity
+                    $shippingPerUnit = $orderProduct->quantity > 0 
+                        ? ($orderProduct->shipping_cost ?? 0) / $orderProduct->quantity 
+                        : 0;
+                    $refundShippingAmount = $shippingPerUnit * $item['quantity'];
+                    
+                    // Calculate proportional tax for refunded quantity
+                    $totalTax = $orderProduct->taxes()->sum('amount') ?? 0;
+                    $taxPerUnit = $orderProduct->quantity > 0 
+                        ? $totalTax / $orderProduct->quantity 
+                        : 0;
+                    $refundTaxAmount = $taxPerUnit * $item['quantity'];
 
                     \Modules\Refund\app\Models\RefundRequestItem::create([
                         'refund_request_id' => $refundRequest->id,
                         'order_product_id' => $orderProduct->id,
                         'vendor_id' => $vendorId,
                         'quantity' => $item['quantity'],
-                        'unit_price' => $orderProduct->price,
-                        'total_price' => $orderProduct->price * $item['quantity'],
+                        'unit_price' => $actualUnitPrice,
+                        'total_price' => $actualUnitPrice * $item['quantity'],
+                        'shipping_amount' => $refundShippingAmount,
+                        'tax_amount' => $refundTaxAmount,
+                        'discount_amount' => 0, // Will be calculated in calculateTotals if needed
                         'reason' => $item['reason'],
                     ]);
                 }
@@ -174,11 +195,19 @@ class RefundRequestRepository implements RefundRequestRepositoryInterface
 
         $refund = $this->findById($id);
 
-        // Update status
-        $refund = $this->update($id, [
+        // Prepare update data
+        $updateData = [
             'status' => $data['status'],
             'vendor_notes' => $data['notes'] ?? null,
-        ]);
+        ];
+
+        // If status is refunded, set refunded_at timestamp
+        if ($data['status'] === 'refunded') {
+            $updateData['refunded_at'] = now();
+        }
+
+        // Update status
+        $refund = $this->update($id, $updateData);
 
         // History record will be created by the observer
 

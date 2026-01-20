@@ -29,6 +29,14 @@
 
         const incomeExpenseMonthDaily = {!! json_encode($incomeExpense['month']['daily_data'] ?? []) !!};
         const incomeExpenseYearMonthly = {!! json_encode($incomeExpense['year']['monthly_data'] ?? []) !!};
+        
+        // Net Sales chart data
+        const netSalesHourly = {!! json_encode($netSalesChart['hourly'] ?? []) !!};
+        const netSalesWeekly = {!! json_encode($netSalesChart['weekly'] ?? []) !!};
+        const netSalesDaily = {!! json_encode($netSalesChart['daily'] ?? []) !!};
+        const netSalesMonthly = {!! json_encode($netSalesChart['monthly'] ?? []) !!};
+        const netSalesYearlyLabels = {!! json_encode($netSalesChart['yearly_labels'] ?? []) !!};
+        const netSalesYearlyData = {!! json_encode($netSalesChart['yearly_data'] ?? []) !!};
 
         // Orders Overview Pie Chart
         const ordersOverviewCtx = document.getElementById('ordersOverviewChart');
@@ -57,7 +65,7 @@
             new Chart(totalSalesTodayCtx, {
                 type: 'line',
                 data: {
-                    labels: ['12am', '1am', '2am', '3am', '4am', '5am', '6am', '7am', '8am', '9am', '10am', '11am'],
+                    labels: Array.from({length: 24}, (_, i) => i + ':00'),
                     datasets: [{
                         label: '{{ trans("dashboard.total_sales") }}',
                         data: salesChartHourly,
@@ -189,7 +197,7 @@
             new Chart(earningsTodayCtx, {
                 type: 'line',
                 data: {
-                    labels: ['12am', '1am', '2am', '3am', '4am', '5am', '6am', '7am', '8am', '9am', '10am', '11am'],
+                    labels: Array.from({length: 24}, (_, i) => i + ':00'),
                     datasets: [{
                         label: 'Earnings',
                         data: earningsChartHourly,
@@ -405,6 +413,520 @@
                     maintainAspectRatio: false,
                     plugins: { legend: { display: true, position: 'top' } },
                     scales: { x: { grid: { display: false } }, y: { beginAtZero: true } }
+                }
+            });
+        }
+        
+        // Refunds Overview Data
+        @if(isset($stats['refunds']))
+        const refundsMonthDaily = @json($stats['refunds']['month']['daily_data'] ?? []);
+        const refundsYearMonthly = @json($stats['refunds']['year']['monthly_data'] ?? []);
+        const refundsHourly = @json($stats['refunds']['hourly_data'] ?? []);
+        const refundsWeekly = @json($stats['refunds']['weekly_data'] ?? []);
+        @else
+        const refundsMonthDaily = [];
+        const refundsYearMonthly = [];
+        const refundsHourly = Array.from({length: 24}, () => ({amount: 0, count: 0}));
+        const refundsWeekly = Array.from({length: 7}, () => ({amount: 0, count: 0}));
+        @endif
+
+        // Monthly Refunds Chart
+        const monthlyRefundsCtx = document.getElementById('monthlyRefundsChart');
+        if (monthlyRefundsCtx) {
+            new Chart(monthlyRefundsCtx, {
+                type: 'bar',
+                data: {
+                    labels: refundsMonthDaily.map(d => d.day),
+                    datasets: [{
+                        label: '{{ trans("dashboard.refunded_amount") }}',
+                        data: refundsMonthDaily.map(d => d.amount),
+                        backgroundColor: 'rgba(220, 53, 69, 0.6)',
+                        borderColor: 'rgba(220, 53, 69, 1)',
+                        borderWidth: 1,
+                        yAxisID: 'y'
+                    }, {
+                        label: '{{ trans("dashboard.refunds_count") }}',
+                        data: refundsMonthDaily.map(d => d.count),
+                        backgroundColor: 'rgba(108, 117, 125, 0.6)',
+                        borderColor: 'rgba(108, 117, 125, 1)',
+                        borderWidth: 1,
+                        type: 'line',
+                        yAxisID: 'y1'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false,
+                    },
+                    scales: {
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            title: {
+                                display: true,
+                                text: '{{ trans("dashboard.amount") }}'
+                            }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            title: {
+                                display: true,
+                                text: '{{ trans("dashboard.count") }}'
+                            },
+                            grid: {
+                                drawOnChartArea: false,
+                            },
+                        },
+                    },
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        }
+                    }
+                }
+            });
+        }
+
+        // Yearly Refunds Chart
+        const yearlyRefundsCtx = document.getElementById('yearlyRefundsChart');
+        if (yearlyRefundsCtx) {
+            new Chart(yearlyRefundsCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['{{ trans("common.january") }}', '{{ trans("common.february") }}', '{{ trans("common.march") }}', 
+                             '{{ trans("common.april") }}', '{{ trans("common.may") }}', '{{ trans("common.june") }}',
+                             '{{ trans("common.july") }}', '{{ trans("common.august") }}', '{{ trans("common.september") }}',
+                             '{{ trans("common.october") }}', '{{ trans("common.november") }}', '{{ trans("common.december") }}'],
+                    datasets: [{
+                        label: '{{ trans("dashboard.refunded_amount") }}',
+                        data: refundsYearMonthly.map(d => d.amount),
+                        backgroundColor: 'rgba(220, 53, 69, 0.6)',
+                        borderColor: 'rgba(220, 53, 69, 1)',
+                        borderWidth: 1,
+                        yAxisID: 'y'
+                    }, {
+                        label: '{{ trans("dashboard.refunds_count") }}',
+                        data: refundsYearMonthly.map(d => d.count),
+                        backgroundColor: 'rgba(108, 117, 125, 0.6)',
+                        borderColor: 'rgba(108, 117, 125, 1)',
+                        borderWidth: 1,
+                        type: 'line',
+                        yAxisID: 'y1'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false,
+                    },
+                    scales: {
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            title: {
+                                display: true,
+                                text: '{{ trans("dashboard.amount") }}'
+                            }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            title: {
+                                display: true,
+                                text: '{{ trans("dashboard.count") }}'
+                            },
+                            grid: {
+                                drawOnChartArea: false,
+                            },
+                        },
+                    },
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Net Sales Chart
+        const netSalesTodayCtx = document.getElementById('netSalesToday');
+        const netSalesWeekCtx = document.getElementById('netSalesWeek');
+        const netSalesMonthCtx = document.getElementById('netSalesMonth');
+        const netSalesYearCtx = document.getElementById('netSalesYear');
+        
+        const netSalesChartConfig = {
+            type: 'line',
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    mode: 'index',
+                    intersect: false,
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.05)',
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top',
+                        labels: {
+                            usePointStyle: true,
+                            boxWidth: 6
+                        }
+                    }
+                }
+            }
+        };
+        
+        // Net Sales Today Chart
+        if (netSalesTodayCtx) {
+            new Chart(netSalesTodayCtx, {
+                ...netSalesChartConfig,
+                data: {
+                    labels: Array.from({length: 24}, (_, i) => i + ':00'),
+                    datasets: [{
+                        label: '{{ trans("dashboard.earnings") }}',
+                        data: netSalesHourly.map(d => d.total_sales),
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        backgroundColor: 'rgba(54, 162, 235, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4
+                    }, {
+                        label: '{{ trans("dashboard.refunds") }}',
+                        data: netSalesHourly.map(d => d.refunds),
+                        borderColor: 'rgba(220, 53, 69, 1)',
+                        backgroundColor: 'rgba(220, 53, 69, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4
+                    }, {
+                        label: '{{ trans("dashboard.net_earnings") }}',
+                        data: netSalesHourly.map(d => d.net_sales),
+                        borderColor: 'rgba(40, 167, 69, 1)',
+                        backgroundColor: 'rgba(40, 167, 69, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4
+                    }]
+                }
+            });
+        }
+        
+        // Net Sales Week Chart
+        if (netSalesWeekCtx) {
+            new Chart(netSalesWeekCtx, {
+                ...netSalesChartConfig,
+                data: {
+                    labels: ['{{ trans("common.sunday") }}', '{{ trans("common.monday") }}', '{{ trans("common.tuesday") }}', 
+                             '{{ trans("common.wednesday") }}', '{{ trans("common.thursday") }}', '{{ trans("common.friday") }}', '{{ trans("common.saturday") }}'],
+                    datasets: [{
+                        label: '{{ trans("dashboard.earnings") }}',
+                        data: netSalesWeekly.map(d => d.total_sales),
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        backgroundColor: 'rgba(54, 162, 235, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4
+                    }, {
+                        label: '{{ trans("dashboard.refunds") }}',
+                        data: netSalesWeekly.map(d => d.refunds),
+                        borderColor: 'rgba(220, 53, 69, 1)',
+                        backgroundColor: 'rgba(220, 53, 69, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4
+                    }, {
+                        label: '{{ trans("dashboard.net_earnings") }}',
+                        data: netSalesWeekly.map(d => d.net_sales),
+                        borderColor: 'rgba(40, 167, 69, 1)',
+                        backgroundColor: 'rgba(40, 167, 69, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4
+                    }]
+                }
+            });
+        }
+        
+        // Net Sales Month Chart
+        if (netSalesMonthCtx) {
+            new Chart(netSalesMonthCtx, {
+                ...netSalesChartConfig,
+                data: {
+                    labels: Array.from({length: netSalesDaily.length}, (_, i) => i + 1),
+                    datasets: [{
+                        label: '{{ trans("dashboard.earnings") }}',
+                        data: netSalesDaily.map(d => d.total_sales),
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        backgroundColor: 'rgba(54, 162, 235, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4
+                    }, {
+                        label: '{{ trans("dashboard.refunds") }}',
+                        data: netSalesDaily.map(d => d.refunds),
+                        borderColor: 'rgba(220, 53, 69, 1)',
+                        backgroundColor: 'rgba(220, 53, 69, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4
+                    }, {
+                        label: '{{ trans("dashboard.net_earnings") }}',
+                        data: netSalesDaily.map(d => d.net_sales),
+                        borderColor: 'rgba(40, 167, 69, 1)',
+                        backgroundColor: 'rgba(40, 167, 69, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4
+                    }]
+                }
+            });
+        }
+        
+        // Net Sales Year Chart
+        if (netSalesYearCtx) {
+            new Chart(netSalesYearCtx, {
+                ...netSalesChartConfig,
+                data: {
+                    labels: ['{{ trans("common.january") }}', '{{ trans("common.february") }}', '{{ trans("common.march") }}', 
+                             '{{ trans("common.april") }}', '{{ trans("common.may") }}', '{{ trans("common.june") }}',
+                             '{{ trans("common.july") }}', '{{ trans("common.august") }}', '{{ trans("common.september") }}',
+                             '{{ trans("common.october") }}', '{{ trans("common.november") }}', '{{ trans("common.december") }}'],
+                    datasets: [{
+                        label: '{{ trans("dashboard.earnings") }}',
+                        data: netSalesMonthly.map(d => d.total_sales),
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        backgroundColor: 'rgba(54, 162, 235, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4
+                    }, {
+                        label: '{{ trans("dashboard.refunds") }}',
+                        data: netSalesMonthly.map(d => d.refunds),
+                        borderColor: 'rgba(220, 53, 69, 1)',
+                        backgroundColor: 'rgba(220, 53, 69, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4
+                    }, {
+                        label: '{{ trans("dashboard.net_earnings") }}',
+                        data: netSalesMonthly.map(d => d.net_sales),
+                        borderColor: 'rgba(40, 167, 69, 1)',
+                        backgroundColor: 'rgba(40, 167, 69, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4
+                    }]
+                }
+            });
+        }
+        
+        // Refunds Charts
+        const refundsTodayCtx = document.getElementById('refundsToday');
+        const refundsWeekCtx = document.getElementById('refundsWeek');
+        const refundsMonthCtx = document.getElementById('refundsMonth');
+        const refundsYearCtx = document.getElementById('refundsYear');
+        
+        const refundsChartConfig = {
+            type: 'line',
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    mode: 'index',
+                    intersect: false,
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.05)',
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top',
+                        labels: {
+                            usePointStyle: true,
+                            boxWidth: 6
+                        }
+                    }
+                }
+            }
+        };
+        
+        // Refunds Today Chart
+        if (refundsTodayCtx) {
+            new Chart(refundsTodayCtx, {
+                ...refundsChartConfig,
+                data: {
+                    labels: Array.from({length: 24}, (_, i) => i + ':00'),
+                    datasets: [{
+                        label: '{{ trans("dashboard.refunded_amount") }}',
+                        data: refundsHourly.map(d => d.amount),
+                        borderColor: 'rgba(220, 53, 69, 1)',
+                        backgroundColor: 'rgba(220, 53, 69, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4
+                    }]
+                }
+            });
+        }
+        
+        // Refunds Week Chart
+        if (refundsWeekCtx) {
+            new Chart(refundsWeekCtx, {
+                ...refundsChartConfig,
+                data: {
+                    labels: ['{{ trans("common.sunday") }}', '{{ trans("common.monday") }}', '{{ trans("common.tuesday") }}', 
+                             '{{ trans("common.wednesday") }}', '{{ trans("common.thursday") }}', '{{ trans("common.friday") }}', '{{ trans("common.saturday") }}'],
+                    datasets: [{
+                        label: '{{ trans("dashboard.refunded_amount") }}',
+                        data: refundsWeekly.map(d => d.amount),
+                        borderColor: 'rgba(220, 53, 69, 1)',
+                        backgroundColor: 'rgba(220, 53, 69, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4
+                    }]
+                }
+            });
+        }
+        
+        // Refunds Month Chart
+        if (refundsMonthCtx) {
+            new Chart(refundsMonthCtx, {
+                ...refundsChartConfig,
+                data: {
+                    labels: Array.from({length: refundsMonthDaily.length}, (_, i) => i + 1),
+                    datasets: [{
+                        label: '{{ trans("dashboard.refunded_amount") }}',
+                        data: refundsMonthDaily.map(d => d.amount),
+                        borderColor: 'rgba(220, 53, 69, 1)',
+                        backgroundColor: 'rgba(220, 53, 69, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4
+                    }]
+                }
+            });
+        }
+        
+        // Refunds Year Chart
+        if (refundsYearCtx) {
+            new Chart(refundsYearCtx, {
+                ...refundsChartConfig,
+                data: {
+                    labels: ['{{ trans("common.january") }}', '{{ trans("common.february") }}', '{{ trans("common.march") }}', 
+                             '{{ trans("common.april") }}', '{{ trans("common.may") }}', '{{ trans("common.june") }}',
+                             '{{ trans("common.july") }}', '{{ trans("common.august") }}', '{{ trans("common.september") }}',
+                             '{{ trans("common.october") }}', '{{ trans("common.november") }}', '{{ trans("common.december") }}'],
+                    datasets: [{
+                        label: '{{ trans("dashboard.refunded_amount") }}',
+                        data: refundsYearMonthly.map(d => d.amount),
+                        borderColor: 'rgba(220, 53, 69, 1)',
+                        backgroundColor: 'rgba(220, 53, 69, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4
+                    }]
+                }
+            });
+        }
+        
+        // Refunds 5 Years Chart
+        const refunds5YearsCtx = document.getElementById('refunds5Years');
+        @if(isset($stats['refunds']))
+        const refundsYearlyLabels = @json($stats['refunds']['yearly_labels'] ?? []);
+        const refundsYearlyData = @json($stats['refunds']['yearly_data'] ?? []);
+        @else
+        const refundsYearlyLabels = [];
+        const refundsYearlyData = [];
+        @endif
+        
+        if (refunds5YearsCtx) {
+            new Chart(refunds5YearsCtx, {
+                ...refundsChartConfig,
+                data: {
+                    labels: refundsYearlyLabels.length ? refundsYearlyLabels : [{{ date('Y')-4 }}, {{ date('Y')-3 }}, {{ date('Y')-2 }}, {{ date('Y')-1 }}, {{ date('Y') }}],
+                    datasets: [{
+                        label: '{{ trans("dashboard.refunded_amount") }}',
+                        data: refundsYearlyData.map(d => d.amount),
+                        borderColor: 'rgba(220, 53, 69, 1)',
+                        backgroundColor: 'rgba(220, 53, 69, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4
+                    }]
+                }
+            });
+        }
+        
+        // Net Sales 5 Years Chart
+        const netSales5YearsCtx = document.getElementById('netSales5Years');
+        if (netSales5YearsCtx) {
+            new Chart(netSales5YearsCtx, {
+                ...netSalesChartConfig,
+                data: {
+                    labels: netSalesYearlyLabels.length ? netSalesYearlyLabels : [{{ date('Y')-4 }}, {{ date('Y')-3 }}, {{ date('Y')-2 }}, {{ date('Y')-1 }}, {{ date('Y') }}],
+                    datasets: [{
+                        label: '{{ trans("dashboard.earnings") }}',
+                        data: netSalesYearlyData.map(d => d.total_sales),
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        backgroundColor: 'rgba(54, 162, 235, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4
+                    }, {
+                        label: '{{ trans("dashboard.refunds") }}',
+                        data: netSalesYearlyData.map(d => d.refunds),
+                        borderColor: 'rgba(220, 53, 69, 1)',
+                        backgroundColor: 'rgba(220, 53, 69, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4
+                    }, {
+                        label: '{{ trans("dashboard.net_earnings") }}',
+                        data: netSalesYearlyData.map(d => d.net_sales),
+                        borderColor: 'rgba(40, 167, 69, 1)',
+                        backgroundColor: 'rgba(40, 167, 69, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4
+                    }]
                 }
             });
         }

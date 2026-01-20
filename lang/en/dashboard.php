@@ -25,6 +25,7 @@ return [
     'monthly_sales' => 'Monthly Sales',
     'monthly_earnings' => 'Monthly Earnings',
     'year' => 'Year',
+    'years' => 'Years',
     'today' => 'Today',
     'week' => 'Week',
     'month' => 'Month',
@@ -140,4 +141,26 @@ return [
     'earnings' => 'Earnings',
     'all_orders' => 'All Orders',
     'deliver_orders' => 'Deliver Orders',
+    'net_earnings' => 'Net Earnings',
+    'refunds' => 'Refunds',
+    
+    // Days of week
+    'sunday' => 'Sunday',
+    'monday' => 'Monday',
+    'tuesday' => 'Tuesday',
+    'wednesday' => 'Wednesday',
+    'thursday' => 'Thursday',
+    'friday' => 'Friday',
+    'saturday' => 'Saturday',
+    
+    // Refunds
+    'refunds_this_month' => 'Refunds This Month',
+    'refunds_this_year' => 'Refunds This Year',
+    'total_refunds' => 'Total Refunds',
+    'refunded_amount' => 'Refunded Amount',
+    'products_refunded' => 'Products Refunded',
+    'refunds_count' => 'Refunds Count',
+    'amount' => 'Amount',
+    'count' => 'Count',
+    'this_month' => 'This Month',
 ];

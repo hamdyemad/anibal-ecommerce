@@ -48,6 +48,7 @@ class DashboardService
         $stats = $this->getStats();
         $salesChart = $this->getSalesChartData();
         $earningsChart = $this->getEarningsChartData();
+        $netSalesChart = $this->getNetSalesChartData();
         $latestOrders = $this->getLatestOrders();
         $topSellingProducts = $this->getTopSellingProducts();
         $topVendors = $this->isVendor ? [] : $this->getTopVendors(); // Hide for vendors
@@ -61,6 +62,7 @@ class DashboardService
             'stats' => $stats,
             'salesChart' => $salesChart,
             'earningsChart' => $earningsChart,
+            'netSalesChart' => $netSalesChart,
             'latestOrders' => $latestOrders,
             'topSellingProducts' => $topSellingProducts,
             'topVendors' => $topVendors,
@@ -84,6 +86,38 @@ class DashboardService
 
         // Get admins count based on user type (same as admin management page)
         $adminsQuery = User::whereIn('user_type_id', [UserType::ADMIN_TYPE, UserType::VENDOR_USER_TYPE]);
+
+        // Get delivered stage for earnings calculation
+        $deliveredStage = OrderStage::withoutCountryFilter()->where('type', 'deliver')->first();
+        $deliveredStageId = $deliveredStage ? $deliveredStage->id : null;
+
+        // Calculate total_sales (earnings from delivered orders)
+        // Sum order_products.price + shipping_cost for products in delivered stage
+        $totalSales = $deliveredStageId
+            ? \Modules\Order\app\Models\OrderProduct::query()
+                ->join('orders', 'order_products.order_id', '=', 'orders.id')
+                ->join('vendor_order_stages as vos', function ($join) {
+                    $join->on('vos.order_id', '=', 'order_products.order_id')
+                         ->on('vos.vendor_id', '=', 'order_products.vendor_id');
+                })
+                ->where('vos.stage_id', $deliveredStageId)
+                ->selectRaw('SUM(order_products.price + COALESCE(order_products.shipping_cost, 0)) as total')
+                ->value('total')
+            : 0;
+
+        // Calculate today_sales (earnings from delivered orders today)
+        $todaySales = $deliveredStageId
+            ? \Modules\Order\app\Models\OrderProduct::query()
+                ->join('orders', 'order_products.order_id', '=', 'orders.id')
+                ->join('vendor_order_stages as vos', function ($join) {
+                    $join->on('vos.order_id', '=', 'order_products.order_id')
+                         ->on('vos.vendor_id', '=', 'order_products.vendor_id');
+                })
+                ->where('vos.stage_id', $deliveredStageId)
+                ->whereDate('orders.created_at', $today)
+                ->selectRaw('SUM(order_products.price + COALESCE(order_products.shipping_cost, 0)) as total')
+                ->value('total')
+            : 0;
 
         return [
             // Users & Admins
@@ -122,12 +156,8 @@ class DashboardService
 
             // Orders
             'total_orders' => Order::count(),
-            'total_sales' => Order::whereHas('stage', function($q) {
-                $q->where('type', 'deliver');
-            })->sum('total_price'),
-            'today_sales' => Order::whereHas('stage', function($q) {
-                $q->where('type', 'deliver');
-            })->whereDate('created_at', $today)->sum('total_price'),
+            'total_sales' => $totalSales,
+            'today_sales' => $todaySales,
             'today_orders' => Order::whereDate('created_at', $today)->count(),
             'total_order_stages' => OrderStage::withoutCountryFilter()->count(),
 
@@ -156,6 +186,9 @@ class DashboardService
 
             // Advertisements
             'total_advertisments' => Ad::count(),
+
+            // Refunds Statistics
+            'refunds' => $this->getRefundStats(),
         ];
     }
 
@@ -212,10 +245,10 @@ class DashboardService
 
             // Orders (vendor specific - based on order products)
             'total_orders' => $orderProductsQuery->distinct('order_id')->count('order_id'),
-            'total_sales' => (clone $deliveredOrderProducts)->sum('price'),
+            'total_sales' => (clone $deliveredOrderProducts)->selectRaw('SUM(price + COALESCE(shipping_cost, 0)) as total')->value('total') ?? 0,
             'today_sales' => (clone $deliveredOrderProducts)->whereHas('order', function($q) use ($today) {
                 $q->whereDate('created_at', $today);
-            })->sum('price'),
+            })->selectRaw('SUM(price + COALESCE(shipping_cost, 0)) as total')->value('total') ?? 0,
             'today_orders' => \Modules\Order\app\Models\OrderProduct::where('vendor_id', $vendorId)
                 ->whereHas('order', function($q) use ($today) {
                     $q->whereDate('created_at', $today);
@@ -257,6 +290,9 @@ class DashboardService
             'subregion' => 0,
             'total_offers' => 0,
             'total_advertisments' => 0,
+
+            // Refunds Statistics (vendor specific)
+            'refunds' => $this->getRefundStats(),
         ];
     }
 
@@ -461,9 +497,9 @@ class DashboardService
         $labels = $monthlySales->pluck('month');
         $data = $monthlySales->pluck('total_sales');
 
-        // Hourly data (today 12am-12pm) - all orders
+        // Hourly data (today - all 24 hours) - all orders
         $hourly = [];
-        for ($i = 0; $i < 12; $i++) {
+        for ($i = 0; $i < 24; $i++) {
             $hourStart = $now->copy()->startOfDay()->addHours($i);
             $hourEnd = $now->copy()->startOfDay()->addHours($i + 1);
             $hourly[] = Order::whereBetween('created_at', [$hourStart, $hourEnd])->sum('total_price') ?? 0;
@@ -543,19 +579,22 @@ class DashboardService
         $deliveredStageId = $deliveredStage->id;
 
         // Monthly data (last 12 months) - sum only delivered vendor products
-        // Using same logic as Total Transactions: join order_products with vendor_order_stages where stage is deliver
+        // Use the date when the order reached deliver stage from vendor_order_stage_history
         $endDate = $now->copy();
         $startDate = $now->copy()->subYear();
         
         $monthlySales = \Modules\Order\app\Models\OrderProduct::query()
-            ->join('orders', 'order_products.order_id', '=', 'orders.id')
             ->join('vendor_order_stages as vos', function ($join) {
                 $join->on('vos.order_id', '=', 'order_products.order_id')
                      ->on('vos.vendor_id', '=', 'order_products.vendor_id');
             })
+            ->join('vendor_order_stage_histories as vosh', function($join) use ($deliveredStageId) {
+                $join->on('vosh.vendor_order_stage_id', '=', 'vos.id')
+                     ->where('vosh.new_stage_id', '=', $deliveredStageId);
+            })
             ->where('vos.stage_id', $deliveredStageId)
-            ->whereBetween('orders.created_at', [$startDate, $endDate])
-            ->selectRaw('DATE_FORMAT(orders.created_at, "%Y-%m") as month, SUM(order_products.price) as total_sales')
+            ->whereBetween('vosh.created_at', [$startDate, $endDate])
+            ->selectRaw('DATE_FORMAT(vosh.created_at, "%Y-%m") as month, SUM(order_products.price + COALESCE(order_products.shipping_cost, 0)) as total_sales')
             ->groupBy('month')
             ->orderBy('month', 'asc')
             ->get();
@@ -564,28 +603,32 @@ class DashboardService
         $data = $monthlySales->pluck('total_sales');
 
         // Helper function to calculate delivered earnings for a time period
-        // Uses same logic as Total Transactions calculation
+        // Uses the date when order reached deliver stage from history
+        // Includes price + shipping_cost
         $calcDeliveredEarnings = function($startTime, $endTime, $dateField = 'whereBetween') use ($deliveredStageId) {
             $query = \Modules\Order\app\Models\OrderProduct::query()
-                ->join('orders', 'order_products.order_id', '=', 'orders.id')
                 ->join('vendor_order_stages as vos', function ($join) {
                     $join->on('vos.order_id', '=', 'order_products.order_id')
                          ->on('vos.vendor_id', '=', 'order_products.vendor_id');
                 })
+                ->join('vendor_order_stage_histories as vosh', function($join) use ($deliveredStageId) {
+                    $join->on('vosh.vendor_order_stage_id', '=', 'vos.id')
+                         ->where('vosh.new_stage_id', '=', $deliveredStageId);
+                })
                 ->where('vos.stage_id', $deliveredStageId);
             
             if ($dateField === 'whereDate') {
-                $query->whereDate('orders.created_at', $startTime);
+                $query->whereDate('vosh.created_at', $startTime);
             } else {
-                $query->whereBetween('orders.created_at', [$startTime, $endTime]);
+                $query->whereBetween('vosh.created_at', [$startTime, $endTime]);
             }
             
-            return $query->sum('order_products.price') ?? 0;
+            return $query->selectRaw('SUM(order_products.price + COALESCE(order_products.shipping_cost, 0)) as total')->value('total') ?? 0;
         };
 
-        // Hourly data (today 12am-12pm)
+        // Hourly data (today - all 24 hours)
         $hourly = [];
-        for ($i = 0; $i < 12; $i++) {
+        for ($i = 0; $i < 24; $i++) {
             $hourStart = $now->copy()->startOfDay()->addHours($i);
             $hourEnd = $now->copy()->startOfDay()->addHours($i + 1);
             $hourly[] = $calcDeliveredEarnings($hourStart, $hourEnd);
@@ -642,93 +685,103 @@ class DashboardService
     private function getVendorEarningsChartData($now, $deliveredStage)
     {
         $vendorId = $this->vendorId;
+        
+        if (!$deliveredStage) {
+            return [
+                'labels' => [],
+                'data' => [],
+                'hourly' => array_fill(0, 24, 0),
+                'weekly' => array_fill(0, 7, 0),
+                'daily' => [],
+                'monthly' => array_fill(0, 12, 0),
+                'yearly_labels' => [],
+                'yearly_data' => [],
+            ];
+        }
+        
+        $deliveredStageId = $deliveredStage->id;
 
-        // Get delivered order IDs for this vendor from vendor_order_stages table
-        $deliveredOrderIds = $deliveredStage
-            ? \Modules\Order\app\Models\VendorOrderStage::where('vendor_id', $vendorId)
-                ->where('stage_id', $deliveredStage->id)
-                ->pluck('order_id')
-            : collect([]);
-
-        // Monthly data (last 12 months) - only delivered orders for this vendor
-        // Note: order_products.price is already the line total (unit_price * quantity)
+        // Monthly data (last 12 months) - use delivery date from history
         $endDate = $now->copy();
         $startDate = $now->copy()->subYear();
 
-        $monthlySales = $deliveredStage && $deliveredOrderIds->isNotEmpty()
-            ? \Modules\Order\app\Models\OrderProduct::where('vendor_id', $vendorId)
-                ->whereIn('order_id', $deliveredOrderIds)
-                ->whereHas('order', function($q) use ($startDate, $endDate) {
-                    $q->whereBetween('created_at', [$startDate, $endDate]);
-                })
-                ->join('orders', 'order_products.order_id', '=', 'orders.id')
-                ->selectRaw('DATE_FORMAT(orders.created_at, "%Y-%m") as month, SUM(order_products.price) as total_sales')
-                ->groupBy('month')
-                ->orderBy('month', 'asc')
-                ->get()
-            : collect([]);
+        $monthlySales = \Modules\Order\app\Models\OrderProduct::query()
+            ->where('order_products.vendor_id', $vendorId)
+            ->join('vendor_order_stages as vos', function ($join) use ($vendorId) {
+                $join->on('vos.order_id', '=', 'order_products.order_id')
+                     ->where('vos.vendor_id', '=', $vendorId);
+            })
+            ->join('vendor_order_stage_histories as vosh', function($join) use ($deliveredStageId) {
+                $join->on('vosh.vendor_order_stage_id', '=', 'vos.id')
+                     ->where('vosh.new_stage_id', '=', $deliveredStageId);
+            })
+            ->where('vos.stage_id', $deliveredStageId)
+            ->whereBetween('vosh.created_at', [$startDate, $endDate])
+            ->selectRaw('DATE_FORMAT(vosh.created_at, "%Y-%m") as month, SUM(order_products.price + COALESCE(order_products.shipping_cost, 0)) as total_sales')
+            ->groupBy('month')
+            ->orderBy('month', 'asc')
+            ->get();
 
         $labels = $monthlySales->pluck('month');
         $data = $monthlySales->pluck('total_sales');
 
-        // Hourly data (today 12am-12pm) - only delivered orders for this vendor
+        // Helper function for vendor earnings (includes shipping)
+        $calcVendorEarnings = function($startTime, $endTime, $dateField = 'whereBetween') use ($vendorId, $deliveredStageId) {
+            $query = \Modules\Order\app\Models\OrderProduct::query()
+                ->where('order_products.vendor_id', $vendorId)
+                ->join('vendor_order_stages as vos', function ($join) use ($vendorId) {
+                    $join->on('vos.order_id', '=', 'order_products.order_id')
+                         ->where('vos.vendor_id', '=', $vendorId);
+                })
+                ->join('vendor_order_stage_histories as vosh', function($join) use ($deliveredStageId) {
+                    $join->on('vosh.vendor_order_stage_id', '=', 'vos.id')
+                         ->where('vosh.new_stage_id', '=', $deliveredStageId);
+                })
+                ->where('vos.stage_id', $deliveredStageId);
+            
+            if ($dateField === 'whereDate') {
+                $query->whereDate('vosh.created_at', $startTime);
+            } else {
+                $query->whereBetween('vosh.created_at', [$startTime, $endTime]);
+            }
+            
+            return $query->selectRaw('SUM(order_products.price + COALESCE(order_products.shipping_cost, 0)) as total')->value('total') ?? 0;
+        };
+
+        // Hourly data (today - all 24 hours)
         $hourly = [];
-        for ($i = 0; $i < 12; $i++) {
+        for ($i = 0; $i < 24; $i++) {
             $hourStart = $now->copy()->startOfDay()->addHours($i);
             $hourEnd = $now->copy()->startOfDay()->addHours($i + 1);
-            $hourly[] = $deliveredStage && $deliveredOrderIds->isNotEmpty()
-                ? \Modules\Order\app\Models\OrderProduct::where('vendor_id', $vendorId)
-                    ->whereIn('order_id', $deliveredOrderIds)
-                    ->whereHas('order', function($q) use ($hourStart, $hourEnd) {
-                        $q->whereBetween('created_at', [$hourStart, $hourEnd]);
-                    })->sum('price') ?? 0
-                : 0;
+            $hourly[] = $calcVendorEarnings($hourStart, $hourEnd);
         }
 
-        // Weekly data (this week) - only delivered orders for this vendor
+        // Weekly data (this week)
         $weekly = [];
         $startOfWeek = $now->copy()->startOfWeek();
         for ($i = 0; $i < 7; $i++) {
             $dayStart = $startOfWeek->copy()->addDays($i)->startOfDay();
             $dayEnd = $startOfWeek->copy()->addDays($i)->endOfDay();
-            $weekly[] = $deliveredStage && $deliveredOrderIds->isNotEmpty()
-                ? \Modules\Order\app\Models\OrderProduct::where('vendor_id', $vendorId)
-                    ->whereIn('order_id', $deliveredOrderIds)
-                    ->whereHas('order', function($q) use ($dayStart, $dayEnd) {
-                        $q->whereBetween('created_at', [$dayStart, $dayEnd]);
-                    })->sum('price') ?? 0
-                : 0;
+            $weekly[] = $calcVendorEarnings($dayStart, $dayEnd);
         }
 
-        // Daily data (current month) - only delivered orders for this vendor
+        // Daily data (current month)
         $daily = [];
         $daysInMonth = $now->daysInMonth;
         for ($day = 1; $day <= $daysInMonth; $day++) {
             $dayDate = Carbon::create($now->year, $now->month, $day);
-            $daily[] = $deliveredStage && $deliveredOrderIds->isNotEmpty()
-                ? \Modules\Order\app\Models\OrderProduct::where('vendor_id', $vendorId)
-                    ->whereIn('order_id', $deliveredOrderIds)
-                    ->whereHas('order', function($q) use ($dayDate) {
-                        $q->whereDate('created_at', $dayDate);
-                    })->sum('price') ?? 0
-                : 0;
+            $daily[] = $calcVendorEarnings($dayDate, null, 'whereDate');
         }
 
-        // Monthly breakdown for current year - only delivered orders for this vendor
+        // Monthly breakdown for current year
         $monthly = [];
         for ($month = 1; $month <= 12; $month++) {
             $monthStart = Carbon::create($now->year, $month, 1)->startOfMonth();
             $monthEnd = Carbon::create($now->year, $month, 1)->endOfMonth();
-            $monthly[] = $deliveredStage && $deliveredOrderIds->isNotEmpty()
-                ? \Modules\Order\app\Models\OrderProduct::where('vendor_id', $vendorId)
-                    ->whereIn('order_id', $deliveredOrderIds)
-                    ->whereHas('order', function($q) use ($monthStart, $monthEnd) {
-                        $q->whereBetween('created_at', [$monthStart, $monthEnd]);
-                    })->sum('price') ?? 0
-                : 0;
+            $monthly[] = $calcVendorEarnings($monthStart, $monthEnd);
         }
 
-        // Yearly data (last 5 years) - only delivered orders for this vendor
+        // Yearly data (last 5 years)
         $yearlyLabels = [];
         $yearlyData = [];
         for ($i = 4; $i >= 0; $i--) {
@@ -736,13 +789,7 @@ class DashboardService
             $yearlyLabels[] = $year;
             $yearStart = Carbon::create($year, 1, 1)->startOfYear();
             $yearEnd = Carbon::create($year, 12, 31)->endOfYear();
-            $yearlyData[] = $deliveredStage && $deliveredOrderIds->isNotEmpty()
-                ? \Modules\Order\app\Models\OrderProduct::where('vendor_id', $vendorId)
-                    ->whereIn('order_id', $deliveredOrderIds)
-                    ->whereHas('order', function($q) use ($yearStart, $yearEnd) {
-                        $q->whereBetween('created_at', [$yearStart, $yearEnd]);
-                    })->sum('price') ?? 0
-                : 0;
+            $yearlyData[] = $calcVendorEarnings($yearStart, $yearEnd);
         }
 
         return [
@@ -778,9 +825,9 @@ class DashboardService
         $labels = $monthlySales->pluck('month');
         $data = $monthlySales->pluck('total_sales');
 
-        // Hourly data (today 12am-12pm) - ALL orders for this vendor
+        // Hourly data (today - all 24 hours) - ALL orders for this vendor
         $hourly = [];
-        for ($i = 0; $i < 12; $i++) {
+        for ($i = 0; $i < 24; $i++) {
             $hourStart = $now->copy()->startOfDay()->addHours($i);
             $hourEnd = $now->copy()->startOfDay()->addHours($i + 1);
             $hourly[] = \Modules\Order\app\Models\OrderProduct::where('vendor_id', $vendorId)
@@ -1039,4 +1086,344 @@ class DashboardService
             ->take($limit)
             ->get();
     }
+        /**
+     * Get refund statistics
+     */
+    private function getRefundStats()
+    {
+        $now = Carbon::now();
+        $refundQuery = \Modules\Refund\app\Models\RefundRequest::query();
+        
+        // Filter by vendor if applicable
+        if ($this->isVendor && $this->vendorId) {
+            $refundQuery->where('vendor_id', $this->vendorId);
+        }
+        
+        // Hourly data (today - all 24 hours)
+        $hourlyData = [];
+        for ($i = 0; $i < 24; $i++) {
+            $hourStart = $now->copy()->startOfDay()->addHours($i);
+            $hourEnd = $now->copy()->startOfDay()->addHours($i + 1);
+            
+            $hourRefunds = (clone $refundQuery)
+                ->where('status', 'refunded')
+                ->where(function($q) use ($hourStart, $hourEnd) {
+                    $q->whereBetween('refunded_at', [$hourStart, $hourEnd])
+                      ->orWhere(function($q2) use ($hourStart, $hourEnd) {
+                          $q2->whereNull('refunded_at')
+                             ->whereBetween('created_at', [$hourStart, $hourEnd]);
+                      });
+                });
+            
+            $hourlyData[] = [
+                'amount' => (clone $hourRefunds)->sum('total_refund_amount') ?? 0,
+                'count' => (clone $hourRefunds)->count() ?? 0,
+            ];
+        }
+        
+        // Weekly data (this week)
+        $weeklyData = [];
+        $startOfWeek = $now->copy()->startOfWeek();
+        for ($i = 0; $i < 7; $i++) {
+            $dayStart = $startOfWeek->copy()->addDays($i)->startOfDay();
+            $dayEnd = $startOfWeek->copy()->addDays($i)->endOfDay();
+            
+            $dayRefunds = (clone $refundQuery)
+                ->where('status', 'refunded')
+                ->where(function($q) use ($dayStart, $dayEnd) {
+                    $q->whereBetween('refunded_at', [$dayStart, $dayEnd])
+                      ->orWhere(function($q2) use ($dayStart, $dayEnd) {
+                          $q2->whereNull('refunded_at')
+                             ->whereBetween('created_at', [$dayStart, $dayEnd]);
+                      });
+                });
+            
+            $weeklyData[] = [
+                'amount' => (clone $dayRefunds)->sum('total_refund_amount') ?? 0,
+                'count' => (clone $dayRefunds)->count() ?? 0,
+            ];
+        }
+        
+        // This Month data
+        $startOfMonth = $now->copy()->startOfMonth();
+        $endOfMonth = $now->copy()->endOfMonth();
+        
+        $monthlyRefunds = (clone $refundQuery)
+            ->where('status', 'refunded')
+            ->where(function($q) use ($startOfMonth, $endOfMonth) {
+                $q->whereBetween('refunded_at', [$startOfMonth, $endOfMonth])
+                  ->orWhere(function($q2) use ($startOfMonth, $endOfMonth) {
+                      $q2->whereNull('refunded_at')
+                         ->whereBetween('created_at', [$startOfMonth, $endOfMonth]);
+                  });
+            });
+        
+        $monthlyCount = (clone $monthlyRefunds)->count();
+        $monthlyAmount = (clone $monthlyRefunds)->sum('total_refund_amount');
+        $monthlyProductsCount = \Modules\Refund\app\Models\RefundRequestItem::query()
+            ->whereHas('refundRequest', function($q) use ($startOfMonth, $endOfMonth) {
+                $q->where('status', 'refunded')
+                  ->where(function($q2) use ($startOfMonth, $endOfMonth) {
+                      $q2->whereBetween('refunded_at', [$startOfMonth, $endOfMonth])
+                         ->orWhere(function($q3) use ($startOfMonth, $endOfMonth) {
+                             $q3->whereNull('refunded_at')
+                                ->whereBetween('created_at', [$startOfMonth, $endOfMonth]);
+                         });
+                  });
+                if ($this->isVendor && $this->vendorId) {
+                    $q->where('vendor_id', $this->vendorId);
+                }
+            })
+            ->sum('quantity');
+        
+        // Daily breakdown for current month chart
+        $dailyData = [];
+        $daysInMonth = $now->daysInMonth;
+        for ($day = 1; $day <= $daysInMonth; $day++) {
+            $dayDate = Carbon::create($now->year, $now->month, $day);
+            
+            $dayRefunds = (clone $refundQuery)
+                ->where('status', 'refunded')
+                ->where(function($q) use ($dayDate) {
+                    $q->whereDate('refunded_at', $dayDate)
+                      ->orWhere(function($q2) use ($dayDate) {
+                          $q2->whereNull('refunded_at')
+                             ->whereDate('created_at', $dayDate);
+                      });
+                });
+            
+            $dailyData[] = [
+                'day' => $day,
+                'amount' => (clone $dayRefunds)->sum('total_refund_amount') ?? 0,
+                'count' => (clone $dayRefunds)->count() ?? 0,
+            ];
+        }
+        
+        // This Year data
+        $startOfYear = $now->copy()->startOfYear();
+        $endOfYear = $now->copy()->endOfYear();
+        
+        $yearlyRefunds = (clone $refundQuery)
+            ->where('status', 'refunded')
+            ->where(function($q) use ($startOfYear, $endOfYear) {
+                $q->whereBetween('refunded_at', [$startOfYear, $endOfYear])
+                  ->orWhere(function($q2) use ($startOfYear, $endOfYear) {
+                      $q2->whereNull('refunded_at')
+                         ->whereBetween('created_at', [$startOfYear, $endOfYear]);
+                  });
+            });
+        
+        $yearlyCount = (clone $yearlyRefunds)->count();
+        $yearlyAmount = (clone $yearlyRefunds)->sum('total_refund_amount');
+        $yearlyProductsCount = \Modules\Refund\app\Models\RefundRequestItem::query()
+            ->whereHas('refundRequest', function($q) use ($startOfYear, $endOfYear) {
+                $q->where('status', 'refunded')
+                  ->where(function($q2) use ($startOfYear, $endOfYear) {
+                      $q2->whereBetween('refunded_at', [$startOfYear, $endOfYear])
+                         ->orWhere(function($q3) use ($startOfYear, $endOfYear) {
+                             $q3->whereNull('refunded_at')
+                                ->whereBetween('created_at', [$startOfYear, $endOfYear]);
+                         });
+                  });
+                if ($this->isVendor && $this->vendorId) {
+                    $q->where('vendor_id', $this->vendorId);
+                }
+            })
+            ->sum('quantity');
+        
+        // Monthly breakdown for current year chart
+        $monthlyData = [];
+        for ($month = 1; $month <= 12; $month++) {
+            $monthStart = Carbon::create($now->year, $month, 1)->startOfMonth();
+            $monthEnd = Carbon::create($now->year, $month, 1)->endOfMonth();
+            
+            $monthRefunds = (clone $refundQuery)
+                ->where('status', 'refunded')
+                ->where(function($q) use ($monthStart, $monthEnd) {
+                    $q->whereBetween('refunded_at', [$monthStart, $monthEnd])
+                      ->orWhere(function($q2) use ($monthStart, $monthEnd) {
+                          $q2->whereNull('refunded_at')
+                             ->whereBetween('created_at', [$monthStart, $monthEnd]);
+                      });
+                });
+            
+            $monthlyData[] = [
+                'month' => $month,
+                'amount' => (clone $monthRefunds)->sum('total_refund_amount') ?? 0,
+                'count' => (clone $monthRefunds)->count() ?? 0,
+            ];
+        }
+        
+        // Yearly data (last 5 years)
+        $yearlyLabels = [];
+        $yearlyData = [];
+        for ($i = 4; $i >= 0; $i--) {
+            $year = $now->year - $i;
+            $yearlyLabels[] = $year;
+            $yearStart = Carbon::create($year, 1, 1)->startOfYear();
+            $yearEnd = Carbon::create($year, 12, 31)->endOfYear();
+            
+            $yearRefunds = (clone $refundQuery)
+                ->where('status', 'refunded')
+                ->where(function($q) use ($yearStart, $yearEnd) {
+                    $q->whereBetween('refunded_at', [$yearStart, $yearEnd])
+                      ->orWhere(function($q2) use ($yearStart, $yearEnd) {
+                          $q2->whereNull('refunded_at')
+                             ->whereBetween('created_at', [$yearStart, $yearEnd]);
+                      });
+                });
+            
+            $yearlyData[] = [
+                'year' => $year,
+                'amount' => (clone $yearRefunds)->sum('total_refund_amount') ?? 0,
+                'count' => (clone $yearRefunds)->count() ?? 0,
+            ];
+        }
+        
+        return [
+            'hourly_data' => $hourlyData,
+            'weekly_data' => $weeklyData,
+            'month' => [
+                'count' => $monthlyCount,
+                'amount' => round($monthlyAmount, 2),
+                'products_count' => $monthlyProductsCount,
+                'period' => $now->format('m-Y'),
+                'daily_data' => $dailyData,
+            ],
+            'year' => [
+                'count' => $yearlyCount,
+                'amount' => round($yearlyAmount, 2),
+                'products_count' => $yearlyProductsCount,
+                'period' => $now->year,
+                'monthly_data' => $monthlyData,
+            ],
+            'yearly_labels' => $yearlyLabels,
+            'yearly_data' => $yearlyData,
+        ];
+    }
+
+    /**
+     * Get Net Sales chart data (Total Sales - Refunds)
+     */
+    private function getNetSalesChartData()
+    {
+        $now = Carbon::now();
+        
+        // Get refund query
+        $refundQuery = \Modules\Refund\app\Models\RefundRequest::query()
+            ->where('status', 'refunded');
+        
+        // Filter by vendor if applicable
+        if ($this->isVendor && $this->vendorId) {
+            $refundQuery->where('vendor_id', $this->vendorId);
+        }
+        
+        // Helper function to calculate net sales for a time period
+        $calcNetSales = function($startTime, $endTime, $dateField = 'whereBetween') use ($refundQuery) {
+            // Get total sales
+            if ($this->isVendor && $this->vendorId) {
+                $query = \Modules\Order\app\Models\OrderProduct::where('vendor_id', $this->vendorId);
+            } else {
+                $query = \Modules\Order\app\Models\Order::query();
+            }
+            
+            if ($dateField === 'whereDate') {
+                $totalSales = $this->isVendor 
+                    ? $query->whereHas('order', function($q) use ($startTime) {
+                        $q->whereDate('created_at', $startTime);
+                    })->sum('price')
+                    : $query->whereDate('created_at', $startTime)->sum('total_price');
+            } else {
+                $totalSales = $this->isVendor
+                    ? $query->whereHas('order', function($q) use ($startTime, $endTime) {
+                        $q->whereBetween('created_at', [$startTime, $endTime]);
+                    })->sum('price')
+                    : $query->whereBetween('created_at', [$startTime, $endTime])->sum('total_price');
+            }
+            
+            // Get refunds (use refunded_at if available, otherwise fallback to created_at)
+            if ($dateField === 'whereDate') {
+                $refunds = (clone $refundQuery)
+                    ->where(function($q) use ($startTime) {
+                        $q->whereDate('refunded_at', $startTime)
+                          ->orWhere(function($q2) use ($startTime) {
+                              $q2->whereNull('refunded_at')
+                                 ->whereDate('created_at', $startTime);
+                          });
+                    })
+                    ->sum('total_refund_amount');
+            } else {
+                $refunds = (clone $refundQuery)
+                    ->where(function($q) use ($startTime, $endTime) {
+                        $q->whereBetween('refunded_at', [$startTime, $endTime])
+                          ->orWhere(function($q2) use ($startTime, $endTime) {
+                              $q2->whereNull('refunded_at')
+                                 ->whereBetween('created_at', [$startTime, $endTime]);
+                          });
+                    })
+                    ->sum('total_refund_amount');
+            }
+            
+            return [
+                'total_sales' => $totalSales ?? 0,
+                'refunds' => $refunds ?? 0,
+                'net_sales' => ($totalSales ?? 0) - ($refunds ?? 0),
+            ];
+        };
+        
+        // Hourly data (today - all 24 hours)
+        $hourly = [];
+        for ($i = 0; $i < 24; $i++) {
+            $hourStart = $now->copy()->startOfDay()->addHours($i);
+            $hourEnd = $now->copy()->startOfDay()->addHours($i + 1);
+            $hourly[] = $calcNetSales($hourStart, $hourEnd);
+        }
+        
+        // Weekly data (this week)
+        $weekly = [];
+        $startOfWeek = $now->copy()->startOfWeek();
+        for ($i = 0; $i < 7; $i++) {
+            $dayStart = $startOfWeek->copy()->addDays($i)->startOfDay();
+            $dayEnd = $startOfWeek->copy()->addDays($i)->endOfDay();
+            $weekly[] = $calcNetSales($dayStart, $dayEnd);
+        }
+        
+        // Daily data (current month)
+        $daily = [];
+        $daysInMonth = $now->daysInMonth;
+        for ($day = 1; $day <= $daysInMonth; $day++) {
+            $dayDate = Carbon::create($now->year, $now->month, $day);
+            $daily[] = $calcNetSales($dayDate, null, 'whereDate');
+        }
+        
+        // Monthly breakdown for current year
+        $monthly = [];
+        for ($month = 1; $month <= 12; $month++) {
+            $monthStart = Carbon::create($now->year, $month, 1)->startOfMonth();
+            $monthEnd = Carbon::create($now->year, $month, 1)->endOfMonth();
+            $monthly[] = $calcNetSales($monthStart, $monthEnd);
+        }
+        
+        // Yearly data (last 5 years)
+        $yearlyLabels = [];
+        $yearlyData = [];
+        for ($i = 4; $i >= 0; $i--) {
+            $year = $now->year - $i;
+            $yearlyLabels[] = $year;
+            $yearStart = Carbon::create($year, 1, 1)->startOfYear();
+            $yearEnd = Carbon::create($year, 12, 31)->endOfYear();
+            $yearlyData[] = $calcNetSales($yearStart, $yearEnd);
+        }
+        
+        return [
+            'hourly' => $hourly,
+            'weekly' => $weekly,
+            'daily' => $daily,
+            'monthly' => $monthly,
+            'yearly_labels' => $yearlyLabels,
+            'yearly_data' => $yearlyData,
+        ];
+    }
 }
+
+

@@ -17,7 +17,7 @@ class RefundRequestResource extends JsonResource
         return [
             'id' => $this->id,
             'refund_number' => $this->refund_number,
-            'order_number' => $this->order->order_number,
+            'order_number' => $this->order?->order_number,
             'vendor' => $this->whenLoaded('vendor', new VendorApiResource($this->vendor)),
             'label' => trans('refund::refund.statuses.' . $this->status),
             // Amounts - Ordered logically (components first, then total at the end)

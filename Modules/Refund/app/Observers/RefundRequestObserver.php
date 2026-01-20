@@ -2,6 +2,7 @@
 
 namespace Modules\Refund\app\Observers;
 
+use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Modules\Refund\app\Models\RefundRequest;
@@ -11,6 +12,9 @@ use Modules\SystemSetting\app\Services\UserPointsService;
 
 class RefundRequestObserver
 {
+    // Flag to prevent infinite loop when updating refunded_at
+    protected static $isProcessingRefund = false;
+    
     public function __construct(
         protected RefundNotificationService $notificationService,
         protected StockBookingService $stockBookingService,
@@ -48,6 +52,11 @@ class RefundRequestObserver
      */
     public function updated(RefundRequest $refundRequest): void
     {
+        // Prevent infinite loop when updating refunded_at
+        if (self::$isProcessingRefund) {
+            return;
+        }
+        
         // Handle status change notifications and history
         if ($refundRequest->wasChanged('status')) {
             $oldStatus = $refundRequest->getOriginal('status');
@@ -129,107 +138,83 @@ class RefundRequestObserver
             $vendor = $refundRequest->vendor;
             $order = $refundRequest->order;
             $customer = $refundRequest->customer;
-            
             // 1. Update Customer Points using service
             // Deduct points that were earned from this purchase (if any)
-            if ($refundRequest->points_to_deduct > 0) {
-                $this->userPointsService->deductPoints(
-                    userId: $customer->user_id,
-                    points: $refundRequest->points_to_deduct,
-                    transactionableType: RefundRequest::class,
-                    transactionableId: $refundRequest->id,
-                    description: "Points deducted for refund: {$refundRequest->refund_number}"
-                );
-            }
+            // if ($refundRequest->points_to_deduct > 0) {
+            //     $this->userPointsService->deductPoints(
+            //         userId: $customer->user_id,
+            //         points: $refundRequest->points_to_deduct,
+            //         transactionableType: RefundRequest::class,
+            //         transactionableId: $refundRequest->id,
+            //         description: "Points deducted for refund: {$refundRequest->refund_number}"
+            //     );
+            // }
             
-            // Return points that were used in the original purchase
-            if ($refundRequest->points_used > 0) {
-                $this->userPointsService->addPoints(
-                    userId: $customer->user_id,
-                    points: $refundRequest->points_used,
-                    transactionableType: RefundRequest::class,
-                    transactionableId: $refundRequest->id,
-                    description: "Points refunded for refund: {$refundRequest->refund_number}"
-                );
-            }
+            // // Return points that were used in the original purchase
+            // if ($refundRequest->points_used > 0) {
+            //     $this->userPointsService->addPoints(
+            //         userId: $customer->user_id,
+            //         points: $refundRequest->points_used,
+            //         transactionableType: RefundRequest::class,
+            //         transactionableId: $refundRequest->id,
+            //         description: "Points refunded for refund: {$refundRequest->refund_number}"
+            //     );
+            // }
             
-            // 2. Update Order - Track Total Refunded Amount
-            $order->refunded_amount = ($order->refunded_amount ?? 0) + $refundRequest->total_refund_amount;
-            $order->save();
+            // // 3. Reverse Stock Bookings using service
+            // $orderProductIds = $refundRequest->items->pluck('order_product_id')->toArray();
+            // $this->stockBookingService->releaseRefundedStock(
+            //     orderId: $order->id,
+            //     orderProductIds: $orderProductIds,
+            //     refundNumber: $refundRequest->refund_number
+            // );
             
-            // 3. Reverse Stock Bookings using service
-            $orderProductIds = $refundRequest->items->pluck('order_product_id')->toArray();
-            $this->stockBookingService->releaseRefundedStock(
-                orderId: $order->id,
-                orderProductIds: $orderProductIds,
-                refundNumber: $refundRequest->refund_number
-            );
+            // // 4. Create Accounting Entry for Refund
+            // // This will reduce vendor's balance
+            // $commissionDetails = $this->calculateCommissionReversal($refundRequest);
             
-            // 4. Create Accounting Entry for Refund
-            // This will reduce vendor's balance
-            $commissionDetails = $this->calculateCommissionReversal($refundRequest);
+            // \Modules\Accounting\app\Models\AccountingEntry::create([
+            //     'order_id' => $order->id,
+            //     'vendor_id' => $vendor?->id,
+            //     'type' => 'refund',
+            //     'amount' => $refundRequest->total_refund_amount,
+            //     'commission_rate' => 0, // Will be calculated from items
+            //     'commission_amount' => $commissionDetails['total_commission'],
+            //     'vendor_amount' => $refundRequest->total_refund_amount - $commissionDetails['total_commission'],
+            //     'description' => "Refund for order {$order->order_number} - {$refundRequest->refund_number}",
+            //     'metadata' => [
+            //         'refund_request_id' => $refundRequest->id,
+            //         'refund_number' => $refundRequest->refund_number,
+            //         'refund_reason' => $refundRequest->reason,
+            //         'products_amount' => $refundRequest->total_products_amount,
+            //         'shipping_amount' => $refundRequest->total_shipping_amount,
+            //         'tax_amount' => $refundRequest->total_tax_amount,
+            //         'commission_details' => $commissionDetails['items'],
+            //     ],
+            // ]);
             
-            \Modules\Accounting\app\Models\AccountingEntry::create([
-                'order_id' => $order->id,
-                'vendor_id' => $vendor?->id,
-                'type' => 'refund',
-                'amount' => $refundRequest->total_refund_amount,
-                'commission_rate' => 0, // Will be calculated from items
-                'commission_amount' => $commissionDetails['total_commission'],
-                'vendor_amount' => $refundRequest->total_refund_amount - $commissionDetails['total_commission'],
-                'description' => "Refund for order {$order->order_number} - {$refundRequest->refund_number}",
-                'metadata' => [
-                    'refund_request_id' => $refundRequest->id,
-                    'refund_number' => $refundRequest->refund_number,
-                    'refund_reason' => $refundRequest->reason,
-                    'products_amount' => $refundRequest->total_products_amount,
-                    'shipping_amount' => $refundRequest->total_shipping_amount,
-                    'tax_amount' => $refundRequest->total_tax_amount,
-                    'commission_details' => $commissionDetails['items'],
-                ],
-            ]);
-            
-            // 5. Create Payment Refund Record (if order was paid online)
-            if ($order->payment_type === 'online' && $order->payment_visa_status === 'success') {
-                $latestPayment = $order->latestPayment;
+            // // 5. Create Payment Refund Record (if order was paid online)
+            // if ($order->payment_type === 'online' && $order->payment_visa_status === 'success') {
+            //     $latestPayment = $order->latestPayment;
                 
-                if ($latestPayment && $latestPayment->status === 'paid') {
-                    // Create refund payment record
-                    \Modules\Order\app\Models\Payment::create([
-                        'order_id' => $order->id,
-                        'paymob_order_id' => $latestPayment->paymob_order_id,
-                        'payment_method' => $latestPayment->payment_method,
-                        'amount_cents' => (int) ($refundRequest->total_refund_amount * 100),
-                        'status' => 'refunded',
-                        'transaction_id' => 'REFUND-' . $refundRequest->refund_number,
-                        'payment_data' => [
-                            'refund_request_id' => $refundRequest->id,
-                            'refund_number' => $refundRequest->refund_number,
-                            'original_payment_id' => $latestPayment->id,
-                            'refund_reason' => $refundRequest->reason,
-                        ],
-                    ]);
-                }
-            }
-            
-            // 6. Log the refund completion with detailed information
-            Log::info('Refund completed successfully', [
-                'refund_number' => $refundRequest->refund_number,
-                'order_id' => $order->id,
-                'order_number' => $order->order_number,
-                'vendor_id' => $vendor?->id,
-                'customer_id' => $customer->id,
-                'total_refund_amount' => $refundRequest->total_refund_amount,
-                'products_amount' => $refundRequest->total_products_amount,
-                'shipping_amount' => $refundRequest->total_shipping_amount,
-                'tax_amount' => $refundRequest->total_tax_amount,
-                'promo_code_amount' => $refundRequest->promo_code_amount,
-                'points_used' => $refundRequest->points_used,
-                'points_to_deduct' => $refundRequest->points_to_deduct,
-                'return_shipping_cost' => $refundRequest->return_shipping_cost,
-                'commission_reversed' => $commissionDetails['total_commission'],
-                'commission_details' => $commissionDetails['items'],
-            ]);
+            //     if ($latestPayment && $latestPayment->status === 'paid') {
+            //         // Create refund payment record
+            //         \Modules\Order\app\Models\Payment::create([
+            //             'order_id' => $order->id,
+            //             'paymob_order_id' => $latestPayment->paymob_order_id,
+            //             'payment_method' => $latestPayment->payment_method,
+            //             'amount_cents' => (int) ($refundRequest->total_refund_amount * 100),
+            //             'status' => 'refunded',
+            //             'transaction_id' => 'REFUND-' . $refundRequest->refund_number,
+            //             'payment_data' => [
+            //                 'refund_request_id' => $refundRequest->id,
+            //                 'refund_number' => $refundRequest->refund_number,
+            //                 'original_payment_id' => $latestPayment->id,
+            //                 'refund_reason' => $refundRequest->reason,
+            //             ],
+            //         ]);
+            //     }
+            // }
         });
     }
 

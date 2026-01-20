@@ -180,6 +180,7 @@ return [
         'quantity_integer' => 'The quantity must be an integer.',
         'quantity_min' => 'The quantity must be at least :min.',
         'quantity_exceeds_ordered' => 'The refund quantity cannot exceed the ordered quantity (:quantity).',
+        'quantity_exceeds_available' => 'Only :available out of :ordered items are available for refund.',
         'item_reason_max' => 'The item reason must not exceed :max characters.',
         'status_required' => 'The status field is required.',
         'status_invalid' => 'The selected status is invalid.',

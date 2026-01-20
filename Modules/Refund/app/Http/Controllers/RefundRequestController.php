@@ -226,7 +226,7 @@ class RefundRequestController extends Controller
             
             // Check if vendor can update this refund request
             if (!isAdmin()) {
-                $vendor = auth()->user()->vendorByUser ?? auth()->user()->vendorById;
+                $vendor = auth()->user()->vendor->id;
                 if (!$vendor) {
                     abort(403, 'Unauthorized');
                 }

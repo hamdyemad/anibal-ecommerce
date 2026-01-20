@@ -57,19 +57,23 @@ class StoreRefundRequestRequest extends FormRequest
                         return;
                     }
                     
-                    // Validate that order_product is not already refunded
-                    if ($orderProduct->is_refunded) {
-                        $fail(trans('refund::refund.validation.order_product_already_refunded'));
-                        return;
-                    }
+                    // Calculate total quantity already in refund requests (pending or approved)
+                    $totalRefundedQty = \Modules\Refund\app\Models\RefundRequestItem::whereHas('refundRequest', function ($query) {
+                        $query->whereIn('status', ['pending', 'approved', 'in_progress', 'picked_up', 'refunded']);
+                    })->where('order_product_id', $value)->sum('quantity');
                     
-                    // Validate that order_product is not in a pending refund request
-                    $hasPendingRefund = \Modules\Refund\app\Models\RefundRequestItem::whereHas('refundRequest', function ($query) {
-                        $query->whereIn('status', ['pending', 'approved', 'in_progress', 'picked_up']);
-                    })->where('order_product_id', $value)->exists();
+                    // Get the index to check the requested quantity for this item
+                    preg_match('/items\.(\d+)\.order_product_id/', $attribute, $matches);
+                    $index = $matches[1] ?? 0;
+                    $requestedQty = $this->input("items.{$index}.quantity", 0);
                     
-                    if ($hasPendingRefund) {
-                        $fail(trans('refund::refund.validation.order_product_pending_refund'));
+                    // Check if total (existing + requested) exceeds ordered quantity
+                    if (($totalRefundedQty + $requestedQty) > $orderProduct->quantity) {
+                        $availableQty = $orderProduct->quantity - $totalRefundedQty;
+                        $fail(trans('refund::refund.validation.quantity_exceeds_available', [
+                            'available' => $availableQty,
+                            'ordered' => $orderProduct->quantity
+                        ]));
                         return;
                     }
                     
@@ -126,8 +130,20 @@ class StoreRefundRequestRequest extends FormRequest
                     
                     if ($orderProductId) {
                         $orderProduct = \Modules\Order\app\Models\OrderProduct::find($orderProductId);
-                        if ($orderProduct && $value > $orderProduct->quantity) {
-                            $fail(trans('refund::refund.validation.quantity_exceeds_ordered', ['quantity' => $orderProduct->quantity]));
+                        if ($orderProduct) {
+                            // Calculate total quantity already in refund requests
+                            $totalRefundedQty = \Modules\Refund\app\Models\RefundRequestItem::whereHas('refundRequest', function ($query) {
+                                $query->whereIn('status', ['pending', 'approved', 'in_progress', 'picked_up', 'refunded']);
+                            })->where('order_product_id', $orderProductId)->sum('quantity');
+                            
+                            $availableQty = $orderProduct->quantity - $totalRefundedQty;
+                            
+                            if ($value > $availableQty) {
+                                $fail(trans('refund::refund.validation.quantity_exceeds_available', [
+                                    'available' => $availableQty,
+                                    'ordered' => $orderProduct->quantity
+                                ]));
+                            }
                         }
                     }
                 },

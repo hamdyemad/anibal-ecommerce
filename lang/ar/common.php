@@ -274,4 +274,28 @@ return [
     'days' => 'أيام',
     'unauthorized' => 'غير مصرح',
     'error' => 'خطأ',
+    
+    // Months
+    'january' => 'يناير',
+    'february' => 'فبراير',
+    'march' => 'مارس',
+    'april' => 'أبريل',
+    'may' => 'مايو',
+    'june' => 'يونيو',
+    'july' => 'يوليو',
+    'august' => 'أغسطس',
+    'september' => 'سبتمبر',
+    'october' => 'أكتوبر',
+    'november' => 'نوفمبر',
+    'december' => 'ديسمبر',
+    // Days of week
+    'sunday' => 'الأحد',
+    'monday' => 'الإثنين',
+    'tuesday' => 'الثلاثاء',
+    'wednesday' => 'الأربعاء',
+    'thursday' => 'الخميس',
+    'friday' => 'الجمعة',
+    'saturday' => 'السبت',
 ];
+
+    

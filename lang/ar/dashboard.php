@@ -25,6 +25,7 @@ return [
     'monthly_sales' => 'المبيعات الشهرية',
     'monthly_earnings' => 'الأرباح الشهرية',
     'year' => 'السنة',
+    'years' => 'سنوات',
     'today' => 'اليوم',
     'week' => 'الأسبوع',
     'month' => 'الشهر',
@@ -140,4 +141,26 @@ return [
     'earnings' => 'الأرباح',
     'all_orders' => 'جميع الطلبات',
     'deliver_orders' => 'طلبات التسليم',
+    'net_earnings' => 'صافي الأرباح',
+    'refunds' => 'المرتجعات',
+    
+    // Days of week
+    'sunday' => 'الأحد',
+    'monday' => 'الإثنين',
+    'tuesday' => 'الثلاثاء',
+    'wednesday' => 'الأربعاء',
+    'thursday' => 'الخميس',
+    'friday' => 'الجمعة',
+    'saturday' => 'السبت',
+    
+    // Refunds
+    'refunds_this_month' => 'المرتجعات هذا الشهر',
+    'refunds_this_year' => 'المرتجعات هذا العام',
+    'total_refunds' => 'إجمالي المرتجعات',
+    'refunded_amount' => 'المبلغ المسترد',
+    'products_refunded' => 'المنتجات المرتجعة',
+    'refunds_count' => 'عدد المرتجعات',
+    'amount' => 'المبلغ',
+    'count' => 'العدد',
+    'this_month' => 'هذا الشهر',
 ];

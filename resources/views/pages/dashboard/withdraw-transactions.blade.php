@@ -19,20 +19,17 @@
         // For admin: use optimized aggregate queries instead of loading all vendors
         $statistics = \Modules\Vendor\app\Models\Vendor::getVendorsStatistics($countryId);
         
-        // Get aggregated values using DB queries with country filter
-        $ordersPrice = \Illuminate\Support\Facades\DB::table('order_products as op')
-            ->join('orders as o', 'op.order_id', '=', 'o.id')
-            ->join('vendor_order_stages as vos', function ($join) {
-                $join->on('vos.order_id', '=', 'op.order_id')
-                     ->on('vos.vendor_id', '=', 'op.vendor_id');
-            })
-            ->join('order_stages as os', 'vos.stage_id', '=', 'os.id')
-            ->where('os.type', 'deliver')
-            ->where('o.country_id', $countryId)
-            ->sum('op.price') ?? 0;
-            
+        // Get total vendor balance (after commission)
         $totalVendorBalance = (float) str_replace(',', '', $statistics['total_balance']);
-        $bnaiaBalance = max(0, $ordersPrice - $totalVendorBalance);
+        
+        // Get total commission from statistics
+        $totalCommission = (float) str_replace(',', '', $statistics['total_commission'] ?? '0');
+        
+        // Calculate orders price = balance + commission (reverse calculation)
+        $ordersPrice = $totalVendorBalance + $totalCommission;
+        
+        // Bnaia commission is the same as total commission
+        $bnaiaBalance = $totalCommission;
         
         $totalNeeded = $totalVendorBalance;
         $totalSentMoney = (float) str_replace(',', '', $statistics['total_sent']);
@@ -171,7 +168,7 @@
                     <div class="overview-content w-100">
                         <div class="ap-po-details-content d-flex flex-wrap justify-content-between">
                             <div class="ap-po-details__titlebar">
-                                <h1>{{ number_format($totalVendorBalance - $totalSentMoney, 2) }} {{ currency() }}</h1>
+                                <h1>{{ number_format($totalRemaining, 2) }} {{ currency() }}</h1>
                                 <p>{{ trans('dashboard.Total Vendor\'s Remaining') }}</p>
                             </div>
                             <div class="ap-po-details__icon-area">

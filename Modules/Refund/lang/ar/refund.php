@@ -180,6 +180,7 @@ return [
         'quantity_integer' => 'يجب أن تكون الكمية رقماً صحيحاً.',
         'quantity_min' => 'يجب أن تكون الكمية :min على الأقل.',
         'quantity_exceeds_ordered' => 'لا يمكن أن تتجاوز كمية الاسترجاع الكمية المطلوبة (:quantity).',
+        'quantity_exceeds_available' => 'فقط :available من أصل :ordered عنصر متاح للاسترجاع.',
         'item_reason_max' => 'يجب ألا يتجاوز سبب العنصر :max حرفاً.',
         'status_required' => 'حقل الحالة مطلوب.',
         'status_invalid' => 'الحالة المحددة غير صالحة.',

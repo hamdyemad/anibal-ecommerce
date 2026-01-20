@@ -25,23 +25,34 @@
                 @include('pages.dashboard.withdraw-transactions')
                 @include('pages.dashboard.stats-overview')
                 @include('pages.dashboard.income-and-expenses')
-                @include('pages.dashboard.stats-cards')
-                {{-- Orders Overview & Top Selling Products --}}
-                @include('pages.dashboard.orders-overview')
-
-                {{-- Charts Row: Sales, Earnings, Total Sales --}}
+                @include('pages.dashboard.refunds-overview')
+                {{-- Charts Row: Sales and Earnings --}}
                 <div class="col-12">
                     <div class="row">
                         @include('pages.dashboard.total-sales-chart')
                         @include('pages.dashboard.earnings-chart')
                     </div>
                 </div>
+                
+                {{-- Charts Row: Refunds and Net Earnings --}}
+                <div class="col-12">
+                    <div class="row">
+                        @include('pages.dashboard.refunds-chart')
+                        @include('pages.dashboard.net-sales-chart')
+                    </div>
+                </div>
+
+                @include('pages.dashboard.stats-cards')
+                {{-- Orders Overview & Top Selling Products --}}
+                @include('pages.dashboard.orders-overview')
+
+
 
                 @include('pages.dashboard.top-selling-products')
                 @include('pages.dashboard.latest-orders')
                 @include('pages.dashboard.best-customers')
 
-                @if (in_array(auth()->user()->user_type_id, \App\Models\UserType::adminIds()))
+                @if (isAdmin())
                     @include('pages.dashboard.top-vendors')
                 @endif
                 @include('pages.dashboard.recent-activities')

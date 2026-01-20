@@ -431,20 +431,20 @@ class Vendor extends BaseModel
         if (!$deliverStageId) {
             return [
                 'total_balance' => number_format(0, 2),
+                'total_commission' => number_format(0, 2),
                 'total_sent' => number_format(0, 2),
                 'total_remaining' => number_format(0, 2),
             ];
         }
 
-        // Calculate total orders price for all vendors in one query
-        // Considering partial refunds
+        // Calculate total orders price using pure SQL aggregation
+        // Formula: SUM((price / quantity) * (quantity - COALESCE(refunded_quantity, 0)))
         $ordersQuery = \Illuminate\Support\Facades\DB::table('order_products as op')
             ->join('orders as o', 'op.order_id', '=', 'o.id')
             ->join('vendor_order_stages as vos', function ($join) {
                 $join->on('vos.order_id', '=', 'o.id')
                      ->on('vos.vendor_id', '=', 'op.vendor_id');
             })
-            // Get total refunded quantity for each order product
             ->leftJoin(\Illuminate\Support\Facades\DB::raw('(
                 SELECT rri.order_product_id, SUM(rri.quantity) as refunded_quantity
                 FROM refund_request_items rri
@@ -454,42 +454,31 @@ class Vendor extends BaseModel
             ) as refunds'), 'op.id', '=', 'refunds.order_product_id')
             ->where('vos.stage_id', $deliverStageId);
         
-        // Apply country filter if provided
         if ($countryId) {
             $ordersQuery->where('o.country_id', $countryId);
         }
         
-        $ordersResult = $ordersQuery->select(
-                'op.id',
-                'op.quantity',
-                'op.price',
-                'op.shipping_cost',
-                \Illuminate\Support\Facades\DB::raw('COALESCE(refunds.refunded_quantity, 0) as refunded_quantity')
-            )
-            ->get();
+        $ordersResult = $ordersQuery->selectRaw('
+            SUM(
+                CASE 
+                    WHEN (op.quantity - COALESCE(refunds.refunded_quantity, 0)) > 0 
+                    THEN (op.price / op.quantity) * (op.quantity - COALESCE(refunds.refunded_quantity, 0))
+                    ELSE 0 
+                END
+            ) as products_total,
+            SUM(
+                CASE 
+                    WHEN (op.quantity - COALESCE(refunds.refunded_quantity, 0)) > 0 
+                    THEN (op.shipping_cost / op.quantity) * (op.quantity - COALESCE(refunds.refunded_quantity, 0))
+                    ELSE 0 
+                END
+            ) as shipping_total
+        ')->first();
 
-        $productsTotal = 0;
-        $shippingTotal = 0;
+        $productsTotal = $ordersResult->products_total ?? 0;
+        $shippingTotal = $ordersResult->shipping_total ?? 0;
 
-        foreach ($ordersResult as $product) {
-            $originalQuantity = $product->quantity ?? 0;
-            $refundedQuantity = $product->refunded_quantity ?? 0;
-            $remainingQuantity = $originalQuantity - $refundedQuantity;
-            
-            if ($remainingQuantity <= 0) {
-                continue;
-            }
-            
-            $totalPrice = $product->price ?? 0;
-            $totalShipping = $product->shipping_cost ?? 0;
-            $pricePerUnit = $originalQuantity > 0 ? $totalPrice / $originalQuantity : 0;
-            $shippingPerUnit = $originalQuantity > 0 ? $totalShipping / $originalQuantity : 0;
-            
-            $productsTotal += $pricePerUnit * $remainingQuantity;
-            $shippingTotal += $shippingPerUnit * $remainingQuantity;
-        }
-
-        // Get fees and discounts for all vendors
+        // Get fees and discounts using aggregation
         $extrasQuery = \Illuminate\Support\Facades\DB::table('order_extra_fees_discounts as oefd')
             ->join('orders as o', 'oefd.order_id', '=', 'o.id')
             ->join('vendor_order_stages as vos', function ($join) {
@@ -498,35 +487,31 @@ class Vendor extends BaseModel
             })
             ->where('vos.stage_id', $deliverStageId);
         
-        // Apply country filter if provided
         if ($countryId) {
             $extrasQuery->where('o.country_id', $countryId);
         }
         
-        $extrasResult = $extrasQuery->select(
-                \Illuminate\Support\Facades\DB::raw('SUM(CASE WHEN oefd.type = "fee" THEN oefd.cost ELSE 0 END) as fees_total'),
-                \Illuminate\Support\Facades\DB::raw('SUM(CASE WHEN oefd.type = "discount" THEN oefd.cost ELSE 0 END) as discounts_total')
-            )
-            ->first();
+        $extrasResult = $extrasQuery->selectRaw('
+            SUM(CASE WHEN oefd.type = "fee" THEN oefd.cost ELSE 0 END) as fees_total,
+            SUM(CASE WHEN oefd.type = "discount" THEN oefd.cost ELSE 0 END) as discounts_total
+        ')->first();
 
         $feesTotal = $extrasResult->fees_total ?? 0;
         $discountsTotal = $extrasResult->discounts_total ?? 0;
 
-        // Get promo code and points shares for all vendors
+        // Get promo code and points shares using aggregation
         $sharesQuery = \Illuminate\Support\Facades\DB::table('vendor_order_stages as vos')
             ->join('orders as o', 'vos.order_id', '=', 'o.id')
             ->where('vos.stage_id', $deliverStageId);
         
-        // Apply country filter if provided
         if ($countryId) {
             $sharesQuery->where('o.country_id', $countryId);
         }
         
-        $sharesResult = $sharesQuery->select(
-                \Illuminate\Support\Facades\DB::raw('SUM(COALESCE(vos.promo_code_share, 0)) as promo_code_total'),
-                \Illuminate\Support\Facades\DB::raw('SUM(COALESCE(vos.points_share, 0)) as points_total')
-            )
-            ->first();
+        $sharesResult = $sharesQuery->selectRaw('
+            SUM(COALESCE(vos.promo_code_share, 0)) as promo_code_total,
+            SUM(COALESCE(vos.points_share, 0)) as points_total
+        ')->first();
 
         $promoCodeTotal = $sharesResult->promo_code_total ?? 0;
         $pointsTotal = $sharesResult->points_total ?? 0;
@@ -534,8 +519,8 @@ class Vendor extends BaseModel
         // Calculate total orders price
         $totalOrdersPrice = $productsTotal + $shippingTotal + $feesTotal - $discountsTotal - $promoCodeTotal - $pointsTotal;
 
-        // Calculate total commission for all vendors in one query
-        // Considering partial refunds
+        // Calculate total commission using pure SQL aggregation
+        // Formula: SUM(((price + shipping) / quantity * remaining_quantity) * commission / 100)
         $commissionQuery = \Illuminate\Support\Facades\DB::table('order_products as op')
             ->join('orders as o', 'op.order_id', '=', 'o.id')
             ->join('vendor_order_stages as vos', function ($join) {
@@ -545,7 +530,6 @@ class Vendor extends BaseModel
             ->leftJoin('vendor_products as vp', 'op.vendor_product_id', '=', 'vp.id')
             ->leftJoin('products as p', 'vp.product_id', '=', 'p.id')
             ->leftJoin('departments as d', 'p.department_id', '=', 'd.id')
-            // Get total refunded quantity for each order product
             ->leftJoin(\Illuminate\Support\Facades\DB::raw('(
                 SELECT rri.order_product_id, SUM(rri.quantity) as refunded_quantity
                 FROM refund_request_items rri
@@ -555,68 +539,68 @@ class Vendor extends BaseModel
             ) as refunds'), 'op.id', '=', 'refunds.order_product_id')
             ->where('vos.stage_id', $deliverStageId);
         
-        // Apply country filter if provided
         if ($countryId) {
             $commissionQuery->where('o.country_id', $countryId);
         }
         
-        $commissionResult = $commissionQuery->select(
-                'op.id',
-                'op.quantity',
-                'op.price',
-                'op.shipping_cost',
-                'op.commission as product_commission',
-                'd.commission as department_commission',
-                \Illuminate\Support\Facades\DB::raw('COALESCE(refunds.refunded_quantity, 0) as refunded_quantity')
-            )
-            ->get();
+        $commissionResult = $commissionQuery->selectRaw('
+            SUM(
+                CASE 
+                    WHEN (op.quantity - COALESCE(refunds.refunded_quantity, 0)) > 0 
+                    THEN (
+                        (
+                            ((op.price / op.quantity) * (op.quantity - COALESCE(refunds.refunded_quantity, 0))) +
+                            ((op.shipping_cost / op.quantity) * (op.quantity - COALESCE(refunds.refunded_quantity, 0)))
+                        ) * 
+                        COALESCE(
+                            CASE WHEN op.commission > 0 THEN op.commission ELSE d.commission END,
+                            0
+                        ) / 100
+                    )
+                    ELSE 0 
+                END
+            ) as total_commission
+        ')->first();
 
-        $totalCommission = 0;
-
-        foreach ($commissionResult as $product) {
-            $originalQuantity = $product->quantity ?? 0;
-            $refundedQuantity = $product->refunded_quantity ?? 0;
-            $remainingQuantity = $originalQuantity - $refundedQuantity;
-            
-            if ($remainingQuantity <= 0) {
-                continue;
-            }
-            
-            $totalPrice = $product->price ?? 0;
-            $totalShipping = $product->shipping_cost ?? 0;
-            $pricePerUnit = $originalQuantity > 0 ? $totalPrice / $originalQuantity : 0;
-            $shippingPerUnit = $originalQuantity > 0 ? $totalShipping / $originalQuantity : 0;
-            
-            $remainingPrice = $pricePerUnit * $remainingQuantity;
-            $remainingShipping = $shippingPerUnit * $remainingQuantity;
-            
-            $commissionPercent = $product->product_commission > 0 
-                ? $product->product_commission 
-                : ($product->department_commission ?? 0);
-            
-            $totalWithShipping = $remainingPrice + $remainingShipping;
-            $totalCommission += ($totalWithShipping * $commissionPercent) / 100;
-        }
+        $totalCommission = $commissionResult->total_commission ?? 0;
 
         // Total balance = orders price - commission
         $totalBalance = $totalOrdersPrice - $totalCommission;
 
-        // Get total sent (accepted withdrawals) for all vendors in one query
+        // Get total sent (accepted withdrawals) using aggregation
         $withdrawQuery = \Illuminate\Support\Facades\DB::table('withdraws')
             ->where('status', 'accepted');
         
-        // Apply country filter if provided
         if ($countryId) {
             $withdrawQuery->where('country_id', $countryId);
         }
         
         $totalSent = $withdrawQuery->sum('sent_amount') ?? 0;
 
-        // Total remaining = balance - sent
+        // Get total refunded amount for delivered orders
+        // Note: We should NOT subtract refund amounts here because they're already
+        // accounted for in the balance calculation through refunded quantities
+        // $refundQuery = \Illuminate\Support\Facades\DB::table('refund_requests as rr')
+        //     ->join('orders as o', 'rr.order_id', '=', 'o.id')
+        //     ->join('vendor_order_stages as vos', function ($join) {
+        //         $join->on('vos.order_id', '=', 'o.id')
+        //              ->on('vos.vendor_id', '=', 'rr.vendor_id');
+        //     })
+        //     ->where('vos.stage_id', $deliverStageId)
+        //     ->where('rr.status', 'refunded');
+        
+        // if ($countryId) {
+        //     $refundQuery->where('o.country_id', $countryId);
+        // }
+        
+        // $totalRefunded = $refundQuery->sum('rr.total_refund_amount') ?? 0;
+
+        // Total remaining = balance - sent (refunds already deducted in balance calculation)
         $totalRemaining = $totalBalance - $totalSent;
 
         return [
             'total_balance' => number_format($totalBalance, 2),
+            'total_commission' => number_format($totalCommission, 2),
             'total_sent' => number_format($totalSent, 2),
             'total_remaining' => number_format($totalRemaining, 2),
         ];
