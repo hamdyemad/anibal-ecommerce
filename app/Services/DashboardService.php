@@ -30,6 +30,7 @@ class DashboardService
 {
     protected $vendorId = null;
     protected $isVendor = false;
+    protected $countryId = null;
 
     protected function initVendorCheck()
     {
@@ -44,6 +45,9 @@ class DashboardService
     {
         // Initialize vendor check here instead of constructor
         $this->initVendorCheck();
+        
+        // Get country_id from country code
+        $this->countryId = Country::where('code', $countryCode)->value('id');
 
         $stats = $this->getStats();
         $salesChart = $this->getSalesChartData();
@@ -90,72 +94,72 @@ class DashboardService
             'total_admins' => $adminsQuery->count(),
             'vendor_users' => User::where('user_type_id', UserType::VENDOR_USER_TYPE)->count(),
 
-            // Vendors
-            'total_vendors' => Vendor::count(),
-            'become_vendor_requests' => VendorRequest::where('status', 'pending')->count(),
-            'accepted_vendors' => Vendor::where('active', 1)->count(),
-            'rejected_vendors' => Vendor::where('active', 0)->count(),
-            'new_vendors' => Vendor::whereDate('created_at', '>=', Carbon::now()->subDays(30))->count(),
+            // Vendors (filter by country)
+            'total_vendors' => Vendor::where('country_id', $this->countryId)->count(),
+            'become_vendor_requests' => VendorRequest::where('country_id', $this->countryId)->where('status', 'pending')->count(),
+            'accepted_vendors' => Vendor::where('country_id', $this->countryId)->where('active', 1)->count(),
+            'rejected_vendors' => Vendor::where('country_id', $this->countryId)->where('active', 0)->count(),
+            'new_vendors' => Vendor::where('country_id', $this->countryId)->whereDate('created_at', '>=', Carbon::now()->subDays(30))->count(),
 
-            // Customers
-            'total_customers' => Customer::count(),
-            'total_male_users' => Customer::where('gender', 'male')->count(),
-            'total_female_users' => Customer::where('gender', 'female')->count(),
+            // Customers (filter by country)
+            'total_customers' => Customer::where('country_id', $this->countryId)->count(),
+            'total_male_users' => Customer::where('country_id', $this->countryId)->where('gender', 'male')->count(),
+            'total_female_users' => Customer::where('country_id', $this->countryId)->where('gender', 'female')->count(),
 
             // Roles
             'admins_total_roles' => Role::where('type', 'admin')->count(),
             'vendor_users_total_roles' => Role::where('type', 'vendor')->count(),
 
-            // Products & Stock
-            'total_products' => Product::count(),
-            'instock' => VendorProduct::whereHas('variants', function($q) {
+            // Products & Stock (filter by country)
+            'total_products' => Product::where('country_id', $this->countryId)->count(),
+            'instock' => VendorProduct::where('country_id', $this->countryId)->whereHas('variants', function($q) {
                 $q->whereHas('stocks', function($sq) {
                     $sq->where('quantity', '>', 0);
                 });
             })->count(),
-            'out_of_stock' => VendorProduct::where(function($q) {
+            'out_of_stock' => VendorProduct::where('country_id', $this->countryId)->where(function($q) {
                 $q->whereDoesntHave('variants')
                   ->orWhereDoesntHave('variants.stocks', function($sq) {
                       $sq->where('quantity', '>', 0);
                   });
             })->count(),
 
-            // Orders
-            'total_orders' => Order::count(),
-            'total_sales' => Order::whereHas('stage', function($q) {
+            // Orders (filter by country)
+            'total_orders' => Order::where('country_id', $this->countryId)->count(),
+            'total_sales' => Order::where('country_id', $this->countryId)->whereHas('stage', function($q) {
                 $q->where('type', 'deliver');
             })->sum('total_price'),
-            'today_sales' => Order::whereHas('stage', function($q) {
+            'today_sales' => Order::where('country_id', $this->countryId)->whereHas('stage', function($q) {
                 $q->where('type', 'deliver');
             })->whereDate('created_at', $today)->sum('total_price'),
-            'today_orders' => Order::whereDate('created_at', $today)->count(),
+            'today_orders' => Order::where('country_id', $this->countryId)->whereDate('created_at', $today)->count(),
             'total_order_stages' => OrderStage::withoutCountryFilter()->count(),
 
-            // Taxes
-            'total_taxes' => Tax::count(),
+            // Taxes (filter by country)
+            'total_taxes' => Tax::where('country_id', $this->countryId)->count(),
 
-            // Messages
-            'total_messages' => Message::count(),
+            // Messages (filter by country)
+            'total_messages' => Message::where('country_id', $this->countryId)->count(),
 
-            // Promo Codes
-            'promocodes' => Promocode::count(),
+            // Promo Codes (filter by country)
+            'promocodes' => Promocode::where('country_id', $this->countryId)->count(),
 
             // Area Settings
             'country' => Country::count(),
-            'city' => City::count(),
-            'region' => Region::count(),
+            'city' => City::where('country_id', $this->countryId)->count(),
+            'region' => Region::where('country_id', $this->countryId)->count(),
             'subregion' => 0,
 
             // Offers
             'total_offers' => 0,
 
-            // Reviews
-            'all_products_reviews' => Review::count(),
-            'accept_products_reviews' => Review::where('status', 'approved')->count(),
-            'reject_products_reviews' => Review::where('status', 'rejected')->count(),
+            // Reviews (filter by country)
+            'all_products_reviews' => Review::where('country_id', $this->countryId)->count(),
+            'accept_products_reviews' => Review::where('country_id', $this->countryId)->where('status', 'approved')->count(),
+            'reject_products_reviews' => Review::where('country_id', $this->countryId)->where('status', 'rejected')->count(),
 
-            // Advertisements
-            'total_advertisments' => Ad::count(),
+            // Advertisements (filter by country)
+            'total_advertisments' => Ad::where('country_id', $this->countryId)->count(),
         ];
     }
 
