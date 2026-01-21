@@ -1,7 +1,10 @@
 <div class="col-12 col-md-6 mb-25">
     <div class="card border-0 px-25">
         <div class="card-header px-0 border-0">
-            <h6 style="font-weight: bold">{{ trans('dashboard.earnings') }} <small class="text-muted fw-normal">({{ trans('dashboard.deliver_orders') }})</small></h6>
+            <h6 style="font-weight: bold">
+                {{ trans('dashboard.earnings') }} <small class="text-muted fw-normal">({{ trans('dashboard.deliver_orders') }})</small>
+                <span class="badge badge-danger badge-round badge-lg text-white" style="font-size: 10px; font-weight: normal; margin-left: 8px;">{{ trans('dashboard.without_refund') }}</span>
+            </h6>
             <div class="card-extra">
                 <ul class="card-tab-links nav-tabs nav" role="tablist">
                     <li>

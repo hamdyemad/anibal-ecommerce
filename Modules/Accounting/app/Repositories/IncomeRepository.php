@@ -28,7 +28,8 @@ class IncomeRepository implements IncomeRepositoryInterface
 
     public function getIncomeEntriesQuery(array $filters = [])
     {
-        $query = AccountingEntry::income()->with(['order', 'vendor.user']);
+        // Include both income and refund entries
+        $query = AccountingEntry::whereIn('type', ['income', 'refund'])->with(['order', 'vendor.user']);
 
         if (!empty($filters['search'])) {
             $search = $filters['search'];

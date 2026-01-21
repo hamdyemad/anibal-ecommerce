@@ -224,8 +224,8 @@
                                             <p>{{ __('accounting.total_income') }}</p>
                                         </div>
                                         <div class="ap-po-details__icon-area">
-                                            <div class="svg-icon order-bg-opacity-primary color-primary">
-                                                <i class="uil uil-money-dollar-circle"></i>
+                                            <div class="svg-icon order-bg-opacity-success color-success">
+                                                <i class="uil uil-arrow-circle-down"></i>
                                             </div>
                                         </div>
                                     </div>
@@ -245,7 +245,7 @@
                                         </div>
                                         <div class="ap-po-details__icon-area">
                                             <div class="svg-icon order-bg-opacity-danger color-danger">
-                                                <i class="uil uil-shopping-cart"></i>
+                                                <i class="uil uil-arrow-circle-up"></i>
                                             </div>
                                         </div>
                                     </div>
@@ -266,7 +266,7 @@
                                         </div>
                                         <div class="ap-po-details__icon-area">
                                             <div class="svg-icon order-bg-opacity-info color-info">
-                                                <i class="uil uil-percent"></i>
+                                                <i class="uil uil-dollar-sign"></i>
                                             </div>
                                         </div>
                                     </div>
@@ -285,8 +285,8 @@
                                             <p>{{ __('accounting.net_profit') }}</p>
                                         </div>
                                         <div class="ap-po-details__icon-area">
-                                            <div class="svg-icon order-bg-opacity-success color-success">
-                                                <i class="uil uil-line-chart"></i>
+                                            <div class="svg-icon order-bg-opacity-secondary color-secondary">
+                                                <i class="uil uil-chart-growth"></i>
                                             </div>
                                         </div>
                                     </div>
@@ -331,8 +331,11 @@
                                             <tr>
                                                 <td class="fw-bold">{{ __('accounting.income') }}</td>
                                                 @foreach($monthHeaders as $month)
+                                                    @php
+                                                        $netIncome = ($summary['monthly_data'][$month['key']]['income'] ?? 0) - ($summary['monthly_data'][$month['key']]['refunds'] ?? 0);
+                                                    @endphp
                                                     <td class="text-center text-success">
-                                                        {{ number_format($summary['monthly_data'][$month['key']]['income'] ?? 0, 2) }} {{ currency() }}
+                                                        {{ number_format($netIncome, 2) }} {{ currency() }}
                                                     </td>
                                                 @endforeach
                                                 <td class="text-center text-success fw-bold">
@@ -342,8 +345,11 @@
                                             <tr>
                                                 <td class="fw-bold">{{ __('accounting.commissions') }}</td>
                                                 @foreach($monthHeaders as $month)
+                                                    @php
+                                                        $netCommission = ($summary['monthly_data'][$month['key']]['commissions'] ?? 0) - ($summary['monthly_data'][$month['key']]['refunded_commissions'] ?? 0);
+                                                    @endphp
                                                     <td class="text-center text-info">
-                                                        {{ number_format($summary['monthly_data'][$month['key']]['commissions'] ?? 0, 2) }} {{ currency() }}
+                                                        {{ number_format($netCommission, 2) }} {{ currency() }}
                                                     </td>
                                                 @endforeach
                                                 <td class="text-center text-info fw-bold">
@@ -376,8 +382,10 @@
                                                 <td class="fw-bold">{{ __('accounting.net_profit') }}</td>
                                                 @foreach($monthHeaders as $month)
                                                     @php
-                                                        // Net Profit = Platform Commission - Expenses
-                                                        $monthProfit = ($summary['monthly_data'][$month['key']]['commissions'] ?? 0) - ($summary['monthly_data'][$month['key']]['expenses'] ?? 0);
+                                                        // Net Profit = (Income - Refunds) - (Commission - Refunded Commission) - Expenses
+                                                        $netIncome = ($summary['monthly_data'][$month['key']]['income'] ?? 0) - ($summary['monthly_data'][$month['key']]['refunds'] ?? 0);
+                                                        $netCommission = ($summary['monthly_data'][$month['key']]['commissions'] ?? 0) - ($summary['monthly_data'][$month['key']]['refunded_commissions'] ?? 0);
+                                                        $monthProfit = $netIncome - $netCommission - ($summary['monthly_data'][$month['key']]['expenses'] ?? 0);
                                                     @endphp
                                                     <td class="text-center fw-bold {{ $monthProfit >= 0 ? 'text-success' : 'text-danger' }}">
                                                         {{ number_format($monthProfit, 2) }} {{ currency() }}
@@ -445,8 +453,11 @@
                                             <tr>
                                                 <td class="fw-bold text-success">{{ __('accounting.sales_revenue') }}</td>
                                                 @foreach($monthHeaders as $month)
+                                                    @php
+                                                        $netIncome = ($summary['monthly_data'][$month['key']]['income'] ?? 0) - ($summary['monthly_data'][$month['key']]['refunds'] ?? 0);
+                                                    @endphp
                                                     <td class="text-center text-success">
-                                                        {{ number_format($summary['monthly_data'][$month['key']]['income'] ?? 0, 2) }} {{ currency() }}
+                                                        {{ number_format($netIncome, 2) }} {{ currency() }}
                                                     </td>
                                                 @endforeach
                                                 <td class="text-center text-success fw-bold">
@@ -456,8 +467,11 @@
                                             <tr>
                                                 <td class="fw-bold text-info">{{ __('accounting.commissions') }}</td>
                                                 @foreach($monthHeaders as $month)
+                                                    @php
+                                                        $netCommission = ($summary['monthly_data'][$month['key']]['commissions'] ?? 0) - ($summary['monthly_data'][$month['key']]['refunded_commissions'] ?? 0);
+                                                    @endphp
                                                     <td class="text-center text-info">
-                                                        -{{ number_format($summary['monthly_data'][$month['key']]['commissions'] ?? 0, 2) }} {{ currency() }}
+                                                        -{{ number_format($netCommission, 2) }} {{ currency() }}
                                                     </td>
                                                 @endforeach
                                                 <td class="text-center text-info fw-bold">
@@ -479,8 +493,10 @@
                                                 <td class="fw-bold">{{ __('accounting.net_flow') }}</td>
                                                 @foreach($monthHeaders as $month)
                                                     @php
-                                                        // Net Flow = Income - Commissions - Expenses
-                                                        $monthFlow = ($summary['monthly_data'][$month['key']]['income'] ?? 0) - ($summary['monthly_data'][$month['key']]['commissions'] ?? 0) - ($summary['monthly_data'][$month['key']]['expenses'] ?? 0);
+                                                        // Net Flow = (Income - Refunds) - (Commissions - Refunded Commissions) - Expenses
+                                                        $netIncome = ($summary['monthly_data'][$month['key']]['income'] ?? 0) - ($summary['monthly_data'][$month['key']]['refunds'] ?? 0);
+                                                        $netCommission = ($summary['monthly_data'][$month['key']]['commissions'] ?? 0) - ($summary['monthly_data'][$month['key']]['refunded_commissions'] ?? 0);
+                                                        $monthFlow = $netIncome - $netCommission - ($summary['monthly_data'][$month['key']]['expenses'] ?? 0);
                                                     @endphp
                                                     <td class="text-center fw-bold {{ $monthFlow >= 0 ? 'text-success' : 'text-danger' }}">
                                                         {{ number_format($monthFlow, 2) }} {{ currency() }}
@@ -688,11 +704,23 @@
                 months.push(new Date(0, i - 1).toLocaleString('default', {
                     month: 'short'
                 }));
-                incomeData.push(monthlyData[i]?.income || 0);
-                expenseData.push(monthlyData[i]?.expenses || 0);
-                commissionData.push(monthlyData[i]?.commissions || 0);
-                // Profit = Platform Commission - Expenses
-                profitData.push((monthlyData[i]?.commissions || 0) - (monthlyData[i]?.expenses || 0));
+                
+                // Calculate net values (after refunds)
+                const grossIncome = monthlyData[i]?.income || 0;
+                const refunds = monthlyData[i]?.refunds || 0;
+                const netIncome = grossIncome - refunds;
+                
+                const grossCommission = monthlyData[i]?.commissions || 0;
+                const refundedCommission = monthlyData[i]?.refunded_commissions || 0;
+                const netCommission = grossCommission - refundedCommission;
+                
+                const expenses = monthlyData[i]?.expenses || 0;
+                
+                incomeData.push(netIncome);
+                expenseData.push(expenses);
+                commissionData.push(netCommission);
+                // Net Profit = Net Income - Net Commission - Expenses
+                profitData.push(netIncome - netCommission - expenses);
             }
 
             new Chart(ctx, {

@@ -610,7 +610,7 @@
                     labels: Array.from({length: 24}, (_, i) => i + ':00'),
                     datasets: [{
                         label: '{{ trans("dashboard.earnings") }}',
-                        data: netSalesHourly.map(d => d.total_sales),
+                        data: netSalesHourly.map(d => d.earnings),
                         borderColor: 'rgba(54, 162, 235, 1)',
                         backgroundColor: 'rgba(54, 162, 235, 0.1)',
                         borderWidth: 2,
@@ -626,7 +626,7 @@
                         tension: 0.4
                     }, {
                         label: '{{ trans("dashboard.net_earnings") }}',
-                        data: netSalesHourly.map(d => d.net_sales),
+                        data: netSalesHourly.map(d => d.net_earnings),
                         borderColor: 'rgba(40, 167, 69, 1)',
                         backgroundColor: 'rgba(40, 167, 69, 0.1)',
                         borderWidth: 2,
@@ -646,7 +646,7 @@
                              '{{ trans("common.wednesday") }}', '{{ trans("common.thursday") }}', '{{ trans("common.friday") }}', '{{ trans("common.saturday") }}'],
                     datasets: [{
                         label: '{{ trans("dashboard.earnings") }}',
-                        data: netSalesWeekly.map(d => d.total_sales),
+                        data: netSalesWeekly.map(d => d.earnings),
                         borderColor: 'rgba(54, 162, 235, 1)',
                         backgroundColor: 'rgba(54, 162, 235, 0.1)',
                         borderWidth: 2,
@@ -662,7 +662,7 @@
                         tension: 0.4
                     }, {
                         label: '{{ trans("dashboard.net_earnings") }}',
-                        data: netSalesWeekly.map(d => d.net_sales),
+                        data: netSalesWeekly.map(d => d.net_earnings),
                         borderColor: 'rgba(40, 167, 69, 1)',
                         backgroundColor: 'rgba(40, 167, 69, 0.1)',
                         borderWidth: 2,
@@ -681,7 +681,7 @@
                     labels: Array.from({length: netSalesDaily.length}, (_, i) => i + 1),
                     datasets: [{
                         label: '{{ trans("dashboard.earnings") }}',
-                        data: netSalesDaily.map(d => d.total_sales),
+                        data: netSalesDaily.map(d => d.earnings),
                         borderColor: 'rgba(54, 162, 235, 1)',
                         backgroundColor: 'rgba(54, 162, 235, 0.1)',
                         borderWidth: 2,
@@ -697,7 +697,7 @@
                         tension: 0.4
                     }, {
                         label: '{{ trans("dashboard.net_earnings") }}',
-                        data: netSalesDaily.map(d => d.net_sales),
+                        data: netSalesDaily.map(d => d.net_earnings),
                         borderColor: 'rgba(40, 167, 69, 1)',
                         backgroundColor: 'rgba(40, 167, 69, 0.1)',
                         borderWidth: 2,
@@ -719,7 +719,7 @@
                              '{{ trans("common.october") }}', '{{ trans("common.november") }}', '{{ trans("common.december") }}'],
                     datasets: [{
                         label: '{{ trans("dashboard.earnings") }}',
-                        data: netSalesMonthly.map(d => d.total_sales),
+                        data: netSalesMonthly.map(d => d.earnings),
                         borderColor: 'rgba(54, 162, 235, 1)',
                         backgroundColor: 'rgba(54, 162, 235, 0.1)',
                         borderWidth: 2,
@@ -735,7 +735,7 @@
                         tension: 0.4
                     }, {
                         label: '{{ trans("dashboard.net_earnings") }}',
-                        data: netSalesMonthly.map(d => d.net_sales),
+                        data: netSalesMonthly.map(d => d.net_earnings),
                         borderColor: 'rgba(40, 167, 69, 1)',
                         backgroundColor: 'rgba(40, 167, 69, 0.1)',
                         borderWidth: 2,
@@ -904,7 +904,7 @@
                     labels: netSalesYearlyLabels.length ? netSalesYearlyLabels : [{{ date('Y')-4 }}, {{ date('Y')-3 }}, {{ date('Y')-2 }}, {{ date('Y')-1 }}, {{ date('Y') }}],
                     datasets: [{
                         label: '{{ trans("dashboard.earnings") }}',
-                        data: netSalesYearlyData.map(d => d.total_sales),
+                        data: netSalesYearlyData.map(d => d.earnings),
                         borderColor: 'rgba(54, 162, 235, 1)',
                         backgroundColor: 'rgba(54, 162, 235, 0.1)',
                         borderWidth: 2,
@@ -920,7 +920,7 @@
                         tension: 0.4
                     }, {
                         label: '{{ trans("dashboard.net_earnings") }}',
-                        data: netSalesYearlyData.map(d => d.net_sales),
+                        data: netSalesYearlyData.map(d => d.net_earnings),
                         borderColor: 'rgba(40, 167, 69, 1)',
                         backgroundColor: 'rgba(40, 167, 69, 0.1)',
                         borderWidth: 2,

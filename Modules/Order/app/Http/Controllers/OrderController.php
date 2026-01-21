@@ -124,6 +124,7 @@ class OrderController extends Controller
                 'vendor_id' => $request->vendor ?? null,
                 'payment_type' => $request->payment_type ?? null,
                 'payment_visa_status' => $request->payment_visa_status ?? null,
+                'has_refund' => $request->has_refund ?? null,  // New filter for orders with refunds
             ];
 
             // Get total records count
@@ -295,6 +296,17 @@ class OrderController extends Controller
                     }
                 }
 
+                // Get refund information
+                $refundsQuery = $order->refunds();
+                if ($isVendorUser && $currentVendorId) {
+                    $refundsQuery->where('vendor_id', $currentVendorId);
+                }
+                $refunds = $refundsQuery->get();
+                $hasRefund = $refunds->count() > 0;
+                $refundedCount = $refunds->where('status', 'refunded')->count();
+                $totalRefundedAmount = $refunds->where('status', 'refunded')->sum('total_refund_amount');
+                $pendingRefundsCount = $refunds->whereIn('status', ['pending', 'approved', 'in_progress'])->count();
+
                 $rowData = [
                     'index' => $index++,
                     'id' => $order->id,
@@ -317,6 +329,10 @@ class OrderController extends Controller
                     'created_at' => $order->created_at,
                     'is_exclusive_to_vendor' => $isExclusiveToCurrentVendor,
                     'is_fully_allocated' => $isFullyAllocated,
+                    'has_refund' => $hasRefund,
+                    'refunded_count' => $refundedCount,
+                    'total_refunded_amount' => $totalRefundedAmount,
+                    'pending_refunds_count' => $pendingRefundsCount,
                 ];
 
                 $data[] = $rowData;

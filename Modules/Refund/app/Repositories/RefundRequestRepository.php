@@ -210,10 +210,21 @@ class RefundRequestRepository implements RefundRequestRepositoryInterface
                 foreach ($vendorItems as $item) {
                     $orderProduct = $item['order_product'];
                     
-                    // Calculate actual unit price (order product price is total for all quantities)
-                    $actualUnitPrice = $orderProduct->quantity > 0 
-                        ? $orderProduct->price / $orderProduct->quantity 
-                        : $orderProduct->price;
+                    // Calculate total tax for this order product
+                    $totalTax = $orderProduct->taxes()->sum('amount') ?? 0;
+                    
+                    // Calculate unit price WITHOUT tax (order product price includes tax)
+                    $priceWithTax = $orderProduct->price; // Total price for all quantities (with tax)
+                    $priceWithoutTax = $priceWithTax - $totalTax; // Total price without tax
+                    
+                    $actualUnitPriceWithoutTax = $orderProduct->quantity > 0 
+                        ? $priceWithoutTax / $orderProduct->quantity 
+                        : $priceWithoutTax;
+                    
+                    // Calculate actual unit price WITH tax (for total_price calculation)
+                    $actualUnitPriceWithTax = $orderProduct->quantity > 0 
+                        ? $priceWithTax / $orderProduct->quantity 
+                        : $priceWithTax;
                     
                     // Calculate proportional shipping cost for refunded quantity
                     // If vendor pays return shipping, don't refund original shipping cost
@@ -223,7 +234,6 @@ class RefundRequestRepository implements RefundRequestRepositoryInterface
                     $refundShippingAmount = $shippingPerUnit * $item['quantity'];
                     
                     // Calculate proportional tax for refunded quantity
-                    $totalTax = $orderProduct->taxes()->sum('amount') ?? 0;
                     $taxPerUnit = $orderProduct->quantity > 0 
                         ? $totalTax / $orderProduct->quantity 
                         : 0;
@@ -234,12 +244,12 @@ class RefundRequestRepository implements RefundRequestRepositoryInterface
                         'order_product_id' => $orderProduct->id,
                         'vendor_id' => $vendorId,
                         'quantity' => $item['quantity'],
-                        'unit_price' => $actualUnitPrice,
-                        'total_price' => $actualUnitPrice * $item['quantity'],
+                        'unit_price' => $actualUnitPriceWithoutTax, // Store unit price WITHOUT tax
+                        'total_price' => $actualUnitPriceWithTax * $item['quantity'], // Total WITH tax
                         'shipping_amount' => $refundShippingAmount,
                         'tax_amount' => $refundTaxAmount,
                         'discount_amount' => 0, // Will be calculated in calculateTotals if needed
-                        'refund_amount' => ($actualUnitPrice * $item['quantity']) + $refundShippingAmount + $refundTaxAmount,
+                        'refund_amount' => ($actualUnitPriceWithTax * $item['quantity']) + $refundShippingAmount, // Don't add tax again
                         'reason' => $item['reason'],
                     ]);
                 }

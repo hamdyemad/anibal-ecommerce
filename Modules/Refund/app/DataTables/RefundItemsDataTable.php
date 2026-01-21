@@ -22,9 +22,10 @@ class RefundItemsDataTable
                 'product' => $this->buildProductHtml($item, $locale),
                 'price_before_tax' => $this->formatPrice($this->calculatePriceBeforeTax($item)),
                 'tax' => $this->formatPrice($this->calculateTaxAmount($item)),
-                'price_with_tax' => $this->formatPrice($item->unit_price),
+                'price_with_tax' => $this->formatPrice($this->calculatePriceWithTax($item)),
                 'quantity' => $this->buildQuantityBadge($item->quantity),
-                'total' => $this->buildTotalHtml($item->total_price),
+                'shipping' => $this->formatPrice($item->shipping_amount),
+                'total' => $this->buildTotalHtml($item->total_price + $item->shipping_amount),
             ];
         }
         
@@ -139,7 +140,8 @@ class RefundItemsDataTable
      */
     protected function calculatePriceBeforeTax($item): float
     {
-        return $item->unit_price - ($item->tax_amount / $item->quantity);
+        // unit_price is already stored WITHOUT tax
+        return $item->unit_price;
     }
 
     /**
@@ -148,6 +150,15 @@ class RefundItemsDataTable
     protected function calculateTaxAmount($item): float
     {
         return $item->tax_amount / $item->quantity;
+    }
+
+    /**
+     * Calculate price with tax (per unit)
+     */
+    protected function calculatePriceWithTax($item): float
+    {
+        // total_price includes tax, divide by quantity to get per-unit price with tax
+        return $item->total_price / $item->quantity;
     }
 
     /**
@@ -188,6 +199,7 @@ class RefundItemsDataTable
             ['label' => trans('order::order.taxes'), 'class' => 'text-center'],
             ['label' => trans('order::order.price_including_taxes'), 'class' => 'text-center'],
             ['label' => trans('refund::refund.fields.quantity'), 'class' => 'text-center'],
+            ['label' => trans('order::order.shipping'), 'class' => 'text-center'],
             ['label' => trans('refund::refund.fields.total_price'), 'class' => 'text-center'],
         ];
     }
@@ -199,12 +211,13 @@ class RefundItemsDataTable
     {
         return [
             ['data' => 'index', 'orderable' => false, 'searchable' => false, 'className' => 'text-center fw-bold', 'width' => '5%'],
-            ['data' => 'product', 'orderable' => false, 'searchable' => false, 'width' => '35%'],
-            ['data' => 'price_before_tax', 'orderable' => false, 'searchable' => false, 'className' => 'text-center', 'width' => '12%'],
-            ['data' => 'tax', 'orderable' => false, 'searchable' => false, 'className' => 'text-center', 'width' => '10%'],
-            ['data' => 'price_with_tax', 'orderable' => false, 'searchable' => false, 'className' => 'text-center', 'width' => '13%'],
-            ['data' => 'quantity', 'orderable' => false, 'searchable' => false, 'className' => 'text-center', 'width' => '10%'],
-            ['data' => 'total', 'orderable' => false, 'searchable' => false, 'className' => 'text-center', 'width' => '15%'],
+            ['data' => 'product', 'orderable' => false, 'searchable' => false, 'width' => '30%'],
+            ['data' => 'price_before_tax', 'orderable' => false, 'searchable' => false, 'className' => 'text-center', 'width' => '10%'],
+            ['data' => 'tax', 'orderable' => false, 'searchable' => false, 'className' => 'text-center', 'width' => '8%'],
+            ['data' => 'price_with_tax', 'orderable' => false, 'searchable' => false, 'className' => 'text-center', 'width' => '12%'],
+            ['data' => 'quantity', 'orderable' => false, 'searchable' => false, 'className' => 'text-center', 'width' => '8%'],
+            ['data' => 'shipping', 'orderable' => false, 'searchable' => false, 'className' => 'text-center', 'width' => '10%'],
+            ['data' => 'total', 'orderable' => false, 'searchable' => false, 'className' => 'text-center', 'width' => '12%'],
         ];
     }
 }

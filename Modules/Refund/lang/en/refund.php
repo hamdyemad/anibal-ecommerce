@@ -88,14 +88,14 @@ return [
     'points_returned_desc' => 'Points used in purchase returned to customer',
     'points_deducted_desc' => 'Points earned from purchase deducted from customer',
     'customer_pays_shipping' => 'Customer Pays Return Shipping',
-    'vendor_pays_shipping' => 'Vendor Pays Return Shipping',
+    'vendor_pays_shipping' => 'Free Return Shipping (Vendor Pays)',
     'based_on_vendor_settings' => 'Based on vendor settings',
     'customer_gets_original_shipping_back' => 'Customer gets original shipping cost back',
     'customer_does_not_get_original_shipping_back' => 'Customer does not get original shipping cost back',
     'shipping_cost_deducted' => 'Shipping cost deducted from refund',
     'no_shipping_cost_deducted' => 'No shipping cost deducted',
     'customer_responsible_for_shipping_cost' => 'Customer is responsible for return shipping cost',
-    'vendor_responsible_for_shipping_cost' => 'Vendor is responsible for return shipping cost',
+    'vendor_responsible_for_shipping_cost' => 'Vendor covers return shipping cost (free for customer)',
 
     'statuses' => [
         'pending' => 'Pending',

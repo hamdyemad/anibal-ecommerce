@@ -237,16 +237,6 @@
                                             </div>
                                         </div>
 
-                                        {{-- Total Tax Amount --}}
-                                        <div class="col-md-6 mb-3">
-                                            <div class="p-3 border rounded" style="background: #fff3cd;">
-                                                <small class="text-muted d-block mb-1">{{ trans('refund::refund.fields.total_tax_amount') }}</small>
-                                                <div class="fw-bold text-warning" style="font-size: 18px;">
-                                                    <i class="uil uil-percentage me-1"></i>{{ number_format($refundRequest->total_tax_amount, 2) }} {{ trans('common.currency') ?? 'EGP' }}
-                                                </div>
-                                            </div>
-                                        </div>
-
                                         {{-- Total Shipping Amount --}}
                                         <div class="col-md-6 mb-3">
                                             <div class="p-3 border rounded" style="background: #f8f9fa;">
@@ -337,10 +327,10 @@
                                         @endif
 
                                         {{-- Total Refund Amount --}}
-                                        <div class="col-md-12 mb-3">
+                                        <div class="col-md-6 mb-3">
                                             <div class="p-3 border rounded" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
                                                 <small class="d-block mb-1" style="opacity: 0.9;">{{ trans('refund::refund.fields.total_refund_amount') }}</small>
-                                                <div class="fw-bold" style="font-size: 24px;">
+                                                <div class="fw-bold" style="font-size: 18px;">
                                                     <i class="uil uil-money-withdraw me-1"></i>{{ number_format($refundRequest->total_refund_amount, 2) }} {{ trans('common.currency') ?? 'EGP' }}
                                                 </div>
                                             </div>

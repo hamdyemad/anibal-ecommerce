@@ -70,8 +70,8 @@
                             ->get();
                         
                         foreach ($refundItems as $refundItem) {
-                            // Calculate total refund amount for this item
-                            $itemRefundAmount = ($refundItem->total_price ?? 0) + ($refundItem->shipping_amount ?? 0) + ($refundItem->tax_amount ?? 0);
+                            // Calculate total refund amount for this item (total_price already includes tax)
+                            $itemRefundAmount = ($refundItem->total_price ?? 0) + ($refundItem->shipping_amount ?? 0);
                             $productRefundedAmount += $itemRefundAmount;
                             
                             // Use the same commission percentage as the original product

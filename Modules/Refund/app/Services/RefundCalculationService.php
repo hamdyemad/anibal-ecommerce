@@ -59,12 +59,13 @@ class RefundCalculationService
         $pointsData = $this->calculatePoints($order, $vendorId, $totalProductsAmount);
 
         // Step 6: Calculate final refund amount
+        // When refunding: ADD fees back (customer paid them), SUBTRACT discounts (customer already got them)
         $totalRefundAmount = $totalProductsAmount 
             + $totalTaxAmount 
             + ($this->settings->refund_original_shipping ? $totalShippingAmount : 0)
-            + $vendorFeesDiscounts['discounts']
+            + $vendorFeesDiscounts['fees']  // ADD fees back
+            - $vendorFeesDiscounts['discounts']  // SUBTRACT discounts
             + $promoCodeAmount
-            - $vendorFeesDiscounts['fees']
             - $returnShippingCost
             - $pointsData['points_value_used'];
 

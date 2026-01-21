@@ -165,6 +165,9 @@ class VendorController extends Controller {
         $orderProducts = \Modules\Order\app\Models\OrderProduct::with([
             'order',
             'order.customer',
+            'order.vendorStages' => function($query) use ($id) {
+                $query->where('vendor_id', $id);
+            },
             'vendorProduct.product.mainImage',
             'vendorProduct.product.translations',
             'vendorProductVariant.variantConfiguration'
@@ -193,12 +196,27 @@ class VendorController extends Controller {
                 default => 'uil-clock',
             };
             
+            // Count order products by checking vendor_order_stages table
+            $count = $allOrderProducts->filter(function($op) use ($stage, $id) {
+                if (!$op->order) return false;
+                
+                // Check vendor_order_stages table for this vendor's stage
+                $vendorStage = \Modules\Order\app\Models\VendorOrderStage::where('order_id', $op->order_id)
+                    ->where('vendor_id', $id)
+                    ->first();
+                
+                // If vendor stage exists, use it; otherwise fall back to order stage
+                $stageId = $vendorStage ? $vendorStage->stage_id : $op->order->stage_id;
+                
+                return $stageId === $stage->id;
+            })->count();
+            
             $stageStats[$stage->id] = [
                 'name' => $stage->getTranslation('name', app()->getLocale()),
                 'color' => $stage->color ?? '#6c757d',
                 'icon' => $icon,
                 'type' => $stage->type,
-                'count' => $allOrderProducts->filter(fn($op) => $op->order && $op->order->stage_id === $stage->id)->count(),
+                'count' => $count,
             ];
         }
 
@@ -363,6 +381,9 @@ class VendorController extends Controller {
             $query = \Modules\Order\app\Models\OrderProduct::with([
                 'order',
                 'order.customer',
+                'order.vendorStages' => function($q) use ($id) {
+                    $q->where('vendor_id', $id);
+                },
                 'vendorProduct.product.mainImage',
                 'vendorProduct.product.translations',
                 'vendorProductVariant.variantConfiguration',
@@ -394,9 +415,13 @@ class VendorController extends Controller {
                         ? $orderProduct->vendorProductVariant->variant_name 
                         : null;
                 })
-                ->addColumn('order_stage', function ($orderProduct) {
+                ->addColumn('order_stage', function ($orderProduct) use ($id) {
                     if ($orderProduct->order) {
-                        $stage = \Modules\Order\app\Models\OrderStage::withoutGlobalScopes()->find($orderProduct->order->stage_id);
+                        // Get vendor-specific stage from vendor_order_stages table
+                        $vendorStage = $orderProduct->order->vendorStages->first();
+                        $stageId = $vendorStage ? $vendorStage->stage_id : $orderProduct->order->stage_id;
+                        
+                        $stage = \Modules\Order\app\Models\OrderStage::withoutGlobalScopes()->find($stageId);
                         return $stage ? [
                             'name' => $stage->getTranslation('name', app()->getLocale()),
                             'color' => $stage->color ?? '#6c757d'

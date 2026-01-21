@@ -44,7 +44,7 @@ class SummaryRepository implements SummaryRepositoryInterface
         $totalWithdrawsFromMonthly = 0;
         
         foreach ($monthlyData as $month => $data) {
-            $totalOrderAmount += $data['income'] ?? 0;
+            $totalOrderAmount += $data['order_amount'] ?? 0; // Use order_amount (gross) not income (net)
             $totalCommissions += $data['commissions'] ?? 0;
             $totalVendorShare += $data['vendor_share'] ?? 0;
             $totalExpenses += $data['expenses'] ?? 0;
@@ -61,16 +61,30 @@ class SummaryRepository implements SummaryRepositoryInterface
         }
         $totalRefunds = abs($refundQuery->sum('amount'));
         
+        // Get refunded commissions
+        $totalRefundedCommissions = abs($refundQuery->sum('commission_amount'));
+        
+        // Calculate net values after refunds
+        // Note: If there are no orders but there are refunds, income will be 0 and refunds will be positive
+        // This means net income will be negative (which is correct - we're losing money)
+        $netIncome = $totalOrderAmount - $totalRefunds;
+        $netCommissions = $totalCommissions - $totalRefundedCommissions;
+        
+        // Net profit calculation
+        // Net Profit = Total Income - Commission - Expenses
+        // This represents the vendor's remaining amount after platform takes commission and expenses
+        $netProfit = $netIncome - $netCommissions - $totalExpenses;
+        
         return [
-            'total_income' => $totalOrderAmount, // Show full order amount as Total Income
-            'total_order_amount' => $totalOrderAmount, // Full order amounts
+            'total_income' => $netIncome, // Total Income after refunds (can be negative)
+            'total_order_amount' => $totalOrderAmount, // Full order amounts (before refunds)
             'total_expenses' => $totalExpenses,
-            'total_commissions' => $totalCommissions, // Platform's commission
+            'total_commissions' => $netCommissions, // Platform's commission after refunds (can be negative)
             'total_vendor_share' => $totalVendorShare, // Amount that goes to vendors
             'total_refunds' => $totalRefunds,
+            'total_refunded_commissions' => $totalRefundedCommissions,
             'total_withdraws' => $totalWithdrawsFromMonthly,
-            // Net profit = Total Income - Commissions - Expenses
-            'net_profit' => $totalOrderAmount - $totalCommissions - $totalExpenses,
+            'net_profit' => $netProfit,
             'monthly_data' => $monthlyData,
             'expense_categories' => $expenseCategories
         ];
@@ -145,6 +159,10 @@ class SummaryRepository implements SummaryRepositoryInterface
             $incomeQuery = AccountingEntry::income()
                 ->whereBetween('created_at', [$startDate, $endDate]);
             
+            // Refunds for this month
+            $refundQuery = AccountingEntry::refund()
+                ->whereBetween('created_at', [$startDate, $endDate]);
+            
             // Expenses for this month  
             $expenseQuery = Expense::whereBetween('created_at', [$startDate, $endDate]);
             
@@ -152,11 +170,18 @@ class SummaryRepository implements SummaryRepositoryInterface
             $withdrawQuery = \Modules\Withdraw\app\Models\Withdraw::where('status', 'accepted')
                 ->whereBetween('created_at', [$startDate, $endDate]);
             
+            $incomeAmount = $incomeQuery->sum('amount');
+            $incomeCommission = (clone $incomeQuery)->sum('commission_amount');
+            $refundAmount = abs($refundQuery->sum('amount'));
+            $refundCommission = abs((clone $refundQuery)->sum('commission_amount'));
+            
             $monthlyData[$month] = [
-                'income' => $incomeQuery->sum('amount'),
-                'order_amount' => $incomeQuery->sum('amount'),
+                'income' => $incomeAmount, // Gross income (before refunds)
+                'order_amount' => $incomeAmount,
+                'refunds' => $refundAmount,
                 'expenses' => $expenseQuery->sum('amount'),
-                'commissions' => (clone $incomeQuery)->sum('commission_amount'),
+                'commissions' => $incomeCommission, // Gross commission (before refunds)
+                'refunded_commissions' => $refundCommission,
                 'vendor_share' => (clone $incomeQuery)->sum('vendor_amount'),
                 'withdraws' => $withdrawQuery->sum('sent_amount')
             ];

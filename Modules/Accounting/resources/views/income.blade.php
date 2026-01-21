@@ -95,6 +95,7 @@
                             <thead>
                                 <tr class="userDatatable-header">
                                     <th class="text-center"><span class="userDatatable-title">#</span></th>
+                                    <th><span class="userDatatable-title">{{ __('accounting.type') }}</span></th>
                                     <th><span class="userDatatable-title">{{ __('accounting.order_number') }}</span></th>
                                     <th><span class="userDatatable-title">{{ __('accounting.vendor_name') }}</span></th>
                                     <th><span class="userDatatable-title">{{ __('accounting.total_amount') }}</span></th>
@@ -149,11 +150,48 @@
                             return meta.row + meta.settings._iDisplayStart + 1;
                         }
                     },
+                    { 
+                        data: 'type', 
+                        name: 'type',
+                        render: function(data, type, row) {
+                            if (data === 'refund') {
+                                return '<span class="badge badge-danger">{{ __("accounting.refund") }}</span>';
+                            }
+                            return '<span class="badge badge-success">{{ __("accounting.income") }}</span>';
+                        }
+                    },
                     { data: 'order_number', name: 'order_number' },
                     { data: 'vendor_name', name: 'vendor_name' },
-                    { data: 'amount', name: 'amount' },
-                    { data: 'commission_amount', name: 'commission_amount' },
-                    { data: 'vendor_amount', name: 'vendor_amount' },
+                    { 
+                        data: 'amount', 
+                        name: 'amount',
+                        render: function(data, type, row) {
+                            if (row.type === 'refund') {
+                                return '<span class="text-danger">' + data + '</span>';
+                            }
+                            return '<span class="text-success">' + data + '</span>';
+                        }
+                    },
+                    { 
+                        data: 'commission_amount', 
+                        name: 'commission_amount',
+                        render: function(data, type, row) {
+                            if (row.type === 'refund') {
+                                return '<span class="text-danger">' + data + '</span>';
+                            }
+                            return '<span class="text-success">' + data + '</span>';
+                        }
+                    },
+                    { 
+                        data: 'vendor_amount', 
+                        name: 'vendor_amount',
+                        render: function(data, type, row) {
+                            if (row.type === 'refund') {
+                                return '<span class="text-danger">' + data + '</span>';
+                            }
+                            return '<span class="text-success">' + data + '</span>';
+                        }
+                    },
                     { data: 'description', name: 'description' },
                     { data: 'created_at', name: 'created_at' }
                 ],

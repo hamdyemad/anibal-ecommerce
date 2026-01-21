@@ -173,6 +173,20 @@
                                         </div>
                                     </div>
 
+                                    {{-- Has Refund Filter --}}
+                                    <div class="col-md-3">
+                                        <div class="form-group">
+                                            <label for="has_refund" class="il-gray fs-14 fw-500 mb-10">
+                                                <i class="uil uil-redo me-1"></i>
+                                                {{ trans('order::order.refund_status') }}
+                                            </label>
+                                            <select class="form-control form-select ih-medium ip-gray radius-xs b-light" id="has_refund">
+                                                <option value="">{{ trans('order::order.all_orders') }}</option>
+                                                <option value="yes">{{ trans('order::order.with_refunds') }}</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
                                     @if(isAdmin())
                                         {{-- Vendor --}}
                                         <div class="col-md-3">
@@ -328,6 +342,7 @@
             if (urlParams.has('stage')) $('#stage').val(urlParams.get('stage'));
             if (urlParams.has('payment_type')) $('#payment_type').val(urlParams.get('payment_type'));
             if (urlParams.has('payment_visa_status')) $('#payment_visa_status').val(urlParams.get('payment_visa_status'));
+            if (urlParams.has('has_refund')) $('#has_refund').val(urlParams.get('has_refund'));
             if (urlParams.has('vendor') && document.getElementById('vendor')) {
                 const vendorValues = urlParams.get('vendor').split(',');
                 MultiSelect.setValues('vendor', vendorValues);
@@ -400,11 +415,11 @@
                             
                             html += `
                                     <div>
-                                        <span class="badge badge-round" style="background-color: ${statusColor}; font-size: 10px;">
+                                        <span class="badge badge-lg  badge-round" style="background-color: ${statusColor}; font-size: 10px;">
                                             <i class="uil uil-file-question-alt me-1"></i>{{ __('order::request-quotation.from_quotation') }}: ${quotationNumber}
                                         </span>
                                         <br>
-                                        <span class="badge badge-round mt-1" style="background-color: ${statusColor}; font-size: 9px;">
+                                        <span class="badge badge-lg badge-round mt-1" style="background-color: ${statusColor}; font-size: 9px;">
                                             ${statusLabel}
                                         </span>
                                     </div>`;
@@ -416,6 +431,35 @@
                                     <div class="mb-1">
                                         <i class="uil uil-calendar-alt me-1"></i> ${createdAt}
                                     </div>`;
+                        
+                        // Add refund information if order has refunds
+                        if (data.has_refund) {
+                            const refundedCount = data.refunded_count || 0;
+                            const totalRefundedAmount = data.total_refunded_amount || 0;
+                            const pendingRefundsCount = data.pending_refunds_count || 0;
+                            
+                            if (refundedCount > 0) {
+                                html += `
+                                    <div class="mb-1">
+                                        <span class="badge badge-round badge-lg badge-danger" style="font-size: 10px;">
+                                            <i class="uil uil-redo me-1"></i>{{ trans('order::order.refunded_items') }}: ${refundedCount}
+                                        </span>
+                                        <br>
+                                        <span class="badge badge-round badge-lg  badge-danger mt-1" style="font-size: 9px;">
+                                            {{ trans('order::order.refunded_amount') }}: ${parseFloat(totalRefundedAmount).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})} {{ currency() }}
+                                        </span>
+                                    </div>`;
+                            }
+                            
+                            if (pendingRefundsCount > 0) {
+                                html += `
+                                    <div class="mb-1">
+                                        <span class="badge badge-round badge-lg  badge-warning" style="font-size: 10px;">
+                                            <i class="uil uil-clock me-1"></i>{{ trans('order::order.pending_refunds') }}: ${pendingRefundsCount}
+                                        </span>
+                                    </div>`;
+                            }
+                        }
                         
                         html += `
                                 </div>
@@ -591,6 +635,7 @@
                         d.created_date_from = $('#created_from_filter').val();
                         d.created_date_to = $('#created_until_filter').val();
                         d.payment_visa_status = $('#payment_visa_status').val();
+                        d.has_refund = $('#has_refund').val();
                         return d;
                     }
                 },
@@ -643,6 +688,7 @@
                 $('#stage').val('');
                 $('#payment_type').val('');
                 $('#payment_visa_status').val('');
+                $('#has_refund').val('');
                 if (document.getElementById('vendor')) {
                     MultiSelect.clear('vendor');
                 }
@@ -661,6 +707,7 @@
                 if ($('#stage').val()) params.set('stage', $('#stage').val());
                 if ($('#payment_type').val()) params.set('payment_type', $('#payment_type').val());
                 if ($('#payment_visa_status').val()) params.set('payment_visa_status', $('#payment_visa_status').val());
+                if ($('#has_refund').val()) params.set('has_refund', $('#has_refund').val());
                 // Handle multiple vendor selection from multi-select component
                 if (document.getElementById('vendor')) {
                     const vendorValues = MultiSelect.getValues('vendor');

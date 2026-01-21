@@ -237,7 +237,7 @@ class RefundRequestObserver
                         'vendor_id' => $vendor?->id,
                         'type' => 'refund',
                         'amount' => $refundRequest->total_refund_amount,
-                        'commission_rate' => 0, // Will be calculated from items
+                        'commission_rate' => $commissionDetails['average_commission_rate'],
                         'commission_amount' => $commissionDetails['total_commission'],
                         'vendor_amount' => $refundRequest->total_refund_amount - $commissionDetails['total_commission'],
                         'description' => "Refund for order {$order->order_number} - {$refundRequest->refund_number}",
@@ -339,7 +339,7 @@ class RefundRequestObserver
             
             // Calculate commission on refunded amount
             // Commission is calculated on (price + shipping) including tax
-            $refundableAmount = $item->total_price + $item->shipping_amount + $item->tax_amount;
+            $refundableAmount = $item->refund_amount;
             $commission = round(($refundableAmount * $commissionPercent) / 100, 2);
             
             $totalCommission += $commission;
@@ -369,8 +369,14 @@ class RefundRequestObserver
             $totalCommission += $feesCommission;
         }
         
+        // Calculate average commission rate
+        $avgCommissionRate = count($itemsDetails) > 0 
+            ? collect($itemsDetails)->avg('commission_percent') 
+            : 0;
+        
         return [
             'total_commission' => round($totalCommission, 2),
+            'average_commission_rate' => round($avgCommissionRate, 2),
             'items' => $itemsDetails,
             'vendor_fees_commission' => $feesCommission ?? 0,
             'notes' => [

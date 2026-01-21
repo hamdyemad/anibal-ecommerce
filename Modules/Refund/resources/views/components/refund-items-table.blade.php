@@ -28,6 +28,7 @@ $itemsData = $dataTable->getData($refundRequest);
                     <td class="text-center">{{ $item['tax'] }}</td>
                     <td class="text-center">{{ $item['price_with_tax'] }}</td>
                     <td class="text-center">{!! $item['quantity'] !!}</td>
+                    <td class="text-center">{{ $item['shipping'] }}</td>
                     <td class="text-center">{!! $item['total'] !!}</td>
                 </tr>
             @empty

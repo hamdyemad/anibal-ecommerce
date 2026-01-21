@@ -37,13 +37,17 @@ class IncomeAction
                 $description = $decodedDesc[app()->getLocale()];
             }
             
+            // For refunds, show negative amounts
+            $multiplier = $entry->type === 'refund' ? -1 : 1;
+            
             return [
                 'id' => $entry->id,
+                'type' => $entry->type,
                 'order_number' => $entry->order->order_number ?? 'N/A',
                 'vendor_name' => $entry->vendor->name ?? 'N/A',
-                'amount' => number_format($entry->amount, 2) . ' ' . currency(),
-                'commission_amount' => number_format($entry->commission_amount ?? 0, 2) . ' ' . currency(),
-                'vendor_amount' => number_format($entry->vendor_amount ?? 0, 2) . ' ' . currency(),
+                'amount' => number_format($entry->amount * $multiplier, 2) . ' ' . currency(),
+                'commission_amount' => number_format(($entry->commission_amount ?? 0) * $multiplier, 2) . ' ' . currency(),
+                'vendor_amount' => number_format(($entry->vendor_amount ?? 0) * $multiplier, 2) . ' ' . currency(),
                 'description' => $description,
                 'created_at' => $entry->created_at,
             ];

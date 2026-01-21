@@ -43,9 +43,16 @@ class CalculateFinalTotal
             'total_price' => $totalPrice
         ]);
 
+        // Validate that total is not negative
+        if ($totalPrice < 0) {
+            throw new \Exception(trans('order::order.total_cannot_be_negative', [
+                'total' => number_format($totalPrice, 2)
+            ]));
+        }
+
         $context['subtotal'] = $subtotal;
         $context['shipping'] = $shipping;
-        $context['total_price'] = max(0, $totalPrice);
+        $context['total_price'] = $totalPrice;
         $context['promo_code_discount'] = $promoDiscount;
 
         return $next([

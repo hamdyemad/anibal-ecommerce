@@ -39,7 +39,7 @@ class OrderStage extends BaseModel
     /**
      * Final stages that cannot transition to other stages
      */
-    const FINAL_STAGES = ['deliver', 'cancel'];
+    const FINAL_STAGES = ['deliver', 'cancel', 'refund'];
 
     /**
      * Get the step number for this stage based on its type

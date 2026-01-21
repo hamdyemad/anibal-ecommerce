@@ -335,8 +335,8 @@ class RefundRequest extends BaseModel
         $this->total_shipping_amount = $items->sum('shipping_amount');
         
         // Calculate subtotal from items
+        // Note: total_price already includes tax, so we don't add tax_amount again
         $subtotal = $this->total_products_amount 
-            + $this->total_tax_amount 
             + $this->total_shipping_amount
             - $this->total_discount_amount;
         
@@ -359,6 +359,45 @@ class RefundRequest extends BaseModel
         $this->total_refund_amount = $subtotal - ($this->return_shipping_cost ?? 0);
         
         $this->save();
+    }
+
+    /**
+     * Recalculate old refund items that were created with wrong calculations
+     * This fixes items where unit_price includes tax and refund_amount adds tax twice
+     */
+    public function recalculateOldItems(): void
+    {
+        $items = $this->items()->with('orderProduct.taxes')->get();
+        
+        foreach ($items as $item) {
+            $orderProduct = $item->orderProduct;
+            if (!$orderProduct) continue;
+            
+            // Calculate total tax for this order product
+            $totalTax = $orderProduct->taxes()->sum('amount') ?? 0;
+            
+            // Calculate unit price WITHOUT tax
+            $priceWithTax = $orderProduct->price; // Total price for all quantities (with tax)
+            $priceWithoutTax = $priceWithTax - $totalTax; // Total price without tax
+            
+            $actualUnitPriceWithoutTax = $orderProduct->quantity > 0 
+                ? $priceWithoutTax / $orderProduct->quantity 
+                : $priceWithoutTax;
+            
+            // Calculate actual unit price WITH tax (for total_price calculation)
+            $actualUnitPriceWithTax = $orderProduct->quantity > 0 
+                ? $priceWithTax / $orderProduct->quantity 
+                : $priceWithTax;
+            
+            // Update item with correct values
+            $item->unit_price = $actualUnitPriceWithoutTax; // Store unit price WITHOUT tax
+            $item->total_price = $actualUnitPriceWithTax * $item->quantity; // Total WITH tax
+            $item->refund_amount = ($actualUnitPriceWithTax * $item->quantity) + $item->shipping_amount; // Don't add tax again
+            $item->save();
+        }
+        
+        // Recalculate totals after fixing items
+        $this->calculateTotals();
     }
 
     /**

@@ -304,14 +304,39 @@ class DashboardService
 
         $totalExpenses = Expense::sum('amount');
 
+        // Calculate net income (income - refunds)
         $totalIncome = AccountingEntry::where('type', 'income')->sum('amount');
+        $totalRefunds = AccountingEntry::where('type', 'refund')->sum('amount');
+        $netIncome = $totalIncome - $totalRefunds;
+        
+        // Calculate YTD net income
         $ytdIncome = AccountingEntry::where('type', 'income')->whereDate('created_at', '>=', $startOfYear)->sum('amount');
+        $ytdRefunds = AccountingEntry::where('type', 'refund')->whereDate('created_at', '>=', $startOfYear)->sum('amount');
+        $netYtdIncome = $ytdIncome - $ytdRefunds;
+        
+        // Get delivered stage for revenue calculation
+        $deliveredStage = OrderStage::withoutCountryFilter()->where('type', 'deliver')->first();
+        
         if ($this->isVendor && $this->vendorId) {
-            // Vendor: Revenue Y.T.D from ALL orders (not just delivered)
-            $revenueYtd = \Modules\Order\app\Models\OrderProduct::where('vendor_id', $this->vendorId)
-                ->whereHas('order', function($q) use ($startOfYear) {
-                    $q->whereDate('created_at', '>=', $startOfYear);
-                })->sum('price');
+            // Vendor: Revenue Y.T.D from DELIVERED orders only
+            if ($deliveredStage) {
+                $revenueYtd = \Modules\Order\app\Models\OrderProduct::query()
+                    ->where('order_products.vendor_id', $this->vendorId)
+                    ->join('vendor_order_stages as vos', function ($join) {
+                        $join->on('vos.order_id', '=', 'order_products.order_id')
+                             ->on('vos.vendor_id', '=', 'order_products.vendor_id');
+                    })
+                    ->join('vendor_order_stage_histories as vosh', function($join) use ($deliveredStage) {
+                        $join->on('vosh.vendor_order_stage_id', '=', 'vos.id')
+                             ->where('vosh.new_stage_id', '=', $deliveredStage->id);
+                    })
+                    ->where('vos.stage_id', $deliveredStage->id)
+                    ->whereDate('vosh.created_at', '>=', $startOfYear)
+                    ->selectRaw('SUM(order_products.price + COALESCE(order_products.shipping_cost, 0)) as total')
+                    ->value('total') ?? 0;
+            } else {
+                $revenueYtd = 0;
+            }
 
             // Use vendor_order_stages table for vendor-specific stage counts
             $newOrdersCount = $newStage
@@ -328,8 +353,24 @@ class DashboardService
                     ->count()
                 : 0;
         } else {
-            // Admin: Revenue Y.T.D from ALL orders
-            $revenueYtd = Order::whereDate('created_at', '>=', $startOfYear)->sum('total_price');
+            // Admin: Revenue Y.T.D from DELIVERED orders only
+            if ($deliveredStage) {
+                $revenueYtd = \Modules\Order\app\Models\OrderProduct::query()
+                    ->join('vendor_order_stages as vos', function ($join) {
+                        $join->on('vos.order_id', '=', 'order_products.order_id')
+                             ->on('vos.vendor_id', '=', 'order_products.vendor_id');
+                    })
+                    ->join('vendor_order_stage_histories as vosh', function($join) use ($deliveredStage) {
+                        $join->on('vosh.vendor_order_stage_id', '=', 'vos.id')
+                             ->where('vosh.new_stage_id', '=', $deliveredStage->id);
+                    })
+                    ->where('vos.stage_id', $deliveredStage->id)
+                    ->whereDate('vosh.created_at', '>=', $startOfYear)
+                    ->selectRaw('SUM(order_products.price + COALESCE(order_products.shipping_cost, 0)) as total')
+                    ->value('total') ?? 0;
+            } else {
+                $revenueYtd = 0;
+            }
 
             // Admin: count based on vendor_order_stages (per-vendor stage counts)
             $newOrdersCount = $newStage 
@@ -347,9 +388,9 @@ class DashboardService
 
         return [
             'total_expenses' => $totalExpenses,
-            'total_income' => $totalIncome,
-            'net_profit_ytd' => $ytdIncome - $totalExpenses,
-            'revenue_ytd' => $revenueYtd,
+            'total_income' => $netIncome,
+            'net_profit_ytd' => $netYtdIncome - $totalExpenses,
+            'revenue_ytd' => $revenueYtd - $ytdRefunds,  // Subtract refunds from revenue
             'new_orders_count' => $newOrdersCount,
             'in_progress_orders_count' => $inProgressOrdersCount,
         ];
@@ -397,12 +438,27 @@ class DashboardService
         // This Month data
         $startOfMonth = $now->copy()->startOfMonth();
         $endOfMonth = $now->copy()->endOfMonth();
-        $AccountingQuery = AccountingEntry::query()->where('type', 'income');
 
-        $monthlyIncome = (clone $AccountingQuery)->whereBetween('created_at', [$startOfMonth, $endOfMonth])->sum('amount');
+        // Calculate monthly income and refunds
+        $monthlyIncomeGross = AccountingEntry::where('type', 'income')
+            ->whereBetween('created_at', [$startOfMonth, $endOfMonth])
+            ->sum('amount');
+        $monthlyRefunds = AccountingEntry::where('type', 'refund')
+            ->whereBetween('created_at', [$startOfMonth, $endOfMonth])
+            ->sum('amount');
+        $monthlyIncome = $monthlyIncomeGross - $monthlyRefunds;
 
         $monthlyExpenses = Expense::whereBetween('expense_date', [$startOfMonth, $endOfMonth])->sum('amount');
-        $monthlyCommission = (clone $AccountingQuery)->whereBetween('created_at', [$startOfMonth, $endOfMonth])->sum('commission_amount');
+        
+        // Calculate commission (income commission - refunded commission)
+        $monthlyCommissionGross = AccountingEntry::where('type', 'income')
+            ->whereBetween('created_at', [$startOfMonth, $endOfMonth])
+            ->sum('commission_amount');
+        $monthlyRefundedCommission = AccountingEntry::where('type', 'refund')
+            ->whereBetween('created_at', [$startOfMonth, $endOfMonth])
+            ->sum('commission_amount');
+        $monthlyCommission = $monthlyCommissionGross - $monthlyRefundedCommission;
+        
         // Net profit = Income - Commissions - Expenses
         $monthlyProfit = $monthlyIncome - $monthlyCommission - $monthlyExpenses;
 
@@ -410,10 +466,26 @@ class DashboardService
         $startOfYear = $now->copy()->startOfYear();
         $endOfYear = $now->copy()->endOfYear();
 
-        $yearlyIncome = (clone $AccountingQuery)->whereBetween('created_at', [$startOfYear, $endOfYear])->sum('amount');
+        // Calculate yearly income and refunds
+        $yearlyIncomeGross = AccountingEntry::where('type', 'income')
+            ->whereBetween('created_at', [$startOfYear, $endOfYear])
+            ->sum('amount');
+        $yearlyRefunds = AccountingEntry::where('type', 'refund')
+            ->whereBetween('created_at', [$startOfYear, $endOfYear])
+            ->sum('amount');
+        $yearlyIncome = $yearlyIncomeGross - $yearlyRefunds;
 
         $yearlyExpenses = Expense::whereBetween('expense_date', [$startOfYear, $endOfYear])->sum('amount');
-        $yearlyCommission = (clone $AccountingQuery)->whereBetween('created_at', [$startOfYear, $endOfYear])->sum('commission_amount');
+        
+        // Calculate commission (income commission - refunded commission)
+        $yearlyCommissionGross = AccountingEntry::where('type', 'income')
+            ->whereBetween('created_at', [$startOfYear, $endOfYear])
+            ->sum('commission_amount');
+        $yearlyRefundedCommission = AccountingEntry::where('type', 'refund')
+            ->whereBetween('created_at', [$startOfYear, $endOfYear])
+            ->sum('commission_amount');
+        $yearlyCommission = $yearlyCommissionGross - $yearlyRefundedCommission;
+        
         // Net profit = Income - Commissions - Expenses
         $yearlyProfit = $yearlyIncome - $yearlyCommission - $yearlyExpenses;
 
@@ -423,17 +495,30 @@ class DashboardService
             $monthStart = Carbon::create($now->year, $month, 1)->startOfMonth();
             $monthEnd = Carbon::create($now->year, $month, 1)->endOfMonth();
 
-            $income = (clone $AccountingQuery)->whereBetween('created_at', [$monthStart, $monthEnd])->sum('amount');
+            $incomeGross = AccountingEntry::where('type', 'income')
+                ->whereBetween('created_at', [$monthStart, $monthEnd])
+                ->sum('amount');
+            $refunds = AccountingEntry::where('type', 'refund')
+                ->whereBetween('created_at', [$monthStart, $monthEnd])
+                ->sum('amount');
+            $income = $incomeGross - $refunds;
 
             $expenses = Expense::whereBetween('expense_date', [$monthStart, $monthEnd])->sum('amount');
             
-            $commission = (clone $AccountingQuery)->whereBetween('created_at', [$monthStart, $monthEnd])->sum('commission_amount');
+            $commissionGross = AccountingEntry::where('type', 'income')
+                ->whereBetween('created_at', [$monthStart, $monthEnd])
+                ->sum('commission_amount');
+            $refundedCommission = AccountingEntry::where('type', 'refund')
+                ->whereBetween('created_at', [$monthStart, $monthEnd])
+                ->sum('commission_amount');
+            $commission = $commissionGross - $refundedCommission;
 
             $monthlyData[] = [
                 'month' => $month,
                 'income' => $income,
                 'expenses' => $expenses,
                 'commission' => $commission,
+                'refunds' => $refunds,
             ];
         }
 
@@ -443,17 +528,30 @@ class DashboardService
         for ($day = 1; $day <= $daysInMonth; $day++) {
             $dayDate = Carbon::create($now->year, $now->month, $day);
 
-            $income = (clone $AccountingQuery)->whereDate('created_at', $dayDate)->sum('amount');
+            $incomeGross = AccountingEntry::where('type', 'income')
+                ->whereDate('created_at', $dayDate)
+                ->sum('amount');
+            $refunds = AccountingEntry::where('type', 'refund')
+                ->whereDate('created_at', $dayDate)
+                ->sum('amount');
+            $income = $incomeGross - $refunds;
 
             $expenses = Expense::whereDate('expense_date', $dayDate)->sum('amount');
             
-            $commission = (clone $AccountingQuery)->whereDate('created_at', $dayDate)->sum('commission_amount');
+            $commissionGross = AccountingEntry::where('type', 'income')
+                ->whereDate('created_at', $dayDate)
+                ->sum('commission_amount');
+            $refundedCommission = AccountingEntry::where('type', 'refund')
+                ->whereDate('created_at', $dayDate)
+                ->sum('commission_amount');
+            $commission = $commissionGross - $refundedCommission;
 
             $dailyData[] = [
                 'day' => $day,
                 'income' => $income,
                 'expenses' => $expenses,
                 'commission' => $commission,
+                'refunds' => $refunds,
             ];
         }
 
@@ -462,6 +560,7 @@ class DashboardService
                 'income' => $monthlyIncome,
                 'expenses' => $monthlyExpenses,
                 'commission' => $monthlyCommission,
+                'refunds' => $monthlyRefunds,
                 'profit' => $monthlyProfit,
                 'period' => $now->format('m-Y'),
                 'daily_data' => $dailyData,
@@ -470,6 +569,7 @@ class DashboardService
                 'income' => $yearlyIncome,
                 'expenses' => $yearlyExpenses,
                 'commission' => $yearlyCommission,
+                'refunds' => $yearlyRefunds,
                 'profit' => $yearlyProfit,
                 'period' => $now->year,
                 'monthly_data' => $monthlyData,
@@ -1308,6 +1408,7 @@ class DashboardService
     private function getNetSalesChartData()
     {
         $now = Carbon::now();
+        $deliveredStage = OrderStage::withoutCountryFilter()->where('type', 'deliver')->first();
         
         // Get refund query
         $refundQuery = \Modules\Refund\app\Models\RefundRequest::query()
@@ -1319,26 +1420,46 @@ class DashboardService
         }
         
         // Helper function to calculate net sales for a time period
-        $calcNetSales = function($startTime, $endTime, $dateField = 'whereBetween') use ($refundQuery) {
-            // Get total sales
-            if ($this->isVendor && $this->vendorId) {
-                $query = \Modules\Order\app\Models\OrderProduct::where('vendor_id', $this->vendorId);
-            } else {
-                $query = \Modules\Order\app\Models\Order::query();
-            }
-            
-            if ($dateField === 'whereDate') {
-                $totalSales = $this->isVendor 
-                    ? $query->whereHas('order', function($q) use ($startTime) {
-                        $q->whereDate('created_at', $startTime);
-                    })->sum('price')
-                    : $query->whereDate('created_at', $startTime)->sum('total_price');
-            } else {
-                $totalSales = $this->isVendor
-                    ? $query->whereHas('order', function($q) use ($startTime, $endTime) {
-                        $q->whereBetween('created_at', [$startTime, $endTime]);
-                    })->sum('price')
-                    : $query->whereBetween('created_at', [$startTime, $endTime])->sum('total_price');
+        $calcNetSales = function($startTime, $endTime, $dateField = 'whereBetween') use ($refundQuery, $deliveredStage) {
+            // Get delivered earnings (not total sales)
+            $deliveredEarnings = 0;
+            if ($deliveredStage) {
+                $deliveredStageId = $deliveredStage->id;
+                
+                if ($this->isVendor && $this->vendorId) {
+                    $query = \Modules\Order\app\Models\OrderProduct::query()
+                        ->where('order_products.vendor_id', $this->vendorId)
+                        ->join('vendor_order_stages as vos', function ($join) {
+                            $join->on('vos.order_id', '=', 'order_products.order_id')
+                                 ->on('vos.vendor_id', '=', 'order_products.vendor_id');
+                        })
+                        ->join('vendor_order_stage_histories as vosh', function($join) use ($deliveredStageId) {
+                            $join->on('vosh.vendor_order_stage_id', '=', 'vos.id')
+                                 ->where('vosh.new_stage_id', '=', $deliveredStageId);
+                        })
+                        ->where('vos.stage_id', $deliveredStageId);
+                } else {
+                    $query = \Modules\Order\app\Models\OrderProduct::query()
+                        ->join('vendor_order_stages as vos', function ($join) {
+                            $join->on('vos.order_id', '=', 'order_products.order_id')
+                                 ->on('vos.vendor_id', '=', 'order_products.vendor_id');
+                        })
+                        ->join('vendor_order_stage_histories as vosh', function($join) use ($deliveredStageId) {
+                            $join->on('vosh.vendor_order_stage_id', '=', 'vos.id')
+                                 ->where('vosh.new_stage_id', '=', $deliveredStageId);
+                        })
+                        ->where('vos.stage_id', $deliveredStageId);
+                }
+                
+                if ($dateField === 'whereDate') {
+                    $deliveredEarnings = $query->whereDate('vosh.created_at', $startTime)
+                        ->selectRaw('SUM(order_products.price + COALESCE(order_products.shipping_cost, 0)) as total')
+                        ->value('total') ?? 0;
+                } else {
+                    $deliveredEarnings = $query->whereBetween('vosh.created_at', [$startTime, $endTime])
+                        ->selectRaw('SUM(order_products.price + COALESCE(order_products.shipping_cost, 0)) as total')
+                        ->value('total') ?? 0;
+                }
             }
             
             // Get refunds (use refunded_at if available, otherwise fallback to created_at)
@@ -1365,9 +1486,9 @@ class DashboardService
             }
             
             return [
-                'total_sales' => $totalSales ?? 0,
+                'earnings' => $deliveredEarnings ?? 0,  // Changed from total_sales to earnings
                 'refunds' => $refunds ?? 0,
-                'net_sales' => ($totalSales ?? 0) - ($refunds ?? 0),
+                'net_earnings' => ($deliveredEarnings ?? 0) - ($refunds ?? 0),  // Changed from net_sales to net_earnings
             ];
         };
         

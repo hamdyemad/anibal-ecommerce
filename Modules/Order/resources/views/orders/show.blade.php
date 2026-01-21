@@ -681,154 +681,8 @@
                     </div>
 
                     <!-- Refunded Products Section -->
-                    @php
-                        // Get all refund requests for this order with their items
-                        $refundRequests = $order->refunds()->with(['items.orderProduct.vendorProduct.product', 'items.orderProduct.vendorProductVariant.variantConfiguration.key'])->get();
-                        $hasRefunds = $refundRequests->count() > 0;
-                    @endphp
+                    <x-order::refunded-products :order="$order" />
 
-                    @if($hasRefunds)
-                        <div class="mb-40">
-                            <div class="alert alert-info d-flex align-items-center mb-3">
-                                <i class="uil uil-info-circle me-2" style="font-size: 24px;"></i>
-                                <div>
-                                    <strong>{{ trans('order::order.refunded_products_notice') }}</strong>
-                                    <p class="mb-0">{{ trans('order::order.refunded_products_description') }}</p>
-                                </div>
-                            </div>
-
-                            <h5 class="fw-bold mb-3">
-                                <i class="uil uil-redo me-2" style="color: #dc3545;"></i>
-                                {{ trans('order::order.refunded_products') }}
-                            </h5>
-
-                            <div class="table-responsive">
-                                <table class="table mb-0 table-hover" style="border-color: #dee2e6;">
-                                    <thead class="userDatatable-header" style="background-color: #dc3545; color: white;">
-                                        <tr>
-                                            <th class="text-white fw-bold text-center">#</th>
-                                            <th class="text-white fw-bold text-center">{{ trans('order::order.refund_number') }}</th>
-                                            <th class="text-white fw-bold text-center">{{ trans('order::order.product') }}</th>
-                                            <th class="text-white fw-bold text-center">{{ trans('order::order.refunded_quantity') }}</th>
-                                            <th class="text-white fw-bold text-center">{{ trans('order::order.refund_amount') }}</th>
-                                            <th class="text-white fw-bold text-center">{{ trans('order::order.refund_commission') }}</th>
-                                            <th class="text-white fw-bold text-center">{{ trans('order::order.refund_status') }}</th>
-                                            <th class="text-white fw-bold text-center">{{ trans('order::order.refund_date') }}</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @php $refundItemIndex = 1; @endphp
-                                        @foreach($refundRequests as $refund)
-                                            @foreach($refund->items as $refundItem)
-                                                @php
-                                                    $orderProduct = $refundItem->orderProduct;
-                                                    if (!$orderProduct) continue;
-                                                    
-                                                    $productImage = $orderProduct->vendorProduct?->product?->mainImage?->path;
-                                                    $vendorName = $orderProduct->vendorProduct?->vendor?->getTranslation('name', app()->getLocale()) ?? 'N/A';
-                                                    
-                                                    // Build variant path
-                                                    $variantConfig = $orderProduct->vendorProductVariant?->variantConfiguration;
-                                                    $variantKey = $variantConfig?->key?->getTranslation('name', app()->getLocale()) ?? null;
-                                                    $variantValue = $variantConfig?->getTranslation('name', app()->getLocale()) ?? null;
-                                                    $variantPath = null;
-                                                    if ($variantKey && $variantValue) {
-                                                        $variantPath = $variantKey . ' → ' . $variantValue;
-                                                    } elseif ($variantValue) {
-                                                        $variantPath = $variantValue;
-                                                    }
-                                                    
-                                                    // Calculate refund commission
-                                                    $itemRefundAmount = $refundItem->total_price + $refundItem->shipping_amount + $refundItem->tax_amount;
-                                                    $commissionPercent = $orderProduct->commission > 0 
-                                                        ? $orderProduct->commission 
-                                                        : ($orderProduct->vendorProduct?->product?->department?->commission ?? 0);
-                                                    $itemRefundCommission = ($itemRefundAmount * $commissionPercent) / 100;
-                                                    
-                                                    // Status colors
-                                                    $statusColors = [
-                                                        'pending' => '#ffc107',
-                                                        'approved' => '#17a2b8',
-                                                        'in_progress' => '#5f63f2',
-                                                        'picked_up' => '#6c757d',
-                                                        'refunded' => '#28a745',
-                                                        'rejected' => '#dc3545',
-                                                        'cancelled' => '#6c757d',
-                                                    ];
-                                                    $statusColor = $statusColors[$refund->status] ?? '#6c757d';
-                                                @endphp
-                                                <tr style="background-color: #fff5f5;">
-                                                    <td class="fw-bold text-center">{{ $refundItemIndex++ }}</td>
-                                                    <td class="text-center">
-                                                        <a href="{{ route('admin.refunds.show', $refund->id) }}" 
-                                                           class="text-primary fw-bold" 
-                                                           target="_blank">
-                                                            {{ $refund->refund_number }}
-                                                            <i class="uil uil-external-link-alt ms-1"></i>
-                                                        </a>
-                                                    </td>
-                                                    <td class="text-center">
-                                                        <div class="d-flex align-items-center justify-content-center gap-3">
-                                                            @if($productImage)
-                                                                <img src="{{ asset('storage/' . $productImage) }}" 
-                                                                     alt="{{ $orderProduct->vendorProduct->product->name ?? 'Product' }}"
-                                                                     class="rounded" 
-                                                                     style="width: 50px; height: 50px; border: 1px solid #dee2e6;">
-                                                            @else
-                                                                <img src="{{ asset('assets/img/default.png') }}" 
-                                                                     alt="{{ $orderProduct->vendorProduct->product->name ?? 'Product' }}"
-                                                                     class="rounded" 
-                                                                     style="width: 50px; height: 50px; border: 1px solid #dee2e6;">
-                                                            @endif
-                                                            <div class="text-start">
-                                                                <p class="fw-bold mb-1">{{ $orderProduct->vendorProduct->product->name ?? 'N/A' }}</p>
-                                                                <small class="text-muted d-block mb-1">
-                                                                    <strong>{{ trans('order::order.sku') }}:</strong> 
-                                                                    {{ $orderProduct->vendorProductVariant?->sku ?? ($orderProduct->vendorProduct?->sku ?? 'N/A') }}
-                                                                </small>
-                                                                @if($variantPath)
-                                                                    <small class="text-muted d-block mb-1">
-                                                                        <i class="uil uil-tag me-1"></i>
-                                                                        <strong>{{ trans('order::order.variant') }}:</strong> {{ $variantPath }}
-                                                                    </small>
-                                                                @endif
-                                                                <small class="text-muted d-block">
-                                                                    <i class="uil uil-store me-1"></i>
-                                                                    <strong>{{ trans('order::order.vendor') }}:</strong> {{ $vendorName }}
-                                                                </small>
-                                                            </div>
-                                                        </div>
-                                                    </td>
-                                                    <td class="text-center">
-                                                        <span class="badge bg-danger" style="font-size: 14px;">
-                                                            {{ $refundItem->quantity }}
-                                                        </span>
-                                                    </td>
-                                                    <td class="text-center fw-bold text-danger">
-                                                        {{ number_format($itemRefundAmount, 2) }} {{ currency() }}
-                                                    </td>
-                                                    <td class="text-center fw-bold text-success">
-                                                        <div>{{ number_format($itemRefundCommission, 2) }} {{ currency() }}</div>
-                                                        <small class="text-muted">({{ number_format($commissionPercent, 2) }}%)</small>
-                                                    </td>
-                                                    <td class="text-center">
-                                                        <x-protected-badge 
-                                                            :color="$statusColor" 
-                                                            :text="trans('refund::refund.statuses.' . $refund->status)" 
-                                                            size="md" 
-                                                            :id="'refund-status-' . $refund->id" />
-                                                    </td>
-                                                    <td class="text-center">
-                                                        <small>{{ $refund->created_at }}</small>
-                                                    </td>
-                                                </tr>
-                                            @endforeach
-                                        @endforeach
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    @endif
 
                     <!-- Fees & Discounts Details -->
                     @if ($order->extraFeesDiscounts->count() > 0)
@@ -943,9 +797,18 @@
                             // Total with tax for vendor remaining calculation
                             $totalProductsPriceWithTax = $totalProductsPriceBeforeTax + $totalProductsTax;
 
-                            // Calculate total with shipping
-                            $totalWithShippingOrder =
-                                $totalProductsPriceWithTax - $order->customer_promo_code_amount + $order->shipping;
+                            // Calculate total with shipping (should match order total_price)
+                            // Total = Subtotal with tax - Promo - Points + Fees - Discounts + Shipping
+                            $totalWithShippingOrder = $totalProductsPriceWithTax 
+                                - $order->customer_promo_code_amount 
+                                + $order->total_fees 
+                                - $order->total_discounts 
+                                + $order->shipping 
+                                - $order->points_cost;
+                            
+                            // Recalculate remaining correctly: Total with Shipping - Commission
+                            // The per-product calculation doesn't include fees/discounts, so recalculate here
+                            $totalRemaining = $totalWithShippingOrder - $totalCommission;
                             
                             // Calculate total refunded amount (only completed refunds)
                             $totalRefundedAmount = $order->refunds()->where('status', 'refunded')->sum('total_refund_amount');
@@ -963,8 +826,8 @@
                                             ? $orderProduct->commission 
                                             : ($orderProduct->vendorProduct?->product?->department?->commission ?? 0);
                                         
-                                        // Calculate refunded amount for this item (price + shipping + tax)
-                                        $itemRefundAmount = $item->total_price + $item->shipping_amount + $item->tax_amount;
+                                        // Calculate refunded amount for this item (total_price already includes tax)
+                                        $itemRefundAmount = $item->total_price + $item->shipping_amount;
                                         
                                         // Calculate commission on this refunded amount
                                         $refundedCommission += ($itemRefundAmount * $commPercent) / 100;
@@ -1246,7 +1109,7 @@
                                             ? $orderProduct->commission 
                                             : ($orderProduct->vendorProduct?->product?->department?->commission ?? 0);
                                         
-                                        $itemRefundAmount = $item->total_price + $item->shipping_amount + $item->tax_amount;
+                                        $itemRefundAmount = $item->total_price + $item->shipping_amount;
                                         $vendorRefundedCommission += ($itemRefundAmount * $commPercent) / 100;
                                     }
                                 }
@@ -1465,7 +1328,7 @@
                                                     ? $orderProduct->commission 
                                                     : ($orderProduct->vendorProduct?->product?->department?->commission ?? 0);
                                                 
-                                                $itemRefundAmount = $item->total_price + $item->shipping_amount + $item->tax_amount;
+                                                $itemRefundAmount = $item->total_price + $item->shipping_amount;
                                                 $vendorRefundedCommission += ($itemRefundAmount * $commPercent) / 100;
                                             }
                                         }

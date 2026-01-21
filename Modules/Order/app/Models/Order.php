@@ -391,6 +391,25 @@ class Order extends BaseModel
             }
         }
 
+        // Filter by orders with refunds
+        if (!empty($filters['has_refund'])) {
+            if ($filters['has_refund'] === 'yes' || $filters['has_refund'] === '1' || $filters['has_refund'] === true) {
+                // Check if current user is a vendor
+                $isVendorUser = auth()->check() && auth()->user()->isVendor();
+                $currentVendorId = $isVendorUser ? (auth()->user()->vendorByUser?->id ?? auth()->user()->vendorById?->id ?? null) : null;
+                
+                if ($isVendorUser && $currentVendorId) {
+                    // For vendors: only show orders with refunds for their vendor
+                    $query->whereHas('refunds', function($q) use ($currentVendorId) {
+                        $q->where('vendor_id', $currentVendorId);
+                    });
+                } else {
+                    // For admin: show all orders with refunds
+                    $query->whereHas('refunds');
+                }
+            }
+        }
+
         return $query;
     }
 }

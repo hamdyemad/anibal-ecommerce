@@ -164,4 +164,5 @@ return [
     'count' => 'Count',
     'this_month' => 'This Month',
     'net_remaining_after_refunds' => 'Net Remaining After Refunds',
+    'without_refund' => 'without refund',
 ];
