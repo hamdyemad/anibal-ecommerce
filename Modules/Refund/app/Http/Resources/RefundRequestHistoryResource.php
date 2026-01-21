@@ -12,6 +12,18 @@ class RefundRequestHistoryResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        // Determine who made the change
+        $actorName = null;
+        $actorType = null;
+        
+        if ($this->user_id && $this->user) {
+            $actorName = $this->user->name;
+            $actorType = 'user'; // Admin or Vendor
+        } elseif ($this->customer_id && $this->customer) {
+            $actorName = $this->customer->name;
+            $actorType = 'customer';
+        }
+        
         return [
             'id' => $this->id,
             'refund_request_id' => $this->refund_request_id,
@@ -21,6 +33,10 @@ class RefundRequestHistoryResource extends JsonResource
             'new_status_label' => trans('refund::refund.statuses.' . $this->new_status),
             'user_id' => $this->user_id,
             'user_name' => $this->user?->name,
+            'customer_id' => $this->customer_id,
+            'customer_name' => $this->customer?->name,
+            'actor_name' => $actorName,
+            'actor_type' => $actorType,
             'notes' => $this->notes,
             'created_at' => $this->created_at,
         ];

@@ -246,6 +246,14 @@ class Order extends BaseModel
     }
 
     /**
+     * Get the refund requests for this order.
+     */
+    public function refunds(): HasMany
+    {
+        return $this->hasMany(\Modules\Refund\app\Models\RefundRequest::class);
+    }
+
+    /**
      * Get total products count (sum of quantities)
      */
     public function getProductsCountAttribute(): int

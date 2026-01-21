@@ -356,7 +356,7 @@
                                                                         </div>
                                                                         <small class="text-muted fw-500">
                                                                             <i
-                                                                                class="uil uil-clock me-1"></i>{{ $history->created_at->translatedFormat('d M, Y h:i A') }}
+                                                                                class="uil uil-clock me-1"></i>{{ $history->created_at }}
                                                                         </small>
                                                                     </div>
 
@@ -680,6 +680,156 @@
                         </div>
                     </div>
 
+                    <!-- Refunded Products Section -->
+                    @php
+                        // Get all refund requests for this order with their items
+                        $refundRequests = $order->refunds()->with(['items.orderProduct.vendorProduct.product', 'items.orderProduct.vendorProductVariant.variantConfiguration.key'])->get();
+                        $hasRefunds = $refundRequests->count() > 0;
+                    @endphp
+
+                    @if($hasRefunds)
+                        <div class="mb-40">
+                            <div class="alert alert-info d-flex align-items-center mb-3">
+                                <i class="uil uil-info-circle me-2" style="font-size: 24px;"></i>
+                                <div>
+                                    <strong>{{ trans('order::order.refunded_products_notice') }}</strong>
+                                    <p class="mb-0">{{ trans('order::order.refunded_products_description') }}</p>
+                                </div>
+                            </div>
+
+                            <h5 class="fw-bold mb-3">
+                                <i class="uil uil-redo me-2" style="color: #dc3545;"></i>
+                                {{ trans('order::order.refunded_products') }}
+                            </h5>
+
+                            <div class="table-responsive">
+                                <table class="table mb-0 table-hover" style="border-color: #dee2e6;">
+                                    <thead class="userDatatable-header" style="background-color: #dc3545; color: white;">
+                                        <tr>
+                                            <th class="text-white fw-bold text-center">#</th>
+                                            <th class="text-white fw-bold text-center">{{ trans('order::order.refund_number') }}</th>
+                                            <th class="text-white fw-bold text-center">{{ trans('order::order.product') }}</th>
+                                            <th class="text-white fw-bold text-center">{{ trans('order::order.refunded_quantity') }}</th>
+                                            <th class="text-white fw-bold text-center">{{ trans('order::order.refund_amount') }}</th>
+                                            <th class="text-white fw-bold text-center">{{ trans('order::order.refund_commission') }}</th>
+                                            <th class="text-white fw-bold text-center">{{ trans('order::order.refund_status') }}</th>
+                                            <th class="text-white fw-bold text-center">{{ trans('order::order.refund_date') }}</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @php $refundItemIndex = 1; @endphp
+                                        @foreach($refundRequests as $refund)
+                                            @foreach($refund->items as $refundItem)
+                                                @php
+                                                    $orderProduct = $refundItem->orderProduct;
+                                                    if (!$orderProduct) continue;
+                                                    
+                                                    $productImage = $orderProduct->vendorProduct?->product?->mainImage?->path;
+                                                    $vendorName = $orderProduct->vendorProduct?->vendor?->getTranslation('name', app()->getLocale()) ?? 'N/A';
+                                                    
+                                                    // Build variant path
+                                                    $variantConfig = $orderProduct->vendorProductVariant?->variantConfiguration;
+                                                    $variantKey = $variantConfig?->key?->getTranslation('name', app()->getLocale()) ?? null;
+                                                    $variantValue = $variantConfig?->getTranslation('name', app()->getLocale()) ?? null;
+                                                    $variantPath = null;
+                                                    if ($variantKey && $variantValue) {
+                                                        $variantPath = $variantKey . ' → ' . $variantValue;
+                                                    } elseif ($variantValue) {
+                                                        $variantPath = $variantValue;
+                                                    }
+                                                    
+                                                    // Calculate refund commission
+                                                    $itemRefundAmount = $refundItem->total_price + $refundItem->shipping_amount + $refundItem->tax_amount;
+                                                    $commissionPercent = $orderProduct->commission > 0 
+                                                        ? $orderProduct->commission 
+                                                        : ($orderProduct->vendorProduct?->product?->department?->commission ?? 0);
+                                                    $itemRefundCommission = ($itemRefundAmount * $commissionPercent) / 100;
+                                                    
+                                                    // Status colors
+                                                    $statusColors = [
+                                                        'pending' => '#ffc107',
+                                                        'approved' => '#17a2b8',
+                                                        'in_progress' => '#5f63f2',
+                                                        'picked_up' => '#6c757d',
+                                                        'refunded' => '#28a745',
+                                                        'rejected' => '#dc3545',
+                                                        'cancelled' => '#6c757d',
+                                                    ];
+                                                    $statusColor = $statusColors[$refund->status] ?? '#6c757d';
+                                                @endphp
+                                                <tr style="background-color: #fff5f5;">
+                                                    <td class="fw-bold text-center">{{ $refundItemIndex++ }}</td>
+                                                    <td class="text-center">
+                                                        <a href="{{ route('admin.refunds.show', $refund->id) }}" 
+                                                           class="text-primary fw-bold" 
+                                                           target="_blank">
+                                                            {{ $refund->refund_number }}
+                                                            <i class="uil uil-external-link-alt ms-1"></i>
+                                                        </a>
+                                                    </td>
+                                                    <td class="text-center">
+                                                        <div class="d-flex align-items-center justify-content-center gap-3">
+                                                            @if($productImage)
+                                                                <img src="{{ asset('storage/' . $productImage) }}" 
+                                                                     alt="{{ $orderProduct->vendorProduct->product->name ?? 'Product' }}"
+                                                                     class="rounded" 
+                                                                     style="width: 50px; height: 50px; border: 1px solid #dee2e6;">
+                                                            @else
+                                                                <img src="{{ asset('assets/img/default.png') }}" 
+                                                                     alt="{{ $orderProduct->vendorProduct->product->name ?? 'Product' }}"
+                                                                     class="rounded" 
+                                                                     style="width: 50px; height: 50px; border: 1px solid #dee2e6;">
+                                                            @endif
+                                                            <div class="text-start">
+                                                                <p class="fw-bold mb-1">{{ $orderProduct->vendorProduct->product->name ?? 'N/A' }}</p>
+                                                                <small class="text-muted d-block mb-1">
+                                                                    <strong>{{ trans('order::order.sku') }}:</strong> 
+                                                                    {{ $orderProduct->vendorProductVariant?->sku ?? ($orderProduct->vendorProduct?->sku ?? 'N/A') }}
+                                                                </small>
+                                                                @if($variantPath)
+                                                                    <small class="text-muted d-block mb-1">
+                                                                        <i class="uil uil-tag me-1"></i>
+                                                                        <strong>{{ trans('order::order.variant') }}:</strong> {{ $variantPath }}
+                                                                    </small>
+                                                                @endif
+                                                                <small class="text-muted d-block">
+                                                                    <i class="uil uil-store me-1"></i>
+                                                                    <strong>{{ trans('order::order.vendor') }}:</strong> {{ $vendorName }}
+                                                                </small>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td class="text-center">
+                                                        <span class="badge bg-danger" style="font-size: 14px;">
+                                                            {{ $refundItem->quantity }}
+                                                        </span>
+                                                    </td>
+                                                    <td class="text-center fw-bold text-danger">
+                                                        {{ number_format($itemRefundAmount, 2) }} {{ currency() }}
+                                                    </td>
+                                                    <td class="text-center fw-bold text-success">
+                                                        <div>{{ number_format($itemRefundCommission, 2) }} {{ currency() }}</div>
+                                                        <small class="text-muted">({{ number_format($commissionPercent, 2) }}%)</small>
+                                                    </td>
+                                                    <td class="text-center">
+                                                        <x-protected-badge 
+                                                            :color="$statusColor" 
+                                                            :text="trans('refund::refund.statuses.' . $refund->status)" 
+                                                            size="md" 
+                                                            :id="'refund-status-' . $refund->id" />
+                                                    </td>
+                                                    <td class="text-center">
+                                                        <small>{{ $refund->created_at }}</small>
+                                                    </td>
+                                                </tr>
+                                            @endforeach
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    @endif
+
                     <!-- Fees & Discounts Details -->
                     @if ($order->extraFeesDiscounts->count() > 0)
                         <div class="mb-40">
@@ -796,6 +946,35 @@
                             // Calculate total with shipping
                             $totalWithShippingOrder =
                                 $totalProductsPriceWithTax - $order->customer_promo_code_amount + $order->shipping;
+                            
+                            // Calculate total refunded amount (only completed refunds)
+                            $totalRefundedAmount = $order->refunds()->where('status', 'refunded')->sum('total_refund_amount');
+                            
+                            // Calculate commission on refunded amount
+                            // When products are refunded, the commission on those products should also be reversed
+                            $refundedCommission = 0;
+                            $refundedItems = $order->refunds()->where('status', 'refunded')->with('items.orderProduct')->get();
+                            foreach ($refundedItems as $refund) {
+                                foreach ($refund->items as $item) {
+                                    $orderProduct = $item->orderProduct;
+                                    if ($orderProduct) {
+                                        // Get commission percentage
+                                        $commPercent = $orderProduct->commission > 0 
+                                            ? $orderProduct->commission 
+                                            : ($orderProduct->vendorProduct?->product?->department?->commission ?? 0);
+                                        
+                                        // Calculate refunded amount for this item (price + shipping + tax)
+                                        $itemRefundAmount = $item->total_price + $item->shipping_amount + $item->tax_amount;
+                                        
+                                        // Calculate commission on this refunded amount
+                                        $refundedCommission += ($itemRefundAmount * $commPercent) / 100;
+                                    }
+                                }
+                            }
+                            
+                            // Adjust commission and remaining after refunds
+                            $finalCommission = $totalCommission - $refundedCommission;
+                            $finalRemaining = $totalRemaining - ($totalRefundedAmount - $refundedCommission);
                         @endphp
                         <div class="row mb-40">
                             <div class="col-12">
@@ -886,13 +1065,69 @@
                                             <div class="summary-row mb-12" style="font-size: 16px;">
                                                 <span class="fw-bold">{{ trans('order::order.bnaia_commission') }}</span>
                                                 <span class="fw-bold"
-                                                    style="color: #dc3545;">{{ number_format($totalCommission, 2) }}
+                                                    style="color: #dc3545;">-{{ number_format($totalCommission, 2) }}
                                                     {{ currency() }}</span>
                                             </div>
-                                            <div class="summary-row" style="font-size: 16px;">
-                                                <span class="fw-bold">{{ trans('order::order.remaining') }}</span>
+                                            @if ($totalRefundedAmount > 0)
+                                                <div class="summary-row mb-12" style="font-size: 14px; color: #666; padding-left: 20px;">
+                                                    <span class="fw-500">{{ trans('order::order.minus') }} {{ trans('order::order.refunded_commission') }}</span>
+                                                    <span class="fw-500"
+                                                        style="color: #28a745;">-{{ number_format($refundedCommission, 2) }}
+                                                        {{ currency() }}</span>
+                                                </div>
+                                                <div class="summary-row mb-12" style="font-size: 16px; background: #fff3cd; padding: 10px 15px; border-radius: 6px;">
+                                                    <span class="fw-bold" style="color: #856404;">= {{ trans('order::order.net_commission') }}</span>
+                                                    <span class="fw-bold"
+                                                        style="color: #856404;">{{ number_format($finalCommission, 2) }}
+                                                        {{ currency() }}</span>
+                                                </div>
+                                                <hr style="border-color: rgba(0,0,0,0.1); margin: 15px 0;">
+                                                <div class="summary-row mb-12" style="font-size: 14px; color: #666;">
+                                                    <span>{{ trans('order::order.calculation') }}: {{ number_format($totalWithShippingOrder, 2) }} - {{ number_format($totalCommission, 2) }}</span>
+                                                    <span></span>
+                                                </div>
+                                                <div class="summary-row mb-12" style="font-size: 16px; background: #e8f5e9; padding: 10px 15px; border-radius: 6px;">
+                                                    <span class="fw-bold" style="color: #2e7d32;">= {{ trans('order::order.remaining_before_refund') }}</span>
+                                                    <span class="fw-bold"
+                                                        style="color: #2e7d32;">{{ number_format($totalRemaining, 2) }}
+                                                        {{ currency() }}</span>
+                                                </div>
+                                                <hr style="border-color: rgba(0,0,0,0.1); margin: 15px 0;">
+                                                <div class="summary-row mb-12" style="font-size: 16px; background: #ffe6e6; padding: 10px 15px; border-radius: 6px;">
+                                                    <span class="fw-bold" style="color: #dc3545;">{{ trans('order::order.total_refunded') }}</span>
+                                                    <span class="fw-bold"
+                                                        style="color: #dc3545;">-{{ number_format($totalRefundedAmount, 2) }}
+                                                        {{ currency() }}</span>
+                                                </div>
+                                                <div class="summary-row mb-12" style="font-size: 14px; color: #666; padding-left: 20px;">
+                                                    <span class="fw-500">{{ trans('order::order.plus') }} {{ trans('order::order.refunded_commission') }}</span>
+                                                    <span class="fw-500"
+                                                        style="color: #28a745;">+{{ number_format($refundedCommission, 2) }}
+                                                        {{ currency() }}</span>
+                                                </div>
+                                                <div class="summary-row mb-12" style="font-size: 16px; background: #ffcdd2; padding: 10px 15px; border-radius: 6px;">
+                                                    <span class="fw-bold" style="color: #c62828;">= {{ trans('order::order.net_refund_impact') }}</span>
+                                                    <span class="fw-bold"
+                                                        style="color: #c62828;">{{ number_format($totalRefundedAmount - $refundedCommission, 2) }}
+                                                        {{ currency() }}</span>
+                                                </div>
+                                                <hr style="border-color: rgba(0,0,0,0.1); margin: 15px 0;">
+                                                <div class="summary-row mb-12" style="font-size: 14px; color: #666;">
+                                                    <span>{{ trans('order::order.calculation') }}: {{ number_format($totalRemaining, 2) }} - {{ number_format($totalRefundedAmount - $refundedCommission, 2) }}</span>
+                                                    <span></span>
+                                                </div>
+                                            @else
+                                                <hr style="border-color: rgba(0,0,0,0.1); margin: 15px 0;">
+                                                <div class="summary-row mb-12" style="font-size: 14px; color: #666;">
+                                                    <span>{{ trans('order::order.calculation') }}: {{ number_format($totalWithShippingOrder, 2) }} - {{ number_format($totalCommission, 2) }}</span>
+                                                    <span></span>
+                                                </div>
+                                            @endif
+                                            <hr style="border-color: rgba(0,0,0,0.1); margin: 15px 0;">
+                                            <div class="summary-row" style="font-size: 18px; background: #e8f5e9; padding: 12px 15px; border-radius: 6px;">
+                                                <span class="fw-bold">= {{ trans('order::order.remaining') }}</span>
                                                 <span class="fw-bold"
-                                                    style="color: #28a745;">{{ number_format($totalRemaining, 2) }}
+                                                    style="color: {{ $finalRemaining >= 0 ? '#28a745' : '#dc3545' }};">{{ number_format($finalRemaining, 2) }}
                                                     {{ currency() }}</span>
                                             </div>
                                         </div>
@@ -985,6 +1220,37 @@
                             // Recalculate remaining: Total with Shipping - Commission
                             $totalRemaining = $totalProductsPriceWithTax + $shippingToUse - $totalCommission;
                             $totalWithShipping = $totalProductsPriceWithTax + $shippingToUse;
+                            
+                            // Calculate refunds for this vendor (if vendor user) or all refunds (if admin)
+                            $vendorRefundedAmount = 0;
+                            $vendorRefundedCommission = 0;
+                            
+                            if (isset($isVendorUser) && $isVendorUser && $currentVendorId) {
+                                // Vendor view: only their refunds
+                                $vendorRefunds = $order->refunds()->where('status', 'refunded')
+                                    ->where('vendor_id', $currentVendorId)
+                                    ->with('items.orderProduct')
+                                    ->get();
+                            } else {
+                                // Admin view: all refunds (will be calculated per vendor later)
+                                $vendorRefunds = collect();
+                            }
+                            
+                            foreach ($vendorRefunds as $refund) {
+                                $vendorRefundedAmount += $refund->total_refund_amount;
+                                
+                                foreach ($refund->items as $item) {
+                                    $orderProduct = $item->orderProduct;
+                                    if ($orderProduct) {
+                                        $commPercent = $orderProduct->commission > 0 
+                                            ? $orderProduct->commission 
+                                            : ($orderProduct->vendorProduct?->product?->department?->commission ?? 0);
+                                        
+                                        $itemRefundAmount = $item->total_price + $item->shipping_amount + $item->tax_amount;
+                                        $vendorRefundedCommission += ($itemRefundAmount * $commPercent) / 100;
+                                    }
+                                }
+                            }
                         @endphp
 
                         @if (isset($isVendorUser) && $isVendorUser && isset($vendorProductTotal))
@@ -1010,13 +1276,22 @@
                                 // Update total with fees and discounts
                                 $totalWithShippingAndExtras = $totalWithShipping + $vendorFees - $vendorDiscounts;
 
-                                // Update remaining: Total - Commission
-                                $totalRemainingWithExtras = $totalWithShippingAndExtras - $totalCommission;
+                                // Calculate final commission and remaining after refunds
+                                $finalVendorCommission = $totalCommission - $vendorRefundedCommission;
+                                
+                                // Remaining calculation:
+                                // Start with total, subtract original commission to get remaining before refund
+                                // Then subtract the net refund impact (refunded amount minus refunded commission)
+                                $remainingBeforeRefund = $totalWithShippingAndExtras - $totalCommission;
+                                $netRefundImpact = $vendorRefundedAmount - $vendorRefundedCommission;
+                                $totalRemainingWithExtras = $remainingBeforeRefund - $netRefundImpact;
                             @endphp
                             <div class="col-12 mb-3">
                                 <x-order::vendor-remaining-with-products :vendorName="$currentVendorName" :products="$displayProducts"
                                     :subtotalBeforeTax="$totalProductsPriceBeforeTax" :taxAmount="$totalProductsTax" :subtotalWithTax="$totalProductsPriceWithTax" :shipping="$vendorShippingCost"
-                                    :total="$totalWithShippingAndExtras" :commissionPercentage="$totalCommissionPercentage" :commissionAmount="$totalCommission" :remaining="$totalRemainingWithExtras"
+                                    :total="$totalWithShippingAndExtras" :commissionPercentage="$totalCommissionPercentage" :commissionAmount="$totalCommission" 
+                                    :refundedAmount="$vendorRefundedAmount" :refundedCommission="$vendorRefundedCommission" :finalCommission="$finalVendorCommission"
+                                    :remaining="$totalRemainingWithExtras"
                                     :promoCodeShare="$vendorPromoCodeShare" :pointsShare="$vendorPointsShare" :fees="$vendorFees" :discounts="$vendorDiscounts"
                                     :colors="['#28a745', '#5dd879']" />
                             </div>
@@ -1171,8 +1446,40 @@
                                     $vendorTotalWithShippingAndExtras =
                                         $vendorTotalWithShipping + $vendorFees - $vendorDiscounts;
 
-                                    // Calculate remaining: Total with Shipping and Extras - Commission
-                                    $vendorTotalRemaining = $vendorTotalWithShippingAndExtras - $vendorTotalCommission;
+                                    // Calculate refunds for this vendor
+                                    $vendorRefundedAmount = 0;
+                                    $vendorRefundedCommission = 0;
+                                    
+                                    $vendorRefunds = $order->refunds()->where('status', 'refunded')
+                                        ->where('vendor_id', $vendorId)
+                                        ->with('items.orderProduct')
+                                        ->get();
+                                    
+                                    foreach ($vendorRefunds as $refund) {
+                                        $vendorRefundedAmount += $refund->total_refund_amount;
+                                        
+                                        foreach ($refund->items as $item) {
+                                            $orderProduct = $item->orderProduct;
+                                            if ($orderProduct) {
+                                                $commPercent = $orderProduct->commission > 0 
+                                                    ? $orderProduct->commission 
+                                                    : ($orderProduct->vendorProduct?->product?->department?->commission ?? 0);
+                                                
+                                                $itemRefundAmount = $item->total_price + $item->shipping_amount + $item->tax_amount;
+                                                $vendorRefundedCommission += ($itemRefundAmount * $commPercent) / 100;
+                                            }
+                                        }
+                                    }
+
+                                    // Calculate final commission and remaining after refunds
+                                    $finalVendorCommission = $vendorTotalCommission - $vendorRefundedCommission;
+                                    
+                                    // Remaining calculation:
+                                    // Start with total, subtract original commission to get remaining before refund
+                                    // Then subtract the net refund impact (refunded amount minus refunded commission)
+                                    $remainingBeforeRefund = $vendorTotalWithShippingAndExtras - $vendorTotalCommission;
+                                    $netRefundImpact = $vendorRefundedAmount - $vendorRefundedCommission;
+                                    $vendorTotalRemaining = $remainingBeforeRefund - $netRefundImpact;
 
                                     // Get color for this vendor
                                     $colors = $vendorColors[$colorIndex % count($vendorColors)];
@@ -1183,7 +1490,9 @@
                                 <div class="col-12 mb-3">
                                     <x-order::vendor-remaining-with-products :vendorName="$vendorName" :products="$vendorProducts"
                                         :subtotalBeforeTax="$vendorSubtotalBeforeTax" :taxAmount="$vendorTotalTax" :subtotalWithTax="$vendorSubtotalWithTax" :shipping="$vendorShipping"
-                                        :total="$vendorTotalWithShippingAndExtras" :commissionPercentage="$avgCommissionPercentage" :commissionAmount="$vendorTotalCommission" :remaining="$vendorTotalRemaining"
+                                        :total="$vendorTotalWithShippingAndExtras" :commissionPercentage="$avgCommissionPercentage" :commissionAmount="$vendorTotalCommission" 
+                                        :refundedAmount="$vendorRefundedAmount" :refundedCommission="$vendorRefundedCommission" :finalCommission="$finalVendorCommission"
+                                        :remaining="$vendorTotalRemaining"
                                         :promoCodeShare="$promoCodeShare" :pointsShare="$pointsShare" :fees="$vendorFees" :discounts="$vendorDiscounts"
                                         :colors="$colors" />
                                 </div>

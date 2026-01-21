@@ -575,4 +575,8 @@ return [
         "en" => "Statistics Retrieved Successfully",
         "ar" => "تم استرجاع الاحصائيات بنجاح"
     ],
+    "statuses_retrieved_successfully" => [
+        "en" => "Statuses Retrieved Successfully",
+        "ar" => "تم استرجاع الحالات بنجاح"
+    ],
 ];

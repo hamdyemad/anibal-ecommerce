@@ -26,12 +26,25 @@ class RefundRequestObserver
     public function created(RefundRequest $refundRequest): void
     {
         // Create initial history record for the 'pending' status
-        // user_id is null for customer-created refunds (customers are not in users table)
+        // Determine if action was by customer or user
+        $userId = null;
+        $customerId = null;
+        
+        if (auth()->check()) {
+            $authUser = auth()->user();
+            if ($authUser instanceof \App\Models\User) {
+                $userId = $authUser->id;
+            } elseif ($authUser instanceof \Modules\Customer\app\Models\Customer) {
+                $customerId = $authUser->id;
+            }
+        }
+        
         \Modules\Refund\app\Models\RefundRequestHistory::create([
             'refund_request_id' => $refundRequest->id,
             'old_status' => null,
             'new_status' => $refundRequest->status,
-            'user_id' => null,
+            'user_id' => $userId,
+            'customer_id' => $customerId,
             'notes' => 'refund::refund.history.created_by_customer', // Translation key
         ]);
         
@@ -64,12 +77,27 @@ class RefundRequestObserver
             // Determine notes based on status change
             $notes = $this->getStatusChangeNotes($newStatus, $refundRequest);
             
+            // Get user_id and customer_id based on who is authenticated
+            $userId = null;
+            $customerId = null;
+            
+            if (auth()->check()) {
+                $authUser = auth()->user();
+                // Check if this is a User model (admin/vendor) or Customer model
+                if ($authUser instanceof \App\Models\User) {
+                    $userId = $authUser->id;
+                } elseif ($authUser instanceof \Modules\Customer\app\Models\Customer) {
+                    $customerId = $authUser->id;
+                }
+            }
+            
             // Create history record for status change
             \Modules\Refund\app\Models\RefundRequestHistory::create([
                 'refund_request_id' => $refundRequest->id,
                 'old_status' => $oldStatus,
                 'new_status' => $newStatus,
-                'user_id' => optional(auth()->user())->id,
+                'user_id' => $userId,
+                'customer_id' => $customerId,
                 'notes' => $notes,
             ]);
             

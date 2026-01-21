@@ -49,7 +49,10 @@ class OrderRepository implements OrderRepositoryInterface
             'products.stage' => function($q) {
                 $q->withoutGlobalScopes();
             },
-            'extraFeesDiscounts'
+            'extraFeesDiscounts',
+            'refunds.items.orderProduct.vendorProduct.product.mainImage',
+            'refunds.items.orderProduct.vendorProduct.vendor',
+            'refunds.items.orderProduct.vendorProductVariant.variantConfiguration.key'
         ])->with(['stage' => function($q) {
             $q->withoutGlobalScopes();
         }]);

@@ -399,10 +399,6 @@ class RefundRequest extends BaseModel
                   })
                   ->orWhereHas('customer', function ($customerQuery) use ($filters) {
                       $customerQuery->where('name', 'like', '%' . $filters['search'] . '%');
-                  })
-                  ->orWhereHas('vendor', function ($vendorQuery) use ($filters) {
-                      $vendorQuery->whereRaw("JSON_EXTRACT(name, '$.en') LIKE ?", ['%' . $filters['search'] . '%'])
-                                  ->orWhereRaw("JSON_EXTRACT(name, '$.ar') LIKE ?", ['%' . $filters['search'] . '%']);
                   });
             });
         }

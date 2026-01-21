@@ -26,7 +26,8 @@ class RefundRequestRepository implements RefundRequestRepositoryInterface
                 'items.orderProduct.vendorProduct.variants.variantConfiguration.key',
                 'items.orderProduct.vendorProduct.taxes',
                 'items.orderProduct.vendorProductVariant',
-                'history'
+                'history.user',
+                'history.customer'
             ]);
         
         
@@ -46,7 +47,9 @@ class RefundRequestRepository implements RefundRequestRepositoryInterface
                 'items.orderProduct.vendorProduct.vendor',
                 'items.orderProduct.vendorProduct.variants.variantConfiguration.key',
                 'items.orderProduct.vendorProduct.taxes',
-                'items.orderProduct.vendorProductVariant'
+                'items.orderProduct.vendorProductVariant',
+                'history.user',
+                'history.customer'
             ])
             ->findOrFail($id);
     }
@@ -72,7 +75,6 @@ class RefundRequestRepository implements RefundRequestRepositoryInterface
     public function getStatistics(array $filters = [])
     {
         $query = $this->model->filter($filters);
-
         return [
             'total' => $query->count(),
             'pending' => (clone $query)->where('status', 'pending')->count(),
@@ -80,7 +82,6 @@ class RefundRequestRepository implements RefundRequestRepositoryInterface
             'in_progress' => (clone $query)->where('status', 'in_progress')->count(),
             'picked_up' => (clone $query)->where('status', 'picked_up')->count(),
             'refunded' => (clone $query)->where('status', 'refunded')->count(),
-            'rejected' => (clone $query)->where('status', 'rejected')->count(),
             'cancelled' => (clone $query)->where('status', 'cancelled')->count(),
             'total_amount' => (clone $query)->sum('total_refund_amount'),
         ];
@@ -96,7 +97,7 @@ class RefundRequestRepository implements RefundRequestRepositoryInterface
         }
 
         // Vendor can access their refunds
-        if ($user->vendor->id) {
+        if ($user->vendor && $refund->vendor_id === $user->vendor->id) {
             return true;
         }
 

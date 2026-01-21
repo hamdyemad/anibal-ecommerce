@@ -19,9 +19,9 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::prefix('refunds')->name('refunds.')->group(function () {
         Route::get('/', [RefundRequestApiController::class, 'index'])->name('index');
         Route::get('/statistics', [RefundRequestApiController::class, 'statistics'])->name('statistics');
+        Route::get('/statuses', [RefundRequestApiController::class, 'statuses'])->name('statuses');
         Route::get('/{id}', [RefundRequestApiController::class, 'show'])->name('show');
         Route::post('/', [RefundRequestApiController::class, 'store'])->name('store');
-        Route::post('/{id}/status', [RefundRequestApiController::class, 'updateStatus'])->name('update-status');
         Route::post('/{id}/cancel', [RefundRequestApiController::class, 'cancel'])->name('cancel');
     });
 });

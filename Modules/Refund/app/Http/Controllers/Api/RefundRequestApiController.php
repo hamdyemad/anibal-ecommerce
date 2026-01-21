@@ -37,13 +37,12 @@ class RefundRequestApiController extends Controller
     {
         $filters = [
             'status' => $request->get('status'),
-            'customer_id' => $request->get('customer_id'),
             'vendor_id' => $request->get('vendor_id'),
             'date_from' => $request->get('date_from'),
             'date_to' => $request->get('date_to'),
             'search' => $request->get('search'),
-            'show_parent' => $request->get('show_parent'), // For customer view
         ];
+        
         $perPage = $request->get('per_page', 12);
         $refunds = $this->refundService->getAllRefunds($filters, $perPage);
         
@@ -65,7 +64,8 @@ class RefundRequestApiController extends Controller
             'items.orderProduct.vendorProduct.variants.variantConfiguration.key',
             'items.orderProduct.vendorProduct.taxes',
             'items.orderProduct.vendorProductVariant',
-            'history.user', 
+            'history.user',
+            'history.customer',
             'order', 
             'customer', 
             'vendor'
@@ -73,7 +73,13 @@ class RefundRequestApiController extends Controller
 
         // Check authorization
         if (!$this->refundService->canUserAccessRefund($id, auth()->user())) {
-            return $this->sendRes('Unauthorized', false, [], [], 403);
+            return $this->sendRes(
+                trans('common.unauthorized'),
+                false,
+                [],
+                [],
+                403
+            );
         }
         
         return $this->sendRes(
@@ -105,14 +111,53 @@ class RefundRequestApiController extends Controller
     /**
      * Cancel refund request (customer only)
      */
-    public function cancel($id)
+    public function cancel(Request $request, $id)
     {
-        $refund = $this->refundService->cancelRefund($id, auth()->user());
+        // Validate cancellation reason
+        $request->validate([
+            'cancellation_reason' => 'required|string|max:1000',
+        ]);
+
+        // Check if user can cancel this refund
+        $user = auth()->user();
+        if (!$this->refundService->canUserAccessRefund($id, $user)) {
+            return $this->sendRes(
+                trans('common.unauthorized'),
+                false,
+                [],
+                [],
+                403
+            );
+        }
+
+        // Check if user can cancel (only customer can cancel pending refunds)
+        $refund = $this->refundService->getRefundById($id);
+        if ($refund->customer_id !== $user->id) {
+            return $this->sendRes(
+                trans('refund::refund.messages.only_customer_can_cancel'),
+                false,
+                [],
+                [],
+                403
+            );
+        }
+
+        if ($refund->status !== 'pending') {
+            return $this->sendRes(
+                trans('refund::refund.messages.cannot_cancel_refund'),
+                false,
+                [],
+                [],
+                400
+            );
+        }
+
+        $refund = $this->refundService->cancelRefund($id, $request->input('cancellation_reason'));
         
         return $this->sendRes(
-            $this->getMessage('refund_request_cancelled_successfully'),
+            trans('refund::refund.messages.cancelled_successfully'),
             true,
-            new RefundRequestResource($refund)
+            []
         );
     }
 
@@ -131,6 +176,30 @@ class RefundRequestApiController extends Controller
             $this->getMessage('statistics_retrieved_successfully'),
             true,
             $statistics
+        );
+    }
+
+    /**
+     * Get all available refund statuses
+     */
+    public function statuses()
+    {
+        $statuses = [];
+        
+        foreach (\Modules\Refund\app\Models\RefundRequest::STATUSES as $key => $label) {
+            $statuses[] = [
+                'id' => $key,
+                'value' => $key,
+                'label' => trans('refund::refund.statuses.' . $key),
+                'label_en' => trans('refund::refund.statuses.' . $key, [], 'en'),
+                'label_ar' => trans('refund::refund.statuses.' . $key, [], 'ar'),
+            ];
+        }
+        
+        return $this->sendRes(
+            $this->getMessage('statuses_retrieved_successfully'),
+            true,
+            $statuses
         );
     }
 }
