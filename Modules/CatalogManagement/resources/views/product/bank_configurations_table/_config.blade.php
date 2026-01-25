@@ -1,5 +1,4 @@
-@extends('layout.app')
-
+{{-- Bank Products DataTable Configuration --}}
 @php
     // Page title
     $pageTitle = trans('catalogmanagement::product.bank_products_management');
@@ -52,48 +51,3 @@
         ],
     ];
 @endphp
-
-@section('title', $pageTitle)
-
-@section('content')
-<div class="container-fluid">
-    {{-- Breadcrumb --}}
-    <div class="row">
-        <div class="col-lg-12">
-            <x-breadcrumb :items="$breadcrumbItems" />
-        </div>
-    </div>
-
-    {{-- DataTable Wrapper Component --}}
-    <x-datatable-wrapper
-        :title="$pageTitle"
-        icon="uil uil-database"
-        :showExport="false"
-        :tableId="$datatableConfig['tableId']"
-        :ajaxUrl="$datatableConfig['ajaxUrl']"
-        :headers="$datatableConfig['headers']"
-        :columnsJson="$datatableConfig['columnsJson']"
-        :customSelectIds="$datatableConfig['customSelectIds']"
-        :order="$datatableConfig['order']"
-        :pageLength="$datatableConfig['pageLength']">
-        
-        {{-- Additional Buttons Slot --}}
-        <x-slot name="additionalButtons">
-            <a href="{{ route('admin.products.index') }}" class="btn btn-secondary btn-squared shadow-sm px-4">
-                <i class="uil uil-arrow-left"></i> {{ trans('common.back') ?? 'Back' }}
-            </a>
-        </x-slot>
-
-        {{-- Filters Slot --}}
-        <x-slot name="filters">
-            @include('catalogmanagement::product.bank_configurations_table._filters')
-        </x-slot>
-    </x-datatable-wrapper>
-</div>
-@endsection
-
-{{-- Scripts --}}
-@push('scripts')
-    @include('catalogmanagement::product.bank_configurations_table._datatable-scripts')
-    @include('catalogmanagement::product.bank_configurations_table._custom-handlers')
-@endpush

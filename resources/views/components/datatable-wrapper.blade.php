@@ -95,31 +95,21 @@
             }
         });
 
-        // Flag to prevent double reload during initialization
-        let isInitializing = true;
-
-        // Add change handlers for all custom selects
-        customSelectIds.forEach(function(id) {
-            const el = document.getElementById(id);
-            if (el) {
-                el.addEventListener('change', function(e) {
-                    if (!isInitializing) {
-                        table.ajax.reload();
-                    }
-                });
-            }
-        });
-
-        // Set initializing to false after a short delay
-        setTimeout(function() {
-            isInitializing = false;
-        }, 500);
-
         // Populate filters from URL parameters
         const urlParams = new URLSearchParams(window.location.search);
         if (urlParams.has('search')) $('#search').val(urlParams.get('search'));
         if (urlParams.has('created_date_from')) $('#created_date_from').val(urlParams.get('created_date_from'));
         if (urlParams.has('created_date_to')) $('#created_date_to').val(urlParams.get('created_date_to'));
+
+        // Populate custom selects from URL parameters
+        customSelectIds.forEach(function(id) {
+            if (urlParams.has(id) && typeof CustomSelect !== 'undefined' && document.getElementById(id)) {
+                const value = urlParams.get(id);
+                if (value) {
+                    CustomSelect.setValue(id, value);
+                }
+            }
+        });
 
         // Parse columns - check if columns are defined in custom script or passed as JSON
         let columns;
@@ -149,6 +139,11 @@
                     d.created_date_from = $('#created_date_from').val();
                     d.created_date_to = $('#created_date_to').val();
                     
+                    console.log('AJAX Data - Dates:', {
+                        created_date_from: d.created_date_from,
+                        created_date_to: d.created_date_to
+                    });
+                    
                     // Get per_page from per_page_filter if exists, otherwise use default
                     if (typeof CustomSelect !== 'undefined' && document.getElementById('per_page_filter')) {
                         d.per_page = CustomSelect.getValue('per_page_filter') || {{ $pageLength }};
@@ -159,7 +154,10 @@
                     // Add custom select values
                     customSelectIds.forEach(function(id) {
                         if (typeof CustomSelect !== 'undefined' && document.getElementById(id)) {
-                            d[id] = CustomSelect.getValue(id);
+                            const value = CustomSelect.getValue(id);
+                            // Map filter IDs to backend parameter names
+                            const paramName = id.replace('_filter', '_id').replace('configuration_id', 'configuration').replace('stock_id', 'stock').replace('vendor_id', 'vendor_id');
+                            d[paramName] = value;
                         }
                     });
 
@@ -204,12 +202,50 @@
             dom: '<"row"<"col-sm-12"tr>><"row mt-3"<"col-sm-12 col-md-5"i><"col-sm-12 col-md-7"p>>',
         });
 
+        // Helper function to update URL with all current filter values and reload table
+        function updateURLAndReload() {
+            const params = new URLSearchParams();
+            const search = $('#search').val();
+            const dateFrom = $('#created_date_from').val();
+            const dateTo = $('#created_date_to').val();
+
+            if (search) params.set('search', search);
+            if (dateFrom) params.set('created_date_from', dateFrom);
+            if (dateTo) params.set('created_date_to', dateTo);
+
+            // Add custom select values to URL
+            customSelectIds.forEach(function(id) {
+                if (typeof CustomSelect !== 'undefined' && document.getElementById(id)) {
+                    const value = CustomSelect.getValue(id);
+                    if (value) params.set(id, value);
+                }
+            });
+
+            const newUrl = params.toString() ? `${window.location.pathname}?${params.toString()}` : window.location.pathname;
+            window.history.pushState({}, '', newUrl);
+
+            table.ajax.reload();
+        }
+
+        // Add change handlers for all custom selects (except per_page_filter)
+        customSelectIds.forEach(function(id) {
+            if (id !== 'per_page_filter') {
+                const el = document.getElementById(id);
+                if (el) {
+                    el.addEventListener('change', function(e) {
+                        updateURLAndReload();
+                    });
+                }
+            }
+        });
+
         // Per page filter change handler (if exists)
         const perPageEl = document.getElementById('per_page_filter');
         if (perPageEl) {
             perPageEl.addEventListener('change', function(e) {
                 const perPage = e.detail ? e.detail.value : (typeof CustomSelect !== 'undefined' ? CustomSelect.getValue('per_page_filter') : {{ $pageLength }});
                 table.page.len(parseInt(perPage)).draw();
+                updateURLAndReload();
             });
         }
 
@@ -242,11 +278,14 @@
         let searchTimer;
         $('#search').on('keyup', function() {
             clearTimeout(searchTimer);
-            searchTimer = setTimeout(() => table.ajax.reload(), 600);
+            searchTimer = setTimeout(() => updateURLAndReload(), 600);
         });
 
         // Date filters change handler
-        $('#created_date_from, #created_date_to').on('change', () => table.ajax.reload());
+        $('#created_date_from, #created_date_to').on('change', function() {
+            console.log('Date filter changed:', $(this).attr('id'), $(this).val());
+            updateURLAndReload();
+        });
 
         // Reset filters
         $('#resetFilters').on('click', function() {

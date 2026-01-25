@@ -67,7 +67,10 @@ $(document).ready(function() {
     if (departmentEl) {
         departmentEl.addEventListener('change', function(e) {
             const departmentId = e.detail ? e.detail.value : (typeof CustomSelect !== 'undefined' ? CustomSelect.getValue('department_filter') : '');
-            const currentCategoryId = "{{ request('category_id') }}";
+            
+            // Get category from URL parameters
+            const urlParams = new URLSearchParams(window.location.search);
+            const urlCategoryId = urlParams.get('category_filter');
             
             if (!departmentId) {
                 // Clear categories and set empty options
@@ -99,9 +102,9 @@ $(document).ready(function() {
                         if (typeof CustomSelect !== 'undefined') {
                             CustomSelect.setOptions('category_filter', options, '{{ __('common.all') }}');
                             
-                            // If there's a current category selected, set it
-                            if (currentCategoryId) {
-                                CustomSelect.setValue('category_filter', currentCategoryId);
+                            // If there's a category in URL, set it
+                            if (urlCategoryId) {
+                                CustomSelect.setValue('category_filter', urlCategoryId);
                             }
                         }
                     } else {
@@ -118,13 +121,15 @@ $(document).ready(function() {
                 }
             });
         });
+    }
 
-        // Trigger department change on page load if a department is selected
+    // Trigger department change on page load if a department is selected (after a short delay to ensure URL params are loaded)
+    setTimeout(function() {
         const initialDepartmentId = typeof CustomSelect !== 'undefined' ? CustomSelect.getValue('department_filter') : '';
-        if (initialDepartmentId) {
+        if (initialDepartmentId && departmentEl) {
             departmentEl.dispatchEvent(new CustomEvent('change', { detail: { value: initialDepartmentId } }));
         }
-    }
+    }, 300);
 
     // Select all checkbox handler
     $('#selectAllProducts').on('change', function() {

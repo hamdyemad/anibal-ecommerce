@@ -179,18 +179,18 @@
 
         {{-- Filters Slot --}}
         <x-slot name="filters">
-            @include('catalogmanagement::product._filters')
+            @include('catalogmanagement::product.product_configurations_table._filters')
         </x-slot>
     </x-datatable-wrapper>
 </div>
 
 {{-- Modals --}}
-@include('catalogmanagement::product._modals')
+@include('catalogmanagement::product.product_configurations_table._modals')
 
 @endsection
 
 {{-- Scripts --}}
 @push('scripts')
-    @include('catalogmanagement::product._datatable-scripts')
-    @include('catalogmanagement::product._custom-handlers')
+    @include('catalogmanagement::product.product_configurations_table._datatable-scripts')
+    @include('catalogmanagement::product.product_configurations_table._custom-handlers')
 @endpush
