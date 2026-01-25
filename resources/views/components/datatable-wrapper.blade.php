@@ -462,19 +462,60 @@
                         return false;
                     }
 
-                    // Get new order
-                    const items = [];
+                    // Get the dragged item's ID and its new position
+                    const draggedId = ui.item.find('.drag-handle').data('id');
+                    const draggedOldSortNumber = ui.item.find('.drag-handle').data('sort-number');
+                    
+                    // Find the new position (which row it's now at)
+                    let newPosition = 0;
+                    let targetSortNumber = null;
+                    
                     $('#{{ $tableId }} tbody tr').each(function(index) {
-                        const id = $(this).find('.drag-handle').data('id');
-                        if (id) {
-                            items.push({
-                                id: id,
-                                sort_number: index + 1
-                            });
+                        const $dragHandle = $(this).find('.drag-handle');
+                        const id = $dragHandle.data('id');
+                        
+                        if (id == draggedId) {
+                            newPosition = index;
+                            
+                            // Get the sort_number of the row that's now after the dragged item
+                            const $nextRow = $(this).next('tr');
+                            if ($nextRow.length > 0) {
+                                const nextSortNumber = $nextRow.find('.drag-handle').data('sort-number');
+                                if (nextSortNumber !== undefined) {
+                                    // We want to take the position before this next item
+                                    targetSortNumber = nextSortNumber;
+                                }
+                            }
+                            
+                            // If no next row, get the previous row's sort number
+                            if (targetSortNumber === null) {
+                                const $prevRow = $(this).prev('tr');
+                                if ($prevRow.length > 0) {
+                                    const prevSortNumber = $prevRow.find('.drag-handle').data('sort-number');
+                                    if (prevSortNumber !== undefined) {
+                                        targetSortNumber = prevSortNumber;
+                                    }
+                                }
+                            }
                         }
                     });
+                    
+                    // If we couldn't determine target, use visual position
+                    if (targetSortNumber === null) {
+                        targetSortNumber = newPosition + 1;
+                    }
 
-                    console.log('Reorder items:', items);
+                    const items = [{
+                        id: draggedId,
+                        sort_number: targetSortNumber
+                    }];
+
+                    console.log('Reorder:', {
+                        draggedId: draggedId,
+                        oldSortNumber: draggedOldSortNumber,
+                        newSortNumber: targetSortNumber,
+                        visualPosition: newPosition + 1
+                    });
 
                     if (items.length > 0) {
                         // Show loading overlay

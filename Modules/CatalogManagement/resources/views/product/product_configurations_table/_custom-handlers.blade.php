@@ -10,7 +10,7 @@ window.datatableColumns = [
         className: 'text-center',
         width: '40px',
         render: function(data, type, row) {
-            return `<div class="drag-handle" data-id="${row.vendor_product_id}" style="cursor: grab;">
+            return `<div class="drag-handle" data-id="${row.vendor_product_id}" data-sort-number="${row.sort_number || 0}" style="cursor: grab;">
                 <i class="uil uil-draggabledots" style="font-size: 20px; color: #666;"></i>
             </div>`;
         }

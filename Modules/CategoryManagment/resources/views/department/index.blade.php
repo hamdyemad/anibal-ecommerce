@@ -321,7 +321,7 @@
                         searchable: false,
                         className: 'text-center',
                         render: function(data, type, row) {
-                            return `<span class="drag-handle" title="{{ __('common.drag_to_reorder') ?? 'Drag to reorder' }}"><i class="uil uil-draggabledots"></i></span>`;
+                            return `<span class="drag-handle" data-id="${row.id}" data-sort-number="${row.sort_number || 0}" title="{{ __('common.drag_to_reorder') ?? 'Drag to reorder' }}"><i class="uil uil-draggabledots"></i></span>`;
                         }
                     },
                     // ID column
@@ -917,18 +917,51 @@
                         if (!dragDropEnabled) {
                             return false;
                         }
-                        var items = [];
-                        $('#departmentsDataTable tbody tr').each(function(index) {
-                            var rowData = table.row(this).data();
-                            if (rowData && rowData.department_id) {
-                                items.push({
-                                    id: rowData.department_id,
-                                    sort_number: index + 1
-                                });
+                        
+                        // Get the dragged item's ID and its new position
+                        const draggedRow = ui.item;
+                        const $dragHandle = draggedRow.find('.drag-handle');
+                        const draggedId = $dragHandle.data('id');
+                        const draggedOldSortNumber = $dragHandle.data('sort-number');
+                        
+                        // Find the new position and target sort_number
+                        let targetSortNumber = null;
+                        
+                        // Get the row that's now after the dragged item
+                        const $nextRow = draggedRow.next('tr');
+                        if ($nextRow.length > 0) {
+                            const nextSortNumber = $nextRow.find('.drag-handle').data('sort-number');
+                            if (nextSortNumber !== undefined) {
+                                targetSortNumber = nextSortNumber;
                             }
-                        });
+                        }
+                        
+                        // If no next row, get the previous row's sort number
+                        if (targetSortNumber === null) {
+                            const $prevRow = draggedRow.prev('tr');
+                            if ($prevRow.length > 0) {
+                                const prevSortNumber = $prevRow.find('.drag-handle').data('sort-number');
+                                if (prevSortNumber !== undefined) {
+                                    targetSortNumber = prevSortNumber;
+                                }
+                            }
+                        }
+                        
+                        // If still no target, use the old sort number (no change)
+                        if (targetSortNumber === null) {
+                            targetSortNumber = draggedOldSortNumber;
+                        }
 
-                        console.log('Reorder items:', items);
+                        const items = [{
+                            id: draggedId,
+                            sort_number: targetSortNumber
+                        }];
+
+                        console.log('Reorder:', {
+                            draggedId: draggedId,
+                            oldSortNumber: draggedOldSortNumber,
+                            newSortNumber: targetSortNumber
+                        });
 
                         if (items.length > 0) {
                             // Show loading
