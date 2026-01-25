@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Bus;
+use Illuminate\Support\Facades\Auth;
 use Exception;
 use Illuminate\Validation\ValidationException;
 use Modules\CatalogManagement\app\Models\Product;
@@ -30,7 +32,6 @@ use Modules\CatalogManagement\app\Http\Requests\Product\UpdateStockPricingReques
 use Modules\Vendor\app\Services\VendorService;
 use App\Models\UserType;
 use App\Traits\Res;
-use Illuminate\Support\Facades\Auth;
 use Modules\CatalogManagement\app\Actions\ProductAction;
 use Modules\CatalogManagement\app\Http\Resources\BankProductResource;
 use Modules\CatalogManagement\app\Http\Resources\VariantsConfigurationKeyResource;
@@ -1036,7 +1037,7 @@ class ProductController extends Controller
     }
 
     /**
-     * Handle bulk upload import
+     * Handle bulk upload import with job batching
      */
     public function bulkUploadStore(Request $request)
     {
@@ -1046,28 +1047,102 @@ class ProductController extends Controller
 
         try {
             $isAdmin = isAdmin();
-            $import = new \Modules\CatalogManagement\app\Imports\ProductsImport($isAdmin);
-            \Maatwebsite\Excel\Facades\Excel::import($import, $request->file('file'));
+            $userId = Auth::id();
+            
+            // Store the uploaded file temporarily
+            $file = $request->file('file');
+            $fileName = 'imports/' . uniqid() . '_' . $file->getClientOriginalName();
+            $filePath = $file->storeAs('', $fileName, 'local');
 
-            $importedCount = $import->getImportedCount();
-            $errors = $import->getErrors();
+            // Create a batch job
+            $batch = Bus::batch([
+                new \Modules\CatalogManagement\app\Jobs\ProcessProductImport($filePath, $isAdmin, $userId)
+            ])->then(function (\Illuminate\Bus\Batch $batch) {
+                // All jobs completed successfully
+            })->catch(function (\Illuminate\Bus\Batch $batch, \Throwable $e) {
+                // First batch job failure detected
+            })->finally(function (\Illuminate\Bus\Batch $batch) {
+                // The batch has finished executing
+            })->name('Product Import - ' . $file->getClientOriginalName())
+            ->dispatch();
 
-            if (count($errors) > 0) {
-                return redirect()->back()->with([
-                    'warning' => __('catalogmanagement::product.bulk_upload_partial_success', [
-                        'imported' => $importedCount,
-                        'failed' => count($errors)
-                    ]),
-                    'import_errors' => $errors
+            // Return JSON response for AJAX request
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'batch_id' => $batch->id,
+                    'message' => __('catalogmanagement::product.import_started')
                 ]);
             }
 
-            return redirect()->back()->with('success', __('catalogmanagement::product.bulk_upload_success', [
-                'count' => $importedCount
-            ]));
+            // Fallback for non-AJAX requests
+            return redirect()->back()->with([
+                'batch_id' => $batch->id,
+                'info' => __('catalogmanagement::product.import_started')
+            ]);
         } catch (\Exception $e) {
             Log::error('Bulk upload error: ' . $e->getMessage());
+            
+            // Return JSON error for AJAX request
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'error' => __('catalogmanagement::product.bulk_upload_error') . ': ' . $e->getMessage()
+                ], 500);
+            }
+            
             return redirect()->back()->with('error', __('catalogmanagement::product.bulk_upload_error') . ': ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Check import batch progress
+     */
+    public function checkImportProgress($lang, $countryCode, $batchId)
+    {
+        try {
+            $batch = Bus::findBatch($batchId);
+
+            if (!$batch) {
+                return response()->json([
+                    'status' => 'not_found',
+                    'message' => 'Batch not found'
+                ], 404);
+            }
+
+            $progress = [
+                'batch_id' => $batch->id,
+                'name' => $batch->name,
+                'total_jobs' => $batch->totalJobs,
+                'pending_jobs' => $batch->pendingJobs,
+                'processed_jobs' => $batch->processedJobs(),
+                'progress_percentage' => $batch->progress(),
+                'finished' => $batch->finished(),
+                'cancelled' => $batch->cancelled(),
+                'failed' => $batch->failedJobs > 0,
+            ];
+
+            // If batch is finished, get the results
+            if ($batch->finished()) {
+                $results = cache()->get("import_results_{$batchId}");
+                if ($results) {
+                    $progress['results'] = $results;
+                    // Clear cache after retrieving
+                    cache()->forget("import_results_{$batchId}");
+                }
+            }
+
+            return response()->json($progress);
+        } catch (\Exception $e) {
+            Log::error('Check import progress error: ' . $e->getMessage(), [
+                'batch_id' => $batchId,
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Error checking progress: ' . $e->getMessage()
+            ], 500);
         }
     }
 

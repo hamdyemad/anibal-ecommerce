@@ -26,6 +26,34 @@ admin.@extends('layout.app')
                     </a>
                 </div>
 
+                {{-- Progress Modal --}}
+                <div class="modal fade" id="progressModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content">
+                            <div class="modal-body text-center p-5">
+                                <div class="mb-4">
+                                    <div class="spinner-border text-primary" style="width: 4rem; height: 4rem;" role="status">
+                                        <span class="visually-hidden">Loading...</span>
+                                    </div>
+                                </div>
+                                <h5 class="mb-3" id="progressTitle">{{ __('catalogmanagement::product.import_in_progress') }}</h5>
+                                <div class="progress mb-3" style="height: 30px;">
+                                    <div class="progress-bar progress-bar-striped progress-bar-animated bg-primary" 
+                                         role="progressbar" 
+                                         id="progressBar"
+                                         style="width: 0%;" 
+                                         aria-valuenow="0" 
+                                         aria-valuemin="0" 
+                                         aria-valuemax="100">
+                                        <span class="fw-bold fs-16" id="progressText">0%</span>
+                                    </div>
+                                </div>
+                                <p class="text-muted mb-0" id="progressSubtext">{{ __('catalogmanagement::product.checking_progress') }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 {{-- Alert Messages --}}
                 @if(session('success'))
                     <div class="alert alert-success alert-dismissible fade show" role="alert">
@@ -747,18 +775,223 @@ document.getElementById('file').addEventListener('change', function(e) {
     }
 });
 
-document.getElementById('bulkUploadForm').addEventListener('submit', function() {
+// On page load, check if there's an ongoing import from localStorage
+$(document).ready(function() {
+    const storedBatchId = localStorage.getItem('import_batch_id');
+    if (storedBatchId) {
+        // Check if this batch is still running
+        checkImportProgress(storedBatchId);
+    }
+});
+
+function updateProgressBar(percentage) {
+    const progressBar = document.getElementById('progressBar');
+    const progressText = document.getElementById('progressText');
+    
+    if (progressBar && progressText) {
+        const roundedPercentage = Math.round(percentage);
+        progressBar.style.width = roundedPercentage + '%';
+        progressBar.setAttribute('aria-valuenow', roundedPercentage);
+        progressText.textContent = roundedPercentage + '%';
+    }
+}
+
+function showProgressModal() {
+    const progressModal = new bootstrap.Modal(document.getElementById('progressModal'), {
+        backdrop: 'static',
+        keyboard: false
+    });
+    progressModal.show();
+}
+
+function hideProgressModal() {
+    const progressModalEl = document.getElementById('progressModal');
+    const progressModal = bootstrap.Modal.getInstance(progressModalEl);
+    if (progressModal) {
+        progressModal.hide();
+    }
+}
+
+function checkImportProgress(batchId) {
+    console.log('Starting progress check for batch:', batchId);
+    
+    // Show progress modal
+    showProgressModal();
+    updateProgressBar(0);
+
+    const progressInterval = setInterval(function() {
+        // Build URL manually to ensure proper parameter replacement
+        const baseUrl = '{{ url(app()->getLocale() . '/' . request()->route('countryCode') . '/admin/products/bulk-upload/progress') }}';
+        const url = `${baseUrl}/${batchId}`;
+        console.log('Fetching progress from:', url);
+        
+        fetch(url, {
+            method: 'GET',
+            credentials: 'same-origin',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json'
+            }
+        })
+            .then(response => {
+                console.log('Response status:', response.status);
+                return response.json();
+            })
+            .then(data => {
+                console.log('Progress data:', data);
+                
+                // Update progress bar with percentage
+                if (data.progress_percentage !== undefined) {
+                    updateProgressBar(data.progress_percentage);
+                    document.getElementById('progressSubtext').textContent = 
+                        '{{ __("catalogmanagement::product.import_in_progress") }}...';
+                }
+
+                // Check if finished
+                if (data.finished) {
+                    clearInterval(progressInterval);
+                    updateProgressBar(100);
+                    
+                    // Clear localStorage
+                    localStorage.removeItem('import_batch_id');
+                    
+                    setTimeout(() => {
+                        hideProgressModal();
+
+                        // Handle results
+                        if (data.results) {
+                            if (data.results.status === 'completed') {
+                                const importedCount = data.results.imported_count || 0;
+                                const errors = data.results.errors || [];
+
+                                if (errors.length > 0) {
+                                    // Reload to show errors on page
+                                    window.location.reload();
+                                } else {
+                                    // Redirect to products list without toastr
+                                    window.location.href = '{{ route("admin.products.index") }}';
+                                }
+                            } else if (data.results.status === 'failed') {
+                                toastr.error(
+                                    data.results.error || '{{ __("catalogmanagement::product.import_failed") }}',
+                                    '{{ __("common.error") ?? "Error" }}',
+                                    {
+                                        closeButton: true,
+                                        progressBar: true,
+                                        timeOut: 8000
+                                    }
+                                );
+                            }
+                        }
+                    }, 500);
+                } else if (data.failed) {
+                    clearInterval(progressInterval);
+                    
+                    // Clear localStorage
+                    localStorage.removeItem('import_batch_id');
+                    
+                    hideProgressModal();
+
+                    toastr.error(
+                        '{{ __("catalogmanagement::product.import_failed") }}',
+                        '{{ __("common.error") ?? "Error" }}',
+                        {
+                            closeButton: true,
+                            progressBar: true,
+                            timeOut: 8000
+                        }
+                    );
+                } else if (data.status === 'not_found') {
+                    // Batch not found, probably completed or expired
+                    clearInterval(progressInterval);
+                    localStorage.removeItem('import_batch_id');
+                    hideProgressModal();
+                }
+            })
+            .catch(error => {
+                console.error('Error checking progress:', error);
+                clearInterval(progressInterval);
+                
+                // Don't clear localStorage on network error, might be temporary
+                hideProgressModal();
+                
+                toastr.error(
+                    '{{ __("catalogmanagement::product.import_failed") }}',
+                    '{{ __("common.error") ?? "Error" }}',
+                    {
+                        closeButton: true,
+                        progressBar: true,
+                        timeOut: 8000
+                    }
+                );
+            });
+    }, 2000); // Check every 2 seconds
+}
+
+document.getElementById('bulkUploadForm').addEventListener('submit', function(e) {
+    e.preventDefault(); // Prevent default form submission
+    
+    const form = e.target;
+    const formData = new FormData(form);
     const btn = document.getElementById('importBtn');
+    
     btn.disabled = true;
     btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>{{ __("catalogmanagement::product.importing") }}...';
     
-    // Show loading overlay
-    if (typeof LoadingOverlay !== 'undefined') {
-        LoadingOverlay.show({
-            text: '{{ __("catalogmanagement::product.importing_products") }}',
-            subtext: '{{ __("common.please_wait") ?? "Please wait" }}...'
-        });
-    }
+    // Show progress modal
+    showProgressModal();
+    updateProgressBar(0);
+    document.getElementById('progressSubtext').textContent = '{{ __("common.please_wait") ?? "Please wait" }}...';
+    
+    // Submit form via AJAX
+    fetch(form.action, {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log('Upload response:', data);
+        
+        if (data.batch_id) {
+            // Store batch ID in localStorage
+            localStorage.setItem('import_batch_id', data.batch_id);
+            // Start checking progress
+            checkImportProgress(data.batch_id);
+        } else if (data.error) {
+            hideProgressModal();
+            btn.disabled = false;
+            btn.innerHTML = '<i class="uil uil-import"></i> {{ __("catalogmanagement::product.import") }}';
+            
+            toastr.error(
+                data.error || '{{ __("catalogmanagement::product.bulk_upload_error") }}',
+                '{{ __("common.error") ?? "Error" }}',
+                {
+                    closeButton: true,
+                    progressBar: true,
+                    timeOut: 8000
+                }
+            );
+        }
+    })
+    .catch(error => {
+        console.error('Upload error:', error);
+        hideProgressModal();
+        btn.disabled = false;
+        btn.innerHTML = '<i class="uil uil-import"></i> {{ __("catalogmanagement::product.import") }}';
+        
+        toastr.error(
+            '{{ __("catalogmanagement::product.bulk_upload_error") }}',
+            '{{ __("common.error") ?? "Error" }}',
+            {
+                closeButton: true,
+                progressBar: true,
+                timeOut: 8000
+            }
+        );
+    });
 });
 
 // Show toastr notifications for session messages
@@ -784,6 +1017,14 @@ $(document).ready(function() {
             closeButton: true,
             progressBar: true,
             timeOut: 8000
+        });
+    @endif
+
+    @if(session('info'))
+        toastr.info('{{ session('info') }}', '{{ __('common.info') ?? 'Info' }}', {
+            closeButton: true,
+            progressBar: true,
+            timeOut: 5000
         });
     @endif
 });

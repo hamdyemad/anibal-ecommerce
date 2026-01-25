@@ -88,6 +88,7 @@ Route::group(['prefix' => 'products'], function() {
     // Bulk Upload routes
     Route::get('bulk-upload', 'ProductController@bulkUpload')->name('products.bulk-upload');
     Route::post('bulk-upload', 'ProductController@bulkUploadStore')->name('products.bulk-upload.store');
+    Route::get('bulk-upload/progress/{batchId}', 'ProductController@checkImportProgress')->name('products.bulk-upload.progress');
     Route::get('download-demo', 'ProductController@downloadDemo')->name('products.download-demo');
     
     // Product status-based routes (must be before resource)
