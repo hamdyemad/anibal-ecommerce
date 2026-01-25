@@ -47,6 +47,7 @@ return [
         'vendor' => 'Vendor',
         'order' => 'Order',
         'status' => 'Status',
+        'refunded_items' => 'Refunded Items',
         'total_refund_amount' => 'Total Refund Amount',
         'total_products_amount' => 'Products Amount',
         'total_shipping_amount' => 'Shipping Amount',

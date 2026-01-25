@@ -313,6 +313,12 @@ class OrderController extends Controller
                 $refundedCount = $refunds->where('status', 'refunded')->count();
                 $totalRefundedAmount = $refunds->where('status', 'refunded')->sum('total_refund_amount');
                 $pendingRefundsCount = $refunds->whereIn('status', ['pending', 'approved', 'in_progress'])->count();
+                
+                // Calculate total quantity of refunded items
+                $totalRefundedItemsQuantity = 0;
+                foreach ($refunds as $refund) {
+                    $totalRefundedItemsQuantity += $refund->items->sum('quantity');
+                }
 
                 $rowData = [
                     'index' => $index++,
@@ -340,6 +346,7 @@ class OrderController extends Controller
                     'refunded_count' => $refundedCount,
                     'total_refunded_amount' => $totalRefundedAmount,
                     'pending_refunds_count' => $pendingRefundsCount,
+                    'total_refunded_items_quantity' => $totalRefundedItemsQuantity,
                 ];
 
                 $data[] = $rowData;

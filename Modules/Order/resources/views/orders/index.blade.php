@@ -437,12 +437,13 @@
                             const refundedCount = data.refunded_count || 0;
                             const totalRefundedAmount = data.total_refunded_amount || 0;
                             const pendingRefundsCount = data.pending_refunds_count || 0;
+                            const totalRefundedItemsQuantity = data.total_refunded_items_quantity || 0;
                             
                             if (refundedCount > 0) {
                                 html += `
                                     <div class="mb-1">
                                         <span class="badge badge-round badge-lg badge-danger" style="font-size: 10px;">
-                                            <i class="uil uil-redo me-1"></i>{{ trans('order::order.refunded_items') }}: ${refundedCount}
+                                            <i class="uil uil-redo me-1"></i>{{ trans('order::order.refunded_items') }}: ${totalRefundedItemsQuantity}
                                         </span>
                                         <br>
                                         <span class="badge badge-round badge-lg  badge-danger mt-1" style="font-size: 9px;">

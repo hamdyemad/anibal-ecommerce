@@ -113,6 +113,9 @@ class RefundRequestDataTable
         $orderNumber = optional($refund->order)->order_number ?? '-';
         $currency = trans('common.currency') !== 'common.currency' ? trans('common.currency') : 'EGP';
         
+        // Calculate total refunded items quantity
+        $totalRefundedQuantity = $refund->items->sum('quantity');
+        
         $html = '<div class="refund-info">';
         $html .= '<div class="mb-1"><strong>' . trans('refund::refund.fields.refund_number') . ':</strong> ' . e($refund->refund_number) . '</div>';
         $html .= '<div class="mb-1"><strong>' . trans('refund::refund.fields.order_number') . ':</strong> ' . e($orderNumber) . '</div>';
@@ -122,6 +125,7 @@ class RefundRequestDataTable
             $html .= '<div class="mb-1"><strong>' . trans('refund::refund.fields.vendor') . ':</strong> ' . e($vendorName) . '</div>';
         }
         
+        $html .= '<div class="mb-1"><strong>' . trans('refund::refund.fields.refunded_items') . ':</strong> <span class="badge badge-danger badge-round badge-lg"><i class="uil uil-redo"></i> ' . $totalRefundedQuantity . '</span></div>';
         $html .= '<div class="mb-1"><strong>' . trans('refund::refund.fields.total_refund_amount') . ':</strong> ' . number_format($refund->total_refund_amount, 2) . ' ' . $currency . '</div>';
         $html .= '<div><strong>' . trans('common.created_at') . ':</strong> ' . $refund->created_at . '</div>';
         $html .= '</div>';

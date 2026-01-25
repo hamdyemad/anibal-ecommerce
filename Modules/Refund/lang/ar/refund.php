@@ -47,6 +47,7 @@ return [
         'vendor' => 'المورد',
         'order' => 'الطلب',
         'status' => 'الحالة',
+        'refunded_items' => 'المنتجات المسترجعة',
         'total_refund_amount' => 'إجمالي المبلغ المسترجع',
         'total_products_amount' => 'قيمة المنتجات',
         'total_shipping_amount' => 'قيمة الشحن',
