@@ -32,7 +32,6 @@ class ProductsSheetExport implements FromCollection, WithHeadings, WithMapping, 
     public function headings(): array
     {
         $headings = [
-            'id',
             'sku',
         ];
 
@@ -78,11 +77,7 @@ class ProductsSheetExport implements FromCollection, WithHeadings, WithMapping, 
     {
         $product = $vendorProduct->product;
         
-        // Use the mapping to get incremental index
-        $incrementalId = $this->productIdMapping[$vendorProduct->id] ?? $vendorProduct->id;
-        
         $row = [
-            $incrementalId,
             $vendorProduct->sku,
         ];
 

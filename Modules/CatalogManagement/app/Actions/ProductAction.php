@@ -79,6 +79,21 @@ class ProductAction {
             // Apply vendor filter only for vendor users
             if($vendorId) {
                 $query->where('vendor_id', $vendorId);
+                
+                // For vendors on regular products page, exclude bank products by default
+                // unless explicitly filtering for bank products
+                if (empty($filters['product_type'])) {
+                    $query->whereHas('product', function($q) {
+                        $q->where('type', '!=', 'bank');
+                    });
+                }
+            }
+
+            // Filter by vendor's departments if provided (for vendor bank products view)
+            if (!empty($data['vendor_department_ids'])) {
+                $query->whereHas('product', function($q) use ($data) {
+                    $q->whereIn('department_id', $data['vendor_department_ids']);
+                });
             }
 
             // Apply other filters
@@ -206,7 +221,12 @@ class ProductAction {
 
             // Get total records based on vendor filter
             if($vendorId) {
-                $totalRecords = VendorProduct::where('vendor_id', $vendorId)->count();
+                // For vendors, exclude bank products from total count
+                $totalRecords = VendorProduct::where('vendor_id', $vendorId)
+                    ->whereHas('product', function($q) {
+                        $q->where('type', '!=', 'bank');
+                    })
+                    ->count();
             } else {
                 $totalRecords = VendorProduct::count();
             }
@@ -360,8 +380,18 @@ class ProductAction {
             $query = Product::with(['brand', 'category', 'department', 'subCategory', 'translations'])
                 ->where('type', Product::TYPE_BANK);
 
-            // Filter by vendor's departments if user is a vendor
-            if (auth()->check() && isVendor()) {
+            // Filter by vendor's departments if explicitly provided (for vendor bank products view)
+            if (!empty($data['vendor_department_ids'])) {
+                $departmentIds = $data['vendor_department_ids'];
+                if (!empty($departmentIds)) {
+                    $query->whereIn('department_id', $departmentIds);
+                } else {
+                    // If vendor has no departments, show no products
+                    $query->whereRaw('1 = 0');
+                }
+            }
+            // Otherwise, filter by vendor's departments if user is a vendor
+            elseif (auth()->check() && isVendor()) {
                 $vendor = auth()->user()->vendorByUser ?? auth()->user()->vendorById ?? auth()->user()->vendor;
                 if ($vendor) {
                     $departmentIds = $vendor->departments()->pluck('departments.id')->toArray();
@@ -420,7 +450,15 @@ class ProductAction {
             $totalRecordsQuery = Product::where('type', Product::TYPE_BANK);
             
             // Apply vendor department filter to total count as well
-            if (auth()->check() && isVendor()) {
+            if (!empty($data['vendor_department_ids'])) {
+                $departmentIds = $data['vendor_department_ids'];
+                if (!empty($departmentIds)) {
+                    $totalRecordsQuery->whereIn('department_id', $departmentIds);
+                } else {
+                    $totalRecordsQuery->whereRaw('1 = 0');
+                }
+            }
+            elseif (auth()->check() && isVendor()) {
                 $vendor = auth()->user()->vendorByUser ?? auth()->user()->vendorById ?? auth()->user()->vendor;
                 if ($vendor) {
                     $departmentIds = $vendor->departments()->pluck('departments.id')->toArray();

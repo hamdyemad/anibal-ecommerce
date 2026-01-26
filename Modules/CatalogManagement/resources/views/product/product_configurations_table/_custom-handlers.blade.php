@@ -2,7 +2,7 @@
 <script>
 // Define columns for DataTable
 window.datatableColumns = [
-    @if($isAdmin)
+    @if(isset($showAdminColumns) ? $showAdminColumns : $isAdmin)
     {
         data: null,
         orderable: false,
@@ -41,7 +41,7 @@ window.datatableColumns = [
         className: 'text-start',
         render: renderProductInformation
     },
-    @if($isAdmin)
+    @if(isset($showAdminColumns) ? $showAdminColumns : $isAdmin)
     {
         data: 'vendor',
         name: 'vendor',
@@ -220,8 +220,12 @@ $(document).ready(function() {
             }
         });
         
-        // Create export URL
+        // Check if this is vendor bank page - use special export route
+        @if(isset($isVendorBankPage) && $isVendorBankPage)
+        const exportUrl = '{{ route('admin.products.vendor-bank.export') }}' + (queryParams.toString() ? '?' + queryParams.toString() : '');
+        @else
         const exportUrl = '{{ route('admin.products.export') }}' + (queryParams.toString() ? '?' + queryParams.toString() : '');
+        @endif
         
         // Trigger download
         window.location.href = exportUrl;

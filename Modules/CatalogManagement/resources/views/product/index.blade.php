@@ -30,11 +30,15 @@
         'brand_filter',
         'department_filter',
         'category_filter',
-        'product_type',
         'configuration_filter',
         'active',
         'stock_filter'
     ];
+    
+    // Only show product type filter for admins
+    if ($isAdmin) {
+        $customSelectIds[] = 'product_type';
+    }
     
     if ($isAdmin) {
         $customSelectIds[] = 'vendor_filter';
@@ -43,6 +47,9 @@
     if (!isset($statusFilter)) {
         $customSelectIds[] = 'status';
     }
+    
+    // Hide product type filter for vendors
+    $hideProductTypeFilter = !$isAdmin;
 
     // DataTable configuration
     $datatableConfig = [

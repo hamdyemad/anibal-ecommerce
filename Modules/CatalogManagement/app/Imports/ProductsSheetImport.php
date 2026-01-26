@@ -6,20 +6,21 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Concerns\SkipsOnError;
 use Maatwebsite\Excel\Concerns\SkipsErrors;
+use Maatwebsite\Excel\Concerns\WithChunkReading;
 use Modules\CatalogManagement\app\Models\Product;
 use Modules\CatalogManagement\app\Models\VendorProduct;
-use App\Models\UserType;
 use App\Models\ActivityLog;
 
 /**
  * Sheet: products
  * Creates Product (bank) and VendorProduct entries
  */
-class ProductsSheetImport implements ToCollection, WithHeadingRow, SkipsOnError
+class ProductsSheetImport implements ToCollection, WithHeadingRow, SkipsOnError, WithChunkReading
 {
     use SkipsErrors;
 
@@ -36,16 +37,19 @@ class ProductsSheetImport implements ToCollection, WithHeadingRow, SkipsOnError
     public function collection(Collection $rows)
     {
         $currentUser = Auth::user();
-        $vendorId = null;
         
-        // Determine vendor_id
-        if (isVendor()) {
-            $vendorId = $currentUser->vendor?->id;
-        }
-
         foreach ($rows as $index => $row) {
-            $excelId = (int)($row['id'] ?? 0);
-            $sku     = $this->normalizeSku($row['sku'] ?? '');
+            $sku = $this->normalizeSku($row['sku'] ?? '');
+            
+            // Determine vendor_id per row
+            $vendorId = null;
+            if (isVendor()) {
+                $vendorId = $currentUser->vendor?->id;
+            } elseif (isAdmin()) {
+                // For admin: check vendor_id column in the row
+                // Try multiple possible column name variations
+                $vendorId = $this->getVendorIdFromRow($row);
+            }
             
             // Normalize SKU in the row data for validation
             $rowData = $row->toArray();
@@ -53,7 +57,6 @@ class ProductsSheetImport implements ToCollection, WithHeadingRow, SkipsOnError
 
             // Validate row data
             $validator = Validator::make($rowData, [
-                'id' => 'required|integer|min:1',
                 'sku' => 'required|string|max:255',
                 'title_en' => 'nullable|string|max:255',
                 'title_ar' => 'nullable|string|max:255',
@@ -66,9 +69,6 @@ class ProductsSheetImport implements ToCollection, WithHeadingRow, SkipsOnError
                 'have_varient' => 'nullable|in:0,1,true,false,yes,no',
                 'max_per_order' => 'nullable|integer|min:1',
             ], [
-                'id.required' => __('validation.required', ['attribute' => 'id']),
-                'id.integer' => __('validation.integer', ['attribute' => 'id']),
-                'id.min' => __('validation.min.numeric', ['attribute' => 'id', 'min' => 1]),
                 'sku.required' => __('validation.required', ['attribute' => 'sku']),
                 'sku.string' => __('validation.string', ['attribute' => 'sku']),
                 'sku.max' => __('validation.max.string', ['attribute' => 'sku', 'max' => 255]),
@@ -129,12 +129,12 @@ class ProductsSheetImport implements ToCollection, WithHeadingRow, SkipsOnError
                 }
             }
 
-            if ($excelId <= 0 || $sku === '') {
+            if ($sku === '') {
                 $this->importErrors[] = [
                     'sheet' => 'products',
                     'row' => $index + 2,
                     'sku' => $sku,
-                    'errors' => [__('catalogmanagement::product.invalid_id_or_sku')]
+                    'errors' => [__('catalogmanagement::product.invalid_sku')]
                 ];
                 continue;
             }
@@ -150,19 +150,12 @@ class ProductsSheetImport implements ToCollection, WithHeadingRow, SkipsOnError
                 continue;
             }
 
-            // For admin: check vendor_id column
-            if (isAdmin()) {
-                if (isset($row['vendor_id']) && !empty($row['vendor_id'])) {
-                    $vendorId = (int)$row['vendor_id'];
-                }
-            }
-
             if (!$vendorId) {
                 $this->importErrors[] = [
                     'sheet' => 'products',
                     'row' => $index + 2,
                     'sku' => $sku,
-                    'errors' => [__('catalogmanagement::product.vendor_id_required')]
+                    'errors' => [__('catalogmanagement::product.vendor_id_required') . ' (Column B is empty or vendor_id not found)']
                 ];
                 continue;
             }
@@ -246,9 +239,9 @@ class ProductsSheetImport implements ToCollection, WithHeadingRow, SkipsOnError
                 // Log activity for vendor product update
                 $this->logBulkActivity('updated', $existingVendorProduct, $oldVendorProductData, $existingVendorProduct->fresh()->toArray());
 
-                // Map to existing IDs
-                $this->productMap[$excelId] = (int)$product->id;
-                $this->vendorProductMap[$excelId] = (int)$existingVendorProduct->id;
+                // Map SKU to database IDs (use SKU as key instead of Excel ID)
+                $this->productMap[$sku] = (int)$product->id;
+                $this->vendorProductMap[$sku] = (int)$existingVendorProduct->id;
                 
                 // Mark this SKU as seen
                 $this->vendorProductSkus[$sku] = $index + 2;
@@ -261,7 +254,7 @@ class ProductsSheetImport implements ToCollection, WithHeadingRow, SkipsOnError
             // Track if product has variants
             $hasVariants = $this->normalizeYesNo($row['have_varient'] ?? '') === 'yes';
             if ($hasVariants) {
-                $this->productsWithVariants[$excelId] = [
+                $this->productsWithVariants[$sku] = [
                     'row' => $index + 2,
                     'sku' => $sku
                 ];
@@ -300,8 +293,9 @@ class ProductsSheetImport implements ToCollection, WithHeadingRow, SkipsOnError
                 'status' => $status,
             ]);
 
-            $this->productMap[$excelId] = (int)$product->id;
-            $this->vendorProductMap[$excelId] = (int)$vendorProduct->id;
+            // Map SKU to database IDs (use SKU as key instead of Excel ID)
+            $this->productMap[$sku] = (int)$product->id;
+            $this->vendorProductMap[$sku] = (int)$vendorProduct->id;
         }
     }
 
@@ -448,7 +442,47 @@ class ProductsSheetImport implements ToCollection, WithHeadingRow, SkipsOnError
             }
         } catch (\Exception $e) {
             // Silent fail - don't break import for logging errors
-            \Illuminate\Support\Facades\Log::error('Bulk import activity log error: ' . $e->getMessage());
+            Log::error('Bulk import activity log error: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * Define chunk size for reading Excel file
+     * Process 100 rows at a time for better memory management
+     */
+    public function chunkSize(): int
+    {
+        return 100;
+    }
+
+    /**
+     * Get vendor_id from row, trying multiple possible column name variations
+     */
+    protected function getVendorIdFromRow($row): ?int
+    {
+        // Try different possible column names that Laravel Excel might generate
+        $possibleKeys = [
+            'vendor_id',      // Standard format
+            'vendorid',       // Without underscore
+            'vendor id',      // With space
+            'Vendor ID',      // Original case
+            'Vendor Id',      // Title case
+            'VENDOR_ID',      // Uppercase
+        ];
+
+        foreach ($possibleKeys as $key) {
+            if (isset($row[$key]) && !empty($row[$key])) {
+                return (int)$row[$key];
+            }
+        }
+
+        // Log available keys for debugging (only once)
+        static $logged = false;
+        if (!$logged) {
+            $logged = true;
+            Log::warning('vendor_id not found in Excel row. Available columns: ' . implode(', ', array_keys($row->toArray())));
+        }
+
+        return null;
     }
 }

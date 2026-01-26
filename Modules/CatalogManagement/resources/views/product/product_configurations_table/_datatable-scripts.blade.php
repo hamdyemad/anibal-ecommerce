@@ -173,10 +173,13 @@ window.renderActions = function(data, type, row) {
         @endcan`;
 
     @can('products.edit')
-    actions += `
-        <a href="${editUrl}" class="edit btn btn-warning table_action_father" title="{{ trans('common.edit') }}">
-            <i class="uil uil-edit table_action_icon"></i>
-        </a>`;
+    // Only allow edit for bank products if user is admin
+    if (row.product_type !== 'bank' || {{ isAdmin() ? 'true' : 'false' }}) {
+        actions += `
+            <a href="${editUrl}" class="edit btn btn-warning table_action_father" title="{{ trans('common.edit') }}">
+                <i class="uil uil-edit table_action_icon"></i>
+            </a>`;
+    }
     @endcan
     @can('products.stock-management')
         actions += `<a href="${stockPricingUrl}" class="stock-management btn btn-info table_action_father" title="{{ trans('catalogmanagement::product.stock_management') }}">
@@ -214,15 +217,18 @@ window.renderActions = function(data, type, row) {
     @endif
 
     @can('products.delete')
-    actions += `
-        <a href="javascript:void(0);" class="remove delete-product btn btn-danger table_action_father"
-           data-bs-toggle="modal" data-bs-target="#modal-delete-product"
-           data-item-id="${row.vendor_product_id}"
-           data-item-name="${row.product_information?.name_en || row.product_information?.name_ar || 'Product'}"
-           data-url="${destroyUrl}"
-           title="{{ trans('common.delete') }}">
-            <i class="uil uil-trash-alt table_action_icon"></i>
-        </a>`;
+    // Only allow delete for bank products if user is admin
+    if (row.product_type !== 'bank' || {{ isAdmin() ? 'true' : 'false' }}) {
+        actions += `
+            <a href="javascript:void(0);" class="remove delete-product btn btn-danger table_action_father"
+               data-bs-toggle="modal" data-bs-target="#modal-delete-product"
+               data-item-id="${row.vendor_product_id}"
+               data-item-name="${row.product_information?.name_en || row.product_information?.name_ar || 'Product'}"
+               data-url="${destroyUrl}"
+               title="{{ trans('common.delete') }}">
+                <i class="uil uil-trash-alt table_action_icon"></i>
+            </a>`;
+    }
     @endcan
     
     actions += `</div>`;

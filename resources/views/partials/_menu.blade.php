@@ -527,14 +527,14 @@
         @endcanany
 
         @canany([
-            'products.index', 'products.bank',
+            'products.index', 'products.bank', 'products.vendor-bank',
             'variant-keys.index', 'variant-keys.create',
             'variants-configurations.index', 'variants-configurations.create',
         ])
             <li
-                class="has-child {{ isParentMenuOpen(['admin.products.index', 'admin.products.pending', 'admin.products.rejected', 'admin.products.accepted', 'admin.products.create', 'admin.products.show', 'admin.products.edit', 'admin.products.bank', 'admin.products.stock-setup', 'admin.variant-keys.index', 'admin.variants-configurations.index'], ['admin/products*', 'admin/variant*']) ? 'open' : '' }}">
+                class="has-child {{ isParentMenuOpen(['admin.products.index', 'admin.products.pending', 'admin.products.rejected', 'admin.products.accepted', 'admin.products.create', 'admin.products.show', 'admin.products.edit', 'admin.products.bank', 'admin.products.vendor-bank', 'admin.products.stock-setup', 'admin.variant-keys.index', 'admin.variants-configurations.index'], ['admin/products*', 'admin/variant*']) ? 'open' : '' }}">
                 <a href="#"
-                    class="{{ isParentMenuOpen(['admin.products.index', 'admin.products.pending', 'admin.products.rejected', 'admin.products.accepted', 'admin.products.create', 'admin.products.show', 'admin.products.edit', 'admin.products.bank', 'admin.products.stock-setup', 'admin.variant-keys.index', 'admin.variants-configurations.index'], ['admin/products*', 'admin/variant*']) ? 'active' : '' }}">
+                    class="{{ isParentMenuOpen(['admin.products.index', 'admin.products.pending', 'admin.products.rejected', 'admin.products.accepted', 'admin.products.create', 'admin.products.show', 'admin.products.edit', 'admin.products.bank', 'admin.products.vendor-bank', 'admin.products.stock-setup', 'admin.variant-keys.index', 'admin.variants-configurations.index'], ['admin/products*', 'admin/variant*']) ? 'active' : '' }}">
                     <span class="nav-icon uil uil-box"></span>
                     <span class="menu-text">{{ trans('menu.products.title') }}</span>
                     <span class="toggle-icon"></span>
@@ -581,6 +581,38 @@
                         </li>
                     @endcan
 
+                    {{-- Vendor Bank Products - Only for vendors --}}
+                    @if(isVendor())
+                        <li>
+                            <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive('admin.products.vendor-bank', $currentRoute) ? 'active' : '' }}"
+                                href="{{ route('admin.products.vendor-bank') }}">
+                                {{ trans('menu.products.vendor_bank_products') }}
+                                <span class="badge badge-round ms-1"
+                                    style="{{ getBadgeStyle(isMenuActive('admin.products.vendor-bank', $currentRoute)) }}">
+                                    @php
+                                        $vendorBankProductsQuery = \Modules\CatalogManagement\app\Models\Product::where('type', 'bank');
+                                        
+                                        // Filter by vendor's departments
+                                        $vendor = auth()->user()->vendorByUser ?? auth()->user()->vendorById ?? auth()->user()->vendor;
+                                        if ($vendor) {
+                                            $departmentIds = $vendor->departments()->pluck('departments.id')->toArray();
+                                            if (!empty($departmentIds)) {
+                                                $vendorBankProductsQuery->whereIn('department_id', $departmentIds);
+                                            } else {
+                                                $vendorBankProductsQuery->whereRaw('1 = 0');
+                                            }
+                                        } else {
+                                            $vendorBankProductsQuery->whereRaw('1 = 0');
+                                        }
+                                        
+                                        $vendorBankProductsCount = $vendorBankProductsQuery->count();
+                                    @endphp
+                                    {{ $vendorBankProductsCount }}
+                                </span>
+                            </a>
+                        </li>
+                    @endif
+
                     @can('products.index')
                         <li>
                             <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive(['admin.products.index', 'admin.products.create', 'admin.products.show', 'admin.products.edit'], $currentRoute) ? 'active' : '' }}"
@@ -591,7 +623,15 @@
                                     @if (in_array($user_type_id, \App\Models\UserType::adminIds()))
                                         {{ \Modules\CatalogManagement\app\Models\Product::count() }}
                                     @else
-                                        {{ \Modules\CatalogManagement\app\Models\VendorProduct::where('vendor_id', auth()->user()->vendor->id ?? 0)->count() }}
+                                        @php
+                                            // For vendors, exclude bank products from count
+                                            $vendorProductsCount = \Modules\CatalogManagement\app\Models\VendorProduct::where('vendor_id', auth()->user()->vendor->id ?? 0)
+                                                ->whereHas('product', function($q) {
+                                                    $q->where('type', '!=', 'bank');
+                                                })
+                                                ->count();
+                                        @endphp
+                                        {{ $vendorProductsCount }}
                                     @endif
                                 </span>
                             </a>
@@ -605,7 +645,16 @@
                                     @if (in_array($user_type_id, \App\Models\UserType::adminIds()))
                                         {{ \Modules\CatalogManagement\app\Models\VendorProduct::where('status', 'pending')->count() }}
                                     @else
-                                        {{ \Modules\CatalogManagement\app\Models\VendorProduct::where('status', 'pending')->where('vendor_id', auth()->user()->vendor->id ?? 0)->count() }}
+                                        @php
+                                            // For vendors, exclude bank products from pending count
+                                            $vendorPendingCount = \Modules\CatalogManagement\app\Models\VendorProduct::where('status', 'pending')
+                                                ->where('vendor_id', auth()->user()->vendor->id ?? 0)
+                                                ->whereHas('product', function($q) {
+                                                    $q->where('type', '!=', 'bank');
+                                                })
+                                                ->count();
+                                        @endphp
+                                        {{ $vendorPendingCount }}
                                     @endif
                                 </span>
                             </a>
@@ -619,7 +668,16 @@
                                     @if (in_array($user_type_id, \App\Models\UserType::adminIds()))
                                         {{ \Modules\CatalogManagement\app\Models\VendorProduct::where('status', 'rejected')->count() }}
                                     @else
-                                        {{ \Modules\CatalogManagement\app\Models\VendorProduct::where('status', 'rejected')->where('vendor_id', auth()->user()->vendor->id ?? 0)->count() }}
+                                        @php
+                                            // For vendors, exclude bank products from rejected count
+                                            $vendorRejectedCount = \Modules\CatalogManagement\app\Models\VendorProduct::where('status', 'rejected')
+                                                ->where('vendor_id', auth()->user()->vendor->id ?? 0)
+                                                ->whereHas('product', function($q) {
+                                                    $q->where('type', '!=', 'bank');
+                                                })
+                                                ->count();
+                                        @endphp
+                                        {{ $vendorRejectedCount }}
                                     @endif
                                 </span>
                             </a>
@@ -633,7 +691,16 @@
                                     @if (isAdmin())
                                         {{ \Modules\CatalogManagement\app\Models\VendorProduct::where('status', 'approved')->count() }}
                                     @else
-                                        {{ \Modules\CatalogManagement\app\Models\VendorProduct::where('status', 'approved')->where('vendor_id', auth()->user()->vendor->id ?? 0)->count() }}
+                                        @php
+                                            // For vendors, exclude bank products from approved count
+                                            $vendorApprovedCount = \Modules\CatalogManagement\app\Models\VendorProduct::where('status', 'approved')
+                                                ->where('vendor_id', auth()->user()->vendor->id ?? 0)
+                                                ->whereHas('product', function($q) {
+                                                    $q->where('type', '!=', 'bank');
+                                                })
+                                                ->count();
+                                        @endphp
+                                        {{ $vendorApprovedCount }}
                                     @endif
                                 </span>
                             </a>

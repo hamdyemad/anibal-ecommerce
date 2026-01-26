@@ -550,14 +550,14 @@
         <?php endif; ?>
 
         <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->any([
-            'products.index', 'products.bank',
+            'products.index', 'products.bank', 'products.vendor-bank',
             'variant-keys.index', 'variant-keys.create',
             'variants-configurations.index', 'variants-configurations.create',
         ])): ?>
             <li
-                class="has-child <?php echo e(isParentMenuOpen(['admin.products.index', 'admin.products.pending', 'admin.products.rejected', 'admin.products.accepted', 'admin.products.create', 'admin.products.show', 'admin.products.edit', 'admin.products.bank', 'admin.products.stock-setup', 'admin.variant-keys.index', 'admin.variants-configurations.index'], ['admin/products*', 'admin/variant*']) ? 'open' : ''); ?>">
+                class="has-child <?php echo e(isParentMenuOpen(['admin.products.index', 'admin.products.pending', 'admin.products.rejected', 'admin.products.accepted', 'admin.products.create', 'admin.products.show', 'admin.products.edit', 'admin.products.bank', 'admin.products.vendor-bank', 'admin.products.stock-setup', 'admin.variant-keys.index', 'admin.variants-configurations.index'], ['admin/products*', 'admin/variant*']) ? 'open' : ''); ?>">
                 <a href="#"
-                    class="<?php echo e(isParentMenuOpen(['admin.products.index', 'admin.products.pending', 'admin.products.rejected', 'admin.products.accepted', 'admin.products.create', 'admin.products.show', 'admin.products.edit', 'admin.products.bank', 'admin.products.stock-setup', 'admin.variant-keys.index', 'admin.variants-configurations.index'], ['admin/products*', 'admin/variant*']) ? 'active' : ''); ?>">
+                    class="<?php echo e(isParentMenuOpen(['admin.products.index', 'admin.products.pending', 'admin.products.rejected', 'admin.products.accepted', 'admin.products.create', 'admin.products.show', 'admin.products.edit', 'admin.products.bank', 'admin.products.vendor-bank', 'admin.products.stock-setup', 'admin.variant-keys.index', 'admin.variants-configurations.index'], ['admin/products*', 'admin/variant*']) ? 'active' : ''); ?>">
                     <span class="nav-icon uil uil-box"></span>
                     <span class="menu-text"><?php echo e(trans('menu.products.title')); ?></span>
                     <span class="toggle-icon"></span>
@@ -607,6 +607,40 @@
                         </li>
                     <?php endif; ?>
 
+                    
+                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(isVendor()): ?>
+                        <li>
+                            <a class="d-flex align-items-center justify-content-between fw-bold <?php echo e(isMenuActive('admin.products.vendor-bank', $currentRoute) ? 'active' : ''); ?>"
+                                href="<?php echo e(route('admin.products.vendor-bank')); ?>">
+                                <?php echo e(trans('menu.products.vendor_bank_products')); ?>
+
+                                <span class="badge badge-round ms-1"
+                                    style="<?php echo e(getBadgeStyle(isMenuActive('admin.products.vendor-bank', $currentRoute))); ?>">
+                                    <?php
+                                        $vendorBankProductsQuery = \Modules\CatalogManagement\app\Models\Product::where('type', 'bank');
+                                        
+                                        // Filter by vendor's departments
+                                        $vendor = auth()->user()->vendorByUser ?? auth()->user()->vendorById ?? auth()->user()->vendor;
+                                        if ($vendor) {
+                                            $departmentIds = $vendor->departments()->pluck('departments.id')->toArray();
+                                            if (!empty($departmentIds)) {
+                                                $vendorBankProductsQuery->whereIn('department_id', $departmentIds);
+                                            } else {
+                                                $vendorBankProductsQuery->whereRaw('1 = 0');
+                                            }
+                                        } else {
+                                            $vendorBankProductsQuery->whereRaw('1 = 0');
+                                        }
+                                        
+                                        $vendorBankProductsCount = $vendorBankProductsQuery->count();
+                                    ?>
+                                    <?php echo e($vendorBankProductsCount); ?>
+
+                                </span>
+                            </a>
+                        </li>
+                    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+
                     <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('products.index')): ?>
                         <li>
                             <a class="d-flex align-items-center justify-content-between fw-bold <?php echo e(isMenuActive(['admin.products.index', 'admin.products.create', 'admin.products.show', 'admin.products.edit'], $currentRoute) ? 'active' : ''); ?>"
@@ -619,7 +653,15 @@
                                         <?php echo e(\Modules\CatalogManagement\app\Models\Product::count()); ?>
 
                                     <?php else: ?>
-                                        <?php echo e(\Modules\CatalogManagement\app\Models\VendorProduct::where('vendor_id', auth()->user()->vendor->id ?? 0)->count()); ?>
+                                        <?php
+                                            // For vendors, exclude bank products from count
+                                            $vendorProductsCount = \Modules\CatalogManagement\app\Models\VendorProduct::where('vendor_id', auth()->user()->vendor->id ?? 0)
+                                                ->whereHas('product', function($q) {
+                                                    $q->where('type', '!=', 'bank');
+                                                })
+                                                ->count();
+                                        ?>
+                                        <?php echo e($vendorProductsCount); ?>
 
                                     <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                                 </span>
@@ -636,7 +678,16 @@
                                         <?php echo e(\Modules\CatalogManagement\app\Models\VendorProduct::where('status', 'pending')->count()); ?>
 
                                     <?php else: ?>
-                                        <?php echo e(\Modules\CatalogManagement\app\Models\VendorProduct::where('status', 'pending')->where('vendor_id', auth()->user()->vendor->id ?? 0)->count()); ?>
+                                        <?php
+                                            // For vendors, exclude bank products from pending count
+                                            $vendorPendingCount = \Modules\CatalogManagement\app\Models\VendorProduct::where('status', 'pending')
+                                                ->where('vendor_id', auth()->user()->vendor->id ?? 0)
+                                                ->whereHas('product', function($q) {
+                                                    $q->where('type', '!=', 'bank');
+                                                })
+                                                ->count();
+                                        ?>
+                                        <?php echo e($vendorPendingCount); ?>
 
                                     <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                                 </span>
@@ -653,7 +704,16 @@
                                         <?php echo e(\Modules\CatalogManagement\app\Models\VendorProduct::where('status', 'rejected')->count()); ?>
 
                                     <?php else: ?>
-                                        <?php echo e(\Modules\CatalogManagement\app\Models\VendorProduct::where('status', 'rejected')->where('vendor_id', auth()->user()->vendor->id ?? 0)->count()); ?>
+                                        <?php
+                                            // For vendors, exclude bank products from rejected count
+                                            $vendorRejectedCount = \Modules\CatalogManagement\app\Models\VendorProduct::where('status', 'rejected')
+                                                ->where('vendor_id', auth()->user()->vendor->id ?? 0)
+                                                ->whereHas('product', function($q) {
+                                                    $q->where('type', '!=', 'bank');
+                                                })
+                                                ->count();
+                                        ?>
+                                        <?php echo e($vendorRejectedCount); ?>
 
                                     <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                                 </span>
@@ -670,7 +730,16 @@
                                         <?php echo e(\Modules\CatalogManagement\app\Models\VendorProduct::where('status', 'approved')->count()); ?>
 
                                     <?php else: ?>
-                                        <?php echo e(\Modules\CatalogManagement\app\Models\VendorProduct::where('status', 'approved')->where('vendor_id', auth()->user()->vendor->id ?? 0)->count()); ?>
+                                        <?php
+                                            // For vendors, exclude bank products from approved count
+                                            $vendorApprovedCount = \Modules\CatalogManagement\app\Models\VendorProduct::where('status', 'approved')
+                                                ->where('vendor_id', auth()->user()->vendor->id ?? 0)
+                                                ->whereHas('product', function($q) {
+                                                    $q->where('type', '!=', 'bank');
+                                                })
+                                                ->count();
+                                        ?>
+                                        <?php echo e($vendorApprovedCount); ?>
 
                                     <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                                 </span>

@@ -62,8 +62,17 @@ class ProductsExport implements WithMultipleSheets
             $query->where('vendor_id', $vendorId);
         }
 
+        // Extract limit from filters before applying other filters
+        $limit = $this->filters['limit'] ?? null;
+        unset($this->filters['limit']);
+
         // Apply all other filters using the scopeFilter
         $query->filter($this->filters);
+
+        // Apply limit if specified (for demo files)
+        if ($limit) {
+            $query->limit($limit);
+        }
 
         // Load all data
         $this->vendorProducts = $query->orderBy('id')->get();

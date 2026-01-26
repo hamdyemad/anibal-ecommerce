@@ -71,7 +71,8 @@
                     />
                 </div>
 
-                {{-- Product Type Filter --}}
+                {{-- Product Type Filter (hide on vendor bank products page) --}}
+                @if(!isset($hideProductTypeFilter) || !$hideProductTypeFilter)
                 <div class="col-md-3">
                     <x-custom-select
                         name="product_type"
@@ -83,6 +84,7 @@
                         :placeholder="__('common.all')"
                     />
                 </div>
+                @endif
 
                 {{-- Configuration Filter --}}
                 <div class="col-md-3">

@@ -8,6 +8,7 @@ use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Concerns\SkipsOnError;
 use Maatwebsite\Excel\Concerns\SkipsErrors;
+use Maatwebsite\Excel\Concerns\WithChunkReading;
 use Modules\CatalogManagement\app\Models\VendorProductVariant;
 use Modules\CatalogManagement\app\Models\VendorProductVariantStock;
 
@@ -15,7 +16,7 @@ use Modules\CatalogManagement\app\Models\VendorProductVariantStock;
  * Sheet: variant_stock
  * Creates VendorProductVariantStock entries
  */
-class VariantStockSheetImport implements ToCollection, WithHeadingRow, SkipsOnError
+class VariantStockSheetImport implements ToCollection, WithHeadingRow, SkipsOnError, WithChunkReading
 {
     use SkipsErrors;
 
@@ -148,4 +149,13 @@ class VariantStockSheetImport implements ToCollection, WithHeadingRow, SkipsOnEr
             }
         }
     }
+
+    /**
+     * Define chunk size for reading Excel file
+     */
+    public function chunkSize(): int
+    {
+        return 100;
+    }
 }
+

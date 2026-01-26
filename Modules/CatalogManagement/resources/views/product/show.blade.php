@@ -139,9 +139,16 @@
                             <a href="{{ route('admin.products.index') }}" class="btn btn-light btn-sm">
                                 <i class="uil uil-arrow-left me-2"></i>{{ __('common.back_to_list') }}
                             </a>
+                            @php
+                                $isBankProduct = $product->product && $product->product->type === 'bank';
+                                $isVendor = !isAdmin();
+                                $canEdit = !($isBankProduct && $isVendor); // Vendors cannot edit bank products
+                            @endphp
+                            @if($canEdit)
                             <a href="{{ route('admin.products.edit', $product->id) }}" class="btn btn-primary btn-sm">
                                 <i class="uil uil-edit me-2"></i>{{ __('common.edit') }}
                             </a>
+                            @endif
                         </div>
                     </div>
                     <div class="card-body">

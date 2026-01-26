@@ -33,8 +33,8 @@ class ImagesSheetExport implements FromCollection, WithHeadings, WithMapping, Wi
         foreach ($this->vendorProducts as $vendorProduct) {
             if ($vendorProduct->product && $vendorProduct->product->attachments) {
                 foreach ($vendorProduct->product->attachments as $image) {
-                    // Store vendor product ID with the image for mapping
-                    $image->vendor_product_id = $vendorProduct->id;
+                    // Store vendor product SKU with the image for mapping
+                    $image->vendor_product_sku = $vendorProduct->sku;
                     $images->push($image);
                 }
             }
@@ -46,7 +46,7 @@ class ImagesSheetExport implements FromCollection, WithHeadings, WithMapping, Wi
     public function headings(): array
     {
         return [
-            'product_id',
+            'sku',
             'image',
             'is_main',
         ];
@@ -54,11 +54,8 @@ class ImagesSheetExport implements FromCollection, WithHeadings, WithMapping, Wi
 
     public function map($image): array
     {
-        // Use the vendor_product_id we stored in collection()
-        $productId = $this->productIdMapping[$image->vendor_product_id] ?? '';
-        
         return [
-            $productId,
+            $image->vendor_product_sku ?? '',
             $image->path ? asset('storage/' . $image->path) : '',
             $image->type === 'main_image' ? 'yes' : 'no',
         ];

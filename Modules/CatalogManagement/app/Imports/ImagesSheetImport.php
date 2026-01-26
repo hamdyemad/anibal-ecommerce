@@ -11,10 +11,11 @@ use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Concerns\SkipsOnError;
 use Maatwebsite\Excel\Concerns\SkipsErrors;
+use Maatwebsite\Excel\Concerns\WithChunkReading;
 use Modules\CatalogManagement\app\Models\Product;
 use App\Models\Attachment;
 
-class ImagesSheetImport implements ToCollection, WithHeadingRow, SkipsOnError
+class ImagesSheetImport implements ToCollection, WithHeadingRow, SkipsOnError, WithChunkReading
 {
     use SkipsErrors;
 
@@ -29,15 +30,13 @@ class ImagesSheetImport implements ToCollection, WithHeadingRow, SkipsOnError
     public function collection(Collection $rows)
     {
         foreach ($rows as $index => $row) {
-            $excelProductId = (int)($row['product_id'] ?? 0);
+            $productSku = trim((string)($row['sku'] ?? $row['product_sku'] ?? ''));
             $imageUrl = trim((string)($row['image'] ?? ''));
 
             $validator = Validator::make($row->toArray(), [
-                'product_id' => 'required|integer|min:1',
                 'image' => 'required|string',
                 'is_main' => 'nullable|in:0,1,true,false,yes,no',
             ], [
-                'product_id.required' => __('validation.required', ['attribute' => 'product_id']),
                 'image.required' => __('validation.required', ['attribute' => 'image']),
             ]);
 
@@ -45,27 +44,34 @@ class ImagesSheetImport implements ToCollection, WithHeadingRow, SkipsOnError
                 $this->importErrors[] = [
                     'sheet' => 'images',
                     'row' => $index + 2,
-                    'product_id' => $excelProductId,
+                    'sku' => $productSku,
                     'errors' => $validator->errors()->all()
                 ];
                 continue;
             }
 
-            if ($excelProductId <= 0 || $imageUrl === '') {
+            if ($productSku === '' || $imageUrl === '') {
                 $this->importErrors[] = [
                     'sheet' => 'images',
                     'row' => $index + 2,
-                    'product_id' => $excelProductId,
-                    'errors' => [__('catalogmanagement::product.invalid_product_id_or_image_url')]
+                    'sku' => $productSku,
+                    'errors' => [__('catalogmanagement::product.invalid_sku_or_image_url')]
                 ];
                 continue;
             }
 
-            if (!isset($this->productMap[$excelProductId])) {
+            // Find product by SKU in the productMap (which now uses SKU as key)
+            if (!isset($this->productMap[$productSku])) {
+                $this->importErrors[] = [
+                    'sheet' => 'images',
+                    'row' => $index + 2,
+                    'sku' => $productSku,
+                    'errors' => [__('catalogmanagement::product.product_not_found_or_skipped')]
+                ];
                 continue;
             }
 
-            $dbProductId = $this->productMap[$excelProductId];
+            $dbProductId = $this->productMap[$productSku];
             $product = Product::whereNull('deleted_at')->find($dbProductId);
             if (!$product) {
                 continue;
@@ -83,7 +89,7 @@ class ImagesSheetImport implements ToCollection, WithHeadingRow, SkipsOnError
                 $this->importErrors[] = [
                     'sheet' => 'images',
                     'row' => $index + 2,
-                    'product_id' => $excelProductId,
+                    'sku' => $productSku,
                     'errors' => [__('catalogmanagement::product.failed_to_download_image')]
                 ];
                 continue;
@@ -129,6 +135,7 @@ class ImagesSheetImport implements ToCollection, WithHeadingRow, SkipsOnError
 
     /**
      * Download image from URL and store it locally
+     * If URL is from same server (localhost), just extract and use the existing path
      */
     private function downloadAndStoreImage(string $imageUrl, int $productId): ?string
     {
@@ -139,7 +146,27 @@ class ImagesSheetImport implements ToCollection, WithHeadingRow, SkipsOnError
                 return $imageUrl;
             }
 
-            // Download the image
+            // Check if this is a localhost URL (same server)
+            $parsedUrl = parse_url($imageUrl);
+            $host = $parsedUrl['host'] ?? '';
+            $isLocalhost = in_array($host, ['localhost', '127.0.0.1', '::1']) || 
+                           $host === request()->getHost();
+            
+            if ($isLocalhost) {
+                // Extract the local path from the URL instead of downloading
+                // URL format: http://127.0.0.1:8000/storage/products/123/image.jpg
+                // We need to extract: products/123/image.jpg
+                $path = $parsedUrl['path'] ?? '';
+                
+                // Remove /storage/ prefix if present
+                $path = preg_replace('#^/storage/#', '', $path);
+                
+                // Just return the path - no need to check if file exists
+                // The image is already on our server, so we keep the same reference
+                return $path;
+            }
+
+            // Download the image from external URL
             $response = Http::timeout(30)->get($imageUrl);
             
             if (!$response->successful()) {
@@ -233,5 +260,13 @@ class ImagesSheetImport implements ToCollection, WithHeadingRow, SkipsOnError
                 }
             }
         }
+    }
+
+    /**
+     * Define chunk size for reading Excel file
+     */
+    public function chunkSize(): int
+    {
+        return 100;
     }
 }

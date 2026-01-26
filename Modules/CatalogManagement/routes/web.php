@@ -114,6 +114,15 @@ Route::group(['prefix' => 'products'], function() {
         Route::post('save-stock', 'BankController@saveStock')->name('products.bank.save-stock');
     });
 
+    // Vendor Bank Products - accessible by vendors to see bank products in their departments
+    Route::get('vendor-bank', 'ProductController@vendorBankProducts')->name('products.vendor-bank');
+    Route::get('vendor-bank/datatable', 'ProductController@vendorBankDatatable')->name('products.vendor-bank.datatable');
+    Route::get('vendor-bank/export', 'ProductController@vendorBankExport')->name('products.vendor-bank.export');
+    Route::get('vendor-bank/bulk-upload', 'ProductController@vendorBankBulkUpload')->name('products.vendor-bank.bulk-upload');
+    Route::post('vendor-bank/bulk-upload', 'ProductController@vendorBankBulkUploadStore')->name('products.vendor-bank.bulk-upload.store');
+    Route::get('vendor-bank/download-demo', 'ProductController@vendorBankDownloadDemo')->name('products.vendor-bank.download-demo');
+    Route::get('vendor-bank/bulk-upload/progress/{batchId}', 'ProductController@vendorBankCheckImportProgress')->name('products.vendor-bank.bulk-upload.progress');
+
     // Stock Setup routes
     Route::get('stock-setup', 'StockSetupController@index')->name('products.stock-setup');
     Route::post('stock-setup/save', 'StockSetupController@save')->name('products.stock-setup.save');

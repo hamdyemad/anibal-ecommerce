@@ -9,13 +9,14 @@ use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Concerns\SkipsOnError;
 use Maatwebsite\Excel\Concerns\SkipsErrors;
+use Maatwebsite\Excel\Concerns\WithChunkReading;
 use Modules\CatalogManagement\app\Models\Occasion;
 
 /**
  * Sheet: occasions
  * Creates or updates Occasion entries (admin only)
  */
-class OccasionsSheetImport implements ToCollection, WithHeadingRow, SkipsOnError
+class OccasionsSheetImport implements ToCollection, WithHeadingRow, SkipsOnError, WithChunkReading
 {
     use SkipsErrors;
 
@@ -145,5 +146,13 @@ class OccasionsSheetImport implements ToCollection, WithHeadingRow, SkipsOnError
     {
         $v = strtolower(trim((string)$value));
         return in_array($v, ['1', 'true', 'yes', 'y'], true) ? 'yes' : 'no';
+    }
+
+    /**
+     * Define chunk size for reading Excel file
+     */
+    public function chunkSize(): int
+    {
+        return 100;
     }
 }

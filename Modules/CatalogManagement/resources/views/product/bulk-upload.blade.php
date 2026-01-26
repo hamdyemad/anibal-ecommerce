@@ -1,4 +1,4 @@
-admin.@extends('layout.app')
+@extends('layout.app')
 @section('title', __('catalogmanagement::product.bulk_upload'))
 
 @section('content')
@@ -26,33 +26,22 @@ admin.@extends('layout.app')
                     </a>
                 </div>
 
-                {{-- Progress Modal --}}
-                <div class="modal fade" id="progressModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-hidden="true">
-                    <div class="modal-dialog modal-dialog-centered">
-                        <div class="modal-content">
-                            <div class="modal-body text-center p-5">
-                                <div class="mb-4">
-                                    <div class="spinner-border text-primary" style="width: 4rem; height: 4rem;" role="status">
-                                        <span class="visually-hidden">Loading...</span>
-                                    </div>
-                                </div>
-                                <h5 class="mb-3" id="progressTitle">{{ __('catalogmanagement::product.import_in_progress') }}</h5>
-                                <div class="progress mb-3" style="height: 30px;">
-                                    <div class="progress-bar progress-bar-striped progress-bar-animated bg-primary" 
-                                         role="progressbar" 
-                                         id="progressBar"
-                                         style="width: 0%;" 
-                                         aria-valuenow="0" 
-                                         aria-valuemin="0" 
-                                         aria-valuemax="100">
-                                        <span class="fw-bold fs-16" id="progressText">0%</span>
-                                    </div>
-                                </div>
-                                <p class="text-muted mb-0" id="progressSubtext">{{ __('catalogmanagement::product.checking_progress') }}</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                {{-- Inline Batch Progress Component --}}
+                <x-batch-progress-inline 
+                    containerId="productsBulkProgress"
+                    progressCheckUrl="{{ route('admin.products.bulk-upload.progress', ':batchId') }}"
+                    storageKey="products_import_progress"
+                    :texts="[
+                        'inProgress' => __('catalogmanagement::product.import_in_progress'),
+                        'checking' => __('catalogmanagement::product.checking_progress'),
+                        'completed' => __('catalogmanagement::product.import_completed'),
+                        'completedMessage' => __('catalogmanagement::product.import_completed_message'),
+                        'failed' => __('catalogmanagement::product.import_failed'),
+                        'failedMessage' => __('catalogmanagement::product.import_failed_message'),
+                        'processing' => __('common.processing'),
+                        'jobsRemaining' => __('common.jobs_remaining'),
+                    ]"
+                />
 
                 {{-- Alert Messages --}}
                 @if(session('success'))
@@ -169,7 +158,7 @@ admin.@extends('layout.app')
                 @endif
 
                 {{-- Upload Form --}}
-                <div class="card border-0 shadow-sm">
+                <div class="card border-0 shadow-sm" id="uploadFormCard">
                     <div class="card-body p-4">
                         <form action="{{ route('admin.products.bulk-upload.store') }}" method="POST" enctype="multipart/form-data" id="bulkUploadForm">
                             @csrf
@@ -215,511 +204,88 @@ admin.@extends('layout.app')
                     <div class="card-body">
                         <div class="accordion" id="instructionsAccordion">
                             {{-- General Instructions --}}
-                            <div class="accordion-item">
-                                <h2 class="accordion-header" id="headingGeneral">
-                                    <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseGeneral" aria-expanded="true" aria-controls="collapseGeneral">
-                                        <i class="uil uil-file-check-alt me-2"></i> {{ __('catalogmanagement::product.general_instructions') }}
-                                    </button>
-                                </h2>
-                                <div id="collapseGeneral" class="accordion-collapse collapse show" aria-labelledby="headingGeneral" data-bs-parent="#instructionsAccordion">
-                                    <div class="accordion-body">
-                                        <ol class="mb-0">
-                                            <li>{{ __('catalogmanagement::product.instruction_1') }}</li>
-                                            <li>{{ __('catalogmanagement::product.instruction_2') }}</li>
-                                            <li>{{ __('catalogmanagement::product.instruction_3') }}</li>
-                                            <li>{{ __('catalogmanagement::product.instruction_4') }}</li>
-                                            <li>{{ __('catalogmanagement::product.instruction_5') }}</li>
-                                        </ol>
-                                    </div>
-                                </div>
-                            </div>
+                            <x-accordion-item 
+                                id="general"
+                                title="{{ __('catalogmanagement::product.general_instructions') }}"
+                                icon="uil uil-file-check-alt"
+                                :expanded="true"
+                                parentId="instructionsAccordion">
+                                <ol class="mb-0">
+                                    <li>{{ __('catalogmanagement::product.instruction_1') }}</li>
+                                    <li>{{ __('catalogmanagement::product.instruction_2') }}</li>
+                                    <li>{{ __('catalogmanagement::product.instruction_3') }}</li>
+                                    <li>{{ __('catalogmanagement::product.instruction_4') }}</li>
+                                    <li>{{ __('catalogmanagement::product.instruction_5') }}</li>
+                                </ol>
+                            </x-accordion-item>
 
                             {{-- Products Sheet --}}
-                            <div class="accordion-item">
-                                <h2 class="accordion-header" id="headingProducts">
-                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseProducts" aria-expanded="false" aria-controls="collapseProducts">
-                                        <span class="badge badge-round badge-lg bg-primary me-2">products</span> {{ __('catalogmanagement::product.products_sheet_columns') }}
-                                    </button>
-                                </h2>
-                                <div id="collapseProducts" class="accordion-collapse collapse" aria-labelledby="headingProducts" data-bs-parent="#instructionsAccordion">
-                                    <div class="accordion-body">
-                                        <div class="table-responsive">
-                                            <table class="table table-sm table-bordered">
-                                                <thead class="table-light">
-                                                    <tr>
-                                                        <th style="width: 150px;">{{ __('catalogmanagement::product.column_name') }}</th>
-                                                        <th>{{ __('catalogmanagement::product.description') }}</th>
-                                                        <th style="width: 200px;">{{ __('catalogmanagement::product.where_to_get') }}</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    <tr>
-                                                        <td><code>id</code></td>
-                                                        <td>{{ __('catalogmanagement::product.col_id_desc') }}</td>
-                                                        <td>{{ __('catalogmanagement::product.col_id_source') }}</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td><code>sku</code></td>
-                                                        <td>{{ __('catalogmanagement::product.col_sku_desc') }}</td>
-                                                        <td>{{ __('catalogmanagement::product.col_sku_source') }}</td>
-                                                    </tr>
-                                                    @if(isAdmin())
-                                                    <tr>
-                                                        <td><code>vendor_id</code></td>
-                                                        <td>{{ __('catalogmanagement::product.col_vendor_id_desc') }}</td>
-                                                        <td><a href="{{ route('admin.system-catalog.index') }}" target="_blank">{{ __('catalogmanagement::product.system_catalog') }}</a></td>
-                                                    </tr>
-                                                    @endif
-                                                    <tr>
-                                                        <td><code>title_en</code></td>
-                                                        <td>{{ __('catalogmanagement::product.col_title_en_desc') }}</td>
-                                                        <td>{{ __('catalogmanagement::product.col_title_source') }}</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td><code>title_ar</code></td>
-                                                        <td>{{ __('catalogmanagement::product.col_title_ar_desc') }}</td>
-                                                        <td>{{ __('catalogmanagement::product.col_title_source') }}</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td><code>description_en</code></td>
-                                                        <td>{{ __('catalogmanagement::product.col_description_en_desc') }}</td>
-                                                        <td>{{ __('catalogmanagement::product.col_description_source') }}</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td><code>description_ar</code></td>
-                                                        <td>{{ __('catalogmanagement::product.col_description_ar_desc') }}</td>
-                                                        <td>{{ __('catalogmanagement::product.col_description_source') }}</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td><code>summary_en</code></td>
-                                                        <td>{{ __('catalogmanagement::product.col_summary_en_desc') }}</td>
-                                                        <td>{{ __('catalogmanagement::product.col_summary_source') }}</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td><code>summary_ar</code></td>
-                                                        <td>{{ __('catalogmanagement::product.col_summary_ar_desc') }}</td>
-                                                        <td>{{ __('catalogmanagement::product.col_summary_source') }}</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td><code>features_en</code></td>
-                                                        <td>{{ __('catalogmanagement::product.col_features_en_desc') }}</td>
-                                                        <td>{{ __('catalogmanagement::product.col_features_source') }}</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td><code>features_ar</code></td>
-                                                        <td>{{ __('catalogmanagement::product.col_features_ar_desc') }}</td>
-                                                        <td>{{ __('catalogmanagement::product.col_features_source') }}</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td><code>instructions_en</code></td>
-                                                        <td>{{ __('catalogmanagement::product.col_instructions_en_desc') }}</td>
-                                                        <td>{{ __('catalogmanagement::product.col_instructions_source') }}</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td><code>instructions_ar</code></td>
-                                                        <td>{{ __('catalogmanagement::product.col_instructions_ar_desc') }}</td>
-                                                        <td>{{ __('catalogmanagement::product.col_instructions_source') }}</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td><code>extra_description_en</code></td>
-                                                        <td>{{ __('catalogmanagement::product.col_extra_description_en_desc') }}</td>
-                                                        <td>{{ __('catalogmanagement::product.col_extra_description_source') }}</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td><code>extra_description_ar</code></td>
-                                                        <td>{{ __('catalogmanagement::product.col_extra_description_ar_desc') }}</td>
-                                                        <td>{{ __('catalogmanagement::product.col_extra_description_source') }}</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td><code>material_en</code></td>
-                                                        <td>{{ __('catalogmanagement::product.col_material_en_desc') }}</td>
-                                                        <td>{{ __('catalogmanagement::product.col_material_source') }}</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td><code>material_ar</code></td>
-                                                        <td>{{ __('catalogmanagement::product.col_material_ar_desc') }}</td>
-                                                        <td>{{ __('catalogmanagement::product.col_material_source') }}</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td><code>tags_en</code></td>
-                                                        <td>{{ __('catalogmanagement::product.col_tags_en_desc') }}</td>
-                                                        <td>{{ __('catalogmanagement::product.col_tags_source') }}</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td><code>tags_ar</code></td>
-                                                        <td>{{ __('catalogmanagement::product.col_tags_ar_desc') }}</td>
-                                                        <td>{{ __('catalogmanagement::product.col_tags_source') }}</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td><code>meta_title_en</code></td>
-                                                        <td>{{ __('catalogmanagement::product.col_meta_title_en_desc') }}</td>
-                                                        <td>{{ __('catalogmanagement::product.col_meta_title_source') }}</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td><code>meta_title_ar</code></td>
-                                                        <td>{{ __('catalogmanagement::product.col_meta_title_ar_desc') }}</td>
-                                                        <td>{{ __('catalogmanagement::product.col_meta_title_source') }}</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td><code>meta_description_en</code></td>
-                                                        <td>{{ __('catalogmanagement::product.col_meta_description_en_desc') }}</td>
-                                                        <td>{{ __('catalogmanagement::product.col_meta_description_source') }}</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td><code>meta_description_ar</code></td>
-                                                        <td>{{ __('catalogmanagement::product.col_meta_description_ar_desc') }}</td>
-                                                        <td>{{ __('catalogmanagement::product.col_meta_description_source') }}</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td><code>meta_keywords_en</code></td>
-                                                        <td>{{ __('catalogmanagement::product.col_meta_keywords_en_desc') }}</td>
-                                                        <td>{{ __('catalogmanagement::product.col_meta_keywords_source') }}</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td><code>meta_keywords_ar</code></td>
-                                                        <td>{{ __('catalogmanagement::product.col_meta_keywords_ar_desc') }}</td>
-                                                        <td>{{ __('catalogmanagement::product.col_meta_keywords_source') }}</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td><code>department</code></td>
-                                                        <td>{{ __('catalogmanagement::product.col_department_desc') }}</td>
-                                                        <td><a href="{{ route('admin.system-catalog.index') }}" target="_blank">{{ __('catalogmanagement::product.system_catalog') }}</a></td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td><code>main_category</code></td>
-                                                        <td>{{ __('catalogmanagement::product.col_category_desc') }}</td>
-                                                        <td><a href="{{ route('admin.system-catalog.index') }}" target="_blank">{{ __('catalogmanagement::product.system_catalog') }}</a></td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td><code>sub_category</code></td>
-                                                        <td>{{ __('catalogmanagement::product.col_sub_category_desc') }}</td>
-                                                        <td><a href="{{ route('admin.system-catalog.index') }}" target="_blank">{{ __('catalogmanagement::product.system_catalog') }}</a></td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td><code>brand</code></td>
-                                                        <td>{{ __('catalogmanagement::product.col_brand_desc') }}</td>
-                                                        <td><a href="{{ route('admin.system-catalog.index') }}" target="_blank">{{ __('catalogmanagement::product.system_catalog') }}</a></td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td><code>have_varient</code></td>
-                                                        <td>{{ __('catalogmanagement::product.col_have_variant_desc') }}</td>
-                                                        <td>{{ __('catalogmanagement::product.col_have_variant_source') }}</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td><code>status</code></td>
-                                                        <td>{{ __('catalogmanagement::product.col_status_desc') }}</td>
-                                                        <td>{{ __('catalogmanagement::product.col_status_source') }}</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td><code>featured_product</code></td>
-                                                        <td>{{ __('catalogmanagement::product.col_featured_desc') }}</td>
-                                                        <td>{{ __('catalogmanagement::product.col_featured_source') }}</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td><code>max_per_order</code></td>
-                                                        <td>{{ __('catalogmanagement::product.col_max_per_order_desc') }}</td>
-                                                        <td>{{ __('catalogmanagement::product.col_max_per_order_source') }}</td>
-                                                    </tr>
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                            <x-accordion-item 
+                                id="products"
+                                title="{{ __('catalogmanagement::product.products_sheet_columns') }}"
+                                badge="products"
+                                badgeColor="primary"
+                                :expanded="false"
+                                parentId="instructionsAccordion">
+                                @include('catalogmanagement::product.bulk-upload-instructions.products-sheet')
+                            </x-accordion-item>
+                            {{-- Images Sheet --}}
+                            <x-accordion-item 
+                                id="images"
+                                title="{{ __('catalogmanagement::product.images_sheet_columns') }}"
+                                badge="images"
+                                badgeColor="success"
+                                :expanded="false"
+                                parentId="instructionsAccordion">
+                                @include('catalogmanagement::product.bulk-upload-instructions.images-sheet')
+                            </x-accordion-item>
 
                             {{-- Variants Sheet --}}
-                            <div class="accordion-item">
-                                <h2 class="accordion-header" id="headingVariants">
-                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseVariants" aria-expanded="false" aria-controls="collapseVariants">
-                                        <span class="badge badge-round badge-lg bg-info me-2">variants</span> {{ __('catalogmanagement::product.variants_sheet_columns') }}
-                                    </button>
-                                </h2>
-                                <div id="collapseVariants" class="accordion-collapse collapse" aria-labelledby="headingVariants" data-bs-parent="#instructionsAccordion">
-                                    <div class="accordion-body">
-                                        <div class="alert alert-light border-info mb-3" style="background-color: #e7f3ff; border-left: 4px solid #0d6efd;">
-                                            <i class="uil uil-info-circle me-2 text-info"></i>
-                                            <strong>{{ __('catalogmanagement::product.note') }}:</strong> {{ __('catalogmanagement::product.variants_sheet_note') }}
-                                        </div>
-                                        <div class="table-responsive">
-                                            <table class="table table-sm table-bordered">
-                                                <thead class="table-light">
-                                                    <tr>
-                                                        <th style="width: 200px;">{{ __('catalogmanagement::product.column_name') }}</th>
-                                                        <th>{{ __('catalogmanagement::product.description') }}</th>
-                                                        <th style="width: 200px;">{{ __('catalogmanagement::product.where_to_get') }}</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    <tr>
-                                                        <td><code>product_id</code></td>
-                                                        <td>{{ __('catalogmanagement::product.col_product_id_desc') }}</td>
-                                                        <td>{{ __('catalogmanagement::product.col_product_id_source') }}</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td><code>sku</code></td>
-                                                        <td>{{ __('catalogmanagement::product.col_variant_sku_desc') }}</td>
-                                                        <td>{{ __('catalogmanagement::product.col_variant_sku_source') }}</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td><code>variant_configuration_id</code></td>
-                                                        <td>{{ __('catalogmanagement::product.col_variant_config_desc') }}</td>
-                                                        <td><a href="{{ route('admin.system-catalog.index') }}" target="_blank">{{ __('catalogmanagement::product.system_catalog') }}</a></td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td><code>price</code></td>
-                                                        <td>{{ __('catalogmanagement::product.col_price_desc') }}</td>
-                                                        <td>{{ __('catalogmanagement::product.col_price_source') }}</td>
-                                                    </tr>
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                            <x-accordion-item 
+                                id="variants"
+                                title="{{ __('catalogmanagement::product.variants_sheet_columns') }}"
+                                badge="variants"
+                                badgeColor="info"
+                                :expanded="false"
+                                parentId="instructionsAccordion">
+                                @include('catalogmanagement::product.bulk-upload-instructions.variants-sheet')
+                            </x-accordion-item>
 
                             {{-- Variant Stock Sheet --}}
-                            <div class="accordion-item">
-                                <h2 class="accordion-header" id="headingStock">
-                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseStock" aria-expanded="false" aria-controls="collapseStock">
-                                        <span class="badge badge-round badge-lg bg-warning me-2">variant_stock</span> {{ __('catalogmanagement::product.stock_sheet_columns') }}
-                                    </button>
-                                </h2>
-                                <div id="collapseStock" class="accordion-collapse collapse" aria-labelledby="headingStock" data-bs-parent="#instructionsAccordion">
-                                    <div class="accordion-body">
-                                        <div class="alert alert-light border-info mb-3" style="background-color: #e7f3ff; border-left: 4px solid #0d6efd;">
-                                            <i class="uil uil-info-circle me-2 text-info"></i>
-                                            <strong>{{ __('catalogmanagement::product.note') }}:</strong> {{ __('catalogmanagement::product.stock_sheet_note') }}
-                                        </div>
-                                        <div class="table-responsive">
-                                            <table class="table table-sm table-bordered">
-                                                <thead class="table-light">
-                                                    <tr>
-                                                        <th style="width: 150px;">{{ __('catalogmanagement::product.column_name') }}</th>
-                                                        <th>{{ __('catalogmanagement::product.description') }}</th>
-                                                        <th style="width: 200px;">{{ __('catalogmanagement::product.where_to_get') }}</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    <tr>
-                                                        <td><code>variant_sku</code></td>
-                                                        <td>{{ __('catalogmanagement::product.col_stock_variant_sku_desc') }}</td>
-                                                        <td>{{ __('catalogmanagement::product.col_stock_variant_sku_source') }}</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td><code>region_id</code></td>
-                                                        <td>{{ __('catalogmanagement::product.col_region_id_desc') }}</td>
-                                                        <td><a href="{{ route('admin.system-catalog.index') }}" target="_blank">{{ __('catalogmanagement::product.system_catalog') }}</a></td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td><code>stock</code></td>
-                                                        <td>{{ __('catalogmanagement::product.col_stock_desc') }}</td>
-                                                        <td>{{ __('catalogmanagement::product.col_stock_source') }}</td>
-                                                    </tr>
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                            <x-accordion-item 
+                                id="stock"
+                                title="{{ __('catalogmanagement::product.stock_sheet_columns') }}"
+                                badge="variant_stock"
+                                badgeColor="warning"
+                                :expanded="false"
+                                parentId="instructionsAccordion">
+                                @include('catalogmanagement::product.bulk-upload-instructions.variant-stock-sheet')
+                            </x-accordion-item>
 
-                            {{-- Images Sheet --}}
-                            <div class="accordion-item">
-                                <h2 class="accordion-header" id="headingImages">
-                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseImages" aria-expanded="false" aria-controls="collapseImages">
-                                        <span class="badge badge-round badge-lg bg-success me-2">images</span> {{ __('catalogmanagement::product.images_sheet_columns') }}
-                                    </button>
-                                </h2>
-                                <div id="collapseImages" class="accordion-collapse collapse" aria-labelledby="headingImages" data-bs-parent="#instructionsAccordion">
-                                    <div class="accordion-body">
-                                        <div class="table-responsive">
-                                            <table class="table table-sm table-bordered">
-                                                <thead class="table-light">
-                                                    <tr>
-                                                        <th style="width: 150px;">{{ __('catalogmanagement::product.column_name') }}</th>
-                                                        <th>{{ __('catalogmanagement::product.description') }}</th>
-                                                        <th style="width: 200px;">{{ __('catalogmanagement::product.where_to_get') }}</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    <tr>
-                                                        <td><code>product_id</code></td>
-                                                        <td>{{ __('catalogmanagement::product.col_image_product_id_desc') }}</td>
-                                                        <td>{{ __('catalogmanagement::product.col_image_product_id_source') }}</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td><code>image</code></td>
-                                                        <td>{{ __('catalogmanagement::product.col_image_url_desc') }}</td>
-                                                        <td>{{ __('catalogmanagement::product.col_image_url_source') }}</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td><code>is_main</code></td>
-                                                        <td>{{ __('catalogmanagement::product.col_is_main_desc') }}</td>
-                                                        <td>{{ __('catalogmanagement::product.col_is_main_source') }}</td>
-                                                    </tr>
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+
 
                             @if(isAdmin())
                             {{-- Occasions Sheet --}}
-                            <div class="accordion-item">
-                                <h2 class="accordion-header" id="headingOccasions">
-                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOccasions" aria-expanded="false" aria-controls="collapseOccasions">
-                                        <span class="badge badge-round badge-lg bg-purple me-2">occasions</span> {{ __('catalogmanagement::product.occasions_sheet_columns') }}
-                                    </button>
-                                </h2>
-                                <div id="collapseOccasions" class="accordion-collapse collapse" aria-labelledby="headingOccasions" data-bs-parent="#instructionsAccordion">
-                                    <div class="accordion-body">
-                                        <div class="table-responsive">
-                                            <table class="table table-sm table-bordered">
-                                                <thead class="table-light">
-                                                    <tr>
-                                                        <th style="width: 150px;">{{ __('catalogmanagement::product.column_name') }}</th>
-                                                        <th>{{ __('catalogmanagement::product.description') }}</th>
-                                                        <th style="width: 200px;">{{ __('catalogmanagement::product.where_to_get') }}</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    <tr>
-                                                        <td><code>id</code></td>
-                                                        <td>{{ __('catalogmanagement::product.col_occasion_id_desc') }}</td>
-                                                        <td>{{ __('catalogmanagement::product.col_occasion_id_source') }}</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td><code>name_en</code></td>
-                                                        <td>{{ __('catalogmanagement::product.col_occasion_name_en_desc') }}</td>
-                                                        <td>{{ __('catalogmanagement::product.col_occasion_name_source') }}</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td><code>name_ar</code></td>
-                                                        <td>{{ __('catalogmanagement::product.col_occasion_name_ar_desc') }}</td>
-                                                        <td>{{ __('catalogmanagement::product.col_occasion_name_source') }}</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td><code>title_en</code></td>
-                                                        <td>{{ __('catalogmanagement::product.col_occasion_title_en_desc') }}</td>
-                                                        <td>{{ __('catalogmanagement::product.col_occasion_title_source') }}</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td><code>title_ar</code></td>
-                                                        <td>{{ __('catalogmanagement::product.col_occasion_title_ar_desc') }}</td>
-                                                        <td>{{ __('catalogmanagement::product.col_occasion_title_source') }}</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td><code>sub_title_en</code></td>
-                                                        <td>{{ __('catalogmanagement::product.col_occasion_sub_title_en_desc') }}</td>
-                                                        <td>{{ __('catalogmanagement::product.col_occasion_sub_title_source') }}</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td><code>sub_title_ar</code></td>
-                                                        <td>{{ __('catalogmanagement::product.col_occasion_sub_title_ar_desc') }}</td>
-                                                        <td>{{ __('catalogmanagement::product.col_occasion_sub_title_source') }}</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td><code>meta_title_en</code></td>
-                                                        <td>{{ __('catalogmanagement::product.col_occasion_meta_title_en_desc') }}</td>
-                                                        <td>{{ __('catalogmanagement::product.col_occasion_meta_title_source') }}</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td><code>meta_title_ar</code></td>
-                                                        <td>{{ __('catalogmanagement::product.col_occasion_meta_title_ar_desc') }}</td>
-                                                        <td>{{ __('catalogmanagement::product.col_occasion_meta_title_source') }}</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td><code>meta_description_en</code></td>
-                                                        <td>{{ __('catalogmanagement::product.col_occasion_meta_description_en_desc') }}</td>
-                                                        <td>{{ __('catalogmanagement::product.col_occasion_meta_description_source') }}</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td><code>meta_description_ar</code></td>
-                                                        <td>{{ __('catalogmanagement::product.col_occasion_meta_description_ar_desc') }}</td>
-                                                        <td>{{ __('catalogmanagement::product.col_occasion_meta_description_source') }}</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td><code>meta_keywords_en</code></td>
-                                                        <td>{{ __('catalogmanagement::product.col_occasion_meta_keywords_en_desc') }}</td>
-                                                        <td>{{ __('catalogmanagement::product.col_occasion_meta_keywords_source') }}</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td><code>meta_keywords_ar</code></td>
-                                                        <td>{{ __('catalogmanagement::product.col_occasion_meta_keywords_ar_desc') }}</td>
-                                                        <td>{{ __('catalogmanagement::product.col_occasion_meta_keywords_source') }}</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td><code>start_date</code></td>
-                                                        <td>{{ __('catalogmanagement::product.col_occasion_start_date_desc') }}</td>
-                                                        <td>{{ __('catalogmanagement::product.col_occasion_start_date_source') }}</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td><code>end_date</code></td>
-                                                        <td>{{ __('catalogmanagement::product.col_occasion_end_date_desc') }}</td>
-                                                        <td>{{ __('catalogmanagement::product.col_occasion_end_date_source') }}</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td><code>image</code></td>
-                                                        <td>{{ __('catalogmanagement::product.col_occasion_image_desc') }}</td>
-                                                        <td>{{ __('catalogmanagement::product.col_occasion_image_source') }}</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td><code>is_active</code></td>
-                                                        <td>{{ __('catalogmanagement::product.col_occasion_is_active_desc') }}</td>
-                                                        <td>{{ __('catalogmanagement::product.col_occasion_is_active_source') }}</td>
-                                                    </tr>
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                            <x-accordion-item 
+                                id="occasions"
+                                title="{{ __('catalogmanagement::product.occasions_sheet_columns') }}"
+                                badge="occasions"
+                                badgeColor="purple"
+                                :expanded="false"
+                                parentId="instructionsAccordion">
+                                @include('catalogmanagement::product.bulk-upload-instructions.occasions-sheet')
+                            </x-accordion-item>
 
                             {{-- Occasion Products Sheet --}}
-                            <div class="accordion-item">
-                                <h2 class="accordion-header" id="headingOccasionProducts">
-                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOccasionProducts" aria-expanded="false" aria-controls="collapseOccasionProducts">
-                                        <span class="badge badge-round badge-lg bg-danger me-2">occasion_products</span> {{ __('catalogmanagement::product.occasion_products_sheet_columns') }}
-                                    </button>
-                                </h2>
-                                <div id="collapseOccasionProducts" class="accordion-collapse collapse" aria-labelledby="headingOccasionProducts" data-bs-parent="#instructionsAccordion">
-                                    <div class="accordion-body">
-                                        <div class="table-responsive">
-                                            <table class="table table-sm table-bordered">
-                                                <thead class="table-light">
-                                                    <tr>
-                                                        <th style="width: 150px;">{{ __('catalogmanagement::product.column_name') }}</th>
-                                                        <th>{{ __('catalogmanagement::product.description') }}</th>
-                                                        <th style="width: 200px;">{{ __('catalogmanagement::product.where_to_get') }}</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    <tr>
-                                                        <td><code>occasion_id</code></td>
-                                                        <td>{{ __('catalogmanagement::product.col_occ_prod_occasion_id_desc') }}</td>
-                                                        <td>{{ __('catalogmanagement::product.col_occ_prod_occasion_id_source') }}</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td><code>variant_sku</code></td>
-                                                        <td>{{ __('catalogmanagement::product.col_occ_prod_variant_sku_desc') }}</td>
-                                                        <td>{{ __('catalogmanagement::product.col_occ_prod_variant_sku_source') }}</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td><code>special_price</code></td>
-                                                        <td>{{ __('catalogmanagement::product.col_occ_prod_special_price_desc') }}</td>
-                                                        <td>{{ __('catalogmanagement::product.col_occ_prod_special_price_source') }}</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td><code>position</code></td>
-                                                        <td>{{ __('catalogmanagement::product.col_occ_prod_position_desc') }}</td>
-                                                        <td>{{ __('catalogmanagement::product.col_occ_prod_position_source') }}</td>
-                                                    </tr>
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                            <x-accordion-item 
+                                id="occasionProducts"
+                                title="{{ __('catalogmanagement::product.occasion_products_sheet_columns') }}"
+                                badge="occasion_products"
+                                badgeColor="danger"
+                                :expanded="false"
+                                parentId="instructionsAccordion">
+                                @include('catalogmanagement::product.bulk-upload-instructions.occasion-products-sheet')
+                            </x-accordion-item>
                             @endif
                         </div>
                     </div>
@@ -763,275 +329,253 @@ admin.@extends('layout.app')
 .badge.bg-purple {
     background-color: #6f42c1 !important;
 }
+
+/* Sticky table header */
+.sticky-top {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
 </style>
 @endpush
 
 @push('scripts')
 <script>
-document.getElementById('file').addEventListener('change', function(e) {
-    const fileName = e.target.files[0]?.name;
-    if (fileName) {
-        document.getElementById('fileName').textContent = '{{ __("catalogmanagement::product.selected_file") }}: ' + fileName;
-    }
-});
-
-// On page load, check if there's an ongoing import from localStorage
-$(document).ready(function() {
-    const storedBatchId = localStorage.getItem('import_batch_id');
-    if (storedBatchId) {
-        // Check if this batch is still running
-        checkImportProgress(storedBatchId);
-    }
-});
-
-function updateProgressBar(percentage) {
-    const progressBar = document.getElementById('progressBar');
-    const progressText = document.getElementById('progressText');
-    
-    if (progressBar && progressText) {
-        const roundedPercentage = Math.round(percentage);
-        progressBar.style.width = roundedPercentage + '%';
-        progressBar.setAttribute('aria-valuenow', roundedPercentage);
-        progressText.textContent = roundedPercentage + '%';
-    }
-}
-
-function showProgressModal() {
-    const progressModal = new bootstrap.Modal(document.getElementById('progressModal'), {
-        backdrop: 'static',
-        keyboard: false
-    });
-    progressModal.show();
-}
-
-function hideProgressModal() {
-    const progressModalEl = document.getElementById('progressModal');
-    const progressModal = bootstrap.Modal.getInstance(progressModalEl);
-    if (progressModal) {
-        progressModal.hide();
-    }
-}
-
-function checkImportProgress(batchId) {
-    console.log('Starting progress check for batch:', batchId);
-    
-    // Show progress modal
-    showProgressModal();
-    updateProgressBar(0);
-
-    const progressInterval = setInterval(function() {
-        // Build URL manually to ensure proper parameter replacement
-        const baseUrl = '{{ url(app()->getLocale() . '/' . request()->route('countryCode') . '/admin/products/bulk-upload/progress') }}';
-        const url = `${baseUrl}/${batchId}`;
-        console.log('Fetching progress from:', url);
-        
-        fetch(url, {
-            method: 'GET',
-            credentials: 'same-origin',
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest',
-                'Accept': 'application/json'
-            }
-        })
-            .then(response => {
-                console.log('Response status:', response.status);
-                return response.json();
-            })
-            .then(data => {
-                console.log('Progress data:', data);
-                
-                // Update progress bar with percentage
-                if (data.progress_percentage !== undefined) {
-                    updateProgressBar(data.progress_percentage);
-                    document.getElementById('progressSubtext').textContent = 
-                        '{{ __("catalogmanagement::product.import_in_progress") }}...';
-                }
-
-                // Check if finished
-                if (data.finished) {
-                    clearInterval(progressInterval);
-                    updateProgressBar(100);
-                    
-                    // Clear localStorage
-                    localStorage.removeItem('import_batch_id');
-                    
-                    setTimeout(() => {
-                        hideProgressModal();
-
-                        // Handle results
-                        if (data.results) {
-                            if (data.results.status === 'completed') {
-                                const importedCount = data.results.imported_count || 0;
-                                const errors = data.results.errors || [];
-
-                                if (errors.length > 0) {
-                                    // Reload to show errors on page
-                                    window.location.reload();
-                                } else {
-                                    // Redirect to products list without toastr
-                                    window.location.href = '{{ route("admin.products.index") }}';
-                                }
-                            } else if (data.results.status === 'failed') {
-                                toastr.error(
-                                    data.results.error || '{{ __("catalogmanagement::product.import_failed") }}',
-                                    '{{ __("common.error") ?? "Error" }}',
-                                    {
-                                        closeButton: true,
-                                        progressBar: true,
-                                        timeOut: 8000
-                                    }
-                                );
-                            }
-                        }
-                    }, 500);
-                } else if (data.failed) {
-                    clearInterval(progressInterval);
-                    
-                    // Clear localStorage
-                    localStorage.removeItem('import_batch_id');
-                    
-                    hideProgressModal();
-
-                    toastr.error(
-                        '{{ __("catalogmanagement::product.import_failed") }}',
-                        '{{ __("common.error") ?? "Error" }}',
-                        {
-                            closeButton: true,
-                            progressBar: true,
-                            timeOut: 8000
-                        }
-                    );
-                } else if (data.status === 'not_found') {
-                    // Batch not found, probably completed or expired
-                    clearInterval(progressInterval);
-                    localStorage.removeItem('import_batch_id');
-                    hideProgressModal();
-                }
-            })
-            .catch(error => {
-                console.error('Error checking progress:', error);
-                clearInterval(progressInterval);
-                
-                // Don't clear localStorage on network error, might be temporary
-                hideProgressModal();
-                
-                toastr.error(
-                    '{{ __("catalogmanagement::product.import_failed") }}',
-                    '{{ __("common.error") ?? "Error" }}',
-                    {
-                        closeButton: true,
-                        progressBar: true,
-                        timeOut: 8000
-                    }
-                );
-            });
-    }, 2000); // Check every 2 seconds
-}
-
-document.getElementById('bulkUploadForm').addEventListener('submit', function(e) {
-    e.preventDefault(); // Prevent default form submission
-    
-    const form = e.target;
-    const formData = new FormData(form);
-    const btn = document.getElementById('importBtn');
-    
-    btn.disabled = true;
-    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>{{ __("catalogmanagement::product.importing") }}...';
-    
-    // Show progress modal
-    showProgressModal();
-    updateProgressBar(0);
-    document.getElementById('progressSubtext').textContent = '{{ __("common.please_wait") ?? "Please wait" }}...';
-    
-    // Submit form via AJAX
-    fetch(form.action, {
-        method: 'POST',
-        body: formData,
-        headers: {
-            'X-Requested-With': 'XMLHttpRequest'
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        console.log('Upload response:', data);
-        
-        if (data.batch_id) {
-            // Store batch ID in localStorage
-            localStorage.setItem('import_batch_id', data.batch_id);
-            // Start checking progress
-            checkImportProgress(data.batch_id);
-        } else if (data.error) {
-            hideProgressModal();
-            btn.disabled = false;
-            btn.innerHTML = '<i class="uil uil-import"></i> {{ __("catalogmanagement::product.import") }}';
-            
-            toastr.error(
-                data.error || '{{ __("catalogmanagement::product.bulk_upload_error") }}',
-                '{{ __("common.error") ?? "Error" }}',
-                {
-                    closeButton: true,
-                    progressBar: true,
-                    timeOut: 8000
-                }
-            );
-        }
-    })
-    .catch(error => {
-        console.error('Upload error:', error);
-        hideProgressModal();
-        btn.disabled = false;
-        btn.innerHTML = '<i class="uil uil-import"></i> {{ __("catalogmanagement::product.import") }}';
-        
-        toastr.error(
-            '{{ __("catalogmanagement::product.bulk_upload_error") }}',
-            '{{ __("common.error") ?? "Error" }}',
+    $(document).ready(function() {
+        // Resume progress tracking if there's an ongoing import
+        BatchProgressInline.resume(
+            'productsBulkProgress',
+            '{{ route("admin.products.bulk-upload.progress", ":batchId") }}',
             {
+                storageKey: 'products_import_progress',
+                onComplete: function(response) {
+                    if (!response.failed) {
+                        toastr.success('{{ __("catalogmanagement::product.import_completed_message") }}');
+                    } else {
+                        toastr.error('{{ __("catalogmanagement::product.import_failed_message") }}');
+                    }
+                }
+            }
+        );
+        
+        // File input change handler
+        $('#file').on('change', function() {
+            const fileName = $(this).val().split('\\').pop();
+            $('#fileName').text(fileName ? `{{ __("catalogmanagement::product.selected_file") }}: ${fileName}` : '');
+        });
+
+        // Form submission handler - SYNCHRONOUS IMPORT
+        $('#bulkUploadForm').on('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const $importBtn = $('#importBtn');
+            const originalBtnText = $importBtn.html();
+            
+            // Disable button and show loading
+            $importBtn.prop('disabled', true).html('<i class="uil uil-spinner-alt rotating"></i> {{ __("catalogmanagement::product.importing") }}...');
+            
+            // Show loading message
+            toastr.info('Processing import... This may take a few moments.', 'Please Wait', {
+                timeOut: 0,
+                extendedTimeOut: 0,
+                closeButton: false,
+                tapToDismiss: false
+            });
+            
+            $.ajax({
+                url: $(this).attr('action'),
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                timeout: 300000, // 5 minutes timeout
+                success: function(response) {
+                    console.log('Import response:', response);
+                    
+                    // Clear loading message
+                    toastr.clear();
+                    
+                    // Re-enable button
+                    $importBtn.prop('disabled', false).html(originalBtnText);
+                    
+                    if (response.success) {
+                        const importedCount = response.imported_count || 0;
+                        const totalErrors = response.total_errors || 0;
+                        
+                        console.log('Imported:', importedCount, 'Errors:', totalErrors);
+                        
+                        if (totalErrors === 0) {
+                            toastr.success(`Successfully imported ${importedCount} products!`);
+                            
+                            // Clear file input
+                            $('#file').val('');
+                            $('#fileName').text('');
+                            
+                            // Optionally reload page after 2 seconds
+                            setTimeout(function() {
+                                window.location.reload();
+                            }, 2000);
+                        } else {
+                            console.log('Displaying errors:', response.errors);
+                            toastr.warning(`Imported ${importedCount} products with ${totalErrors} errors. Check details below.`);
+                            
+                            // Clear file input
+                            $('#file').val('');
+                            $('#fileName').text('');
+                            
+                            // Display errors
+                            if (typeof displayImportErrors === 'function') {
+                                displayImportErrors(response.errors);
+                            } else {
+                                console.error('displayImportErrors function not found!');
+                            }
+                            
+                            // Scroll to errors
+                            setTimeout(function() {
+                                const errorAlert = $('.import-errors-container').first();
+                                if (errorAlert.length) {
+                                    $('html, body').animate({
+                                        scrollTop: errorAlert.offset().top - 100
+                                    }, 500);
+                                }
+                            }, 200);
+                        }
+                    } else {
+                        toastr.error(response.message || '{{ __("catalogmanagement::product.import_error") }}');
+                    }
+                },
+                error: function(xhr) {
+                    // Clear loading message
+                    toastr.clear();
+                    
+                    let error = '{{ __("catalogmanagement::product.import_error") }}';
+                    
+                    if (xhr.status === 0) {
+                        error = 'Request timeout or network error. The file might be too large or the server is not responding.';
+                    } else if (xhr.responseJSON?.error) {
+                        error = xhr.responseJSON.error;
+                    } else if (xhr.responseJSON?.message) {
+                        error = xhr.responseJSON.message;
+                    } else if (xhr.statusText) {
+                        error = xhr.statusText;
+                    }
+                    
+                    toastr.error(error, 'Import Failed', {
+                        timeOut: 10000
+                    });
+                    
+                    $importBtn.prop('disabled', false).html(originalBtnText);
+                }
+            });
+        });
+        
+        // Function to display import errors
+        function displayImportErrors(errors) {
+            if (!errors || errors.length === 0) return;
+            
+            // Remove any existing error displays
+            $('.import-errors-container').remove();
+            
+            // Build error HTML
+            let html = '<div class="import-errors-container">';
+            html += '<div class="alert alert-danger border-0 shadow-sm mb-3" role="alert">';
+            html += '<div class="d-flex align-items-center">';
+            html += '<div class="alert-icon me-3"><i class="uil uil-exclamation-triangle fs-3 text-danger"></i></div>';
+            html += '<div><h5 class="alert-heading mb-1 fw-bold">{{ __("catalogmanagement::product.import_errors") }}</h5>';
+            html += '<p class="mb-0 text-muted small">{{ __("catalogmanagement::product.import_errors_description") }}</p></div>';
+            html += '</div></div>';
+            
+            html += '<div class="card border-0 shadow-sm mb-4">';
+            html += '<div class="card-body p-0">';
+            html += '<div class="table-responsive" style="max-height: 500px; overflow-y: auto;">';
+            html += '<table class="table table-hover table-bordered mb-0">';
+            html += '<thead class="table-light sticky-top" style="box-shadow: 0 2px 4px rgba(0,0,0,0.05);">';
+            html += '<tr><th class="text-center" style="width: 120px;">{{ __("catalogmanagement::product.sheet") }}</th>';
+            html += '<th class="text-center" style="width: 80px;">{{ __("catalogmanagement::product.row") }}</th>';
+            html += '<th style="width: 180px;">{{ __("catalogmanagement::product.sku") }}</th>';
+            html += '<th>{{ __("catalogmanagement::product.error") }}</th></tr></thead><tbody>';
+            
+            errors.forEach(function(error) {
+                // Dynamic badge colors based on sheet type
+                const sheetBadgeClass = {
+                    'products': 'bg-primary',
+                    'variants': 'bg-info',
+                    'variant_stock': 'bg-warning text-dark',
+                    'images': 'bg-success',
+                    'occasions': 'bg-purple',
+                    'occasion_products': 'bg-danger'
+                }[error.sheet] || 'bg-secondary';
+                
+                const identifier = error.sku || error.id || error.variant_id || error.product_id || error.occasion_id || '-';
+                const errorMessages = Array.isArray(error.errors) ? error.errors.join('<br>') : error.errors;
+                const sheetName = error.sheet || 'unknown';
+                
+                html += '<tr>';
+                html += `<td class="text-center align-middle">`;
+                html += `<span class="badge badge-round ${sheetBadgeClass} badge-lg">${sheetName}</span>`;
+                html += `</td>`;
+                html += `<td class="text-center align-middle"><span class="badge bg-light text-dark border badge-round">${error.row}</span></td>`;
+                html += `<td class="align-middle"><code class="text-danger fw-bold">${identifier}</code></td>`;
+                html += `<td class="align-middle">${errorMessages}</td>`;
+                html += '</tr>';
+            });
+            
+            html += '</tbody></table></div></div></div>';
+            html += '</div>';
+            
+            console.log('Inserting error HTML before upload form');
+            
+            // Insert errors before the upload form card
+            $('#uploadFormCard').before(html);
+            
+            console.log('Error HTML inserted, container count:', $('.import-errors-container').length);
+        }
+        
+        // Show toastr notifications for session messages
+        @if(session('success'))
+            toastr.success('{{ session('success') }}', '{{ __('common.success') ?? 'Success' }}', {
+                closeButton: true,
+                progressBar: true,
+                timeOut: 5000
+            });
+        @endif
+
+        @if(session('warning'))
+            toastr.warning('{{ session('warning') }}', '{{ __('common.warning') ?? 'Warning' }}', {
                 closeButton: true,
                 progressBar: true,
                 timeOut: 8000
-            }
-        );
+            });
+        @endif
+
+        @if(session('error'))
+            toastr.error('{{ session('error') }}', '{{ __('common.error') ?? 'Error' }}', {
+                closeButton: true,
+                progressBar: true,
+                timeOut: 8000
+            });
+        @endif
+
+        @if(session('info'))
+            toastr.info('{{ session('info') }}', '{{ __('common.info') ?? 'Info' }}', {
+                closeButton: true,
+                progressBar: true,
+                timeOut: 5000
+            });
+        @endif
     });
-});
-
-// Show toastr notifications for session messages
-$(document).ready(function() {
-    @if(session('success'))
-        toastr.success('{{ session('success') }}', '{{ __('common.success') ?? 'Success' }}', {
-            closeButton: true,
-            progressBar: true,
-            timeOut: 5000
-        });
-    @endif
-
-    @if(session('warning'))
-        toastr.warning('{{ session('warning') }}', '{{ __('common.warning') ?? 'Warning' }}', {
-            closeButton: true,
-            progressBar: true,
-            timeOut: 8000
-        });
-    @endif
-
-    @if(session('error'))
-        toastr.error('{{ session('error') }}', '{{ __('common.error') ?? 'Error' }}', {
-            closeButton: true,
-            progressBar: true,
-            timeOut: 8000
-        });
-    @endif
-
-    @if(session('info'))
-        toastr.info('{{ session('info') }}', '{{ __('common.info') ?? 'Info' }}', {
-            closeButton: true,
-            progressBar: true,
-            timeOut: 5000
-        });
-    @endif
-});
 </script>
-@endpush
 
-@push('after-body')
-<x-loading-overlay />
+<style>
+    @keyframes rotate {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+    .rotating {
+        animation: rotate 1s linear infinite;
+        display: inline-block;
+    }
+</style>
 @endpush
 @endsection

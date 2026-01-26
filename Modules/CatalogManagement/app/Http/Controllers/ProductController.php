@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use Exception;
 use Illuminate\Validation\ValidationException;
 use Modules\CatalogManagement\app\Models\Product;
@@ -310,12 +311,20 @@ class ProductController extends Controller
     public function edit($lang, $countryCode, $id)
     {
         $product = $this->productService->getProductById($id);
+        
+        // Check vendor ownership
         if(in_array(auth()->user()->user_type_id, UserType::vendorIds())) {
             $vendor = auth()->user()->vendor;
             if($product->vendor_id != $vendor->id) {
                 return abort(401);
             }
+            
+            // Vendors cannot edit bank products
+            if($product->product && $product->product->type === 'bank') {
+                return abort(403, __('catalogmanagement::product.cannot_edit_bank_product'));
+            }
         }
+        
         $languages = $this->languageService->getAll();
         $brands = $this->brandService->getAllBrands([], 0);
         $brands = BrandResource::collection($brands)->resolve();
@@ -675,6 +684,28 @@ class ProductController extends Controller
     public function destroy($lang, $countryCode, $id)
     {
         try {
+            // Check if vendor is trying to delete a bank product
+            if(in_array(auth()->user()->user_type_id, UserType::vendorIds())) {
+                $product = $this->productService->getProductById($id);
+                
+                // Check ownership
+                $vendor = auth()->user()->vendor;
+                if($product->vendor_id != $vendor->id) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => __('common.unauthorized')
+                    ], 401);
+                }
+                
+                // Vendors cannot delete bank products
+                if($product->product && $product->product->type === 'bank') {
+                    return response()->json([
+                        'success' => false,
+                        'message' => __('catalogmanagement::product.cannot_delete_bank_product')
+                    ], 403);
+                }
+            }
+            
             $this->productService->deleteProduct($id);
 
             return response()->json([
@@ -1046,48 +1077,79 @@ class ProductController extends Controller
         ]);
 
         try {
+            // Increase execution time for large imports
+            set_time_limit(300); // 5 minutes
+            ini_set('memory_limit', '512M');
+            
             $isAdmin = isAdmin();
-            $userId = Auth::id();
             
             // Store the uploaded file temporarily
             $file = $request->file('file');
             $fileName = 'imports/' . uniqid() . '_' . $file->getClientOriginalName();
             $filePath = $file->storeAs('', $fileName, 'local');
 
-            // Create a batch job
-            $batch = Bus::batch([
-                new \Modules\CatalogManagement\app\Jobs\ProcessProductImport($filePath, $isAdmin, $userId)
-            ])->then(function (\Illuminate\Bus\Batch $batch) {
-                // All jobs completed successfully
-            })->catch(function (\Illuminate\Bus\Batch $batch, \Throwable $e) {
-                // First batch job failure detected
-            })->finally(function (\Illuminate\Bus\Batch $batch) {
-                // The batch has finished executing
-            })->name('Product Import - ' . $file->getClientOriginalName())
-            ->dispatch();
+            Log::info('Starting synchronous import', [
+                'file' => $fileName,
+                'user_id' => Auth::id(),
+                'is_admin' => $isAdmin
+            ]);
+
+            // SYNCHRONOUS IMPORT - Process immediately without batch jobs
+            $import = new \Modules\CatalogManagement\app\Imports\ProductsImport($isAdmin);
+            \Maatwebsite\Excel\Facades\Excel::import($import, Storage::disk('local')->path($filePath));
+
+            // Get results
+            $importedCount = $import->getImportedCount();
+            $errors = $import->getErrors();
+
+            Log::info('Import completed', [
+                'imported' => $importedCount,
+                'errors' => count($errors)
+            ]);
+
+            // Clean up the uploaded file
+            Storage::disk('local')->delete($filePath);
 
             // Return JSON response for AJAX request
             if ($request->wantsJson() || $request->ajax()) {
                 return response()->json([
                     'success' => true,
-                    'batch_id' => $batch->id,
-                    'message' => __('catalogmanagement::product.import_started')
+                    'imported_count' => $importedCount,
+                    'errors' => $errors,
+                    'total_errors' => count($errors),
+                    'message' => $importedCount > 0 
+                        ? __('catalogmanagement::product.import_completed_successfully')
+                        : __('catalogmanagement::product.import_completed_with_errors')
                 ]);
             }
 
             // Fallback for non-AJAX requests
-            return redirect()->back()->with([
-                'batch_id' => $batch->id,
-                'info' => __('catalogmanagement::product.import_started')
-            ]);
+            if (count($errors) > 0) {
+                return redirect()->back()->with([
+                    'import_errors' => $errors,
+                    'warning' => __('catalogmanagement::product.import_completed_with_errors')
+                ]);
+            }
+
+            return redirect()->back()->with('success', __('catalogmanagement::product.import_completed_successfully'));
+            
         } catch (\Exception $e) {
-            Log::error('Bulk upload error: ' . $e->getMessage());
+            Log::error('Bulk upload error: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine()
+            ]);
             
             // Return JSON error for AJAX request
             if ($request->wantsJson() || $request->ajax()) {
                 return response()->json([
                     'success' => false,
-                    'error' => __('catalogmanagement::product.bulk_upload_error') . ': ' . $e->getMessage()
+                    'error' => __('catalogmanagement::product.bulk_upload_error') . ': ' . $e->getMessage(),
+                    'details' => config('app.debug') ? [
+                        'file' => $e->getFile(),
+                        'line' => $e->getLine(),
+                        'trace' => $e->getTraceAsString()
+                    ] : null
                 ], 500);
             }
             
@@ -1127,8 +1189,8 @@ class ProductController extends Controller
                 $results = cache()->get("import_results_{$batchId}");
                 if ($results) {
                     $progress['results'] = $results;
-                    // Clear cache after retrieving
-                    cache()->forget("import_results_{$batchId}");
+                    // Don't clear cache immediately - let it expire naturally
+                    // This allows multiple requests to retrieve the results
                 }
             }
 
@@ -1151,24 +1213,49 @@ class ProductController extends Controller
      * - Admin users get admin_products_demo.xlsx (with vendor_id column)
      * - Vendor users get vendor_products_demo.xlsx (without vendor_id column)
      */
+    /**
+     * Download demo Excel file
+     * Generates a demo file by exporting actual products from the database
+     * Uses the exact same export format as the regular product export
+     * Admin users get occasions sheets included
+     */
     public function downloadDemo()
     {
-        // Determine which demo file to serve
-        if (isAdmin()) {
-            $fileName = 'admin_products_demo.xlsx';
-            $downloadName = 'admin_products_demo.xlsx';
-        } else {
-            $fileName = 'vendor_products_demo.xlsx';
-            $downloadName = 'vendor_products_demo.xlsx';
-        }
-        
-        $filePath = public_path('assets/' . $fileName);
-        
-        if (!file_exists($filePath)) {
+        try {
+            $isAdmin = isAdmin();
+            
+            // Get a limited number of products for demo (e.g., 10 products)
+            $filters = [
+                'limit' => 10, // Limit to 10 products for demo
+            ];
+            
+            // For vendors, add vendor filter
+            if (!$isAdmin) {
+                $vendor = Auth::user()->vendor;
+                if ($vendor) {
+                    $filters['vendor_id'] = $vendor->id;
+                }
+            }
+            
+            // Include occasions for admin users
+            $includeOccasions = $isAdmin;
+            
+            // Use the exact same export class as regular export
+            $export = new \Modules\CatalogManagement\app\Exports\ProductsExport($isAdmin, $filters, $includeOccasions);
+            
+            // Add timestamp to filename to prevent caching
+            $prefix = $isAdmin ? 'admin_products_demo' : 'vendor_products_demo';
+            $fileName = $prefix . '_' . date('Y-m-d_His') . '.xlsx';
+            
+            return \Maatwebsite\Excel\Facades\Excel::download($export, $fileName);
+            
+        } catch (\Exception $e) {
+            Log::error('Demo file generation error: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString()
+            ]);
+            
             return redirect()->back()->with('error', __('catalogmanagement::product.demo_file_not_found'));
         }
-
-        return response()->download($filePath, $downloadName);
     }
 
     /**
@@ -1226,6 +1313,391 @@ class ProductController extends Controller
             ]);
             
             return redirect()->back()->with('error', __('catalogmanagement::product.export_error') . ': ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Display bank products for vendors (filtered by their departments)
+     */
+    public function vendorBankProducts(Request $request)
+    {
+        // Check if user is a vendor
+        if (!isVendor()) {
+            abort(403, 'Unauthorized');
+        }
+
+        $languages = $this->languageService->getAll();
+
+        $departments = $this->departmentService->getAllDepartments([], 0);
+        $departments = DepartmentResource::collection($departments)->map(function($department) {
+            return [
+                'id' => $department->id,
+                'name' => $department->name
+            ];
+        });
+
+        $brands = $this->brandService->getAllBrands([], 0);
+        $brands = BrandResource::collection($brands)->map(function($brand) {
+            return [
+                'id' => $brand->id,
+                'name' => $brand->name
+            ];
+        });
+
+        $categories = $this->categoryService->getAllCategories([], 0);
+        $categories = CategoryResource::collection($categories)->map(function($category) {
+            return [
+                'id' => $category->id,
+                'name' => $category->name
+            ];
+        });
+
+        $subCategories = $this->subCategoryService->getAllSubCategories([], 0);
+        $subCategories = SubCategoryResource::collection($subCategories)->map(function($subCategory) {
+            return [
+                'id' => $subCategory->id,
+                'name' => $subCategory->name,
+                'category_id' => $subCategory->category_id
+            ];
+        });
+
+        // Get vendors for filter (empty for vendors, they only see their own)
+        $vendors = [];
+
+        return view('catalogmanagement::product.vendor-bank', compact('languages', 'departments', 'brands', 'categories', 'subCategories', 'vendors'));
+    }
+
+    /**
+     * Datatable endpoint for vendor bank products (filtered by vendor's departments)
+     */
+    public function vendorBankDatatable(Request $request)
+    {
+        try {
+            // Check if user is a vendor
+            if (!isVendor()) {
+                return response()->json([
+                    'error' => 'Unauthorized'
+                ], 403);
+            }
+
+            // Get vendor's departments
+            $vendor = auth()->user()->vendorByUser ?? auth()->user()->vendorById ?? auth()->user()->vendor;
+            if (!$vendor) {
+                return response()->json([
+                    'error' => 'Vendor not found'
+                ], 404);
+            }
+
+            $departmentIds = $vendor->departments()->pluck('departments.id')->toArray();
+
+            // Get all filters from request and add vendor department filter
+            $filters = $request->all();
+            $filters['vendor_department_ids'] = $departmentIds;
+            $filters['product_type'] = 'bank'; // Force bank products only
+            
+            // Use the regular datatable action but with bank product filter
+            $result = $this->productAction->getDataTable($filters);
+            $dataPaginated = $result['dataPaginated'];
+            
+            return response()->json([
+                'draw' => intval($request->input('draw', 1)),
+                'data' => $result['data'],
+                'recordsTotal' => $result['totalRecords'],
+                'recordsFiltered' => $result['filteredRecords'],
+                'current_page' => $dataPaginated->currentPage(),
+                'last_page' => $dataPaginated->lastPage(),
+                'per_page' => $dataPaginated->perPage(),
+                'total' => $dataPaginated->total(),
+                'from' => $dataPaginated->firstItem(),
+                'to' => $dataPaginated->lastItem()
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Vendor Bank Product Datatable Error: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString()
+            ]);
+            return response()->json([
+                'error' => 'Error loading bank products: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Export vendor bank products (variants and stocks only)
+     */
+    public function vendorBankExport(Request $request)
+    {
+        try {
+            // Check if user is a vendor
+            if (!isVendor()) {
+                return redirect()->back()->with('error', 'Unauthorized');
+            }
+
+            $vendor = auth()->user()->vendorByUser ?? auth()->user()->vendorById ?? auth()->user()->vendor;
+            if (!$vendor) {
+                return redirect()->back()->with('error', __('catalogmanagement::product.vendor_not_found'));
+            }
+
+            $departmentIds = $vendor->departments()->pluck('departments.id')->toArray();
+
+            // Get filters from request
+            $filters = [
+                'vendor_id' => $vendor->id,
+                'department_ids' => $departmentIds,
+                'product_type' => 'bank',
+                'search' => $request->input('search'),
+                'brand_id' => $request->input('brand_id'),
+                'category_id' => $request->input('category_id'),
+                'department_id' => $request->input('department_id'),
+            ];
+
+            // Add product IDs filter if provided
+            if ($request->has('product_ids') && !empty($request->input('product_ids'))) {
+                $productIds = $request->input('product_ids');
+                if (is_string($productIds)) {
+                    $productIds = explode(',', $productIds);
+                }
+                $filters['product_ids'] = array_filter($productIds);
+            }
+
+            // Remove empty filters
+            $filters = array_filter($filters, function($value) {
+                return $value !== null && $value !== '' && $value !== [];
+            });
+
+            $export = new \Modules\CatalogManagement\app\Exports\VendorBankProductsExport($vendor->id, $filters);
+
+            $fileName = 'vendor_bank_products_export_' . date('Y-m-d_His') . '.xlsx';
+
+            return \Maatwebsite\Excel\Facades\Excel::download($export, $fileName);
+        } catch (\Exception $e) {
+            Log::error('Vendor Bank Products export error: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return redirect()->back()->with('error', __('catalogmanagement::product.export_error') . ': ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Show vendor bank products bulk upload page
+     */
+    public function vendorBankBulkUpload()
+    {
+        // Check if user is a vendor
+        if (!isVendor()) {
+            abort(403, 'Unauthorized');
+        }
+
+        return view('catalogmanagement::product.vendor-bank-bulk-upload');
+    }
+
+    /**
+     * Store vendor bank products bulk upload
+     */
+    /**
+     * Store vendor bank products bulk upload
+     * Synchronous import without batch jobs
+     */
+    public function vendorBankBulkUploadStore(Request $request)
+    {
+        try {
+            // Check if user is a vendor
+            if (!isVendor()) {
+                return response()->json([
+                    'success' => false,
+                    'error' => 'Unauthorized'
+                ], 403);
+            }
+
+            $vendor = auth()->user()->vendorByUser ?? auth()->user()->vendorById ?? auth()->user()->vendor;
+            if (!$vendor) {
+                return response()->json([
+                    'success' => false,
+                    'error' => __('catalogmanagement::product.vendor_not_found')
+                ], 404);
+            }
+
+            $request->validate([
+                'file' => 'required|mimes:xlsx,xls|max:10240', // 10MB max
+            ]);
+
+            // Increase execution time for large imports
+            set_time_limit(300); // 5 minutes
+            ini_set('memory_limit', '512M');
+
+            // Store the uploaded file temporarily
+            $file = $request->file('file');
+            $fileName = 'vendor_bank_imports/' . uniqid() . '_' . $file->getClientOriginalName();
+            $filePath = $file->storeAs('', $fileName, 'local');
+
+            Log::info('Starting synchronous vendor bank import', [
+                'file' => $fileName,
+                'vendor_id' => $vendor->id,
+                'user_id' => Auth::id()
+            ]);
+
+            // SYNCHRONOUS IMPORT - Process immediately without batch jobs
+            $import = new \Modules\CatalogManagement\app\Imports\VendorBankProductsImport($vendor->id, Auth::id());
+            \Maatwebsite\Excel\Facades\Excel::import($import, Storage::disk('local')->path($filePath));
+
+            // Get results
+            $importedCount = $import->getImportedCount();
+            $errors = $import->getErrors();
+
+            Log::info('Vendor bank import completed', [
+                'imported' => $importedCount,
+                'errors' => count($errors)
+            ]);
+
+            // Clean up the uploaded file
+            Storage::disk('local')->delete($filePath);
+
+            // Return JSON response for AJAX request
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'imported_count' => $importedCount,
+                    'errors' => $errors,
+                    'total_errors' => count($errors),
+                    'message' => $importedCount > 0 
+                        ? __('catalogmanagement::product.import_completed_successfully')
+                        : __('catalogmanagement::product.import_completed_with_errors')
+                ]);
+            }
+
+            // Fallback for non-AJAX requests
+            if (count($errors) > 0) {
+                return redirect()->back()->with([
+                    'import_errors' => $errors,
+                    'warning' => __('catalogmanagement::product.import_completed_with_errors')
+                ]);
+            }
+
+            return redirect()->back()->with('success', __('catalogmanagement::product.import_completed_successfully'));
+            
+        } catch (\Exception $e) {
+            Log::error('Vendor bank bulk upload error: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine()
+            ]);
+
+            // Return JSON error for AJAX request
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'error' => __('catalogmanagement::product.bulk_upload_error') . ': ' . $e->getMessage(),
+                    'details' => config('app.debug') ? [
+                        'file' => $e->getFile(),
+                        'line' => $e->getLine(),
+                        'trace' => $e->getTraceAsString()
+                    ] : null
+                ], 500);
+            }
+
+            return redirect()->back()->with('error', __('catalogmanagement::product.bulk_upload_error') . ': ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Download demo Excel for vendor bank products
+     * Generates a demo file by exporting actual bank products from the database
+     * Uses the exact same export format as the regular vendor bank export
+     */
+    public function vendorBankDownloadDemo()
+    {
+        try {
+            // Check if user is a vendor
+            if (!isVendor()) {
+                abort(403, 'Unauthorized');
+            }
+
+            $vendor = auth()->user()->vendorByUser ?? auth()->user()->vendorById ?? auth()->user()->vendor;
+            if (!$vendor) {
+                return redirect()->back()->with('error', __('catalogmanagement::product.vendor_not_found'));
+            }
+
+            $departmentIds = $vendor->departments()->pluck('departments.id')->toArray();
+
+            // Get a limited number of bank products for demo (e.g., 10 products)
+            $filters = [
+                'vendor_id' => $vendor->id,
+                'department_ids' => $departmentIds,
+                'product_type' => 'bank',
+                'limit' => 10, // Limit to 10 products for demo
+            ];
+
+            // Remove empty filters
+            $filters = array_filter($filters, function($value) {
+                return $value !== null && $value !== '' && $value !== [];
+            });
+
+            // Use the exact same export class as regular vendor bank export
+            $export = new \Modules\CatalogManagement\app\Exports\VendorBankProductsExport($vendor->id, $filters);
+
+            // Add timestamp to filename to prevent caching
+            $fileName = 'vendor_bank_products_demo_' . date('Y-m-d_His') . '.xlsx';
+
+            return \Maatwebsite\Excel\Facades\Excel::download($export, $fileName);
+            
+        } catch (\Exception $e) {
+            Log::error('Vendor bank demo download error: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return redirect()->back()->with('error', __('catalogmanagement::product.demo_file_not_found'));
+        }
+    }
+
+    /**
+     * Check vendor bank import batch progress
+     */
+    public function vendorBankCheckImportProgress($lang, $countryCode, $batchId)
+    {
+        try {
+            $batch = Bus::findBatch($batchId);
+
+            if (!$batch) {
+                return response()->json([
+                    'status' => 'not_found',
+                    'message' => 'Batch not found'
+                ], 404);
+            }
+
+            $progress = [
+                'batch_id' => $batch->id,
+                'name' => $batch->name,
+                'total_jobs' => $batch->totalJobs,
+                'pending_jobs' => $batch->pendingJobs,
+                'processed_jobs' => $batch->processedJobs(),
+                'progress_percentage' => $batch->progress(),
+                'finished' => $batch->finished(),
+                'cancelled' => $batch->cancelled(),
+                'failed' => $batch->failedJobs > 0,
+            ];
+
+            // If batch is finished, get the results
+            if ($batch->finished()) {
+                $results = cache()->get("vendor_bank_import_results_{$batchId}");
+                if ($results) {
+                    $progress['results'] = $results;
+                    // Don't clear cache immediately - let it expire naturally
+                    // This allows multiple requests to retrieve the results
+                }
+            }
+
+            return response()->json($progress);
+        } catch (\Exception $e) {
+            Log::error('Check vendor bank import progress error: ' . $e->getMessage(), [
+                'batch_id' => $batchId,
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Error checking progress: ' . $e->getMessage()
+            ], 500);
         }
     }
 }

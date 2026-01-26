@@ -8,6 +8,7 @@ use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Concerns\SkipsOnError;
 use Maatwebsite\Excel\Concerns\SkipsErrors;
+use Maatwebsite\Excel\Concerns\WithChunkReading;
 use Modules\CatalogManagement\app\Models\Occasion;
 use Modules\CatalogManagement\app\Models\VendorProductVariant;
 use Modules\CatalogManagement\app\Models\OccasionProduct;
@@ -16,7 +17,7 @@ use Modules\CatalogManagement\app\Models\OccasionProduct;
  * Sheet: occasion_products
  * Links VendorProductVariants to Occasions with special prices (admin only)
  */
-class OccasionProductsSheetImport implements ToCollection, WithHeadingRow, SkipsOnError
+class OccasionProductsSheetImport implements ToCollection, WithHeadingRow, SkipsOnError, WithChunkReading
 {
     use SkipsErrors;
 
@@ -110,5 +111,13 @@ class OccasionProductsSheetImport implements ToCollection, WithHeadingRow, Skips
     private function normalizeDecimal($value): float
     {
         return (float)($value ?? 0);
+    }
+
+    /**
+     * Define chunk size for reading Excel file
+     */
+    public function chunkSize(): int
+    {
+        return 100;
     }
 }
