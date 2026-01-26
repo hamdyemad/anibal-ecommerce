@@ -278,4 +278,16 @@ class ProductApiService
     {
         return $this->repository->getProductBySlug($slug);
     }
+
+    /**
+     * Get available product IDs from a list of IDs
+     * Returns only the IDs that exist in the database
+     * 
+     * @param array $productIds
+     * @return array
+     */
+    public function getAvailableProductIds(array $productIds)
+    {
+        return $this->repository->getAvailableProductIds($productIds);
+    }
 }

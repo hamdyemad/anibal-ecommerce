@@ -771,4 +771,19 @@ class ProductApiRepository implements ProductApiRepositoryInterface
             ->toArray();
     }
 
+    /**
+     * Get available product IDs from a list of IDs
+     * Returns only the IDs that exist in the database
+     * 
+     * @param array $productIds
+     * @return array
+     */
+    public function getAvailableProductIds(array $productIds)
+    {
+        return VendorProduct::whereIn('id', $productIds)
+            ->active()
+            ->status(VendorProduct::STATUS_APPROVED)
+            ->pluck('id')
+            ->toArray();
+    }
 }

@@ -47,6 +47,7 @@ Route::middleware('throttle:products')->prefix('products')->group(function () {
     Route::get('/filters', [ProductApiController::class, 'filters']);
     Route::get('/filters-by-type', [ProductApiController::class, 'filterByType']);
     Route::get('/variants', [ProductApiController::class, 'variants']);
+    Route::post('/check-availability', [ProductApiController::class, 'checkAvailability']);
 });
 
 Route::get('{reviewableType}/{reviewableId}/reviews', [ReviewApiController::class, 'getByReviewable']);

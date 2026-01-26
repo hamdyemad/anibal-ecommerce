@@ -620,5 +620,42 @@ class ProductApiController extends Controller
         );
     }
 
+    /**
+     * Check which product IDs are available
+     * POST /api/products/check-availability
+     * 
+     * Request body: { "product_ids": [1, 2, 3, 4, 5] }
+     * Response: { "available_ids": [1, 3, 5] }
+     */
+    public function checkAvailability(Request $request)
+    {
+        $request->validate([
+            'product_ids' => 'required|array',
+            'product_ids.*' => 'integer',
+        ]);
 
+        $productIds = $request->input('product_ids', []);
+        
+        if (empty($productIds)) {
+            return $this->sendRes(
+                config('responses.validation')[app()->getLocale()],
+                false,
+                [],
+                ['product_ids' => ['Product IDs array is required']],
+                422
+            );
+        }
+
+        $availableIds = $this->productService->getAvailableProductIds($productIds);
+
+        return $this->sendRes(
+            config('responses.success')[app()->getLocale()],
+            true,
+            [
+                'available_ids' => $availableIds
+            ],
+            [],
+            200
+        );
+    }
 }

@@ -20,4 +20,5 @@ interface ProductApiRepositoryInterface
     public function getProductBySlug(string $slug);
     public function getFiltersByOccasion(array $filters);
     public function getFiltersByBundle(array $filters);
+    public function getAvailableProductIds(array $productIds);
 }
