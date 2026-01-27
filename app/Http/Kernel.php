@@ -24,6 +24,7 @@ class Kernel extends HttpKernel
         \App\Http\Middleware\TrimStrings::class,
         \Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull::class,
         \App\Http\Middleware\SetLanguage::class,
+        \App\Http\Middleware\CacheResponse::class,
 
     ];
 
@@ -91,6 +92,7 @@ class Kernel extends HttpKernel
         'setLanguageCountry' => \App\Http\Middleware\SetLanguageCountry::class,
         'setAdminRouteDefaults' => \App\Http\Middleware\SetAdminRouteDefaults::class,
         'vendorCountryRestriction' => \App\Http\Middleware\VendorCountryRestriction::class,
+        'cache.response' => \App\Http\Middleware\CacheResponse::class,
 
     ];
 }
