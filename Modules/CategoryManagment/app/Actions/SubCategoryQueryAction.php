@@ -11,13 +11,13 @@ class SubCategoryQueryAction
         $query = SubCategory::query()
                     ->active()
                     ->where('view_status', 1)
-                    ->withCount('activeProducts')
+                    ->withCount(['activeVendorProducts as active_products_count'])  // Count vendor products
                     ->with([
                         'category' => function($q) {
-                            $q->withCount('activeProducts');
+                            $q->withCount(['activeVendorProducts as active_products_count']);  // Count vendor products
                         },
                         'category.department' => function($q) {
-                            $q->withCount('activeProducts');
+                            $q->withCount(['activeVendorProducts as active_products_count']);  // Count vendor products
                         },
                         'translations'
                     ])

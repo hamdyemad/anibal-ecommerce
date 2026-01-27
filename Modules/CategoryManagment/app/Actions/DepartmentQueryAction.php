@@ -10,7 +10,7 @@ class DepartmentQueryAction
     {
         $query = Department::query()
                     ->with('translations')
-                    ->withCount('activeProducts')
+                    ->withCount('activeVendorProducts as active_products_count')  // Count vendor products, not unique products
                     ->withCount('activeCategories')
                     ->active()
                     ->where('view_status', 1)

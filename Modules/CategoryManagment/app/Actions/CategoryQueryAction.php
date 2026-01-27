@@ -24,12 +24,12 @@ class CategoryQueryAction
                     ->active()
                     ->where('view_status', 1)
                     ->withCount('activeSubs')
-                    ->withCount(['activeProducts as active_products_count'])
+                    ->withCount(['activeVendorProducts as active_products_count'])  // Count vendor products
                     ->with(['department' => function($q) {
-                        $q->withCount(['activeProducts as active_products_count']);
+                        $q->withCount(['activeVendorProducts as active_products_count']);  // Count vendor products
                     }, 'translations', 
                         // 'activeSubs' => function($q) use ($subCategorySort, $subCategorySortType) {
-                        //     $q->withCount(['activeProducts as active_products_count'])
+                        //     $q->withCount(['activeVendorProducts as active_products_count'])  // Count vendor products
                         //     ->orderBy($subCategorySort, $subCategorySortType);
                         // }
                     ])

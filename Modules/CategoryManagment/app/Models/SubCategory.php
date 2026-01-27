@@ -78,6 +78,22 @@ class SubCategory extends BaseModel
         });
     }
 
+    /**
+     * Get active vendor products (for counting vendor products, not unique products)
+     */
+    public function activeVendorProducts()
+    {
+        return $this->hasManyThrough(
+            \Modules\CatalogManagement\app\Models\VendorProduct::class,
+            Product::class,
+            'sub_category_id', // Foreign key on products table
+            'product_id',      // Foreign key on vendor_products table
+            'id',              // Local key on sub_categories table
+            'id'               // Local key on products table
+        )->where('vendor_products.is_active', true)
+          ->where('vendor_products.status', 'approved');
+    }
+
     public function getDescriptionAttribute()
     {
         return $this->getTranslation('description', app()->getLocale()) ?? '-';
