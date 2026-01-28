@@ -18,6 +18,7 @@ use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Route as RouteFacade;
 use Illuminate\Database\Eloquent\Model;
 use App\Observers\GlobalModelObserver;
+use App\Observers\CacheInvalidationObserver;
 use App\Models\ActivityLog;
 use Modules\AreaSettings\app\Models\Country;
 use Carbon\Carbon;
@@ -42,6 +43,11 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(UserInterface::class, UserRepository::class);
         $this->app->bind(RoleRepositoryInterface::class, RoleRepository::class);
         $this->app->bind(LanguageRepositoryInterface::class, LanguageRepository::class);
+        
+        // Register CacheService as singleton
+        $this->app->singleton(\App\Services\CacheService::class, function ($app) {
+            return new \App\Services\CacheService();
+        });
     }
 
     /**
