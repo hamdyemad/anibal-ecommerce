@@ -44,10 +44,10 @@ class CategoryApiRepository implements CategoryApiRepositoryInterface
         return $this->query->handle($filters)
             ->with([
                 'department' => function($q) {
-                    $q->withCount(['activeProducts as active_products_count']);
+                    $q->withCount(['activeVendorProducts as active_products_count']);  // Count vendor products
                 },
                 'activeSubs' => function($q) use ($subCategorySort, $subCategorySortType) {
-                    $q->withCount(['activeProducts as active_products_count'])
+                    $q->withCount(['activeVendorProducts as active_products_count'])  // Count vendor products
                       ->orderBy($subCategorySort, $subCategorySortType);
                 }
             ])
