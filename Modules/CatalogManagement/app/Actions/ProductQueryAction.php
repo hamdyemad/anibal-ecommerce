@@ -32,6 +32,10 @@ class ProductQueryAction
                     if (!empty($filters['max_price'])) {
                         $q->where('price', '<=', $filters['max_price']);
                     }
+                    // Exclude variants with price = 0 when price filters are applied
+                    if (!empty($filters['min_price']) || !empty($filters['max_price'])) {
+                        $q->where('price', '>', 0);
+                    }
                     $q->with([
                         'variantConfiguration.translations',
                         'variantConfiguration.key.translations',
@@ -65,6 +69,20 @@ class ProductQueryAction
                     $q->where('customer_id', $user->id);
                 }
             }]);
+
+        // When price filters are applied, only return products that have variants matching the price criteria
+        if (!empty($filters['min_price']) || !empty($filters['max_price'])) {
+            $query->whereHas('variants', function ($q) use ($filters) {
+                if (!empty($filters['min_price'])) {
+                    $q->where('price', '>=', $filters['min_price']);
+                }
+                if (!empty($filters['max_price'])) {
+                    $q->where('price', '<=', $filters['max_price']);
+                }
+                // Exclude variants with price = 0
+                $q->where('price', '>', 0);
+            });
+        }
 
         if (!empty($filters)) {
             $query->filter($filters);

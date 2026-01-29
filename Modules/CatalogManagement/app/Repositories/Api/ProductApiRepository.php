@@ -212,35 +212,22 @@ class ProductApiRepository implements ProductApiRepositoryInterface
 
     /**
      * Get price range from filtered products
-     * Optimized to use JOIN instead of correlated subquery
+     * Optimized to use JOIN directly without fetching IDs
      */
     public function getPriceByFilters(array $filters)
     {
-        // Check if any product-related filter is provided
-        $hasFilters = !empty($filters['department_id']) || 
-                      !empty($filters['main_category_id']) || 
-                      !empty($filters['category_id']) || 
-                      !empty($filters['sub_category_id']) || 
-                      !empty($filters['brand_id']) || 
-                      !empty($filters['vendor_id']) ||
-                      !empty($filters['search']) ||
-                      !empty($filters['min_price']) ||
-                      !empty($filters['max_price']);
+        // Build the base query with filters
+        $baseQuery = $this->query->handle($filters);
         
-        $query = $this->query->handle($filters)
-            ->whereHas('variants');
-
-        // Get vendor product IDs first
-        $vendorProductIds = $query->pluck('id')->toArray();
+        // Get the SQL and bindings from the base query
+        $sql = $baseQuery->toSql();
+        $bindings = $baseQuery->getBindings();
         
-        if (empty($vendorProductIds)) {
-            return 0;
-        }
-
-        // Use a single efficient query with JOIN to get max price
-        $maxPrice = DB::table('vendor_product_variants')
-            ->whereIn('vendor_product_id', $vendorProductIds)
-            ->max('price');
+        // Use JOIN to get max price directly
+        $maxPrice = DB::table(DB::raw("({$sql}) as filtered_products"))
+            ->mergeBindings($baseQuery->getQuery())
+            ->join('vendor_product_variants as vpv', 'filtered_products.id', '=', 'vpv.vendor_product_id')
+            ->max('vpv.price');
 
         return $maxPrice ?? 0;
     }
