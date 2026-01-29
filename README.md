@@ -1364,13 +1364,11 @@ Unauthorized copying, modification, distribution, or use of this software, via a
 ## 📞 Support & Contact
 
 ### Technical Support
-- **Email:** support@eramo.com
-- **Documentation:** https://docs.eramo.com
-- **API Status:** https://status.eramo.com
+- **Email:** info@e-ramo.net
 
 ### Business Inquiries
-- **Email:** business@eramo.com
-- **Website:** https://eramo.com
+- **Email:** info@e-ramo.net
+- **Website:** https://www.e-ramo.net/en
 
 ---
 
