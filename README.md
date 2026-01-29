@@ -9,33 +9,33 @@
 </p>
 
 <p align="center">
-  <a href="#features">Features</a> •
-  <a href="#technology-stack">Tech Stack</a> •
-  <a href="#installation">Installation</a> •
-  <a href="#documentation">Documentation</a> •
-  <a href="#api">API</a> •
-  <a href="#modules">Modules</a>
+  <a href="#-key-features">Features</a> •
+  <a href="#-technology-stack">Tech Stack</a> •
+  <a href="#-installation">Installation</a> •
+  <a href="#-documentation">Documentation</a> •
+  <a href="#-api-documentation">API</a> •
+  <a href="#-modules-overview">Modules</a>
 </p>
 
 ---
 
 ## 📋 Table of Contents
 
-- [About](#about)
-- [Key Features](#key-features)
-- [Technology Stack](#technology-stack)
-- [System Architecture](#system-architecture)
-- [Installation](#installation)
-- [Configuration](#configuration)
-- [Modules Overview](#modules-overview)
-- [API Documentation](#api-documentation)
-- [Database Design](#database-design)
-- [Security Features](#security-features)
-- [Performance Optimization](#performance-optimization)
-- [Testing](#testing)
-- [Deployment](#deployment)
-- [Contributing](#contributing)
-- [License](#license)
+- [About](#-about)
+- [Key Features](#-key-features)
+- [Technology Stack](#-technology-stack)
+- [System Architecture](#-system-architecture)
+- [Installation](#-installation)
+- [Configuration](#-configuration)
+- [Modules Overview](#-modules-overview)
+- [API Documentation](#-api-documentation)
+- [Database Design](#-database-design)
+- [Security Features](#-security-features)
+- [Performance Optimization](#-performance-optimization)
+- [Testing](#-testing)
+- [Deployment](#-deployment)
+- [Contributing](#-contributing)
+- [License](#-license)
 
 ---
 
