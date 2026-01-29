@@ -84,12 +84,12 @@ class RouteServiceProvider extends ServiceProvider
 
         // Strict rate limit for authentication endpoints (prevent brute-force)
         RateLimiter::for('auth', function (Request $request) {
-            return Limit::perMinute(600000)->by($request->ip());
+            return Limit::perMinute(60)->by($request->ip());
         });
 
         // Rate limit for OTP/verification endpoints
         RateLimiter::for('otp', function (Request $request) {
-            return Limit::perMinute(600000)->by($request->ip());
+            return Limit::perMinute(60)->by($request->ip());
         });
 
         // Rate limit for checkout/payment endpoints
