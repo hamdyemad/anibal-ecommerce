@@ -6,4 +6,5 @@ interface RegionApiRepositoryInterface
 {
     public function getAllRegions(array $filters = []);
     public function getRegionsByCity($id, array $filters = []);
+    public function clearCache(): void;
 }

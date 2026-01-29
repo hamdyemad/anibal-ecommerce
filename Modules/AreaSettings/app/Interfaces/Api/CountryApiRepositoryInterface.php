@@ -6,4 +6,5 @@ interface CountryApiRepositoryInterface
 {
     public function getAllCountries(array $filters = []);
     public function getCountryById($id, array $filters = []);
+    public function clearCache(): void;
 }

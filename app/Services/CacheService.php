@@ -78,7 +78,7 @@ class CacheService
     /**
      * Clear cache by pattern (works with Redis)
      *
-     * @param string $pattern Pattern to match (e.g., 'countries:*')
+     * @param string $pattern Pattern to match (e.g., 'countryapi:*')
      * @return int Number of keys deleted
      */
     public function forgetByPattern(string $pattern): int
@@ -88,22 +88,81 @@ class CacheService
         }
 
         try {
-            $redis = Cache::getRedis()->connection();
-            $prefix = config('cache.prefix') . ':';
-            $keys = $redis->keys($prefix . $pattern);
+            // Use the cache connection (database 1) instead of default connection
+            $redis = \Illuminate\Support\Facades\Redis::connection('cache');
+            
+            // Get the full prefix (database prefix + cache prefix)
+            $databasePrefix = config('database.redis.options.prefix', '');
+            $cachePrefix = config('cache.prefix', '');
+            
+            // Build full prefix
+            $fullPrefix = $databasePrefix . $cachePrefix;
+            
+            // For Predis, we need to use wildcards around the pattern
+            // because exact patterns with colons don't work properly
+            $searchPattern = '*' . $pattern;
+            
+            // Get keys - use wildcard pattern that works with Predis
+            $keysResult = $redis->keys($searchPattern);
+            
+            // Convert to array if it's a Collection
+            $keys = $keysResult instanceof \Illuminate\Support\Collection 
+                ? $keysResult->all() 
+                : (is_array($keysResult) ? $keysResult : []);
+            
+            // Filter keys to only include those with our full prefix
+            $filteredKeys = array_filter($keys, function($key) use ($fullPrefix, $pattern) {
+                // Remove the wildcard from pattern for matching
+                $cleanPattern = str_replace('*', '', $pattern);
+                return strpos($key, $fullPrefix . $cleanPattern) === 0;
+            });
+            
+            \Log::info('CacheService: forgetByPattern', [
+                'pattern' => $pattern,
+                'database_prefix' => $databasePrefix,
+                'cache_prefix' => $cachePrefix,
+                'full_prefix' => $fullPrefix,
+                'search_pattern' => $searchPattern,
+                'keys_found_total' => count($keys),
+                'keys_found_filtered' => count($filteredKeys),
+                'filtered_keys' => array_values($filteredKeys)
+            ]);
             
             $count = 0;
-            foreach ($keys as $key) {
-                $cacheKey = str_replace($prefix, '', $key);
-                Cache::forget($cacheKey);
-                $count++;
+            foreach ($filteredKeys as $fullKey) {
+                // The key from Redis includes: database_prefix + cache_prefix + actual_key
+                // We need to remove BOTH prefixes because Cache::forget() will add them back
+                $cacheKey = str_replace($fullPrefix, '', $fullKey);
+                
+                \Log::info('CacheService: Attempting to delete key', [
+                    'full_key' => $fullKey,
+                    'cache_key' => $cacheKey,
+                    'full_prefix' => $fullPrefix
+                ]);
+                
+                // Use Laravel's Cache::forget which handles prefixes correctly
+                $deleted = Cache::forget($cacheKey);
+                
+                \Log::info('CacheService: Delete result', [
+                    'cache_key' => $cacheKey,
+                    'deleted' => $deleted
+                ]);
+                
+                if ($deleted) {
+                    $count++;
+                }
             }
+            
+            \Log::info('CacheService: Keys deleted', [
+                'count' => $count
+            ]);
             
             return $count;
         } catch (\Exception $e) {
             \Log::error('Cache pattern delete failed', [
                 'pattern' => $pattern,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
             ]);
             return 0;
         }

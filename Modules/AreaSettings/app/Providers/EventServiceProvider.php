@@ -3,6 +3,12 @@
 namespace Modules\AreaSettings\app\Providers;
 
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
+use Modules\AreaSettings\app\Models\Country;
+use Modules\AreaSettings\app\Models\City;
+use Modules\AreaSettings\app\Models\Region;
+use Modules\AreaSettings\app\Observers\CountryObserver;
+use Modules\AreaSettings\app\Observers\CityObserver;
+use Modules\AreaSettings\app\Observers\RegionObserver;
 
 class EventServiceProvider extends ServiceProvider
 {
@@ -12,6 +18,17 @@ class EventServiceProvider extends ServiceProvider
      * @var array<string, array<int, string>>
      */
     protected $listen = [];
+
+    /**
+     * The model observers for the application.
+     *
+     * @var array<string, string>
+     */
+    protected $observers = [
+        Country::class => [CountryObserver::class],
+        City::class => [CityObserver::class],
+        Region::class => [RegionObserver::class],
+    ];
 
     /**
      * Indicates if events should be discovered.
@@ -25,3 +42,4 @@ class EventServiceProvider extends ServiceProvider
      */
     protected function configureEmailVerification(): void {}
 }
+

@@ -6,4 +6,5 @@ interface CityApiRepositoryInterface
 {
     public function getAllCities(array $filters = []);
     public function getCitiesByCountry($id, array $filters = []);
+    public function clearCache(): void;
 }

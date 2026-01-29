@@ -1,0 +1,12 @@
+# API Documentation Files
+
+Place your exported OpenAPI specification files here:
+- openapi.json
+- openapi.yaml
+
+Export from Apidog:
+1. Open your Apidog project
+2. Go to Project Settings > Export
+3. Choose "OpenAPI 3.0" format
+4. Export as JSON or YAML
+5. Place the file in this directory

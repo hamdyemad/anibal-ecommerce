@@ -43,7 +43,7 @@ trait HasSlug
     public function regenerateSlug(): void
     {
         $this->generateAndSetSlug();
-        $this->save();
+        $this->saveQuietly(); // Use saveQuietly to avoid triggering observers
     }
 
     /**
