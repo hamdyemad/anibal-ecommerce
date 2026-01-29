@@ -1416,7 +1416,7 @@ Unauthorized copying, modification, distribution, or use of this software, via a
 </p>
 
 <p align="center">
-  <a href="https://eramo.com">Website</a> •
+  <a href="https://www.e-ramo.net/en">Website</a> •
   <a href="public/docs/API_DOCUMENTATION.md">API Docs</a> •
   <a href="public/docs/DATABASE_DESIGN.md">Database Design</a> •
   <a href="public/docs/PROJECT_ARCHITECTURE_AND_STRATEGY.md">Architecture</a>
