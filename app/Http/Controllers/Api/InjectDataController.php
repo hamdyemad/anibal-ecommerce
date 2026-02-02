@@ -155,7 +155,6 @@ class InjectDataController extends Controller
      */
     public function inject(Request $request)
     {
-        return "test";
         // Disable Telescope for this request (it consumes too much memory)
         if (class_exists(\Laravel\Telescope\Telescope::class)) {
             \Laravel\Telescope\Telescope::stopRecording();
