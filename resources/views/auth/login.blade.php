@@ -188,8 +188,7 @@
             <div class="auth-image">
                 <div class="auth-image-content">
                     <h2 style="color: #fff;">Welcome to Bnaia</h2>
-                    <p>Are you unsure about pricing the order you need for your home finishing? Send us your order as an
-                        image, Excel file, or PDF, and we will price it within an hour.</p>
+                    <p>Bnaia Dashboard Access.</p>
                 </div>
             </div>
             <div class="auth-form">
