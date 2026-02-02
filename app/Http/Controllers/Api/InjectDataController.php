@@ -3100,81 +3100,52 @@ class InjectDataController extends Controller
                     'name' => $name,
                     'email' => $email,
                 ]);
+              
                 
-                // Check if user exists by email (more reliable than ID)
-                $user = User::where('email', $email)->first();
-                
-                if ($user) {
-                    // Update existing user
-                    $user->update([
+                $exists = User::where('email', 'like', "%" . $item['email'] . "%")->first();
+                if ($exists) {
+                    $skipped++;
+                    Log::warning("Admin skipped: Already exists", [
                         'email' => $email,
-                        'user_type_id' => $adminUserTypeId,
-                        'active' => 1,
-                        'email_verified_at' => $this->parseDate($item['created_at'] ?? null),
-                        'created_at' => $this->parseDate($item['created_at'] ?? null),
-                        'updated_at' => $this->parseDate($item['updated_at'] ?? null),
+                        'existing_user_id' => $exists->id,
                     ]);
-                    
-                    // Set name in translations (not direct field)
-                    $user->setTranslation('name', 'en', $name);
-                    $user->setTranslation('name', 'ar', $name);
-                    $user->save();
-                    
-                    // Update password directly using DB to bypass mutator (it's already hashed from old system)
-                    if (!empty($password)) {
-                        DB::table('users')
-                            ->where('id', $user->id)
-                            ->update(['password' => $password]);
-                    }
-                    
-                    // Ensure user has admin role
-                    if (!$user->roles()->where('role_id', $adminRole->id)->exists()) {
-                        $user->roles()->attach($adminRole->id);
-                        Log::info("Admin role attached to existing user", ['email' => $email]);
-                    }
-                    
-                    $updated++;
-                    Log::info("Admin UPDATED", ['email' => $email, 'name' => $name]);
-                    
-                } else {
-                    // Create new admin user
-                    $user = new User();
-                    if ($adminId) {
-                        $user->id = $adminId;
-                    }
-                    $user->uuid = \Illuminate\Support\Str::uuid();
-                    $user->email = $email;
-                    $user->active = 1;
-                    $user->email_verified_at = $this->parseDate($item['created_at'] ?? null);
-                    $user->user_type_id = $adminUserTypeId;
-                    $user->created_at = $this->parseDate($item['created_at'] ?? null);
-                    $user->updated_at = $this->parseDate($item['updated_at'] ?? null);
-                    
-                    // Set temporary password first (will be replaced immediately)
-                    $user->password = 'temp_password_will_be_replaced';
-                    $user->save();
-                    
-                    // Set name in translations (not direct field)
-                    $user->setTranslation('name', 'en', $name);
-                    $user->setTranslation('name', 'ar', $name);
-                    $user->save();
-                    
-                    // Now set the real password directly using DB to bypass mutator (it's already hashed from old system)
-                    if (!empty($password)) {
-                        DB::table('users')
-                            ->where('id', $user->id)
-                            ->update(['password' => $password]);
-                    }
-                    
-                    // Attach admin role
-                    $user->roles()->attach($adminRole->id);
-                    
-                    $injected++;
-                    Log::info("Admin CREATED", [
-                        'email' => $email,
-                        'name' => $name,
-                    ]);
+                    continue; // 👈 skip this item and move to next
                 }
+
+                // Create new admin user
+                $user = new User();
+                $user->uuid = \Illuminate\Support\Str::uuid();
+                $user->email = $email;
+                $user->active = 1;
+                $user->email_verified_at = $this->parseDate($item['created_at'] ?? null);
+                $user->user_type_id = $adminUserTypeId;
+                $user->created_at = $this->parseDate($item['created_at'] ?? null);
+                $user->updated_at = $this->parseDate($item['updated_at'] ?? null);
+                
+                // Set temporary password first (will be replaced immediately)
+                $user->password = 'temp_password_will_be_replaced';
+                $user->save();
+                
+                // Set name in translations (not direct field)
+                $user->setTranslation('name', 'en', $name);
+                $user->setTranslation('name', 'ar', $name);
+                $user->save();
+            
+                // Now set the real password directly using DB to bypass mutator (it's already hashed from old system)
+                if (!empty($password)) {
+                    DB::table('users')
+                        ->where('id', $user->id)
+                        ->update(['password' => $password]);
+                }
+                
+                // Attach admin role
+                $user->roles()->attach($adminRole->id);
+                
+                $injected++;
+                Log::info("Admin CREATED", [
+                    'email' => $email,
+                    'name' => $name,
+                ]);
                 
                 // Download and attach profile image if exists
                 if (!empty($item['image'])) {
