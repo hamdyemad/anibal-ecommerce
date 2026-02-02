@@ -34,6 +34,8 @@ interface CustomerApiRepositoryInterface
 
     public function updateInfo(Customer $customer, array $data): Customer;
 
+    public function updateAvatar(Customer $customer, $avatar): Customer;
+
     public function updatePassword(Customer $customer, string $newPassword): Customer;
 
     public function changeLanguage(Customer $customer, string $lang): Customer;

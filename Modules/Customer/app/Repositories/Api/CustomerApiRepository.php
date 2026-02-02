@@ -186,6 +186,25 @@ class CustomerApiRepository implements CustomerApiRepositoryInterface
         return $customer;
     }
 
+    public function updateAvatar(Customer $customer, $avatar): Customer
+    {
+        DB::transaction(function () use ($customer, $avatar) {
+            // Delete old avatar if exists
+            if ($customer->image) {
+                $oldImagePath = storage_path('app/public/' . $customer->image);
+                if (file_exists($oldImagePath)) {
+                    @unlink($oldImagePath);
+                }
+            }
+
+            // Store new avatar
+            $path = $avatar->store('customers/avatars', 'public');
+            $customer->update(['image' => $path]);
+        });
+
+        return $customer->fresh();
+    }
+
     public function updatePassword(Customer $customer, string $newPassword): Customer
     {
         $customer = $this->updateCustomerPasswordAction->execute($customer, $newPassword);

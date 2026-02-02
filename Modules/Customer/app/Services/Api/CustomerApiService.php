@@ -26,11 +26,6 @@ class CustomerApiService
      */
     public function updateProfile(Customer $customer, array $data): Customer
     {
-        // Verify current password
-        if (!Hash::check($data['current_password'], $customer->password)) {
-            throw new InvalidPasswordException();
-        }
-
         // Update info if any info fields are provided
         $infoFields = ['first_name', 'last_name', 'phone', 'lang'];
         $infoData = array_filter(
@@ -42,8 +37,18 @@ class CustomerApiService
             $customer = $this->customerRepository->updateInfo($customer, $infoData);
         }
 
+        // Handle avatar upload if provided
+        if (isset($data['avatar']) && $data['avatar']) {
+            $customer = $this->customerRepository->updateAvatar($customer, $data['avatar']);
+        }
+
         // Update password if new password is provided
         if (isset($data['new_password']) && !empty($data['new_password'])) {
+            // Verify current password before changing
+            if (!Hash::check($data['current_password'], $customer->password)) {
+                throw new InvalidPasswordException();
+            }
+            
             $customer = $this->customerRepository->updatePassword($customer, $data['new_password']);
         }
 

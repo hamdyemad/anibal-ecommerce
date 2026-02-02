@@ -24,8 +24,22 @@ class UpdateProfileRequest extends FormRequest
             'last_name' => 'sometimes|string|max:255',
             'phone' => 'sometimes|string|max:20',
             'lang' => 'sometimes|in:en,ar',
-            'current_password' => 'required|string',
+            'avatar' => 'sometimes|image|mimes:jpeg,jpg,png,gif|max:2048',
+            'current_password' => 'required_with:new_password|string',
             'new_password' => 'sometimes|string|min:8|confirmed',
+        ];
+    }
+
+    /**
+     * Get custom messages for validator errors.
+     */
+    public function messages(): array
+    {
+        return [
+            'current_password.required_with' => 'Current password is required when changing password.',
+            'avatar.image' => 'The avatar must be an image file.',
+            'avatar.mimes' => 'The avatar must be a file of type: jpeg, jpg, png, gif.',
+            'avatar.max' => 'The avatar must not be larger than 2MB.',
         ];
     }
 }
