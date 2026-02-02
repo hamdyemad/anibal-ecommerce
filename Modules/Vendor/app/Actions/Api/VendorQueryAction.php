@@ -30,7 +30,7 @@ class VendorQueryAction
         $query = $this->applySorting($query, $filters);
 
         // Order by latest first
-        $query->latest();
+        $query->orderBy('vendor_products_count', 'desc');
 
         return $query;
     }
@@ -66,8 +66,6 @@ class VendorQueryAction
             case 'rating':
                 $query->orderBy('reviews_avg_star', $sortType);
                 break;
-            default:
-                $query->orderBy('created_at', $sortType);
         }
 
         return $query;

@@ -354,6 +354,7 @@ class InjectDataController extends Controller
             'bundle_categories' => $this->injectBundleCategories($data),
             'bundles' => $this->injectBundles($data),
             'admins' => $this->injectAdmins($data),
+            'orders' => $this->injectOrders($data),
             default => ['message' => "Unknown include type: {$include}"],
         };
     }
@@ -3180,5 +3181,498 @@ class InjectDataController extends Controller
             'errors' => $errors,
             'note' => 'New admins created with default password: password123',
         ];
+    }
+
+    /**
+     * Inject orders into database
+     * Note: This is a complex operation that requires careful handling of:
+     * - Customer references
+     * - Product references  
+     * - Order stages
+     * - Order products (pivot data)
+     * - Vendor orders
+     * - Commissions
+     * - Points transactions
+     */
+    protected function injectOrders(array $data): array
+    {
+        $items = $data['orders']['data'] ?? [];
+        $injected = 0;
+        $updated = 0;
+        $skipped = 0;
+        $errors = [];
+        
+        Log::info("=== Starting Order Injection ===", [
+            'total_items' => count($items),
+        ]);
+
+        foreach ($items as $item) {
+            try {
+                $orderId = $item['id'] ?? null;
+                $customerEmail = $item['customer_email'] ?? null;
+                
+                if (!$orderId) {
+                    $skipped++;
+                    Log::warning("Order skipped: Missing ID", ['item' => $item]);
+                    continue;
+                }
+                
+                // Check if customer exists
+                $customer = null;
+                if ($customerEmail) {
+                    $customer = \Modules\Customer\app\Models\Customer::withoutGlobalScopes()
+                        ->where('email', $customerEmail)
+                        ->first();
+                }
+                
+                if (!$customer) {
+                    $skipped++;
+                    $errors[] = "Order {$orderId}: Customer not found (email: {$customerEmail})";
+                    Log::warning("Order skipped: Customer not found", [
+                        'order_id' => $orderId,
+                        'customer_email' => $customerEmail,
+                    ]);
+                    continue;
+                }
+                
+                Log::info("Processing Order", [
+                    'id' => $orderId,
+                    'customer_email' => $customerEmail,
+                    'total_price' => $item['total_price'] ?? 0,
+                ]);
+                
+                // Map stage from old system to new system
+                $stageData = $item['order_stages'] ?? $item['stage'] ?? null;
+                $stageId = $this->mapOrderStage($stageData, $customer->country_id);
+                
+                if (!$stageId) {
+                    $skipped++;
+                    $errors[] = "Order {$orderId}: Could not map order stage";
+                    Log::warning("Order skipped: Could not map stage", [
+                        'order_id' => $orderId,
+                        'stage_data' => $stageData,
+                    ]);
+                    continue;
+                }
+                
+                // Check if order already exists
+                $order = \Modules\Order\app\Models\Order::withoutGlobalScopes()->find($orderId);
+                $isUpdate = false;
+                
+                if ($order) {
+                    $isUpdate = true;
+                    Log::info("Order exists, updating", ['id' => $orderId]);
+                } else {
+                    // Create new order
+                    $order = new \Modules\Order\app\Models\Order();
+                    
+                    // Set ID if provided (to preserve old system IDs)
+                    if ($orderId) {
+                        $order->id = $orderId;
+                    }
+                }
+                
+                // Basic order info
+                $order->order_number = $item['order_number'] ?? $order->order_number ?? null; // Will auto-generate if null
+                $order->customer_id = $customer->id;
+                $order->customer_name = $item['customer_name'] ?? $customer->full_name;
+                $order->customer_email = $customer->email;
+                $order->customer_phone = $item['customer_phone'] ?? $customer->phone;
+                $order->customer_address = $item['customer_address'] ?? null;
+                $order->order_from = $this->mapOrderFrom($item['order_from'] ?? 'web');
+                
+                // Payment info
+                $order->payment_type = $this->mapPaymentType($item['payment_type'] ?? 'cash_on_delivery');
+                $order->payment_visa_status = $item['payment_visa_status'] ?? null;
+                $order->payment_reference = $item['payment_reference'] ?? null;
+                
+                // Pricing
+                $order->shipping = $item['shipping'] ?? 0;
+                $order->total_tax = $item['total_tax'] ?? 0;
+                $order->total_fees = $item['total_fees'] ?? 0;
+                $order->total_discounts = $item['total_discounts'] ?? 0;
+                $order->total_product_price = $item['total_product_price'] ?? 0;
+                $order->items_count = $item['items_count'] ?? 0;
+                $order->total_price = $item['total_price'] ?? 0;
+                
+                // Location and stage
+                $order->stage_id = $stageId;
+                $order->country_id = $customer->country_id;
+                $order->city_id = $customer->city_id ?? null;
+                $order->region_id = $customer->region_id ?? null;
+                
+                // Promo codes and points
+                $order->customer_promo_code_title = $item['customer_promo_code_title'] ?? null;
+                $order->customer_promo_code_value = $item['customer_promo_code_value'] ?? null;
+                $order->customer_promo_code_type = $this->mapPromoCodeType($item['customer_promo_code_type'] ?? null);
+                $order->customer_promo_code_amount = $item['customer_promo_code_amount'] ?? 0;
+                $order->points_used = $item['points_used'] ?? 0;
+                $order->points_cost = $item['points_cost'] ?? 0;
+                
+                // Timestamps
+                $order->created_at = $this->parseDate($item['created_at'] ?? null);
+                $order->updated_at = $this->parseDate($item['updated_at'] ?? null);
+                $order->save();
+                
+                if ($isUpdate) {
+                    $updated++;
+                    Log::info("Order UPDATED", ['id' => $orderId, 'order_number' => $order->order_number]);
+                } else {
+                    $injected++;
+                    Log::info("Order CREATED", ['id' => $orderId, 'order_number' => $order->order_number]);
+                }
+                
+                // Create payment record if payment data exists
+                if (!empty($item['payment_data']) || !empty($item['transaction_id'])) {
+                    $this->createPaymentRecord($order, $item);
+                }
+                
+                // Handle order products if provided in API
+                if (!empty($item['order_products']) && is_array($item['order_products'])) {
+                    $this->syncOrderProducts($order, $item['order_products'], $stageId);
+                }
+                
+            } catch (\Exception $e) {
+                $orderId = $item['id'] ?? 'unknown';
+                $error = "Order {$orderId}: " . $e->getMessage();
+                $errors[] = $error;
+                Log::error("Order injection error", [
+                    'order_id' => $orderId,
+                    'error' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString(),
+                ]);
+            }
+        }
+        
+        Log::info("=== Order Injection Complete ===", [
+            'total_items' => count($items),
+            'injected' => $injected,
+            'updated' => $updated,
+            'skipped' => $skipped,
+            'errors_count' => count($errors),
+        ]);
+
+        return [
+            'type' => 'orders',
+            'injected' => $injected,
+            'updated' => $updated,
+            'skipped' => $skipped,
+            'errors' => $errors,
+        ];
+    }
+
+    /**
+     * Map order_from value from old system to new system
+     */
+    private function mapOrderFrom($value): string
+    {
+        return match (strtolower($value)) {
+            'web', 'website' => 'web',
+            'android', 'mobile' => 'android',
+            'ios', 'iphone' => 'ios',
+            default => 'web',
+        };
+    }
+
+    /**
+     * Map payment_type value from old system to new system
+     */
+    private function mapPaymentType($value): string
+    {
+        return match (strtolower($value)) {
+            'cash', 'cash_on_delivery', 'cod' => 'cash_on_delivery',
+            'online', 'card', 'credit_card' => 'online',
+            default => 'cash_on_delivery',
+        };
+    }
+
+    /**
+     * Map promo code type from old system to new system
+     */
+    private function mapPromoCodeType($value): ?string
+    {
+        if (!$value) {
+            return null;
+        }
+        
+        return match (strtolower($value)) {
+            'percent', 'percentage' => 'percentage',
+            'amount', 'fixed' => 'fixed',
+            default => null,
+        };
+    }
+
+    /**
+     * Map order stage from old system to new system
+     * 
+     * @param mixed $stageData Stage data from API (could be object, array, or string)
+     * @param int $countryId Country ID to filter stages
+     * @return int|null Stage ID in new system, or null if not found
+     */
+    private function mapOrderStage($stageData, int $countryId): ?int
+    {
+        // Extract stage name from various formats
+        $stageName = null;
+        
+        if (is_array($stageData)) {
+            $stageName = $stageData['stage'] ?? $stageData['name'] ?? null;
+        } elseif (is_string($stageData)) {
+            $stageName = $stageData;
+        }
+        
+        if (!$stageName) {
+            // Default to 'new' stage if no stage provided
+            $stageName = 'New';
+        }
+        
+        // Map old stage names to new stage types
+        $stageTypeMap = [
+            'new' => 'new',
+            'inprogress' => 'in_progress',
+            'delivrd' => 'delivered',
+            'delivered' => 'delivered',
+            'cancelled' => 'cancelled',
+            'wanttoreturn' => 'return_requested',
+            'inprogressreturn' => 'return_in_progress',
+            'returned' => 'returned',
+            'no answer' => 'no_answer',
+        ];
+        
+        $stageType = $stageTypeMap[strtolower($stageName)] ?? null;
+        
+        if (!$stageType) {
+            // Try to find by name if type mapping fails
+            $stage = \Modules\Order\app\Models\OrderStage::withoutGlobalScopes()
+                ->where('country_id', $countryId)
+                ->whereRaw('LOWER(JSON_EXTRACT(name, "$.en")) = ?', [strtolower($stageName)])
+                ->first();
+            
+            return $stage?->id;
+        }
+        
+        // Find stage by type and country
+        $stage = \Modules\Order\app\Models\OrderStage::withoutGlobalScopes()
+            ->where('type', $stageType)
+            ->where('country_id', $countryId)
+            ->first();
+        
+        if (!$stage) {
+            // Fallback: try without country filter
+            $stage = \Modules\Order\app\Models\OrderStage::withoutGlobalScopes()
+                ->where('type', $stageType)
+                ->first();
+        }
+        
+        return $stage?->id;
+    }
+
+    /**
+     * Sync order products and create vendor order stages
+     * 
+     * @param Order $order The order to attach products to
+     * @param array $products Array of product data from API
+     * @param int $stageId The stage ID to assign to vendor stages (same as order stage)
+     */
+    protected function syncOrderProducts($order, array $products, int $stageId): void
+    {
+        $vendorIds = [];
+        $productCount = 0;
+        $skippedCount = 0;
+        
+        foreach ($products as $productData) {
+            try {
+                // Extract data from API response
+                $productId = $productData['product_id'] ?? null;
+                $productSizeColorId = $productData['product_size_color_id'] ?? null; // This is vendor_product_variant_id
+                $quantity = $productData['quantity'] ?? 1;
+                $price = $productData['price'] ?? 0;
+                
+                if (!$productId) {
+                    $skippedCount++;
+                    Log::warning("Order product skipped: Missing product_id", [
+                        'order_id' => $order->id,
+                        'product_data' => $productData,
+                    ]);
+                    continue;
+                }
+                
+                // Get vendor_id from the product relationship
+                $vendorId = $productData['product']['brand_id'] ?? null; // brand_id is the vendor_id
+                
+                if (!$vendorId) {
+                    $skippedCount++;
+                    Log::warning("Order product skipped: Missing brand_id (vendor_id)", [
+                        'order_id' => $order->id,
+                        'product_id' => $productId,
+                    ]);
+                    continue;
+                }
+                
+                // Find the vendor product (we need vendor_product_id)
+                $vendorProduct = \Modules\CatalogManagement\app\Models\VendorProduct::withoutGlobalScopes()
+                    ->where('product_id', $productId)
+                    ->where('vendor_id', $vendorId)
+                    ->first();
+                
+                if (!$vendorProduct) {
+                    $skippedCount++;
+                    Log::warning("Order product skipped: Vendor product not found", [
+                        'order_id' => $order->id,
+                        'product_id' => $productId,
+                        'vendor_id' => $vendorId,
+                    ]);
+                    continue;
+                }
+                
+                // Create order product (without triggering observer to avoid duplicate vendor stages)
+                $orderProduct = new \Modules\Order\app\Models\OrderProduct();
+                $orderProduct->order_id = $order->id;
+                $orderProduct->vendor_product_id = $vendorProduct->id;
+                $orderProduct->vendor_product_variant_id = $productSizeColorId;
+                $orderProduct->vendor_id = $vendorId;
+                $orderProduct->quantity = $quantity;
+                $orderProduct->price = $price;
+                $orderProduct->commission = 0; // Will be calculated if needed
+                $orderProduct->shipping_cost = 0; // Will be calculated if needed
+                $orderProduct->stage_id = $stageId; // Same stage as order
+                $orderProduct->occasion_id = null;
+                $orderProduct->bundle_id = null;
+                
+                // Disable observer temporarily to prevent automatic vendor stage creation
+                \Modules\Order\app\Models\OrderProduct::unsetEventDispatcher();
+                $orderProduct->save();
+                \Modules\Order\app\Models\OrderProduct::setEventDispatcher(new \Illuminate\Events\Dispatcher());
+                
+                // Store product name in translations
+                $nameEn = $productData['product_title_en'] ?? $productData['product']['title_en'] ?? null;
+                $nameAr = $productData['product_title_ar'] ?? $productData['product']['title_ar'] ?? null;
+                
+                if ($nameEn) {
+                    $orderProduct->setTranslation('name', 'en', $nameEn);
+                }
+                if ($nameAr) {
+                    $orderProduct->setTranslation('name', 'ar', $nameAr);
+                }
+                $orderProduct->save();
+                
+                // Track vendor IDs for creating vendor stages
+                if (!in_array($vendorId, $vendorIds)) {
+                    $vendorIds[] = $vendorId;
+                }
+                
+                $productCount++;
+                
+            } catch (\Exception $e) {
+                $skippedCount++;
+                Log::error("Error creating order product", [
+                    'order_id' => $order->id,
+                    'product_data' => $productData,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        }
+        
+        // Create vendor order stages (one per vendor, all with same stage as order)
+        foreach ($vendorIds as $vendorId) {
+            try {
+                // Check if vendor stage already exists
+                $existingStage = \Modules\Order\app\Models\VendorOrderStage::where('order_id', $order->id)
+                    ->where('vendor_id', $vendorId)
+                    ->first();
+                
+                if (!$existingStage) {
+                    \Modules\Order\app\Models\VendorOrderStage::create([
+                        'order_id' => $order->id,
+                        'vendor_id' => $vendorId,
+                        'stage_id' => $stageId, // Same stage as order
+                        'promo_code_share' => 0, // Will be calculated if needed
+                        'points_share' => 0, // Will be calculated if needed
+                    ]);
+                    
+                    Log::info("Vendor order stage created", [
+                        'order_id' => $order->id,
+                        'vendor_id' => $vendorId,
+                        'stage_id' => $stageId,
+                    ]);
+                }
+            } catch (\Exception $e) {
+                Log::error("Error creating vendor order stage", [
+                    'order_id' => $order->id,
+                    'vendor_id' => $vendorId,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        }
+        
+        Log::info("Order products synced", [
+            'order_id' => $order->id,
+            'products_created' => $productCount,
+            'products_skipped' => $skippedCount,
+            'vendors_count' => count($vendorIds),
+        ]);
+    }
+
+    /**
+     * Create payment record for an order
+     * 
+     * @param Order $order The order to create payment for
+     * @param array $orderData Order data from API containing payment info
+     */
+    protected function createPaymentRecord($order, array $orderData): void
+    {
+        try {
+            // Only create payment record if payment type is online
+            if ($order->payment_type !== 'online') {
+                return;
+            }
+            
+            // Extract payment data from nested object if it exists
+            $paymentInfo = $orderData['payment_data'] ?? [];
+            
+            // If payment_data is a JSON string, decode it
+            if (is_string($paymentInfo)) {
+                $paymentInfo = json_decode($paymentInfo, true) ?? [];
+            }
+            
+            $paymentData = [
+                'order_id' => $order->id,
+                'paymob_payment_id' => $paymentInfo['paymob_payment_id'] ?? $orderData['paymob_payment_id'] ?? null,
+                'paymob_order_id' => $paymentInfo['paymob_order_id'] ?? $orderData['paymob_order_id'] ?? null,
+                'payment_method' => $orderData['payment_method'] ?? 'card',
+                'transaction_id' => $paymentInfo['paymob_transaction_id'] ?? $orderData['transaction_id'] ?? null,
+                'amount_cents' => $paymentInfo['amount_cents'] ?? ($order->total_price * 100), // Use from payment_data or convert
+                'status' => $this->mapPaymentStatus($paymentInfo['status'] ?? $orderData['payment_visa_status'] ?? $order->payment_visa_status),
+                'payment_data' => $paymentInfo, // Store the full payment data object
+            ];
+            
+            \Modules\Order\app\Models\Payment::create($paymentData);
+            
+            Log::info("Payment record created", [
+                'order_id' => $order->id,
+                'transaction_id' => $paymentData['transaction_id'],
+                'status' => $paymentData['status'],
+                'amount_cents' => $paymentData['amount_cents'],
+            ]);
+            
+        } catch (\Exception $e) {
+            Log::error("Error creating payment record", [
+                'order_id' => $order->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
+    }
+
+    /**
+     * Map payment visa status to payment status
+     */
+    private function mapPaymentStatus($status): string
+    {
+        return match (strtolower($status ?? '')) {
+            'success', 'paid', 'completed' => 'paid',
+            'pending', 'processing' => 'pending',
+            'fail', 'failed', 'declined' => 'failed',
+            'refunded' => 'refunded',
+            default => 'pending',
+        };
     }
 }
