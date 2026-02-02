@@ -140,6 +140,11 @@ class InjectDataController extends Controller
             'folders' => ['bundles-images'],
             'attachable_type' => 'Modules\\CatalogManagement\\app\\Models\\Bundle',
         ],
+        'admins' => [
+            'tables' => [], // Don't truncate users table, only update/create
+            'folders' => [],
+            'attachable_type' => null,
+        ],
     ];
     
     /**
@@ -348,6 +353,7 @@ class InjectDataController extends Controller
             'occasions' => $this->injectOccasions($data),
             'bundle_categories' => $this->injectBundleCategories($data),
             'bundles' => $this->injectBundles($data),
+            'admins' => $this->injectAdmins($data),
             default => ['message' => "Unknown include type: {$include}"],
         };
     }
@@ -2223,6 +2229,7 @@ class InjectDataController extends Controller
                     'gender' => $item['gender'] ?? 'male',
                     'status' => ($item['status'] ?? '1') == '1',
                     'lang' => $item['lang'] ?? 'en',
+                    'password' => $item['password'],
                     'email_verified_at' => !empty($item['email_verified_at']) ? $this->parseDate($item['email_verified_at']) : null,
                     'city_id' => $cityId,
                     'region_id' => $regionId,
@@ -2972,6 +2979,160 @@ class InjectDataController extends Controller
             'updated' => $updated,
             'bundle_products_created' => $bundleProductsCreated,
             'errors' => $errors,
+        ];
+    }
+}
+
+    /**
+     * Inject admins into database
+     */
+    protected function injectAdmins(array $data): array
+    {
+        $items = $data['admins']['data'] ?? [];
+        $injected = 0;
+        $updated = 0;
+        $skipped = 0;
+        $errors = [];
+        
+        // Get admin user type ID (assuming 1 is admin)
+        $adminUserTypeId = UserType::where('name', 'admin')
+            ->orWhere('id', 1)
+            ->first()?->id ?? 1;
+        
+        // Get admin role
+        $adminRole = Role::where('name', 'admin')
+            ->orWhere('name', 'Admin')
+            ->first();
+        
+        if (!$adminRole) {
+            return [
+                'type' => 'admins',
+                'injected' => 0,
+                'updated' => 0,
+                'skipped' => 0,
+                'errors' => ['Admin role not found in database. Please create an admin role first.'],
+            ];
+        }
+        
+        Log::info("=== Starting Admin Injection ===", [
+            'total_items' => count($items),
+            'admin_user_type_id' => $adminUserTypeId,
+            'admin_role_id' => $adminRole->id,
+            'admin_role_name' => $adminRole->name,
+        ]);
+
+        foreach ($items as $item) {
+            try {
+                $adminId = $item['id'] ?? null;
+                $email = $item['email'] ?? null;
+                $name = $item['name'] ?? null;
+                
+                if (!$email || !$name) {
+                    $skipped++;
+                    Log::warning("Admin skipped: Missing email or name", ['item' => $item]);
+                    continue;
+                }
+                
+                Log::info("Processing Admin", [
+                    'id' => $adminId,
+                    'name' => $name,
+                    'email' => $email,
+                ]);
+                
+                // Check if user exists by email (more reliable than ID)
+                $user = User::where('email', $email)->first();
+                
+                if ($user) {
+                    // Update existing user
+                    $user->update([
+                        'name' => $name,
+                        'phone' => $item['phone'] ?? null,
+                        'user_type_id' => $adminUserTypeId,
+                        'gender' => $item['gender'] ?? null,
+                        'birth_date' => $item['birth_date'] ?? null,
+                        'address' => $item['address'] ?? null,
+                        'facebook' => $item['facebook'] ?? null,
+                        'twitter' => $item['twitter'] ?? null,
+                        'website' => $item['website'] ?? null,
+                        'instagram' => $item['instagram'] ?? null,
+                        'created_at' => $this->parseDate($item['created_at'] ?? null),
+                        'updated_at' => $this->parseDate($item['updated_at'] ?? null),
+                    ]);
+                    
+                    // Ensure user has admin role
+                    if (!$user->roles()->where('role_id', $adminRole->id)->exists()) {
+                        $user->roles()->attach($adminRole->id);
+                        Log::info("Admin role attached to existing user", ['email' => $email]);
+                    }
+                    
+                    $updated++;
+                    Log::info("Admin UPDATED", ['email' => $email, 'name' => $name]);
+                    
+                } else {
+                    // Create new admin user
+                    $user = new User();
+                    if ($adminId) {
+                        $user->id = $adminId;
+                    }
+                    $user->name = $name;
+                    $user->email = $email;
+                    $user->phone = $item['phone'] ?? null;
+                    $user->password = bcrypt('password123'); // Default password
+                    $user->user_type_id = $adminUserTypeId;
+                    $user->gender = $item['gender'] ?? null;
+                    $user->birth_date = $item['birth_date'] ?? null;
+                    $user->address = $item['address'] ?? null;
+                    $user->facebook = $item['facebook'] ?? null;
+                    $user->twitter = $item['twitter'] ?? null;
+                    $user->website = $item['website'] ?? null;
+                    $user->instagram = $item['instagram'] ?? null;
+                    $user->created_at = $this->parseDate($item['created_at'] ?? null);
+                    $user->updated_at = $this->parseDate($item['updated_at'] ?? null);
+                    $user->save();
+                    
+                    // Attach admin role
+                    $user->roles()->attach($adminRole->id);
+                    
+                    $injected++;
+                    Log::info("Admin CREATED", [
+                        'email' => $email,
+                        'name' => $name,
+                        'default_password' => 'password123'
+                    ]);
+                }
+                
+                // Download and attach profile image if exists
+                if (!empty($item['image'])) {
+                    $this->attachImage($user, $item['image'], 'profile_image');
+                }
+                
+            } catch (\Exception $e) {
+                $name = $item['name'] ?? $item['email'] ?? $item['id'] ?? 'unknown';
+                $error = "Admin {$name}: " . $e->getMessage();
+                $errors[] = $error;
+                Log::error("Admin injection error", [
+                    'name' => $name,
+                    'error' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString(),
+                ]);
+            }
+        }
+        
+        Log::info("=== Admin Injection Complete ===", [
+            'total_items' => count($items),
+            'injected' => $injected,
+            'updated' => $updated,
+            'skipped' => $skipped,
+            'errors_count' => count($errors),
+        ]);
+
+        return [
+            'type' => 'admins',
+            'injected' => $injected,
+            'updated' => $updated,
+            'skipped' => $skipped,
+            'errors' => $errors,
+            'note' => 'New admins created with default password: password123',
         ];
     }
 }

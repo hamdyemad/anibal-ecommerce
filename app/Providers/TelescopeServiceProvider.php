@@ -14,6 +14,13 @@ class TelescopeServiceProvider extends TelescopeApplicationServiceProvider
      */
     public function register(): void
     {
+        // Completely disable Telescope to improve performance
+        Telescope::stopRecording();
+        return;
+        
+        // The code below is disabled but kept for reference
+        // Uncomment the return above to re-enable Telescope
+        
         // Telescope::night();
 
         $this->hideSensitiveRequestDetails();
