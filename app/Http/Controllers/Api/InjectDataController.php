@@ -2241,10 +2241,11 @@ class InjectDataController extends Controller
                 continue;
             }
 
-            try {// Check if customer exists by ID or email
-                $customer = Customer::where('id', $item['id'])->first();
-                if (!$customer) {
-                    $customer = Customer::where('email', $item['email'])->first();
+            try {
+                // Check if customer exists by ID or email
+                $existingCustomer = Customer::where('id', $item['id'])->first();
+                if (!$existingCustomer) {
+                    $existingCustomer = Customer::where('email', $item['email'])->first();
                 }
 
                 // Split name into first_name and last_name
@@ -2272,25 +2273,46 @@ class InjectDataController extends Controller
                     'gender' => $item['gender'] ?? 'male',
                     'status' => ($item['status'] ?? '1') == '1',
                     'lang' => $item['lang'] ?? 'en',
-                    'password' => $item['password'],
+                    // Don't include password in fill() - set it directly to avoid re-hashing
                     'email_verified_at' => !empty($item['email_verified_at']) ? $this->parseDate($item['email_verified_at']) : null,
                     'city_id' => $cityId,
                     'region_id' => $regionId,
                     'created_at' => $this->parseDate($item['created_at'] ?? null),
                     'updated_at' => $this->parseDate($item['updated_at'] ?? null),
                 ];
-
-                if ($customer) {
-                    // Update existing - don't update password
-                    $customer->update($customerData);
+                
+                if ($existingCustomer) {
+                    // Update existing customer
+                    $existingCustomer->fill($customerData);
+                    $existingCustomer->save();
+                    
+                    // Set password directly using DB to bypass mutator (it's already hashed from old system)
+                    if (!empty($item['password'])) {
+                        DB::table('customers')
+                            ->where('id', $existingCustomer->id)
+                            ->update(['password' => $item['password']]);
+                    }
+                    
+                    $customer = $existingCustomer;
                     $updated++;
                 } else {
                     // Create new with same ID
+                    // We need to include password in initial creation to avoid "Field 'password' doesn't have a default value" error
                     $customer = new Customer();
                     $customer->id = $item['id'];
                     $customer->fill($customerData);
-                    $customer->password = 'password123'; // Default password
+                    
+                    // Set a temporary password first (will be replaced immediately)
+                    $customer->password = 'temp_password_will_be_replaced';
                     $customer->save();
+                    
+                    // Now set the real password directly using DB to bypass mutator (it's already hashed from old system)
+                    if (!empty($item['password'])) {
+                        DB::table('customers')
+                            ->where('id', $customer->id)
+                            ->update(['password' => $item['password']]);
+                    }
+                    
                     $injected++;
                 }
 

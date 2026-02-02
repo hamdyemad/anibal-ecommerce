@@ -21,12 +21,10 @@
                     </div>
                 </div>
 
-                {{-- Sales Overview Header --}}
                 @include('pages.dashboard.withdraw-transactions')
                 @include('pages.dashboard.stats-overview')
                 @include('pages.dashboard.income-and-expenses')
                 @include('pages.dashboard.refunds-overview')
-                {{-- Charts Row: Sales and Earnings --}}
                 <div class="col-12">
                     <div class="row">
                         @include('pages.dashboard.total-sales-chart')
@@ -34,7 +32,6 @@
                     </div>
                 </div>
                 
-                {{-- Charts Row: Refunds and Net Earnings --}}
                 <div class="col-12">
                     <div class="row">
                         @include('pages.dashboard.refunds-chart')
@@ -43,7 +40,6 @@
                 </div>
 
                 @include('pages.dashboard.stats-cards')
-                {{-- Orders Overview & Top Selling Products --}}
                 @include('pages.dashboard.orders-overview')
 
 
@@ -62,6 +58,5 @@
         </div>
     </div>
 
-    {{-- Chart Scripts --}}
     @include('pages.dashboard.charts-scripts')
 @endsection

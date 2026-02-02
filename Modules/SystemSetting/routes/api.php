@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\InjectDataController;
 use Illuminate\Support\Facades\Route;
 use Modules\SystemSetting\app\Http\Controllers\Api\AdApiController;
 use Modules\SystemSetting\app\Http\Controllers\Api\FaqApiController;
@@ -41,3 +42,9 @@ Route::get('blogs/host-topics', [BlogApiController::class, 'hostTopics']);
 // Auth protected Blog routes
 Route::post('blogs/{id}/comments', [BlogApiController::class, 'addComment'])->middleware('auth:sanctum');
 Route::resource('blogs', BlogApiController::class);
+
+
+
+
+// Temporary route for testing inject data
+Route::get('inject-data', [InjectDataController::class, 'inject']);

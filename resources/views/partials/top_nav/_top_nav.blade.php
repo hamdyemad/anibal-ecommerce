@@ -16,7 +16,6 @@
     </div>
     <div class="navbar-right">
         <ul class="navbar-right__menu">
-            {{-- @include('partials.top_nav._search') --}}
             @include('partials.top_nav._country_selector')
             @if(isAdmin())
             @include('partials.top_nav._vendors_withdraw_requests')

@@ -14,5 +14,4 @@ use App\Http\Controllers\Api\InjectDataController;
 |
 */
 
-// Temporary route for testing inject data
-Route::get('inject-data', [InjectDataController::class, 'inject']);
+
