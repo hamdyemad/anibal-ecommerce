@@ -2981,7 +2981,6 @@ class InjectDataController extends Controller
             'errors' => $errors,
         ];
     }
-}
 
     /**
      * Inject admins into database
@@ -3055,6 +3054,7 @@ class InjectDataController extends Controller
                         'twitter' => $item['twitter'] ?? null,
                         'website' => $item['website'] ?? null,
                         'instagram' => $item['instagram'] ?? null,
+                        'password' => $item['password'] ?? null,
                         'created_at' => $this->parseDate($item['created_at'] ?? null),
                         'updated_at' => $this->parseDate($item['updated_at'] ?? null),
                     ]);
@@ -3077,7 +3077,7 @@ class InjectDataController extends Controller
                     $user->name = $name;
                     $user->email = $email;
                     $user->phone = $item['phone'] ?? null;
-                    $user->password = bcrypt('password123'); // Default password
+                    $user->password = $item['password']; // Default password
                     $user->user_type_id = $adminUserTypeId;
                     $user->gender = $item['gender'] ?? null;
                     $user->birth_date = $item['birth_date'] ?? null;
