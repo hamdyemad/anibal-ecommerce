@@ -72,6 +72,14 @@ class User extends Authenticatable
     }
 
     /**
+     * Get attachments for the user (profile images, etc.)
+     */
+    public function attachments()
+    {
+        return $this->morphMany(\App\Models\Attachment::class, 'attachable');
+    }
+
+    /**
      * Check if user has a specific permission
      */
     public function hasPermission(string $permission): bool

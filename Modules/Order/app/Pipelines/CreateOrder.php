@@ -24,6 +24,14 @@ class CreateOrder
 
         $customer = $context['customer'];
 
+        // Get the 'new' stage ID dynamically (without country filter)
+        $newStage = \Modules\Order\app\Models\OrderStage::withoutGlobalScopes()
+            ->where('type', 'new')
+            ->first();
+        if (!$newStage) {
+            throw new \Exception('Order stage with type "new" not found. Please run order stage seeder.');
+        }
+
         // Prepare order data
         $promoCode = $context['promo_code'] ?? null;
         
@@ -36,6 +44,7 @@ class CreateOrder
                 default => $promoCode->type,
             };
         }
+        
         
         $orderData = [
             'customer_id' => $customer['id'],
@@ -52,7 +61,7 @@ class CreateOrder
             'total_product_price' => $context['total_product_price'],
             'items_count' => $context['items_count'],
             'total_price' => $context['total_price'],
-            'stage_id' => 1,
+            'stage_id' => $newStage->id,
             'country_id' => $customer['country_id'],
             'city_id' => $customer['city_id'],
             'region_id' => $customer['region_id'],
