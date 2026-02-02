@@ -32,13 +32,10 @@
         </footer>
     </main>
 
-    {{-- WhatsApp Floating Button --}}
     @include('partials.whatsapp-button')
 
-    {{-- Message Wrapper for Notifications --}}
     <div class="message-wrapper"></div>
 
-    {{-- Loading Overlay Stack --}}
     @stack('after-body')
 
     <div id="overlayer">
@@ -66,7 +63,6 @@
     <script src="{{ asset('assets/js/plugins.min.js') }}"></script>
     <script src="{{ asset('assets/js/select2.min.js') }}"></script>
 
-    {{-- Add stub functions AFTER jQuery and Select2 load but BEFORE other scripts --}}
     <script>
         // Prevent errors for optional plugins that script.min.js might try to initialize
         $(document).ready(function() {
@@ -106,7 +102,6 @@
             // Version 4.16.2 doesn't require license key
         }
     </script>
-    {{-- @vite('resources/plugins/ckeditor/ckeditor.js') --}}
     @vite('resources/js/app.js')
 
     <script src="{{ asset('assets/js/sweetalert2@11.js') }}"></script>
@@ -250,7 +245,6 @@
         })();
     </script>
 
-    {{-- Make date inputs fully clickable --}}
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // Function to make date inputs clickable
@@ -307,10 +301,8 @@
 
     @stack('scripts')
 
-    {{-- Menu Badge Counter Script --}}
     <script src="{{ asset('assets/js/menu-badges.js') }}"></script>
 
-    {{-- Protect dynamic badge values from being reset by global scripts --}}
     <script>
         (function() {
             // Store protected badge values globally
@@ -372,7 +364,6 @@
         })();
     </script>
 
-    {{-- Add user type classes to body for JavaScript detection --}}
     <script>
         @if (Auth::check())
             @if (Auth::user()->user_type_id == \App\Models\UserType::ADMIN_TYPE ||

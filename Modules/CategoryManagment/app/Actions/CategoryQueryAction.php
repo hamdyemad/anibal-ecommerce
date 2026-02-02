@@ -27,11 +27,7 @@ class CategoryQueryAction
                     ->withCount(['activeVendorProducts as active_products_count'])  // Count vendor products
                     ->with(['department' => function($q) {
                         $q->withCount(['activeVendorProducts as active_products_count']);  // Count vendor products
-                    }, 'translations', 
-                        // 'activeSubs' => function($q) use ($subCategorySort, $subCategorySortType) {
-                        //     $q->withCount(['activeVendorProducts as active_products_count'])  // Count vendor products
-                        //     ->orderBy($subCategorySort, $subCategorySortType);
-                        // }
+                    }, 'translations',
                     ])
                     ->filter($filters)
                     ->orderBy('sort_number', $subCategorySortType);
