@@ -24,19 +24,19 @@ class BrandQueryAction
 
         // Apply products count with combined filters
         $query->withCount(['products' => function ($q) use ($filters) {
-            // Vendor filter for product count
-            if (isset($filters['vendor_id'])) {
-                $vendorIdentifier = $filters['vendor_id'];
-                $vendor = \Modules\Vendor\app\Models\Vendor::where('slug', $vendorIdentifier)
-                    ->orWhere('id', $vendorIdentifier)->first();
-                if ($vendor) {
-                    $q->whereHas('vendorProducts', function ($vq) use ($vendor) {
-                        $vq->where('vendor_id', $vendor->id)
-                            ->where('is_active', true)
-                            ->where('status', 'approved');
-                    });
+            $q->whereHas('vendorProducts', function ($vq) {
+                $vq->active()->where('status', 'approved');
+                // Vendor filter for product count
+                if (isset($filters['vendor_id'])) {
+                    $vendorIdentifier = $filters['vendor_id'];
+                    $vendor = \Modules\Vendor\app\Models\Vendor::where('slug', $vendorIdentifier)
+                        ->orWhere('id', $vendorIdentifier)->first();
+                    if ($vendor) {
+                        $vq->where('vendor_id', $vendor->id);
+                    }
                 }
-            }
+            });
+
 
             // Department filter for product count
             if (isset($filters['department_id'])) {
