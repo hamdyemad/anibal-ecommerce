@@ -16,7 +16,7 @@ class CustomerAddressRepository implements CustomerAddressRepositoryInterface
 
     public function createAddress(Customer $customer, array $data): CustomerAddress
     {
-        if($data["is_primary"]){
+        if(isset($data["is_primary"]) && $data["is_primary"]){
             $customer->addresses()->update(["is_primary" => false]);
         }
         return $customer->addresses()->create($data);
@@ -26,7 +26,7 @@ class CustomerAddressRepository implements CustomerAddressRepositoryInterface
     {
         $address = $this->getAddressById($addressId, $customer);
 
-        if($data["is_primary"]){
+        if(isset($data["is_primary"]) && $data["is_primary"]){
             $customer->addresses()->update(["is_primary" => false]);
         }
 

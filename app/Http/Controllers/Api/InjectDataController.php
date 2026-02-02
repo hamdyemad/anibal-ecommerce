@@ -3242,7 +3242,8 @@ class InjectDataController extends Controller
                 ]);
                 
                 // Map stage from old system to new system
-                $stageData = $item['order_stages'] ?? $item['stage'] ?? null;
+                // API returns: "order_stage": {"id": 4, "stage": "Cancelled", "stage_ar": "تم الالغاء", ...}
+                $stageData = $item['order_stage'] ?? $item['order_stages'] ?? $item['stage'] ?? null;
                 $stageId = $this->mapOrderStage($stageData, $customer->country_id);
                 
                 if (!$stageId) {
@@ -3572,7 +3573,7 @@ class InjectDataController extends Controller
             }
         }
         
-        // Create vendor order stages (one per vendor, all with same stage as order)
+        // Create or update vendor order stages (one per vendor, all with same stage as order)
         foreach ($vendorIds as $vendorId) {
             try {
                 // Check if vendor stage already exists
@@ -3580,7 +3581,19 @@ class InjectDataController extends Controller
                     ->where('vendor_id', $vendorId)
                     ->first();
                 
-                if (!$existingStage) {
+                if ($existingStage) {
+                    // Update existing vendor stage
+                    $existingStage->update([
+                        'stage_id' => $stageId, // Update to match order stage
+                    ]);
+                    
+                    Log::info("Vendor order stage updated", [
+                        'order_id' => $order->id,
+                        'vendor_id' => $vendorId,
+                        'stage_id' => $stageId,
+                    ]);
+                } else {
+                    // Create new vendor stage
                     \Modules\Order\app\Models\VendorOrderStage::create([
                         'order_id' => $order->id,
                         'vendor_id' => $vendorId,
@@ -3596,7 +3609,7 @@ class InjectDataController extends Controller
                     ]);
                 }
             } catch (\Exception $e) {
-                Log::error("Error creating vendor order stage", [
+                Log::error("Error creating/updating vendor order stage", [
                     'order_id' => $order->id,
                     'vendor_id' => $vendorId,
                     'error' => $e->getMessage(),
