@@ -26,6 +26,7 @@ class AdminNotificationController extends Controller
 
     /**
      * Get paginated notifications (for infinite scroll)
+     * Optimized for performance
      */
     public function index(Request $request)
     {
@@ -33,44 +34,35 @@ class AdminNotificationController extends Controller
         $perPage = 10;
         $type = $request->get('type'); // Optional type filter
         
-        // Build query
-        $query = AdminNotification::notViewedBy(auth()->id())
-            ->orderBy('created_at', 'desc');
+        $userId = auth()->id();
+        $isAdmin = isAdmin();
+        
+        // Build base query with optimized scope
+        $query = AdminNotification::notViewedBy($userId)
+            ->orderBy('admin_notifications.created_at', 'desc'); // Specify table name after JOIN
         
         // Filter by type if provided
         if ($type) {
-            $query->where('type', $type);
+            $query->where('admin_notifications.type', $type);
         }
         
-        // Filter by vendor if not admin
-        if (isAdmin()) {
-            $query->where(function($q) use ($type) {
-                if ($type === 'new_order' || $type === 'new_message' || $type === 'vendor_request' || $type === 'withdraw_request') {
-                    // For specific admin types, only show those without vendor_id
-                    $q->whereNull('vendor_id');
-                } else {
-                    // For general notifications, show all admin notifications
-                    $q->whereNull('vendor_id')
-                      ->orWhereIn('type', ['new_refund_request', 'refund_status_changed']);
-                }
+        // Optimize vendor/admin filtering
+        if ($isAdmin) {
+            // Admin sees: notifications without vendor_id OR refund-related notifications
+            $query->where(function($q) {
+                $q->whereNull('admin_notifications.vendor_id')
+                  ->orWhere('admin_notifications.type', 'new_refund_request')
+                  ->orWhere('admin_notifications.type', 'refund_status_changed');
             });
         } else {
+            // Vendor sees: their notifications OR global notifications (excluding admin-only types)
             $vendorId = auth()->user()->vendor->id;
             
-            if ($type === 'withdraw_status') {
-                // For vendors, show their withdraw status notifications
-                $query->where('vendor_id', $vendorId);
-            } else {
-                $query->where(function($q) use ($vendorId, $type) {
-                    $q->where('vendor_id', $vendorId)
-                      ->orWhereNull('vendor_id');
-                });
-                
-                // Exclude admin-only types for vendors
-                if (!$type) {
-                    $query->whereNotIn('type', ['vendor_request', 'new_message']);
-                }
-            }
+            $query->where(function($q) use ($vendorId) {
+                $q->where('admin_notifications.vendor_id', $vendorId)
+                  ->orWhereNull('admin_notifications.vendor_id');
+            })
+            ->whereNotIn('admin_notifications.type', ['vendor_request', 'new_message']);
         }
         
         // Get paginated results
@@ -105,23 +97,30 @@ class AdminNotificationController extends Controller
 
     /**
      * Get unread notifications count
+     * Optimized for performance
      */
     public function count()
     {
-        $query = AdminNotification::notViewedBy(auth()->id());
+        $userId = auth()->id();
+        $isAdmin = isAdmin();
         
-        // Filter by vendor if not admin
-        if (isAdmin()) {
+        // Build optimized query
+        $query = AdminNotification::notViewedBy($userId);
+        
+        // Optimize vendor/admin filtering
+        if ($isAdmin) {
             $query->where(function($q) {
-                $q->whereNull('vendor_id')
-                  ->orWhereIn('type', ['new_refund_request', 'refund_status_changed']);
+                $q->whereNull('admin_notifications.vendor_id')
+                  ->orWhere('admin_notifications.type', 'new_refund_request')
+                  ->orWhere('admin_notifications.type', 'refund_status_changed');
             });
         } else {
             $vendorId = auth()->user()->vendor->id;
             $query->where(function($q) use ($vendorId) {
-                $q->where('vendor_id', $vendorId)
-                  ->orWhereNull('vendor_id');
-            })->whereNotIn('type', ['vendor_request', 'new_message']);
+                $q->where('admin_notifications.vendor_id', $vendorId)
+                  ->orWhereNull('admin_notifications.vendor_id');
+            })
+            ->whereNotIn('admin_notifications.type', ['vendor_request', 'new_message']);
         }
         
         $count = $query->count();

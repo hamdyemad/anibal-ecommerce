@@ -56,9 +56,9 @@ class OrderStageController extends Controller
             // Get languages
             $languages = \App\Models\Language::all();
 
-            // Get total and filtered counts
-            $totalRecords = $this->orderStageService->getOrderStagesQuery([])->count();
-            $filteredRecords = $this->orderStageService->getOrderStagesQuery($filters)->count();
+            // Get total and filtered counts (optimized - without eager loading)
+            $totalRecords = $this->orderStageService->getOrderStagesCount([]);
+            $filteredRecords = $this->orderStageService->getOrderStagesCount($filters);
 
             // Get order stages with pagination
             $orderStagesQuery = $this->orderStageService->getOrderStagesQuery($filters);

@@ -42,6 +42,29 @@ class OrderStageRepository implements OrderStageRepositoryInterface
     }
 
     /**
+     * Get count of order stages without eager loading (for performance)
+     */
+    public function getOrderStagesCount(array $filters = [])
+    {
+        $query = OrderStage::withoutCountryFilter()
+            ->where(function ($q) {
+                // Include stages with no country (System/Global)
+                $q->whereNull('country_id');
+
+                // Include stages for the current country
+                $countryCode = session('country_code');
+                if ($countryCode) {
+                    $q->orWhereHas('country', function ($sq) use ($countryCode) {
+                        $sq->where('code', $countryCode);
+                    });
+                }
+            })
+            ->filter($filters);
+
+        return $query->count();
+    }
+
+    /**
      * Get order stage by ID
      */
     public function getOrderStageById($id)

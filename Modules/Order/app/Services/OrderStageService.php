@@ -18,6 +18,11 @@ class OrderStageService
         return $this->orderStageRepository->getOrderStagesQuery($filters, $orderBy, $orderDirection);
     }
 
+    public function getOrderStagesCount(array $filters = [])
+    {
+        return $this->orderStageRepository->getOrderStagesCount($filters);
+    }
+
     public function getOrderStageById($id)
     {
         return $this->orderStageRepository->getOrderStageById($id);

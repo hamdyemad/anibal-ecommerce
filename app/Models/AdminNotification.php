@@ -131,12 +131,16 @@ class AdminNotification extends Model
 
     /**
      * Scope for notifications not viewed by user
+     * Optimized with LEFT JOIN instead of whereDoesntHave for better performance
      */
     public function scopeNotViewedBy($query, int $userId)
     {
-        return $query->whereDoesntHave('views', function($q) use ($userId) {
-            $q->where('user_id', $userId);
-        });
+        return $query->leftJoin('admin_notification_views', function($join) use ($userId) {
+            $join->on('admin_notifications.id', '=', 'admin_notification_views.admin_notification_id')
+                 ->where('admin_notification_views.user_id', '=', $userId);
+        })
+        ->whereNull('admin_notification_views.id')
+        ->select('admin_notifications.*'); // Important: select only admin_notifications columns
     }
 
     /**
