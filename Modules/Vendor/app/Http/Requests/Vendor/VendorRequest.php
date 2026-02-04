@@ -30,9 +30,9 @@ class VendorRequest extends FormRequest
             $logoRule = 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048';
         }
 
-        // Banner validation: required on create, optional on update
+        // Banner validation: required on create, optional on update or when from vendor request
         $bannerRule = 'required|image|mimes:jpeg,png,jpg,gif|max:4096';
-        if ($isUpdate) {
+        if ($isUpdate || $this->vendor_request_id) {
             $bannerRule = 'nullable|image|mimes:jpeg,png,jpg,gif|max:4096';
         }
 
@@ -167,3 +167,4 @@ class VendorRequest extends FormRequest
         return $messages;
     }
 }
+

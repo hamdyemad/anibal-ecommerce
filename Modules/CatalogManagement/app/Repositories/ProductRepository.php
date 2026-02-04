@@ -213,7 +213,7 @@ class ProductRepository implements ProductInterface
 
             // Update product
             $product->update([
-                'is_active' => $data['is_active'] ?? true,
+                'is_active' => $data['is_active'] ?? false,
                 'configuration_type' => $data['configuration_type'],
                 'vendor_id' => $vendorId,
                 'brand_id' => $data['brand_id'] ?? null,

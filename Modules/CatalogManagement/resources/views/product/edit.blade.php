@@ -148,6 +148,8 @@
                                                     <label
                                                         class="form-label d-block">{{ __('catalogmanagement::product.status') }}</label>
                                                     <div class="form-check form-switch form-switch-lg">
+                                                        <!-- Hidden field to ensure is_active=0 is sent when checkbox is unchecked -->
+                                                        <input type="hidden" name="is_active" value="0">
                                                         <input class="form-check-input" type="checkbox" role="switch"
                                                             id="is_active" name="is_active" value="1"
                                                             @if (isset($product) && $product->is_active) checked @endif>

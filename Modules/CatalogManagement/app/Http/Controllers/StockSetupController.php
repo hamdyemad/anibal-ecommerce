@@ -151,6 +151,9 @@ class StockSetupController extends Controller
 
             DB::commit();
 
+            // Clear region API cache after updating vendor regions
+            app(\Modules\AreaSettings\app\Repositories\Api\RegionApiRepository::class)->clearCache();
+
             return response()->json([
                 'success' => true,
                 'message' => __('catalogmanagement::product.regions_saved_successfully')

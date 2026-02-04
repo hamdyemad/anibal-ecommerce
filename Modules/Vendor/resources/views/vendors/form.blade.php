@@ -97,7 +97,7 @@
                                                         <input type="text" name="translations[{{ $language->id }}][name]"
                                                             id="name_{{ $language->code }}"
                                                             class="form-control ih-medium ip-gray radius-xs b-light px-15"
-                                                            value="{{ isset($vendor) ? $vendor->getTranslation('name', $language->code) : old('translations.' . $language->id . '.name') ?? ($language->code == 'en' && $vendorRequest ? $vendorRequest->company_name : '') }}"
+                                                            value="{{ isset($vendor) ? $vendor->getTranslation('name', $language->code) : old('translations.' . $language->id . '.name') ?? ($vendorRequest ? $vendorRequest->company_name : '') }}"
                                                             placeholder="{{ $language->code == 'ar' ? 'أدخل اسم التاجر' : 'Vendor Name' }}"
                                                             @if ($language->code == 'ar' && (app()->getLocale() == 'en' || app()->getLocale() == 'ar')) dir="rtl"
                                                     @else
@@ -226,7 +226,7 @@
                                             <div class="col-md-6 mb-3">
                                                 <x-image-upload id="banner" name="banner"
                                                     label="{{ trans('vendor::vendor.banner') }} ({{ trans('vendor::vendor.banner_recommended_size') }})"
-                                                    :required="!isset($vendor)" :existingImage="isset($vendor) && $vendor->banner
+                                                    :required="!isset($vendor) && !$vendorRequest" :existingImage="isset($vendor) && $vendor->banner
                                                         ? $vendor->banner->path
                                                         : null"
                                                     placeholder="{{ trans('vendor::vendor.click_to_upload_banner') }}"
@@ -738,8 +738,8 @@
                 departmentsRequired: '{{ app()->getLocale() == 'ar' ? 'يرجى اختيار قسم واحد على الأقل' : 'Please select at least one department' }}',
                 @if (!$vendorRequest)
                     logoRequired: '{{ app()->getLocale() == 'ar' ? 'الشعار مطلوب' : 'Logo is required' }}',
+                    bannerRequired: '{{ app()->getLocale() == 'ar' ? 'البانر مطلوب' : 'Banner is required' }}',
                 @endif
-                bannerRequired: '{{ app()->getLocale() == 'ar' ? 'البانر مطلوب' : 'Banner is required' }}',
 
                 // Step 2 - Documents
                 documentsRequired: '{{ app()->getLocale() == 'ar' ? 'يجب إضافة مستند واحد على الأقل' : 'At least one document is required' }}',

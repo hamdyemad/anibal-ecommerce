@@ -952,12 +952,19 @@ function validateCurrentStep(step) {
         // Check if this is edit mode (has existing vendor data)
         const isEditMode = $('input[name="_method"][value="PUT"]').length > 0 || 
                           $('input[name="translations"]').filter(function() { return $(this).val() !== ''; }).length > 0;
+        
+        // Check if there's a vendor request (which already has a logo)
+        const hasVendorRequest = $('input[name="vendor_request_id"]').length > 0 && 
+                                $('input[name="vendor_request_id"]').val() !== '';
 
-        // Validate Logo (only for new vendor)
-        if (!isEditMode) {
+        // Validate Logo (only for new vendor WITHOUT vendor request)
+        if (!isEditMode && !hasVendorRequest) {
             const logoInput = stepElement.find('input[name="logo"]');
-            const logoPreviewContainer = stepElement.find('#logo-preview-container');
-            const hasExistingLogo = logoPreviewContainer.find('img').length > 0 || logoInput.data('has-image') === true;
+            // Use class selector instead of ID (ID is dynamic)
+            const logoPreviewContainer = stepElement.find('.logo-preview-container');
+            const hasExistingLogo = logoPreviewContainer.find('img').length > 0 || 
+                                   logoInput.data('has-image') === true ||
+                                   logoPreviewContainer.find('.preview-image').length > 0;
             const logoFile = logoInput[0]?.files?.length > 0;
 
             if (!hasExistingLogo && !logoFile) {
@@ -970,11 +977,14 @@ function validateCurrentStep(step) {
             }
         }
 
-        // Validate Banner (only for new vendor)
-        if (!isEditMode) {
+        // Validate Banner (only for new vendor WITHOUT vendor request)
+        if (!isEditMode && !hasVendorRequest) {
             const bannerInput = stepElement.find('input[name="banner"]');
-            const bannerPreviewContainer = stepElement.find('#banner-preview-container');
-            const hasExistingBanner = bannerPreviewContainer.find('img').length > 0 || bannerInput.data('has-image') === true;
+            // Use class selector for banner preview
+            const bannerPreviewContainer = stepElement.find('.banner-preview, .image-preview-container[id*="banner"]');
+            const hasExistingBanner = bannerPreviewContainer.find('img').length > 0 || 
+                                     bannerInput.data('has-image') === true ||
+                                     bannerPreviewContainer.find('.preview-image').length > 0;
             const bannerFile = bannerInput[0]?.files?.length > 0;
 
             if (!hasExistingBanner && !bannerFile) {
@@ -982,7 +992,7 @@ function validateCurrentStep(step) {
                 errors.push({
                     field: 'banner',
                     message: config?.errorMessages?.bannerRequired || 'Banner is required',
-                    element: bannerInput.length ? bannerInput : stepElement.find('#banner-preview-container')
+                    element: bannerInput.length ? bannerInput : bannerPreviewContainer
                 });
             }
         }
@@ -1155,7 +1165,7 @@ function displayStepErrors(errors, step) {
             }
         // Handle preview containers directly (when element IS the preview container)
         else if (element.hasClass('image-preview-container') || (element.attr('id') && element.attr('id').includes('preview-container'))) {
-            // element.addClass('border-danger is-invalid');
+            element.addClass('border-danger is-invalid');
 
             // Find wrapper and append error message
             const wrapper = element.closest('.image-upload-wrapper');
@@ -1174,12 +1184,12 @@ function displayStepErrors(errors, step) {
                 // Add border to preview container to highlight error
                 const previewContainer = wrapper.find('.image-preview-container');
                 if (previewContainer.length) {
-                    // previewContainer.addClass('border-danger is-invalid');
+                    previewContainer.addClass('border-danger is-invalid');
                 }
             }
 
             // Also add to sibling preview container if element is input
-            // element.siblings('.image-preview-container').addClass('border-danger is-invalid');
+            element.siblings('.image-preview-container').addClass('border-danger is-invalid');
         }
         else {
             element.after(errorHtml);
@@ -1362,3 +1372,7 @@ function clearTagsInputError($container) {
     $container.siblings('.error-message, .text-danger, .invalid-feedback').remove();
     $container.parent().find('.error-message, .text-danger, .invalid-feedback').remove();
 }
+
+
+
+

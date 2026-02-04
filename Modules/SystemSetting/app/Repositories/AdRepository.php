@@ -85,21 +85,35 @@ class AdRepository implements AdRepositoryInterface
 
             // Update translations
             if (isset($data['translations'])) {
-                $ad->translations()->delete();
-
                 foreach ($data['translations'] as $langId => $translation) {
-                    $ad->translations()->create([
-                        'lang_id' => $langId,
-                        'lang_key' => 'title',
-                        'lang_value' => $translation['title'],
-                    ]);
-
-                    if (!empty($translation['subtitle'])) {
-                        $ad->translations()->create([
+                    // Update or create title translation
+                    $ad->translations()->updateOrCreate(
+                        [
                             'lang_id' => $langId,
-                            'lang_key' => 'subtitle',
-                            'lang_value' => $translation['subtitle'],
-                        ]);
+                            'lang_key' => 'title',
+                        ],
+                        [
+                            'lang_value' => $translation['title'],
+                        ]
+                    );
+
+                    // Update or create subtitle translation (or delete if empty)
+                    if (!empty($translation['subtitle'])) {
+                        $ad->translations()->updateOrCreate(
+                            [
+                                'lang_id' => $langId,
+                                'lang_key' => 'subtitle',
+                            ],
+                            [
+                                'lang_value' => $translation['subtitle'],
+                            ]
+                        );
+                    } else {
+                        // Delete subtitle translation if it exists but is now empty
+                        $ad->translations()
+                            ->where('lang_id', $langId)
+                            ->where('lang_key', 'subtitle')
+                            ->delete();
                     }
                 }
             }
@@ -124,7 +138,7 @@ class AdRepository implements AdRepositoryInterface
                 ]);
             }
 
-            return $ad->fresh();
+            return $ad->fresh(['translations', 'attachments']);
         });
     }
 

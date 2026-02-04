@@ -62,6 +62,12 @@ class RegionApiRepository implements RegionApiRepositoryInterface
      */
     public function clearCache(): void
     {
-        $this->cache->forgetByPattern('regionapi:*');
+        // Use CacheService which now supports all cache drivers (Redis, Database, File)
+        $deleted = $this->cache->forgetByPattern('regionapi:*');
+        \Log::info('RegionApiRepository: Cleared cache', [
+            'pattern' => 'regionapi:*',
+            'keys_deleted' => $deleted,
+            'cache_driver' => config('cache.default')
+        ]);
     }
 }

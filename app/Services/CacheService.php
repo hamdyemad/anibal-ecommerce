@@ -76,17 +76,47 @@ class CacheService
     }
 
     /**
-     * Clear cache by pattern (works with Redis)
+     * Clear cache by pattern (works with Redis and Database)
      *
      * @param string $pattern Pattern to match (e.g., 'countryapi:*')
      * @return int Number of keys deleted
      */
     public function forgetByPattern(string $pattern): int
     {
-        if (config('cache.default') !== 'redis') {
-            return 0;
+        $cacheDriver = config('cache.default');
+        
+        // Handle Redis cache
+        if ($cacheDriver === 'redis') {
+            return $this->forgetByPatternRedis($pattern);
         }
-
+        
+        // Handle Database cache
+        if ($cacheDriver === 'database') {
+            return $this->forgetByPatternDatabase($pattern);
+        }
+        
+        // Handle File cache
+        if ($cacheDriver === 'file') {
+            return $this->forgetByPatternFile($pattern);
+        }
+        
+        // Unsupported cache driver
+        \Log::warning('CacheService: forgetByPattern not supported for cache driver', [
+            'driver' => $cacheDriver,
+            'pattern' => $pattern
+        ]);
+        
+        return 0;
+    }
+    
+    /**
+     * Clear cache by pattern for Redis driver
+     *
+     * @param string $pattern
+     * @return int
+     */
+    protected function forgetByPatternRedis(string $pattern): int
+    {
         try {
             // Use the cache connection (database 1) instead of default connection
             $redis = \Illuminate\Support\Facades\Redis::connection('cache');
@@ -117,7 +147,7 @@ class CacheService
                 return strpos($key, $fullPrefix . $cleanPattern) === 0;
             });
             
-            \Log::info('CacheService: forgetByPattern', [
+            \Log::info('CacheService: forgetByPattern (Redis)', [
                 'pattern' => $pattern,
                 'database_prefix' => $databasePrefix,
                 'cache_prefix' => $cachePrefix,
@@ -153,13 +183,132 @@ class CacheService
                 }
             }
             
-            \Log::info('CacheService: Keys deleted', [
+            \Log::info('CacheService: Keys deleted (Redis)', [
                 'count' => $count
             ]);
             
             return $count;
         } catch (\Exception $e) {
-            \Log::error('Cache pattern delete failed', [
+            \Log::error('Cache pattern delete failed (Redis)', [
+                'pattern' => $pattern,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return 0;
+        }
+    }
+    
+    /**
+     * Clear cache by pattern for Database driver
+     *
+     * @param string $pattern
+     * @return int
+     */
+    protected function forgetByPatternDatabase(string $pattern): int
+    {
+        try {
+            $cacheTable = config('cache.stores.database.table', 'cache');
+            $cachePrefix = config('cache.prefix', '');
+            
+            // Convert pattern to SQL LIKE pattern
+            // 'countryapi:*' becomes 'countryapi:%'
+            $likePattern = str_replace('*', '%', $pattern);
+            
+            // Add cache prefix if configured
+            if ($cachePrefix) {
+                $likePattern = $cachePrefix . $likePattern;
+            }
+            
+            \Log::info('CacheService: forgetByPattern (Database)', [
+                'pattern' => $pattern,
+                'like_pattern' => $likePattern,
+                'cache_prefix' => $cachePrefix,
+                'table' => $cacheTable
+            ]);
+            
+            // Delete matching cache entries
+            $deleted = \Illuminate\Support\Facades\DB::table($cacheTable)
+                ->where('key', 'LIKE', $likePattern)
+                ->delete();
+            
+            \Log::info('CacheService: Keys deleted (Database)', [
+                'count' => $deleted
+            ]);
+            
+            return $deleted;
+        } catch (\Exception $e) {
+            \Log::error('Cache pattern delete failed (Database)', [
+                'pattern' => $pattern,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return 0;
+        }
+    }
+    
+    /**
+     * Clear cache by pattern for File driver
+     *
+     * @param string $pattern
+     * @return int
+     */
+    protected function forgetByPatternFile(string $pattern): int
+    {
+        try {
+            $cachePath = config('cache.stores.file.path', storage_path('framework/cache/data'));
+            $cachePrefix = config('cache.prefix', '');
+            
+            // Convert pattern to regex
+            // 'countryapi:*' becomes '/countryapi:.*/
+            $regexPattern = '/^' . preg_quote($cachePrefix, '/') . str_replace('\*', '.*', preg_quote($pattern, '/')) . '/';
+            
+            \Log::info('CacheService: forgetByPattern (File)', [
+                'pattern' => $pattern,
+                'regex_pattern' => $regexPattern,
+                'cache_prefix' => $cachePrefix,
+                'cache_path' => $cachePath
+            ]);
+            
+            $count = 0;
+            
+            if (!is_dir($cachePath)) {
+                \Log::warning('CacheService: Cache directory not found', [
+                    'path' => $cachePath
+                ]);
+                return 0;
+            }
+            
+            // Recursively scan cache directory
+            $iterator = new \RecursiveIteratorIterator(
+                new \RecursiveDirectoryIterator($cachePath, \RecursiveDirectoryIterator::SKIP_DOTS),
+                \RecursiveIteratorIterator::CHILD_FIRST
+            );
+            
+            foreach ($iterator as $file) {
+                if ($file->isFile()) {
+                    // Read file to get cache key
+                    $contents = file_get_contents($file->getPathname());
+                    
+                    // Laravel file cache format: expiration timestamp + serialized data
+                    // Extract the key from the filename or contents
+                    $filename = $file->getFilename();
+                    
+                    // Check if filename matches pattern
+                    if (preg_match($regexPattern, $filename)) {
+                        if (unlink($file->getPathname())) {
+                            $count++;
+                        }
+                    }
+                }
+            }
+            
+            \Log::info('CacheService: Keys deleted (File)', [
+                'count' => $count
+            ]);
+            
+            return $count;
+        } catch (\Exception $e) {
+            \Log::error('Cache pattern delete failed (File)', [
                 'pattern' => $pattern,
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
