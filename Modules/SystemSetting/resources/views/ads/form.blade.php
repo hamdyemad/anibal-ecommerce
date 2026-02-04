@@ -96,6 +96,22 @@
                                             </div>
                                         </div>
 
+                                        {{-- Position Reference Image Preview --}}
+                                        <div class="col-md-12 mb-25" id="position-reference-container" style="display: none;">
+                                            <div class="alert alert-info border-0" style="background-color: #e7f3ff;">
+                                                <div class="d-flex align-items-start">
+                                                    <i class="uil uil-info-circle me-2" style="font-size: 20px;"></i>
+                                                    <div class="flex-grow-1">
+                                                        <h6 class="mb-2">{{ __('systemsetting::ads.position_reference') }}</h6>
+                                                        <p class="mb-2 small">{{ __('systemsetting::ads.position_reference_description') }}</p>
+                                                        <div id="position-reference-image" class="text-center mt-3">
+                                                            <!-- Image will be loaded here by JavaScript -->
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
                                         {{-- Mobile Dimensions --}}
                                         <div class="col-md-6 mb-25">
                                             <div class="form-group">
@@ -252,6 +268,82 @@
 @push('scripts')
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+
+            // Position Reference Image Mapping
+            const positionReferenceImages = {
+                @foreach ($positions as $position)
+                    @php
+                        $imageMap = [
+                            'Homepage Left Upper Ad Card' => 'Homepage Left Upper Ad Card.png',
+                            'Homepage Left Lower Ad Card' => 'Homepage Left Lower Ad Card.png',
+                            'Homepage Main Right Banner' => 'Homepage Main Right Banner.png',
+                            'Homepage Mid-Content Banner' => 'Homepage Mid-Content Banner.png',
+                            'Middle Home Ad' => 'mobile-middle.jpg',
+                            'Mobile Middle Banner' => 'mobile-middle.jpg',
+                            'Sidebar Ad' => 'sidebarad.png',
+                        ];
+                        $imageName = null;
+                        
+                        // Try exact match first (case-insensitive)
+                        foreach ($imageMap as $posName => $imgName) {
+                            if (strcasecmp($position->position, $posName) === 0 || strcasecmp($position->name ?? '', $posName) === 0) {
+                                $imageName = $imgName;
+                                break;
+                            }
+                        }
+                        
+                        // If no exact match, try "starts with" match
+                        if (!$imageName) {
+                            foreach ($imageMap as $posName => $imgName) {
+                                if (stripos($position->position, $posName) === 0 || stripos($position->name ?? '', $posName) === 0) {
+                                    $imageName = $imgName;
+                                    break;
+                                }
+                            }
+                        }
+                    @endphp
+                    @if ($imageName)
+                        '{{ $position->id }}': {
+                            image: '{{ asset('ads/' . $imageName) }}',
+                            name: '{{ $position->position }}'
+                        },
+                    @endif
+                @endforeach
+            };
+
+            // Handle position selection change
+            const positionSelect = document.getElementById('ad_position_id');
+            const referenceContainer = document.getElementById('position-reference-container');
+            const referenceImageDiv = document.getElementById('position-reference-image');
+
+            function updateReferenceImage() {
+                const selectedPositionId = positionSelect.value;
+                
+                if (selectedPositionId && positionReferenceImages[selectedPositionId]) {
+                    const refData = positionReferenceImages[selectedPositionId];
+                    referenceImageDiv.innerHTML = `
+                        <img src="${refData.image}" 
+                            alt="${refData.name}" 
+                            class="img-fluid border rounded shadow-sm"
+                            style="max-width: 100%; max-height: 400px;">
+                        <p class="text-muted small mt-2 mb-0">
+                            <i class="uil uil-map-marker"></i> ${refData.name}
+                        </p>
+                    `;
+                    referenceContainer.style.display = 'block';
+                } else {
+                    referenceContainer.style.display = 'none';
+                    referenceImageDiv.innerHTML = '';
+                }
+            }
+
+            // Update on page load if position is already selected
+            if (positionSelect.value) {
+                updateReferenceImage();
+            }
+
+            // Update on position change
+            positionSelect.addEventListener('change', updateReferenceImage);
 
             // Initialize Select2
             if (typeof $ !== 'undefined' && $.fn.select2) {

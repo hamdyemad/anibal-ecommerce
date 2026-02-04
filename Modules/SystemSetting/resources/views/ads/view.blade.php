@@ -170,6 +170,27 @@
                                         @endif
                                     </div>
                                 </div>
+
+                                {{-- Position Reference Image --}}
+                                @if ($ad->adPosition && $ad->adPosition->hasReferenceImage())
+                                    <div class="card card-holder mb-3">
+                                        <div class="card-header">
+                                            <h3>
+                                                <i class="uil uil-map-marker me-1"></i>{{ __('systemsetting::ads.position_reference') }}
+                                            </h3>
+                                        </div>
+                                        <div class="card-body text-center">
+                                            <p class="text-muted small mb-2">{{ __('systemsetting::ads.position_reference_description') }}</p>
+                                            <img src="{{ $ad->adPosition->reference_image }}" 
+                                                alt="Position Reference" 
+                                                class="img-fluid round border"
+                                                style="max-width: 100%; max-height: 400px;">
+                                            <p class="text-muted small mt-2 mb-0">
+                                                <i class="uil uil-info-circle"></i> {{ $ad->adPosition->position ?? $ad->adPosition->name }}
+                                            </p>
+                                        </div>
+                                    </div>
+                                @endif
                             </div>
                         </div>
                         <div class="row">

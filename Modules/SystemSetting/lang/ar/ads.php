@@ -126,4 +126,8 @@ return [
         'title_ar_required' => 'العنوان (العربية) مطلوب',
         'image_required' => 'صورة الإعلان مطلوبة',
     ],
+
+    // Position Reference
+    'position_reference' => 'مرجع الموضع',
+    'position_reference_description' => 'يوضح هذا مكان ظهور إعلانك على الموقع',
 ];

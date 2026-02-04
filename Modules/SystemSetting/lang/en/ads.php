@@ -126,4 +126,8 @@ return [
         'title_ar_required' => 'Title (Arabic) is required',
         'image_required' => 'Ad image is required',
     ],
+
+    // Position Reference
+    'position_reference' => 'Position Reference',
+    'position_reference_description' => 'This shows where your ad will appear on the website',
 ];
