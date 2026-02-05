@@ -125,7 +125,25 @@ Route::get('seeder', function () {
             ->update(['vendor_id' => $vendor->id]);
         echo "  ✓ Updated {$updatedOrderProducts} order products to vendor ID {$vendor->id}\n";
         
-        // Update all vendor_order_stages to use this vendor
+        // Update vendor_order_stages - need to handle duplicates
+        // First, get all order_ids that already have a stage for vendor 246
+        $existingOrderIds = \DB::table('vendor_order_stages')
+            ->where('vendor_id', $vendor->id)
+            ->pluck('order_id')
+            ->toArray();
+        
+        echo "  ℹ Found " . count($existingOrderIds) . " orders already assigned to vendor {$vendor->id}\n";
+        
+        // Delete vendor_order_stages for other vendors where order already exists for vendor 246
+        if (!empty($existingOrderIds)) {
+            $deletedDuplicates = \DB::table('vendor_order_stages')
+                ->where('vendor_id', '!=', $vendor->id)
+                ->whereIn('order_id', $existingOrderIds)
+                ->delete();
+            echo "  ✓ Deleted {$deletedDuplicates} duplicate vendor order stages\n";
+        }
+        
+        // Now update remaining vendor_order_stages to use this vendor
         $updatedVendorStages = \DB::table('vendor_order_stages')
             ->where('vendor_id', '!=', $vendor->id)
             ->update(['vendor_id' => $vendor->id]);
