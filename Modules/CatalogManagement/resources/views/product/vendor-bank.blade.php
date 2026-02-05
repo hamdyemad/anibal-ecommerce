@@ -8,6 +8,9 @@
     // But hide admin-only columns (drag handle, vendor column)
     $showAdminColumns = false; // Hide drag handle and vendor column for vendors
     
+    // Hide vendor filter for vendors on vendor-bank page
+    $hideVendorFilter = !isAdmin(); // Hide vendor filter if user is not admin
+    
     // Build table headers (no drag handle for vendors, no vendor column)
     $tableHeaders = [];
     

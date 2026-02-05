@@ -275,18 +275,19 @@ $(document).ready(function() {
                             '{{ __('catalogmanagement::product.export_completed') ?? 'Export Completed Successfully' }}',
                             '{{ __('common.downloading') ?? 'Downloading' }}...'
                         );
+                        
+                        // Auto-hide after 2 seconds
+                        setTimeout(function() {
+                            LoadingOverlay.hide();
+                        }, 2000);
                     }
                     
-                    // Clean up and auto-hide overlay after showing success
+                    // Clean up blob URL
                     setTimeout(function() {
                         window.URL.revokeObjectURL(url);
                         document.body.removeChild(a);
-                        
-                        if (typeof LoadingOverlay !== 'undefined') {
-                            LoadingOverlay.hide();
-                        }
                         btn.prop('disabled', false);
-                    }, 2500); // Hide after 2.5 seconds of showing success
+                    }, 2500);
                 }, 800);
             } else {
                 // Handle error response

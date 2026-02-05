@@ -18,7 +18,19 @@
                 </div>
 
                 {{-- Vendor Filter (Admin Only) --}}
-                @if($isAdmin)
+                @if($isAdmin && !isset($hideVendorFilter))
+                <div class="col-md-3">
+                    <x-custom-select
+                        name="vendor_filter"
+                        id="vendor_filter"
+                        :label="__('catalogmanagement::product.vendor')"
+                        icon="uil uil-store"
+                        :options="$vendors"
+                        :selected="request('vendor_id')"
+                        :placeholder="__('common.all')"
+                    />
+                </div>
+                @elseif($isAdmin && isset($hideVendorFilter) && !$hideVendorFilter)
                 <div class="col-md-3">
                     <x-custom-select
                         name="vendor_filter"
