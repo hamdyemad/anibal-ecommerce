@@ -37,6 +37,10 @@ class ProductsExport implements WithMultipleSheets
      */
     protected function loadAllData()
     {
+        // Increase memory limit and execution time for large exports
+        ini_set('memory_limit', '512M');
+        set_time_limit(300); // 5 minutes
+        
         $query = VendorProduct::with([
             'product.brand',
             'product.department',
@@ -82,6 +86,13 @@ class ProductsExport implements WithMultipleSheets
         foreach ($this->vendorProducts as $vendorProduct) {
             $this->productIdMapping[$vendorProduct->id] = $index++;
         }
+        
+        // Log export info
+        \Log::info('Products export loaded', [
+            'count' => $this->vendorProducts->count(),
+            'memory_usage' => memory_get_usage(true) / 1024 / 1024 . ' MB',
+            'memory_peak' => memory_get_peak_usage(true) / 1024 / 1024 . ' MB'
+        ]);
     }
 
     public function sheets(): array

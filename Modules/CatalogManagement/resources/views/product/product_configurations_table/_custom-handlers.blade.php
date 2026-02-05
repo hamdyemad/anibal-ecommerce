@@ -300,8 +300,33 @@ $(document).ready(function() {
                 if (xhr.response && xhr.response instanceof Blob) {
                     const reader = new FileReader();
                     reader.onload = function() {
+                        const responseText = reader.result;
+                        console.error('Raw response:', responseText);
+                        console.error('Response length:', responseText.length);
+                        
+                        if (!responseText || responseText.trim() === '') {
+                            // Empty response - likely a fatal PHP error
+                            errorMessage = '{{ __('catalogmanagement::product.export_failed') ?? 'Export failed. Please try again.' }}';
+                            errorMessage += '<br><br><strong>Server Error:</strong> The server returned an empty response.';
+                            errorMessage += '<br>This usually indicates a PHP fatal error, memory limit issue, or timeout.';
+                            errorMessage += '<br><br><strong>Please check:</strong>';
+                            errorMessage += '<br>1. Server error logs (storage/logs/laravel.log)';
+                            errorMessage += '<br>2. PHP error logs';
+                            errorMessage += '<br>3. Memory limit settings';
+                            
+                            if (typeof toastr !== 'undefined') {
+                                toastr.error(errorMessage, 'Export Error', {
+                                    timeOut: 20000,
+                                    closeButton: true,
+                                    progressBar: true,
+                                    escapeHtml: false
+                                });
+                            }
+                            return;
+                        }
+                        
                         try {
-                            const errorData = JSON.parse(reader.result);
+                            const errorData = JSON.parse(responseText);
                             console.error('Export error details:', errorData);
                             
                             if (errorData.message) {
@@ -322,12 +347,14 @@ $(document).ready(function() {
                             }
                         } catch (e) {
                             console.error('Error parsing error response:', e);
-                            console.error('Raw response:', reader.result);
                             
-                            // Show raw error if JSON parsing fails
+                            // Show raw HTML/text error
+                            errorMessage = '{{ __('catalogmanagement::product.export_failed') ?? 'Export failed. Please try again.' }}';
+                            errorMessage += '<br><br><strong>Server Response:</strong><br>' + responseText.substring(0, 500);
+                            
                             if (typeof toastr !== 'undefined') {
-                                toastr.error(errorMessage + '<br><br>Check browser console for details.', 'Export Error', {
-                                    timeOut: 10000,
+                                toastr.error(errorMessage, 'Export Error', {
+                                    timeOut: 15000,
                                     closeButton: true,
                                     progressBar: true,
                                     escapeHtml: false

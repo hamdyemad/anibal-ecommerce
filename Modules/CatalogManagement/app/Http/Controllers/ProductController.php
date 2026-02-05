@@ -1277,13 +1277,25 @@ class ProductController extends Controller
     public function export(Request $request)
     {
         try {
+            // Increase memory limit and execution time for large exports
+            ini_set('memory_limit', '512M');
+            set_time_limit(300); // 5 minutes
+            
+            \Log::info('Export started - Step 1: Initial setup');
+            
             $isAdmin = isAdmin();
             $isVendor = isVendor();
+            
+            \Log::info('Export - Step 2: User type determined', [
+                'is_admin' => $isAdmin,
+                'is_vendor' => $isVendor
+            ]);
             
             // Vendors can only export their own products
             if ($isVendor) {
                 $vendor = Auth::user()->vendor;
                 if (!$vendor) {
+                    \Log::error('Export failed: Vendor not found');
                     if ($request->expectsJson() || $request->ajax()) {
                         return response()->json([
                             'success' => false,
@@ -1293,6 +1305,8 @@ class ProductController extends Controller
                     return redirect()->back()->with('error', __('catalogmanagement::product.vendor_not_found'));
                 }
             }
+            
+            \Log::info('Export - Step 3: Building filters');
             
             // Get filters from request
             $filters = [
@@ -1318,24 +1332,41 @@ class ProductController extends Controller
             $filters = array_filter($filters, function($value) {
                 return $value !== null && $value !== '' && $value !== [];
             });
+            
+            \Log::info('Export - Step 4: Filters prepared', [
+                'user_id' => Auth::id(),
+                'is_admin' => $isAdmin,
+                'filters' => $filters,
+                'memory_limit' => ini_get('memory_limit'),
+                'max_execution_time' => ini_get('max_execution_time')
+            ]);
 
+            \Log::info('Export - Step 5: Creating export instance');
             $export = new \Modules\CatalogManagement\app\Exports\ProductsExport($isAdmin, $filters);
             
+            \Log::info('Export - Step 6: Export instance created, starting download');
             $fileName = 'products_export_' . date('Y-m-d_His') . '.xlsx';
             
+            \Log::info('Export - Step 7: Calling Excel download');
             return \Maatwebsite\Excel\Facades\Excel::download($export, $fileName);
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             \Log::error('Products export error: ' . $e->getMessage(), [
+                'exception_class' => get_class($e),
+                'message' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
                 'file' => $e->getFile(),
-                'line' => $e->getLine()
+                'line' => $e->getLine(),
+                'memory_usage' => memory_get_usage(true) / 1024 / 1024 . ' MB',
+                'memory_peak' => memory_get_peak_usage(true) / 1024 / 1024 . ' MB'
             ]);
             
             if ($request->expectsJson() || $request->ajax()) {
                 return response()->json([
                     'success' => false,
                     'message' => __('catalogmanagement::product.export_failed'),
-                    'error' => $e->getMessage()
+                    'error' => $e->getMessage(),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine()
                 ], 500);
             }
             
