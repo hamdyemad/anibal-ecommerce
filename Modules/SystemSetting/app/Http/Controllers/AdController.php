@@ -266,6 +266,11 @@ class AdController extends Controller
                 'message' => __('systemsetting::ads.deleted_successfully'),
                 'redirect' => route('admin.system-settings.ads.index')
             ]);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => __('systemsetting::ads.not_found')
+            ], 404);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
