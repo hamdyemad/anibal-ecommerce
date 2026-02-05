@@ -85,7 +85,7 @@ class BrandQueryAction
                 )
                 ;
             default:
-                $query->orderBy('created_at', $sortType);
+                $query->orderBy('sort_number', 'asc');
         }
 
         return $query;

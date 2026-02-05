@@ -306,6 +306,7 @@ class ProductApiRepository implements ProductApiRepositoryInterface
         if (!$hasFilters) {
             return \Modules\CatalogManagement\app\Models\Brand::where('active', true)
                 ->with('logo')
+                ->orderBy('sort_number', 'asc')
                 ->get()
                 ->map(function ($brand) {
                     return [

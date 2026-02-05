@@ -23,6 +23,7 @@ class BrandApiResource extends JsonResource
             'description' => $this->description,
             'products_count' => $this->products_count,
             'is_active' => $this->is_active,
+            'sort_number' => $this->sort_number,
             'facebook' => $this->facebook_url,
             'instagram' => $this->instagram_url,
             'x' => $this->twitter_url,
