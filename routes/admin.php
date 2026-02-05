@@ -89,352 +89,68 @@ Route::prefix('vendor-users-management')->name('vendor-users-management.')->grou
 
 
 Route::get('seeder', function () {
-    // ===== CREATE BNAIA VENDOR AND UPDATE ALL PRODUCTS/ORDERS =====
-    // try {
-    //     echo "🏢 Creating/Updating Bnaia Vendor...\n";
-
-    //     echo "✅ Cleanup complete!\n\n";
-        
-    //     // ===== CREATE BNAIA VENDOR =====
-        
-    //     // Get or create Bnaia user
-    //     $bnaiaUser = \App\Models\User::where('email', 'bnaia@bnaia.com')->first();
-        
-    //     if (!$bnaiaUser) {
-    //         $bnaiaUser = new \App\Models\User();
-    //         $bnaiaUser->uuid = \Str::uuid();
-    //         $bnaiaUser->email = 'bnaia@bnaia.com';
-    //         $bnaiaUser->password = bcrypt('password123');
-    //         $bnaiaUser->user_type_id = \App\Models\UserType::VENDOR_TYPE;
-    //         $bnaiaUser->active = true;
-    //         $bnaiaUser->country_id = 1; // Default to Egypt
-    //         $bnaiaUser->save();
-            
-    //         // Set user translations
-    //         $languages = \App\Models\Language::whereIn('code', ['en', 'ar'])->get();
-    //         foreach ($languages as $language) {
-    //             $bnaiaUser->translations()->create([
-    //                 'lang_id' => $language->id,
-    //                 'lang_key' => 'name',
-    //                 'lang_value' => $language->code === 'en' ? 'Bnaia Admin' : 'مدير بنايا',
-    //             ]);
-    //         }
-    //         echo "  ✓ Created Bnaia user\n";
-    //     } else {
-    //         echo "  ✓ Bnaia user already exists (ID: {$bnaiaUser->id})\n";
-    //     }
-        
-    //     // Get country ID for vendor
-    //     $countryId = session('country_code')
-    //         ? \Modules\AreaSettings\app\Models\Country::where('code', strtoupper(session('country_code')))->value('id')
-    //         : 1;
-        
-    //     // Get or create Bnaia vendor
-    //     $bnaiaVendor = \Modules\Vendor\app\Models\Vendor::where('slug', 'bnaia')->first();
-    //     if (!$bnaiaVendor) {
-    //         // Create vendor without triggering events (prevents observer notifications)
-    //         $bnaiaVendor = \Modules\Vendor\app\Models\Vendor::withoutEvents(function () use ($bnaiaUser, $countryId) {
-    //             $vendor = new \Modules\Vendor\app\Models\Vendor();
-    //             $vendor->user_id = $bnaiaUser->id;
-    //             $vendor->slug = 'bnaia';
-    //             $vendor->phone = '+201000000000';
-    //             $vendor->country_id = $countryId;
-    //             $vendor->active = true;
-    //             $vendor->save();
-    //             return $vendor;
-    //         });
-
-    //         echo "  ✓ Created Bnaia vendor (ID: {$bnaiaVendor->id}, Country ID: {$countryId})\n";
-
-    //         // Set vendor translations (after vendor is created)
-    //         $languages = \App\Models\Language::whereIn('code', ['en', 'ar'])->get();
-    //         foreach ($languages as $language) {
-    //             $bnaiaVendor->translations()->create([
-    //                 'lang_id' => $language->id,
-    //                 'lang_key' => 'name',
-    //                 'lang_value' => $language->code === 'en' ? 'Bnaia' : 'بنايا',
-    //             ]);
-    //             $bnaiaVendor->translations()->create([
-    //                 'lang_id' => $language->id,
-    //                 'lang_key' => 'description',
-    //                 'lang_value' => $language->code === 'en' ? 'Bnaia - Building Materials Supplier' : 'بنايا - مورد مواد البناء',
-    //             ]);
-    //         }
-    //         echo "  ✓ Created vendor translations\n";
-    //         // Attach logo if exists
-    //         $logoPath = public_path('assets/img/logo.png');
-    //         if (file_exists($logoPath)) {
-    //             echo "  ℹ Logo source found at: {$logoPath}\n";
-
-    //             // Delete existing logo attachment if any
-    //             \App\Models\Attachment::where('attachable_type', \Modules\Vendor\app\Models\Vendor::class)
-    //                 ->where('attachable_id', $bnaiaVendor->id)
-    //                 ->where('type', 'logo')
-    //                 ->delete();
-
-    //             // Copy logo to storage/app/public/vendor-images/
-    //             $storagePath = 'vendor-images/logo.png';
-    //             $destinationPath = public_path('storage/' . $storagePath);
-
-    //             echo "  ℹ Copying to: {$destinationPath}\n";
-
-    //             // Create directory if it doesn't exist
-    //             $directory = dirname($destinationPath);
-    //             if (!file_exists($directory)) {
-    //                 mkdir($directory, 0755, true);
-    //                 echo "  ℹ Created directory: {$directory}\n";
-    //             }
-
-    //             // Copy the logo file
-    //             copy($logoPath, $destinationPath);
-
-    //             if (file_exists($destinationPath)) {
-    //                 echo "  ℹ Logo copied successfully\n";
-    //             }
-
-    //             $attachment = new \App\Models\Attachment();
-    //             $attachment->attachable_type = \Modules\Vendor\app\Models\Vendor::class;
-    //             $attachment->attachable_id = $bnaiaVendor->id;
-    //             $attachment->type = 'logo';
-    //             $attachment->path = $storagePath;
-    //             $attachment->save();
-
-    //             echo "  ✓ Attached logo to Bnaia vendor (path: {$storagePath})\n";
-    //             echo "  ℹ Attachment ID: {$attachment->id}\n";
-
-    //             // Verify attachment was saved
-    //             $savedAttachment = \App\Models\Attachment::where('attachable_type', \Modules\Vendor\app\Models\Vendor::class)
-    //                 ->where('attachable_id', $bnaiaVendor->id)
-    //                 ->where('type', 'logo')
-    //                 ->first();
-
-    //             if ($savedAttachment) {
-    //                 echo "  ℹ Attachment verified in database (ID: {$savedAttachment->id}, Path: {$savedAttachment->path})\n";
-    //             } else {
-    //                 echo "  ⚠ Attachment not found in database!\n";
-    //             }
-    //         } else {
-    //             echo "  ⚠ Logo source not found at: {$logoPath}\n";
-    //         }
-
-    //         // Assign all departments to Bnaia vendor
-    //         $allDepartments = \Modules\CategoryManagment\app\Models\Department::pluck('id')->toArray();
-    //         if (!empty($allDepartments)) {
-    //             $bnaiaVendor->departments()->sync($allDepartments);
-    //             echo "  ✓ Assigned " . count($allDepartments) . " departments to Bnaia vendor\n";
-    //         }
-
-    //         // Assign all regions to Bnaia vendor
-    //         $allRegions = \Modules\AreaSettings\app\Models\Region::pluck('id')->toArray();
-    //         if (!empty($allRegions)) {
-    //             $bnaiaVendor->regions()->sync($allRegions);
-    //             echo "  ✓ Assigned " . count($allRegions) . " regions to Bnaia vendor\n";
-    //         }
-    //     }
-        
-    //     // Update all vendor_products to use Bnaia vendor
-    //     $updatedVendorProducts = \DB::table('vendor_products')
-    //         ->where('vendor_id', '!=', $bnaiaVendor->id)
-    //         ->update(['vendor_id' => $bnaiaVendor->id]);
-    //     echo "  ✓ Updated {$updatedVendorProducts} vendor products to Bnaia\n";
-        
-    //     // Update all order_products to use Bnaia vendor
-    //     $updatedOrderProducts = \DB::table('order_products')
-    //         ->where('vendor_id', '!=', $bnaiaVendor->id)
-    //         ->update(['vendor_id' => $bnaiaVendor->id]);
-    //     echo "  ✓ Updated {$updatedOrderProducts} order products to Bnaia\n";
-        
-    //     // Update all vendor_order_stages to use Bnaia vendor
-    //     $updatedVendorStages = \DB::table('vendor_order_stages')
-    //         ->where('vendor_id', '!=', $bnaiaVendor->id)
-    //         ->update(['vendor_id' => $bnaiaVendor->id]);
-    //     echo "  ✓ Updated {$updatedVendorStages} vendor order stages to Bnaia\n";
-        
-    //     echo "✅ Bnaia vendor setup complete!\n\n";
-        
-    // } catch (\Exception $e) {
-    //     echo "❌ Error setting up Bnaia vendor: {$e->getMessage()}\n\n";
-    // }
-
-    // permessions_reset();
-    // roles_reset();
-
-    // // Set email_verified_at for all customers
-    // \Modules\Customer\app\Models\Customer::whereNull('email_verified_at')
-    //     ->update(['email_verified_at' => now()]);
-
-    // // Delete orders and withdraws data
-    \DB::statement('SET FOREIGN_KEY_CHECKS=0;');
-
-    // \Modules\Order\app\Models\OrderProduct::query()->forceDelete();
-    // \Modules\Order\app\Models\Order::query()->forceDelete();
-    \Modules\Order\app\Models\OrderStage::query()->forceDelete();
-    // \Modules\Order\app\Models\OrderExtraFeeDiscount::query()->forceDelete();
-    // \Modules\Order\app\Models\VendorOrderStage::query()->forceDelete();
-    // // \Modules\Order\app\Models\RequestQuotation::query()->forceDelete();
-    // \Modules\Withdraw\app\Models\Withdraw::query()->forceDelete();
-    // \Modules\CatalogManagement\app\Models\StockBooking::query()->forceDelete();
-    // // \Modules\CatalogManagement\app\Models\Review::query()->forceDelete();
-
-    // // // Delete accounting entries
-    // \Modules\Accounting\app\Models\AccountingEntry::query()->forceDelete();
-    // \Modules\Accounting\app\Models\Expense::query()->forceDelete();
-    // \Modules\Accounting\app\Models\ExpenseItem::query()->forceDelete();
-    // \Modules\Accounting\app\Models\VendorBalance::query()->forceDelete();
-    // \Modules\Refund\app\Models\RefundRequest::query()->forceDelete();
-    // \Modules\Refund\app\Models\RefundRequestHistory::query()->forceDelete();
-    // \Modules\Refund\app\Models\RefundRequestItem::query()->forceDelete();
-
-    // // Delete user points and transactions
-    // \DB::statement('DELETE FROM user_points_transactions');
-    // \DB::statement('DELETE FROM user_points');
-
-    // \DB::statement('SET FOREIGN_KEY_CHECKS=1;');
-
-    // // Update product configuration_type based on vendor product variants
-    // // If any variant has variant_configuration_id, set product to 'variants'
-    // $productsToUpdate = \DB::table('products as p')
-    //     ->join('vendor_products as vp', 'vp.product_id', '=', 'p.id')
-    //     ->join('vendor_product_variants as vpv', 'vpv.vendor_product_id', '=', 'vp.id')
-    //     ->whereNotNull('vpv.variant_configuration_id')
-    //     ->where('p.configuration_type', 'simple')
-    //     ->distinct()
-    //     ->pluck('p.id');
-
-    // $productsUpdatedCount = 0;
-    // if ($productsToUpdate->count() > 0) {
-    //     $productsUpdatedCount = \DB::table('products')
-    //         ->whereIn('id', $productsToUpdate)
-    //         ->update(['configuration_type' => 'variants']);
-    // }
-
-    // // Log how many products were updated
-    // $variantProductsCount = \Modules\CatalogManagement\app\Models\Product::where('configuration_type', 'variants')->count();
-    // \Illuminate\Support\Facades\Log::info("Products updated to variants: {$productsUpdatedCount}, Total variant products: {$variantProductsCount}");
-
+    // ===== UPDATE VENDOR ID 4 WITH BNAIA DATA =====
     try {
-        // Seeders in order of dependency
-        $seeders = [
-            // [
-            //     'class' => AreaSettingsSeeder::class,
-            //     'name' => 'Area Settings Seeder',
-            //     'description' => 'Creates cities, regions, and subregions for Egypt and Saudi Arabia',
-            // ],
-            // [
-            //     'class' => TaxSeeder::class,
-            //     'name' => 'Tax Seeder',
-            //     'description' => 'Creates tax rates (VAT 15%, 10%, 5%, etc.)',
-            // ],
-            // [
-            //     'class' => VariantConfigurationSeeder::class,
-            //     'name' => 'Variant Configuration Seeder',
-            //     'description' => 'Creates variant keys (Color, Size, Material) and their values',
-            // ],
-            // [
-            //     'class' => CategoryDepartmentSeeder::class,
-            //     'name' => 'Category & Department Seeder',
-            //     'description' => 'Creates departments, categories, subcategories, brands, and regions',
-            // ],
-            // [
-            //     'class' => BrandSeeder::class,
-            //     'name' => 'Brand Seeder',
-            //     'description' => 'Creates brands with country_id and translations',
-            // ],
-            // [
-            //     'class' => VendorSeeder::class,
-            //     'name' => 'Vendor Seeder',
-            //     'description' => 'Creates vendors with country_id and translations',
-            // ],
-            [
-                'class' => OrderStageSeeder::class,
-                'name' => 'Order Stage Seeder',
-                'description' => 'Creates order stages',
-            ],
-            // [
-            //     'class' => \Database\Seeders\ProductVariantSeeder::class,
-            //     'name' => 'Product Variant Seeder',
-            //     'description' => 'Creates ProductVariant records for products with VendorProductVariants',
-            // ],
-            // [
-            //     'class' => AutoProductSeeder::class,
-            //     'name' => 'Auto Product Seeder',
-            //     'description' => 'Creates products with variants for each vendor',
-            // ],
-            // [
-            //     'class' => ReviewSeeder::class,
-            //     'name' => 'Review Seeder',
-            //     'description' => 'Creates customer reviews for products and vendors',
-            // ],
-            // [
-            //     'class' => CustomerSeeder::class,
-            //     'name' => 'Customer Seeder',
-            //     'description' => 'Creates 10 sample customers with contact information',
-            // ],
-            // [
-            //     'class' => OrderSeeder::class,
-            //     'name' => 'Order Seeder',
-            //     'description' => 'Creates 30 sample orders with products, pricing, and shipping',
-            // ],
-            // [
-            //     'class' => SyncVendorUsersSeeder::class,
-            //     'name' => 'SyncVendorUsersSeeder',
-            //     'description' => 'Update Vendor Users',
-            // ],
-            // [
-            //     'class' => VendorProductTaxSeeder::class,
-            //     'name' => 'VendorProductTaxSeeder',
-            //     'description' => 'Assign all active taxes to every vendor product',
-            // ],
-        ];
+        echo "🏢 Updating Vendor ID 4 with Bnaia data...\n";
 
-        $results = [];
-        $startTime = microtime(true);
-
-        foreach ($seeders as $seeder) {
-            $seederStartTime = microtime(true);
-
-            try {
-                $exitCode = Artisan::call('db:seed', [
-                    '--class' => $seeder['class'],
-                    '--force' => true
-                ]);
-
-                $seederEndTime = microtime(true);
-                $duration = round($seederEndTime - $seederStartTime, 2);
-
-                $results[] = [
-                    'name' => $seeder['name'],
-                    'class' => class_basename($seeder['class']),
-                    'description' => $seeder['description'],
-                    'exit_code' => $exitCode,
-                    'duration' => $duration . 's',
-                    'output' => trim(Artisan::output()),
-                    'status' => $exitCode === 0 ? 'success' : 'failed',
-                ];
-            } catch (\Exception $e) {
-                $results[] = [
-                    'name' => $seeder['name'],
-                    'class' => class_basename($seeder['class']),
-                    'description' => $seeder['description'],
-                    'status' => 'error',
-                    'error' => $e->getMessage(),
-                ];
-            }
+        // Get vendor with ID 4
+        $vendor = \Modules\Vendor\app\Models\Vendor::find(246);
+        
+        if (!$vendor) {
+            echo "❌ Vendor with ID 4 not found!\n";
+            return response()->json([
+                'success' => false,
+                'message' => 'Vendor with ID 4 not found',
+            ], 404);
         }
+        
+        echo "  ✓ Found vendor (ID: {$vendor->id}, Name: {$vendor->name})\n";
 
-        $totalDuration = round(microtime(true) - $startTime, 2);
-
+        // Assign all regions to vendor
+        $allRegions = \Modules\AreaSettings\app\Models\Region::pluck('id')->toArray();
+        if (!empty($allRegions)) {
+            $vendor->regions()->sync($allRegions);
+            echo "  ✓ Assigned " . count($allRegions) . " regions to vendor\n";
+        }
+        
+        // Update all vendor_products to use this vendor
+        $updatedVendorProducts = \DB::table('vendor_products')
+            ->where('vendor_id', '!=', $vendor->id)
+            ->update(['vendor_id' => $vendor->id]);
+        echo "  ✓ Updated {$updatedVendorProducts} vendor products to vendor ID {$vendor->id}\n";
+        
+        // Update all order_products to use this vendor
+        $updatedOrderProducts = \DB::table('order_products')
+            ->where('vendor_id', '!=', $vendor->id)
+            ->update(['vendor_id' => $vendor->id]);
+        echo "  ✓ Updated {$updatedOrderProducts} order products to vendor ID {$vendor->id}\n";
+        
+        // Update all vendor_order_stages to use this vendor
+        $updatedVendorStages = \DB::table('vendor_order_stages')
+            ->where('vendor_id', '!=', $vendor->id)
+            ->update(['vendor_id' => $vendor->id]);
+        echo "  ✓ Updated {$updatedVendorStages} vendor order stages to vendor ID {$vendor->id}\n";
+        
+        echo "✅ Vendor ID 4 update complete!\n\n";
+        
         return response()->json([
             'success' => true,
-            'message' => 'All seeders completed!',
-            'total_duration' => $totalDuration . 's',
-            'seeders_count' => count($seeders),
-            'results' => $results,
+            'message' => 'Vendor ID 4 updated successfully with Bnaia data',
+            'vendor_id' => $vendor->id,
+            'vendor_name' => $vendor->name,
+            'updates' => [
+                'vendor_products' => $updatedVendorProducts,
+                'order_products' => $updatedOrderProducts,
+                'vendor_order_stages' => $updatedVendorStages,
+                'regions' => count($allRegions),
+            ],
         ]);
+        
     } catch (\Exception $e) {
+        echo "❌ Error updating vendor: {$e->getMessage()}\n\n";
         return response()->json([
             'success' => false,
-            'message' => 'Exception occurred while running seeders',
+            'message' => 'Error updating vendor',
             'error' => $e->getMessage(),
             'file' => $e->getFile(),
             'line' => $e->getLine(),
