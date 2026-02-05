@@ -277,15 +277,16 @@ $(document).ready(function() {
                         );
                     }
                     
-                    // Clean up blob URL after a delay, but keep overlay visible
+                    // Clean up and auto-hide overlay after showing success
                     setTimeout(function() {
                         window.URL.revokeObjectURL(url);
                         document.body.removeChild(a);
-                        btn.prop('disabled', false);
                         
-                        // Don't auto-hide the overlay - let user close it manually
-                        // The success state will remain visible until user clicks outside or presses ESC
-                    }, 2000);
+                        if (typeof LoadingOverlay !== 'undefined') {
+                            LoadingOverlay.hide();
+                        }
+                        btn.prop('disabled', false);
+                    }, 2500); // Hide after 2.5 seconds of showing success
                 }, 800);
             } else {
                 // Handle error response
