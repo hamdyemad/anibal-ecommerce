@@ -289,12 +289,64 @@ $(document).ready(function() {
                     }, 2000);
                 }, 500);
             } else {
-                // Error handling
+                // Handle error response
                 if (typeof LoadingOverlay !== 'undefined') {
                     LoadingOverlay.hide();
                 }
                 
-                toastr.error('{{ __('catalogmanagement::product.export_failed') ?? 'Export failed. Please try again.' }}');
+                let errorMessage = '{{ __('catalogmanagement::product.export_failed') ?? 'Export failed. Please try again.' }}';
+                
+                // Try to parse error response from blob
+                if (xhr.response && xhr.response instanceof Blob) {
+                    const reader = new FileReader();
+                    reader.onload = function() {
+                        try {
+                            const errorData = JSON.parse(reader.result);
+                            console.error('Export error details:', errorData);
+                            
+                            if (errorData.message) {
+                                errorMessage = errorData.message;
+                            }
+                            if (errorData.error) {
+                                errorMessage += '<br><br><strong>Details:</strong><br>' + errorData.error;
+                            }
+                            
+                            // Show detailed error with HTML
+                            if (typeof toastr !== 'undefined') {
+                                toastr.error(errorMessage, 'Export Error', {
+                                    timeOut: 15000,
+                                    closeButton: true,
+                                    progressBar: true,
+                                    escapeHtml: false
+                                });
+                            }
+                        } catch (e) {
+                            console.error('Error parsing error response:', e);
+                            console.error('Raw response:', reader.result);
+                            
+                            // Show raw error if JSON parsing fails
+                            if (typeof toastr !== 'undefined') {
+                                toastr.error(errorMessage + '<br><br>Check browser console for details.', 'Export Error', {
+                                    timeOut: 10000,
+                                    closeButton: true,
+                                    progressBar: true,
+                                    escapeHtml: false
+                                });
+                            }
+                        }
+                    };
+                    reader.readAsText(xhr.response);
+                } else {
+                    if (typeof toastr !== 'undefined') {
+                        toastr.error(errorMessage + '<br><br>Status: ' + xhr.status, 'Export Error', {
+                            timeOut: 10000,
+                            closeButton: true,
+                            progressBar: true,
+                            escapeHtml: false
+                        });
+                    }
+                }
+                
                 btn.prop('disabled', false);
             }
         };
@@ -304,45 +356,14 @@ $(document).ready(function() {
                 LoadingOverlay.hide();
             }
             
-            toastr.error('{{ __('catalogmanagement::product.export_failed') ?? 'Export failed. Please try again.' }}');
+            console.error('XHR Network Error');
+            toastr.error('{{ __('catalogmanagement::product.export_failed') ?? 'Export failed. Please try again.' }}<br>Network error occurred.', 'Export Error', {
+                timeOut: 10000,
+                closeButton: true,
+                progressBar: true,
+                escapeHtml: false
+            });
             btn.prop('disabled', false);
-        };
-        
-        xhr.onreadystatechange = function() {
-            if (xhr.readyState === 4) {
-                if (xhr.status !== 200) {
-                    // Handle error response
-                    if (typeof LoadingOverlay !== 'undefined') {
-                        LoadingOverlay.hide();
-                    }
-                    
-                    let errorMessage = '{{ __('catalogmanagement::product.export_failed') ?? 'Export failed. Please try again.' }}';
-                    
-                    // Try to parse error response
-                    if (xhr.responseType === 'blob' && xhr.response) {
-                        const reader = new FileReader();
-                        reader.onload = function() {
-                            try {
-                                const errorData = JSON.parse(reader.result);
-                                if (errorData.message) {
-                                    errorMessage = errorData.message;
-                                }
-                                if (errorData.error) {
-                                    errorMessage += '\n' + errorData.error;
-                                }
-                            } catch (e) {
-                                console.error('Error parsing error response:', e);
-                            }
-                            toastr.error(errorMessage);
-                        };
-                        reader.readAsText(xhr.response);
-                    } else {
-                        toastr.error(errorMessage);
-                    }
-                    
-                    btn.prop('disabled', false);
-                }
-            }
         };
         
         xhr.send();
