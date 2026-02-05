@@ -277,17 +277,16 @@ $(document).ready(function() {
                         );
                     }
                     
-                    // Clean up and hide overlay
+                    // Clean up blob URL after a delay, but keep overlay visible
                     setTimeout(function() {
                         window.URL.revokeObjectURL(url);
                         document.body.removeChild(a);
-                        
-                        if (typeof LoadingOverlay !== 'undefined') {
-                            LoadingOverlay.hide();
-                        }
                         btn.prop('disabled', false);
+                        
+                        // Don't auto-hide the overlay - let user close it manually
+                        // The success state will remain visible until user clicks outside or presses ESC
                     }, 2000);
-                }, 500);
+                }, 800);
             } else {
                 // Handle error response
                 if (typeof LoadingOverlay !== 'undefined') {
