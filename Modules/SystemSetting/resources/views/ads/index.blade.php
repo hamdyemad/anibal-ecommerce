@@ -175,13 +175,7 @@
                             <thead>
                                 <tr class="userDatatable-header">
                                     <th class="text-center"><span class="userDatatable-title">#</span></th>
-                                    <th><span class="userDatatable-title">{{ __('systemsetting::ads.title') }}</span></th>
-                                    <th><span class="userDatatable-title">{{ __('systemsetting::ads.position') }}</span>
-                                    </th>
-                                    <th><span class="userDatatable-title">{{ __('systemsetting::ads.type') }}</span>
-                                    </th>
-                                    <th><span class="userDatatable-title">{{ __('systemsetting::ads.ad_image') }}</span>
-                                    </th>
+                                    <th><span class="userDatatable-title">{{ __('systemsetting::ads.ad_information') }}</span></th>
                                     <th><span class="userDatatable-title">{{ __('systemsetting::ads.status') }}</span>
                                     </th>
                                     <th><span class="userDatatable-title">{{ __('systemsetting::ads.created_at') }}</span>
@@ -258,23 +252,8 @@
                         searchable: false
                     },
                     {
-                        data: 'title_subtitle',
-                        name: 'title_subtitle',
-                        orderable: false
-                    },
-                    {
-                        data: 'position_badge',
-                        name: 'position_badge',
-                        orderable: false
-                    },
-                    {
-                        data: 'type_badge',
-                        name: 'type_badge',
-                        orderable: false
-                    },
-                    {
-                        data: 'image_preview',
-                        name: 'image_preview',
+                        data: 'ad_information',
+                        name: 'ad_information',
                         orderable: false,
                         searchable: false
                     },

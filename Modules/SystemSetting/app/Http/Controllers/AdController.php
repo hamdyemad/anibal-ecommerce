@@ -80,34 +80,51 @@ class AdController extends Controller
 
         return DataTables::of($query)
             ->addIndexColumn()
-            ->addColumn('title_subtitle', function ($ad) {
-                $html = '<div class="userDatatable-content">';
-                $html .= '<div class="mb-2"><strong>' . ($ad->title ?? '-') . '</strong></div>';
-                if ($ad->subtitle) {
-                    $html .= '<div class="text-muted small">' . $ad->subtitle . '</div>';
+            ->addColumn('ad_information', function ($ad) {
+                $html = '<div class="d-flex align-items-center gap-3">';
+                
+                // Image
+                if ($ad->image) {
+                    $html .= '<div class="flex-shrink-0">';
+                    $html .= '<img src="' . asset('storage/' . $ad->image) . '" alt="Ad Image" style="width: 80px; height: 60px; border-radius: 4px; object-fit: cover;">';
+                    $html .= '</div>';
+                } else {
+                    $html .= '<div class="flex-shrink-0 d-flex align-items-center justify-content-center" style="width: 80px; height: 60px; background: #f5f5f5; border-radius: 4px;">';
+                    $html .= '<i class="uil uil-image-slash text-muted" style="font-size: 24px;"></i>';
+                    $html .= '</div>';
                 }
+                
+                // Title, Position and Type
+                $html .= '<div class="flex-grow-1">';
+                
+                // Title and Subtitle
+                $title = $ad->title ? truncateString($ad->title, 30) : '-';
+                $html .= '<div class="mb-2"><strong>' . $title . '</strong></div>';
+                if ($ad->subtitle) {
+                    $subtitle = truncateString($ad->subtitle, 40);
+                    $html .= '<div class="text-muted small mb-2">' . $subtitle . '</div>';
+                }
+                
+                // Position
+                $positionName = $ad->adPosition ? $ad->adPosition->position : '-';
+                $html .= '<div class="mb-1">';
+                $html .= '<span class="badge badge-round badge-lg badge-info">' . $positionName . '</span>';
                 $html .= '</div>';
-                return $html;
-            })
-            ->addColumn('type_badge', function ($ad) {
-                $html = '';
+                
+                // Type badges
                 if ($ad->type && is_array($ad->type)) {
+                    $html .= '<div>';
                     foreach ($ad->type as $type) {
                         $color = $type == 'mobile' ? 'primary' : 'secondary';
                         $html .= '<span class="badge badge-round badge-sm badge-' . $color . ' me-1">' . __('systemsetting::ads.' . $type) . '</span>';
                     }
+                    $html .= '</div>';
                 }
-                return $html ?: '-';
-            })
-            ->addColumn('position_badge', function ($ad) {
-                $positionName = $ad->adPosition ? $ad->adPosition->position : '-';
-                return '<span class="badge badge-round badge-lg badge-info">' . $positionName . '</span>';
-            })
-            ->addColumn('image_preview', function ($ad) {
-                if ($ad->image) {
-                    return '<img src="' . asset('storage/' . $ad->image) . '" alt="Ad Image" style="width: 60px; height: 40px; border-radius: 4px;">';
-                }
-                return '<span class="text-muted">-</span>';
+                
+                $html .= '</div>';
+                $html .= '</div>';
+                
+                return $html;
             })
             ->addColumn('status_badge', function ($ad) {
                 if ($ad->active) {
@@ -138,7 +155,7 @@ class AdController extends Controller
                 $actions .= '</div>';
                 return $actions;
             })
-            ->rawColumns(['title_subtitle', 'type_badge', 'position_badge', 'image_preview', 'status_badge', 'action'])
+            ->rawColumns(['ad_information', 'status_badge', 'action'])
             ->make(true);
     }
 

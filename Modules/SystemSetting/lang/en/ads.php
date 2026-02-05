@@ -22,6 +22,7 @@ return [
     'position' => 'Position',
     'link' => 'Link',
     'ad_image' => 'Ad Image',
+    'ad_information' => 'Ad Information',
     'remove_image' => 'Remove Image',
     'active' => 'Active',
     'inactive' => 'Inactive',

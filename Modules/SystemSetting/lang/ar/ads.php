@@ -22,6 +22,7 @@ return [
     'position' => 'الموضع',
     'link' => 'الرابط',
     'ad_image' => 'صورة الإعلان',
+    'ad_information' => 'معلومات الإعلان',
     'remove_image' => 'إزالة الصورة',
     'active' => 'نشط',
     'inactive' => 'غير نشط',
