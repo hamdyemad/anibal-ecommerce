@@ -55,6 +55,8 @@ return [
     'notification_vendor_new_request_message' => 'You have received a new quotation request from :customer',
     'notification_customer_offer_title' => 'New Offer Received',
     'notification_customer_offer_message' => ':vendor has sent you an offer for :price',
+    'notification_admin_offer_title' => 'Vendor Sent Offer',
+    'notification_admin_offer_message' => ':vendor sent an offer to :customer for :price',
     'notification_vendor_offer_accepted_title' => 'Offer Accepted',
     'notification_vendor_offer_accepted_message' => ':customer has accepted your offer',
     'notification_vendor_offer_rejected_title' => 'Offer Rejected',

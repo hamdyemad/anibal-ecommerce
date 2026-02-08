@@ -1357,8 +1357,8 @@
                             $vendorQuotationsCount = 0;
                             $vendor = auth()->user()->vendorByUser ?? auth()->user()->vendorById;
                             if ($vendor) {
+                                // Count all quotations for this vendor (all statuses)
                                 $vendorQuotationsCount = \Modules\Order\app\Models\RequestQuotationVendor::where('vendor_id', $vendor->id)
-                                    ->whereIn('status', ['pending', 'offer_sent'])
                                     ->count();
                             }
                         @endphp

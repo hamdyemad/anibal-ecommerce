@@ -503,32 +503,8 @@ class OrderController extends Controller
                     
                 if ($quotationVendor) {
                     // Mark quotation vendor as offer sent (vendor is sending their offer)
+                    // Observer will automatically send notifications
                     $quotationVendor->markOfferSent($order->id, $order->total_price);
-                    
-                    // Send notification to customer about the offer
-                    $customer = $quotationVendor->requestQuotation->customer;
-                    if ($customer) {
-                        \App\Models\AdminNotification::notify(
-                            type: 'quotation_offer_received',
-                            title: 'order::request-quotation.notification_customer_offer_title',
-                            description: 'order::request-quotation.notification_customer_offer_message',
-                            url: route('admin.request-quotations.view-offers', [
-                                'lang' => app()->getLocale(),
-                                'countryCode' => $quotationVendor->requestQuotation->country->code ?? 'eg',
-                                'id' => $quotationVendor->request_quotation_id,
-                            ]),
-                            icon: 'uil-envelope-receive',
-                            color: 'info',
-                            notifiable: $quotationVendor,
-                            data: [
-                                'vendor' => $quotationVendor->vendor->name,
-                                'price' => number_format($order->total_price, 2) . ' ' . currency(),
-                                'quotation_number' => $quotationVendor->requestQuotation->quotation_number,
-                            ],
-                            userId: null, // For admin
-                            vendorId: null
-                        );
-                    }
                 }
             }
             // Update request quotation status and link order if quotation_id is provided (legacy support)
