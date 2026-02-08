@@ -49,7 +49,7 @@ class VendorRequestQuotationController extends Controller
             ->filter([
                 'vendor_id' => $vendorId,
                 'search' => $request->input('search_text'),
-                'status' => $request->input('status'),
+                'status' => $request->input('status') !== 'all' ? $request->input('status') : null,
                 'created_date_from' => $request->input('created_date_from'),
                 'created_date_to' => $request->input('created_date_to'),
             ])

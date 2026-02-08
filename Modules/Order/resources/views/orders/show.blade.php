@@ -131,41 +131,6 @@
                                                 @endif
                                             </div>
                                         </div>
-                                        <div class="detail-row ">
-                                            <span class="detail-label">{{ trans('order::order.order_from') }}:</span>
-                                            <span class="detail-value">
-                                                @if ($order->order_from === 'web')
-                                                    <x-protected-badge color="#17a2b8"
-                                                        text="🌐 {{ trans('order::order.web') }}" size="lg"
-                                                        id="order-from-badge" />
-                                                @elseif($order->order_from === 'ios')
-                                                    <x-protected-badge color="#343a40"
-                                                        text="🍎 {{ trans('order::order.ios') }}" size="lg"
-                                                        id="order-from-badge" />
-                                                @elseif($order->order_from === 'android')
-                                                    <x-protected-badge color="#28a745"
-                                                        text="🤖 {{ trans('order::order.android') }}" size="lg"
-                                                        id="order-from-badge" />
-                                                @else
-                                                    <x-protected-badge color="#6c757d" :text="$order->order_from" size="lg"
-                                                        id="order-from-badge" />
-                                                @endif
-                                            </span>
-                                        </div>
-                                        @if ($order->requestQuotation)
-                                            <div class="detail-row">
-                                                <span
-                                                    class="detail-label">{{ trans('order::request-quotation.request_quotations') }}:</span>
-                                                <span class="detail-value">
-                                                    <a target="_blank"
-                                                        href="{{ route('admin.request-quotations.index') }}?search={{ $order->order_number }}"
-                                                        class="btn btn-sm btn-outline-primary">
-                                                        <i
-                                                            class="uil uil-file-question-alt me-1"></i>{{ trans('common.view') }}
-                                                    </a>
-                                                </span>
-                                            </div>
-                                        @endif
                                         <hr class="my-15">
                                         <h6 class="fw-bold mb-15 d-flex align-items-center justify-content-between">
                                             <span>

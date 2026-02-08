@@ -112,10 +112,16 @@ class RequestQuotationApiService
             // Accept the offer
             $quotationVendor->acceptOffer();
 
-            // Create order from the offer
-            $order = $this->createOrderFromOffer($quotationVendor, $customer);
+            // Check if vendor already created an order (offer_sent status means order exists)
+            if ($quotationVendor->order_id) {
+                // Use the existing order created by vendor
+                $order = \Modules\Order\app\Models\Order::find($quotationVendor->order_id);
+            } else {
+                // Fallback: Create order from the offer (for old workflow)
+                $order = $this->createOrderFromOffer($quotationVendor, $customer);
+            }
 
-            // Mark as order created
+            // Mark as order created (customer accepted)
             $quotationVendor->markOrderCreated($order->id);
 
             // Send notification to vendor using AdminNotification

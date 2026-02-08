@@ -20,9 +20,20 @@ class RequestQuotationApiRepository implements RequestQuotationApiRepositoryInte
         ])
             ->where('customer_id', $customerId);
 
-        // Filter by status
-        if (!empty($filters['status'])) {
-            $query->where('status', $filters['status']);
+        // Filter by vendor status (from RequestQuotationVendor)
+        // Map old status values to new ones for backward compatibility
+        if (!empty($filters['status']) && $filters['status'] !== 'all') {
+            $statusMap = [
+                'sent_offer' => 'offer_sent',
+                'accepted_offer' => 'offer_accepted',
+                'rejected_offer' => 'offer_rejected',
+            ];
+            
+            $status = $statusMap[$filters['status']] ?? $filters['status'];
+            
+            $query->whereHas('vendors', function ($q) use ($status) {
+                $q->where('status', $status);
+            });
         }
 
         // Search by keyword (order number, customer data)

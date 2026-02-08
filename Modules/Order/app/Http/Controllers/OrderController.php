@@ -502,27 +502,26 @@ class OrderController extends Controller
                     ->find($request->input('quotation_vendor_id'));
                     
                 if ($quotationVendor) {
-                    // Mark quotation vendor as order created
-                    $quotationVendor->markOrderCreated($order->id);
+                    // Mark quotation vendor as offer sent (vendor is sending their offer)
+                    $quotationVendor->markOfferSent($order->id, $order->total_price);
                     
-                    // Send notification to customer
+                    // Send notification to customer about the offer
                     $customer = $quotationVendor->requestQuotation->customer;
                     if ($customer) {
                         \App\Models\AdminNotification::notify(
-                            type: 'quotation_order_created',
-                            title: 'order::request-quotation.notification_customer_order_created_title',
-                            description: 'order::request-quotation.notification_customer_order_created_message',
-                            url: route('admin.orders.show', [
+                            type: 'quotation_offer_received',
+                            title: 'order::request-quotation.notification_customer_offer_title',
+                            description: 'order::request-quotation.notification_customer_offer_message',
+                            url: route('admin.request-quotations.view-offers', [
                                 'lang' => app()->getLocale(),
                                 'countryCode' => $quotationVendor->requestQuotation->country->code ?? 'eg',
-                                'order' => $order->id,
+                                'id' => $quotationVendor->request_quotation_id,
                             ]),
-                            icon: 'uil-shopping-cart',
-                            color: 'success',
-                            notifiable: $order,
+                            icon: 'uil-envelope-receive',
+                            color: 'info',
+                            notifiable: $quotationVendor,
                             data: [
                                 'vendor' => $quotationVendor->vendor->name,
-                                'order_number' => $order->order_number,
                                 'price' => number_format($order->total_price, 2) . ' ' . currency(),
                                 'quotation_number' => $quotationVendor->requestQuotation->quotation_number,
                             ],

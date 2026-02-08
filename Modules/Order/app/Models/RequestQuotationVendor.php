@@ -129,7 +129,24 @@ class RequestQuotationVendor extends Model
     }
 
     /**
-     * Mark as order created
+     * Mark as offer sent (vendor created order/sent offer)
+     */
+    public function markOfferSent(int $orderId, ?float $offerPrice = null, ?string $offerNotes = null): void
+    {
+        $this->update([
+            'status' => self::STATUS_OFFER_SENT,
+            'order_id' => $orderId,
+            'offer_price' => $offerPrice,
+            'offer_notes' => $offerNotes,
+            'offer_sent_at' => now(),
+        ]);
+
+        // Update parent request quotation status
+        $this->updateParentStatus();
+    }
+
+    /**
+     * Mark as order created (after customer accepts)
      */
     public function markOrderCreated(int $orderId): void
     {
