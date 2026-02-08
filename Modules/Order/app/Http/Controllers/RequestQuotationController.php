@@ -141,13 +141,8 @@ class RequestQuotationController extends Controller
                         </a>';
                     }
                     
-                    // Create Order button - for pending status (old single-vendor workflow)
-                    if (!$isArchived && $quotation->status === 'pending') {
-                        $orderUrl = route('admin.orders.create') . '?quotation_id=' . $quotation->id;
-                        $html .= '<a href="' . $orderUrl . '" class="btn btn-sm btn-secondary" title="' . __('order::request-quotation.send_quotation_offer') . '">
-                            <i class="uil uil-file-plus m-0"></i>
-                        </a>';
-                    }
+                    // Note: Create Order button removed - admins only select vendors, they don't create orders directly
+                    // Vendors create orders from their quotations using the "Send Offer" feature
                     
                     // View Order button - for sent_offer, accepted_offer, rejected_offer, order_created status with order
                     if (!$isArchived && $quotation->order_id && in_array($quotation->status, ['sent_offer', 'accepted_offer', 'rejected_offer', 'order_created'])) {
