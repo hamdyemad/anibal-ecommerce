@@ -49,10 +49,6 @@ class AppServiceProvider extends ServiceProvider
             return new \App\Services\CacheService();
         });
 
-        if ($this->app->environment('local') && class_exists(\Laravel\Telescope\TelescopeServiceProvider::class)) {
-            $this->app->register(\Laravel\Telescope\TelescopeServiceProvider::class);
-            $this->app->register(TelescopeServiceProvider::class);
-        }
 
     }
 
@@ -76,10 +72,10 @@ class AppServiceProvider extends ServiceProvider
         // so route() helper will automatically include lang and country
 
         // Register observers for App models
-        $this->registerAppModelObservers();
+        // $this->registerAppModelObservers();
 
         // Register observers for Module models
-        $this->registerModuleModelObservers();
+        // $this->registerModuleModelObservers();
     }
 
     /**

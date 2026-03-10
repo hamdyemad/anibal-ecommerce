@@ -9,6 +9,7 @@ use App\Models\Traits\AutoStoreCountryId;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\DB;
 
 class VariantsConfiguration extends Model
 {
@@ -51,6 +52,84 @@ class VariantsConfiguration extends Model
 
     public function getColorAttribute() {
         return $this->value;
+    }
+
+    /**
+     * Get linked children through configuration_links table
+     */
+    public function linkedChildren()
+    {
+        return $this->belongsToMany(
+            VariantsConfiguration::class,
+            'variants_configurations_links',
+            'parent_config_id',
+            'child_config_id'
+        )->withTimestamps();
+    }
+
+    /**
+     * Get linked parents through configuration_links table
+     */
+    public function linkedParents()
+    {
+        return $this->belongsToMany(
+            VariantsConfiguration::class,
+            'variants_configurations_links',
+            'child_config_id',
+            'parent_config_id'
+        )->withTimestamps();
+    }
+
+    /**
+     * Get all children (both direct and linked)
+     */
+    public function allChildren()
+    {
+        // Merge direct children and linked children
+        $directChildren = $this->children;
+        $linkedChildren = $this->linkedChildren;
+        
+        return $directChildren->merge($linkedChildren)->unique('id');
+    }
+
+    /**
+     * Get the link ID between this variant (parent) and a child variant
+     * 
+     * @param int $childConfigId The child variant configuration ID
+     * @return int|null The link ID or null if no link exists
+     */
+    public function getLinkIdToChild($childConfigId)
+    {
+        $link = DB::table('variants_configurations_links')
+            ->where('parent_config_id', $this->id)
+            ->where('child_config_id', $childConfigId)
+            ->first();
+        
+        return $link ? $link->id : null;
+    }
+
+    /**
+     * Get the link ID between a parent variant and this variant (child)
+     * 
+     * @param int $parentConfigId The parent variant configuration ID
+     * @return int|null The link ID or null if no link exists
+     */
+    public function getLinkIdFromParent($parentConfigId)
+    {
+        $link = DB::table('variants_configurations_links')
+            ->where('parent_config_id', $parentConfigId)
+            ->where('child_config_id', $this->id)
+            ->first();
+        
+        return $link ? $link->id : null;
+    }
+
+    /**
+     * Get link details with parent and child configurations
+     */
+    public function links()
+    {
+        return $this->hasMany(VariantConfigurationLink::class, 'parent_config_id');
     }
 
 

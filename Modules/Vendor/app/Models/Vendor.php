@@ -124,17 +124,6 @@ class Vendor extends BaseModel
     }
 
     /**
-     * Get vendor's selected regions for stock management
-     */
-    public function regions()
-    {
-        return $this->belongsToMany(\Modules\AreaSettings\app\Models\Region::class, 'vendor_regions')
-                    ->withTimestamps();
-    }
-
-
-
-    /**
      * Get meta keywords as array for specific language
      */
     public function getMetaKeywordsArray($languageCode = 'en')

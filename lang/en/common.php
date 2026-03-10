@@ -1,7 +1,7 @@
 <?php
 
 return [
-    'project_name' => 'Bnaia',
+    'project_name' => 'Anibal',
     'dashboard' => 'Dashboard',
     'actions' => 'Actions',
     'view' => 'View',
@@ -36,6 +36,8 @@ return [
     'confirm' => 'Confirm',
     'yes' => 'Yes',
     'no' => 'No',
+    'are_you_sure' => 'Are you sure?',
+    'yes_unlink' => 'Yes, unlink it!',
     'digits' => 'digits',
     'ok' => 'Ok',
     'all' => 'All',

@@ -1,7 +1,7 @@
 <?php
 
 return [
-    'project_name' => 'بنايه',
+    'project_name' => 'أنيبال',
     'dashboard' => 'لوحة التحكم',
     'actions' => 'الإجراءات',
     'view' => 'عرض',
@@ -39,6 +39,8 @@ return [
     'confirm' => 'تأكيد',
     'yes' => 'نعم',
     'no' => 'لا',
+    'are_you_sure' => 'هل أنت متأكد؟',
+    'yes_unlink' => 'نعم، فك الربط!',
     'digits' => 'أرقام',
     'ok' => 'حسناً',
     'all' => 'الكل',

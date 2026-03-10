@@ -33,4 +33,29 @@ interface VariantsConfigurationRepositoryInterface
      * Delete variants configuration
      */
     public function delete(int $id);
+
+    /**
+     * Link a child configuration to a parent configuration
+     */
+    public function linkConfiguration($parentId, $childId);
+
+    /**
+     * Unlink a child configuration from a parent configuration
+     */
+    public function unlinkConfiguration($parentId, $childId);
+
+    /**
+     * Sync linked children for a parent configuration
+     */
+    public function syncLinkedChildren($parentId, array $childIds);
+
+    /**
+     * Get linked children for a parent configuration
+     */
+    public function getLinkedChildren($parentId);
+
+    /**
+     * Get all children (both direct and linked) for a parent configuration
+     */
+    public function getAllChildren($parentId);
 }

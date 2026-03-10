@@ -33,7 +33,7 @@ class TruncateController extends Controller
             'attachable_type' => 'Modules\\CatalogManagement\\app\\Models\\Product',
         ],
         'vendors' => [
-            'tables' => ['vendors', 'vendor_products', 'vendor_product_variants', 'vendor_product_variant_stocks', 'vendor_requests', 'vendor_regions'],
+            'tables' => ['vendors', 'vendor_products', 'vendor_product_variants', 'vendor_product_variant_stocks', 'vendor_requests'],
             'folders' => ['vendor-images'],
             'attachable_type' => 'Modules\\Vendor\\app\\Models\\Vendor',
             'delete_vendor_users' => true,
@@ -205,7 +205,7 @@ class TruncateController extends Controller
         Translation::query()->forceDelete();
         
         $tables = [
-            'activity_logs', 'cities', 'regions', 'subregions', 'vendor_regions',
+            'activity_logs', 'cities', 'regions', 'subregions',
             'attachments', 'brands', 'bundle_categories', 'categories',
             'departments', 'customers', 'customer_addresses', 'customer_fcm_tokens',
             'customer_otps', 'customer_password_reset_tokens',

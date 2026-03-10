@@ -640,8 +640,13 @@ class ProductRepository implements ProductInterface
                             'discount_end_date' => $hasVariantDiscount ? ($variantData['discount_end_date'] ?? null) : null,
                         ];
 
+                        // Add variant_link_id if provided (tracks specific parent-child relationship)
+                        if (isset($variantData['variant_link_id'])) {
+                            $updateData['variant_link_id'] = $variantData['variant_link_id'];
+                        }
+
                         Log::info('Updating variant', [
-                            'variant_id' => $variantData['id'],
+                            'variant_id' => $variantData['id'] ?? 'new',
                             'has_discount' => $hasVariantDiscount,
                             'price_before_discount_input' => $variantData['price_before_discount'] ?? 'not_set',
                             'price_before_discount_final' => $updateData['price_before_discount'],
@@ -650,7 +655,11 @@ class ProductRepository implements ProductInterface
 
                         // Update existing vendor variant
                         $existingProductVariant->update($updateData);
-                        $incomingVariantIds[] = $variantData['id'];
+                        if (isset($variantData['id'])) {
+                            $incomingVariantIds[] = $variantData['id'];
+                        } else {
+                            $incomingVariantIds[] = $existingProductVariant->id;
+                        }
                         $vendorProductVariant = $existingProductVariant;
                     } else {
                         // Prepare variant data with discount logic for creation
@@ -694,6 +703,11 @@ class ProductRepository implements ProductInterface
                             'price_before_discount' => $hasVariantDiscount ? ($variantData['price_before_discount'] ?? 0) : 0,
                             'discount_end_date' => $hasVariantDiscount ? ($variantData['discount_end_date'] ?? null) : null,
                         ];
+
+                        // Add variant_link_id if provided (tracks specific parent-child relationship)
+                        if (isset($variantData['variant_link_id'])) {
+                            $createData['variant_link_id'] = $variantData['variant_link_id'];
+                        }
 
                         // Create new vendor variant
                         $vendorProductVariant = $vendorProduct->variants()->create($createData);

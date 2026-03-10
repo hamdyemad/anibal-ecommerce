@@ -49,6 +49,15 @@ class VendorProductVariant extends Model
         return $this->belongsTo(VariantsConfiguration::class, 'variant_configuration_id');
     }
 
+    /**
+     * Get the variant link (parent-child relationship)
+     * This tracks which specific link was used when the variant was created
+     */
+    public function variantLink()
+    {
+        return $this->belongsTo(VariantConfigurationLink::class, 'variant_link_id');
+    }
+
     public function stocks()
     {
         return $this->hasMany(VendorProductVariantStock::class);

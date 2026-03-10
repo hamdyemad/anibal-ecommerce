@@ -160,22 +160,22 @@
                                     </div>
                                 </div>
 
-                                <!-- Parent Variant Configuration - Hierarchical Selection -->
+                                <!-- Parent Variant Configuration - HIDDEN (Use "Manage Links" on detail page instead) -->
                                 <div class="col-md-12" id="parentVariantContainer" style="display: none;">
                                     <div class="form-group mb-25">
-                                        <label class="il-gray fs-14 fw-500 mb-10"
-                                               @if(app()->getLocale() == 'ar') dir="rtl" style="text-align: right; display: block;" @endif>
-                                            {{ trans('catalogmanagement::variantsconfig.parent') }}
-                                        </label>
-                                        <div id="variantSelectorsContainer">
-                                            <!-- Variant selectors will be dynamically added here -->
-                                        </div>
-                                        <!-- Hidden input to store the final selected parent_id -->
+                                        <!-- Hidden input to store parent_id (kept for backward compatibility) -->
                                         <input type="hidden" name="parent_id" id="parent_id" value="{{ isset($variantsConfig) ? $variantsConfig['parent_id'] : old('parent_id') }}">
-                                        <small class="text-muted">{{ trans('catalogmanagement::variantsconfig.parent_help') }}</small>
-                                        @error('parent_id')
-                                            <div class="invalid-feedback d-block">{{ $message }}</div>
-                                        @enderror
+                                    </div>
+                                </div>
+
+                                <!-- Info: How to Link Configurations -->
+                                <div class="col-md-12">
+                                    <div class="alert alert-info d-flex align-items-start" role="alert">
+                                        <i class="uil uil-info-circle me-2 fs-18"></i>
+                                        <div>
+                                            <strong>{{ trans('catalogmanagement::variantsconfig.link_configurations_title') }}</strong>
+                                            <p class="mb-0 mt-1">{{ trans('catalogmanagement::variantsconfig.link_configurations_help') }}</p>
+                                        </div>
                                     </div>
                                 </div>
 

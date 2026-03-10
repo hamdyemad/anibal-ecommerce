@@ -114,4 +114,62 @@ class VariantsConfigurationService
     {
         return $this->variantsConfigRepository->getVariantChildren($parentId);
     }
+
+    /**
+     * Link a child configuration to a parent configuration
+     *
+     * @param int $parentId
+     * @param int $childId
+     * @return bool
+     */
+    public function linkConfiguration($parentId, $childId)
+    {
+        return $this->variantsConfigRepository->linkConfiguration($parentId, $childId);
+    }
+
+    /**
+     * Unlink a child configuration from a parent configuration
+     *
+     * @param int $parentId
+     * @param int $childId
+     * @return bool
+     */
+    public function unlinkConfiguration($parentId, $childId)
+    {
+        return $this->variantsConfigRepository->unlinkConfiguration($parentId, $childId);
+    }
+
+    /**
+     * Sync linked children for a parent configuration
+     *
+     * @param int $parentId
+     * @param array $childIds
+     * @return array
+     */
+    public function syncLinkedChildren($parentId, array $childIds)
+    {
+        return $this->variantsConfigRepository->syncLinkedChildren($parentId, $childIds);
+    }
+
+    /**
+     * Get linked children for a parent configuration
+     *
+     * @param int $parentId
+     * @return \Illuminate\Database\Eloquent\Collection
+     */
+    public function getLinkedChildren($parentId)
+    {
+        return $this->variantsConfigRepository->getLinkedChildren($parentId);
+    }
+
+    /**
+     * Get all children (both direct and linked) for a parent configuration
+     *
+     * @param int $parentId
+     * @return \Illuminate\Database\Eloquent\Collection
+     */
+    public function getAllChildren($parentId)
+    {
+        return $this->variantsConfigRepository->getAllChildren($parentId);
+    }
 }

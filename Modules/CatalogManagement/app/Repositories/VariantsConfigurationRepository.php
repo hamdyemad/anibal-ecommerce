@@ -56,7 +56,10 @@ class VariantsConfigurationRepository implements VariantsConfigurationRepository
             'translations',
             'key.translations',
             'parent_data',
-            'children', 'childrenRecursive.translations'
+            'children',
+            'childrenRecursive.translations',
+            'linkedChildren.translations',
+            'linkedChildren.key'
         ])->find($id);
     }
 
@@ -225,27 +228,67 @@ class VariantsConfigurationRepository implements VariantsConfigurationRepository
      */
     public function getVariantsByKeyForApi($keyId, $parentId = null)
     {
-        $query = VariantsConfiguration::withoutGlobalScopes()
-            ->with(['translations', 'children.translations'])
-            ->where('key_id', $keyId);
-
-        // If parent_id is provided, get children of that parent
-        // If parent_id is null or 'root', get root variants (no parent)
+        // If parent_id is provided, get all children (direct + linked) of that parent
         if ($parentId && $parentId !== 'root') {
-            $query->where('parent_id', $parentId);
-        } else {
-            $query->whereNull('parent_id');
+            // Get the parent variant
+            $parent = VariantsConfiguration::withoutGlobalScopes()->find($parentId);
+            
+            if (!$parent) {
+                return [];
+            }
+            
+            // Get direct children (via parent_id)
+            $directChildren = VariantsConfiguration::withoutGlobalScopes()
+                ->with(['translations', 'children.translations', 'linkedChildren.translations', 'key.translations'])
+                ->where('parent_id', $parentId)
+                ->get();
+            
+            // Get linked children (via configuration_links table)
+            $linkedChildren = $parent->linkedChildren()->with(['translations', 'children.translations', 'linkedChildren.translations', 'key.translations'])->get();
+            
+            // Merge and remove duplicates
+            $allChildren = $directChildren->merge($linkedChildren)->unique('id');
+            
+            return $allChildren->map(function ($variant) {
+                // For each child, check if it has children (direct or linked)
+                $childDirectChildren = $variant->children ?? collect();
+                $childLinkedChildren = $variant->linkedChildren ?? collect();
+                $childAllChildren = $childDirectChildren->merge($childLinkedChildren)->unique('id');
+                
+                return [
+                    'id' => $variant->id,
+                    'name' => $variant->getTranslation('name', app()->getLocale()) ?? $variant->value,
+                    'value' => $variant->value,
+                    'key_id' => $variant->key_id,
+                    'key_name' => $variant->key ? $variant->key->getTranslation('name', app()->getLocale()) : null,
+                    'has_children' => $childAllChildren->count() > 0,
+                    'children_count' => $childAllChildren->count()
+                ];
+            })->toArray();
         }
+        
+        // If parent_id is null or 'root', get root variants (no parent)
+        $query = VariantsConfiguration::withoutGlobalScopes()
+            ->with(['translations', 'children.translations', 'linkedChildren.translations', 'key.translations'])
+            ->where('key_id', $keyId)
+            ->whereNull('parent_id');
 
         $variants = $query->get();
 
         return $variants->map(function ($variant) {
+            // Merge direct children and linked children
+            $directChildren = $variant->children ?? collect();
+            $linkedChildren = $variant->linkedChildren ?? collect();
+            $allChildren = $directChildren->merge($linkedChildren)->unique('id');
+            
             return [
                 'id' => $variant->id,
                 'name' => $variant->getTranslation('name', app()->getLocale()) ?? $variant->value,
                 'value' => $variant->value,
-                'has_children' => $variant->children->count() > 0,
-                'children_count' => $variant->children->count()
+                'key_id' => $variant->key_id,
+                'key_name' => $variant->key ? $variant->key->getTranslation('name', app()->getLocale()) : null,
+                'has_children' => $allChildren->count() > 0,
+                'children_count' => $allChildren->count()
             ];
         })->toArray();
     }
@@ -275,5 +318,85 @@ class VariantsConfigurationRepository implements VariantsConfigurationRepository
         return VariantsConfiguration::with('translations')
             ->where('parent_id', $parentId)
             ->get();
+    }
+
+    /**
+     * Link a child configuration to a parent configuration
+     *
+     * @param int $parentId
+     * @param int $childId
+     * @return bool
+     */
+    public function linkConfiguration($parentId, $childId)
+    {
+        $parent = VariantsConfiguration::findOrFail($parentId);
+        
+        // Check if link already exists
+        if (!$parent->linkedChildren()->where('child_config_id', $childId)->exists()) {
+            $parent->linkedChildren()->attach($childId);
+            return true;
+        }
+        
+        return false;
+    }
+
+    /**
+     * Unlink a child configuration from a parent configuration
+     *
+     * @param int $parentId
+     * @param int $childId
+     * @return bool
+     */
+    public function unlinkConfiguration($parentId, $childId)
+    {
+        $parent = VariantsConfiguration::findOrFail($parentId);
+        $parent->linkedChildren()->detach($childId);
+        return true;
+    }
+
+    /**
+     * Sync linked children for a parent configuration
+     *
+     * @param int $parentId
+     * @param array $childIds
+     * @return array
+     */
+    public function syncLinkedChildren($parentId, array $childIds)
+    {
+        $parent = VariantsConfiguration::findOrFail($parentId);
+        return $parent->linkedChildren()->sync($childIds);
+    }
+
+    /**
+     * Get linked children for a parent configuration
+     *
+     * @param int $parentId
+     * @return \Illuminate\Database\Eloquent\Collection
+     */
+    public function getLinkedChildren($parentId)
+    {
+        $parent = VariantsConfiguration::with(['linkedChildren.translations', 'linkedChildren.key'])
+            ->findOrFail($parentId);
+        
+        return $parent->linkedChildren;
+    }
+
+    /**
+     * Get all children (both direct and linked) for a parent configuration
+     *
+     * @param int $parentId
+     * @return \Illuminate\Database\Eloquent\Collection
+     */
+    public function getAllChildren($parentId)
+    {
+        $parent = VariantsConfiguration::with([
+            'children.translations',
+            'children.key',
+            'linkedChildren.translations',
+            'linkedChildren.key'
+        ])->findOrFail($parentId);
+        
+        // Merge direct children and linked children, remove duplicates
+        return $parent->children->merge($parent->linkedChildren)->unique('id');
     }
 }

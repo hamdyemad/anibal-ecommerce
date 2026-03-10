@@ -2102,6 +2102,15 @@
                     'data-level': level
                 });
 
+                // Add label with key name if available
+                if (variants.length > 0 && variants[0].key_name) {
+                    const label = $('<label>', {
+                        class: 'form-label fw-500',
+                        text: variants[0].key_name
+                    });
+                    levelDiv.append(label);
+                }
+
                 const select = $('<select>', {
                     class: 'form-control select2 variant-value-select',
                     'data-variant-index': variantIndex,

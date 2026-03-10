@@ -1437,11 +1437,21 @@
             }
 
             // Add a level to the variant tree
+            // Add a level to the variant tree
             function addVariantLevel($container, variants, variantIndex, level, selectedPath) {
                 const levelDiv = $('<div>', {
                     class: 'variant-level mb-3',
                     'data-level': level
                 });
+
+                // Add label with key name if available
+                if (variants.length > 0 && variants[0].key_name) {
+                    const label = $('<label>', {
+                        class: 'form-label fw-500',
+                        text: variants[0].key_name
+                    });
+                    levelDiv.append(label);
+                }
 
                 const select = $('<select>', {
                     class: 'form-control select2 variant-value-select',

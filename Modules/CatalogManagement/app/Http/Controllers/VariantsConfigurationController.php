@@ -5,6 +5,7 @@ namespace Modules\CatalogManagement\app\Http\Controllers;
 use App\Http\Controllers\Controller;
 use App\Services\LanguageService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Modules\CatalogManagement\app\Services\VariantsConfigurationService;
 use Modules\CatalogManagement\app\Actions\VariantsConfigurationAction;
 use Modules\CatalogManagement\app\Http\Requests\VariantsConfigurationRequest;
@@ -519,6 +520,223 @@ class VariantsConfigurationController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Error fetching variants: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Link a child configuration to a parent
+     */
+    public function linkChild(Request $request)
+    {
+        $request->validate([
+            'parent_id' => 'required|exists:variants_configurations,id',
+            'child_id' => 'required|exists:variants_configurations,id',
+        ]);
+
+        try {
+            $result = $this->variantsConfigService->linkConfiguration(
+                $request->parent_id,
+                $request->child_id
+            );
+
+            return response()->json([
+                'success' => true,
+                'message' => $result 
+                    ? __('catalogmanagement::variantsconfig.link_created_successfully')
+                    : __('catalogmanagement::variantsconfig.link_already_exists')
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => __('catalogmanagement::variantsconfig.error_creating_link') . ': ' . $e->getMessage()
+            ], 422);
+        }
+    }
+
+    /**
+     * Unlink a child configuration from a parent
+     */
+    public function unlinkChild(Request $request)
+    {
+        $request->validate([
+            'parent_id' => 'required|exists:variants_configurations,id',
+            'child_id' => 'required|exists:variants_configurations,id',
+        ]);
+
+        try {
+            $this->variantsConfigService->unlinkConfiguration(
+                $request->parent_id,
+                $request->child_id
+            );
+
+            return response()->json([
+                'success' => true,
+                'message' => __('catalogmanagement::variantsconfig.link_removed_successfully')
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => __('catalogmanagement::variantsconfig.error_removing_link') . ': ' . $e->getMessage()
+            ], 422);
+        }
+    }
+
+    /**
+     * Sync linked children for a parent configuration
+     */
+    public function syncLinkedChildren(Request $request)
+    {
+        $request->validate([
+            'parent_id' => 'required|exists:variants_configurations,id',
+            'child_ids' => 'required|array',
+            'child_ids.*' => 'exists:variants_configurations,id',
+        ]);
+
+        try {
+            $this->variantsConfigService->syncLinkedChildren(
+                $request->parent_id,
+                $request->child_ids
+            );
+
+            return response()->json([
+                'success' => true,
+                'message' => __('catalogmanagement::variantsconfig.links_synced_successfully')
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => __('catalogmanagement::variantsconfig.error_syncing_links') . ': ' . $e->getMessage()
+            ], 422);
+        }
+    }
+
+    /**
+     * Get linked children for a parent configuration
+     */
+    public function getLinkedChildren(Request $request, $lang, $countryCode, $id)
+    {
+        try {
+            $linkedChildren = $this->variantsConfigService->getLinkedChildren($id);
+
+            $data = $linkedChildren->map(function ($child) {
+                return [
+                    'id' => $child->id,
+                    'name' => $child->getTranslation('name', app()->getLocale()),
+                    'value' => $child->value,
+                    'type' => $child->type,
+                    'key_name' => $child->key ? $child->key->getTranslation('name', app()->getLocale()) : null,
+                ];
+            });
+
+            return response()->json([
+                'success' => true,
+                'data' => $data
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => __('catalogmanagement::variantsconfig.error_fetching_linked_children') . ': ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get all children (both direct and linked) for a parent configuration
+     */
+    public function getAllChildren(Request $request, $lang, $countryCode, $id)
+    {
+        try {
+            $allChildren = $this->variantsConfigService->getAllChildren($id);
+
+            $data = $allChildren->map(function ($child) {
+                return [
+                    'id' => $child->id,
+                    'name' => $child->getTranslation('name', app()->getLocale()),
+                    'value' => $child->value,
+                    'type' => $child->type,
+                    'key_name' => $child->key ? $child->key->getTranslation('name', app()->getLocale()) : null,
+                    'is_linked' => $child->pivot ? true : false, // If pivot exists, it's a linked child
+                ];
+            });
+
+            return response()->json([
+                'success' => true,
+                'data' => $data
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => __('catalogmanagement::variantsconfig.error_fetching_children') . ': ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get all variants for linking (simple list)
+     */
+    public function getAllForLinking(Request $request)
+    {
+        try {
+            $variants = $this->variantsConfigService->getAll();
+
+            $data = $variants->map(function ($variant) {
+                return [
+                    'id' => $variant->id,
+                    'name' => $variant->getTranslation('name', app()->getLocale()),
+                    'value' => $variant->value,
+                    'type' => $variant->type,
+                    'key_name' => $variant->key ? $variant->key->getTranslation('name', app()->getLocale()) : null,
+                ];
+            });
+
+            return response()->json([
+                'success' => true,
+                'data' => $data
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error fetching variants: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get the link ID between parent and child variant configurations
+     * Used when storing product variants to track the specific parent-child relationship
+     */
+    public function getLinkId(Request $request)
+    {
+        $request->validate([
+            'parent_id' => 'required|exists:variants_configurations,id',
+            'child_id' => 'required|exists:variants_configurations,id',
+        ]);
+
+        try {
+            $link = DB::table('variants_configurations_links')
+                ->where('parent_config_id', $request->parent_id)
+                ->where('child_config_id', $request->child_id)
+                ->first();
+
+            if (!$link) {
+                return response()->json([
+                    'success' => false,
+                    'message' => __('catalogmanagement::variantsconfig.link_not_found'),
+                    'link_id' => null
+                ], 404);
+            }
+
+            return response()->json([
+                'success' => true,
+                'link_id' => $link->id,
+                'parent_id' => $link->parent_config_id,
+                'child_id' => $link->child_config_id
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error fetching link ID: ' . $e->getMessage()
             ], 500);
         }
     }

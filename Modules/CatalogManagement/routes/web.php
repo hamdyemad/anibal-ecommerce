@@ -53,6 +53,15 @@ Route::group(['prefix' => 'variants-configurations'], function() {
     Route::get('datatable', 'VariantsConfigurationController@datatable')->name('variants-configurations.datatable');
     Route::get('get-parents-by-key', 'VariantsConfigurationController@getParentsByKey')->name('variants-configurations.get-parents-by-key');
     Route::get('tree', 'VariantsConfigurationController@tree')->name('variants-configurations.tree');
+    Route::get('all-for-linking', 'VariantsConfigurationController@getAllForLinking')->name('variants-configurations.all-for-linking');
+    
+    // Configuration Links Management
+    Route::post('link-child', 'VariantsConfigurationController@linkChild')->name('variants-configurations.link-child');
+    Route::post('unlink-child', 'VariantsConfigurationController@unlinkChild')->name('variants-configurations.unlink-child');
+    Route::post('sync-linked-children', 'VariantsConfigurationController@syncLinkedChildren')->name('variants-configurations.sync-linked-children');
+    Route::get('{id}/linked-children', 'VariantsConfigurationController@getLinkedChildren')->name('variants-configurations.linked-children');
+    Route::get('{id}/all-children', 'VariantsConfigurationController@getAllChildren')->name('variants-configurations.all-children');
+    Route::get('get-link-id', 'VariantsConfigurationController@getLinkId')->name('variants-configurations.get-link-id');
 });
 Route::resource('variants-configurations', 'VariantsConfigurationController');
 
@@ -123,10 +132,6 @@ Route::group(['prefix' => 'products'], function() {
     Route::post('vendor-bank/bulk-upload', 'ProductController@vendorBankBulkUploadStore')->name('products.vendor-bank.bulk-upload.store');
     Route::get('vendor-bank/download-demo', 'ProductController@vendorBankDownloadDemo')->name('products.vendor-bank.download-demo');
     Route::get('vendor-bank/bulk-upload/progress/{batchId}', 'ProductController@vendorBankCheckImportProgress')->name('products.vendor-bank.bulk-upload.progress');
-
-    // Stock Setup routes
-    Route::get('stock-setup', 'StockSetupController@index')->name('products.stock-setup');
-    Route::post('stock-setup/save', 'StockSetupController@save')->name('products.stock-setup.save');
 
     // Product routes with {product} parameter
     Route::get('{product}/stock-management', 'ProductController@stockManagement')->name('products.stock-management');

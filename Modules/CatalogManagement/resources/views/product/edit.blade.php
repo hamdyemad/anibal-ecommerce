@@ -734,101 +734,63 @@
                                                                 id="variant-{{ $variantIndex }}-section">
                                                                 <div
                                                                     class="card-header d-flex justify-content-between align-items-center">
-                                                                    <h6 class="mb-0"
-                                                                        style="font-weight: 600; font-size: 16px;">
-                                                                        <i class="uil uil-layer-group me-2"></i>
-                                                                        {{ __('catalogmanagement::product.variant_configuration') }}:
-                                                                        @if ($variant->variantConfiguration)
+                                                                    <div class="d-flex align-items-center gap-2">
+                                                                        <h6 class="mb-0"
+                                                                            style="font-weight: 600; font-size: 16px;">
+                                                                            <i class="uil uil-layer-group me-2"></i>
+                                                                            {{ __('catalogmanagement::product.variant_configuration') }}:
+                                                                            @if ($variant->variantConfiguration)
                                                                             @php
-                                                                                // Build the variant hierarchy by traversing up the parent chain
+                                                                                // Build the variant hierarchy
                                                                                 $hierarchy = [];
-                                                                                $current =
-                                                                                    $variant->variantConfiguration;
-                                                                                $visited = []; // Prevent infinite loops
+                                                                                $current = $variant->variantConfiguration;
+                                                                                $visited = [];
 
-                                                                                // Start with the current variant (could be leaf or parent node)
-                                                                                while (
-                                                                                    $current &&
-                                                                                    !in_array($current->id, $visited)
-                                                                                ) {
-                                                                                    $visited[] = $current->id;
-
-                                                                                    // Get the value name (current node)
-                                                                                    $valueName =
-                                                                                        $current->getTranslation(
-                                                                                            'name',
-                                                                                            app()->getLocale(),
-                                                                                        ) ??
-                                                                                        ($current->getTranslation(
-                                                                                            'name',
-                                                                                            'en',
-                                                                                        ) ??
-                                                                                            ($current->name ??
-                                                                                                'Value'));
-
-                                                                                    // If this has a parent, it means this is a value and parent is key
-                                                                                    if ($current->parent_data) {
-                                                                                        $keyName =
-                                                                                            $current->parent_data->getTranslation(
-                                                                                                'name',
-                                                                                                app()->getLocale(),
-                                                                                            ) ??
-                                                                                            ($current->parent_data->getTranslation(
-                                                                                                'name',
-                                                                                                'en',
-                                                                                            ) ??
-                                                                                                ($current->parent_data
-                                                                                                    ->name ??
-                                                                                                    'Key'));
-
-                                                                                        // Add to hierarchy (key -> value)
-                                                                                        array_unshift(
-                                                                                            $hierarchy,
-                                                                                            $keyName .
-                                                                                                ' → ' .
-                                                                                                $valueName,
-                                                                                        );
-
-                                                                                        // Move to parent for next iteration
-                                                                                        $current =
-                                                                                            $current->parent_data;
-                                                                                    } else {
-                                                                                        // This is a root node (no parent) - still add it to hierarchy
-                                                                                        $keyName = $current->key
-                                                                                            ? $current->key->getTranslation(
-                                                                                                    'name',
-                                                                                                    app()->getLocale(),
-                                                                                                ) ??
-                                                                                                ($current->key->getTranslation(
-                                                                                                    'name',
-                                                                                                    'en',
-                                                                                                ) ??
-                                                                                                    ($current->key
-                                                                                                        ->name ??
-                                                                                                        'Key'))
-                                                                                            : 'Key';
-
-                                                                                        array_unshift(
-                                                                                            $hierarchy,
-                                                                                            $keyName .
-                                                                                                ' → ' .
-                                                                                                $valueName,
-                                                                                        );
-                                                                                        break;
+                                                                                // If this variant has a link, use it to get the parent
+                                                                                if ($variant->variantLink) {
+                                                                                    $parentConfig = $variant->variantLink->parentConfiguration;
+                                                                                    $childConfig = $variant->variantLink->childConfiguration;
+                                                                                    
+                                                                                    // Add parent to hierarchy
+                                                                                    if ($parentConfig) {
+                                                                                        $parentKeyName = $parentConfig->key ? $parentConfig->key->getTranslation('name', app()->getLocale()) : 'Key';
+                                                                                        $parentValueName = $parentConfig->getTranslation('name', app()->getLocale());
+                                                                                        $hierarchy[] = $parentKeyName . ' → ' . $parentValueName;
+                                                                                    }
+                                                                                    
+                                                                                    // Add child to hierarchy
+                                                                                    if ($childConfig) {
+                                                                                        $childKeyName = $childConfig->key ? $childConfig->key->getTranslation('name', app()->getLocale()) : 'Key';
+                                                                                        $childValueName = $childConfig->getTranslation('name', app()->getLocale());
+                                                                                        $hierarchy[] = $childKeyName . ' → ' . $childValueName;
+                                                                                    }
+                                                                                } else {
+                                                                                    // Fallback: traverse parent_data chain
+                                                                                    while ($current && !in_array($current->id, $visited)) {
+                                                                                        $visited[] = $current->id;
+                                                                                        
+                                                                                        $valueName = $current->getTranslation('name', app()->getLocale()) ?? $current->name ?? 'Value';
+                                                                                        
+                                                                                        if ($current->parent_data) {
+                                                                                            $keyName = $current->parent_data->getTranslation('name', app()->getLocale()) ?? 'Key';
+                                                                                            array_unshift($hierarchy, $keyName . ' → ' . $valueName);
+                                                                                            $current = $current->parent_data;
+                                                                                        } else {
+                                                                                            $keyName = $current->key ? $current->key->getTranslation('name', app()->getLocale()) : 'Key';
+                                                                                            array_unshift($hierarchy, $keyName . ' → ' . $valueName);
+                                                                                            break;
+                                                                                        }
                                                                                     }
                                                                                 }
-
-                                                                                // Join the hierarchy with arrows
-                                                                                $hierarchyString = implode(
-                                                                                    ' → ',
-                                                                                    $hierarchy,
-                                                                                );
+                                                                                
+                                                                                $hierarchyString = implode(' → ', $hierarchy);
                                                                             @endphp
-                                                                            {{ $hierarchyString ?: 'Packaging - 10 kg' }}
+                                                                            <span class="variant-display-text">{{ $hierarchyString ?: 'Packaging - 10 kg' }}</span>
                                                                         @else
-                                                                            Packaging - 10 kg
+                                                                            <span class="variant-display-text">Packaging - 10 kg</span>
                                                                         @endif
-                                                                    </h6>
+                                                                        </h6>
+                                                                    </div>
                                                                     <button type="button"
                                                                         class="btn btn-danger btn-sm remove-existing-variant-btn"
                                                                         data-variant-index="{{ $variantIndex }}">
@@ -2560,11 +2522,21 @@
             }
 
             // Add a level to the variant tree
+            // Add a level to the variant tree
             function addVariantLevel($container, variants, variantIndex, level, selectedPath) {
                 const levelDiv = $('<div>', {
                     class: 'variant-level mb-3',
                     'data-level': level
                 });
+
+                // Add label with key name if available
+                if (variants.length > 0 && variants[0].key_name) {
+                    const label = $('<label>', {
+                        class: 'form-label fw-500',
+                        text: variants[0].key_name
+                    });
+                    levelDiv.append(label);
+                }
 
                 const select = $('<select>', {
                     class: 'form-control select2 variant-value-select',
@@ -2941,127 +2913,399 @@
 
             // Load variants by key (root level - no parent)
             function loadVariantsByKey(variantIndex, keyId) {
-                console.log('🔄 Loading variants for key:', keyId);
+                console.log('🌳 Loading root variants for key:', keyId);
+
+                const $container = $(`#variant-${variantIndex} .variant-tree-container`);
+                const $levelsContainer = $(`#variant-${variantIndex} .variant-tree-levels`);
+
+                // Clear previous tree and pricing/stock
+                $levelsContainer.empty();
+                $container.hide();
+                $(`#variant-${variantIndex}-pricing-stock`).hide().empty();
+                $(`#variant-${variantIndex} .selected-variant-path`).hide();
+
+                // Store keyId in the variant box for later use
+                $(`#variant-${variantIndex}`).data('current-key-id', keyId);
 
                 const countryId = $("meta[name='current_country_id']").attr("content");
 
                 $.ajax({
-                    url: `/api/v1/variant-configurations/key/${keyId}/tree`,
-                    method: 'GET',
+                    url: '{{ route('admin.api.variants-by-key') }}',
+                    type: 'GET',
+                    dataType: 'json',
+                    headers: {
+                        'lang': "{{ app()->getLocale() }}",
+                        'X-Country-Code': $("meta[name='currency_country_code']").attr('content'),
+                    },
                     data: {
+                        key_id: keyId,
+                        country_id: countryId,
+                    },
+                    success: function(response) {
+                        const variants = response.data || response;
+                        console.log('✅ Root variants loaded:', variants.length);
+
+                        if (variants.length > 0) {
+                            $container.show();
+                            addVariantLevel($levelsContainer, variants, variantIndex, 0, []);
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('❌ Error loading variants:', error);
+                    }
+                });
+            }
+
+            // Add a level to the variant tree
+            function addVariantLevel($container, variants, variantIndex, level, selectedPath) {
+                const levelDiv = $('<div>', {
+                    class: 'variant-level mb-3',
+                    'data-level': level
+                });
+
+                // Add label with key name if available
+                if (variants.length > 0 && variants[0].key_name) {
+                    const label = $('<label>', {
+                        class: 'form-label fw-500',
+                        text: variants[0].key_name
+                    });
+                    levelDiv.append(label);
+                }
+
+                const select = $('<select>', {
+                    class: 'form-control select2 variant-value-select',
+                    'data-variant-index': variantIndex,
+                    'data-level': level
+                });
+
+                select.append('<option value="">{{ __('common.select_option') }}</option>');
+
+                variants.forEach(function(variant) {
+                    const hasChildren = variant.has_children || false;
+                    const treeIcon = hasChildren ? ' 🌳' : '';
+                    select.append(
+                        `<option value="${variant.id}" data-has-children="${hasChildren}">${variant.name}${treeIcon}</option>`
+                    );
+                });
+
+                levelDiv.append(select);
+                $container.append(levelDiv);
+
+                // Initialize Select2
+                setTimeout(function() {
+                    select.select2({
+                        theme: 'bootstrap-5',
+                        width: '100%',
+                    });
+                }, 100);
+            }
+
+            // Load child variants
+            function loadChildVariants(variantIndex, parentId, level, selectedPath, keyId) {
+                console.log('🌳 Loading child variants for parent:', parentId, 'at level:', level);
+
+                const $levelsContainer = $(`#variant-${variantIndex} .variant-tree-levels`);
+
+                // Remove all levels after current level
+                $levelsContainer.find('.variant-level').each(function() {
+                    if (parseInt($(this).data('level')) > level) {
+                        $(this).remove();
+                    }
+                });
+
+                const countryId = $("meta[name='current_country_id']").attr("content");
+
+                $.ajax({
+                    url: '{{ route('admin.api.variants-by-key') }}',
+                    type: 'GET',
+                    dataType: 'json',
+                    headers: {
+                        'lang': "{{ app()->getLocale() }}",
+                        'X-Country-Code': $("meta[name='currency_country_code']").attr('content'),
+                    },
+                    data: {
+                        key_id: keyId,
+                        parent_id: parentId,
                         country_id: countryId
                     },
+                    success: function(response) {
+                        const variants = response.data || response;
+                        console.log('✅ Child variants loaded:', variants.length);
+
+                        if (variants.length > 0) {
+                            addVariantLevel($levelsContainer, variants, variantIndex, level + 1, selectedPath);
+                        } else {
+                            // No more children - this is the final selection
+                            finalizeVariantSelection(variantIndex, parentId, selectedPath);
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('❌ Error loading child variants:', error);
+                    }
+                });
+            }
+
+            // Finalize variant selection and show pricing/stock
+            function finalizeVariantSelection(variantIndex, variantId, path) {
+                console.log('✅ Final variant selected:', variantId, 'Path:', path);
+
+                // Set hidden input for variant configuration ID
+                $(`#variant-${variantIndex} .selected-variant-id`).val(variantId);
+
+                // Show selected path
+                const $pathAlert = $(`#variant-${variantIndex} .selected-variant-path`);
+                $pathAlert.find('.path-text').text(path.join(' > '));
+                $pathAlert.show();
+
+                // Get the parent variant ID (second to last in the selection)
+                const $selects = $(`#variant-${variantIndex} .variant-value-select`);
+                let parentId = null;
+                
+                if ($selects.length >= 2) {
+                    // Get the second to last select (parent of the final selection)
+                    parentId = $selects.eq($selects.length - 2).val();
+                }
+
+                // If we have a parent, fetch the link ID
+                if (parentId && variantId) {
+                    fetchAndStoreVariantLinkId(variantIndex, parentId, variantId);
+                }
+
+                // Create pricing & stock box
+                createVariantPricingStockBox(variantIndex, path[path.length - 1]);
+            }
+
+            // Fetch and store variant link ID
+            function fetchAndStoreVariantLinkId(variantIndex, parentId, childId) {
+                console.log('🔗 Fetching variant link ID for parent:', parentId, 'child:', childId);
+
+                const lang = "{{ app()->getLocale() }}";
+                const countryCode = $("meta[name='currency_country_code']").attr("content");
+                const url = `/${lang}/${countryCode}/admin/variants-configurations/get-link-id`;
+
+                $.ajax({
+                    url: url,
+                    method: 'GET',
+                    data: {
+                        parent_id: parentId,
+                        child_id: childId
+                    },
+                    success: function(response) {
+                        console.log('🔗 Link ID response:', response);
+                        
+                        if (response.success && response.link_id) {
+                            console.log('✅ Variant link ID found:', response.link_id);
+                            
+                            // Store the link ID in a hidden input
+                            const $linkInput = $(`<input type="hidden" name="variants[${variantIndex}][variant_link_id]" value="${response.link_id}" class="variant-link-id-input">`);
+                            
+                            // Remove any existing link ID input for this variant
+                            $(`#variant-${variantIndex} .variant-link-id-input`).remove();
+                            
+                            // Add the new link ID input to the variant box
+                            $(`#variant-${variantIndex}`).append($linkInput);
+                            
+                            console.log('✅ Variant link ID stored in form:', response.link_id);
+                            console.log('✅ Hidden input created:', $linkInput[0].outerHTML);
+                        } else {
+                            console.warn('⚠️ No link ID found for this variant combination');
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('❌ Error fetching variant link ID:', error);
+                        console.error('❌ Response:', xhr.responseText);
+                    }
+                });
+            }
+
+            // Load variant tree for editing existing variant
+            function loadVariantTreeForEdit(variantIndex, variantId) {
+                console.log('🔄 Loading variant tree for edit:', variantIndex, variantId);
+
+                const countryId = $("meta[name='current_country_id']").attr("content");
+
+                // First, get the variant details to find its key
+                $.ajax({
+                    url: `/api/v1/variant-configurations/${variantId}`,
+                    method: 'GET',
                     headers: {
                         'lang': "{{ app()->getLocale() }}",
                         'X-Country-Code': $("meta[name='currency_country_code']").attr("content")
                     },
+                    success: function(variantResponse) {
+                        console.log('✅ Variant details:', variantResponse);
+                        
+                        const keyId = variantResponse.key_id || variantResponse.data?.key_id;
+                        
+                        if (!keyId) {
+                            console.error('❌ No key_id found for variant');
+                            return;
+                        }
+
+                        // Store the key ID
+                        $(`.variant-tree-levels-existing[data-variant-index="${variantIndex}"]`).data('current-key-id', keyId);
+
+                        // Load root level variants for this key
+                        loadRootVariantsForEdit(variantIndex, keyId, variantId);
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('❌ Failed to load variant details:', error);
+                    }
+                });
+            }
+
+            // Load root level variants for editing
+            function loadRootVariantsForEdit(variantIndex, keyId, selectedVariantId) {
+                console.log('🌳 Loading root variants for edit, key:', keyId);
+
+                const countryId = $("meta[name='current_country_id']").attr("content");
+
+                $.ajax({
+                    url: '{{ route('admin.api.variants-by-key') }}',
+                    type: 'GET',
+                    dataType: 'json',
+                    headers: {
+                        'lang': "{{ app()->getLocale() }}",
+                        'X-Country-Code': $("meta[name='currency_country_code']").attr('content'),
+                    },
+                    data: {
+                        key_id: keyId,
+                        country_id: countryId
+                    },
                     success: function(response) {
-                        console.log('✅ Variant tree response:', response);
-                        if (response && response.children) {
-                            buildVariantTree(variantIndex, response.children, 0, response.children);
-                            $(`#variant-${variantIndex} .variant-tree-container`).show();
-                        } else {
-                            console.warn('⚠️ No children found in response');
+                        const variants = response.data || response;
+                        console.log('✅ Root variants loaded for edit:', variants.length);
+
+                        if (variants.length > 0) {
+                            addVariantLevelForEdit(variantIndex, variants, 0, keyId, selectedVariantId);
                         }
                     },
                     error: function(xhr, status, error) {
-                        console.error('❌ Failed to load variants:', error);
-                        console.error('Response:', xhr.responseText);
+                        console.error('❌ Error loading root variants for edit:', error);
                     }
                 });
             }
 
-            // Build variant tree levels
-            function buildVariantTree(variantIndex, variants, level, fullTree = null) {
-                const $container = $(`#variant-${variantIndex} .variant-tree-levels`);
+            // Add a variant level for editing
+            function addVariantLevelForEdit(variantIndex, variants, level, keyId, selectedVariantId) {
+                const $container = $(`.variant-tree-levels-existing[data-variant-index="${variantIndex}"]`);
 
-                // Store full tree for navigation
-                if (fullTree) {
-                    $container.data('fullTree', fullTree);
-                } else {
-                    fullTree = $container.data('fullTree') || variants;
+                const levelDiv = $('<div>', {
+                    class: 'variant-level mb-3',
+                    'data-level': level
+                });
+
+                // Add label with key name if available
+                if (variants.length > 0 && variants[0].key_name) {
+                    const label = $('<label>', {
+                        class: 'form-label fw-500',
+                        text: variants[0].key_name
+                    });
+                    levelDiv.append(label);
                 }
 
-                // Clear existing levels from this level onwards
-                $container.find(`.variant-level[data-level="${level}"]`).nextAll().remove();
-                $container.find(`.variant-level[data-level="${level}"]`).remove();
-
-                if (!variants || variants.length === 0) return;
-
-                const levelHtml = `
-            <div class="variant-level mb-3" data-level="${level}">
-                <label class="form-label">Select Option</label>
-                <select class="form-control select2 variant-select" data-level="${level}">
-                    <option value="">Select option</option>
-                    ${variants.map(variant => {
-                        const hasChildren = variant.children && variant.children.length > 0;
-                        const treeIcon = hasChildren ? '🌳 ' : '';
-                        return `<option value="${variant.id}" data-has-children="${hasChildren}">${treeIcon}${variant.name}</option>`;
-                    }).join('')}
-                </select>
-            </div>
-        `;
-
-                $container.append(levelHtml);
-
-                // Initialize Select2 for new select
-                const $newSelect = $container.find(`.variant-select[data-level="${level}"]`);
-                $newSelect.select2({
-                    theme: 'bootstrap-5',
-                    width: '100%'
+                const select = $('<select>', {
+                    class: 'form-control select2 variant-value-select-edit',
+                    'data-variant-index': variantIndex,
+                    'data-level': level
                 });
 
-                // Handle selection change
-                $newSelect.on('change', function() {
-                    const selectedId = $(this).val();
-                    const selectedVariant = variants.find(v => v.id == selectedId);
+                select.append('<option value="">{{ __('common.select_option') }}</option>');
 
-                    // Clear all subsequent levels and hide pricing/stock box
-                    $container.find(`.variant-level[data-level="${level + 1}"]`).nextAll().remove();
-                    $container.find(`.variant-level[data-level="${level + 1}"]`).remove();
-                    $(`#variant-${variantIndex}-pricing-stock`).hide();
-                    $(`#variant-${variantIndex} .selected-variant-path`).hide();
-                    $(`#variant-${variantIndex} .selected-variant-id`).val('');
+                variants.forEach(function(variant) {
+                    const hasChildren = variant.has_children || false;
+                    const treeIcon = hasChildren ? ' 🌳' : '';
+                    select.append(
+                        `<option value="${variant.id}" data-has-children="${hasChildren}">${variant.name}${treeIcon}</option>`
+                    );
+                });
 
-                    if (selectedId && selectedVariant) {
-                        // Check if this variant has children (and they're not empty)
-                        const hasChildren = selectedVariant.children &&
-                            Array.isArray(selectedVariant.children) &&
-                            selectedVariant.children.length > 0;
+                levelDiv.append(select);
+                $container.append(levelDiv);
 
-                        if (hasChildren) {
-                            // Load children for next level
-                            console.log('📂 Variant has children, loading next level...');
-                            buildVariantTree(variantIndex, selectedVariant.children, level + 1, fullTree);
+                // Initialize Select2
+                setTimeout(function() {
+                    select.select2({
+                        theme: 'bootstrap-5',
+                        width: '100%',
+                    });
+
+                    // Auto-select if this variant is in the path to selectedVariantId
+                    // This will be handled by the change event
+                }, 100);
+            }
+
+            // Load child variants for editing
+            function loadChildVariantsForEdit(variantIndex, parentId, level, keyId) {
+                console.log('🌳 Loading child variants for edit, parent:', parentId, 'level:', level);
+
+                const $container = $(`.variant-tree-levels-existing[data-variant-index="${variantIndex}"]`);
+
+                // Remove all levels after current level
+                $container.find('.variant-level').each(function() {
+                    if (parseInt($(this).data('level')) > level) {
+                        $(this).remove();
+                    }
+                });
+
+                const countryId = $("meta[name='current_country_id']").attr("content");
+
+                $.ajax({
+                    url: '{{ route('admin.api.variants-by-key') }}',
+                    type: 'GET',
+                    dataType: 'json',
+                    headers: {
+                        'lang': "{{ app()->getLocale() }}",
+                        'X-Country-Code': $("meta[name='currency_country_code']").attr('content'),
+                    },
+                    data: {
+                        key_id: keyId,
+                        parent_id: parentId,
+                        country_id: countryId
+                    },
+                    success: function(response) {
+                        const variants = response.data || response;
+                        console.log('✅ Child variants loaded for edit:', variants.length);
+
+                        if (variants.length > 0) {
+                            addVariantLevelForEdit(variantIndex, variants, level + 1, keyId, null);
                         } else {
-                            // This is a leaf node - final selection
-                            console.log('✅ Leaf node reached, finalizing selection...');
-                            setSelectedVariant(variantIndex, selectedId);
+                            // No more children - this is the final selection
+                            updateExistingVariantConfiguration(variantIndex, parentId);
                         }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('❌ Error loading child variants for edit:', error);
                     }
                 });
             }
 
-            // Note: loadVariantChildren function removed - using nested tree structure from single API call
+            // Update existing variant configuration
+            function updateExistingVariantConfiguration(variantIndex, variantId) {
+                console.log('🔄 Updating existing variant configuration:', variantIndex, variantId);
 
-            // Set selected variant and create pricing/stock box
-            function setSelectedVariant(variantIndex, variantId) {
-                $(`#variant-${variantIndex} .selected-variant-id`).val(variantId);
+                // Update the hidden input
+                $(`input[name="variants[${variantIndex}][variant_configuration_id]"]`).val(variantId);
 
-                // Build path display
+                // Build path display from the selections
                 const path = [];
-                $(`#variant-${variantIndex} .variant-select`).each(function() {
+                $(`.variant-tree-levels-existing[data-variant-index="${variantIndex}"] .variant-select-edit`).each(function() {
                     const selectedText = $(this).find('option:selected').text();
                     if (selectedText && selectedText !== 'Select option') {
-                        path.push(selectedText);
+                        // Remove tree icon from display
+                        const cleanText = selectedText.replace(/^🌳\s*/, '');
+                        path.push(cleanText);
                     }
                 });
 
-                $(`#variant-${variantIndex} .selected-variant-path .path-text`).text(path.join(' → '));
-                $(`#variant-${variantIndex} .selected-variant-path`).show();
+                // Update the display text
+                const pathString = path.join(' → ');
+                $(`#existing-variant-${variantIndex} .variant-display-text`).text(pathString);
 
-                // Create pricing and stock box
-                createVariantPricingStockBox(variantIndex, variantId);
+                // Hide the editor
+                $(`#variant-tree-editor-${variantIndex}`).hide();
+
+                console.log('✅ Variant configuration updated:', pathString);
             }
 
             // Remove variant box
@@ -3311,9 +3555,124 @@
                         console.log('✅ Discount enabled for new variant');
                     } else {
                         $discountFields.hide();
-                        // Clear discount field values
-                        $discountFields.find('input').val('');
+                        // Clear discount fields
+                        $container.find('input[name*="[price_before_discount]"]').val('');
+                        $container.find('input[name*="[discount_end_date]"]').val('');
                         console.log('❌ Discount disabled for new variant');
+                    }
+                });
+
+                // Edit existing variant configuration button handler
+                $(document).on('click', '.edit-variant-config-btn', function() {
+                    const variantIndex = $(this).data('variant-index');
+                    const variantId = $(this).data('variant-id');
+                    
+                    console.log('✏️ Edit variant config clicked:', variantIndex, variantId);
+                    
+                    // Show the variant tree editor
+                    $(`#variant-tree-editor-${variantIndex}`).show();
+                    
+                    // Load the variant tree for editing
+                    loadVariantTreeForEdit(variantIndex, variantId);
+                });
+
+                // Cancel variant edit button handler
+                $(document).on('click', '.cancel-variant-edit-btn', function() {
+                    const variantIndex = $(this).data('variant-index');
+                    
+                    console.log('❌ Cancel variant edit clicked:', variantIndex);
+                    
+                    // Hide the variant tree editor
+                    $(`#variant-tree-editor-${variantIndex}`).hide();
+                    
+                    // Clear the tree levels
+                    $(`.variant-tree-levels-existing[data-variant-index="${variantIndex}"]`).empty();
+                });
+
+                // Variant value selection for editing (tree navigation)
+                $(document).on('change', '.variant-value-select-edit', function() {
+                    const $select = $(this);
+                    const variantId = $select.val();
+                    const variantIndex = $select.data('variant-index');
+                    const level = $select.data('level');
+
+                    // Get the stored key ID
+                    const keyId = $(`.variant-tree-levels-existing[data-variant-index="${variantIndex}"]`).data('current-key-id');
+                    const $container = $(`.variant-tree-levels-existing[data-variant-index="${variantIndex}"]`);
+
+                    // Clear all child levels after the current level
+                    $container.find('.variant-level').each(function() {
+                        if (parseInt($(this).data('level')) > level) {
+                            $(this).remove();
+                        }
+                    });
+
+                    if (!variantId) {
+                        console.log('🗑️ Variant deselected at level:', level);
+                        return;
+                    }
+
+                    const $selectedOption = $select.find('option:selected');
+                    const hasChildren = $selectedOption.data('has-children');
+
+                    console.log('🌳 Variant selected for edit:', variantId, 'Has children:', hasChildren);
+
+                    if (hasChildren) {
+                        // Load children
+                        loadChildVariantsForEdit(variantIndex, variantId, level, keyId);
+                    } else {
+                        // This is a leaf node - finalize selection
+                        updateExistingVariantConfiguration(variantIndex, variantId);
+                    }
+                });
+
+                // Variant value selection for NEW variants (tree navigation)
+                $(document).on('change', '.variant-value-select', function() {
+                    const $select = $(this);
+                    const variantId = $select.val();
+                    const variantIndex = $select.data('variant-index');
+                    const level = $select.data('level');
+
+                    // Get the stored key ID
+                    const keyId = $(`#variant-${variantIndex}`).data('current-key-id');
+                    const $levelsContainer = $(`#variant-${variantIndex} .variant-tree-levels`);
+
+                    // Clear all child levels after the current level
+                    $levelsContainer.find('.variant-level').each(function() {
+                        if (parseInt($(this).data('level')) > level) {
+                            $(this).remove();
+                        }
+                    });
+
+                    // Hide pricing/stock when changing selection
+                    $(`#variant-${variantIndex}-pricing-stock`).hide().empty();
+                    $(`#variant-${variantIndex} .selected-variant-path`).hide();
+
+                    if (!variantId) {
+                        console.log('🗑️ Variant deselected at level:', level);
+                        return;
+                    }
+
+                    // Build selected path
+                    const selectedPath = [];
+                    $(`#variant-${variantIndex} .variant-value-select`).each(function(index) {
+                        if (index <= level && $(this).val()) {
+                            const selectedText = $(this).find('option:selected').text().replace(/🌳\s*/, '');
+                            selectedPath.push(selectedText);
+                        }
+                    });
+
+                    const $selectedOption = $select.find('option:selected');
+                    const hasChildren = $selectedOption.data('has-children');
+
+                    console.log('🌳 Variant selected:', variantId, 'Has children:', hasChildren);
+
+                    if (hasChildren) {
+                        // Load children
+                        loadChildVariants(variantIndex, variantId, level, selectedPath, keyId);
+                    } else {
+                        // This is a leaf node - finalize selection
+                        finalizeVariantSelection(variantIndex, variantId, selectedPath);
                     }
                 });
 

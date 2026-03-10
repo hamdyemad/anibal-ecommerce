@@ -29,10 +29,6 @@ class Region extends BaseModel
         return $this->belongsTo(City::class, 'city_id');
     }
 
-    public function selected_vendors() {
-        return $this->belongsToMany(\Modules\Vendor\app\Models\Vendor::class, 'vendor_regions', 'region_id', 'vendor_id');
-    }
-
     public function stocks() {
         return $this->hasMany(VendorProductVariantStock::class, 'region_id');
     }
@@ -99,13 +95,6 @@ class Region extends BaseModel
            $query->whereHas('city.country.vendors', function($q) use ($filters) {
                 $q->where('id', $filters['vendor_id']);
             });
-            // Filter by vendor selected regions (through vendor_regions table)
-            if (!empty($filters['vendor_selected_regions'])) {
-                $vendorId = $filters['vendor_id'];
-                $query->whereHas('selected_vendors', function($q) use ($vendorId) {
-                    $q->where('vendor_regions.vendor_id', $vendorId);
-                });
-            }
         }
 
 
