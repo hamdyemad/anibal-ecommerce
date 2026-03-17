@@ -71,6 +71,17 @@ class AppServiceProvider extends ServiceProvider
         // Note: URL defaults are set by SetAdminRouteDefaults middleware
         // so route() helper will automatically include lang and country
 
+        // Cache menu counts for better performance
+        \Illuminate\Support\Facades\View::composer('partials._menu', function ($view) {
+            $requestQuotationCounts = Cache::remember('menu_request_quotation_counts', 300, function () {
+                return [
+                    'not_archived' => \Modules\Order\app\Models\RequestQuotation::notArchived()->count(),
+                    'archived' => \Modules\Order\app\Models\RequestQuotation::archived()->count(),
+                ];
+            });
+            $view->with('requestQuotationCounts', $requestQuotationCounts);
+        });
+
         // Register observers for App models
         // $this->registerAppModelObservers();
 

@@ -5,6 +5,7 @@ namespace Modules\CatalogManagement\app\Repositories\Api;
 use Illuminate\Support\Facades\DB;
 use App\Actions\IsPaginatedAction;
 use Modules\CatalogManagement\app\Actions\ProductQueryAction;
+use Modules\CatalogManagement\app\Actions\ProductListQueryAction;
 use Modules\CatalogManagement\app\Interfaces\Api\ProductApiRepositoryInterface;
 use Modules\CatalogManagement\app\Models\Product;
 use Modules\CatalogManagement\app\Models\Brand;
@@ -18,6 +19,7 @@ class ProductApiRepository implements ProductApiRepositoryInterface
 {
     public function __construct(
         private ProductQueryAction $query,
+        private ProductListQueryAction $listQuery,
         private IsPaginatedAction $paginated
     ) {}
 
@@ -27,7 +29,7 @@ class ProductApiRepository implements ProductApiRepositoryInterface
     public function getAllProducts(ProductFilterDTO $dto)
     {
         $filters = $dto->toArray();
-        $query = $this->query->handle($filters);
+        $query = $this->listQuery->handle($filters);
         $result = $this->paginated->handle($query, $dto->per_page, 'true');
         return $result;
     }
@@ -55,7 +57,9 @@ class ProductApiRepository implements ProductApiRepositoryInterface
                 'variants' => function ($q) {
                     $q->with([
                         'variantConfiguration.parent_data.key',
-                        'variantConfiguration.key'
+                        'variantConfiguration.key',
+                        'variantLink.parentConfiguration.key',
+                        'variantLink.childConfiguration.key'
                     ]);
                 }
             ])

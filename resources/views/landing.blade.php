@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bnaia - Welcome</title>
+    <title>{{ env("APP_NAME") }} - Welcome</title>
     <style>
         * {
             margin: 0;
@@ -181,8 +181,8 @@
     <div class="container">
         <!-- Header -->
         <header>
-            <img src="{{ asset('assets/img/logo_en.png') }}" alt="Bnaia" style="max-width: 200px; height: auto; margin-bottom: 15px;">
-            <h1>Bnaia</h1>
+            <img src="{{ asset('assets/img/logo_en.png') }}" alt="{{ env("APP_NAME") }}" style="max-width: 200px; height: auto; margin-bottom: 15px;">
+            <h1>{{ env("APP_NAME") }}</h1>
             <p>{{ __('Welcome to our platform') }}</p>
         </header>
 
@@ -201,7 +201,7 @@
 
         <!-- Main Content -->
         <div class="content">
-            <h2>{{ __('Welcome to') }} Bnaia</h2>
+            <h2>{{ __('Welcome to') }} {{ env("APP_NAME") }}</h2>
             <p>
                 {{ __('Thank you for joining our community. Your email has been successfully verified!') }}
             </p>
@@ -242,7 +242,7 @@
 
         <!-- Footer -->
         <footer>
-            <p>&copy; {{ date('Y') }} Bnaia. {{ __('All rights reserved.') }}</p>
+            <p>&copy; {{ date('Y') }} {{ env("APP_NAME") }}. {{ __('All rights reserved.') }}</p>
         </footer>
     </div>
 </body>

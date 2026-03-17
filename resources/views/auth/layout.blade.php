@@ -5,14 +5,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>{{ $title }} - Bnaia</title>
+    <title>{{ $title }} - {{ env('APP_NAME') }}</title>
     <link href="{{ asset('css/goolefont.css') }}" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('assets/css/plugin.min.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/style.min.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/variables.css') }}">
     <link rel="stylesheet" href="{{ asset('css/unicons/line.css') }}">
     <link rel="stylesheet" href="{{ asset('css/plugins/toastr.min.css') }}">
-    <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('assets/img/favicon-bnaia.png') }}">
+    <link rel="icon" type="image/png" sizes="30x30" href="{{ asset('assets/img/favico.png') }}">
 
     <style>
         :root {
@@ -97,8 +97,8 @@
         </ul>
     </div> --}}
     <script src="{{ asset('js/plugins/toastr.min.js') }}"></script>
-    <script src="{{ asset('assets/js/plugins.min.js') }}"></script>
-    <script src="{{ asset('assets/js/script.min.js') }}"></script>
+    {{-- <script src="{{ asset('assets/js/plugins.min.js') }}"></script> --}}
+    {{-- <script src="{{ asset('assets/js/script.min.js') }}"></script> --}}
     <script>
         // Configure Toastr to match main app message positioning
         toastr.options = {

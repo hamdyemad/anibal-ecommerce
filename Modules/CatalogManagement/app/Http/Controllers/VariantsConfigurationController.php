@@ -740,4 +740,74 @@ class VariantsConfigurationController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Get or create link ID with complete hierarchy path
+     */
+    public function getLinkIdWithPath(Request $request)
+    {
+        $request->validate([
+            'path' => 'required|array|min:2',
+            'path.*' => 'required|exists:variants_configurations,id',
+        ]);
+
+        try {
+            $path = $request->path;
+            $parentId = $path[count($path) - 2]; // Second to last
+            $childId = $path[count($path) - 1];  // Last
+
+            // Try to find existing link with the same path
+            $link = DB::table('variants_configurations_links')
+                ->where('parent_config_id', $parentId)
+                ->where('child_config_id', $childId)
+                ->whereRaw('JSON_EXTRACT(path, "$") = ?', [json_encode($path)])
+                ->first();
+
+            if (!$link) {
+                // Create new link with path
+                $linkId = DB::table('variants_configurations_links')->insertGetId([
+                    'parent_config_id' => $parentId,
+                    'child_config_id' => $childId,
+                    'path' => json_encode($path),
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+
+                Log::info('Created new variant link with path', [
+                    'link_id' => $linkId,
+                    'parent_id' => $parentId,
+                    'child_id' => $childId,
+                    'path' => $path
+                ]);
+
+                return response()->json([
+                    'success' => true,
+                    'link_id' => $linkId,
+                    'parent_id' => $parentId,
+                    'child_id' => $childId,
+                    'path' => $path,
+                    'created' => true
+                ]);
+            }
+
+            return response()->json([
+                'success' => true,
+                'link_id' => $link->id,
+                'parent_id' => $link->parent_config_id,
+                'child_id' => $link->child_config_id,
+                'path' => json_decode($link->path, true),
+                'created' => false
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error in getLinkIdWithPath', [
+                'error' => $e->getMessage(),
+                'request_data' => $request->all()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Error fetching/creating link ID with path: ' . $e->getMessage()
+            ], 500);
+        }
+    }
 }

@@ -11,6 +11,10 @@ class VariantConfigurationLink extends Model
 
     protected $table = 'variants_configurations_links';
     protected $guarded = [];
+    
+    protected $casts = [
+        'path' => 'array',
+    ];
 
     /**
      * Get the parent variant configuration
@@ -34,5 +38,22 @@ class VariantConfigurationLink extends Model
     public function vendorProductVariants()
     {
         return $this->hasMany(VendorProductVariant::class, 'variant_link_id');
+    }
+    
+    /**
+     * Get the complete hierarchy path as configuration objects
+     */
+    public function getPathConfigurations()
+    {
+        if (!$this->path || !is_array($this->path)) {
+            return collect();
+        }
+        
+        return VariantsConfiguration::whereIn('id', $this->path)
+            ->with(['key.translations', 'translations'])
+            ->get()
+            ->sortBy(function ($config) {
+                return array_search($config->id, $this->path);
+            });
     }
 }

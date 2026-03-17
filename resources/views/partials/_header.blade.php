@@ -28,7 +28,7 @@
     @else
         <link rel="stylesheet" href="{{ asset('assets/css/style.min.css') }}">
     @endif
-    <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('assets/img/favicon-bnaia.png') }}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('assets/img/favico.png') }}">
     <link rel="stylesheet" href="{{ asset('css/unicons/line.css') }}">
     <link rel="stylesheet" href="{{ asset('css/plugins/toastr.min.css') }}">
     <link rel="stylesheet" href="{{ asset('css/select2.min.css') }}">

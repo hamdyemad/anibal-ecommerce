@@ -18,6 +18,9 @@ class RequestQuotationObserver
     {
         // Create admin notification for new quotation request
         $this->createQuotationNotification($quotation, 'new');
+        
+        // Invalidate menu counts cache
+        \Illuminate\Support\Facades\Cache::forget('menu_request_quotation_counts');
     }
 
     /**
@@ -32,7 +35,21 @@ class RequestQuotationObserver
             } elseif ($quotation->status === RequestQuotation::STATUS_REJECTED_OFFER) {
                 $this->createQuotationNotification($quotation, 'rejected');
             }
+            
+            // Invalidate menu counts cache when status changes (especially archived status)
+            if ($quotation->wasChanged('is_archived')) {
+                \Illuminate\Support\Facades\Cache::forget('menu_request_quotation_counts');
+            }
         }
+    }
+
+    /**
+     * Handle the RequestQuotation "deleted" event.
+     */
+    public function deleted(RequestQuotation $quotation): void
+    {
+        // Invalidate menu counts cache
+        \Illuminate\Support\Facades\Cache::forget('menu_request_quotation_counts');
     }
 
     /**

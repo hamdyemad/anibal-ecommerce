@@ -8,7 +8,9 @@ class CountryQueryAction
 {
     public function handle(array $filters = [])
     {
-        $query = Country::query()->active()->with('translations', 'currency')->filter($filters);
+        $query = Country::query()->active()
+        ->with('translations', 'currency')
+        ->filter($filters);
         return $query;
     }
 }

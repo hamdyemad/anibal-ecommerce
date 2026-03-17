@@ -16,10 +16,8 @@ class CurrencyResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'name' => $this->getTranslation('name', 'en') ?? 'N/A',
-            'name_ar' => $this->getTranslation('name', 'ar') ?? 'N/A',
-            'code' => $this->getTranslation('name', app()->getLocale()) ?? 'N/A',
-            
+            'name' => $this->getTranslation('name') ?? 'N/A',
+            'code' => $this->code,
             'symbol' => $this->symbol,
             'use_image' => $this->use_image,
             'image' => $this->use_image && $this->image ? asset('/storage/' . $this->image) : null,

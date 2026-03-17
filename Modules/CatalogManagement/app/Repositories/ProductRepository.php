@@ -122,6 +122,9 @@ class ProductRepository implements ProductInterface
             'variants.variantConfiguration.key', // Load variant key
             'variants.variantConfiguration.parent_data.key', // Load parent keys
             'variants.variantConfiguration.parent_data.parent_data.key',
+            'variants.variantLink', // Load variant link (parent-child relationship)
+            'variants.variantLink.parentConfiguration', // Load parent configuration from link
+            'variants.variantLink.childConfiguration', // Load child configuration from link
         ])->findOrFail($id);
     }
 
@@ -571,9 +574,10 @@ class ProductRepository implements ProductInterface
 
                     Log::info('Processing variant', [
                         'variant_index' => $variantIndex,
-                        'variant_data' => $variantData,
                         'variant_config_id' => $variantConfigId,
-                        'vendor_product_id' => $vendorProduct->id
+                        'vendor_product_id' => $vendorProduct->id,
+                        'has_variant_link_id' => isset($variantData['variant_link_id']),
+                        'variant_link_id' => $variantData['variant_link_id'] ?? 'missing'
                     ]);
 
                     $existingProductVariant = null;
@@ -643,6 +647,17 @@ class ProductRepository implements ProductInterface
                         // Add variant_link_id if provided (tracks specific parent-child relationship)
                         if (isset($variantData['variant_link_id'])) {
                             $updateData['variant_link_id'] = $variantData['variant_link_id'];
+                            Log::info('✅ VARIANT_LINK_ID found for UPDATE', [
+                                'variant_index' => $variantIndex,
+                                'variant_id' => $variantData['id'] ?? 'new',
+                                'variant_link_id' => $variantData['variant_link_id']
+                            ]);
+                        } else {
+                            Log::info('⚠️ VARIANT_LINK_ID missing for UPDATE', [
+                                'variant_index' => $variantIndex,
+                                'variant_id' => $variantData['id'] ?? 'new',
+                                'available_keys' => array_keys($variantData)
+                            ]);
                         }
 
                         Log::info('Updating variant', [
@@ -707,6 +722,15 @@ class ProductRepository implements ProductInterface
                         // Add variant_link_id if provided (tracks specific parent-child relationship)
                         if (isset($variantData['variant_link_id'])) {
                             $createData['variant_link_id'] = $variantData['variant_link_id'];
+                            Log::info('✅ VARIANT_LINK_ID found for CREATE', [
+                                'variant_index' => $variantIndex,
+                                'variant_link_id' => $variantData['variant_link_id']
+                            ]);
+                        } else {
+                            Log::info('⚠️ VARIANT_LINK_ID missing for CREATE', [
+                                'variant_index' => $variantIndex,
+                                'available_keys' => array_keys($variantData)
+                            ]);
                         }
 
                         // Create new vendor variant

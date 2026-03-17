@@ -364,7 +364,92 @@ class VariantsConfigurationRepository implements VariantsConfigurationRepository
     public function syncLinkedChildren($parentId, array $childIds)
     {
         $parent = VariantsConfiguration::findOrFail($parentId);
-        return $parent->linkedChildren()->sync($childIds);
+        
+        // Get current linked children to compare
+        $currentChildIds = $parent->linkedChildren()->pluck('child_config_id')->toArray();
+        
+        // Calculate which children to add and which to remove
+        $childIdsToAdd = array_diff($childIds, $currentChildIds);
+        $childIdsToRemove = array_diff($currentChildIds, $childIds);
+        
+        // Remove old links
+        if (!empty($childIdsToRemove)) {
+            DB::table('variants_configurations_links')
+                ->where('parent_config_id', $parentId)
+                ->whereIn('child_config_id', $childIdsToRemove)
+                ->delete();
+        }
+        
+        // Add new links with calculated paths
+        foreach ($childIdsToAdd as $childId) {
+            $this->createLinkWithPath($parentId, $childId);
+        }
+        
+        // Return sync result in Laravel's expected format
+        return [
+            'attached' => $childIdsToAdd,
+            'detached' => $childIdsToRemove,
+            'updated' => []
+        ];
+    }
+    
+    /**
+     * Create a link with calculated hierarchy path
+     */
+    protected function createLinkWithPath($parentId, $childId)
+    {
+        // Calculate the complete hierarchy path
+        $path = $this->calculateHierarchyPath($parentId, $childId);
+        
+        // Create the link with path
+        DB::table('variants_configurations_links')->insert([
+            'parent_config_id' => $parentId,
+            'child_config_id' => $childId,
+            'path' => json_encode($path),
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+        
+        \Log::info('Created variant configuration link with path', [
+            'parent_id' => $parentId,
+            'child_id' => $childId,
+            'path' => $path
+        ]);
+    }
+    
+    /**
+     * Calculate the complete hierarchy path from root to child
+     */
+    protected function calculateHierarchyPath($parentId, $childId)
+    {
+        $path = [];
+        
+        // Build path from parent to root (backwards)
+        $currentId = $parentId;
+        $visited = []; // Prevent infinite loops
+        
+        while ($currentId && !in_array($currentId, $visited)) {
+            $visited[] = $currentId;
+            array_unshift($path, $currentId); // Add to beginning of array
+            
+            // Find parent of current node (either direct parent or linked parent)
+            $current = VariantsConfiguration::find($currentId);
+            if (!$current) break;
+            
+            // Check for direct parent first
+            if ($current->parent_id) {
+                $currentId = $current->parent_id;
+            } else {
+                // Check for linked parent
+                $linkedParent = $current->linkedParents()->first();
+                $currentId = $linkedParent ? $linkedParent->id : null;
+            }
+        }
+        
+        // Add the child to the end of the path
+        $path[] = $childId;
+        
+        return $path;
     }
 
     /**

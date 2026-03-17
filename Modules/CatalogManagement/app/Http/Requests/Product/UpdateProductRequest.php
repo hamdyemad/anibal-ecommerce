@@ -94,6 +94,7 @@ class UpdateProductRequest extends FormRequest
                 'variants.*.price_before_discount' => 'required_if:variants.*.has_discount,1|nullable|numeric|min:0',
                 'variants.*.discount_end_date' => 'required_if:variants.*.has_discount,1|nullable|date|after:today',
                 'variants.*.variant_configuration_id' => 'nullable|exists:variants_configurations,id',
+                'variants.*.variant_link_id' => 'nullable|exists:variants_configurations_links,id',
                 'variants.*.stocks' => 'nullable|array',
                 'variants.*.stocks.*.id' => 'nullable',
                 'variants.*.stocks.*.region_id' => 'required_with:variants.*.stocks|exists:regions,id',

@@ -729,6 +729,11 @@
                                                             <input type="hidden"
                                                                 name="variants[{{ $variantIndex }}][variant_configuration_id]"
                                                                 value="{{ $variant->variant_configuration_id }}">
+                                                            @if($variant->variant_link_id)
+                                                            <input type="hidden"
+                                                                name="variants[{{ $variantIndex }}][variant_link_id]"
+                                                                value="{{ $variant->variant_link_id }}">
+                                                            @endif
 
                                                             <div class="card mt-4"
                                                                 id="variant-{{ $variantIndex }}-section">
@@ -741,49 +746,16 @@
                                                                             {{ __('catalogmanagement::product.variant_configuration') }}:
                                                                             @if ($variant->variantConfiguration)
                                                                             @php
-                                                                                // Build the variant hierarchy
-                                                                                $hierarchy = [];
-                                                                                $current = $variant->variantConfiguration;
-                                                                                $visited = [];
-
-                                                                                // If this variant has a link, use it to get the parent
-                                                                                if ($variant->variantLink) {
-                                                                                    $parentConfig = $variant->variantLink->parentConfiguration;
-                                                                                    $childConfig = $variant->variantLink->childConfiguration;
-                                                                                    
-                                                                                    // Add parent to hierarchy
-                                                                                    if ($parentConfig) {
-                                                                                        $parentKeyName = $parentConfig->key ? $parentConfig->key->getTranslation('name', app()->getLocale()) : 'Key';
-                                                                                        $parentValueName = $parentConfig->getTranslation('name', app()->getLocale());
-                                                                                        $hierarchy[] = $parentKeyName . ' → ' . $parentValueName;
-                                                                                    }
-                                                                                    
-                                                                                    // Add child to hierarchy
-                                                                                    if ($childConfig) {
-                                                                                        $childKeyName = $childConfig->key ? $childConfig->key->getTranslation('name', app()->getLocale()) : 'Key';
-                                                                                        $childValueName = $childConfig->getTranslation('name', app()->getLocale());
-                                                                                        $hierarchy[] = $childKeyName . ' → ' . $childValueName;
-                                                                                    }
-                                                                                } else {
-                                                                                    // Fallback: traverse parent_data chain
-                                                                                    while ($current && !in_array($current->id, $visited)) {
-                                                                                        $visited[] = $current->id;
-                                                                                        
-                                                                                        $valueName = $current->getTranslation('name', app()->getLocale()) ?? $current->name ?? 'Value';
-                                                                                        
-                                                                                        if ($current->parent_data) {
-                                                                                            $keyName = $current->parent_data->getTranslation('name', app()->getLocale()) ?? 'Key';
-                                                                                            array_unshift($hierarchy, $keyName . ' → ' . $valueName);
-                                                                                            $current = $current->parent_data;
-                                                                                        } else {
-                                                                                            $keyName = $current->key ? $current->key->getTranslation('name', app()->getLocale()) : 'Key';
-                                                                                            array_unshift($hierarchy, $keyName . ' → ' . $valueName);
-                                                                                            break;
-                                                                                        }
-                                                                                    }
-                                                                                }
+                                                                                // Use VariantTreeHelper to build hierarchy string
+                                                                                $hierarchyString = \App\Helpers\VariantTreeHelper::buildVariantHierarchyString($variant, app()->getLocale());
                                                                                 
-                                                                                $hierarchyString = implode(' → ', $hierarchy);
+                                                                                // Debug: Log what we're getting
+                                                                                \Log::info('Variant hierarchy debug', [
+                                                                                    'variant_id' => $variant->id,
+                                                                                    'variant_link_id' => $variant->variant_link_id,
+                                                                                    'has_variant_link' => $variant->relationLoaded('variantLink'),
+                                                                                    'hierarchy_string' => $hierarchyString
+                                                                                ]);
                                                                             @endphp
                                                                             <span class="variant-display-text">{{ $hierarchyString ?: 'Packaging - 10 kg' }}</span>
                                                                         @else
@@ -1113,6 +1085,9 @@
                                                                 <input type="hidden"
                                                                     name="variants[__VARIANT_INDEX__][variant_configuration_id]"
                                                                     class="selected-variant-id">
+                                                                <input type="hidden"
+                                                                    name="variants[__VARIANT_INDEX__][variant_link_id]"
+                                                                    class="selected-variant-link-id">
                                                                 <div class="alert alert-info mt-2 selected-variant-path"
                                                                     style="display: none;">
                                                                     <strong>{{ __('catalogmanagement::product.selected_variant') }}:</strong>
@@ -1410,6 +1385,8 @@
                                         </div>
                                         <input type="hidden" name="variants[__VARIANT_INDEX__][variant_configuration_id]"
                                             class="selected-variant-id">
+                                        <input type="hidden" name="variants[__VARIANT_INDEX__][variant_link_id]"
+                                            class="selected-variant-link-id">
                                         <div class="alert alert-info mt-2 selected-variant-path" style="display: none;">
                                             <strong>{{ __('catalogmanagement::product.selected_variant') }}:</strong>
                                             <span class="path-text"></span>
@@ -1439,6 +1416,10 @@
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
     <script>
+        // Test JavaScript execution
+        console.log('🚀 Edit form JavaScript loaded successfully');
+        console.log('🔍 Testing variant_link_id functionality...');
+        
         (function($) {
             'use strict';
 
@@ -2614,21 +2595,6 @@
             }
 
             // Finalize variant selection and show pricing/stock
-            function finalizeVariantSelection(variantIndex, variantId, path) {
-                console.log('✅ Final variant selected:', variantId, 'Path:', path);
-
-                // Set hidden input
-                $(`#variant-${variantIndex} .selected-variant-id`).val(variantId);
-
-                // Show selected path
-                const $pathAlert = $(`#variant-${variantIndex} .selected-variant-path`);
-                $pathAlert.find('.path-text').text(path.join(' > '));
-                $pathAlert.show();
-
-                // Create pricing & stock box
-                createVariantPricingStockBox(variantIndex, path[path.length - 1]);
-            }
-
             // ============================================
             // Simple Product Functions
             // ============================================
@@ -3047,6 +3013,11 @@
 
             // Finalize variant selection and show pricing/stock
             function finalizeVariantSelection(variantIndex, variantId, path) {
+                console.log('🚀 finalizeVariantSelection called with:', {
+                    variantIndex: variantIndex,
+                    variantId: variantId,
+                    path: path
+                });
                 console.log('✅ Final variant selected:', variantId, 'Path:', path);
 
                 // Set hidden input for variant configuration ID
@@ -3068,7 +3039,10 @@
 
                 // If we have a parent, fetch the link ID
                 if (parentId && variantId) {
+                    console.log('🔗 About to fetch link ID - Parent:', parentId, 'Child:', variantId);
                     fetchAndStoreVariantLinkId(variantIndex, parentId, variantId);
+                } else {
+                    console.log('⚠️ Cannot fetch link ID - Parent:', parentId, 'Child:', variantId);
                 }
 
                 // Create pricing & stock box
@@ -3096,7 +3070,22 @@
                         if (response.success && response.link_id) {
                             console.log('✅ Variant link ID found:', response.link_id);
                             
-                            // Store the link ID in a hidden input
+                            // Store the link ID in the template's hidden input (for new variants)
+                            const $templateLinkInput = $(`#variant-${variantIndex} .selected-variant-link-id`);
+                            if ($templateLinkInput.length) {
+                                $templateLinkInput.val(response.link_id);
+                                console.log('✅ Updated template variant link ID input:', response.link_id);
+                            }
+                            
+                            // Debug: Check if input is inside the form
+                            const $form = $('#productForm');
+                            const $inputsInForm = $form.find('input[name*="variant_link_id"]');
+                            console.log('🔍 variant_link_id inputs found in form:', $inputsInForm.length);
+                            $inputsInForm.each(function() {
+                                console.log('  - Input:', this.name, '=', this.value);
+                            });
+                            
+                            // Also create a standalone hidden input as backup
                             const $linkInput = $(`<input type="hidden" name="variants[${variantIndex}][variant_link_id]" value="${response.link_id}" class="variant-link-id-input">`);
                             
                             // Remove any existing link ID input for this variant
@@ -3923,6 +3912,17 @@
                                 // Prepare form data
                                 const formData = new FormData(document.getElementById(
                                     'productForm'));
+
+                                // Debug: Log all form data
+                                console.log('📋 Form data being sent:');
+                                for (let [key, value] of formData.entries()) {
+                                    if (key.includes('variant_link_id')) {
+                                        console.log('🔗 Found variant_link_id:', key, '=', value);
+                                    }
+                                    if (key.includes('variants[')) {
+                                        console.log('📦 Variant field:', key, '=', value);
+                                    }
+                                }
 
                                 // Remove discount fields if discount is not enabled (simple product)
                                 if (!$('#simple_discount').is(':checked')) {

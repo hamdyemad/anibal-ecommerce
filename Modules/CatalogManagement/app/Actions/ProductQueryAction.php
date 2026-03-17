@@ -41,6 +41,8 @@ class ProductQueryAction
                         'variantConfiguration.key.translations',
                         'variantConfiguration.parent_data.translations',
                         'variantConfiguration.parent_data.key.translations',
+                        'variantLink.parentConfiguration.key.translations',
+                        'variantLink.childConfiguration.key.translations'
                     ])
                     ->withSum('stocks as total_stock_sum', 'quantity')
                     ->withSum(['stockBookings as booked_stock_sum' => fn($q) => $q->where('status', 'booked')], 'booked_quantity')

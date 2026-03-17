@@ -25,7 +25,7 @@
             </aside>
         </div>
         <div class="contents">
-            @yield('content')
+            {{-- @yield('content') --}}
         </div>
         <footer class="footer-wrapper">
             @include('partials._footer')
@@ -300,8 +300,6 @@
     </script>
 
     @stack('scripts')
-
-    <script src="{{ asset('assets/js/menu-badges.js') }}"></script>
 
     <script>
         (function() {

@@ -33,7 +33,23 @@ class RequestQuotationController extends Controller
         try {
             $isArchived = $request->boolean('is_archived');
             
-            $query = RequestQuotation::with(['order', 'customer', 'customerAddress.city', 'customerAddress.region', 'customerAddress.subregion', 'customerAddress.country'])->latest();
+            $query = RequestQuotation::with([
+                'order', 
+                'customer', 
+                'customerAddress.city', 
+                'customerAddress.region', 
+                'customerAddress.subregion', 
+                'customerAddress.country',
+                'vendors' => function($query) {
+                    $query->with(['vendor' => function($q) {
+                        $q->select('id', 'name')
+                          ->with(['logo' => function($logoQuery) {
+                              $logoQuery->select('id', 'attachable_id', 'attachable_type', 'path');
+                          }]);
+                    }, 'order:id,order_number']);
+                }
+            ])->select('id', 'quotation_number', 'customer_id', 'customer_address_id', 'country_id', 'order_id', 'notes', 'file', 'status', 'created_at')
+            ->latest();
             
             if ($isArchived) {
                 $query->archived();
@@ -84,8 +100,8 @@ class RequestQuotationController extends Controller
                 ->addColumn('vendors_with_status', function ($quotation) {
                     $html = '';
                     
-                    // Get all vendors assigned to this quotation with their status
-                    $vendors = $quotation->vendors()->with(['vendor', 'order'])->get();
+                    // Use pre-loaded vendors relation
+                    $vendors = $quotation->vendors;
                     
                     if ($vendors->count() > 0) {
                         foreach ($vendors as $vendorQuotation) {
@@ -169,8 +185,8 @@ class RequestQuotationController extends Controller
                     }
 
                     // View details button
-                    // Get vendors with their status and order info
-                    $vendorsData = $quotation->vendors()->with(['vendor', 'order'])->get()->map(function($vendorQuotation) {
+                    // Use pre-loaded vendors relation
+                    $vendorsData = $quotation->vendors->map(function($vendorQuotation) {
                         return [
                             'vendor_name' => $vendorQuotation->vendor?->name,
                             'vendor_logo' => $vendorQuotation->vendor && $vendorQuotation->vendor->logo 

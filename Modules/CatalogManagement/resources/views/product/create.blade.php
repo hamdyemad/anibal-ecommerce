@@ -1071,6 +1071,8 @@
                                         </div>
                                         <input type="hidden" name="variants[__VARIANT_INDEX__][variant_configuration_id]"
                                             class="selected-variant-id">
+                                        <input type="hidden" name="variants[__VARIANT_INDEX__][variant_link_id]"
+                                            class="selected-variant-link-id">
                                         <div class="alert alert-info mt-2 selected-variant-path mb-2"
                                             style="display: none;">
                                             <strong>{{ __('catalogmanagement::product.selected_variant') }}:</strong>
@@ -2141,7 +2143,7 @@
 
 
             // Load child variants
-            function loadChildVariants(variantIndex, parentId, level, selectedPath, keyId) {
+            function loadChildVariants(variantIndex, parentId, level, selectedPath, keyId, selectedIds = []) {
                 console.log('🌳 Loading child variants for parent:', parentId, 'at level:', level);
 
                 const $levelsContainer = $(`#variant-${variantIndex} .variant-tree-levels`);
@@ -2177,7 +2179,7 @@
                                 selectedPath);
                         } else {
                             // No more children - this is the final selection
-                            finalizeVariantSelection(variantIndex, parentId, selectedPath);
+                            finalizeVariantSelection(variantIndex, parentId, selectedPath, selectedIds);
                         }
                     },
                     error: function(xhr, status, error) {
@@ -2187,8 +2189,8 @@
             }
 
             // Finalize variant selection and show pricing/stock
-            function finalizeVariantSelection(variantIndex, variantId, path) {
-                console.log('✅ Final variant selected:', variantId, 'Path:', path);
+            function finalizeVariantSelection(variantIndex, variantId, path, selectedIds = []) {
+                console.log('✅ Final variant selected:', variantId, 'Path:', path, 'IDs:', selectedIds);
 
                 // Set hidden input
                 $(`#variant-${variantIndex} .selected-variant-id`).val(variantId);
@@ -2198,8 +2200,147 @@
                 $pathAlert.find('.path-text').text(path.join(' > '));
                 $pathAlert.show();
 
+                // Use the new path-based method to fetch/create link ID
+                if (selectedIds.length >= 2) {
+                    console.log('🔗 Using path-based link ID method with complete hierarchy');
+                    fetchAndStoreVariantLinkIdWithPath(variantIndex, selectedIds);
+                } else if (selectedIds.length >= 1) {
+                    // Fallback for single-level variants (shouldn't happen in complex hierarchies)
+                    console.log('⚠️ Single-level variant - no link ID needed');
+                } else {
+                    console.log('⚠️ No IDs available for link lookup. selectedIds:', selectedIds);
+                }
+
                 // Create pricing & stock box
                 createVariantPricingStockBox(variantIndex, path[path.length - 1]);
+            }
+
+            // Fetch and store variant link ID
+            function fetchAndStoreVariantLinkId(variantIndex, parentId, childId) {
+                console.log('🔗 Fetching variant link ID for parent:', parentId, 'child:', childId);
+
+                const lang = "{{ app()->getLocale() }}";
+                const countryCode = $("meta[name='currency_country_code']").attr("content");
+                const url = `/${lang}/${countryCode}/admin/variants-configurations/get-link-id`;
+
+                $.ajax({
+                    url: url,
+                    method: 'GET',
+                    data: {
+                        parent_id: parentId,
+                        child_id: childId
+                    },
+                    success: function(response) {
+                        console.log('🔗 Link ID response:', response);
+                        
+                        if (response.success && response.link_id) {
+                            console.log('✅ Variant link ID found:', response.link_id);
+                            
+                            // Store the link ID in the template's hidden input
+                            const $templateLinkInput = $(`#variant-${variantIndex} .selected-variant-link-id`);
+                            if ($templateLinkInput.length) {
+                                $templateLinkInput.val(response.link_id);
+                                console.log('✅ Updated template variant link ID input:', response.link_id);
+                            }
+                            
+                            // Debug: Check if input is inside the form
+                            const $form = $('#productForm');
+                            const $inputsInForm = $form.find('input[name*="variant_link_id"]');
+                            console.log('🔍 variant_link_id inputs found in form:', $inputsInForm.length);
+                            $inputsInForm.each(function() {
+                                console.log('  - Input:', this.name, '=', this.value);
+                            });
+                            
+                            // Also create a standalone hidden input as backup
+                            const $linkInput = $(`<input type="hidden" name="variants[${variantIndex}][variant_link_id]" value="${response.link_id}" class="variant-link-id-input">`);
+                            
+                            // Remove any existing link ID input for this variant
+                            $(`#variant-${variantIndex} .variant-link-id-input`).remove();
+                            
+                            // Add the new link ID input to the variant box
+                            $(`#variant-${variantIndex}`).append($linkInput);
+                            
+                            console.log('✅ Variant link ID stored in form:', response.link_id);
+                            console.log('✅ Hidden input created:', $linkInput[0].outerHTML);
+                        } else {
+                            console.warn('⚠️ No link ID found for this variant combination');
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('❌ Error fetching variant link ID:', error);
+                        console.error('❌ Response:', xhr.responseText);
+                    }
+                });
+            }
+
+            // Fetch and store variant link ID with complete path
+            function fetchAndStoreVariantLinkIdWithPath(variantIndex, selectedIds) {
+                console.log('🔗 Fetching variant link ID with complete path:', selectedIds);
+
+                if (selectedIds.length < 2) {
+                    console.log('⚠️ Not enough IDs for path-based link lookup. selectedIds:', selectedIds);
+                    return;
+                }
+
+                const lang = "{{ app()->getLocale() }}";
+                const countryCode = $("meta[name='currency_country_code']").attr("content");
+                const url = `/${lang}/${countryCode}/admin/variants-configurations/get-link-id-with-path`;
+
+                $.ajax({
+                    url: url,
+                    method: 'POST',
+                    data: {
+                        path: selectedIds,
+                        _token: $('meta[name="csrf-token"]').attr('content')
+                    },
+                    success: function(response) {
+                        console.log('🔗 Path-based Link ID response:', response);
+                        
+                        if (response.success && response.link_id) {
+                            console.log('✅ Variant link ID found/created:', response.link_id);
+                            console.log('📍 Complete path:', response.path);
+                            
+                            // Store the link ID in the template's hidden input
+                            const $templateLinkInput = $(`#variant-${variantIndex} .selected-variant-link-id`);
+                            if ($templateLinkInput.length) {
+                                $templateLinkInput.val(response.link_id);
+                                console.log('✅ Updated template variant link ID input:', response.link_id);
+                            }
+                            
+                            // Also create a standalone hidden input as backup
+                            const $linkInput = $(`<input type="hidden" name="variants[${variantIndex}][variant_link_id]" value="${response.link_id}" class="variant-link-id-input">`);
+                            
+                            // Remove any existing link ID input for this variant
+                            $(`#variant-${variantIndex} .variant-link-id-input`).remove();
+                            
+                            // Add the new link ID input to the variant box
+                            $(`#variant-${variantIndex}`).append($linkInput);
+                            
+                            console.log('✅ Variant link ID stored in form:', response.link_id);
+                            console.log('✅ Hidden input created:', $linkInput[0].outerHTML);
+                            
+                            if (response.created) {
+                                console.log('🆕 New link created with complete path');
+                            } else {
+                                console.log('♻️ Existing link found with matching path');
+                            }
+                        } else {
+                            console.warn('⚠️ No link ID found/created for this variant path combination');
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('❌ Error fetching variant link ID with path:', error);
+                        console.error('❌ Response:', xhr.responseText);
+                        
+                        // Fallback to old method if path method fails
+                        if (selectedIds.length >= 2) {
+                            const parentId = selectedIds[selectedIds.length - 2];
+                            const childId = selectedIds[selectedIds.length - 1];
+                            console.log('🔄 Falling back to simple link method');
+                            fetchAndStoreVariantLinkId(variantIndex, parentId, childId);
+                        }
+                    }
+                });
             }
 
             // ============================================
@@ -3218,12 +3359,15 @@
                         return;
                     }
 
-                    // Build selected path
+                    // Build selected path (both text and IDs)
                     const selectedPath = [];
+                    const selectedIds = [];
                     $(`#variant-${variantIndex} .variant-value-select`).each(function(index) {
                         if (index <= level && $(this).val()) {
                             const selectedText = $(this).find('option:selected').text();
+                            const selectedId = $(this).val();
                             selectedPath.push(selectedText);
+                            selectedIds.push(selectedId);
                         }
                     });
 
@@ -3234,10 +3378,10 @@
 
                     if (hasChildren) {
                         // Load children
-                        loadChildVariants(variantIndex, variantId, level, selectedPath, keyId);
+                        loadChildVariants(variantIndex, variantId, level, selectedPath, keyId, selectedIds);
                     } else {
                         // This is a leaf node - finalize selection
-                        finalizeVariantSelection(variantIndex, variantId, selectedPath);
+                        finalizeVariantSelection(variantIndex, variantId, selectedPath, selectedIds);
                     }
                 });
 

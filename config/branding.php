@@ -13,6 +13,7 @@ return [
     | These match the project's existing design system.
     |
     */
+    'logo' => env('APP_URL') . "/assets/img/logo.jpg",
 
     'colors' => [
         'primary' => '#0056B7',
@@ -23,10 +24,9 @@ return [
     ],
 
     'email' => [
-        'logo_url_en' => "https://multivendor.bnaia.com/assets/img/logo.png",
-        'logo_url_ar' => "https://multivendor.bnaia.com/assets/img/logo.png",
-        'support_email' => 'info@bnaia.com',
-        'support_phone' => '+201273000046',
+        'logo_url_ar' => env('APP_URL') . "/assets/img/logo.jpg",
+        'support_email' => 'info@anibal.com',
+        'support_phone' => '+1090563070',
     ],
 
     'social' => [

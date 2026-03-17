@@ -96,135 +96,27 @@ class VendorProductResource extends JsonResource
      */
     private function buildConfigurationTree(): array
     {
-        $locale = app()->getLocale();
         $variants = $this->variants;
 
         if ($variants->isEmpty()) {
             return [];
         }
 
-        // Use taxes for price calculation
+        $locale = app()->getLocale();
         $taxes = $this->taxes ?? collect();
-        $totalTaxPercentage = $taxes->sum('percentage');
-        $taxMultiplier = 1 + ($totalTaxPercentage / 100);
 
         // Handle simple products
         if ($this->product?->configuration_type === 'simple') {
             $variant = $variants->first();
-
-            $priceBeforeTax = (float) ($variant->price ?? 0);
-            $priceAfterTax = $priceBeforeTax * $taxMultiplier;
-            $fakePriceBeforeTax = $variant->price_before_discount ? (float) $variant->price_before_discount : null;
-            $fakePriceAfterTax = $fakePriceBeforeTax ? $fakePriceBeforeTax * $taxMultiplier : null;
-
-            return [
-                [
-                    'id' => 0,
-                    'name' => $this->product->title ?? __('catalogmanagement::product.simple'),
-                    'type' => 'simple',
-                    'children' => [
-                        [
-                            'id' => 0,
-                            'name' => $this->product->title ?? __('catalogmanagement::product.simple'),
-                            'value' => null,
-                            'type' => 'simple',
-                            'key_id' => 0,
-                            'parent_id' => null,
-                            'variant' => [
-                                'id' => $variant->id,
-                                'sku' => $variant->sku,
-                                'stock' => $variant->total_stock ?? 0,
-                                'remaining_stock' => $variant->remaining_stock ?? 0,
-                                'price_before_taxes' => number_format($priceBeforeTax, 2, '.', ''),
-                                'real_price' => number_format($priceAfterTax, 2, '.', ''),
-                                'fake_price' => $fakePriceAfterTax ? number_format($fakePriceAfterTax, 2, '.', '') : null,
-                                'discount' => $variant->discount,
-                                'quantity_in_cart' => $variant->quantity_in_cart,
-                                'cart_id' => $variant->cart_id,
-                            ]
-                        ]
-                    ]
-                ]
-            ];
+            return \App\Helpers\VariantTreeHelper::buildSimpleProductTree(
+                $variant, 
+                $this->product, 
+                $taxes, 
+                $locale
+            );
         }
 
-        // Build a map of configuration_id => variant data
-        $variantMap = [];
-        foreach ($variants as $variant) {
-            if ($variant->variant_configuration_id) {
-                $variantMap[$variant->variant_configuration_id] = $variant;
-            }
-        }
-
-        if (empty($variantMap)) {
-            return [];
-        }
-
-        // Get all unique configuration IDs from variants
-        $configIds = array_keys($variantMap);
-
-        // Use already loaded variant configurations to avoid N+1 query
-        $configurations = $variants->pluck('variantConfiguration')->filter()->unique('id');
-
-        // Group by key
-        $keyGroups = [];
-        foreach ($configurations as $config) {
-            $key = $config->key;
-            if (!$key)
-                continue;
-
-            if (!isset($keyGroups[$key->id])) {
-                $keyGroups[$key->id] = [
-                    'id' => $key->id,
-                    'name' => $key->getTranslation('name', $locale) ?? $key->name,
-                    'type' => 'key',
-                    'children' => [],
-                ];
-            }
-
-            // Get variant data for this configuration
-            $variant = $variantMap[$config->id] ?? null;
-            $priceBeforeTax = $variant ? (float) $variant->price : 0;
-            $priceAfterTax = $priceBeforeTax * $taxMultiplier;
-            $fakePriceBeforeTax = $variant && $variant->price_before_discount ? (float) $variant->price_before_discount : null;
-            $fakePriceAfterTax = $fakePriceBeforeTax ? $fakePriceBeforeTax * $taxMultiplier : null;
-
-            $keyGroups[$key->id]['children'][] = [
-                'id' => $config->id,
-                'name' => $config->getTranslation('name', $locale) ?? $config->name ?? $config->value,
-                'value' => $config->value,
-                'type' => $config->type,
-                'color' => $config->type === 'color' ? $config->value : null,
-                'key_id' => $config->key_id,
-                'parent_id' => $config->parent_id,
-                'variant' => $variant ? [
-                    'id' => $variant->id,
-                    'sku' => $variant->sku,
-                    'stock' => $variant->total_stock ?? 0,
-                    'remaining_stock' => $variant->remaining_stock ?? 0,
-                    'price_before_taxes' => number_format($priceBeforeTax, 2, '.', ''),
-                    'real_price' => number_format($priceAfterTax, 2, '.', ''),
-                    'fake_price' => $fakePriceAfterTax ? number_format($fakePriceAfterTax, 2, '.', '') : null,
-                    'discount' => $variant->discount,
-                    'quantity_in_cart' => $variant->quantity_in_cart,
-                    'cart_id' => $variant->cart_id,
-                ] : null,
-                '_price' => $priceBeforeTax, // for sorting
-            ];
-        }
-
-        // Sort children by price descending (highest first)
-        foreach ($keyGroups as &$group) {
-            usort($group['children'], function ($a, $b) {
-                return ($b['_price'] ?? 0) <=> ($a['_price'] ?? 0);
-            });
-            // Remove _price helper field
-            $group['children'] = array_map(function ($child) {
-                unset($child['_price']);
-                return $child;
-            }, $group['children']);
-        }
-
-        return array_values($keyGroups);
+        // Handle variant products
+        return \App\Helpers\VariantTreeHelper::buildConfigurationTree($variants, $taxes, $locale);
     }
 }

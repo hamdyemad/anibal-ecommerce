@@ -62,6 +62,7 @@ Route::group(['prefix' => 'variants-configurations'], function() {
     Route::get('{id}/linked-children', 'VariantsConfigurationController@getLinkedChildren')->name('variants-configurations.linked-children');
     Route::get('{id}/all-children', 'VariantsConfigurationController@getAllChildren')->name('variants-configurations.all-children');
     Route::get('get-link-id', 'VariantsConfigurationController@getLinkId')->name('variants-configurations.get-link-id');
+    Route::post('get-link-id-with-path', 'VariantsConfigurationController@getLinkIdWithPath')->name('variants-configurations.get-link-id-with-path');
 });
 Route::resource('variants-configurations', 'VariantsConfigurationController');
 

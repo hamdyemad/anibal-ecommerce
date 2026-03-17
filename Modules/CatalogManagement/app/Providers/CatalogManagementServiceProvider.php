@@ -20,6 +20,7 @@ use Modules\CatalogManagement\app\Interfaces\Api\ProductApiRepositoryInterface;
 use Modules\CatalogManagement\app\Repositories\Api\ProductApiRepository;
 use Modules\CatalogManagement\app\Services\Api\ProductApiService;
 use Modules\CatalogManagement\app\Actions\ProductQueryAction;
+use Modules\CatalogManagement\app\Actions\ProductListQueryAction;
 use App\Actions\IsPaginatedAction;
 use Modules\CatalogManagement\app\Interfaces\Api\BrandApiRepositoryInterface;
 use Modules\CatalogManagement\app\Interfaces\Api\BundleCategoryApiRepositoryInterface;
@@ -146,6 +147,7 @@ class CatalogManagementServiceProvider extends ServiceProvider
 
         // Register API repository and service bindings
         $this->app->singleton(ProductQueryAction::class);
+        $this->app->singleton(ProductListQueryAction::class);
 
         $this->app->singleton(IsPaginatedAction::class);
 
@@ -154,6 +156,7 @@ class CatalogManagementServiceProvider extends ServiceProvider
             function ($app) {
                 return new ProductApiRepository(
                     $app->make(ProductQueryAction::class),
+                    $app->make(ProductListQueryAction::class),
                     $app->make(IsPaginatedAction::class),
                 );
             }

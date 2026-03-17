@@ -280,7 +280,7 @@ function truncateString($string, $length = 15, $append = '...') {
 function formatImage($imagePath): ?string
 {
     if (!$imagePath) {
-        return '';
+        return config('branding.logo');
     }
 
     if ($imagePath instanceof Attachment) {

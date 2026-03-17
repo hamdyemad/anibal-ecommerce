@@ -95,6 +95,7 @@ class StoreProductRequest extends FormRequest
 
                 // Variant configuration (standardized field name)
                 'variants.*.variant_configuration_id' => 'required|exists:variants_configurations,id',
+                'variants.*.variant_link_id' => 'nullable|exists:variants_configurations_links,id',
 
                 'variants.*.stocks' => 'required|array',
                 'variants.*.stocks.*.region_id' => 'required_with:variants.*.stocks|exists:regions,id',

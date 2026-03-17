@@ -12,6 +12,7 @@ use Modules\CatalogManagement\app\Http\Requests\Api\FilterTypeRequest;
 use Modules\CatalogManagement\app\Services\Api\ProductApiService;
 use Modules\CatalogManagement\app\Http\Resources\Api\ProductResource;
 use Modules\CatalogManagement\app\Http\Resources\Api\VendorProductResource;
+use Modules\CatalogManagement\app\Http\Resources\Api\ProductListResource;
 use Modules\CatalogManagement\app\Http\Requests\Api\ProductReviewRequest;
 use Modules\CatalogManagement\app\Http\Resources\Api\BrandApiResource;
 use Modules\CatalogManagement\app\Http\Resources\Api\BundleCategoryResource;
@@ -56,10 +57,11 @@ class ProductApiController extends Controller
 
         $vendorProducts = $this->productService->getAllProducts($dto);
 
+        // Use lightweight resource for listing
         return $this->sendRes(
             config('responses.success')[app()->getLocale()],
             true,
-            VendorProductResource::collection($vendorProducts),
+            ProductListResource::collection($vendorProducts),
             [],
             200
         );
@@ -81,10 +83,11 @@ class ProductApiController extends Controller
 
         $products = $this->productService->getAllProducts($dto);
 
+        // Use lightweight resource for listing
         return $this->sendRes(
             config('responses.success')[app()->getLocale()],
             true,
-            VendorProductResource::collection($products),
+            ProductListResource::collection($products),
             [],
             200
         );
@@ -167,7 +170,7 @@ class ProductApiController extends Controller
         return $this->sendRes(
             config('responses.success')[app()->getLocale()],
             true,
-            VendorProductResource::collection($products),
+            ProductListResource::collection($products),
             [],
             200
         );
@@ -199,7 +202,7 @@ class ProductApiController extends Controller
         return $this->sendRes(
             config('responses.success')[app()->getLocale()],
             true,
-            VendorProductResource::collection($products),
+            ProductListResource::collection($products),
             [],
             200
         );
@@ -229,7 +232,7 @@ class ProductApiController extends Controller
         return $this->sendRes(
             config('responses.success')[app()->getLocale()],
             true,
-            VendorProductResource::collection($products),
+            ProductListResource::collection($products),
             [],
             200
         );
@@ -260,7 +263,7 @@ class ProductApiController extends Controller
         return $this->sendRes(
             config('responses.success')[app()->getLocale()],
             true,
-            VendorProductResource::collection($products),
+            ProductListResource::collection($products),
             [],
             200
         );
@@ -292,7 +295,7 @@ class ProductApiController extends Controller
         return $this->sendRes(
             config('responses.success')[app()->getLocale()],
             true,
-            VendorProductResource::collection($products),
+            ProductListResource::collection($products),
             [],
             200
         );
@@ -326,7 +329,7 @@ class ProductApiController extends Controller
         return $this->sendRes(
             config('responses.success')[app()->getLocale()],
             true,
-            VendorProductResource::collection($products),
+            ProductListResource::collection($products),
             [],
             200
         );

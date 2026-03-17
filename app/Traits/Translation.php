@@ -19,15 +19,12 @@ trait Translation
 
   public function getTranslation(string $key, string $locale = 'en')
   {
-    // Cache language IDs to avoid repeated queries
-    $langId = Cache::remember("language_id_{$locale}", 3600, function () use ($locale) {
-        $lang = Language::where('code', $locale)->first();
-        return $lang ? $lang->id : null;
-    });
-    
-    if (!$langId) {
+    $lang = Language::where('code', $locale)->first();
+
+    if (!$lang) {
         return null;
     }
+    $langId = $lang->id;
     
     // If translations are already eager loaded, use them
     if ($this->relationLoaded('translations')) {

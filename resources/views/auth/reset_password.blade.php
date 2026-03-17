@@ -40,7 +40,7 @@
 
         .auth-image {
             flex: 1;
-            background: url("{{ asset('assets/img/electrical.avif') }}") center center/cover no-repeat;
+            background: url("{{ asset('assets/img/fashion.jpg') }}") center center/cover no-repeat;
             display: flex;
             flex-direction: column;
             justify-content: flex-end;
@@ -160,8 +160,8 @@
 
             {{-- Right Side - Form --}}
             <div class="auth-form">
-                <div style="text-align: center; margin-bottom: 30px;">
-                    <img src="{{ asset('assets/img/logo.png') }}" alt="logo" style="width: 100px;">
+                <div style="text-align: center;">
+                    <img src="{{ asset('assets/img/logo_en.png') }}" alt="logo" style="width: 250px;">
                 </div>
 
                 <h3>Reset Password</h3>

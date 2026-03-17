@@ -16,8 +16,7 @@ class CityResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'name' => $this->getTranslation('name', 'en') ?? 'N/A',
-            'name_ar' => $this->getTranslation('name', 'ar') ?? 'N/A',            
+            'name' => $this->getTranslation('name', app()->getLocale()),
             'slug' => $this->slug,
             'default' => $this->default,
             'image' => ($this->image) ? asset('storage/' . $this->image->path) : '',

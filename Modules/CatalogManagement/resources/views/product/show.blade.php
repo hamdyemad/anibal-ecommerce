@@ -654,81 +654,29 @@
                                                         @if ($variant->variantConfiguration)
                                                             <div class="variant-tree-display">
                                                                 @php
-                                                                    // Build the variant hierarchy by traversing up the parent chain
-                                                                    $values = [];
-                                                                    $rootKeyName = '';
-                                                                    $current = $variant->variantConfiguration;
-                                                                    $visited = []; // Prevent infinite loops
-
-                                                                    // Collect all values from leaf to root
-                                                                    while (
-                                                                        $current &&
-                                                                        !in_array($current->id, $visited)
-                                                                    ) {
-                                                                        $visited[] = $current->id;
-
-                                                                        // Get the value name (current node)
-                                                                        $valueName =
-                                                                            $current->getTranslation(
-                                                                                'name',
-                                                                                app()->getLocale(),
-                                                                            ) ??
-                                                                            ($current->getTranslation('name', 'en') ??
-                                                                                ($current->name ??
-                                                                                    ($current->value ?? 'Value')));
-
-                                                                        // Add value to the beginning of array
-                                                                        array_unshift($values, $valueName);
-
-                                                                        // Move to parent
-                                                                        if ($current->parent_data) {
-                                                                            $current = $current->parent_data;
-                                                                        } else {
-                                                                            // Reached root, get the key name
-                                                                            $rootKeyName = $current->key
-                                                                                ? $current->key->getTranslation(
-                                                                                        'name',
-                                                                                        app()->getLocale(),
-                                                                                    ) ??
-                                                                                    ($current->key->getTranslation(
-                                                                                        'name',
-                                                                                        'en',
-                                                                                    ) ??
-                                                                                        ($current->key->name ?? 'Key'))
-                                                                                : 'Key';
-                                                                            break;
-                                                                        }
-                                                                    }
+                                                                    // Use VariantTreeHelper to build hierarchy string
+                                                                    $hierarchyString = \App\Helpers\VariantTreeHelper::buildVariantHierarchyString($variant, app()->getLocale());
+                                                                    
+                                                                    // Split the hierarchy string into parts for display
+                                                                    $hierarchyParts = explode(' → ', $hierarchyString);
                                                                 @endphp
 
-                                                                @if (count($values) > 0)
+                                                                @if (!empty($hierarchyParts) && $hierarchyParts[0] !== '')
                                                                     <div class="d-flex align-items-center flex-wrap gap-2">
-                                                                        {{-- Display root key badge --}}
-                                                                        <span class="badge badge-round badge-lg"
-                                                                            style="background: linear-gradient(135deg, #6f42c1 0%, #5a32a3 100%);
-                                                                                     color: white; padding: 6px 10px; border-radius: 15px; font-size: 12px;
-                                                                                     box-shadow: 0 2px 4px rgba(0,0,0,0.1); font-weight: bold;">
-                                                                            <i
-                                                                                class="uil uil-key-skeleton me-1"></i>{{ $rootKeyName }}
-                                                                        </span>
-
-                                                                        <span class="text-muted fw-bold">:</span>
-
-                                                                        {{-- Display all values separated by colons --}}
-                                                                        @foreach ($values as $valueIndex => $value)
-                                                                            @if ($valueIndex > 0)
-                                                                                <span class="text-muted fw-bold">:</span>
+                                                                        {{-- Display hierarchy parts as badges --}}
+                                                                        @foreach ($hierarchyParts as $partIndex => $part)
+                                                                            @if ($partIndex > 0)
+                                                                                <span class="text-muted fw-bold">→</span>
                                                                             @endif
 
-                                                                            {{-- Value Badge --}}
+                                                                            {{-- Part Badge --}}
                                                                             <span class="badge badge-round badge-lg"
                                                                                 style="background: linear-gradient(135deg,
-                                                                                         {{ $valueIndex % 3 === 0 ? '#17a2b8' : ($valueIndex % 3 === 1 ? '#28a745' : '#fd7e14') }} 0%,
-                                                                                         {{ $valueIndex % 3 === 0 ? '#138496' : ($valueIndex % 3 === 1 ? '#218838' : '#e8590c') }} 100%);
+                                                                                         {{ $partIndex % 4 === 0 ? '#6f42c1' : ($partIndex % 4 === 1 ? '#17a2b8' : ($partIndex % 4 === 2 ? '#28a745' : '#fd7e14')) }} 0%,
+                                                                                         {{ $partIndex % 4 === 0 ? '#5a32a3' : ($partIndex % 4 === 1 ? '#138496' : ($partIndex % 4 === 2 ? '#218838' : '#e8590c')) }} 100%);
                                                                                          color: white; padding: 6px 10px; border-radius: 15px; font-size: 12px;
                                                                                          box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-                                                                                <i
-                                                                                    class="uil uil-tag me-1"></i>{{ $value }}
+                                                                                <i class="uil uil-tag me-1"></i>{{ $part }}
                                                                             </span>
                                                                         @endforeach
                                                                     </div>

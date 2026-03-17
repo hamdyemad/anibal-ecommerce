@@ -40,7 +40,7 @@
 
         .auth-image {
             flex: 1;
-            background: url("{{ asset('assets/img/electrical.avif') }}") center center/cover no-repeat;
+            background: url("{{ asset('assets/img/fashion.jpg') }}") center center/cover no-repeat;
             display: flex;
             flex-direction: column;
             justify-content: flex-end;
@@ -187,15 +187,15 @@
         <div class="auth-card">
             <div class="auth-image">
                 <div class="auth-image-content">
-                    <h2 style="color: #fff;">Welcome to Bnaia</h2>
-                    <p>Bnaia Dashboard Access.</p>
+                    <h2 style="color: #fff;">Welcome to {{ env('APP_NAME') }}</h2>
+                    <p>Dashboard Access.</p>
                 </div>
             </div>
             <div class="auth-form">
 
 
-                <div style="text-align: center; margin-bottom: 30px;">
-                    <img src="{{ asset('assets/img/logo.png') }}" alt="svg" style="width: 100px;">
+                <div style="text-align: center;">
+                    <img src="{{ asset('assets/img/logo_en.png') }}" alt="svg" style="width: 250px;">
                 </div>
 
                 <h3>Welcome Back </h3>
