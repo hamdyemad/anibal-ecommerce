@@ -25,7 +25,7 @@
             </aside>
         </div>
         <div class="contents">
-            {{-- @yield('content') --}}
+            @yield('content')
         </div>
         <footer class="footer-wrapper">
             @include('partials._footer')

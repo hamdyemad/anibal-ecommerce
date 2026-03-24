@@ -9,6 +9,7 @@ class WishlistQueryAction
 {
     /**
      * Build wishlist query for a customer with filters
+     * Uses the same relations as ProductListQueryAction for consistency
      */
     public function handle($customerId, array $filters = [])
     {
@@ -19,19 +20,31 @@ class WishlistQueryAction
                     $q->active()
                         ->status(VendorProduct::STATUS_APPROVED)
                         ->with([
-                            'product' => function ($q) {
-                                $q->with(['brand', 'attachments', 'translations']);
-                            },
+                            'product.translations',
+                            'product.mainImage',
+                            'product.brand.translations',
                             'variants',
-                            'vendor',
-                            'taxes',
+                            'vendor.translations',
+                            'taxes.translations',
                         ])
-                        ->withCount('reviews')
-                        ->withAvg('reviews', 'star');
+                        ->withCount(['reviews' => function($q) {
+                            $q->withoutGlobalScope('country_filter');
+                        }])
+                        ->withAvg(['reviews' => function($q) {
+                            $q->withoutGlobalScope('country_filter');
+                        }], 'star');
                 }
             ])
-            ->orderBy('created_at', 'desc')
-            ->filter($filters);
+            ->whereHas('vendorProduct', function ($q) {
+                $q->active()
+                    ->status(VendorProduct::STATUS_APPROVED)
+                    ->whereHas('product');
+            })
+            ->orderBy('created_at', 'desc');
+
+        if (!empty($filters)) {
+            $query->filter($filters);
+        }
 
         return $query;
     }
