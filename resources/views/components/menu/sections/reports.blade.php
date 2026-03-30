@@ -3,6 +3,12 @@
                         </a>
                     </li>
                     @endcan
+                    <li class="l_sidebar">
+                        <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive('admin.reports.financial', $currentRoute) ? 'active' : '' }}"
+                            href="{{ route('admin.reports.financial') }}">
+                            {{ trans('menu.reports.financial reports') }}
+                        </a>
+                    </li>
                     @can('reports.area_users.view')
                     <li class="l_sidebar">
                         <a class="d-flex align-items-center justify-content-between fw-bold {{ isMenuActive('admin.reports.area-users', $currentRoute) ? 'active' : '' }}"

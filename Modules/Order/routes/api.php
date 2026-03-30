@@ -56,7 +56,9 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     // Order API routes - checkout has stricter rate limiting
     Route::prefix('orders')->group(function () {
-        Route::post('/checkout', [OrderApiController::class, 'checkout'])->name('checkout')->middleware('throttle:checkout');
+        Route::post('/checkout', [OrderApiController::class, 'checkout'])
+            ->name('checkout')
+            ->middleware(['auth.optional:sanctum', 'throttle:checkout']);
         Route::get('/', [OrderApiController::class, 'myOrders'])->name('my-orders');
         Route::get('/{orderId}', [OrderApiController::class, 'show'])->name('show');
         Route::post('/{orderId}/cancel', [OrderApiController::class, 'cancel'])->name('cancel');

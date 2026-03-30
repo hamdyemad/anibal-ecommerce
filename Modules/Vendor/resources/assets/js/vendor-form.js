@@ -844,6 +844,15 @@ function handleFormSubmission(e) {
     const formData = new FormData(this);
     const url = $(this).attr('action');
 
+    // Debug: Log all form data
+    console.log('=== Form Data Debug ===');
+    for (let [key, value] of formData.entries()) {
+        if (key.includes('meta_description')) {
+            console.log(`${key}:`, value);
+        }
+    }
+    console.log('======================');
+
     $.ajax({
         url: url,
         method: 'POST',

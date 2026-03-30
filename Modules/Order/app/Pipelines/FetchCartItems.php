@@ -17,11 +17,45 @@ class FetchCartItems
     /**
      * Fetch cart items from authenticated user and add to data
      * Includes bundle and occasion data for API checkout
+     * For guest users, expects products to be sent directly in request
      */
     public function handle($payload, Closure $next)
     {
         $data = $payload['data'];
         $context = $payload['context'];
+
+        // For guest checkout, products should be sent directly in the request
+        if ($data['customer_type'] === 'external') {
+            // Validate that products are provided
+            if (empty($data['products']) || !is_array($data['products'])) {
+                throw new OrderException(trans('order.products_required_for_guest_checkout'));
+            }
+            
+            // Products are already in the data, just validate structure
+            $cart = collect($data['products'])->map(function($item) {
+                return [
+                    'vendor_product_id' => $item['vendor_product_id'] ?? null,
+                    'vendor_product_variant_id' => $item['vendor_product_variant_id'] ?? null,
+                    'quantity' => $item['quantity'] ?? 1,
+                    'type' => $item['type'] ?? 'product',
+                    'bundle_id' => $item['bundle_id'] ?? null,
+                    'occasion_id' => $item['occasion_id'] ?? null,
+                ];
+            })->toArray();
+            
+            // Validate cart is not empty
+            if (empty($cart)) {
+                throw new OrderException(trans('order.cart_is_empty'));
+            }
+            
+            // Add cart items to data
+            $data['products'] = $cart;
+            
+            return $next([
+                'data' => $data,
+                'context' => $context,
+            ]);
+        }
 
         // Get cart items from authenticated user
         $dto = new CartFilterDTO();

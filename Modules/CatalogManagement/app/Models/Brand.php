@@ -37,6 +37,12 @@ class Brand extends BaseModel
         return $this->morphOne(Attachment::class, 'attachable')->where('type', 'logo');
     }
 
+    public function getDescriptionAttribute()
+    {
+        return $this->getTranslation('description', app()->getLocale());
+    }
+
+
     /**
      * Get the cover attachment
      */

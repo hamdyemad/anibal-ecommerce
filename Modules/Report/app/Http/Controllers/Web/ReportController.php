@@ -29,6 +29,17 @@ class ReportController extends Controller
     }
 
     /**
+     * Show financial reports
+     */
+    public function financial()
+    {
+        // Get the same data that dashboard uses
+        $salesOverview = app(\App\Services\DashboardService::class)->getSalesOverview();
+        
+        return view('report::financial', compact('salesOverview'));
+    }
+
+    /**
      * Show registered users report
      */
     public function registeredUsers()

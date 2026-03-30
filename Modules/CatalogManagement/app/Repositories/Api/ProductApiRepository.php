@@ -496,7 +496,8 @@ class ProductApiRepository implements ProductApiRepositoryInterface
                     $query->with([
                         'stocks.region',
                         'variantConfiguration.parent_data.key',
-                        'variantConfiguration.key'
+                        'variantConfiguration.key',
+                        'images' // Load variant images
                     ]);
                 }
             ])

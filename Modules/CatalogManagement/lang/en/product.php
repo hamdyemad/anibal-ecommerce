@@ -292,6 +292,16 @@ return [
     'cannot_remove_last_stock_row' => 'Cannot remove the last stock row',
     'total_quantity' => 'Total Quantity',
 
+    // Variant Images
+    'variant_images' => 'Variant Images',
+    'upload_variant_images' => 'Upload Variant Images',
+    'variant_images_help' => 'You can upload multiple images for this variant. These images will be specific to this variant only.',
+    'upload_new_images' => 'Upload New Images',
+    'additional_images_help' => 'You can upload multiple additional images for the product.',
+    'confirm_delete_image' => 'Are you sure you want to delete this image?',
+    'variant_image' => 'Variant Image',
+    'additional_image' => 'Additional Image',
+
     // Validation Messages
     'title_required' => 'Product title is required',
     'vendor_required' => 'Vendor is required',

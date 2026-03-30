@@ -284,6 +284,7 @@
         'reports' => [
             'title' => 'reports',
             'registerd users' => 'registered customers',
+            'financial reports' => 'Financial Reports',
             'area users' => 'Area Customers',
             'orders report' => 'Orders Report',
             'product report' => 'Product Report',

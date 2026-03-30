@@ -307,84 +307,22 @@
                                                             <h6 class="mb-0" style="font-weight: 600; font-size: 16px;">
                                                                 <i class="uil uil-layer-group me-2"></i>
                                                                 {{ __('catalogmanagement::product.variant_configuration') }}:
-                                                                @if ($variant->variantConfiguration)
-                                                                    @php
-                                                                        // Build the variant hierarchy by traversing up the parent chain
-                                                                        $hierarchy = [];
-                                                                        $current = $variant->variantConfiguration;
-                                                                        $visited = []; // Prevent infinite loops
-
-                                                                        // Start with the current variant (could be leaf or parent node)
-                                                                        while (
-                                                                            $current &&
-                                                                            !in_array($current->id, $visited)
-                                                                        ) {
-                                                                            $visited[] = $current->id;
-
-                                                                            // Get the value name (current node)
-                                                                            $valueName =
-                                                                                $current->getTranslation(
-                                                                                    'name',
-                                                                                    app()->getLocale(),
-                                                                                ) ??
-                                                                                ($current->getTranslation(
-                                                                                    'name',
-                                                                                    'en',
-                                                                                ) ??
-                                                                                    ($current->name ?? 'Value'));
-
-                                                                            // If this has a parent, it means this is a value and parent is key
-                                                                            if ($current->parent_data) {
-                                                                                $keyName =
-                                                                                    $current->parent_data->getTranslation(
-                                                                                        'name',
-                                                                                        app()->getLocale(),
-                                                                                    ) ??
-                                                                                    ($current->parent_data->getTranslation(
-                                                                                        'name',
-                                                                                        'en',
-                                                                                    ) ??
-                                                                                        ($current->parent_data->name ??
-                                                                                            'Key'));
-
-                                                                                // Add to hierarchy (key -> value)
-                                                                                array_unshift(
-                                                                                    $hierarchy,
-                                                                                    $keyName . ' → ' . $valueName,
-                                                                                );
-
-                                                                                // Move to parent for next iteration
-                                                                                $current = $current->parent_data;
-                                                                            } else {
-                                                                                // This is a root node (no parent) - still add it to hierarchy
-                                                                                $keyName = $current->key
-                                                                                    ? $current->key->getTranslation(
-                                                                                            'name',
-                                                                                            app()->getLocale(),
-                                                                                        ) ??
-                                                                                        ($current->key->getTranslation(
-                                                                                            'name',
-                                                                                            'en',
-                                                                                        ) ??
-                                                                                            ($current->key->name ??
-                                                                                                'Key'))
-                                                                                    : 'Key';
-
-                                                                                array_unshift(
-                                                                                    $hierarchy,
-                                                                                    $keyName . ' → ' . $valueName,
-                                                                                );
-                                                                                break;
-                                                                            }
-                                                                        }
-
-                                                                        // Join the hierarchy with arrows
-                                                                        $hierarchyString = implode(' → ', $hierarchy);
-                                                                    @endphp
-                                                                    {{ $hierarchyString ?: 'Packaging - 10 kg' }}
-                                                                @else
-                                                                    Packaging - 10 kg
-                                                                @endif
+                                                                @php
+                                                                    // Use VariantTreeHelper to build the complete hierarchy path
+                                                                    $hierarchyPath = \App\Helpers\VariantTreeHelper::buildVariantHierarchyPath(
+                                                                        $variant, 
+                                                                        app()->getLocale()
+                                                                    );
+                                                                    
+                                                                    // Build display string from hierarchy path
+                                                                    $hierarchyParts = [];
+                                                                    foreach ($hierarchyPath as $pathItem) {
+                                                                        $hierarchyParts[] = $pathItem['key_name'] . ' → ' . $pathItem['config_name'];
+                                                                    }
+                                                                    
+                                                                    $hierarchyString = implode(' → ', $hierarchyParts);
+                                                                @endphp
+                                                                {{ $hierarchyString ?: __('catalogmanagement::product.variant') }}
                                                             </h6>
                                                             <button type="button" class="btn btn-danger btn-sm remove-existing-variant-btn" 
                                                                 data-variant-id="{{ $variant->id }}"

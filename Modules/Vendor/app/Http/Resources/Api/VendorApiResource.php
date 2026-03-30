@@ -21,7 +21,7 @@ class VendorApiResource extends JsonResource
             'name' => $this->name,
             'star' => round($this->reviews_avg_star ?? 0, 1),
             'num_of_user_review' => $this->reviews_count ?? 0,
-            'description' => $this->description,
+            'description' => $this->getTranslation('description'),
             'country_id' => $this->country_id,
             'country_name' => $this->whenLoaded('country', $this->country?->name),
             'type' => $this->type,
@@ -35,6 +35,11 @@ class VendorApiResource extends JsonResource
             'linkedin' => $this->linkedin_url,
             'pinterest' => $this->pinterest_url,
             'products_count' => $this->vendor_products_count ?? 0,
+            'seo' => [
+                'title' => $this->getTranslation('meta_title'),
+                'description' => $this->getTranslation('meta_description'),
+                'keywsords' => $this->getMetaKeywordsArray()
+            ],
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

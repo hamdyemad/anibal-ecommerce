@@ -312,6 +312,7 @@ return [
 
     // API Messages
     'cart_is_empty' => 'Your cart is empty. Please add items before checkout',
+    'products_required_for_guest_checkout' => 'Products are required for guest checkout',
     'order_created_successfully' => 'Order created successfully',
     'error_creating_order' => 'Error creating order',
     'orders_retrieved_successfully' => 'Orders retrieved successfully',

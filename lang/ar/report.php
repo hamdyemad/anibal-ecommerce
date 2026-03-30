@@ -1,6 +1,8 @@
 <?php
 
 return [
+    'reports' => 'التقارير',
+    'financial_reports' => 'التقارير المالية',
     'customers_in_report' => 'العملاء في التقرير',
     'total_customers' => 'إجمالي العملاء',
     'active_customers' => 'العملاء النشطين',

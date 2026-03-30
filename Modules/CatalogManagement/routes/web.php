@@ -141,7 +141,9 @@ Route::group(['prefix' => 'products'], function() {
     Route::post('{product}/change-activation', 'ProductController@changeActivation')->name('products.change-activation');
     Route::post('{product}/move-to-bank', 'ProductController@moveToBank')->name('products.move-to-bank');
     Route::post('{product}/change-bank-activation', 'ProductController@changeBankActivation')->name('products.change-bank-activation');
-
+    
+    // Image deletion routes
+    Route::delete('{product}/images/delete', 'ProductController@deleteImage')->name('products.images.delete');
 
 });
 

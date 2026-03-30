@@ -72,6 +72,15 @@ class VendorProductVariantResource extends JsonResource
             'countOfAvailable' => $this->countOfAvailable,
             'end_at' => $this->discount_end_at,
             'countDown' => $this->discount_end_date ? OfferExpireDateResource::make($this->getRawOriginal('discount_end_date')) : null,
+            'images' => $this->whenLoaded('images', function() {
+                return $this->images->map(function($image) {
+                    return [
+                        'id' => $image->id,
+                        'url' => $image->path ? asset('storage/' . $image->path) : null,
+                        'path' => $image->path,
+                    ];
+                });
+            }, []),
         ];
     }
 

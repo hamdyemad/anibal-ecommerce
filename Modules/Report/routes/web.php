@@ -6,6 +6,9 @@ use Modules\Report\app\Http\Controllers\Web\ReportController;
 Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('reports', [ReportController::class, 'index'])->name('reports.index');
         
+        // Financial Reports
+        Route::get('reports/financial', [ReportController::class, 'financial'])->name('reports.financial');
+        
         // Registered Users Report
         Route::get('reports/registered-users', [ReportController::class, 'registeredUsers'])->name('reports.registered-users');
         Route::get('reports/data/registered-users', [ReportController::class, 'getRegisteredUsersData'])->name('reports.data.registered-users');

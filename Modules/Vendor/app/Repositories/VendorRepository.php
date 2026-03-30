@@ -77,6 +77,11 @@ class VendorRepository implements VendorInterface
                 'active' => $data['active'] ?? false,
                 'vendor_request_id' => $data['vendor_request_id'] ?? null,
                 'phone' => $data['phone'] ?? null,
+                'facebook_url' => $data['facebook_url'] ?? null,
+                'twitter_url' => $data['twitter_url'] ?? null,
+                'instagram_url' => $data['instagram_url'] ?? null,
+                'linkedin_url' => $data['linkedin_url'] ?? null,
+                'pinterest_url' => $data['pinterest_url'] ?? null,
             ]);
             // Handle logo upload
             if (isset($data['logo'])) {
@@ -206,6 +211,11 @@ class VendorRepository implements VendorInterface
                 'type' => $data['type'] ?? 'product',
                 'active' => $data['active'] ?? false,
                 'phone' => $data['phone'] ?? null,
+                'facebook_url' => $data['facebook_url'] ?? null,
+                'twitter_url' => $data['twitter_url'] ?? null,
+                'instagram_url' => $data['instagram_url'] ?? null,
+                'linkedin_url' => $data['linkedin_url'] ?? null,
+                'pinterest_url' => $data['pinterest_url'] ?? null,
             ]);
 
 
@@ -357,7 +367,7 @@ class VendorRepository implements VendorInterface
                 }
 
                 // Update or create meta_description translation
-                if (!empty($fields['meta_description'])) {
+                if (isset($fields['meta_description'])) {
                     $vendor->translations()->updateOrCreate(
                         [
                             'lang_id' => $language->id,

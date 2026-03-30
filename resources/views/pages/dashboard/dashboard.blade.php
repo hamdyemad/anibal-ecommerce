@@ -21,23 +21,11 @@
                     </div>
                 </div>
 
-                @include('pages.dashboard.withdraw-transactions')
-                @include('pages.dashboard.stats-overview')
-                @include('pages.dashboard.income-and-expenses')
-                @include('pages.dashboard.refunds-overview')
-                <div class="col-12">
-                    <div class="row">
-                        @include('pages.dashboard.total-sales-chart')
-                        @include('pages.dashboard.earnings-chart')
-                    </div>
-                </div>
-                
-                <div class="col-12">
-                    <div class="row">
-                        @include('pages.dashboard.refunds-chart')
-                        @include('pages.dashboard.net-sales-chart')
-                    </div>
-                </div>
+                {{-- Removed sections: withdraw-transactions and stats-overview --}}
+                {{-- These can be moved to reports section if needed --}}
+
+                {{-- Removed charts sections: income-and-expenses, refunds-overview, and all sales charts --}}
+                {{-- These have been moved to reports module --}}
 
                 @include('pages.dashboard.stats-cards')
                 @include('pages.dashboard.orders-overview')

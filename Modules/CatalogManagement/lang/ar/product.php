@@ -290,6 +290,16 @@ return [
     'cannot_remove_last_stock_row' => 'لا يمكن إزالة آخر صف مخزون',
     'total_quantity' => 'الكمية الإجمالية',
 
+    // Variant Images
+    'variant_images' => 'صور المتغير',
+    'upload_variant_images' => 'رفع صور المتغير',
+    'variant_images_help' => 'يمكنك رفع عدة صور لهذا المتغير. هذه الصور ستكون خاصة بهذا المتغير فقط.',
+    'upload_new_images' => 'رفع صور جديدة',
+    'additional_images_help' => 'يمكنك رفع عدة صور إضافية للمنتج.',
+    'confirm_delete_image' => 'هل أنت متأكد من حذف هذه الصورة؟',
+    'variant_image' => 'صورة المتغير',
+    'additional_image' => 'صورة إضافية',
+
     // Validation Messages
     'title_required' => 'عنوان المنتج مطلوب',
     'vendor_required' => 'البائع مطلوب',

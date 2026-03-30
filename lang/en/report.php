@@ -1,6 +1,8 @@
 <?php
 
 return [
+    'reports' => 'Reports',
+    'financial_reports' => 'Financial Reports',
     'customers_in_report' => 'Customers in Report',
     'total_customers' => 'Total Customers',
     'active_customers' => 'Active Customers',

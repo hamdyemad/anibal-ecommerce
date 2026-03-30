@@ -1010,6 +1010,27 @@
                                         </div>
                                     </div>
                                 </div>
+
+                                <!-- Variant Images Card (only for variants) -->
+                                <div class="card mb-4 variant-images-card" style="display: none;">
+                                    <div class="card-body">
+                                        <h5 class="mb-4">
+                                            <i class="uil uil-images"></i>
+                                            {{ __('catalogmanagement::product.variant_images') }}
+                                        </h5>
+                                        <div class="row">
+                                            <div class="col-md-12 mb-3">
+                                                <label class="form-label">{{ __('catalogmanagement::product.upload_variant_images') }}</label>
+                                                <input type="file" multiple class="form-control variant-images-input" accept="image/*"
+                                                    name="__NAME_PREFIX__[images][]">
+                                                <small class="text-muted">{{ __('catalogmanagement::product.variant_images_help') }}</small>
+                                                <div class="variant-images-preview mt-3 d-flex flex-wrap gap-2">
+                                                    <!-- Variant images preview will appear here -->
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </template>
 
@@ -1814,9 +1835,13 @@
 
                 $(`#${containerId}`).html(html);
 
-                // For simple products, remove the SKU field from the template (it's in Step 1)
+                // For simple products, remove the SKU field and variant images card
                 if (!namePrefix) {
                     $(`#${containerId} .variant-sku-field`).remove();
+                    $(`#${containerId} .variant-images-card`).remove();
+                } else {
+                    // For variants, show the variant images card
+                    $(`#${containerId} .variant-images-card`).show();
                 }
 
                 // Initialize Select2 for region selects
@@ -1826,6 +1851,32 @@
                         width: '100%',
                     });
                 }, 100);
+
+                // Add image preview functionality for variant images
+                if (namePrefix) {
+                    $(`#${containerId} .variant-images-input`).on('change', function(e) {
+                        const files = e.target.files;
+                        const $previewContainer = $(this).siblings('.variant-images-preview');
+                        $previewContainer.empty();
+
+                        if (files.length > 0) {
+                            Array.from(files).forEach((file, idx) => {
+                                const reader = new FileReader();
+                                reader.onload = function(e) {
+                                    const $preview = $(`
+                                        <div class="position-relative" style="width: 100px; height: 100px;">
+                                            <img src="${e.target.result}" class="img-thumbnail" style="width: 100%; height: 100%; object-fit: cover;">
+                                            <span class="badge bg-primary position-absolute top-0 start-0 m-1">${idx + 1}</span>
+                                        </div>
+                                    `);
+                                    $previewContainer.append($preview);
+                                };
+                                reader.readAsDataURL(file);
+                            });
+                        }
+                    });
+                }
+
 
                 // Add first stock row
                 addStockRow(containerId, namePrefix);
@@ -1987,6 +2038,9 @@
 
                 // Show SKU field for variants
                 $(`#${containerId} .variant-sku-field`).show();
+                
+                // Show variant images card for variants
+                $(`#${containerId} .variant-images-card`).show();
 
                 console.log('✅ Variant pricing & stock created for:', variantName);
             }

@@ -315,9 +315,24 @@ class VariantsConfigurationRepository implements VariantsConfigurationRepository
      */
     public function getVariantChildren($parentId)
     {
-        return VariantsConfiguration::with('translations')
+        // Get the parent variant to access linked children
+        $parent = VariantsConfiguration::withoutGlobalScopes()->find($parentId);
+        
+        if (!$parent) {
+            return collect();
+        }
+        
+        // Get direct children (via parent_id)
+        $directChildren = VariantsConfiguration::withoutGlobalScopes()
+            ->with('translations')
             ->where('parent_id', $parentId)
             ->get();
+        
+        // Get linked children (via configuration_links table)
+        $linkedChildren = $parent->linkedChildren()->with('translations')->get();
+        
+        // Merge and remove duplicates
+        return $directChildren->merge($linkedChildren)->unique('id');
     }
 
     /**

@@ -21,6 +21,33 @@
 
         <!-- Reports Grid -->
         <div class="row">
+            <!-- Financial Reports Card -->
+            <div class="col-lg-4 col-md-6 mb-25">
+                <div class="ap-po-details ap-po-details--2 p-25 radius-xl h-100" style="border-left: 4px solid #6c757d;">
+                    <div class="overview-content w-100">
+                        <div class="ap-po-details-content h-100">
+                            <div class="ap-po-details__titlebar mb-3">
+                                <h2 class="ap-po-details__title" style="color: #6c757d; font-size: 1.5rem;">
+                                    {{ trans('report::report.financial_reports') }}
+                                </h2>
+                                <p class="ap-po-details__text text-muted">{{ __('Income, expenses, and sales analytics') }}</p>
+                            </div>
+                            <div class="ap-po-details__icon-area">
+                                <div class="ap-po-details__icon d-flex align-items-center justify-content-center rounded-circle"
+                                    style="width: 70px; height: 70px; background: linear-gradient(135deg, #6c757d, #495057); color: white;">
+                                    <i class="uil uil-chart-line" style="font-size: 32px;"></i>
+                                </div>
+                            </div>
+                            <div class="mt-4">
+                                <a href="{{ route('admin.reports.financial') }}" class="btn btn-secondary btn-sm w-100">
+                                    <i class="uil uil-arrow-right me-1"></i>{{ __('View Report') }}
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Registered Users Report Card -->
             <div class="col-lg-4 col-md-6 mb-25">
                 <div class="ap-po-details ap-po-details--2 p-25 radius-xl h-100" style="border-left: 4px solid {{ config('branding.colors.primary') }};">

@@ -5,12 +5,10 @@ namespace Modules\Order\app\Http\Resources\Api;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use App\Helpers\PointsHelper;
-use Modules\Order\app\Traits\HasVariantConfigurationTree;
+use App\Helpers\VariantTreeHelper;
 
 class CartProductResource extends JsonResource
 {
-    use HasVariantConfigurationTree;
-    
     /**
      * Cart context passed from CartResource
      */
@@ -75,31 +73,23 @@ class CartProductResource extends JsonResource
 
         return [
             'id' => $product->id,
+            'vendor_product_id' => $this->vendorProduct->id,
             'image' => formatImage($product->mainImage),
             'name' => $product->title,
             'slug' => $product->slug,
             'points' => $points,
-            'status' => $this->vendorProduct->is_featured ? __('catalogmanagement::product.featured') : __('catalogmanagement::product.active'),
-            'is_fav' => false,
-            'star' => $this->vendorProduct->average_rating ?? 0,
-            'num_of_user_review' => $this->vendorProduct->reviews_count ?? 0,
-            'number_of_sale' => $this->vendorProduct->sales ?? 0,
-            'stock' => $this->total_stock ?? 0,
-            'sku' => $this->sku ?? null,
             'variant_id' => $this->id,
-            'variant_name' => $this->{"variant_path_{$locale}"} ?? '',
             'variant_sku' => $this->sku ?? null,
             'variant_stock' => $this->total_stock ?? 0,
             'variant_remaining_stock' => $this->remaining_stock ?? 0,
-            // Variant prices (bundle/occasion price if applicable)
             'real_price' => round($variantPriceAfterTaxes, 2),
             'fake_price' => $originalVariantPrice > $variantPrice ? round($originalVariantPrice, 2) : null,
             'discount' => $discount > 0 ? $discount : null,
-            'configuration_tree' => $this->when($this->relationLoaded('variantConfiguration') && $this->variantConfiguration, function() use ($locale) {
-                return $this->buildVariantConfigurationTree($this->variantConfiguration, $this->id, $locale);
+            'configuration_tree' => $this->when($this->relationLoaded('variantConfiguration') && $this->variantConfiguration, function() use ($vendorProduct, $locale) {
+                // Get taxes for price calculation
+                $taxes = $vendorProduct && $vendorProduct->taxes ? $vendorProduct->taxes : [];
+                return VariantTreeHelper::buildSingleVariantTree($this->resource, $taxes, $locale);
             }),
-            'countDeliveredProduct' => $this->countDeliveredProduct ?? 0,
-            'countOfAvailable' => $this->countOfAvailable ?? 0,
         ];
     }
 }

@@ -100,6 +100,9 @@ class StoreProductRequest extends FormRequest
                 'variants.*.stocks' => 'required|array',
                 'variants.*.stocks.*.region_id' => 'required_with:variants.*.stocks|exists:regions,id',
                 'variants.*.stocks.*.quantity' => 'required_with:variants.*.stocks|integer|min:0',
+                
+                // Variant images
+                'variants.*.images.*' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
             ]);
         }
 

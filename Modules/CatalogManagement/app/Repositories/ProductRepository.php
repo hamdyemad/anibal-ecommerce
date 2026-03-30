@@ -117,14 +117,20 @@ class ProductRepository implements ProductInterface
             'vendor',
             'taxes',
             'variants',
+            'variants.images', // Load variant images
             'variants.stocks.region.translations',
             'variants.variantConfiguration.parent_data.parent_data.parent_data', // Load parent hierarchy
-            'variants.variantConfiguration.key', // Load variant key
-            'variants.variantConfiguration.parent_data.key', // Load parent keys
-            'variants.variantConfiguration.parent_data.parent_data.key',
+            'variants.variantConfiguration.key.translations', // Load variant key with translations
+            'variants.variantConfiguration.translations', // Load variant configuration translations
+            'variants.variantConfiguration.parent_data.key.translations', // Load parent keys with translations
+            'variants.variantConfiguration.parent_data.translations', // Load parent translations
+            'variants.variantConfiguration.parent_data.parent_data.key.translations',
+            'variants.variantConfiguration.parent_data.parent_data.translations',
             'variants.variantLink', // Load variant link (parent-child relationship)
-            'variants.variantLink.parentConfiguration', // Load parent configuration from link
-            'variants.variantLink.childConfiguration', // Load child configuration from link
+            'variants.variantLink.parentConfiguration.key.translations', // Load parent configuration from link
+            'variants.variantLink.parentConfiguration.translations',
+            'variants.variantLink.childConfiguration.key.translations', // Load child configuration from link
+            'variants.variantLink.childConfiguration.translations',
         ])->findOrFail($id);
     }
 
@@ -538,6 +544,9 @@ class ProductRepository implements ProductInterface
 
             // Sync stocks for simple product
             $this->syncVariantStocks($vendorProductVariant, $data['stocks'] ?? []);
+            
+            // Handle variant images (simple products don't have variant images, only additional images at product level)
+            // So we skip image handling for simple products
         } else {
             // Handle variants with multiple configurations
 
@@ -740,6 +749,9 @@ class ProductRepository implements ProductInterface
 
                     // Sync stocks for this variant
                     $this->syncVariantStocks($vendorProductVariant, $variantData['stocks'] ?? []);
+                    
+                    // Handle variant images
+                    $this->handleVariantImages($vendorProductVariant, $variantData, $existingProductVariant ? true : false);
                 }
 
                 // Delete variants that are no longer in the data (only for updates)
@@ -781,6 +793,90 @@ class ProductRepository implements ProductInterface
 
         // Delete stocks that are no longer in the data
         $variant->stocks()->whereNotIn('id', $incomingStockRegionIds)->delete();
+    }
+
+    /**
+     * Handle variant images upload (add new, delete old)
+     */
+    protected function handleVariantImages($variant, array $variantData, bool $isUpdate = false): void
+    {
+        \Log::info('🖼️ handleVariantImages called', [
+            'variant_id' => $variant->id,
+            'is_update' => $isUpdate,
+            'has_images_key' => isset($variantData['images']),
+            'images_count' => isset($variantData['images']) ? count($variantData['images']) : 0,
+            'variant_data_keys' => array_keys($variantData)
+        ]);
+
+        // Check if images are provided
+        if (isset($variantData['images']) && is_array($variantData['images']) && count($variantData['images']) > 0) {
+            \Log::info('✅ Images found, processing...', [
+                'variant_id' => $variant->id,
+                'images_count' => count($variantData['images'])
+            ]);
+
+            // If updating and new images are provided, delete old images first
+            if ($isUpdate) {
+                $oldImages = $variant->images;
+                if ($oldImages && $oldImages->count() > 0) {
+                    \Log::info('🗑️ Deleting old images', [
+                        'variant_id' => $variant->id,
+                        'old_images_count' => $oldImages->count()
+                    ]);
+                    foreach ($oldImages as $oldImage) {
+                        // Delete the file from storage
+                        if (Storage::disk('public')->exists($oldImage->path)) {
+                            Storage::disk('public')->delete($oldImage->path);
+                        }
+                        // Delete the database record
+                        $oldImage->delete();
+                    }
+                }
+            }
+
+            // Store new variant images
+            foreach ($variantData['images'] as $index => $image) {
+                \Log::info('Processing image', [
+                    'variant_id' => $variant->id,
+                    'image_index' => $index,
+                    'is_uploaded_file' => $image instanceof \Illuminate\Http\UploadedFile
+                ]);
+
+                if ($image && $image instanceof \Illuminate\Http\UploadedFile) {
+                    $imagePath = $image->store('products/variants/images', 'public');
+                    \Log::info('✅ Image stored', [
+                        'variant_id' => $variant->id,
+                        'image_path' => $imagePath
+                    ]);
+
+                    $attachment = Attachment::create([
+                        'attachable_type' => \Modules\CatalogManagement\app\Models\VendorProductVariant::class,
+                        'attachable_id' => $variant->id,
+                        'type' => 'variant_image',
+                        'path' => $imagePath,
+                    ]);
+
+                    \Log::info('✅ Attachment created', [
+                        'variant_id' => $variant->id,
+                        'attachment_id' => $attachment->id,
+                        'path' => $imagePath
+                    ]);
+                } else {
+                    \Log::warning('⚠️ Image is not an UploadedFile instance', [
+                        'variant_id' => $variant->id,
+                        'image_type' => gettype($image),
+                        'image_class' => is_object($image) ? get_class($image) : 'not_object'
+                    ]);
+                }
+            }
+        } else {
+            \Log::info('ℹ️ No images to process', [
+                'variant_id' => $variant->id,
+                'has_images_key' => isset($variantData['images']),
+                'is_array' => isset($variantData['images']) && is_array($variantData['images']),
+                'count' => isset($variantData['images']) && is_array($variantData['images']) ? count($variantData['images']) : 0
+            ]);
+        }
     }
 
 

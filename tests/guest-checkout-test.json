@@ -1,0 +1,42 @@
+{
+  "description": "Guest Checkout Test Request",
+  "endpoint": "POST /api/orders/checkout",
+  "headers": {
+    "Content-Type": "application/json",
+    "Accept": "application/json",
+    "X-Country-Code": "EG"
+  },
+  "body": {
+    "is_guest": true,
+    "guest_first_name": "أحمد",
+    "guest_last_name": "محمد",
+    "guest_email": "ahmed.test@example.com",
+    "guest_phone": "01234567890",
+    "guest_country_id": 1,
+    "guest_city_id": 5,
+    "guest_region_id": 10,
+    "guest_address": "شارع الجامعة، المعادي، القاهرة",
+    "products": [
+      {
+        "vendor_product_id": 1,
+        "vendor_product_variant_id": null,
+        "quantity": 2,
+        "type": "product"
+      },
+      {
+        "vendor_product_id": 2,
+        "quantity": 1,
+        "type": "product"
+      }
+    ],
+    "promo_code_id": null,
+    "order_from": "WEB",
+    "payment_type": "cash_on_delivery"
+  },
+  "notes": [
+    "تأكد من وجود المنتجات بالـ IDs المحددة في قاعدة البيانات",
+    "تأكد من وجود المدينة والدولة بالـ IDs المحددة",
+    "سيتم حساب الشحن تلقائياً بناءً على المدينة وفئة المنتجات",
+    "لا يمكن استخدام النقاط في الـ guest checkout"
+  ]
+}

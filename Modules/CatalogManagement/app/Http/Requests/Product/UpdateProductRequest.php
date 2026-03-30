@@ -102,6 +102,7 @@ class UpdateProductRequest extends FormRequest
                 'variants.*.translations' => 'nullable|array',
                 'variants.*.translations.*.name' => 'nullable|string|max:255',
                 'variants.*.translations.*.description' => 'nullable|string',
+                'variants.*.images.*' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
             ]);
         }
 

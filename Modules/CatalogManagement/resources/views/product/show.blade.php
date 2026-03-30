@@ -547,11 +547,23 @@
                                                 @if ($product->product->mainImage)
                                                     <div class="mb-3">
                                                         <label class="il-gray fs-14 fw-500 align-text-top d-block mb-2">{{ __('catalogmanagement::product.main_image') }}</label>
-                                                        <div class="image-wrapper text-center w-100">
+                                                        <div class="position-relative image-item" data-image-id="{{ $product->product->mainImage->id }}" style="max-width: 400px; margin: 0 auto;">
                                                             <img src="{{ asset('storage/' . $product->product->mainImage->path) }}"
                                                                 alt="{{ $product->product->getTranslation('title') }}"
                                                                 class="product-image img-fluid rounded w-100"
-                                                                style="max-height: 400px; object-fit: contain;">
+                                                                style="max-height: 400px; object-fit: contain; cursor: pointer;"
+                                                                onclick="window.open('{{ asset('storage/' . $product->product->mainImage->path) }}', '_blank')">
+                                                            <button type="button" 
+                                                                class="btn btn-danger btn-sm position-absolute top-0 end-0 m-2 delete-image-btn"
+                                                                data-bs-toggle="modal" 
+                                                                data-bs-target="#deleteImageModal"
+                                                                data-image-id="{{ $product->product->mainImage->id }}"
+                                                                data-image-type="main"
+                                                                data-image-path="{{ $product->product->mainImage->path }}"
+                                                                data-item-name="{{ __('catalogmanagement::product.main_image') }}"
+                                                                style="padding: 4px 8px; font-size: 14px; z-index: 10;">
+                                                                <i class="uil uil-times m-0"></i>
+                                                            </button>
                                                         </div>
                                                     </div>
                                                 @else
@@ -579,38 +591,30 @@
                                                     </h3>
                                                 </div>
                                                 <div class="card-body">
-                                                    <div class="slick-slider global-slider slick-dots-bottom"
-                                                        data-dots-slick='true' data-autoplay-slick='true'>
+                                                    <div class="d-flex flex-wrap gap-2">
                                                         @foreach ($product->product->additionalImages as $index => $image)
-                                                            <div class="slick-slider__single d-flex justify-content-center align-items-center"
-                                                                style="height: 400px; background: #f8f9fa; cursor: pointer;"
-                                                                ondblclick="openImageModal({{ $index }})">
+                                                            <div class="position-relative image-item" data-image-id="{{ $image->id }}" style="width: 150px; height: 150px;">
                                                                 <img src="{{ asset('storage/' . $image->path) }}"
                                                                     alt="{{ __('catalogmanagement::product.additional_image') ?? 'Additional Image' }}"
-                                                                    style="max-width: 100%; max-height: 100%; object-fit: contain;">
+                                                                    class="img-thumbnail"
+                                                                    style="width: 100%; height: 100%; object-fit: cover; cursor: pointer;"
+                                                                    onclick="window.open('{{ asset('storage/' . $image->path) }}', '_blank')">
+                                                                <button type="button" 
+                                                                    class="btn btn-danger btn-sm position-absolute top-0 end-0 m-1 delete-image-btn"
+                                                                    data-bs-toggle="modal" 
+                                                                    data-bs-target="#deleteImageModal"
+                                                                    data-image-id="{{ $image->id }}"
+                                                                    data-image-type="additional"
+                                                                    data-image-path="{{ $image->path }}"
+                                                                    data-item-name="{{ __('catalogmanagement::product.additional_image') }} #{{ $loop->iteration }}"
+                                                                    style="padding: 2px 6px; font-size: 12px; line-height: 1; z-index: 10;">
+                                                                    <i class="uil uil-times m-0"></i>
+                                                                </button>
                                                             </div>
                                                         @endforeach
                                                     </div>
                                                 </div>
                                             </div>
-
-                                            {{-- Image Modals (Outside Loop) --}}
-                                            @foreach ($product->product->additionalImages as $index => $image)
-                                                <div class="modal fade" id="imageModal{{ $index }}"
-                                                    tabindex="-1" aria-labelledby="imageModalLabel{{ $index }}"
-                                                    aria-hidden="true">
-                                                    <div class="modal-dialog modal-lg modal-dialog-centered">
-                                                        <div class="modal-content">
-                                                            <div class="modal-body p-0 d-flex justify-content-center align-items-center"
-                                                                style="min-height: 500px; background: #f8f9fa;">
-                                                                <img src="{{ asset('storage/' . $image->path) }}"
-                                                                    alt="{{ __('catalogmanagement::product.additional_image') ?? 'Additional Image' }}"
-                                                                    style="max-width: 100%; max-height: 100%; object-fit: contain;">
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            @endforeach
                                         @endif
 
                                     </div>
@@ -732,6 +736,36 @@
                                                             @endif
                                                         </div>
                                                     </div>
+
+                                                    {{-- Variant Images --}}
+                                                    @if ($variant->images && $variant->images->count() > 0)
+                                                        <div class="mt-3">
+                                                            <h6 class="fw-600 mb-3">
+                                                                <i class="uil uil-images me-1"></i>{{ __('catalogmanagement::product.variant_images') }}:
+                                                            </h6>
+                                                            <div class="d-flex flex-wrap gap-2">
+                                                                @foreach ($variant->images as $image)
+                                                                    <div class="position-relative image-item" data-image-id="{{ $image->id }}" style="width: 120px; height: 120px;">
+                                                                        <img src="{{ asset('storage/' . $image->path) }}" 
+                                                                            class="img-thumbnail" 
+                                                                            style="width: 100%; height: 100%; object-fit: cover; cursor: pointer;"
+                                                                            onclick="window.open('{{ asset('storage/' . $image->path) }}', '_blank')">
+                                                                        <button type="button" 
+                                                                            class="btn btn-danger btn-sm position-absolute top-0 end-0 m-1 delete-image-btn"
+                                                                            data-bs-toggle="modal" 
+                                                                            data-bs-target="#deleteImageModal"
+                                                                            data-image-id="{{ $image->id }}"
+                                                                            data-image-type="variant"
+                                                                            data-image-path="{{ $image->path }}"
+                                                                            data-item-name="{{ __('catalogmanagement::product.variant_image') }} - {{ $variant->sku }}"
+                                                                            style="padding: 2px 6px; font-size: 12px; line-height: 1; z-index: 10;">
+                                                                            <i class="uil uil-times m-0"></i>
+                                                                        </button>
+                                                                    </div>
+                                                                @endforeach
+                                                            </div>
+                                                        </div>
+                                                    @endif
                                                 </div>
                                                 @if ($variant->stocks && $variant->stocks->count() > 0)
                                                     <div class="mt-3">
@@ -1007,6 +1041,34 @@
 
     {{-- Image Modal Component --}}
     <x-image-modal />
+
+    {{-- Custom Delete Image Modal (not using component to avoid conflicts) --}}
+    <div class="modal-info-delete modal fade" id="deleteImageModal" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-sm modal-info" role="document">
+            <div class="modal-content">
+                <div class="modal-body">
+                    <div class="modal-info-body d-flex">
+                        <div class="modal-info-icon warning">
+                            <img src="{{ asset('assets/img/svg/alert-circle.svg') }}" alt="alert-circle" class="svg">
+                        </div>
+                        <div class="modal-info-text">
+                            <h6>{{ __('common.confirm_delete') }}</h6>
+                            <p id="deleteImageName" class="fw-500"></p>
+                            <p class="text-muted fs-13">{{ __('catalogmanagement::product.confirm_delete_image') }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light btn-outlined btn-sm" data-bs-dismiss="modal">
+                        <i class="uil uil-times"></i> {{ __('common.cancel') }}
+                    </button>
+                    <button type="button" class="btn btn-danger btn-sm" id="confirmDeleteImageBtn">
+                        <i class="uil uil-trash-alt"></i> {{ __('common.delete') }}
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 @endsection
 
 @push('scripts')
@@ -1073,6 +1135,123 @@
                         }
                     });
                 }
+            });
+        });
+    </script>
+
+    {{-- Image Deletion Script --}}
+    <script>
+        $(document).ready(function() {
+            console.log('🚀 Product show page loaded');
+            console.log('🔍 Delete buttons found:', $('.delete-image-btn').length);
+            
+            let imageToDelete = null;
+
+            // Override the default delete modal behavior for images
+            $('#deleteImageModal').off('show.bs.modal').on('show.bs.modal', function(event) {
+                const button = event.relatedTarget;
+                imageToDelete = {
+                    id: $(button).data('image-id'),
+                    type: $(button).data('image-type'),
+                    path: $(button).data('image-path'),
+                    element: $(button).closest('.image-item')
+                };
+                
+                console.log('🗑️ Delete image modal opened:', imageToDelete);
+                
+                // Update the item name in the modal
+                const itemName = $(button).data('item-name') || 'Image';
+                $('#deleteImageName').text(itemName);
+            });
+
+            // Override the default confirm button behavior
+            $('#confirmDeleteImageBtn').off('click').on('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                if (!imageToDelete) {
+                    console.error('❌ No image selected for deletion');
+                    return;
+                }
+
+                const $btn = $(this);
+                const originalText = $btn.html();
+                
+                // Disable button and show loading
+                $btn.prop('disabled', true).html('<i class="uil uil-spinner-alt spin me-1"></i>{{ __("common.deleting") }}...');
+
+                // Close modal first
+                const modalInstance = bootstrap.Modal.getInstance(document.getElementById('deleteImageModal'));
+                if (modalInstance) {
+                    modalInstance.hide();
+                }
+
+                // Send delete request
+                $.ajax({
+                    url: '{{ route("admin.products.images.delete", ["lang" => app()->getLocale(), "countryCode" => request()->route("countryCode"), "product" => $product->id]) }}',
+                    type: 'DELETE',
+                    data: {
+                        _token: '{{ csrf_token() }}',
+                        image_id: imageToDelete.id,
+                        image_type: imageToDelete.type
+                    },
+                    success: function(response) {
+                        console.log('✅ Image deleted successfully:', response);
+
+                        // Remove the image element from DOM with animation
+                        if (imageToDelete.element && imageToDelete.element.length > 0) {
+                            imageToDelete.element.fadeOut(300, function() {
+                                $(this).remove();
+                                console.log('✅ Image element removed from DOM');
+                            });
+                        }
+
+                        // Show success message
+                        if (typeof toastr !== 'undefined') {
+                            toastr.success(response.message || '{{ __("common.deleted_successfully") }}');
+                        } else if (typeof Swal !== 'undefined') {
+                            Swal.fire({
+                                icon: 'success',
+                                title: '{{ __("common.success") }}',
+                                text: response.message || '{{ __("common.deleted_successfully") }}',
+                                timer: 2000,
+                                showConfirmButton: false
+                            });
+                        }
+
+                        // Reset
+                        imageToDelete = null;
+                        $btn.prop('disabled', false).html(originalText);
+                    },
+                    error: function(xhr) {
+                        console.error('❌ Image deletion failed:', xhr);
+
+                        let errorMessage = '{{ __("common.error_occurred") }}';
+                        if (xhr.responseJSON && xhr.responseJSON.message) {
+                            errorMessage = xhr.responseJSON.message;
+                        }
+
+                        // Show error message
+                        if (typeof toastr !== 'undefined') {
+                            toastr.error(errorMessage);
+                        } else if (typeof Swal !== 'undefined') {
+                            Swal.fire({
+                                icon: 'error',
+                                title: '{{ __("common.error") }}',
+                                text: errorMessage
+                            });
+                        } else {
+                            alert(errorMessage);
+                        }
+
+                        $btn.prop('disabled', false).html(originalText);
+                    }
+                });
+            });
+
+            // Reset on modal close
+            $('#deleteImageModal').on('hidden.bs.modal', function() {
+                imageToDelete = null;
             });
         });
     </script>

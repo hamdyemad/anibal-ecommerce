@@ -264,6 +264,14 @@ class VariantTreeHelper
         $fakePriceBeforeTax = $variant->price_before_discount ? (float) $variant->price_before_discount : null;
         $fakePriceAfterTax = $fakePriceBeforeTax ? $fakePriceBeforeTax * $taxMultiplier : null;
 
+        // Get variant images as array of URLs
+        $images = [];
+        if ($variant->relationLoaded('images') && $variant->images) {
+            $images = $variant->images->map(function($image) {
+                return $image->path ? asset('storage/' . $image->path) : null;
+            })->filter()->values()->toArray();
+        }
+
         return [
             'id' => $variant->id,
             'sku' => $variant->sku,
@@ -275,6 +283,7 @@ class VariantTreeHelper
             'discount' => $variant->discount ?? null,
             'quantity_in_cart' => $variant->quantity_in_cart ?? 0,
             'cart_id' => $variant->cart_id ?? null,
+            'images' => $images,
         ];
     }
 

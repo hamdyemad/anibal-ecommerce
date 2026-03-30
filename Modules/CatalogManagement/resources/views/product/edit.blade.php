@@ -375,10 +375,39 @@
                                             <i class="uil uil-image"></i>
                                             {{ __('catalogmanagement::product.additional_images') }}
                                         </h5>
+                                        
+                                        {{-- Display existing additional images --}}
+                                        @if(isset($product) && $product->product && $product->product->additionalImages && $product->product->additionalImages->count() > 0)
+                                        <div class="row mb-3">
+                                            <div class="col-12">
+                                                <label class="form-label fw-bold">{{ __('common.existing_images') }}</label>
+                                                <div class="d-flex flex-wrap gap-2" id="existing-additional-images">
+                                                    @foreach($product->product->additionalImages as $image)
+                                                    <div class="position-relative image-item" data-image-id="{{ $image->id }}" style="width: 120px; height: 120px;">
+                                                        <img src="{{ asset('storage/' . $image->path) }}" 
+                                                            class="img-thumbnail" 
+                                                            style="width: 100%; height: 100%; object-fit: cover;">
+                                                        <button type="button" 
+                                                            class="btn btn-danger btn-sm position-absolute top-0 end-0 m-1 delete-image-btn"
+                                                            data-image-id="{{ $image->id }}"
+                                                            data-image-type="additional"
+                                                            data-image-path="{{ $image->path }}"
+                                                            style="padding: 2px 6px; font-size: 12px; line-height: 1;">
+                                                            <i class="uil uil-times m-0"></i>
+                                                        </button>
+                                                    </div>
+                                                    @endforeach
+                                                </div>
+                                            </div>
+                                        </div>
+                                        @endif
+                                        
                                         <div class="row">
                                             <div class="col-md-12 mb-3">
+                                                <label class="form-label">{{ __('catalogmanagement::product.upload_new_images') }}</label>
                                                 <input type="file" multiple class="form-control" accept="image/*"
                                                     name="additional_images[]">
+                                                <small class="text-muted">{{ __('catalogmanagement::product.additional_images_help') }}</small>
                                             </div>
                                         </div>
                                     </div>
@@ -999,6 +1028,49 @@
                                                                             {{ __('catalogmanagement::product.add_region') }}
                                                                         </button>
                                                                     </div>
+
+                                                                    {{-- Variant Images Section --}}
+                                                                    <div class="mb-4">
+                                                                        <label class="form-label fw-bold">
+                                                                            <i class="uil uil-images"></i>
+                                                                            {{ __('catalogmanagement::product.variant_images') }}
+                                                                        </label>
+                                                                        
+                                                                        {{-- Display existing variant images --}}
+                                                                        @if($variant->images && $variant->images->count() > 0)
+                                                                        <div class="mb-3">
+                                                                            <label class="form-label">{{ __('common.existing_images') }}</label>
+                                                                            <div class="d-flex flex-wrap gap-2 existing-variant-images-{{ $variantIndex }}">
+                                                                                @foreach($variant->images as $image)
+                                                                                <div class="position-relative image-item" data-image-id="{{ $image->id }}" style="width: 100px; height: 100px;">
+                                                                                    <img src="{{ asset('storage/' . $image->path) }}" 
+                                                                                        class="img-thumbnail" 
+                                                                                        style="width: 100%; height: 100%; object-fit: cover;">
+                                                                                    <button type="button" 
+                                                                                        class="btn btn-danger btn-sm position-absolute top-0 end-0 m-1 delete-image-btn"
+                                                                                        data-image-id="{{ $image->id }}"
+                                                                                        data-image-type="variant"
+                                                                                        data-image-path="{{ $image->path }}"
+                                                                                        style="padding: 2px 6px; font-size: 12px; line-height: 1;">
+                                                                                        <i class="uil uil-times m-0"></i>
+                                                                                    </button>
+                                                                                </div>
+                                                                                @endforeach
+                                                                            </div>
+                                                                        </div>
+                                                                        @endif
+                                                                        
+                                                                        <input type="file" multiple 
+                                                                            class="form-control variant-images-input" 
+                                                                            accept="image/*"
+                                                                            name="variants[{{ $variantIndex }}][images][]">
+                                                                        <small class="text-muted">{{ __('catalogmanagement::product.variant_images_help') }}</small>
+                                                                        
+                                                                        {{-- Preview for new images --}}
+                                                                        <div class="variant-images-preview mt-3 d-flex flex-wrap gap-2">
+                                                                            <!-- New variant images preview will appear here -->
+                                                                        </div>
+                                                                    </div>
                                                                 </div>
                                                             </div>
 
@@ -1324,6 +1396,30 @@
                                         </div>
                                     </div>
                                 </div>
+
+                                <!-- Variant Images Card (only for variants) -->
+                                <div class="card mb-4 variant-images-card" style="display: none;">
+                                    <div class="card-body">
+                                        <h5 class="mb-4">
+                                            <i class="uil uil-images"></i>
+                                            {{ __('catalogmanagement::product.variant_images') }}
+                                        </h5>
+                                        <div class="row">
+                                            <div class="col-md-12 mb-3">
+                                                <label class="form-label">{{ __('catalogmanagement::product.upload_variant_images') }}</label>
+                                                <input type="file" multiple class="form-control variant-images-input" accept="image/*"
+                                                    name="__NAME_PREFIX__[images][]">
+                                                <small class="text-muted">{{ __('catalogmanagement::product.variant_images_help') }}</small>
+                                                <div class="variant-images-preview mt-3 d-flex flex-wrap gap-2">
+                                                    <!-- Variant images preview will appear here -->
+                                                </div>
+                                                <div class="existing-variant-images mt-3 d-flex flex-wrap gap-2">
+                                                    <!-- Existing variant images will appear here -->
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </template>
 
@@ -1400,6 +1496,35 @@
                         </template>
 
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- Delete Image Confirmation Modal --}}
+    <div class="modal fade" id="deleteImageModal" tabindex="-1" aria-labelledby="deleteImageModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title" id="deleteImageModalLabel">
+                        <i class="uil uil-exclamation-triangle me-2"></i>{{ __('common.confirm_delete') }}
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="text-center mb-3">
+                        <i class="uil uil-image-times text-danger" style="font-size: 48px;"></i>
+                    </div>
+                    <p class="text-center mb-0">{{ __('catalogmanagement::product.confirm_delete_image') }}</p>
+                    <p class="text-center text-muted small mb-0">{{ __('common.action_cannot_be_undone') }}</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="uil uil-times me-1"></i>{{ __('common.cancel') }}
+                    </button>
+                    <button type="button" class="btn btn-danger" id="confirmDeleteImage">
+                        <i class="uil uil-trash-alt me-1"></i>{{ __('common.delete') }}
+                    </button>
                 </div>
             </div>
         </div>
@@ -2181,9 +2306,13 @@
 
                 $(`#${containerId}`).html(html);
 
-                // For simple products, remove the SKU field from the template (it's in Step 1)
+                // For simple products, remove the SKU field and variant images card
                 if (!namePrefix) {
                     $(`#${containerId} .variant-sku-field`).remove();
+                    $(`#${containerId} .variant-images-card`).remove();
+                } else {
+                    // For variants, show the variant images card
+                    $(`#${containerId} .variant-images-card`).show();
                 }
 
                 // For variants, update the "{{ __('catalogmanagement::product.add_region') }}" button to use the correct class and data attribute
@@ -2204,6 +2333,31 @@
                         width: '100%',
                     });
                 }, 100);
+
+                // Add image preview functionality for variant images
+                if (namePrefix) {
+                    $(`#${containerId} .variant-images-input`).on('change', function(e) {
+                        const files = e.target.files;
+                        const $previewContainer = $(this).siblings('.variant-images-preview');
+                        $previewContainer.empty();
+
+                        if (files.length > 0) {
+                            Array.from(files).forEach((file, idx) => {
+                                const reader = new FileReader();
+                                reader.onload = function(e) {
+                                    const $preview = $(`
+                                        <div class="position-relative" style="width: 100px; height: 100px;">
+                                            <img src="${e.target.result}" class="img-thumbnail" style="width: 100%; height: 100%; object-fit: cover;">
+                                            <span class="badge bg-primary position-absolute top-0 start-0 m-1">${idx + 1}</span>
+                                        </div>
+                                    `);
+                                    $previewContainer.append($preview);
+                                };
+                                reader.readAsDataURL(file);
+                            });
+                        }
+                    });
+                }
 
                 // Add first stock row
                 addStockRow(containerId, namePrefix);
@@ -2370,6 +2524,9 @@
 
                 // Show SKU field for variants
                 $(`#${containerId} .variant-sku-field`).show();
+                
+                // Show variant images card for variants
+                $(`#${containerId} .variant-images-card`).show();
 
                 console.log('✅ Variant pricing & stock created for:', variantName);
             }
@@ -3345,6 +3502,29 @@
                     initializeExistingVariants();
                 }, 600);
 
+                // Add image preview for existing variants
+                $('.existing-variant-wrapper .variant-images-input').on('change', function(e) {
+                    const files = e.target.files;
+                    const $previewContainer = $(this).siblings('.variant-images-preview');
+                    $previewContainer.empty();
+
+                    if (files.length > 0) {
+                        Array.from(files).forEach((file, idx) => {
+                            const reader = new FileReader();
+                            reader.onload = function(e) {
+                                const $preview = $(`
+                                    <div class="position-relative" style="width: 100px; height: 100px;">
+                                        <img src="${e.target.result}" class="img-thumbnail" style="width: 100%; height: 100%; object-fit: cover;">
+                                        <span class="badge bg-primary position-absolute top-0 start-0 m-1">${idx + 1}</span>
+                                    </div>
+                                `);
+                                $previewContainer.append($preview);
+                            };
+                            reader.readAsDataURL(file);
+                        });
+                    }
+                });
+
                 // Debug: Log form data before submission
                 $('#productForm').on('submit', function(e) {
                     console.log('📋 Form submission - checking variant discount values:');
@@ -4078,6 +4258,94 @@
                 console.log('🔄 Toggled discount fields for variant', variantIndex, 'enabled:', checkbox.checked);
             };
 
+
+        })(jQuery);
+    </script>
+
+    {{-- Image Deletion Script --}}
+    <script>
+        (function($) {
+            'use strict';
+
+            let imageToDelete = null;
+
+            // Handle delete button click
+            $(document).on('click', '.delete-image-btn', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+
+                imageToDelete = {
+                    id: $(this).data('image-id'),
+                    type: $(this).data('image-type'),
+                    path: $(this).data('image-path'),
+                    element: $(this).closest('.image-item')
+                };
+
+                console.log('🗑️ Delete image clicked:', imageToDelete);
+
+                // Show confirmation modal
+                $('#deleteImageModal').modal('show');
+            });
+
+            // Handle confirm delete
+            $('#confirmDeleteImage').on('click', function() {
+                if (!imageToDelete) {
+                    console.error('❌ No image selected for deletion');
+                    return;
+                }
+
+                const $btn = $(this);
+                const originalText = $btn.html();
+                
+                // Disable button and show loading
+                $btn.prop('disabled', true).html('<i class="uil uil-spinner-alt spin me-1"></i>{{ __("common.deleting") }}...');
+
+                // Send delete request
+                $.ajax({
+                    url: '{{ route("admin.products.images.delete", $product->id) }}',
+                    type: 'DELETE',
+                    data: {
+                        _token: '{{ csrf_token() }}',
+                        image_id: imageToDelete.id,
+                        image_type: imageToDelete.type
+                    },
+                    success: function(response) {
+                        console.log('✅ Image deleted successfully:', response);
+
+                        // Remove the image element from DOM with animation
+                        imageToDelete.element.fadeOut(300, function() {
+                            $(this).remove();
+                        });
+
+                        // Hide modal
+                        $('#deleteImageModal').modal('hide');
+
+                        // Show success message
+                        toastr.success(response.message || '{{ __("common.deleted_successfully") }}');
+
+                        // Reset
+                        imageToDelete = null;
+                        $btn.prop('disabled', false).html(originalText);
+                    },
+                    error: function(xhr) {
+                        console.error('❌ Image deletion failed:', xhr);
+
+                        let errorMessage = '{{ __("common.error_occurred") }}';
+                        if (xhr.responseJSON && xhr.responseJSON.message) {
+                            errorMessage = xhr.responseJSON.message;
+                        }
+
+                        toastr.error(errorMessage);
+
+                        $btn.prop('disabled', false).html(originalText);
+                    }
+                });
+            });
+
+            // Reset on modal close
+            $('#deleteImageModal').on('hidden.bs.modal', function() {
+                imageToDelete = null;
+            });
 
         })(jQuery);
     </script>

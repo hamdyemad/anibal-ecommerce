@@ -1758,4 +1758,83 @@ class ProductController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Delete product image (main, additional, or variant)
+     */
+    public function deleteImage(Request $request, $lang, $countryCode, $id)
+    {
+        try {
+            $request->validate([
+                'image_id' => 'required|integer|exists:attachments,id',
+                'image_type' => 'required|in:main,additional,variant',
+            ]);
+
+            $imageId = $request->input('image_id');
+            $imageType = $request->input('image_type');
+
+            // Get the attachment
+            $attachment = \App\Models\Attachment::findOrFail($imageId);
+
+            // Verify ownership
+            $product = $this->productService->getProductById($id);
+            
+            // Check if the attachment belongs to this product or its variants
+            $belongsToProduct = false;
+            
+            if ($imageType === 'main' || $imageType === 'additional') {
+                // Check if attachment belongs to the product
+                if ($attachment->attachable_type === 'Modules\CatalogManagement\app\Models\Product' && 
+                    $attachment->attachable_id == $product->product_id) {
+                    $belongsToProduct = true;
+                }
+            } elseif ($imageType === 'variant') {
+                // Check if attachment belongs to one of the product's variants
+                $variantIds = $product->variants->pluck('id')->toArray();
+                if ($attachment->attachable_type === 'Modules\CatalogManagement\app\Models\VendorProductVariant' && 
+                    in_array($attachment->attachable_id, $variantIds)) {
+                    $belongsToProduct = true;
+                }
+            }
+
+            if (!$belongsToProduct) {
+                return response()->json([
+                    'success' => false,
+                    'message' => __('common.unauthorized')
+                ], 403);
+            }
+
+            // Delete the file from storage
+            if (Storage::disk('public')->exists($attachment->path)) {
+                Storage::disk('public')->delete($attachment->path);
+            }
+
+            // Delete the database record
+            $attachment->delete();
+
+            Log::info('Image deleted successfully', [
+                'image_id' => $imageId,
+                'image_type' => $imageType,
+                'product_id' => $id,
+                'deleted_by' => auth()->id()
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => __('common.deleted_successfully')
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Image deletion failed', [
+                'product_id' => $id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => __('common.error_occurred')
+            ], 500);
+        }
+    }
 }

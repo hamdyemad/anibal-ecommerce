@@ -312,6 +312,7 @@ return [
 
     // API Messages
     'cart_is_empty' => 'سلتك فارغة. يرجى إضافة عناصر قبل الدفع',
+    'products_required_for_guest_checkout' => 'المنتجات مطلوبة لإتمام الطلب كضيف',
     'order_created_successfully' => 'تم إنشاء الطلب بنجاح',
     'error_creating_order' => 'خطأ في إنشاء الطلب',
     'orders_retrieved_successfully' => 'تم استرجاع الطلبات بنجاح',

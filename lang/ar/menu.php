@@ -276,6 +276,7 @@
         'reports' => [
             'title' => 'التقارير',
             'registerd users' => 'العملاء المسجلين',
+            'financial reports' => 'التقارير المالية',
             'area users' => 'عملاء المنطقة',
             'orders report' => 'تقرير الطلبات',
             'product report' => 'تقرير المنتجات',

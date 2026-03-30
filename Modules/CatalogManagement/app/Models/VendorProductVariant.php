@@ -64,6 +64,15 @@ class VendorProductVariant extends Model
     }
 
     /**
+     * Get variant images (polymorphic relationship)
+     */
+    public function images()
+    {
+        return $this->morphMany(\App\Models\Attachment::class, 'attachable')
+            ->where('type', 'variant_image');
+    }
+
+    /**
      * Get stock bookings for this variant
      */
     public function stockBookings()
