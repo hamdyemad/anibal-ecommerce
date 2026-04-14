@@ -6,13 +6,14 @@ use App\Models\BaseModel;
 use App\Models\Traits\HumanDates;
 use App\Traits\HasSlug;
 use App\Traits\Translation;
+use App\Traits\ClearsApiCache;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Builder;
 
 
 class SubRegion extends BaseModel
 {
-    use Translation, SoftDeletes, HumanDates, HasSlug;
+    use Translation, SoftDeletes, HumanDates, HasSlug, ClearsApiCache;
 
     protected $table = 'subregions';
     protected $guarded = [];
@@ -37,5 +38,15 @@ class SubRegion extends BaseModel
         }
 
         return $query;
+    }
+
+    /**
+     * Get cache patterns to clear when subregion is modified
+     */
+    protected function getCachePatterns(): array
+    {
+        return [
+            'api_subregions_',
+        ];
     }
 }

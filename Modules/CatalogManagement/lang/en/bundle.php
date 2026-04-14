@@ -59,6 +59,8 @@ return [
     'limit_quantity' => 'Limit Quantity',
     'min_quantity' => 'Min Quantity',
     'select_vendor_first' => 'Please select a vendor first',
+    'variant' => 'Variant',
+    'tree' => 'Tree',
     // Validation Messages
     'vendor_required' => 'Vendor is required',
     'vendor_not_exist' => 'Selected vendor does not exist',

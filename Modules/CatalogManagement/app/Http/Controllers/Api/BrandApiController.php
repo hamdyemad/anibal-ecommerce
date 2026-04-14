@@ -34,7 +34,13 @@ class BrandApiController extends Controller
                 422
             );
         }
-        $brands = $this->BrandService->getAllBrands($dto);
+        
+        // Cache brands forever - will be cleared automatically when data changes
+        $cacheKey = 'api_brands_' . md5(json_encode($dto->toArray()) . app()->getLocale());
+        
+        $brands = \Cache::rememberForever($cacheKey, function() use ($dto) {
+            return $this->BrandService->getAllBrands($dto);
+        });
 
         return $this->sendRes(config('responses.success')[app()->getLocale()], true, BrandApiResource::collection($brands));
     }

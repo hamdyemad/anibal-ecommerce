@@ -20,14 +20,24 @@ class CityApiController extends Controller
      */
     public function index(Request $request)
     {
-        $cities = $this->cityService->getAll($request->all());
+        // Cache cities forever - will be cleared when updated
+        $cacheKey = 'api_cities_' . md5(json_encode($request->all()) . app()->getLocale());
+        
+        $cities = \Cache::rememberForever($cacheKey, function() use ($request) {
+            return $this->cityService->getAll($request->all());
+        });
 
         return $this->sendRes(config('responses.success')[app()->getLocale()], true, CityResource::collection($cities));
     }
 
     public function getCitiesByCountry(Request $request, $id)
     {
-        $cities = $this->cityService->getCitiesByCountry($id, $request->all());
+        // Cache cities by country forever - will be cleared when updated
+        $cacheKey = 'api_cities_country_' . $id . '_' . md5(json_encode($request->all()) . app()->getLocale());
+        
+        $cities = \Cache::rememberForever($cacheKey, function() use ($request, $id) {
+            return $this->cityService->getCitiesByCountry($id, $request->all());
+        });
 
         return $this->sendRes(config('responses.success')[app()->getLocale()], true, CityResource::collection($cities));
     }

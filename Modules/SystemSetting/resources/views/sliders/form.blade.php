@@ -49,6 +49,42 @@
                             </div>
                             <div class="card-body">
                                 <div class="row">
+                                    {{-- Slider Title --}}
+                                    @foreach($languages as $language)
+                                        <div class="col-md-6">
+                                            <div class="form-group mb-25">
+                                                <label for="title_{{ $language->id }}" class="form-label">
+                                                    {{ __('systemsetting::sliders.title') }} ({{ $language->name }})
+                                                    <span class="text-danger">*</span>
+                                                </label>
+                                                <input type="text"
+                                                       name="translations[{{ $language->id }}][title]"
+                                                       id="title_{{ $language->id }}"
+                                                       class="form-control ih-medium ip-gray radius-xs b-light px-15"
+                                                       placeholder="{{ __('systemsetting::sliders.title_placeholder') }}"
+                                                       value="{{ old('translations.' . $language->id . '.title', isset($slider) ? $slider->getTranslation('title', $language->code) : '') }}"
+                                                       @if($language->rtl) dir="rtl" @endif>
+                                            </div>
+                                        </div>
+                                    @endforeach
+
+                                    {{-- Slider Description --}}
+                                    @foreach($languages as $language)
+                                        <div class="col-md-6">
+                                            <div class="form-group mb-25">
+                                                <label for="description_{{ $language->id }}" class="form-label">
+                                                    {{ __('systemsetting::sliders.description') }} ({{ $language->name }})
+                                                </label>
+                                                <textarea name="translations[{{ $language->id }}][description]"
+                                                          id="description_{{ $language->id }}"
+                                                          class="form-control ih-medium ip-gray radius-xs b-light px-15"
+                                                          placeholder="{{ __('systemsetting::sliders.description_placeholder') }}"
+                                                          rows="3"
+                                                          @if($language->rtl) dir="rtl" @endif>{{ old('translations.' . $language->id . '.description', isset($slider) ? $slider->getTranslation('description', $language->code) : '') }}</textarea>
+                                            </div>
+                                        </div>
+                                    @endforeach
+
                                     {{-- Slider Image --}}
                                     <div class="col-md-6">
                                         <x-image-upload
@@ -188,6 +224,19 @@ $(document).ready(function() {
                                 errorDiv.className = 'invalid-feedback';
                                 errorDiv.textContent = data.errors[key][0];
                                 input.parentNode.appendChild(errorDiv);
+                            } else {
+                                // Handle nested translation names like translations.1.title
+                                const parts = key.split('.');
+                                if (parts.length === 3) {
+                                    const nestedInput = document.querySelector(`[name="translations[${parts[1]}][${parts[2]}]"]`);
+                                    if (nestedInput) {
+                                        nestedInput.classList.add('is-invalid');
+                                        const errorDiv = document.createElement('div');
+                                        errorDiv.className = 'invalid-feedback';
+                                        errorDiv.textContent = data.errors[key][0];
+                                        nestedInput.parentNode.appendChild(errorDiv);
+                                    }
+                                }
                             }
                         });
                     }

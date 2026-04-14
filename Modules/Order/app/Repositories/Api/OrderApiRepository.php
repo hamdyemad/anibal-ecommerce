@@ -5,6 +5,7 @@ namespace Modules\Order\app\Repositories\Api;
 use App\Actions\IsPaginatedAction;
 use App\Exceptions\OrderException;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Modules\CatalogManagement\app\Models\Promocode;
 use Modules\Order\app\Actions\OrderQueryAction;
 use Modules\Order\app\Interfaces\Api\OrderApiRepositoryInterface;
@@ -212,5 +213,31 @@ class OrderApiRepository implements OrderApiRepositoryInterface
         }
 
         return $promoCode;
+    }
+
+    /**
+     * Track order by reference number (public - no auth required)
+     * Returns order basic info and stage history for all vendors
+     */
+    public function trackOrderByReference(string $reference)
+    {
+        return $this->getOrderByOrderNumber($reference);
+    }
+
+    /**
+     * Get order by order number (public - no auth required)
+     */
+    public function getOrderByOrderNumber(string $orderNumber)
+    {
+        return Order::where('order_number', $orderNumber)
+            ->with([
+                'stage',
+                'vendorStages.vendor',
+                'vendorStages.stage',
+                'vendorStages.history.newStage',
+                'vendorStages.history.oldStage',
+                'vendorStages.history.user',
+            ])
+            ->first();
     }
 }

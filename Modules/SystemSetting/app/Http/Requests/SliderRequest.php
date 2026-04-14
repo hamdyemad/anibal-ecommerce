@@ -18,6 +18,9 @@ class SliderRequest extends FormRequest
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
             'sort_order' => 'nullable|integer',
             'active' => 'nullable|boolean',
+            'translations' => 'required|array',
+            'translations.*.title' => 'required|string|max:255',
+            'translations.*.description' => 'nullable|string',
         ];
     }
 

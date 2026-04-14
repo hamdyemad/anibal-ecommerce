@@ -156,4 +156,9 @@ return [
     'order_date' => 'تاريخ الطلب',
     'no_orders_found' => 'لا توجد طلبات لهذا العميل',
     'no_addresses_found' => 'لا توجد عناوين لهذا العميل',
+
+    // Google OAuth
+    'login_successful' => 'تم تسجيل الدخول بنجاح',
+    'account_inactive' => 'حسابك غير نشط. يرجى الاتصال بالدعم.',
+    'google_login_failed' => 'فشل تسجيل الدخول عبر جوجل',
 ];

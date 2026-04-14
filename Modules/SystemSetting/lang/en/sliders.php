@@ -11,6 +11,8 @@ return [
 
     // Fields
     'slider_link' => 'Slider Link',
+    'title' => 'Title',
+    'description' => 'Description',
     'slider_image' => 'Slider Image',
     'sort_order' => 'Sort Order',
     'status' => 'Status',
@@ -58,6 +60,8 @@ return [
 
     // Placeholders
     'slider_link_placeholder' => 'https://example.com',
+    'title_placeholder' => 'Enter slider title',
+    'description_placeholder' => 'Enter slider description',
     'recommended_size' => 'Recommended size: 340×150px',
     'visit_link' => 'Visit Link',
 ];

@@ -48,7 +48,8 @@ class BundleRepository implements BundleRepositoryInterface
             'bundleProducts.vendorProductVariant' => function ($query) {
                 $query->with([
                     'vendorProduct.product.translations',
-                    'variantConfiguration.key'
+                    'variantConfiguration.key',
+                    'variantLink'
                 ]);
             }
         ])

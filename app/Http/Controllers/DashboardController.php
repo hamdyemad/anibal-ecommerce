@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Services\DashboardService;
+use Illuminate\Support\Facades\Auth;
 
 class DashboardController extends Controller
 {
@@ -16,10 +17,15 @@ class DashboardController extends Controller
 
     public function index()
     {
-        $countryCode = session('country_code', 'eg');
-        $data = $this->dashboardService->getDashboardData($countryCode);
-        $data['title'] = __('menu.dashboard.title');
+        $user = Auth::user()->load('roles.translations');
+        $userName = $user->translations()->where('lang_key', 'name')->value('lang_value') ?? $user->email;
+        
+        $data = [
+            'title' => __('menu.dashboard.title'),
+            'user_name' => $userName,
+            'welcome_message' => __('dashboard.welcome_message'),
+        ];
 
-        return view('pages.dashboard.dashboard', $data);
+        return view('pages.dashboard.dashboard-simple', $data);
     }
 }

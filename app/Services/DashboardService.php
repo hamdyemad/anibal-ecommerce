@@ -45,34 +45,39 @@ class DashboardService
         // Initialize vendor check here instead of constructor
         $this->initVendorCheck();
 
-        $stats = $this->getStats();
-        $salesChart = $this->getSalesChartData();
-        $earningsChart = $this->getEarningsChartData();
-        $netSalesChart = $this->getNetSalesChartData();
-        $latestOrders = $this->getLatestOrders();
-        $topSellingProducts = $this->getTopSellingProducts();
-        $topVendors = $this->isVendor ? [] : $this->getTopVendors(); // Hide for vendors
-        $bestCustomers = $this->getBestCustomers();
-        $ordersOverview = $this->getOrdersOverview();
-        $salesOverview = $this->getSalesOverview();
-        $incomeExpense = $this->getIncomeExpenseData();
-        $recentActivities = $this->isVendor ? [] : $this->getRecentActivities(); // Hide for vendors
+        // Cache dashboard data for 5 minutes to avoid expensive queries
+        $cacheKey = 'dashboard_data_' . $countryCode . '_' . ($this->isVendor ? 'vendor_' . $this->vendorId : 'admin');
+        
+        return \Cache::remember($cacheKey, 300, function() {
+            $stats = $this->getStats();
+            $salesChart = $this->getSalesChartData();
+            $earningsChart = $this->getEarningsChartData();
+            $netSalesChart = $this->getNetSalesChartData();
+            $latestOrders = $this->getLatestOrders();
+            $topSellingProducts = $this->getTopSellingProducts();
+            $topVendors = $this->isVendor ? [] : $this->getTopVendors(); // Hide for vendors
+            $bestCustomers = $this->getBestCustomers();
+            $ordersOverview = $this->getOrdersOverview();
+            $salesOverview = $this->getSalesOverview();
+            $incomeExpense = $this->getIncomeExpenseData();
+            $recentActivities = $this->isVendor ? [] : $this->getRecentActivities(); // Hide for vendors
 
-        return [
-            'stats' => $stats,
-            'salesChart' => $salesChart,
-            'earningsChart' => $earningsChart,
-            'netSalesChart' => $netSalesChart,
-            'latestOrders' => $latestOrders,
-            'topSellingProducts' => $topSellingProducts,
-            'topVendors' => $topVendors,
-            'bestCustomers' => $bestCustomers,
-            'ordersOverview' => $ordersOverview,
-            'salesOverview' => $salesOverview,
-            'incomeExpense' => $incomeExpense,
-            'recentActivities' => $recentActivities,
-            'isVendor' => $this->isVendor,
-        ];
+            return [
+                'stats' => $stats,
+                'salesChart' => $salesChart,
+                'earningsChart' => $earningsChart,
+                'netSalesChart' => $netSalesChart,
+                'latestOrders' => $latestOrders,
+                'topSellingProducts' => $topSellingProducts,
+                'topVendors' => $topVendors,
+                'bestCustomers' => $bestCustomers,
+                'ordersOverview' => $ordersOverview,
+                'salesOverview' => $salesOverview,
+                'incomeExpense' => $incomeExpense,
+                'recentActivities' => $recentActivities,
+                'isVendor' => $this->isVendor,
+            ];
+        });
     }
 
     private function getStats()
@@ -320,6 +325,17 @@ class DashboardService
             
             $deliveredOrders = $deliveredOrdersQuery->with(['order.products', 'order.products.taxes'])->get();
             
+            // Eager load all fees and discounts at once
+            $orderIds = $deliveredOrders->pluck('order_id')->unique();
+            $vendorIds = $deliveredOrders->pluck('vendor_id')->unique();
+            
+            $feesAndDiscounts = \Modules\Order\app\Models\OrderExtraFeeDiscount::whereIn('order_id', $orderIds)
+                ->whereIn('vendor_id', $vendorIds)
+                ->get()
+                ->groupBy(function($item) {
+                    return $item->order_id . '_' . $item->vendor_id . '_' . $item->type;
+                });
+            
             $totalIncome = 0;
             foreach ($deliveredOrders as $vendorStage) {
                 $order = $vendorStage->order;
@@ -331,16 +347,12 @@ class DashboardService
                 // Calculate vendor total (products + shipping + fees - discounts)
                 $vendorTotal = $vendorProducts->sum('price') + $vendorProducts->sum('shipping_cost');
                 
-                // Add fees and subtract discounts
-                $vendorFees = \Modules\Order\app\Models\OrderExtraFeeDiscount::where('order_id', $order->id)
-                    ->where('vendor_id', $vendorId)
-                    ->where('type', 'fee')
-                    ->sum('cost') ?? 0;
+                // Get fees and discounts from eager loaded data
+                $feeKey = $order->id . '_' . $vendorId . '_fee';
+                $discountKey = $order->id . '_' . $vendorId . '_discount';
                 
-                $vendorDiscounts = \Modules\Order\app\Models\OrderExtraFeeDiscount::where('order_id', $order->id)
-                    ->where('vendor_id', $vendorId)
-                    ->where('type', 'discount')
-                    ->sum('cost') ?? 0;
+                $vendorFees = $feesAndDiscounts->get($feeKey)?->sum('cost') ?? 0;
+                $vendorDiscounts = $feesAndDiscounts->get($discountKey)?->sum('cost') ?? 0;
                 
                 $totalIncome += $vendorTotal + $vendorFees - $vendorDiscounts;
             }
@@ -386,6 +398,17 @@ class DashboardService
             
             $ytdDeliveredOrders = $ytdDeliveredOrdersQuery->with(['order.products', 'order.products.taxes'])->get();
             
+            // Eager load all fees and discounts for YTD at once
+            $ytdOrderIds = $ytdDeliveredOrders->pluck('order_id')->unique();
+            $ytdVendorIds = $ytdDeliveredOrders->pluck('vendor_id')->unique();
+            
+            $ytdFeesAndDiscounts = \Modules\Order\app\Models\OrderExtraFeeDiscount::whereIn('order_id', $ytdOrderIds)
+                ->whereIn('vendor_id', $ytdVendorIds)
+                ->get()
+                ->groupBy(function($item) {
+                    return $item->order_id . '_' . $item->vendor_id . '_' . $item->type;
+                });
+            
             $ytdIncome = 0;
             foreach ($ytdDeliveredOrders as $vendorStage) {
                 $order = $vendorStage->order;
@@ -394,16 +417,12 @@ class DashboardService
                 $vendorProducts = $order->products->where('vendor_id', $vendorId);
                 $vendorTotal = $vendorProducts->sum('price') + $vendorProducts->sum('shipping_cost');
                 
-                $vendorFees = \Modules\Order\app\Models\OrderExtraFeeDiscount::where('order_id', $order->id)
-                    ->where('vendor_id', $vendorId)
-                    ->where('type', 'fee')
-                    ->sum('cost') ?? 0;
+                $feeKey = $order->id . '_' . $vendorId . '_fee';
+                $discountKey = $order->id . '_' . $vendorId . '_discount';
                 
-                $vendorDiscounts = \Modules\Order\app\Models\OrderExtraFeeDiscount::where('order_id', $order->id)
-                    ->where('vendor_id', $vendorId)
-                    ->where('type', 'discount')
-                    ->sum('cost') ?? 0;
-                
+                $vendorFees = $ytdFeesAndDiscounts->get($feeKey)?->sum('cost') ?? 0;
+                $vendorDiscounts = $ytdFeesAndDiscounts->get($discountKey)?->sum('cost') ?? 0;
+
                 $ytdIncome += $vendorTotal + $vendorFees - $vendorDiscounts;
             }
         } else {
@@ -648,6 +667,17 @@ class DashboardService
         
         $vendorStages = $query->with(['order.products'])->get();
         
+        // Eager load all fees and discounts at once to avoid N+1
+        $orderIds = $vendorStages->pluck('order_id')->unique();
+        $vendorIds = $vendorStages->pluck('vendor_id')->unique();
+        
+        $feesAndDiscounts = \Modules\Order\app\Models\OrderExtraFeeDiscount::whereIn('order_id', $orderIds)
+            ->whereIn('vendor_id', $vendorIds)
+            ->get()
+            ->groupBy(function($item) {
+                return $item->order_id . '_' . $item->vendor_id . '_' . $item->type;
+            });
+        
         $totalIncome = 0;
         foreach ($vendorStages as $vendorStage) {
             $order = $vendorStage->order;
@@ -659,15 +689,11 @@ class DashboardService
             // Calculate: products + shipping + fees - discounts
             $vendorTotal = $vendorProducts->sum('price') + $vendorProducts->sum('shipping_cost');
             
-            $vendorFees = \Modules\Order\app\Models\OrderExtraFeeDiscount::where('order_id', $order->id)
-                ->where('vendor_id', $vendorId)
-                ->where('type', 'fee')
-                ->sum('cost') ?? 0;
+            $feeKey = $order->id . '_' . $vendorId . '_fee';
+            $discountKey = $order->id . '_' . $vendorId . '_discount';
             
-            $vendorDiscounts = \Modules\Order\app\Models\OrderExtraFeeDiscount::where('order_id', $order->id)
-                ->where('vendor_id', $vendorId)
-                ->where('type', 'discount')
-                ->sum('cost') ?? 0;
+            $vendorFees = $feesAndDiscounts->get($feeKey)?->sum('cost') ?? 0;
+            $vendorDiscounts = $feesAndDiscounts->get($discountKey)?->sum('cost') ?? 0;
             
             $totalIncome += $vendorTotal + $vendorFees - $vendorDiscounts;
         }
@@ -697,7 +723,7 @@ class DashboardService
             // Get vendor products
             $vendorProducts = $order->products->where('vendor_id', $vendorId);
             
-            // Calculate commission from each product
+            // Calculate commission from each product (no additional queries needed)
             foreach ($vendorProducts as $product) {
                 $productTotal = $product->price + ($product->shipping_cost ?? 0);
                 $commissionPercent = $product->commission ?? 0;
@@ -1295,10 +1321,24 @@ class DashboardService
             ->take($limit)
             ->get();
 
-        // Load relationships after grouping
-        return $topProducts->map(function($item) {
-            $item->vendorProduct = \Modules\CatalogManagement\app\Models\VendorProduct::with(['product.translations', 'product.mainImage'])->find($item->vendor_product_id);
-            $item->vendorData = \Modules\Vendor\app\Models\Vendor::with(['translations', 'logo'])->find($item->vendor_id);
+        // Eager load all relationships at once to avoid N+1
+        $vendorProductIds = $topProducts->pluck('vendor_product_id')->unique();
+        $vendorIds = $topProducts->pluck('vendor_id')->unique();
+        
+        $vendorProducts = \Modules\CatalogManagement\app\Models\VendorProduct::with(['product.translations', 'product.mainImage'])
+            ->whereIn('id', $vendorProductIds)
+            ->get()
+            ->keyBy('id');
+            
+        $vendors = \Modules\Vendor\app\Models\Vendor::with(['translations', 'logo'])
+            ->whereIn('id', $vendorIds)
+            ->get()
+            ->keyBy('id');
+
+        // Map relationships efficiently
+        return $topProducts->map(function($item) use ($vendorProducts, $vendors) {
+            $item->vendorProduct = $vendorProducts->get($item->vendor_product_id);
+            $item->vendorData = $vendors->get($item->vendor_id);
             return $item;
         });
     }

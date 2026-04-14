@@ -14,24 +14,28 @@ class ProductListResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        // Calculate points based on maximum variant price
-        $price = $this->variants?->where('price', '>', 0)->max('price') ?? 0;
-        $points = PointsHelper::calculatePoints((float) $price);
-
-        // Get the first variant for simple products or max price variant
-        $mainVariant = $this->variants?->where('price', '>', 0)->sortByDesc('price')->first();
+        // Use pre-calculated minimum price from query (no N+1 queries!)
+        $priceBeforeTaxes = (float) ($this->min_variant_price ?? 0);
+        
+        // Calculate points based on minimum variant price
+        $points = PointsHelper::calculatePoints($priceBeforeTaxes);
         
         // Calculate real price with taxes
-        $priceBeforeTaxes = (float) ($mainVariant?->price ?? 0);
         $taxes = $this->taxes ?? collect();
         $taxRate = $taxes->sum('percentage') ?? 0;
         $realPrice = $priceBeforeTaxes * (1 + ($taxRate / 100));
         
-        // Get fake price (price before discount if discount is active)
+        // Calculate discount percentage
+        $discount = null;
         $fakePrice = null;
-        if ($mainVariant && $mainVariant->has_discount && $mainVariant->price_before_discount) {
-            $fakePrice = (float) $mainVariant->price_before_discount;
-            $fakePriceWithTax = $fakePrice * (1 + ($taxRate / 100));
+        $fakePriceWithTax = null;
+        
+        if ($this->min_variant_has_discount && $this->min_variant_price_before_discount && $priceBeforeTaxes > 0) {
+            $priceBeforeDiscount = (float) $this->min_variant_price_before_discount;
+            if ($priceBeforeDiscount != 0) {
+                $discount = round((($priceBeforeDiscount - $priceBeforeTaxes) / $priceBeforeDiscount) * 100, 2);
+                $fakePriceWithTax = $priceBeforeDiscount * (1 + ($taxRate / 100));
+            }
         }
 
         return [
@@ -47,8 +51,8 @@ class ProductListResource extends JsonResource
             'review_avg_star' => round($this->reviews_avg_star ?? 0, 1),
             'price_before_taxes' => number_format($priceBeforeTaxes, 2, '.', ''),
             'real_price' => number_format($realPrice, 2, '.', ''),
-            'fake_price' => isset($fakePriceWithTax) ? number_format($fakePriceWithTax, 2, '.', '') : null,
-            'discount' => $mainVariant?->discount,
+            'fake_price' => $fakePriceWithTax ? number_format($fakePriceWithTax, 2, '.', '') : null,
+            'discount' => $discount,
             'remaining_stock' => $this->remaining_stock ?? 0,
             'vendor' => [
                 'id' => $this->vendor_id,
@@ -59,6 +63,21 @@ class ProductListResource extends JsonResource
                 'id' => $this->product->brand->id,
                 'title' => $this->product->brand->title,
                 'slug' => $this->product->brand->slug,
+            ] : null,
+            'department' => $this->product?->department ? [
+                'id' => $this->product->department->id,
+                'name' => $this->product->department->name,
+                'slug' => $this->product->department->slug,
+            ] : null,
+            'category' => $this->product?->category ? [
+                'id' => $this->product->category->id,
+                'name' => $this->product->category->name,
+                'slug' => $this->product->category->slug,
+            ] : null,
+            'sub_category' => $this->product?->subCategory ? [
+                'id' => $this->product->subCategory->id,
+                'name' => $this->product->subCategory->name,
+                'slug' => $this->product->subCategory->slug,
             ] : null,
         ];
     }

@@ -8,4 +8,6 @@ interface OrderApiRepositoryInterface
     public function getCustomerOrderById(int $customerId, int $orderId);
     public function changeOrderStage(int $customerId, int $orderId, int $stageId, $allowedStage);
     public function validatePromoCode(string $code, ?int $customerId);
+    public function trackOrderByReference(string $reference);
+    public function getOrderByOrderNumber(string $orderNumber);
 }

@@ -28,7 +28,12 @@ class SiteInformationController extends Controller
      */
     public function index()
     {
-        $siteInformation = SiteInformation::first();
+        // Cache site information forever - will be cleared when updated
+        $cacheKey = 'api_site_information_' . app()->getLocale();
+        
+        $siteInformation = \Cache::rememberForever($cacheKey, function() {
+            return SiteInformation::first();
+        });
         
         if (!$siteInformation) {
             return $this->sendRes(__('main.success'), true, [

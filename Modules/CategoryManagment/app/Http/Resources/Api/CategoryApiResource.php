@@ -25,7 +25,7 @@ class CategoryApiResource extends JsonResource
             'icon' => formatImage($this->icon),
             'sort_number' => $this->sort_number ?? 0,
             'department' => new DepartmentApiResource($this->whenLoaded('department')),
-            'sub_categories' => SubCategoryApiResource::collection($this->whenLoaded('activeSubs')),
+            // Removed sub_categories to improve performance
             'products_count' => $this->active_products_count ?? 0,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,

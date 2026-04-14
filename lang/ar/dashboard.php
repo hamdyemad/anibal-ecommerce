@@ -203,4 +203,14 @@ return [
     'this_month' => 'هذا الشهر',
     'net_remaining_after_refunds' => 'صافي المتبقي بعد المرتجعات',
     'without_refund' => 'بدون مرتجعات',
+    
+    // Simple Dashboard
+    'welcome' => 'مرحباً',
+    'welcome_message' => 'نتمنى لك يوماً سعيداً ومثمراً!',
+    'system_status' => 'حالة النظام',
+    'all_systems_operational' => 'جميع الأنظمة تعمل بشكل طبيعي',
+    'your_role' => 'دورك',
+    'no_role' => 'لا يوجد دور',
+    'quick_actions' => 'إجراءات سريعة',
 ];
+

@@ -23,7 +23,7 @@ class ProductRepository implements ProductInterface
     public function getAllProducts(array $filters = [], int $perPage = 10)
     {
         $query = Product::with(['brand', 'category', 'variants', 'translations'])->filter($filters);
-        return ($perPage == 0) ? $query->get() : $query->latest()->paginate($perPage);
+        return ($perPage == 0) ? $query->get() : $query->paginate($perPage);
     }
 
     public function getAllBankProducts(array $filters = [], int $perPage = 10)
@@ -102,7 +102,7 @@ class ProductRepository implements ProductInterface
             }
         }
         
-        return ($perPage == 0) ? $query->get() : $query->latest()->paginate($perPage);
+        return ($perPage == 0) ? $query->get() : $query->paginate($perPage);
     }
 
     public function getProductById($id)
@@ -378,19 +378,22 @@ class ProductRepository implements ProductInterface
                     if (isset($fields[$field])) {
 
                         if($field == 'title' && $language->code == 'en') {
-                            // $originalSlug = $slug;
-                            $model = Product::where('slug', Str::slug($fields[$field]))
-                            ->withoutCountryFilter()
-                            ->first();
-                            if($model) {
-                                $newSlug = $model->slug . '-' . rand(1, 1000);
-                                $product->update([
-                                    'slug' => $newSlug
-                                ]);
-                            } else {
-                                $product->update([
-                                    'slug' => Str::slug($fields[$field])
-                                ]);
+                            // Only generate slug on first creation (when slug is still a UUID)
+                            // Don't update slug on product updates
+                            if ($product->wasRecentlyCreated || $product->slug === null) {
+                                $model = Product::where('slug', Str::slug($fields[$field]))
+                                ->withoutCountryFilter()
+                                ->first();
+                                if($model) {
+                                    $newSlug = $model->slug . '-' . rand(1, 1000);
+                                    $product->update([
+                                        'slug' => $newSlug
+                                    ]);
+                                } else {
+                                    $product->update([
+                                        'slug' => Str::slug($fields[$field])
+                                    ]);
+                                }
                             }
                         }
 

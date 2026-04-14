@@ -9,17 +9,20 @@ use Modules\SystemSetting\app\Actions\SliderAction;
 use Modules\SystemSetting\app\Http\Requests\SliderRequest;
 use Modules\SystemSetting\app\Models\Slider;
 use Modules\SystemSetting\app\Services\SliderService;
+use App\Services\LanguageService;
 use Yajra\DataTables\Facades\DataTables;
 
 class SliderController extends Controller
 {
     protected $sliderService;
     protected $sliderAction;
+    protected $languageService;
 
-    public function __construct(SliderService $sliderService, SliderAction $sliderAction)
+    public function __construct(SliderService $sliderService, SliderAction $sliderAction, LanguageService $languageService)
     {
         $this->sliderService = $sliderService;
         $this->sliderAction = $sliderAction;
+        $this->languageService = $languageService;
         
         $this->middleware('can:sliders.index')->only(['index', 'datatable']);
         $this->middleware('can:sliders.create')->only(['create', 'store']);
@@ -30,7 +33,8 @@ class SliderController extends Controller
 
     public function index()
     {
-        return view('systemsetting::sliders.index');
+        $languages = $this->languageService->getAll();
+        return view('systemsetting::sliders.index', compact('languages'));
     }
 
     public function datatable(Request $request)
@@ -56,6 +60,12 @@ class SliderController extends Controller
 
         return DataTables::of($query)
             ->addIndexColumn()
+            ->addColumn('title', function ($slider) {
+                return $slider->title ?? '-';
+            })
+            ->addColumn('description', function ($slider) {
+                return Str::limit($slider->description, 50) ?? '-';
+            })
             ->addColumn('image_preview', function ($slider) {
                 $image = ($slider->attachments->first()) ? asset('storage/' . $slider->attachments->first()->path) : null;
                 if ($image) {
@@ -104,13 +114,14 @@ class SliderController extends Controller
                 $actions .= '</div>';
                 return $actions;
             })
-            ->rawColumns(['image_preview', 'link_display', 'status_badge', 'action'])
+            ->rawColumns(['image_preview', 'link_display', 'status_badge', 'action', 'title', 'description'])
             ->make(true);
     }
 
     public function create()
     {
-        return view('systemsetting::sliders.form');
+        $languages = $this->languageService->getAll();
+        return view('systemsetting::sliders.form', compact('languages'));
     }
 
     public function store(SliderRequest $request)
@@ -148,14 +159,16 @@ class SliderController extends Controller
 
     public function show($lang, $code, $id)
     {
+        $languages = $this->languageService->getAll();
         $slider = $this->sliderService->getSliderById($id);
-        return view('systemsetting::sliders.view', compact('slider'));
+        return view('systemsetting::sliders.view', compact('slider', 'languages'));
     }
 
     public function edit($lang, $code, $id)
     {
+        $languages = $this->languageService->getAll();
         $slider = $this->sliderService->getSliderById($id);
-        return view('systemsetting::sliders.form', compact('slider'));
+        return view('systemsetting::sliders.form', compact('slider', 'languages'));
     }
 
     public function update(SliderRequest $request, $lang, $code, $id)

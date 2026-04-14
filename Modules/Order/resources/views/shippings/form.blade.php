@@ -128,152 +128,20 @@
                                     </div>
                                 </div>
 
-                                {{-- Departments Field (Tag Input) - Show if departments setting is enabled --}}
+                                {{-- Departments/Categories/SubCategories fields hidden - City-based shipping only --}}
+                                {{-- 
                                 @if($shippingSettings?->shipping_allow_departments && $departments->count() > 0)
-                                <div class="col-md-6 mb-25">
-                                    <div class="form-group">
-                                        <label class="il-gray fs-14 fw-500 mb-10 d-block">
-                                            {{ trans('shipping.departments') }}
-                                            <span class="text-danger">*</span>
-                                        </label>
-                                        <div class="tag-input-container" id="department-tags-container">
-                                            <div class="tags-display" id="department-tags-display">
-                                                @php
-                                                    $selectedDepartmentIds = old(
-                                                        'department_ids',
-                                                        isset($shipping) && $shipping->departments
-                                                            ? $shipping->departments->pluck('id')->toArray()
-                                                            : [],
-                                                    );
-                                                @endphp
-                                                @foreach ($departments as $department)
-                                                    @if (in_array($department->id, $selectedDepartmentIds))
-                                                        <span class="tag-badge" data-id="{{ $department->id }}">
-                                                            {{ $department->name }}
-                                                            <span class="tag-remove"
-                                                                onclick="removeTag('department', {{ $department->id }})">&times;</span>
-                                                            <input type="hidden" name="department_ids[]"
-                                                                value="{{ $department->id }}">
-                                                        </span>
-                                                    @endif
-                                                @endforeach
-                                            </div>
-                                            <input type="text" class="tag-input" id="department-input"
-                                                placeholder="{{ trans('shipping.select_departments') }}" autocomplete="off">
-                                            <div class="tag-dropdown" id="department-dropdown" style="display: none;">
-                                                @foreach ($departments as $department)
-                                                    <div class="tag-option" data-id="{{ $department->id }}"
-                                                        data-name="{{ addslashes($department->name) }}"
-                                                        onclick="addTag('department', {{ $department->id }}, '{{ addslashes($department->name) }}')">
-                                                        {{ $department->name }}
-                                                    </div>
-                                                @endforeach
-                                            </div>
-                                        </div>
-                                        @error('department_ids')
-                                            <div class="invalid-feedback d-block">{{ $message }}</div>
-                                        @enderror
-                                    </div>
-                                </div>
+                                ... department fields ...
                                 @endif
-
-                                {{-- Categories Field (Tag Input) - Show if categories setting is enabled --}}
+                                
                                 @if($shippingSettings?->shipping_allow_categories && $categories->count() > 0)
-                                <div class="col-md-6 mb-25">
-                                    <div class="form-group">
-                                        <label class="il-gray fs-14 fw-500 mb-10 d-block">
-                                            {{ trans('shipping.categories') }}
-                                            <span class="text-danger">*</span>
-                                        </label>
-                                        <div class="tag-input-container" id="category-tags-container">
-                                            <div class="tags-display" id="category-tags-display">
-                                                @php
-                                                    $selectedCategoryIds = old(
-                                                        'category_ids',
-                                                        isset($shipping)
-                                                            ? $shipping->categories->pluck('id')->toArray()
-                                                            : [],
-                                                    );
-                                                @endphp
-                                                @foreach ($categories as $category)
-                                                    @if (in_array($category->id, $selectedCategoryIds))
-                                                        <span class="tag-badge" data-id="{{ $category->id }}">
-                                                            {{ $category->name }}
-                                                            <span class="tag-remove"
-                                                                onclick="removeTag('category', {{ $category->id }})">&times;</span>
-                                                            <input type="hidden" name="category_ids[]"
-                                                                value="{{ $category->id }}">
-                                                        </span>
-                                                    @endif
-                                                @endforeach
-                                            </div>
-                                            <input type="text" class="tag-input" id="category-input"
-                                                placeholder="{{ trans('shipping.select_categories') }}" autocomplete="off">
-                                            <div class="tag-dropdown" id="category-dropdown" style="display: none;">
-                                                @foreach ($categories as $category)
-                                                    <div class="tag-option" data-id="{{ $category->id }}"
-                                                        data-name="{{ addslashes($category->name) }}"
-                                                        onclick="addTag('category', {{ $category->id }}, '{{ addslashes($category->name) }}')">
-                                                        {{ $category->name }}
-                                                    </div>
-                                                @endforeach
-                                            </div>
-                                        </div>
-                                        @error('category_ids')
-                                            <div class="invalid-feedback d-block">{{ $message }}</div>
-                                        @enderror
-                                    </div>
-                                </div>
+                                ... category fields ...
                                 @endif
-
-                                {{-- Sub Categories Field (Tag Input) - Show if sub categories setting is enabled --}}
+                                
                                 @if($shippingSettings?->shipping_allow_sub_categories && $subCategories->count() > 0)
-                                <div class="col-md-6 mb-25">
-                                    <div class="form-group">
-                                        <label class="il-gray fs-14 fw-500 mb-10 d-block">
-                                            {{ trans('shipping.sub_categories') }}
-                                            <span class="text-danger">*</span>
-                                        </label>
-                                        <div class="tag-input-container" id="subcategory-tags-container">
-                                            <div class="tags-display" id="subcategory-tags-display">
-                                                @php
-                                                    $selectedSubCategoryIds = old(
-                                                        'sub_category_ids',
-                                                        isset($shipping) && $shipping->subCategories
-                                                            ? $shipping->subCategories->pluck('id')->toArray()
-                                                            : [],
-                                                    );
-                                                @endphp
-                                                @foreach ($subCategories as $subCategory)
-                                                    @if (in_array($subCategory->id, $selectedSubCategoryIds))
-                                                        <span class="tag-badge" data-id="{{ $subCategory->id }}">
-                                                            {{ $subCategory->name }}
-                                                            <span class="tag-remove"
-                                                                onclick="removeTag('subcategory', {{ $subCategory->id }})">&times;</span>
-                                                            <input type="hidden" name="sub_category_ids[]"
-                                                                value="{{ $subCategory->id }}">
-                                                        </span>
-                                                    @endif
-                                                @endforeach
-                                            </div>
-                                            <input type="text" class="tag-input" id="subcategory-input"
-                                                placeholder="{{ trans('shipping.select_sub_categories') }}" autocomplete="off">
-                                            <div class="tag-dropdown" id="subcategory-dropdown" style="display: none;">
-                                                @foreach ($subCategories as $subCategory)
-                                                    <div class="tag-option" data-id="{{ $subCategory->id }}"
-                                                        data-name="{{ addslashes($subCategory->name) }}"
-                                                        onclick="addTag('subcategory', {{ $subCategory->id }}, '{{ addslashes($subCategory->name) }}')">
-                                                        {{ $subCategory->name }}
-                                                    </div>
-                                                @endforeach
-                                            </div>
-                                        </div>
-                                        @error('sub_category_ids')
-                                            <div class="invalid-feedback d-block">{{ $message }}</div>
-                                        @enderror
-                                    </div>
-                                </div>
+                                ... subcategory fields ...
                                 @endif
+                                --}}
                             </div>
 
                             {{-- Form Actions --}}

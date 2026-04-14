@@ -27,7 +27,9 @@ class VendorProductVariant extends Model
         'discount_end_date' => 'date',
     ];
 
-    protected $appends = ['total_stock', 'variant_name', 'discount', 'quantity_in_cart', 'cart_id', 'countDeliveredProduct', 'countOfAvailable', 'variant_path_en', 'variant_path_ar'];
+    // Removed heavy DB queries (countDeliveredProduct, countOfAvailable) from appends to prevent N+1 issues when serialized.
+    // They can still be called statically via $variant->countOfAvailable if needed.
+    protected $appends = ['total_stock', 'variant_name', 'discount', 'quantity_in_cart', 'cart_id', 'variant_path_en', 'variant_path_ar'];
 
     public function getHasDiscountAttribute()
     {

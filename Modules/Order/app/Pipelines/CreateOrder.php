@@ -82,6 +82,57 @@ class CreateOrder
                 ->update(['transactionable_id' => $order->id]);
         }
 
+        // Refresh order to ensure all attributes are properly cast
+        $order = $order->fresh();
+
+        // Send email notification to customer
+        if ($order->customer_email) {
+            try {
+                \Illuminate\Support\Facades\Mail::to($order->customer_email)
+                    ->send(new \Modules\Order\app\Mail\OrderCreated($order));
+                    
+                \Illuminate\Support\Facades\Log::info('Order confirmation email sent successfully', [
+                    'order_id' => $order->id,
+                    'order_number' => $order->order_number,
+                    'email' => $order->customer_email,
+                ]);
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::error('Failed to send order confirmation email', [
+                    'order_id' => $order->id,
+                    'email' => $order->customer_email,
+                    'error' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString(),
+                ]);
+            }
+        }
+
+        // Send WhatsApp notification to customer
+        if ($order->customer_phone) {
+            try {
+                $whatsappService = app(\Modules\Order\app\Services\WhatsAppService::class);
+                $sent = $whatsappService->sendOrderConfirmation(
+                    $order->customer_phone,
+                    $order->order_number,
+                    $order->total_price
+                );
+                
+                if ($sent) {
+                    \Illuminate\Support\Facades\Log::info('WhatsApp notification sent successfully', [
+                        'order_id' => $order->id,
+                        'order_number' => $order->order_number,
+                        'phone' => $order->customer_phone,
+                    ]);
+                }
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::error('Failed to send WhatsApp notification', [
+                    'order_id' => $order->id,
+                    'phone' => $order->customer_phone,
+                    'error' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString(),
+                ]);
+            }
+        }
+
         $context['order'] = $order;
 
         return $next([

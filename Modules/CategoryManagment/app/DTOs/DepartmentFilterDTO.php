@@ -30,8 +30,8 @@ class DepartmentFilterDTO extends FilterDTO
             created_date_to: $request->input('created_date_to'),
             vendor_id: $request->input('vendor_id'),
             brand_id: $request->input('brand_id'),
-            per_page: $request->integer('per_page', 10),
-            paginated: $request->input('paginated', null)
+            per_page: $request->integer('per_page', 10), // Default 20 items per page
+            paginated: $request->input('paginated', 'true') // Default pagination enabled
         );
     }
 

@@ -203,4 +203,14 @@ return [
     'this_month' => 'This Month',
     'net_remaining_after_refunds' => 'Net Remaining After Refunds',
     'without_refund' => 'without refund',
+    
+    // Simple Dashboard
+    'welcome' => 'Welcome',
+    'welcome_message' => 'Have a great and productive day!',
+    'system_status' => 'System Status',
+    'all_systems_operational' => 'All systems operational',
+    'your_role' => 'Your Role',
+    'no_role' => 'No role assigned',
+    'quick_actions' => 'Quick Actions',
 ];
+

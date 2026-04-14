@@ -9,13 +9,14 @@ use App\Models\Traits\HumanDates;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Modules\CategoryManagment\app\Models\Category;
 use App\Traits\Translation;
+use App\Traits\ClearsApiCache;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\AreaSettings\app\Models\City;
 use Modules\AreaSettings\app\Models\Country;
 
 class Shipping extends BaseModel
 {
-    use HasFactory, HumanDates, Translation, SoftDeletes, AutoStoreCountryId, CountryCheckIdTrait;
+    use HasFactory, HumanDates, Translation, SoftDeletes, AutoStoreCountryId, CountryCheckIdTrait, ClearsApiCache;
 
     protected $table = 'shippings';
 
@@ -81,6 +82,18 @@ class Shipping extends BaseModel
     public function getNameArAttribute()
     {
         return $this->getTranslation('title', 'ar');
+    }
+
+    /**
+     * Get cache patterns to clear when shipping is modified
+     * Clear city cache since cities now include shipping info
+     */
+    protected function getCachePatterns(): array
+    {
+        return [
+            'api_cities_',
+            'cityapi:*',
+        ];
     }
 
 }

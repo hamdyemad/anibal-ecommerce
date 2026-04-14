@@ -3,6 +3,105 @@
     {{ trans('order::order.order_details') }}
 @endsection
 @section('content')
+    <style>
+        /* Order Summary Card Styling */
+        .order-summary-card {
+            border-radius: 10px !important;
+            box-shadow: 0 4px 20px rgba(146, 153, 184, 0.15) !important;
+            overflow: hidden;
+        }
+
+        .order-summary-card .card-title {
+            color: var(--color-primary) !important;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 12px;
+            margin-bottom: 20px !important;
+        }
+
+        .order-summary-card .card-title i {
+            color: var(--color-primary) !important;
+            font-size: 20px;
+        }
+
+        .order-summary-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            font-size: 14px;
+        }
+
+        .order-summary-row.total-row {
+            font-size: 18px;
+            font-weight: 700;
+            padding-top: 15px;
+            margin-top: 15px;
+            border-top: 1px solid var(--border-color);
+            color: var(--color-primary);
+        }
+
+        .order-summary-row.total-row .fw-bold:last-child {
+            font-size: 22px;
+            color: var(--color-primary) !important;
+        }
+
+        .order-summary-row.highlight-success {
+            background: rgba(var(--color-success-rgba), 0.08);
+            padding: 12px 15px;
+            border-radius: 8px;
+        }
+
+        .order-summary-row.highlight-success .fw-bold:first-child,
+        .order-summary-row.highlight-success span:first-child {
+            color: var(--color-success) !important;
+        }
+
+        .order-summary-row.highlight-success .fw-bold:last-child {
+            color: var(--color-success) !important;
+        }
+
+        .order-summary-row.highlight-danger {
+            background: rgba(var(--color-danger-rgba), 0.08);
+            padding: 12px 15px;
+            border-radius: 8px;
+        }
+
+        .order-summary-row.highlight-danger .fw-bold:first-child,
+        .order-summary-row.highlight-danger span:first-child {
+            color: var(--color-danger) !important;
+        }
+
+        .order-summary-row.highlight-danger .fw-bold:last-child {
+            color: var(--color-danger) !important;
+        }
+
+        .order-summary-row.highlight-info {
+            background: rgba(var(--color-info-rgba), 0.08);
+            padding: 12px 15px;
+            border-radius: 8px;
+        }
+
+        .order-summary-row.highlight-info .fw-bold:first-child,
+        .order-summary-row.highlight-info span:first-child {
+            color: var(--color-info) !important;
+        }
+
+        .order-summary-row.highlight-info .fw-bold:last-child {
+            color: var(--color-info) !important;
+        }
+
+        .order-summary-row.sub-row {
+            padding-left: 20px;
+            font-size: 13px;
+            color: #666;
+        }
+
+        .order-summary-divider {
+            border-color: var(--border-color) !important;
+            margin: 15px 0 !important;
+        }
+    </style>
+
     <div class="container-fluid">
         <div class="row">
             <div class="col-lg-12">
@@ -481,14 +580,6 @@
                                         </th>
                                         <th class="text-white fw-bold text-center">{{ trans('order::order.total_price') }}
                                         </th>
-                                        <th class="text-white fw-bold text-center">{{ trans('order::order.shipping') }}
-                                        </th>
-                                        <th class="text-white fw-bold text-center">
-                                            {{ trans('order::order.total_with_shipping') }}
-                                        </th>
-                                        <th class="text-white fw-bold text-center">
-                                            {{ trans('order::order.bnaia_commission') }}
-                                        </th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -636,23 +727,10 @@
                                             <td class="text-center fw-bold">
                                                 {{ number_format($productTotalWithTax, 2) }}
                                                 {{ currency() }}</td>
-                                            <td class="text-center">
-                                                {{ number_format($productShippingCost, 2) }}
-                                                {{ currency() }}
-                                            </td>
-                                            <td class="text-center fw-bold" style="color: #28a745;">
-                                                {{ number_format($productTotalWithTax + $productShippingCost, 2) }}
-                                                {{ currency() }}
-                                            </td>
-                                            <td class="text-center text-danger">
-                                                <div>{{ $commissionPercent }}%</div>
-                                                <div class="fw-bold">{{ number_format($commissionAmount, 2) }}
-                                                    {{ currency() }}</div>
-                                            </td>
                                         </tr>
                                     @empty
                                         <tr>
-                                            <td colspan="11" class="text-center text-muted py-20">
+                                            <td colspan="8" class="text-center text-muted py-20">
                                                 {{ trans('common.no_data') }}
                                             </td>
                                         </tr>
@@ -838,122 +916,124 @@
                         @endphp
                         <div class="row mb-40">
                             <div class="col-12">
-                                <div class="card border-0"
-                                    style="background: white; color: #333; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);">
-                                    <div class="card-body">
-                                        <h6 class="card-title fw-bold mb-20 d-flex align-items-center"
-                                            style="color: #5f63f2;">
-                                            <i class="uil uil-receipt me-2" style="font-size: 20px;"></i>
+                                <div class="card border-0 shadow-sm bg-white order-summary-card">
+                                    <div class="card-body p-4">
+                                        <h6 class="card-title fw-bold d-flex align-items-center text-primary">
+                                            <i class="uil uil-receipt me-2"></i>
                                             {{ trans('order::order.order_summary') }}
                                         </h6>
                                         <div class="summary-details">
-                                            <div class="summary-row mb-12">
-                                                <span class="fw-bold">{{ trans('order::order.subtotal') }}</span>
-                                                <span
-                                                    class="fw-bold">{{ number_format($totalProductsPriceBeforeTax, 2) }}
-                                                    {{ currency() }}</span>
+                                            {{-- Subtotal --}}
+                                            <div class="order-summary-row">
+                                                <span class="fw-medium text-muted">{{ trans('order::order.subtotal') }}</span>
+                                                <span class="fw-bold">{{ number_format($totalProductsPriceBeforeTax, 2) }} {{ currency() }}</span>
                                             </div>
+
+                                            {{-- Promo Discount --}}
                                             @if ($order->customer_promo_code_amount > 0)
-                                                <div class="summary-row mb-12">
-                                                    <span class="fw-bold">
+                                                <div class="order-summary-row">
+                                                    <span class="fw-medium text-muted">
                                                         {{ trans('order::order.promo_discount') }}
                                                         @if ($order->customer_promo_code_title)
-                                                            <small
-                                                                style="color: #999;">({{ $order->customer_promo_code_title }})</small>
+                                                            <small class="text-muted opacity-50">({{ $order->customer_promo_code_title }})</small>
                                                         @endif
                                                     </span>
-                                                    <span class="fw-bold"
-                                                        style="color: #dc3545;">-{{ number_format($order->customer_promo_code_amount, 2) }}
-                                                        {{ currency() }}</span>
+                                                    <span class="fw-bold text-danger">-{{ number_format($order->customer_promo_code_amount, 2) }} {{ currency() }}</span>
                                                 </div>
                                             @endif
-                                            <div class="summary-row mb-12">
-                                                <span class="fw-bold">{{ trans('order::order.taxes_price') }}</span>
-                                                <span class="fw-bold">+{{ number_format($order->total_tax, 2) }}
-                                                    {{ currency() }}</span>
+
+                                            {{-- Taxes --}}
+                                            <div class="order-summary-row">
+                                                <span class="fw-medium text-muted">{{ trans('order::order.taxes_price') }}</span>
+                                                <span class="fw-bold text-success">+{{ number_format($order->total_tax, 2) }} {{ currency() }}</span>
                                             </div>
-                                            <div class="summary-row mb-12">
-                                                <span
-                                                    class="fw-bold">{{ trans('order::order.subtotal_including_tax') }}</span>
-                                                <span
-                                                    class="fw-bold">{{ number_format($totalProductsPriceWithTax - $order->customer_promo_code_amount, 2) }}
-                                                    {{ currency() }}</span>
+
+                                            {{-- Subtotal Including Tax --}}
+                                            <div class="order-summary-row">
+                                                <span class="fw-medium text-muted">{{ trans('order::order.subtotal_including_tax') }}</span>
+                                                <span class="fw-bold">{{ number_format($totalProductsPriceWithTax - $order->customer_promo_code_amount, 2) }} {{ currency() }}</span>
                                             </div>
+
+                                            {{-- Additional Discounts --}}
                                             @if ($order->total_discounts > 0)
-                                                <div class="summary-row mb-12">
-                                                    <span class="fw-bold">{{ trans('order::order.discounts') }}</span>
-                                                    <span class="fw-bold"
-                                                        style="color: #dc3545;">-{{ number_format($order->total_discounts, 2) }}
-                                                        {{ currency() }}</span>
+                                                <div class="order-summary-row">
+                                                    <span class="fw-medium text-muted">{{ trans('order::order.discounts') }}</span>
+                                                    <span class="fw-bold text-danger">-{{ number_format($order->total_discounts, 2) }} {{ currency() }}</span>
                                                 </div>
                                             @endif
+
+                                            {{-- Fees --}}
                                             @if ($order->total_fees > 0)
-                                                <div class="summary-row mb-12">
-                                                    <span class="fw-bold">{{ trans('order::order.fees') }}</span>
-                                                    <span class="fw-bold">+{{ number_format($order->total_fees, 2) }}
-                                                        {{ currency() }}</span>
+                                                <div class="order-summary-row">
+                                                    <span class="fw-medium text-muted">{{ trans('order::order.fees') }}</span>
+                                                    <span class="fw-bold text-success">+{{ number_format($order->total_fees, 2) }} {{ currency() }}</span>
                                                 </div>
                                             @endif
-                                            <div class="summary-row mb-12">
-                                                <span class="fw-bold">{{ trans('order::order.shipping') }}</span>
-                                                <span class="fw-bold">+{{ number_format($order->shipping, 2) }}
-                                                    {{ currency() }}</span>
+
+                                            {{-- Shipping --}}
+                                            <div class="order-summary-row">
+                                                <span class="fw-medium text-muted">{{ trans('order::order.shipping') }}</span>
+                                                <span class="fw-bold text-success">+{{ number_format($order->shipping, 2) }} {{ currency() }}</span>
                                             </div>
-                                            <div class="summary-row mb-12">
-                                                <span
-                                                    class="fw-bold">{{ trans('order::order.total_with_shipping') }}</span>
-                                                <span class="fw-bold">{{ number_format($totalWithShippingBeforePoints, 2) }}
-                                                    {{ currency() }}</span>
+
+                                            {{-- Total With Shipping --}}
+                                            <div class="order-summary-row">
+                                                <span class="fw-medium text-muted">{{ trans('order::order.total_with_shipping') }}</span>
+                                                <span class="fw-bold">{{ number_format($totalWithShippingBeforePoints, 2) }} {{ currency() }}</span>
                                             </div>
+
+                                            {{-- Points Used --}}
                                             @if ($order->points_used > 0)
-                                                <div class="summary-row mb-12">
-                                                    <span class="fw-bold">{{ trans('order::order.points_used') }}</span>
-                                                    <span class="fw-bold"
-                                                        style="color: #dc3545;">-{{ number_format($order->points_cost, 2) }}
-                                                        {{ currency() }} ({{ number_format($order->points_used, 0) }}
-                                                        {{ trans('order::order.points') }})</span>
+                                                <div class="order-summary-row">
+                                                    <span class="fw-medium text-muted">{{ trans('order::order.points_used') }}</span>
+                                                    <span class="fw-bold text-danger">-{{ number_format($order->points_cost, 2) }} {{ currency() }} ({{ number_format($order->points_used, 0) }} {{ trans('order::order.points') }})</span>
                                                 </div>
                                             @endif
-                                            <hr style="border-color: rgba(0,0,0,0.1); margin: 15px 0;">
-                                            <div class="summary-row" style="font-size: 18px;">
+
+                                            <hr class="order-summary-divider">
+
+                                            {{-- Total --}}
+                                            <div class="order-summary-row total-row">
                                                 <span class="fw-bold">{{ trans('order::order.total') }}</span>
-                                                <span class="fw-bold"
-                                                    style="color: #5f63f2;">{{ number_format($order->total_price, 2) }}
-                                                    {{ currency() }}</span>
+                                                <span class="fw-bold text-primary">{{ number_format($order->total_price, 2) }} {{ currency() }}</span>
                                             </div>
+
+                                            {{-- Refund Sections --}}
                                             @if ($totalRefundedAmount > 0)
-                                                <hr style="border-color: rgba(0,0,0,0.1); margin: 15px 0;">
-                                                <div class="summary-row mb-12" style="font-size: 16px; background: #e8f5e9; padding: 10px 15px; border-radius: 6px;">
-                                                    <span class="fw-bold" style="color: #2e7d32;">= {{ trans('order::order.remaining_before_refund') }}</span>
-                                                    <span class="fw-bold"
-                                                        style="color: #2e7d32;">{{ number_format($totalRemaining, 2) }}
-                                                        {{ currency() }}</span>
+                                                <hr class="order-summary-divider">
+
+                                                {{-- Remaining Before Refund --}}
+                                                <div class="order-summary-row highlight-success">
+                                                    <span class="fw-bold">= {{ trans('order::order.remaining_before_refund') }}</span>
+                                                    <span class="fw-bold">{{ number_format($totalRemaining, 2) }} {{ currency() }}</span>
                                                 </div>
-                                                <hr style="border-color: rgba(0,0,0,0.1); margin: 15px 0;">
-                                                <div class="summary-row mb-12" style="font-size: 16px; background: #ffe6e6; padding: 10px 15px; border-radius: 6px;">
-                                                    <span class="fw-bold" style="color: #dc3545;">{{ trans('order::order.total_refunded') }}</span>
-                                                    <span class="fw-bold"
-                                                        style="color: #dc3545;">-{{ number_format($totalRefundedAmount, 2) }}
-                                                        {{ currency() }}</span>
+
+                                                <hr class="order-summary-divider">
+
+                                                {{-- Total Refunded --}}
+                                                <div class="order-summary-row highlight-danger">
+                                                    <span class="fw-bold">{{ trans('order::order.total_refunded') }}</span>
+                                                    <span class="fw-bold">-{{ number_format($totalRefundedAmount, 2) }} {{ currency() }}</span>
                                                 </div>
-                                                <div class="summary-row mb-12" style="font-size: 14px; color: #666; padding-left: 20px;">
+
+                                                {{-- Refunded Commission (sub-row) --}}
+                                                <div class="order-summary-row sub-row">
                                                     <span class="fw-500">{{ trans('order::order.plus') }} {{ trans('order::order.refunded_commission') }}</span>
-                                                    <span class="fw-500"
-                                                        style="color: #28a745;">+{{ number_format($refundedCommission, 2) }}
-                                                        {{ currency() }}</span>
+                                                    <span class="fw-500 text-success">+{{ number_format($refundedCommission, 2) }} {{ currency() }}</span>
                                                 </div>
-                                                <div class="summary-row mb-12" style="font-size: 16px; background: #ffcdd2; padding: 10px 15px; border-radius: 6px;">
-                                                    <span class="fw-bold" style="color: #c62828;">= {{ trans('order::order.net_refund_impact') }}</span>
-                                                    <span class="fw-bold"
-                                                        style="color: #c62828;">{{ number_format($totalRefundedAmount - $refundedCommission, 2) }}
-                                                        {{ currency() }}</span>
+
+                                                {{-- Net Refund Impact --}}
+                                                <div class="order-summary-row highlight-danger">
+                                                    <span class="fw-bold">= {{ trans('order::order.net_refund_impact') }}</span>
+                                                    <span class="fw-bold">{{ number_format($totalRefundedAmount - $refundedCommission, 2) }} {{ currency() }}</span>
                                                 </div>
-                                                <hr style="border-color: rgba(0,0,0,0.1); margin: 15px 0;">
-                                                <div class="summary-row mb-12" style="font-size: 18px; background: #e3f2fd; padding: 12px 15px; border-radius: 6px;">
-                                                    <span class="fw-bold" style="color: #1976d2;">= {{ trans('order::order.final_remaining') }}</span>
-                                                    <span class="fw-bold"
-                                                        style="color: #1976d2;">{{ number_format($finalRemaining, 2) }}
-                                                        {{ currency() }}</span>
+
+                                                <hr class="order-summary-divider">
+
+                                                {{-- Final Remaining --}}
+                                                <div class="order-summary-row highlight-info">
+                                                    <span class="fw-bold">= {{ trans('order::order.final_remaining') }}</span>
+                                                    <span class="fw-bold">{{ number_format($finalRemaining, 2) }} {{ currency() }}</span>
                                                 </div>
                                             @endif
                                         </div>
@@ -1086,296 +1166,6 @@
                             }
                         @endphp
 
-                        @if (isset($isVendorUser) && $isVendorUser && isset($vendorProductTotal))
-                            {{-- Vendor view: show Vendor Remaining Summary with products inside --}}
-                            @php
-                                // Get vendor-specific fees and discounts (already distributed and stored with vendor_id)
-                                $vendorFees = \Modules\Order\app\Models\OrderExtraFeeDiscount::where(
-                                    'order_id',
-                                    $order->id,
-                                )
-                                    ->where('vendor_id', $currentVendorId)
-                                    ->where('type', 'fee')
-                                    ->sum('cost');
-
-                                $vendorDiscounts = \Modules\Order\app\Models\OrderExtraFeeDiscount::where(
-                                    'order_id',
-                                    $order->id,
-                                )
-                                    ->where('vendor_id', $currentVendorId)
-                                    ->where('type', 'discount')
-                                    ->sum('cost');
-
-                                // Update total with fees and discounts
-                                $totalWithShippingAndExtras = $totalWithShipping + $vendorFees - $vendorDiscounts;
-
-                                // Calculate vendor's share of customer promo/points discounts
-                                // Based on vendor's GRAND TOTAL percentage (products + shipping)
-                                $orderGrandTotal = $order->products->sum(function($p) {
-                                    return $p->price + ($p->shipping_cost ?? 0);
-                                });
-                                
-                                $vendorGrandTotal = $totalProductsPriceWithTax + $vendorShippingCost;
-                                $vendorPercentage = $orderGrandTotal > 0 
-                                    ? ($vendorGrandTotal / $orderGrandTotal) 
-                                    : 0;
-                                
-                                $vendorCustomerPromoAmount = ($order->customer_promo_code_amount ?? 0) * $vendorPercentage;
-                                $vendorCustomerPointsCost = ($order->points_cost ?? 0) * $vendorPercentage;
-
-                                // Calculate final commission and remaining after refunds
-                                $finalVendorCommission = $totalCommission - $vendorRefundedCommission;
-                                
-                                // Remaining calculation:
-                                // The totalWithShippingAndExtras already represents what vendor receives
-                                // (including promo_code_share and points_share that Bnaia pays)
-                                // So we just subtract commission and refund impact
-                                $remainingBeforeRefund = $totalWithShippingAndExtras - $totalCommission;
-                                
-                                // Use vendor deduction amount (not customer refund amount) for remaining calculation
-                                $netRefundImpact = $vendorDeductionAmount - $vendorRefundedCommission;
-                                $totalRemainingWithExtras = $remainingBeforeRefund - $netRefundImpact;
-                            @endphp
-                            <div class="col-12 mb-3">
-                                <x-order::vendor-remaining-with-products :vendorName="$currentVendorName" :products="$displayProducts"
-                                    :subtotalBeforeTax="$totalProductsPriceBeforeTax" :taxAmount="$totalProductsTax" :subtotalWithTax="$totalProductsPriceWithTax" :shipping="$vendorShippingCost"
-                                    :total="$totalWithShippingAndExtras" :commissionPercentage="$totalCommissionPercentage" :commissionAmount="$totalCommission" 
-                                    :refundedAmount="$vendorRefundedAmount" :refundedCommission="$vendorRefundedCommission" :finalCommission="$finalVendorCommission"
-                                    :remaining="$totalRemainingWithExtras"
-                                    :promoCodeShare="$vendorPromoCodeShare" :pointsShare="$vendorPointsShare" :fees="$vendorFees" :discounts="$vendorDiscounts"
-                                    :customerPromoAmount="$vendorCustomerPromoAmount" :customerPointsCost="$vendorCustomerPointsCost"
-                                    :orderCustomerPaid="$order->customer_paid ?? null"
-                                    :colors="['#28a745', '#5dd879']" />
-                            </div>
-                        @else
-                            {{-- Admin view: show per-vendor boxes with products inside --}}
-
-                            @php
-                                // Group products by vendor
-                                $productsByVendor = $order->products->groupBy(function ($product) {
-                                    return $product->vendorProduct?->vendor_id;
-                                });
-
-                                // Use single green color for all vendors
-                                $vendorColors = [
-                                    ['#28a745', '#5dd879'], // Green
-                                ];
-                                $colorIndex = 0;
-
-                                // Check if order has promo code or points discount
-                                $hasPromoCode = $order->customer_promo_code_amount > 0;
-                                $hasPointsDiscount = $order->points_cost > 0;
-                            @endphp
-
-                            {{-- Explanation box for promo code and points share --}}
-                            @if ($hasPromoCode || $hasPointsDiscount)
-                                <div class="col-12 mb-4">
-                                    <div class="card border-0 shadow-sm"
-                                        style="background: #f8f9fa; border-radius: 12px;">
-                                        <div class="card-body p-4">
-                                            <h6 class="fw-bold mb-3 d-flex align-items-center" style="color: #1565c0;">
-                                                <i class="uil uil-info-circle me-2" style="font-size: 22px;"></i>
-                                                {{ trans('order::order.discount_share_explanation_title') }}
-                                            </h6>
-                                            <p class="mb-3" style="color: #555; font-size: 14px; line-height: 1.6;">
-                                                {{ trans('order::order.discount_share_explanation_text') }}
-                                            </p>
-                                            <div class="row">
-                                                @if ($hasPromoCode)
-                                                    <div class="col-md-6 mb-2">
-                                                        <div class="d-flex align-items-start p-3"
-                                                            style="background: #e8f5e9; border-radius: 8px;">
-                                                            <i class="uil uil-tag-alt me-2"
-                                                                style="color: #28a745; font-size: 18px; margin-top: 2px;"></i>
-                                                            <div>
-                                                                <strong
-                                                                    style="color: #28a745;">{{ trans('order::order.promo_code_share') }}</strong>
-                                                                <p class="mb-0 mt-1"
-                                                                    style="color: #555; font-size: 13px;">
-                                                                    {{ trans('order::order.promo_code_share_explanation') }}
-                                                                </p>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                @endif
-                                                @if ($hasPointsDiscount)
-                                                    <div class="col-md-6 mb-2">
-                                                        <div class="d-flex align-items-start p-3"
-                                                            style="background: #e8f5e9; border-radius: 8px;">
-                                                            <i class="uil uil-star me-2"
-                                                                style="color: #28a745; font-size: 18px; margin-top: 2px;"></i>
-                                                            <div>
-                                                                <strong
-                                                                    style="color: #28a745;">{{ trans('order::order.points_share') }}</strong>
-                                                                <p class="mb-0 mt-1"
-                                                                    style="color: #555; font-size: 13px;">
-                                                                    {{ trans('order::order.points_share_explanation') }}
-                                                                </p>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                @endif
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            @endif
-
-                            @foreach ($productsByVendor as $vendorId => $vendorProducts)
-                                @php
-                                    // Get vendor name
-                                    $vendorName =
-                                        $vendorProducts
-                                            ->first()
-                                            ->vendorProduct?->vendor?->getTranslation('name', app()->getLocale()) ??
-                                        'N/A';
-
-                                    // Get vendor_order_stage for discount shares
-                                    $vendorOrderStage = \Modules\Order\app\Models\VendorOrderStage::where(
-                                        'order_id',
-                                        $order->id,
-                                    )
-                                        ->where('vendor_id', $vendorId)
-                                        ->first();
-                                    $promoCodeShare = $vendorOrderStage?->promo_code_share ?? 0;
-                                    $pointsShare = $vendorOrderStage?->points_share ?? 0;
-
-                                    // Calculate totals for this vendor
-                                    $vendorSubtotalBeforeTax = 0;
-                                    $vendorTotalTax = 0;
-                                    $vendorShipping = 0;
-                                    $vendorTotalCommission = 0;
-                                    $totalCommissionPercentage = 0;
-
-                                    foreach ($vendorProducts as $prod) {
-                                        $prodTotalWithTax = $prod->price;
-                                        $prodTax = $prod->taxes->sum('amount') ?? 0;
-                                        $prodTotalBeforeTax = $prodTotalWithTax - $prodTax;
-                                        $prodShippingCost = $prod->shipping_cost ?? 0;
-
-                                        $vendorSubtotalBeforeTax += $prodTotalBeforeTax;
-                                        $vendorTotalTax += $prodTax;
-                                        $vendorShipping += $prodShippingCost;
-
-                                        // Calculate commission from each product (on total with shipping)
-                                        // Use commission directly from order_products (don't fallback to department)
-                                        $commPercent = $prod->commission ?? 0;
-                                        $prodTotalWithShipping = $prodTotalWithTax + $prodShippingCost;
-                                        $prodCommissionAmount = ($prodTotalWithShipping * $commPercent) / 100;
-                                        $vendorTotalCommission += $prodCommissionAmount;
-                                        $totalCommissionPercentage += $commPercent;
-                                    }
-
-                                    // Calculate average commission percentage for display
-                                    $avgCommissionPercentage =
-                                        $vendorProducts->count() > 0
-                                            ? $totalCommissionPercentage / $vendorProducts->count()
-                                            : 0;
-
-                                    $vendorSubtotalWithTax = $vendorSubtotalBeforeTax + $vendorTotalTax;
-                                    $vendorTotalWithShipping = $vendorSubtotalWithTax + $vendorShipping;
-
-                                    // Get vendor-specific fees and discounts (already distributed and stored with vendor_id)
-                                    $vendorFees = \Modules\Order\app\Models\OrderExtraFeeDiscount::where(
-                                        'order_id',
-                                        $order->id,
-                                    )
-                                        ->where('vendor_id', $vendorId)
-                                        ->where('type', 'fee')
-                                        ->sum('cost');
-
-                                    $vendorDiscounts = \Modules\Order\app\Models\OrderExtraFeeDiscount::where(
-                                        'order_id',
-                                        $order->id,
-                                    )
-                                        ->where('vendor_id', $vendorId)
-                                        ->where('type', 'discount')
-                                        ->sum('cost');
-
-                                    // Update total with fees and discounts
-                                    $vendorTotalWithShippingAndExtras =
-                                        $vendorTotalWithShipping + $vendorFees - $vendorDiscounts;
-
-                                    // Calculate vendor's share of customer promo/points discounts
-                                    // Based on vendor's GRAND TOTAL percentage (products + shipping)
-                                    $orderGrandTotal = $order->products->sum(function($p) {
-                                        return $p->price + ($p->shipping_cost ?? 0);
-                                    });
-                                    
-                                    $vendorGrandTotal = $vendorSubtotalWithTax + $vendorShipping;
-                                    $vendorPercentage = $orderGrandTotal > 0 
-                                        ? ($vendorGrandTotal / $orderGrandTotal) 
-                                        : 0;
-                                    
-                                    $vendorCustomerPromoAmount = ($order->customer_promo_code_amount ?? 0) * $vendorPercentage;
-                                    $vendorCustomerPointsCost = ($order->points_cost ?? 0) * $vendorPercentage;
-
-                                    // Calculate refunds for this vendor
-                                    $vendorRefundedAmount = 0; // Customer refund amount (for display)
-                                    $vendorDeductionAmount = 0; // Vendor deduction amount (for remaining calculation)
-                                    $vendorRefundedCommission = 0;
-                                    
-                                    $vendorRefunds = $order->refunds()->where('status', 'refunded')
-                                        ->where('vendor_id', $vendorId)
-                                        ->with('items.orderProduct')
-                                        ->get();
-                                    
-                                    foreach ($vendorRefunds as $refund) {
-                                        $vendorRefundedAmount += $refund->total_refund_amount;
-                                        
-                                        // Calculate vendor deduction: products + shipping + fees - discounts - return shipping
-                                        $vendorDeductionAmount += $refund->total_products_amount 
-                                            + $refund->total_shipping_amount 
-                                            + ($refund->vendor_fees_amount ?? 0)
-                                            - ($refund->vendor_discounts_amount ?? 0)
-                                            - ($refund->return_shipping_cost ?? 0);
-                                        
-                                        foreach ($refund->items as $item) {
-                                            $orderProduct = $item->orderProduct;
-                                            if ($orderProduct) {
-                                                // Get commission from order_products table (0 is valid, means no commission)
-                                                $commPercent = $orderProduct->commission ?? 0;
-                                                
-                                                $itemRefundAmount = $item->total_price + $item->shipping_amount;
-                                                if ($itemRefundAmount > 0 && $commPercent > 0) {
-                                                    $vendorRefundedCommission += ($itemRefundAmount * $commPercent) / 100;
-                                                }
-                                            }
-                                        }
-                                    }
-
-                                    // Calculate final commission and remaining after refunds
-                                    $finalVendorCommission = $vendorTotalCommission - $vendorRefundedCommission;
-                                    
-                                    // Remaining calculation:
-                                    // The vendorTotalWithShippingAndExtras already represents what vendor receives
-                                    // (including promo_code_share and points_share that Bnaia pays)
-                                    // So we just subtract commission and refund impact
-                                    $remainingBeforeRefund = $vendorTotalWithShippingAndExtras - $vendorTotalCommission;
-                                    
-                                    // Use vendor deduction amount (not customer refund amount) for remaining calculation
-                                    $netRefundImpact = $vendorDeductionAmount - $vendorRefundedCommission;
-                                    $vendorTotalRemaining = $remainingBeforeRefund - $netRefundImpact;
-
-                                    // Get color for this vendor
-                                    $colors = $vendorColors[$colorIndex % count($vendorColors)];
-                                    $colorIndex++;
-                                @endphp
-
-                                {{-- Per-Vendor Remaining Summary Box with Products Inside --}}
-                                <div class="col-12 mb-3">
-                                    <x-order::vendor-remaining-with-products :vendorName="$vendorName" :products="$vendorProducts"
-                                        :subtotalBeforeTax="$vendorSubtotalBeforeTax" :taxAmount="$vendorTotalTax" :subtotalWithTax="$vendorSubtotalWithTax" :shipping="$vendorShipping"
-                                        :total="$vendorTotalWithShippingAndExtras" :commissionPercentage="$avgCommissionPercentage" :commissionAmount="$vendorTotalCommission" 
-                                        :refundedAmount="$vendorRefundedAmount" :refundedCommission="$vendorRefundedCommission" :finalCommission="$finalVendorCommission"
-                                        :remaining="$vendorTotalRemaining"
-                                        :promoCodeShare="$promoCodeShare" :pointsShare="$pointsShare" :fees="$vendorFees" :discounts="$vendorDiscounts"
-                                        :customerPromoAmount="$vendorCustomerPromoAmount" :customerPointsCost="$vendorCustomerPointsCost"
-                                        :orderCustomerPaid="$order->customer_paid ?? null"
-                                        :colors="$colors" />
-                                </div>
-                            @endforeach
-                        @endif
                     </div>
                 </div>
             </div>

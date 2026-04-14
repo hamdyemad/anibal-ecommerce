@@ -36,7 +36,7 @@ Route::get('/preview/{path}', [AuthController::class, 'previewFunc'])
     ->name('preview.file');
 
 
-Route::group(['prefix' => '/', 'middleware' => 'guest'], function() {
+Route::group(['prefix' => '/', 'middleware' => ['web.guest', 'guest']], function() {
     Route::get('/',[AuthController::class,'login'])->name('login');
     Route::post('/',[AuthController::class,'authenticate'])->name('authenticate');
     Route::group(['prefix' => 'forget-password', 'as' => 'forgetPassword.'], function() {

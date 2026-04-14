@@ -11,6 +11,8 @@ return [
 
     // Fields
     'slider_link' => 'رابط المنزلق',
+    'title' => 'العنوان',
+    'description' => 'الوصف',
     'slider_image' => 'صورة المنزلق',
     'sort_order' => 'ترتيب الفرز',
     'status' => 'الحالة',
@@ -58,6 +60,8 @@ return [
 
     // Placeholders
     'slider_link_placeholder' => 'https://example.com',
+    'title_placeholder' => 'أدخل عنوان المنزلق',
+    'description_placeholder' => 'أدخل وصف المنزلق',
     'recommended_size' => 'الحجم الموصى به: 340×150 بكسل',
     'visit_link' => 'زيارة الرابط',
 ];

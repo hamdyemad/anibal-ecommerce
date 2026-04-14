@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bnaia - Invoice #{{ $order->order_number }}</title>
+    <title>{{ env("APP_NAME") }} - Invoice #{{ $order->order_number }}</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
         
@@ -63,7 +63,7 @@
         }
         
         .logo-section img {
-            height: 40px;
+            height: 100px;
         }
         
         .invoice-badge {
@@ -497,7 +497,7 @@
                 <h1>Invoice</h1>
             </div>
             <div class="invoice-order-info">
-                <div class="invoice-order-number">Bnaia - Invoice #{{ $order->order_number }}</div>
+                <div class="invoice-order-number">{{ env("APP_NAME") }} - Invoice #{{ $order->order_number }}</div>
                 <div class="invoice-order-date">{{ $order->created_at }}</div>
             </div>
         </div>
@@ -505,7 +505,7 @@
         <!-- Header -->
         <div class="invoice-header">
             <div class="logo-section">
-                <img src="{{ asset('assets/img/logo.png') }}" alt="Bnaia">
+                <img src="{{ asset('assets/img/logo_en.png') }}">
             </div>
         </div>
 

@@ -21,14 +21,24 @@ class CountryApiController extends Controller
      */
     public function index(Request $request)
     {
-        $countries = $this->countryService->getAll($request->all());
+        // Cache countries forever - will be cleared when updated
+        $cacheKey = 'api_countries_' . md5(json_encode($request->all()) . app()->getLocale());
+        
+        $countries = \Cache::rememberForever($cacheKey, function() use ($request) {
+            return $this->countryService->getAll($request->all());
+        });
 
         return $this->sendRes(config('responses.success')[app()->getLocale()], true, CountryResource::collection($countries));
     }
 
     public function show(Request $request, $id)
     {
-        $country = $this->countryService->getCountryById($id, $request->all());
+        // Cache single country forever - will be cleared when updated
+        $cacheKey = 'api_country_' . $id . '_' . md5(json_encode($request->all()) . app()->getLocale());
+        
+        $country = \Cache::rememberForever($cacheKey, function() use ($request, $id) {
+            return $this->countryService->getCountryById($id, $request->all());
+        });
 
         return $this->sendRes(config('responses.success')[app()->getLocale()], true, CountryResource::make($country));
     }

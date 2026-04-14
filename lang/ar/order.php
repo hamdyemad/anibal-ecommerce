@@ -22,12 +22,23 @@ return [
     // Email notifications
     'stage_updated_subject' => 'تم تحديث حالة الطلب :order_number',
     'stage_updated_title' => 'تحديث حالة الطلب',
-    'dear_customer' => 'عزيزي :name،',
+    'new_order_email_subject' => 'تأكيد الطلب - :order_number',
+    'order_confirmation' => 'تأكيد الطلب',
+    'new_order_notification' => 'تم استلام رسالة جديدة من موقع التواصل',
+    'dear_customer' => 'عزيزنا',
+    'order_received_message' => 'شكراً لك على طلبك! تم استلام طلبك بنجاح وسنقوم بمعالجته في أقرب وقت.',
+    'order_processing_message' => 'سيتم إشعارك فور شحن طلبك.',
+    'track_order' => 'تتبع الطلب',
+    'thank_you_message' => 'نشكرك على تسوقك معنا!',
+    'all_rights_reserved' => 'جميع الحقوق محفوظة',
+    'email_help_text' => 'في حال وجود أي استفسار حول طلبك، يرجى التواصل مع خدمة العملاء.',
     'stage_updated_message' => 'تم تحديث حالة طلبك :order_number إلى: :stage',
     'order_details' => 'تفاصيل الطلب',
     'order_number' => 'رقم الطلب',
+    'order_date' => 'تاريخ الطلب',
     'current_stage' => 'الحالة الحالية',
     'total_amount' => 'المبلغ الإجمالي',
+    'payment_method' => 'طريقة الدفع',
     'thank_you' => 'شكراً لك على ثقتك بنا!',
     'no_records' => 'لا توجد سجلات',
     'confirm_delete' => 'هل أنت متأكد من حذف هذا العنصر؟',
@@ -219,6 +230,9 @@ return [
         'shipping_failed' => 'فشل معالجة الشحن',
         'refund_failed' => 'فشل معالجة الاسترداد',
     ],
+    
+    'order_tracking_retrieved_successfully' => 'تم استرجاع تتبع الطلب بنجاح',
+    ],
 
     // Additional Order Management Keys
     'order_management' => 'إدارة الطلبات',
@@ -278,6 +292,7 @@ return [
     'stage_updated_successfully' => 'تم تحديث مرحلة الطلب بنجاح',
     'error_updating_stage' => 'خطأ في تحديث مرحلة الطلب',
     'cash_on_delivery' => 'الدفع عند الاستلام',
+    'online' => 'الدفع الإلكتروني',
     'online_payment' => 'الدفع الإلكتروني',
     'web' => 'الويب',
     'ios' => 'تطبيق iOS',
@@ -336,4 +351,5 @@ return [
     'invalid_stage' => 'مرحلة غير صحيحة',
     'transition_not_allowed' => 'لا يمكن الانتقال من :from إلى :to',
     'error_loading_stages' => 'خطأ في تحميل المراحل المتاحة',
+    'order_not_found' => 'لم يتم العثور على الطلب',
 ];

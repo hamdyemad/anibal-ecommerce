@@ -31,6 +31,17 @@ return [
     ],
     'firebase' => [
         'service_account' => env('FIREBASE_SERVICE_ACCOUNT', storage_path('app/firebase/service-account.json')),
-    ]
+    ],
+
+    'whatsapp' => [
+        'api_url' => env('WHATSAPP_API_URL'),
+        'api_token' => env('WHATSAPP_API_TOKEN'),
+    ],
+
+    'google' => [
+        'client_id' => env('GOOGLE_CLIENT_ID'),
+        'client_secret' => env('GOOGLE_CLIENT_SECRET'),
+        'redirect' => env('GOOGLE_REDIRECT_URI'),
+    ],
 
 ];

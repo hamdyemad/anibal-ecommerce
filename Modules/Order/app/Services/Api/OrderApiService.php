@@ -123,4 +123,20 @@ class OrderApiService
     {
         return $this->orderRepository->validatePromoCode($code, Auth::id());
     }
+
+    /**
+     * Track order by reference number (public - no auth required)
+     */
+    public function trackOrderByReference(string $reference)
+    {
+        return $this->orderRepository->trackOrderByReference($reference);
+    }
+
+    /**
+     * Get order by order number (public - no auth required)
+     */
+    public function getOrderByOrderNumber(string $orderNumber)
+    {
+        return $this->orderRepository->getOrderByOrderNumber($orderNumber);
+    }
 }

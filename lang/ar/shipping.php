@@ -104,6 +104,9 @@ return [
 
     // Shipping Settings
     'shipping_settings' => 'إعدادات الشحن',
+    'city_based_shipping' => 'نظام الشحن على أساس المدينة',
+    'city_based_shipping_desc' => 'تم تبسيط نظام الشحن ليعمل على أساس المدينة فقط. كل مدينة لها سعر شحن واحد بدون تعقيدات الأقسام أو الفئات.',
+    'not_available_for_city' => 'الشحن غير متوفر لهذه المدينة',
     'allow_departments' => 'السماح بالأقسام',
     'allow_departments_desc' => 'تفعيل الشحن حسب الأقسام',
     'allow_categories' => 'السماح بالفئات',

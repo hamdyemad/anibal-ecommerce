@@ -47,6 +47,8 @@
             padding: 40px;
             color: #fff;
             position: relative;
+            /* Optimize image loading */
+            will-change: transform;
         }
 
         .auth-image::before {
@@ -195,7 +197,7 @@
 
 
                 <div style="text-align: center;">
-                    <img src="{{ asset('assets/img/logo_en.png') }}" alt="svg" style="width: 250px;">
+                    <img src="{{ asset('assets/img/logo_en.png') }}" alt="svg" style="width: 250px;" loading="lazy">
                 </div>
 
                 <h3>Welcome Back </h3>

@@ -7,6 +7,7 @@ use App\Models\Attachment;
 use App\Models\Traits\HumanDates;
 use App\Traits\HasSlug;
 use App\Traits\Translation;
+use App\Traits\ClearsApiCache;
 use App\Models\Traits\AutoStoreCountryId;
 use App\Models\Traits\CountryCheckIdTrait;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -17,7 +18,7 @@ use Modules\CatalogManagement\app\Models\Product;
 
 class SubCategory extends BaseModel
 {
-    use HasFactory, SoftDeletes, Translation, HumanDates, HasSlug, AutoStoreCountryId, CountryCheckIdTrait;
+    use HasFactory, SoftDeletes, Translation, HumanDates, HasSlug, AutoStoreCountryId, CountryCheckIdTrait, ClearsApiCache;
 
     protected $guarded = [];
 
@@ -116,6 +117,17 @@ class SubCategory extends BaseModel
             $query->byCategory($category);
         }
 
+    }
+
+    /**
+     * Get cache patterns to clear when subcategory is modified
+     */
+    protected function getCachePatterns(): array
+    {
+        return [
+            'subcategories_',
+            'api_categories_', // Categories include subcategories
+        ];
     }
 
 }

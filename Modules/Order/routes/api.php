@@ -19,6 +19,8 @@ Route::prefix('order-stages')->group(function () {
 // Order routes
 Route::prefix('orders')->group(function () {
     Route::get('{orderId}/allowed-stages', [OrderStageApiController::class, 'allowedStages'])->name('orders.allowed-stages');
+    // Public order tracking by order number (no auth required)
+    Route::get('track/{orderNumber}', [OrderApiController::class, 'trackOrder'])->name('orders.track');
 });
 
 // Request Quotation API (public - no auth required)
@@ -30,6 +32,16 @@ Route::prefix('paymob')->group(function () {
     Route::match(['get', 'post'], '/callback', [PaymobController::class, 'callback'])->name('paymob.callback');
     Route::get('/check/{paymob_order_id}', [PaymobController::class, 'checkPayment'])->name('paymob.check');
 });
+
+// Shipping calculation routes (public - supports both authenticated and guest users)
+Route::prefix('shipping')->middleware(['auth.optional:sanctum'])->group(function () {
+    Route::post('/calculate', [ShippingCalculationController::class, 'calculate'])->name('calculate');
+});
+
+// Checkout route (public - supports both authenticated and guest users)
+Route::post('/orders/checkout', [OrderApiController::class, 'checkout'])
+    ->middleware(['auth.optional:sanctum', 'throttle:checkout'])
+    ->name('checkout');
 
 Route::middleware(['auth:sanctum'])->group(function () {
     // Wishlist API routes
@@ -54,20 +66,12 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::post('/clear', [CartApiController::class, 'clear']);
     });
 
-    // Order API routes - checkout has stricter rate limiting
+    // Order API routes (authenticated only)
     Route::prefix('orders')->group(function () {
-        Route::post('/checkout', [OrderApiController::class, 'checkout'])
-            ->name('checkout')
-            ->middleware(['auth.optional:sanctum', 'throttle:checkout']);
         Route::get('/', [OrderApiController::class, 'myOrders'])->name('my-orders');
         Route::get('/{orderId}', [OrderApiController::class, 'show'])->name('show');
         Route::post('/{orderId}/cancel', [OrderApiController::class, 'cancel'])->name('cancel');
         Route::post('/{orderId}/return', [OrderApiController::class, 'return'])->name('return');
-    });
-
-    // Shipping calculation routes
-    Route::prefix('shipping')->group(function () {
-        Route::post('/calculate', [ShippingCalculationController::class, 'calculate'])->name('calculate');
     });
 
     // Request Quotation API (authenticated)
@@ -76,7 +80,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::post('/', [RequestQuotationApiController::class, 'store'])->name('request-quotations.store');
         Route::get('/{id}', [RequestQuotationApiController::class, 'show'])->name('request-quotations.show');
         Route::post('/{id}/respond', [RequestQuotationApiController::class, 'respondToOffer'])->name('request-quotations.respond');
-    
+
     });
 });
 Route::post('/promocode/check', [OrderApiController::class, 'checkPromoCode'])->name('check-promo-code');

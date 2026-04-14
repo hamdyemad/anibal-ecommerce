@@ -500,89 +500,33 @@ class ProductApiController extends Controller
     }
 
     /**
-     * Get variant trees by filters
+     * Get all variants with filters and pagination
+     * Returns actual variant products (not variant trees)
+     * 
      * GET /api/products/variants
      */
     public function variants(Request $request)
     {
-        // $dto = ProductFilterDTO::fromRequest($request);
+        $dto = ProductFilterDTO::fromRequest($request);
 
-        // if (!$dto->validate()) {
-        //     return $this->sendRes(
-        //         config('responses.validation')[app()->getLocale()],
-        //         false,
-        //         null,
-        //         $dto->getErrors(),
-        //         422
-        //     );
-        // }
+        if (!$dto->validate()) {
+            return $this->sendRes(
+                config('responses.validation')[app()->getLocale()],
+                false,
+                [],
+                $dto->getErrors(),
+                422
+            );
+        }
 
-        // To Do: Variant Trees per Product
-        // "data": {
-        //     "options": [
-        //         {
-        //             "key_id": 1,
-        //             "key_name": "Door Bar",
-        //             "options": [
-        //                 {
-        //                     "id": 1,
-        //                     "name": "External Bar",
-        //                     "color": null,
-        //                     "children": [
-        //                         {
-        //                             "key_id": 2,
-        //                             "key_name": "Door Direction",
-        //                             "options": [
-        //                                 {
-        //                                     "id": 4,
-        //                                     "name": "Right",
-        //                                     "color": null
-        //                                 },
-        //                                 {
-        //                                     "id": 6,
-        //                                     "name": "Left",
-        //                                     "color": null
-        //                                 }
-        //                             ]
-        //                         }
-        //                     ]
-        //                 },
-        //                 {
-        //                     "id": 2,
-        //                     "name": "Internal Bar",
-        //                     "color": null,
-        //                     "children": [
-        //                         {
-        //                             "key_id": 2,
-        //                             "key_name": "Door Direction",
-        //                             "options": [
-        //                                 {
-        //                                     "id": 3,
-        //                                     "name": "Right",
-        //                                     "color": null
-        //                                 },
-        //                                 {
-        //                                     "id": 5,
-        //                                     "name": "Left",
-        //                                     "color": null
-        //                                 }
-        //                             ]
-        //                         }
-        //                     ]
-        //                 }
-        //             ]
-        //         }
-        //     ]
-        // }
-
-        $variants = $this->productService->getTreesByFilters($request->all());
+        // Use the new VariantApiService
+        $variantService = app(\Modules\CatalogManagement\app\Services\Api\VariantApiService::class);
+        $variants = $variantService->getAllVariants($dto);
 
         return $this->sendRes(
             config('responses.success')[app()->getLocale()],
             true,
-            $variants,
-            [],
-            200
+            \Modules\CatalogManagement\app\Http\Resources\Api\VariantListResource::collection($variants)
         );
     }
 

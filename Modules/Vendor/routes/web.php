@@ -16,7 +16,6 @@ Route::group(['prefix' => 'vendors', 'as' => 'vendors.'], function() {
     Route::delete('{vendor}/documents/{document}', [VendorController::class, 'destroyDocument'])->name('documents.destroy');
     Route::resource('', VendorController::class);
 });
-Route::resource('vendors', VendorController::class);
 
 // Vendor Reviews
 Route::get('vendor-reviews', [VendorReviewController::class, 'index'])->name('vendor-reviews.index');

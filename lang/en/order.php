@@ -22,12 +22,23 @@ return [
     // Email notifications
     'stage_updated_subject' => 'Order :order_number Status Updated',
     'stage_updated_title' => 'Order Status Update',
-    'dear_customer' => 'Dear :name,',
+    'new_order_email_subject' => 'Order Confirmation - :order_number',
+    'order_confirmation' => 'Order Confirmation',
+    'new_order_notification' => 'A new order has been successfully received',
+    'dear_customer' => 'Dear',
+    'order_received_message' => 'Thank you for your order! Your order has been successfully received and will be processed shortly.',
+    'order_processing_message' => 'You will be notified as soon as your order is shipped.',
+    'track_order' => 'Track Order',
+    'thank_you_message' => 'Thank you for shopping with us!',
+    'all_rights_reserved' => 'All rights reserved',
+    'email_help_text' => 'If you have any questions about your order, please contact our customer support.',
     'stage_updated_message' => 'Your order :order_number status has been updated to: :stage',
     'order_details' => 'Order Details',
     'order_number' => 'Order Number',
+    'order_date' => 'Order Date',
     'current_stage' => 'Current Status',
     'total_amount' => 'Total Amount',
+    'payment_method' => 'Payment Method',
     'thank_you' => 'Thank you for your business!',
     'no_records' => 'No records found',
     'confirm_delete' => 'Are you sure you want to delete this item?',
@@ -219,6 +230,8 @@ return [
         'shipping_failed' => 'Shipping processing failed',
         'refund_failed' => 'Refund processing failed',
     ],
+    
+    'order_tracking_retrieved_successfully' => 'Order tracking retrieved successfully',
 
     // Additional Order Management Keys
     'order_management' => 'Order Management',
@@ -278,6 +291,7 @@ return [
     'stage_updated_successfully' => 'Order stage updated successfully',
     'error_updating_stage' => 'Error updating order stage',
     'cash_on_delivery' => 'Cash on Delivery',
+    'online' => 'Online Payment',
     'online_payment' => 'Online Payment',
     'web' => 'Web',
     'ios' => 'iOS App',
@@ -336,4 +350,5 @@ return [
     'invalid_stage' => 'Invalid stage selected',
     'transition_not_allowed' => 'Cannot transition from :from to :to',
     'error_loading_stages' => 'Error loading available stages',
+    'order_not_found' => 'Order not found',
 ];

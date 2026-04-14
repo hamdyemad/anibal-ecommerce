@@ -20,9 +20,34 @@ class ProductListQueryAction
                 'product.translations',
                 'product.mainImage',
                 'product.brand.translations',
-                'variants',
+                'product.department.translations',
+                'product.category.translations',
+                'product.subCategory.translations',
                 'vendor.translations',
                 'taxes.translations',
+            ])
+            // Add minimum price as a subquery to avoid N+1
+            ->addSelect([
+                'min_variant_price' => \Modules\CatalogManagement\app\Models\VendorProductVariant::selectRaw('MIN(price)')
+                    ->whereColumn('vendor_product_id', 'vendor_products.id')
+                    ->where('price', '>', 0)
+                    ->limit(1)
+            ])
+            // Add minimum variant has_discount flag
+            ->addSelect([
+                'min_variant_has_discount' => \Modules\CatalogManagement\app\Models\VendorProductVariant::select('has_discount')
+                    ->whereColumn('vendor_product_id', 'vendor_products.id')
+                    ->where('price', '>', 0)
+                    ->orderBy('price', 'asc')
+                    ->limit(1)
+            ])
+            // Add minimum variant price_before_discount
+            ->addSelect([
+                'min_variant_price_before_discount' => \Modules\CatalogManagement\app\Models\VendorProductVariant::select('price_before_discount')
+                    ->whereColumn('vendor_product_id', 'vendor_products.id')
+                    ->where('price', '>', 0)
+                    ->orderBy('price', 'asc')
+                    ->limit(1)
             ])
             ->withCount(['reviews' => function($q) {
                 $q->withoutGlobalScope('country_filter');
@@ -39,17 +64,64 @@ class ProductListQueryAction
                 }
             }]);
 
-        // Price filters
+        // Price filters - filter by minimum variant price INCLUDING TAXES
         if (!empty($filters['min_price']) || !empty($filters['max_price'])) {
-            $query->whereHas('variants', function ($q) use ($filters) {
-                if (!empty($filters['min_price'])) {
-                    $q->where('price', '>=', $filters['min_price']);
+            // Get tax rate for the current country
+            $taxRate = 0;
+            $countryId = $filters['country_id'] ?? null;
+            
+            // If no country_id in filters, try to get from session or header
+            if (!$countryId) {
+                $countryCode = session('country_code') ?? request()->header('Country-Code');
+                if ($countryCode) {
+                    $country = \Modules\AreaSettings\app\Models\Country::where('code', strtoupper($countryCode))->first();
+                    $countryId = $country?->id;
                 }
-                if (!empty($filters['max_price'])) {
-                    $q->where('price', '<=', $filters['max_price']);
-                }
-                $q->where('price', '>', 0);
-            });
+            }
+            
+            if ($countryId) {
+                $taxRate = \Modules\CatalogManagement\app\Models\Tax::where('country_id', $countryId)
+                    ->sum('percentage');
+            }
+            
+            // Convert user's price (with taxes) to price before taxes for filtering
+            $minPriceBeforeTax = null;
+            $maxPriceBeforeTax = null;
+            
+            if (!empty($filters['min_price'])) {
+                // min_price_with_tax = min_price_before_tax * (1 + tax_rate/100)
+                // min_price_before_tax = min_price_with_tax / (1 + tax_rate/100)
+                $minPriceBeforeTax = $taxRate > 0 
+                    ? $filters['min_price'] / (1 + ($taxRate / 100))
+                    : $filters['min_price'];
+            }
+            
+            if (!empty($filters['max_price'])) {
+                $maxPriceBeforeTax = $taxRate > 0
+                    ? $filters['max_price'] / (1 + ($taxRate / 100))
+                    : $filters['max_price'];
+            }
+            
+            // Use whereRaw with subquery to filter by minimum price
+            if ($minPriceBeforeTax) {
+                $query->whereRaw('(
+                    SELECT MIN(price) 
+                    FROM vendor_product_variants 
+                    WHERE vendor_product_variants.vendor_product_id = vendor_products.id 
+                    AND vendor_product_variants.price > 0
+                    AND vendor_product_variants.deleted_at IS NULL
+                ) >= ?', [$minPriceBeforeTax]);
+            }
+            
+            if ($maxPriceBeforeTax) {
+                $query->whereRaw('(
+                    SELECT MIN(price) 
+                    FROM vendor_product_variants 
+                    WHERE vendor_product_variants.vendor_product_id = vendor_products.id 
+                    AND vendor_product_variants.price > 0
+                    AND vendor_product_variants.deleted_at IS NULL
+                ) <= ?', [$maxPriceBeforeTax]);
+            }
         }
 
         if (!empty($filters)) {
@@ -94,11 +166,8 @@ class ProductListQueryAction
                 break;
                 
             case 'price':
-                $query->leftJoin('vendor_product_variants', 'vendor_products.id', '=', 'vendor_product_variants.vendor_product_id')
-                    ->select('vendor_products.*')
-                    ->selectRaw('MIN(vendor_product_variants.price) as min_price')
-                    ->groupBy('vendor_products.id')
-                    ->orderBy('min_price', $sortType);
+                // Use the min_variant_price subquery that's already added in the main query
+                $query->orderBy('min_variant_price', $sortType);
                 break;
                 
             case 'rating':

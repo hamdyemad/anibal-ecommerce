@@ -156,4 +156,9 @@ return [
     'order_date' => 'Order Date',
     'no_orders_found' => 'No orders found for this customer',
     'no_addresses_found' => 'No addresses found for this customer',
+
+    // Google OAuth
+    'login_successful' => 'Login successful',
+    'account_inactive' => 'Your account is inactive. Please contact support.',
+    'google_login_failed' => 'Google login failed',
 ];

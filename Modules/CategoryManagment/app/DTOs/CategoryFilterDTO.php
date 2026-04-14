@@ -34,10 +34,10 @@ class CategoryFilterDTO extends FilterDTO
             department_id: $request->input('department_id'),
             main_category_id: $request->input('main_category_id'),
             category_id: $request->input('category_id'),
-            per_page: $request->integer('per_page', 10),
-            paginated: $request->input('paginated', null),
+            per_page: $request->integer('per_page', 10), // Default 20 items per page
+            paginated: $request->input('paginated', 'true'), // Default pagination enabled
             sort: $request->input('sort'),
-            sort_type: $request->input('sort_type', 'desc'),
+            sort_type: $request->input('sort_type', 'asc'), // Default ascending for sort_number
         );
     }
 

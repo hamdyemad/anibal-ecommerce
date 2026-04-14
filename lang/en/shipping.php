@@ -104,6 +104,9 @@ return [
 
     // Shipping Settings
     'shipping_settings' => 'Shipping Settings',
+    'city_based_shipping' => 'City-Based Shipping System',
+    'city_based_shipping_desc' => 'The shipping system has been simplified to work on a city basis only. Each city has one shipping price without the complexity of departments or categories.',
+    'not_available_for_city' => 'Shipping is not available for this city',
     'allow_departments' => 'Allow Departments',
     'allow_departments_desc' => 'Enable shipping by departments',
     'allow_categories' => 'Allow Categories',

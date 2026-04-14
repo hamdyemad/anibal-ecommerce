@@ -422,4 +422,17 @@ return [
     // Promo Code Validation
     'promo_code_already_used' => 'لقد استخدمت هذا الكود الترويجي من قبل',
     'promo_code_limit_reached' => 'وصل هذا الكود الترويجي إلى الحد الأقصى للاستخدام',
+    
+    // Email notifications
+    'new_order_email_subject' => 'تأكيد الطلب - :order_number',
+    'order_confirmation' => 'تأكيد الطلب',
+    'new_order_notification' => 'تم استلام رسالة جديدة من موقع التواصل',
+    'dear_customer' => 'عزيزنا',
+    'order_received_message' => 'شكراً لك على طلبك! تم استلام طلبك بنجاح وسنقوم بمعالجته في أقرب وقت.',
+    'order_processing_message' => 'سيتم إشعارك فور شحن طلبك.',
+    'track_order' => 'تتبع الطلب',
+    'thank_you_message' => 'نشكرك على تسوقك معنا!',
+    'all_rights_reserved' => 'جميع الحقوق محفوظة',
+    'email_help_text' => 'في حال وجود أي استفسار حول طلبك، يرجى التواصل مع خدمة العملاء.',
+    'order_date' => 'تاريخ الطلب',
 ];

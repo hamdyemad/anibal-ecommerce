@@ -3,6 +3,7 @@
 namespace App\Actions;
 
 use App\Mail\ResetPasswordMail;
+use App\Models\ActivityLog;
 use App\Models\User;
 use App\Traits\Res;
 use App\Traits\LogsActivity;
@@ -18,97 +19,69 @@ class UserAction {
 
     public function login($request) {
         $remember = $request->filled('remember');
-        $user = User::where('email', $request->email)->first();
+        $user = User::where('email', $request->email)
+            ->with(['vendorByUser:id,user_id,active'])
+            ->first();
 
         if($user) {
             // Check if user account is inactive
             if(!$user->active) {
-                try {
-                    $this->logActivityForUser(
-                        user: $user,
-                        action: 'login_failed',
-                        descriptionKey: 'activity_log.login_failed_inactive',
-                        descriptionParams: [],
-                        model: $user,
-                        properties: ['email' => $user->email]
-                    );
-                } catch (\Exception $e) {
-                    // Ignore logging errors
-                }
+                $this->logActivityAsync($user, 'login_failed', 'activity_log.login_failed_inactive', $user->email);
                 return $this->sendData(__('auth.account_not_activated'), false);
             }
 
             // Check if user account is blocked
             if($user->block) {
-                try {
-                    $this->logActivityForUser(
-                        user: $user,
-                        action: 'login_failed',
-                        descriptionKey: 'activity_log.login_failed_blocked',
-                        descriptionParams: [],
-                        model: $user,
-                        properties: ['email' => $user->email]
-                    );
-                } catch (\Exception $e) {
-                    // Ignore logging errors
-                }
+                $this->logActivityAsync($user, 'login_failed', 'activity_log.login_failed_blocked', $user->email);
                 return $this->sendData(__('auth.account_blocked'), false);
             }
 
             // Check if user is a vendor owner (not vendor_id) and vendor is inactive
-            if (!$user->vendor_id) {
+            if (!$user->vendor_id && $user->relationLoaded('vendorByUser')) {
                 $vendor = $user->vendorByUser;
                 if ($vendor && !$vendor->active) {
-                    try {
-                        $this->logActivityForUser(
-                            user: $user,
-                            action: 'login_failed',
-                            descriptionKey: 'activity_log.login_failed_vendor_inactive',
-                            descriptionParams: [],
-                            model: $user,
-                            properties: ['email' => $user->email]
-                        );
-                    } catch (\Exception $e) {
-                        // Ignore logging errors
-                    }
+                    $this->logActivityAsync($user, 'login_failed', 'activity_log.login_failed_vendor_inactive', $user->email);
                     return $this->sendData(__('auth.vendor_not_activated'), false);
                 }
             }
         }
 
         if(Auth::attempt(['email'=>$request->email,'password'=>$request->password], $remember)){
-            // Log successful login
-            try {
-                $this->logActivity(
-                    action: 'login',
-                    descriptionKey: 'activity_log.login_success',
-                    descriptionParams: [],
-                    model: $user,
-                    properties: ['email' => $user->email]
-                );
-            } catch (\Exception $e) {
-                // Ignore logging errors
-            }
-
+            // Log successful login asynchronously
+            $user = Auth::user();
+            $this->logActivityAsync($user, 'login', 'activity_log.login_success', $request->email);
             return $this->sendData('',true);
         }else{
             // Log failed login attempt - invalid credentials
             if ($user) {
-                try {
-                    $this->logActivityForUser(
-                        user: $user,
-                        action: 'login_failed',
-                        descriptionKey: 'activity_log.login_failed_credentials',
-                        descriptionParams: [],
-                        model: $user,
-                        properties: ['email' => $user->email]
-                    );
-                } catch (\Exception $e) {
-                    // Ignore logging errors
-                }
+                $this->logActivityAsync($user, 'login_failed', 'activity_log.login_failed_credentials', $user->email);
             }
 
             return $this->sendData(__('auth.invalid_credentials'), false);
+        }
+    }
+
+    /**
+     * Log activity asynchronously to avoid blocking login
+     */
+    private function logActivityAsync($user, string $action, string $descriptionKey, string $email)
+    {
+        try {
+            dispatch(function() use ($user, $action, $descriptionKey, $email) {
+                ActivityLog::create([
+                    'user_id' => $user->id,
+                    'action' => $action,
+                    'model' => get_class($user),
+                    'model_id' => $user->id,
+                    'description_key' => $descriptionKey,
+                    'description_params' => [],
+                    'properties' => ['email' => $email],
+                    'ip_address' => request()->ip(),
+                    'user_agent' => request()->userAgent(),
+                ]);
+            })->afterResponse();
+        } catch (\Exception $e) {
+            // Silently fail - logging should not break login
         }
     }
 

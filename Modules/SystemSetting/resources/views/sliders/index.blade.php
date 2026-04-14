@@ -121,6 +121,8 @@
                                 <tr class="userDatatable-header">
                                     <th class="text-center"><span class="userDatatable-title">#</span></th>
                                     <th><span class="userDatatable-title">{{ __('systemsetting::sliders.slider_image') }}</span></th>
+                                    <th><span class="userDatatable-title">{{ __('systemsetting::sliders.title') }}</span></th>
+                                    <th><span class="userDatatable-title">{{ __('systemsetting::sliders.description') }}</span></th>
                                     <th><span class="userDatatable-title">{{ __('systemsetting::sliders.slider_link') }}</span></th>
                                     <th><span class="userDatatable-title">{{ __('systemsetting::sliders.created_at') }}</span></th>
                                     <th><span class="userDatatable-title">{{ __('systemsetting::sliders.actions') }}</span></th>
@@ -179,6 +181,8 @@ $(document).ready(function() {
         columns: [
             { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false },
             { data: 'image_preview', name: 'image_preview', orderable: false, searchable: false },
+            { data: 'title', name: 'title' },
+            { data: 'description', name: 'description' },
             { data: 'link_display', name: 'link_display', orderable: false },
             { data: 'created_date', name: 'created_date', orderable: false },
             { data: 'action', name: 'action', orderable: false, searchable: false }

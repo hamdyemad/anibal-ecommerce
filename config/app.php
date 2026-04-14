@@ -45,6 +45,19 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Performance Profiling
+    |--------------------------------------------------------------------------
+    |
+    | Enable performance profiling to track execution time, queries, and memory.
+    | Adds debug headers to responses: X-Debug-Time, X-Query-Count, etc.
+    | Only enable in development/testing environments.
+    |
+    */
+
+    'performance_profiling' => (bool) env('PERFORMANCE_PROFILING', false),
+
+    /*
+    |--------------------------------------------------------------------------
     | Application URL
     |--------------------------------------------------------------------------
     |

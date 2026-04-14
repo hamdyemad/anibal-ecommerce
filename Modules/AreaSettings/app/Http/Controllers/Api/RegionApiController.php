@@ -20,14 +20,24 @@ class RegionApiController extends Controller
      */
     public function index(Request $request)
     {
-        $regions = $this->RegionService->getAll($request->all());
+        // Cache regions forever - will be cleared when updated
+        $cacheKey = 'api_regions_' . md5(json_encode($request->all()) . app()->getLocale());
+        
+        $regions = \Cache::rememberForever($cacheKey, function() use ($request) {
+            return $this->RegionService->getAll($request->all());
+        });
 
         return $this->sendRes(config('responses.success')[app()->getLocale()], true, RegionResource::collection($regions)->additional($request->all()));
     }
 
     public function getRegionsByCity(Request $request, $id)
     {
-        $regions = $this->RegionService->getRegionsByCity($id, $request->all());
+        // Cache regions by city forever - will be cleared when updated
+        $cacheKey = 'api_regions_city_' . $id . '_' . md5(json_encode($request->all()) . app()->getLocale());
+        
+        $regions = \Cache::rememberForever($cacheKey, function() use ($request, $id) {
+            return $this->RegionService->getRegionsByCity($id, $request->all());
+        });
 
         return $this->sendRes(config('responses.success')[app()->getLocale()], true, RegionResource::collection($regions));
     }

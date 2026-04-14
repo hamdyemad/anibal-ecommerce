@@ -59,6 +59,8 @@ return [
     'limit_quantity' => 'الحد الأقصى للكمية',
     'min_quantity' => 'الحد الأدنى للكمية',
     'select_vendor_first' => 'يرجى تحديد بائع أولاً',
+    'variant' => 'المتغير',
+    'tree' => 'الشجرة',
     // Validation Messages
     'vendor_required' => 'البائع مطلوب',
     'vendor_not_exist' => 'البائع المحدد غير موجود',

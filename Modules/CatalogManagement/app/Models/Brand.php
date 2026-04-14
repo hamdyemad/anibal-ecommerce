@@ -7,6 +7,7 @@ use App\Models\BaseModel;
 use App\Models\Traits\HumanDates;
 use App\Models\Traits\AutoStoreCountryId;
 use App\Traits\HasSlug;
+use App\Traits\ClearsApiCache;
 use App\Models\Traits\CountryCheckIdTrait;
 
 use App\Traits\Translation;
@@ -16,7 +17,7 @@ use Modules\Vendor\app\Models\Vendor;
 
 class Brand extends BaseModel
 {
-    use HasFactory, Translation, SoftDeletes, HumanDates, HasSlug, AutoStoreCountryId, CountryCheckIdTrait;
+    use HasFactory, Translation, SoftDeletes, HumanDates, HasSlug, AutoStoreCountryId, CountryCheckIdTrait, ClearsApiCache;
 
     protected $table = 'brands';
     protected $guarded = [];
@@ -140,6 +141,16 @@ class Brand extends BaseModel
         }
 
         return $query;
+    }
+
+    /**
+     * Get cache patterns to clear when brand is modified
+     */
+    protected function getCachePatterns(): array
+    {
+        return [
+            'api_brands_',
+        ];
     }
 
 }

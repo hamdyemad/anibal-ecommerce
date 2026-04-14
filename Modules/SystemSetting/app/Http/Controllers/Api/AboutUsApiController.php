@@ -25,7 +25,13 @@ class AboutUsApiController extends Controller
      */
     public function website()
     {
-        $aboutUs = $this->aboutUsService->getByPlatform('website');
+        // Cache about us website forever - will be cleared when updated
+        $cacheKey = 'api_about_us_website_' . app()->getLocale();
+        
+        $aboutUs = \Cache::rememberForever($cacheKey, function() {
+            return $this->aboutUsService->getByPlatform('website');
+        });
+        
         return $this->sendRes(
             config('responses.success')[app()->getLocale()],
             true,
@@ -39,7 +45,13 @@ class AboutUsApiController extends Controller
      */
     public function mobile()
     {
-        $aboutUs = $this->aboutUsService->getByPlatform('mobile');
+        // Cache about us mobile forever - will be cleared when updated
+        $cacheKey = 'api_about_us_mobile_' . app()->getLocale();
+        
+        $aboutUs = \Cache::rememberForever($cacheKey, function() {
+            return $this->aboutUsService->getByPlatform('mobile');
+        });
+        
         return $this->sendRes(
             config('responses.success')[app()->getLocale()],
             true,
@@ -63,7 +75,12 @@ class AboutUsApiController extends Controller
             );
         }
 
-        $aboutUs = $this->aboutUsService->getByPlatform($platform);
+        // Cache about us by platform forever - will be cleared when updated
+        $cacheKey = 'api_about_us_' . $platform . '_' . app()->getLocale();
+        
+        $aboutUs = \Cache::rememberForever($cacheKey, function() use ($platform) {
+            return $this->aboutUsService->getByPlatform($platform);
+        });
         
         $resource = $platform === 'mobile' 
             ? new AboutUsMobileResource($aboutUs) 

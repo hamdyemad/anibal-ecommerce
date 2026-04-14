@@ -7,6 +7,7 @@ use App\Models\Attachment;
 use App\Traits\HasSlug;
 use App\Models\Traits\HumanDates;
 use App\Traits\Translation;
+use App\Traits\ClearsApiCache;
 use App\Models\Traits\AutoStoreCountryId;
 use App\Models\Traits\CountryCheckIdTrait;
 
@@ -18,7 +19,7 @@ use Modules\CatalogManagement\app\Models\Product;
 
 class Department extends BaseModel
 {
-    use HasFactory, SoftDeletes, Translation, HumanDates, HasSlug, AutoStoreCountryId, CountryCheckIdTrait;
+    use HasFactory, SoftDeletes, Translation, HumanDates, HasSlug, AutoStoreCountryId, CountryCheckIdTrait, ClearsApiCache;
 
     protected $guarded = [];
 
@@ -181,5 +182,16 @@ class Department extends BaseModel
         }
         
         return $query;
+    }
+
+    /**
+     * Get cache patterns to clear when department is modified
+     */
+    protected function getCachePatterns(): array
+    {
+        return [
+            'departments_',
+            'api_categories_', // Categories depend on departments
+        ];
     }
 }

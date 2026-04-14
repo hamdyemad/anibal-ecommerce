@@ -6,12 +6,37 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>{{ $title }} - {{ env('APP_NAME') }}</title>
-    <link href="{{ asset('css/goolefont.css') }}" rel="stylesheet">
-    <link rel="stylesheet" href="{{ asset('assets/css/plugin.min.css') }}">
-    <link rel="stylesheet" href="{{ asset('assets/css/style.min.css') }}">
-    <link rel="stylesheet" href="{{ asset('assets/css/variables.css') }}">
-    <link rel="stylesheet" href="{{ asset('css/unicons/line.css') }}">
-    <link rel="stylesheet" href="{{ asset('css/plugins/toastr.min.css') }}">
+    
+    <!-- Preconnect to speed up font loading -->
+    <link rel="preconnect" href="{{ asset('') }}" crossorigin>
+    
+    <!-- Critical CSS inline to avoid render blocking -->
+    <style>
+        :root {
+            --color-primary: #0056B7;
+            --bg-primary-hover: #003f87;
+        }
+        body { margin: 0; font-family: system-ui, -apple-system, sans-serif; }
+    </style>
+    
+    <!-- Load CSS with media="print" then switch to "all" to avoid render blocking -->
+    <link href="{{ asset('css/goolefont.css') }}" rel="stylesheet" media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="{{ asset('assets/css/plugin.min.css') }}" media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="{{ asset('assets/css/style.min.css') }}" media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="{{ asset('assets/css/variables.css') }}" media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="{{ asset('css/unicons/line.css') }}" media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="{{ asset('css/plugins/toastr.min.css') }}" media="print" onload="this.media='all'">
+    
+    <!-- Fallback for browsers that don't support onload -->
+    <noscript>
+        <link href="{{ asset('css/goolefont.css') }}" rel="stylesheet">
+        <link rel="stylesheet" href="{{ asset('assets/css/plugin.min.css') }}">
+        <link rel="stylesheet" href="{{ asset('assets/css/style.min.css') }}">
+        <link rel="stylesheet" href="{{ asset('assets/css/variables.css') }}">
+        <link rel="stylesheet" href="{{ asset('css/unicons/line.css') }}">
+        <link rel="stylesheet" href="{{ asset('css/plugins/toastr.min.css') }}">
+    </noscript>
+    
     <link rel="icon" type="image/png" sizes="30x30" href="{{ asset('assets/img/favico.png') }}">
 
     <style>
@@ -87,18 +112,11 @@
             </div>
         </div>
     </div>
-    {{-- <div class="enable-dark-mode dark-trigger">
-        <ul>
-            <li>
-                <a href="#">
-                    <i class="uil uil-moon"></i>
-                </a>
-            </li>
-        </ul>
-    </div> --}}
-    <script src="{{ asset('js/plugins/toastr.min.js') }}"></script>
-    {{-- <script src="{{ asset('assets/js/plugins.min.js') }}"></script> --}}
-    {{-- <script src="{{ asset('assets/js/script.min.js') }}"></script> --}}
+    
+    <!-- Defer JavaScript loading to not block page render -->
+    <script defer src="{{ asset('js/plugins/toastr.min.js') }}"></script>
+    <script defer src="{{ asset('assets/js/plugins.min.js') }}"></script>
+    <script defer src="{{ asset('assets/js/script.min.js') }}"></script>
     <script>
         // Configure Toastr to match main app message positioning
         toastr.options = {

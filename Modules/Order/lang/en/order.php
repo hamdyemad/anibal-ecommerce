@@ -426,4 +426,18 @@ return [
     // Promo Code Validation
     'promo_code_already_used' => 'You have already used this promo code',
     'promo_code_limit_reached' => 'This promo code has reached its maximum usage limit',
+    
+    // Email notifications
+    'new_order_email_subject' => 'Order Confirmation - :order_number',
+    'order_confirmation' => 'Order Confirmation',
+    'new_order_notification' => 'A new order has been successfully received',
+    'dear_customer' => 'Dear',
+    'order_received_message' => 'Thank you for your order! Your order has been successfully received and will be processed shortly.',
+    'order_processing_message' => 'You will be notified as soon as your order is shipped.',
+    'track_order' => 'Track Order',
+    'thank_you_message' => 'Thank you for shopping with us!',
+    'all_rights_reserved' => 'All rights reserved',
+    'email_help_text' => 'If you have any questions about your order, please contact our customer support.',
+    'order_date' => 'Order Date',
+    'total_amount' => 'Total Amount',
 ];

@@ -26,7 +26,13 @@ class FaqApiController extends Controller
      */
     public function index()
     {
-        $faqs = Faq::all();
+        // Cache FAQs forever - will be cleared when updated
+        $cacheKey = 'api_faqs_' . app()->getLocale();
+        
+        $faqs = \Cache::rememberForever($cacheKey, function() {
+            return Faq::all();
+        });
+        
         return $this->sendRes(__('main.success'), true, FaqResource::collection($faqs));
     }
 

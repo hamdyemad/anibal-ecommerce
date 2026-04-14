@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use Modules\Customer\app\Http\Controllers\Api\CustomerApiController;
 use Modules\Customer\app\Http\Controllers\Api\CustomerAuthController;
+use Modules\Customer\app\Http\Controllers\Api\GoogleAuthController;
 use Modules\Customer\app\Http\Controllers\Api\CustomerAddressController;
 use Modules\Customer\app\Http\Controllers\Api\CustomerPointsApiController;
 use Modules\Customer\app\Http\Controllers\Api\CustomerNotificationController;
@@ -16,6 +17,11 @@ Route::prefix('auth')->middleware('throttle:auth')->group(function () {
 
     // Login
     Route::post('login', [CustomerAuthController::class, 'login']);
+
+    // Google OAuth
+    Route::get('google/redirect', [GoogleAuthController::class, 'redirectToGoogle']);
+    Route::get('google/callback', [GoogleAuthController::class, 'handleGoogleCallback']);
+    Route::post('google/login', [GoogleAuthController::class, 'loginWithGoogle']);
 
     // Password reset flow
     Route::post('request-password-reset', [CustomerAuthController::class, 'requestPasswordReset']);

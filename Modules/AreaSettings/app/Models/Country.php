@@ -5,6 +5,7 @@ namespace Modules\AreaSettings\app\Models;
 use App\Models\BaseModel;
 use App\Models\Traits\HumanDates;
 use App\Traits\HasSlug;
+use App\Traits\ClearsApiCache;
 use App\Models\Attachment;
 use App\Traits\Translation;
 use Illuminate\Database\Eloquent\Builder;
@@ -14,7 +15,7 @@ use Modules\Vendor\app\Models\Vendor;
 
 class Country extends BaseModel
 {
-    use Translation, SoftDeletes, HumanDates, HasSlug;
+    use Translation, SoftDeletes, HumanDates, HasSlug, ClearsApiCache;
 
     protected $table = 'countries';
     protected $guarded = [];
@@ -62,5 +63,17 @@ class Country extends BaseModel
     {
         return $query->orWhere('code', 'like', "%{$search}%")
                      ->orWhere('phone_code', 'like', "%{$search}%");
+    }
+
+    /**
+     * Get cache patterns to clear when country is modified
+     */
+    protected function getCachePatterns(): array
+    {
+        return [
+            'api_countries_',
+            'api_country_',
+            'api_cities_', // Cities depend on countries
+        ];
     }
 }

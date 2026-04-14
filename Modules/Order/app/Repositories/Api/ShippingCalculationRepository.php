@@ -12,15 +12,10 @@ use Illuminate\Support\Facades\Log;
 class ShippingCalculationRepository implements ShippingCalculationRepositoryInterface
 {
     /**
-     * Calculate shipping cost for cart items based on customer address or city
-     * Groups items by type (department/category/subcategory) and city, adds shipping cost once per group
-     * Supports both existing customers (with address) and external customers (with city_id)
-     * Returns both total shipping and per-product shipping breakdown
+     * Calculate shipping cost based on city only (simplified)
+     * No category/department grouping - just one shipping cost per city
      * 
      * Cart items format: [
-     *   'type' => 'department|category|subcategory',
-     *   'type_id' => int,
-     *   'type_name' => string,
      *   'product_id' => int (vendor_product_id),
      *   'vendor_id' => int,
      *   'quantity' => int
@@ -70,78 +65,53 @@ class ShippingCalculationRepository implements ShippingCalculationRepositoryInte
             throw new OrderException(trans('shipping.address_or_city_required'));
         }
 
-        // Get type from first cart item (all items should have same type)
-        $groupByType = $cartItems[0]['type'] ?? 'category';
-
-        Log::info('Shipping calculation debug', [
-            'groupByType' => $groupByType,
-            'cartItems' => $cartItems,
+        Log::info('Shipping calculation - City based only', [
             'targetCityId' => $targetCityId,
+            'cartItemsCount' => count($cartItems),
         ]);
 
-        // Group cart items by type_id
-        $itemsByType = $this->groupItemsByTypeId($cartItems);
+        // Get shipping for this city (simple - no category/department filtering)
+        $shipping = $this->findShippingForCity($targetCityId);
 
-        Log::info('Grouped items', ['itemsByType' => $itemsByType]);
-
-        // Calculate shipping for each type-city combination
-        $shippingBreakdown = [];
-        $totalShippingCost = 0;
-        $productShipping = []; // Per-product shipping costs
-
-        foreach ($itemsByType as $typeId => $items) {
-            // Get shipping for this type and city
-            $shipping = $this->findShippingForTypeAndCity($typeId, $targetCityId, $groupByType);
-
-            Log::info('Finding shipping for type', [
-                'typeId' => $typeId,
-                'cityId' => $targetCityId,
-                'groupByType' => $groupByType,
-                'shippingFound' => $shipping ? $shipping->id : null,
-            ]);
-
-            if ($shipping) {
-                $shippingCost = (float) $shipping->cost;
-                $itemsCount = count($items);
-                
-                // Distribute shipping cost equally among products in this group
-                $shippingPerProduct = $itemsCount > 0 ? $shippingCost / $itemsCount : 0;
-                
-                // Assign shipping cost to each product in this group
-                foreach ($items as $item) {
-                    $productId = $item['product_id'] ?? null;
-                    $vendorId = $item['vendor_id'] ?? null;
-                    
-                    if ($productId) {
-                        // Use vendor_product_id as key for per-product shipping
-                        $productShipping[$productId] = [
-                            'vendor_product_id' => $productId,
-                            'vendor_id' => $vendorId,
-                            'shipping_cost' => round($shippingPerProduct, 2),
-                            'type' => $groupByType,
-                            'type_id' => $typeId,
-                        ];
-                    }
-                }
-                
-                $shippingBreakdown[] = [
-                    'type' => $groupByType,
-                    'type_id' => $typeId,
-                    'type_name' => $items[0]['type_name'] ?? null,
-                    'city_id' => $targetCityId,
-                    'city_name' => $cityName,
-                    'shipping_id' => $shipping->id,
-                    'shipping_name' => $shipping->getTranslation('name', app()->getLocale()),
-                    'cost' => $shippingCost,
-                    'items_count' => $itemsCount,
-                    'cost_per_product' => round($shippingPerProduct, 2),
-                ];
-                $totalShippingCost += $shippingCost;
-            }
+        if (!$shipping) {
+            throw new OrderException(trans('shipping.not_available_for_city'));
         }
 
+        $shippingCost = (float) $shipping->cost;
+        $itemsCount = count($cartItems);
+        
+        // Distribute shipping cost equally among all products
+        $shippingPerProduct = $itemsCount > 0 ? $shippingCost / $itemsCount : 0;
+        
+        // Assign shipping cost to each product
+        $productShipping = [];
+        foreach ($cartItems as $item) {
+            $productId = $item['product_id'] ?? null;
+            $vendorId = $item['vendor_id'] ?? null;
+            
+            if ($productId) {
+                $productShipping[$productId] = [
+                    'vendor_product_id' => $productId,
+                    'vendor_id' => $vendorId,
+                    'shipping_cost' => round($shippingPerProduct, 2),
+                ];
+            }
+        }
+        
+        $shippingBreakdown = [
+            [
+                'city_id' => $targetCityId,
+                'city_name' => $cityName,
+                'shipping_id' => $shipping->id,
+                'shipping_name' => $shipping->getTranslation('name', app()->getLocale()),
+                'cost' => $shippingCost,
+                'items_count' => $itemsCount,
+                'cost_per_product' => round($shippingPerProduct, 2),
+            ]
+        ];
+
         return [
-            'shipping_cost' => (float) $totalShippingCost,
+            'shipping_cost' => (float) $shippingCost,
             'breakdown' => $shippingBreakdown,
             'product_shipping' => $productShipping,
             'address' => $addressInfo
@@ -149,52 +119,16 @@ class ShippingCalculationRepository implements ShippingCalculationRepositoryInte
     }
 
     /**
-     * Find shipping for a specific type (department/category/subcategory) and city
+     * Find shipping for a city (simplified - no category/department filtering)
      */
-    private function findShippingForTypeAndCity($typeId, $cityId, $type)
+    private function findShippingForCity($cityId)
     {
-        // Query shipping_categories pivot table directly for more reliable results
-        $query = Shipping::withoutGlobalScope('country_filter')
+        return Shipping::withoutGlobalScope('country_filter')
             ->where('active', 1)
             ->whereHas('cities', function($q) use ($cityId) {
                 $q->withoutGlobalScope('country_filter')
                   ->where('cities.id', $cityId);
             })
-            // Join shipping_categories directly to filter by type and type_id
-            ->whereExists(function ($subQuery) use ($typeId, $type) {
-                $subQuery->select(\DB::raw(1))
-                    ->from('shipping_categories')
-                    ->whereColumn('shipping_categories.shipping_id', 'shippings.id')
-                    ->where('shipping_categories.type', $type)
-                    ->where('shipping_categories.type_id', $typeId);
-            });
-
-        Log::info('Shipping query SQL', ['sql' => $query->toSql(), 'bindings' => $query->getBindings()]);
-
-        return $query->first();
-    }
-
-    /**
-     * Group cart items by type_id
-     */
-    private function groupItemsByTypeId(array $cartItems): array
-    {
-        $grouped = [];
-
-        foreach ($cartItems as $item) {
-            $typeId = $item['type_id'] ?? null;
-
-            if (!$typeId) {
-                continue;
-            }
-
-            if (!isset($grouped[$typeId])) {
-                $grouped[$typeId] = [];
-            }
-
-            $grouped[$typeId][] = $item;
-        }
-
-        return $grouped;
+            ->first();
     }
 }

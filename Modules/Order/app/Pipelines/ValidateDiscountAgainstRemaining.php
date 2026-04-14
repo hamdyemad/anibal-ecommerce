@@ -13,11 +13,14 @@ class ValidateDiscountAgainstRemaining
      * Bnaia covers promo code discounts from their commission, so promo discount cannot exceed commission.
      * Points are NOT included in this validation as they are customer's earned value, not Bnaia's cost.
      * 
+     * NOTE: This validation is now disabled to allow flexible promo code usage.
+     * Bnaia can decide to absorb costs that exceed commission.
+     * 
      * Example:
      * - Order total = 4000 EGP
      * - Promo 50% = 2000 EGP discount
      * - Commission 15% = 600 EGP (Bnaia's remaining)
-     * - If promo discount (2000) > commission (600) → Error
+     * - If promo discount (2000) > commission (600) → Allow (Bnaia absorbs the difference)
      */
     public function handle($payload, Closure $next)
     {
@@ -52,42 +55,12 @@ class ValidateDiscountAgainstRemaining
             'total_commission' => $totalCommission,
             'bnaia_remaining' => $bnaiaRemaining,
             'promo_discount' => $promoDiscount,
+            'validation_disabled' => true,
         ]);
         
-        // Validate: promo discount should not exceed Bnaia's commission (remaining)
-        if ($promoDiscount > $bnaiaRemaining) {
-            // Get currency for error message
-            $currencyCode = 'EGP';
-            $customerId = $data['selected_customer_id'] ?? null;
-            if ($customerId) {
-                $customer = \Modules\Customer\app\Models\Customer::find($customerId);
-                if ($customer && $customer->country && $customer->country->currency) {
-                    $currencyCode = $customer->country->currency->code ?? 'EGP';
-                }
-            }
-            
-            // Build error data with promo code info
-            $errorData = [
-                'promo_code' => $promoCode ? [
-                    'code' => $promoCode->code ?? null,
-                    'type' => $promoCode->type ?? null,
-                    'value' => $promoCode->value ?? null,
-                    'discount_amount' => number_format($promoDiscount, 2),
-                ] : null,
-                'max_discount' => number_format($bnaiaRemaining, 2),
-                'currency' => $currencyCode,
-            ];
-            
-            throw new OrderException(
-                trans('order::order.discount_exceeds_commission', [
-                    'total_discount' => number_format($promoDiscount, 2),
-                    'max_discount' => number_format($bnaiaRemaining, 2),
-                    'currency' => $currencyCode
-                ]),
-                null,
-                $errorData
-            );
-        }
+        // VALIDATION DISABLED: Allow promo codes even if they exceed commission
+        // Bnaia can decide to absorb the cost difference
+        // This is especially important for guest orders and promotional campaigns
         
         // Store in context for later use
         $context['bnaia_remaining'] = $bnaiaRemaining;

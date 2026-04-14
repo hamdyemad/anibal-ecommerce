@@ -7,13 +7,14 @@ use App\Models\BaseModel;
 use App\Models\Traits\HumanDates;
 use App\Traits\HasSlug;
 use App\Traits\Translation;
+use App\Traits\ClearsApiCache;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Builder;
 
 
 class City extends BaseModel
 {
-    use Translation, SoftDeletes, HumanDates, HasSlug;
+    use Translation, SoftDeletes, HumanDates, HasSlug, ClearsApiCache;
 
     protected $table = 'cities';
     protected $guarded = [];
@@ -68,5 +69,16 @@ class City extends BaseModel
         }
 
         return $query;
+    }
+
+    /**
+     * Get cache patterns to clear when city is modified
+     */
+    protected function getCachePatterns(): array
+    {
+        return [
+            'api_cities_',
+            'api_regions_', // Regions depend on cities
+        ];
     }
 }

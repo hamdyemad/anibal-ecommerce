@@ -12,6 +12,7 @@
         "laravel/framework": "^12.18",
         "laravel/nightwatch": "^1.22",
         "laravel/sanctum": "^4.0",
+        "laravel/socialite": "^5.26",
         "laravel/telescope": "^5.16",
         "laravel/tinker": "^2.8",
         "laravel/ui": "^4.3",

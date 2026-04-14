@@ -87,6 +87,26 @@
                                                     </div>
                                                 </div>
                                             </div>
+                                            {{-- Slider Title --}}
+                                            <div class="col-md-6 mb-3">
+                                                <div class="view-item">
+                                                    <label class="il-gray fs-14 fw-500 mb-10">{{ __('systemsetting::sliders.title') }}</label>
+                                                    <p class="fs-15 color-dark fw-500">
+                                                        {{ $slider->title ?? '-' }}
+                                                    </p>
+                                                </div>
+                                            </div>
+
+                                            {{-- Slider Description --}}
+                                            <div class="col-md-6 mb-3">
+                                                <div class="view-item">
+                                                    <label class="il-gray fs-14 fw-500 mb-10">{{ __('systemsetting::sliders.description') }}</label>
+                                                    <p class="fs-15 color-dark fw-500">
+                                                        {{ $slider->description ?? '-' }}
+                                                    </p>
+                                                </div>
+                                            </div>
+
                                             {{-- Slider Link --}}
                                             <div class="col-md-6 mb-3">
                                                 <div class="view-item">

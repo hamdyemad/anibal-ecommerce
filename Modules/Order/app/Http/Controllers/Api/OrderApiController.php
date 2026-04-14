@@ -118,4 +118,45 @@ class OrderApiController extends Controller
             new PromoCodeResource($promoCode)
         );
     }
+
+    /**
+     * Track order by order number (public - no auth required)
+     * GET /api/v1/orders/track/{orderNumber}
+     */
+    public function trackOrder($orderNumber)
+    {
+        try {
+            $order = $this->orderApiService->getOrderByOrderNumber($orderNumber);
+            
+            if (!$order) {
+                return $this->sendRes(
+                    trans('order::order.order_not_found'),
+                    false,
+                    [],
+                    [],
+                    404
+                );
+            }
+
+            return $this->sendRes(
+                config('responses.success')[app()->getLocale()],
+                true,
+                new \Modules\Order\app\Http\Resources\Api\OrderTrackingResource($order)
+            );
+        } catch (\Exception $e) {
+            \Log::error('Order tracking error: ' . $e->getMessage(), [
+                'order_number' => $orderNumber,
+                'line' => $e->getLine(),
+                'file' => $e->getFile(),
+            ]);
+            
+            return $this->sendRes(
+                'Error: ' . $e->getMessage(),
+                false,
+                [],
+                [],
+                500
+            );
+        }
+    }
 }

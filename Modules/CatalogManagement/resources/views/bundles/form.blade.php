@@ -281,21 +281,23 @@
 
                                 {{-- Products Grid Container --}}
                                 <div class="col-12 mb-25">
-                                    <div id="products-grid" class="row"
-                                        style="max-height: 500px; overflow-y: auto; border: 1px solid #e9ecef; border-radius: 0.375rem; padding: 15px;">
-                                        <div class="col-12 text-center text-muted py-5">
-                                            <i class="uil uil-search fs-1 mb-2"></i>
-                                            <p>{{ trans('catalogmanagement::bundle.search_products_help') }}</p>
+                                    <div id="products-grid-wrapper" style="position: relative; max-height: 500px; overflow-y: auto; border: 1px solid #e9ecef; border-radius: 0.375rem; padding: 15px;">
+                                        <div id="products-grid" class="row">
+                                            <div class="col-12 text-center text-muted py-5">
+                                                <i class="uil uil-search fs-1 mb-2"></i>
+                                                <p>{{ trans('catalogmanagement::bundle.search_products_help') }}</p>
+                                            </div>
                                         </div>
-                                    </div>
-
-                                    {{-- Loading Spinner --}}
-                                    <div id="products-loader" style="display: none; text-align: center; padding: 20px;">
-                                        <div class="spinner-border text-primary" role="status">
-                                            <span class="visually-hidden">{{ __('common.loading') }}</span>
+                                        
+                                        {{-- Loading Spinner (inside grid wrapper) --}}
+                                        <div id="products-loader" style="display: none; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(255, 255, 255, 0.95); z-index: 10; border-radius: 0.375rem;">
+                                            <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center;">
+                                                <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+                                                    <span class="visually-hidden">{{ __('common.loading') }}</span>
+                                                </div>
+                                                <p class="text-muted mt-3 fw-500">{{ trans('catalogmanagement::bundle.loading_products') }}</p>
+                                            </div>
                                         </div>
-                                        <p class="text-muted mt-2">
-                                            {{ trans('catalogmanagement::bundle.loading_products') }}</p>
                                     </div>
                                 </div>
 
@@ -461,7 +463,6 @@
                 // Show loader
                 if (page === 1) {
                     $('#products-loader').show();
-                    $('#products-grid').hide();
                 }
 
                 isLoadingMore = true;
@@ -482,7 +483,7 @@
                 }
 
                 $.ajax({
-                    url: '/api/v1/products',
+                    url: '/api/v1/products/variants',
                     type: 'GET',
                     headers: {
                         'lang': "{{ app()->getLocale() }}"
@@ -491,83 +492,76 @@
                     success: function(response) {
                         // Hide loader
                         $('#products-loader').hide();
-                        $('#products-grid').show();
 
                         if (response.status && response.data && response.data.length > 0) {
-                            // Store pagination info
-                            lastPage = response.last_page || 1;
-                            currentPage = response.current_page || page;
+                            // Store pagination info from pagination object or root level
+                            const pagination = response.pagination || {};
+                            lastPage = pagination.last_page || response.last_page || 1;
+                            currentPage = pagination.current_page || response.current_page || page;
 
                             let productsHtml = '';
 
-                            response.data.forEach(function(vendorProduct) {
-                                const productImage = vendorProduct.image ||
-                                    '{{ asset('assets/img/logo.png') }}';
-                                const productName = vendorProduct.name || 'N/A';
-                                const variants = vendorProduct.variants || [];
+                            response.data.forEach(function(variant) {
+                                const variantId = variant.id;
+                                const productData = variant.vendor_product || {};
+                                const productImage = productData.image || '{{ asset('assets/img/logo.png') }}';
+                                const productName = productData.name || 'N/A';
+                                const variantName = variant.variant_name || '';
+                                const variantTree = variant.variant_tree || '';
+                                const variantSku = variant.sku || 'N/A';
+                                const remainingStock = variant.remaining_stock ?? 0;
+                                const price = variant.real_price;
                                 
                                 // Get vendor info
-                                const vendor = vendorProduct.vendor || {};
+                                const vendor = variant.vendor || {};
                                 const vendorName = vendor.name || 'N/A';
                                 const vendorLogo = vendor.logo || '{{ asset('assets/img/default-vendor.png') }}';
+                                
+                                const isSelected = selectedProducts.includes(variantId);
+                                const isOutOfStock = remainingStock <= 0;
 
-                                if (variants.length > 0) {
-                                    variants.forEach(function(variant) {
-                                        const variantId = variant.id;
-                                        const variantName = variant.variant_name || variant.name || '';
-                                        const variantKey = variant.variant_key || '';
-                                        const variantValue = variant.variant_value || variantName || '';
-                                        const variantSku = variant.sku || 'N/A';
-                                        // Use remaining_stock instead of stock
-                                        const remainingStock = variant.remaining_stock ?? variant.stock ?? 0;
-                                        const price = variant.real_price;
-                                        const isSelected = selectedProducts.includes(variantId);
-                                        const isOutOfStock = remainingStock <= 0;
+                                // Only add to allProducts if not already there
+                                if (!allProducts.find(p => p.id == variantId)) {
+                                    allProducts.push({
+                                        id: variantId,
+                                        productName: productName,
+                                        variantName: variantName,
+                                        variantTree: variantTree,
+                                        sku: variantSku,
+                                        stock: remainingStock,
+                                        price: price,
+                                        image: productImage,
+                                        vendorName: vendorName,
+                                        vendorLogo: vendorLogo
+                                    });
+                                }
 
-                                        // Only add to allProducts if not already there
-                                        if (!allProducts.find(p => p.id == variantId)) {
-                                            allProducts.push({
-                                                id: variantId,
-                                                productName: productName,
-                                                variantName: variantName,
-                                                variantKey: variantKey,
-                                                variantValue: variantValue,
-                                                sku: variantSku,
-                                                stock: remainingStock,
-                                                price: price,
-                                                image: productImage,
-                                                vendorName: vendorName,
-                                                vendorLogo: vendorLogo
-                                            });
-                                        }
-
-                                        const selectedClass = isSelected ? 'selected' : '';
-                                        const disabledClass = isOutOfStock ? 'disabled-card' : '';
-                                        const disabledAttr = isOutOfStock ? 'data-disabled="true"' : '';
-                                        const currencySymbol = '{{ currency() }}';
-                                        
-                                        productsHtml += `
-                                            <div class="col-md-6 mb-3">
-                                                <div class="product-card ${selectedClass} ${disabledClass}" data-variant-id="${variantId}" ${disabledAttr}>
-                                                    <div class="d-flex">
-                                                        <img src="${productImage}" alt="${productName}" class="product-image me-3" style="${isOutOfStock ? 'opacity: 0.5;' : ''}">
-                                                        <div class="flex-grow-1">
-                                                            <h6 class="mb-1" style="${isOutOfStock ? 'opacity: 0.5;' : ''}">${productName}</h6>
-                                                            <small class="text-muted d-block"><strong>${variantKey}:</strong> ${variantValue}</small>
-                                                            <small class="text-muted d-block">SKU: ${variantSku}</small>
-                                                            <small class="text-muted d-block">{{ trans('catalogmanagement::bundle.remaining_stock') }}: <span class="${remainingStock > 0 ? 'text-success' : 'text-danger fw-bold'}">${remainingStock}${isOutOfStock ? ' ({{ trans("catalogmanagement::bundle.out_of_stock") }})' : ''}</span></small>
-                                                            <small class="text-success d-block">{{ trans('catalogmanagement::bundle.price') }}: ${price} ${currencySymbol}</small>
-                                                            <div class="d-flex align-items-center mt-2 pt-2 border-top">
-                                                                <img src="${vendorLogo}" alt="${vendorName}" class="rounded-circle me-2" style="width: 24px; height: 24px;">
-                                                                <small class="text-primary fw-500">${vendorName}</small>
-                                                            </div>
-                                                        </div>
+                                const selectedClass = isSelected ? 'selected' : '';
+                                const disabledClass = isOutOfStock ? 'disabled-card' : '';
+                                const disabledAttr = isOutOfStock ? 'data-disabled="true"' : '';
+                                const currencySymbol = '{{ currency() }}';
+                                
+                                productsHtml += `
+                                    <div class="col-md-6 mb-3">
+                                        <div class="product-card ${selectedClass} ${disabledClass}" data-variant-id="${variantId}" ${disabledAttr}>
+                                            <div class="d-flex">
+                                                <img src="${productImage}" alt="${productName}" class="product-image me-3" style="${isOutOfStock ? 'opacity: 0.5;' : ''}">
+                                                <div class="flex-grow-1">
+                                                    <h6 class="mb-1" style="${isOutOfStock ? 'opacity: 0.5;' : ''}">${productName}</h6>
+                                                    <small class="text-muted d-block"><strong>{{ trans('catalogmanagement::bundle.variant') }}:</strong> ${variantName}</small>
+                                                    ${variantTree ? `<small class="text-info d-block"><strong>{{ trans('catalogmanagement::bundle.tree') }}:</strong> ${variantTree}</small>` : ''}
+                                                    <small class="text-muted d-block">SKU: ${variantSku}</small>
+                                                    <small class="text-muted d-block">{{ trans('catalogmanagement::bundle.remaining_stock') }}: <span class="${remainingStock > 0 ? 'text-success' : 'text-danger fw-bold'}">${remainingStock}${isOutOfStock ? ' ({{ trans("catalogmanagement::bundle.out_of_stock") }})' : ''}</span></small>
+                                                    <small class="text-success d-block">{{ trans('catalogmanagement::bundle.price') }}: ${price} ${currencySymbol}</small>
+                                                    <div class="d-flex align-items-center mt-2 pt-2 border-top">
+                                                        <img src="${vendorLogo}" alt="${vendorName}" class="rounded-circle me-2" style="width: 24px; height: 24px;">
+                                                        <small class="text-primary fw-500">${vendorName}</small>
                                                     </div>
                                                 </div>
                                             </div>
-                                        `;
-                                    });
-                                }
+                                        </div>
+                                    </div>
+                                `;
                             });
 
                             // Append products to grid (not replace)
@@ -601,7 +595,7 @@
                                     selectedProductsDetails[variantId] = {
                                         id: variantId,
                                         name: product.productName + ' - ' + product.variantName,
-                                        variantKey: product.variantKey,
+                                        variantTree: product.variantTree,
                                         image: product.image,
                                         sku: product.sku,
                                         stock: product.stock,
@@ -618,7 +612,6 @@
                             });
                         } else if (page === 1) {
                             $('#products-loader').hide();
-                            $('#products-grid').show();
                             $('#products-grid').html(`
                                 <div class="col-12 text-center text-muted py-5">
                                     <i class="uil uil-inbox fs-1 mb-2"></i>
@@ -631,7 +624,6 @@
                     },
                     error: function() {
                         $('#products-loader').hide();
-                        $('#products-grid').show();
                         if (currentPage === 1) {
                             $('#products-grid').html(`
                                 <div class="col-12 text-center text-danger py-5">
@@ -646,7 +638,7 @@
             }
 
             // Infinite scroll functionality
-            $('#products-grid').on('scroll', function() {
+            $('#products-grid-wrapper').on('scroll', function() {
                 // Check if scrolled to bottom
                 if ($(this).scrollTop() + $(this).innerHeight() >= $(this)[0].scrollHeight - 50) {
                     // Load next page if available and not already loading

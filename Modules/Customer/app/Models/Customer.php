@@ -27,7 +27,25 @@ class Customer extends Authenticatable
         static::observe(CustomerObserver::class);
     }
 
-    protected $guarded = [];
+    protected $fillable = [
+        'vendor_id',
+        'country_id',
+        'city_id',
+        'region_id',
+        'first_name',
+        'last_name',
+        'name',
+        'email',
+        'google_id',
+        'avatar',
+        'email_verified_at',
+        'password',
+        'phone',
+        'image',
+        'status',
+        'lang',
+        'gender',
+    ];
 
     /**
      * Create a new factory instance for the model.
@@ -37,7 +55,8 @@ class Customer extends Authenticatable
         return \Modules\Customer\database\factories\CustomerFactory::new();
     }
 
-    protected $appends = ['full_name', 'total_points', 'available_points'];
+    // Removed heavy DB queries (total_points, available_points) from appends to prevent N+1 issues when serialized.
+    protected $appends = ['full_name'];
 
     protected $hidden = [
         'password',

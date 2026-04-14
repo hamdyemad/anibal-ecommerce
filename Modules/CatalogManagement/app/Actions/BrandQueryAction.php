@@ -22,32 +22,32 @@ class BrandQueryAction
             $query->filter($filters);
         }
 
-        // Apply products count with combined filters
-        $query->withCount(['products' => function ($q) use ($filters) {
-            $q->whereHas('vendorProducts', function ($vq) {
-                $vq->active()->where('status', 'approved');
+        // Apply products count with combined filters (optimized)
+        $query->withCount(['products as products_count' => function ($q) use ($filters) {
+            // Only count active and approved vendor products
+            $q->whereHas('vendorProducts', function ($vq) use ($filters) {
+                $vq->where('is_active', 1)->where('status', 'approved');
+                
                 // Vendor filter for product count
                 if (isset($filters['vendor_id'])) {
                     $vendorIdentifier = $filters['vendor_id'];
-                    $vendor = \Modules\Vendor\app\Models\Vendor::where('slug', $vendorIdentifier)
-                        ->orWhere('id', $vendorIdentifier)->first();
-                    if ($vendor) {
-                        $vq->where('vendor_id', $vendor->id);
+                    // Try to find vendor by slug or ID (cached)
+                    $vendorId = \Cache::remember('vendor_id_' . $vendorIdentifier, 3600, function() use ($vendorIdentifier) {
+                        return \Modules\Vendor\app\Models\Vendor::where('slug', $vendorIdentifier)
+                            ->orWhere('id', $vendorIdentifier)
+                            ->value('id');
+                    });
+                    
+                    if ($vendorId) {
+                        $vq->where('vendor_id', $vendorId);
                     }
                 }
             });
 
-
             // Department filter for product count
             if (isset($filters['department_id'])) {
                 $deptId = $filters['department_id'];
-                $q->where(function ($dq) use ($deptId) {
-                    $dq->where('department_id', $deptId)
-                        ->orWhereHas('department', function ($sdq) use ($deptId) {
-                            $sdq->where('id', $deptId)
-                                ->orWhere('slug', $deptId);
-                        });
-                });
+                $q->where('department_id', $deptId);
             }
         }]);
 

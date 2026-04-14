@@ -29,8 +29,8 @@ class AppServiceProvider extends ServiceProvider
      * Models to exclude from observers
      */
     protected $excludedModels = [
-        ActivityLog::class,
-        \Illuminate\Notifications\DatabaseNotification::class,
+        // ActivityLog::class,
+        // \Illuminate\Notifications\DatabaseNotification::class,
     ];
 
     /**
@@ -43,7 +43,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(UserInterface::class, UserRepository::class);
         $this->app->bind(RoleRepositoryInterface::class, RoleRepository::class);
         $this->app->bind(LanguageRepositoryInterface::class, LanguageRepository::class);
-        
+
         // Register CacheService as singleton
         $this->app->singleton(\App\Services\CacheService::class, function ($app) {
             return new \App\Services\CacheService();
@@ -72,15 +72,15 @@ class AppServiceProvider extends ServiceProvider
         // so route() helper will automatically include lang and country
 
         // Cache menu counts for better performance
-        \Illuminate\Support\Facades\View::composer('partials._menu', function ($view) {
-            $requestQuotationCounts = Cache::remember('menu_request_quotation_counts', 300, function () {
-                return [
-                    'not_archived' => \Modules\Order\app\Models\RequestQuotation::notArchived()->count(),
-                    'archived' => \Modules\Order\app\Models\RequestQuotation::archived()->count(),
-                ];
-            });
-            $view->with('requestQuotationCounts', $requestQuotationCounts);
-        });
+        // \Illuminate\Support\Facades\View::composer('partials._menu', function ($view) {
+        //     $requestQuotationCounts = Cache::remember('menu_request_quotation_counts', 300, function () {
+        //         return [
+        //             'not_archived' => \Modules\Order\app\Models\RequestQuotation::notArchived()->count(),
+        //             'archived' => \Modules\Order\app\Models\RequestQuotation::archived()->count(),
+        //         ];
+        //     });
+        //     $view->with('requestQuotationCounts', $requestQuotationCounts);
+        // });
 
         // Register observers for App models
         // $this->registerAppModelObservers();

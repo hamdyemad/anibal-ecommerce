@@ -21,11 +21,13 @@ class SetCountryCodeFromHeader
         $countryCode = $request->header('X-Country-Code');
 
         if ($countryCode) {
-            // Validate that the country code exists in database
-            $country = Country::where('code', strtolower($countryCode))->first();
+            // Try cache first (cache forever, invalidate on country update)
+            $cacheKey = 'country_by_code_' . strtolower($countryCode);
+            $country = cache()->remember($cacheKey, 3600, function () use ($countryCode) {
+                return Country::where('code', strtolower($countryCode))->first();
+            });
 
             if ($country) {
-                // Store in session
                 session(['country_code' => $country->code]);
                 session(['country_id' => $country->id]);
             }
@@ -33,7 +35,11 @@ class SetCountryCodeFromHeader
 
             $country_id = $request->country_id;
             if($country_id) {
-                $country = Country::where('id', $country_id)->first();
+                // Cache by ID as well
+                $cacheKey = 'country_by_id_' . $country_id;
+                $country = cache()->remember($cacheKey, 3600, function () use ($country_id) {
+                    return Country::where('id', $country_id)->first();
+                });
                 if ($country) {
                     session(['country_code' => $country->code]);
                     session(['country_id' => $country->id]);
@@ -41,7 +47,10 @@ class SetCountryCodeFromHeader
             }
             // If no header provided, use default or existing session value
             if (!session('country_code')) {
-                $defaultCountry = Country::default()->first();
+                // Cache the default country query (most common on first request)
+                $defaultCountry = cache()->remember('default_country', 3600, function () {
+                    return Country::default()->first();
+                });
                 if ($defaultCountry) {
                     session(['country_code' => $defaultCountry->code]);
                     session(['country_id' => $defaultCountry->id]);

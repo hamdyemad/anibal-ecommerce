@@ -9,10 +9,11 @@ use App\Models\Traits\CountryCheckIdTrait;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Traits\Translation;
 
 class Slider extends Model
 {
-    use AutoStoreCountryId, CountryCheckIdTrait, SoftDeletes, HumanDates;
+    use AutoStoreCountryId, CountryCheckIdTrait, SoftDeletes, HumanDates, Translation;
 
     protected $table = 'sliders';
     protected $guarded = [];
@@ -41,6 +42,16 @@ class Slider extends Model
     {
         $attachment = $this->attachments()->where('type', 'image')->first();
         return $attachment ? asset('storage/' . $attachment->path) : '';
+    }
+
+    public function getTitleAttribute()
+    {
+        return $this->getTranslation('title', app()->getLocale());
+    }
+
+    public function getDescriptionAttribute()
+    {
+        return $this->getTranslation('description', app()->getLocale());
     }
 
     /**

@@ -26,6 +26,17 @@ class SliderRepository
                 'sort_order' => $data['sort_order'] ?? 0,
             ]);
 
+            // Handle translations
+            if (isset($data['translations']) && is_array($data['translations'])) {
+                foreach ($data['translations'] as $langId => $translationData) {
+                    $lang = \App\Models\Language::find($langId);
+                    if ($lang) {
+                        $slider->setTranslation('title', $lang->code, $translationData['title'] ?? '');
+                        $slider->setTranslation('description', $lang->code, $translationData['description'] ?? '');
+                    }
+                }
+            }
+
             // Handle image upload
             if (isset($data['image']) && $data['image']) {
                 $this->storeImage($slider, $data['image']);
@@ -44,6 +55,17 @@ class SliderRepository
                 'slider_link' => $data['slider_link'] ?? null,
                 'sort_order' => $data['sort_order'] ?? 0,
             ]);
+
+            // Handle translations
+            if (isset($data['translations']) && is_array($data['translations'])) {
+                foreach ($data['translations'] as $langId => $translationData) {
+                    $lang = \App\Models\Language::find($langId);
+                    if ($lang) {
+                        $slider->setTranslation('title', $lang->code, $translationData['title'] ?? '');
+                        $slider->setTranslation('description', $lang->code, $translationData['description'] ?? '');
+                    }
+                }
+            }
 
             // Handle image upload
             if (isset($data['image']) && $data['image']) {

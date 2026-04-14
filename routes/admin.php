@@ -37,6 +37,11 @@ use Modules\Vendor\app\Models\Vendor;
 |
 */
 
+Route::get('test', function () {
+    return view('test');
+});
+
+
 
 // Admin dashboard with country code
 Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
@@ -91,13 +96,13 @@ Route::prefix('vendor-users-management')->name('vendor-users-management.')->grou
 Route::get('seeder', function () {
     try {
         DB::beginTransaction();
-        
+
         // Delete all existing vendor_product_taxes relationships
         $deletedCount = DB::table('vendor_product_taxes')->delete();
-        
+
         // Get all active taxes
         $activeTaxes = \Modules\CatalogManagement\app\Models\Tax::where('is_active', 1)->get();
-        
+
         if ($activeTaxes->isEmpty()) {
             DB::rollBack();
             return response()->json([
@@ -106,10 +111,10 @@ Route::get('seeder', function () {
                 'deleted_relationships' => $deletedCount,
             ]);
         }
-        
+
         // Get all vendor products
         $vendorProducts = \Modules\CatalogManagement\app\Models\VendorProduct::withoutGlobalScopes()->get();
-        
+
         if ($vendorProducts->isEmpty()) {
             DB::rollBack();
             return response()->json([
@@ -118,9 +123,9 @@ Route::get('seeder', function () {
                 'deleted_relationships' => $deletedCount,
             ]);
         }
-        
+
         $inserted = 0;
-        
+
         foreach ($vendorProducts as $vendorProduct) {
             foreach ($activeTaxes as $tax) {
                 DB::table('vendor_product_taxes')->insert([
@@ -132,9 +137,9 @@ Route::get('seeder', function () {
                 $inserted++;
             }
         }
-        
+
         DB::commit();
-        
+
         return response()->json([
             'status' => true,
             'message' => 'All vendor product taxes deleted and reassigned successfully',
@@ -145,10 +150,10 @@ Route::get('seeder', function () {
                 'new_relationships_inserted' => $inserted,
             ],
         ]);
-        
+
     } catch (\Exception $e) {
         DB::rollBack();
-        
+
         return response()->json([
             'status' => false,
             'message' => 'Error: ' . $e->getMessage(),

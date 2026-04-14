@@ -29,7 +29,13 @@ class DepartmentApiController extends Controller
             );
         }
 
-        $departments = $this->DepartmentService->getAllDepartments($dto);
+        // Cache departments forever - will be cleared automatically when data changes
+        $cacheKey = 'departments_' . md5(json_encode($dto->toArray()) . app()->getLocale());
+        
+        $departments = cache()->rememberForever($cacheKey, function () use ($dto) {
+            return $this->DepartmentService->getAllDepartments($dto);
+        });
+
         $departments = DepartmentApiResource::collection($departments)->additional($request->all());
         return $this->sendRes(config('responses.success')[app()->getLocale()], true, $departments);
     }

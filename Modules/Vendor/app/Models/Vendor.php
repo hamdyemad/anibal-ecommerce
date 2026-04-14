@@ -25,7 +25,9 @@ class Vendor extends BaseModel
 
     protected $guarded = [];
 
-    protected $appends = ['reviews_count', 'average_rating', 'total_balance', 'total_sent', 'total_remaining', 'bnaia_commission', 'orders_price'];
+    // Heavy DB calculations removed from appends to prevent N+1 queries during serialization.
+    // They are still accessible safely when called directly (e.g. $vendor->total_balance or $vendor->reviews_count).
+    protected $appends = [];
 
 
 

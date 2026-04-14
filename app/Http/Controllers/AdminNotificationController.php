@@ -39,7 +39,7 @@ class AdminNotificationController extends Controller
         
         // Build base query with optimized scope
         $query = AdminNotification::notViewedBy($userId)
-            ->orderBy('admin_notifications.created_at', 'desc'); // Specify table name after JOIN
+            ->orderBy('created_at', 'desc');
         
         // Filter by type if provided
         if ($type) {

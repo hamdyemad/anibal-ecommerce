@@ -28,7 +28,12 @@ class SubCategoryApiController extends Controller
             );
         }
 
-        $subcategories = $this->SubCategoryService->getAllSubCategories($dto);
+        // Cache subcategories forever - will be cleared automatically when data changes
+        $cacheKey = 'subcategories_' . md5(json_encode($dto->toArray()) . app()->getLocale());
+        
+        $subcategories = cache()->rememberForever($cacheKey, function () use ($dto) {
+            return $this->SubCategoryService->getAllSubCategories($dto);
+        });
 
         return $this->sendRes(config('responses.success')[app()->getLocale()], true, SubCategoryApiResource::collection($subcategories));
     }

@@ -6,6 +6,7 @@ use App\Models\BaseModel;
 use App\Models\Traits\HumanDates;
 use App\Traits\HasSlug;
 use App\Traits\Translation;
+use App\Traits\ClearsApiCache;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
@@ -15,7 +16,7 @@ use Modules\Order\app\Models\OrderFulfillment;
 
 class Region extends BaseModel
 {
-    use Translation, SoftDeletes, HumanDates, HasSlug;
+    use Translation, SoftDeletes, HumanDates, HasSlug, ClearsApiCache;
 
     protected $table = 'regions';
     protected $guarded = [];
@@ -101,4 +102,15 @@ class Region extends BaseModel
         return $query;
     }
     // End Scopes
+
+    /**
+     * Get cache patterns to clear when region is modified
+     */
+    protected function getCachePatterns(): array
+    {
+        return [
+            'api_regions_',
+            'api_subregions_', // SubRegions depend on regions
+        ];
+    }
 }

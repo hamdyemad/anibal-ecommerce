@@ -60,13 +60,20 @@ class ApiActivityLogMiddleware
      */
     public function terminate(Request $request, Response $response): void
     {
-        $this->logApiActivity($request, $response, $this->startTime ?? microtime(true));
+        // Log asynchronously after response is sent
+        // Using register_shutdown_function to avoid queue serialization issues
+        $startTime = $this->startTime ?? microtime(true);
+        $self = $this;
+        
+        register_shutdown_function(function() use ($request, $response, $startTime, $self) {
+            $self->logApiActivity($request, $response, $startTime);
+        });
     }
 
     /**
      * Log API activity
      */
-    protected function logApiActivity(Request $request, Response $response, float $startTime): void
+    public function logApiActivity(Request $request, Response $response, float $startTime): void
     {
         try {
             // Skip excluded routes

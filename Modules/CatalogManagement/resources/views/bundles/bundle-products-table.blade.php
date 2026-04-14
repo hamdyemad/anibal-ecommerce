@@ -36,23 +36,78 @@
                                 <td>
                                     <div>
                                         <strong>{{ $product->vendorProductVariant?->vendorProduct?->product?->name ?? 'N/A' }}</strong>
-                                        @if ($product->vendorProductVariant?->variantConfiguration)
+                                        @if ($product->vendorProductVariant)
                                             @php
-                                                $variant = $product->vendorProductVariant?->variantConfiguration;
-                                                $path = [];
-                                                $current = $variant;
-                                                while ($current) {
-                                                    array_unshift($path, $current);
-                                                    $current = $current->parent_data;
+                                                $variant = $product->vendorProductVariant;
+                                                $variantTree = '';
+                                                
+                                                // Build tree using variant link
+                                                if ($variant->variantLink) {
+                                                    $path = [];
+                                                    
+                                                    // Start from parent config in the link
+                                                    $parentConfigId = $variant->variantLink->parent_config_id;
+                                                    $current = \Modules\CatalogManagement\app\Models\VariantsConfiguration::with('key')->find($parentConfigId);
+                                                    
+                                                    // Build path recursively
+                                                    $depth = 0;
+                                                    while ($current && $depth < 10) {
+                                                        // Check if this config has a parent link
+                                                        $parentLink = DB::table('variants_configurations_links')
+                                                            ->where('child_config_id', $current->id)
+                                                            ->first();
+                                                        
+                                                        if ($parentLink) {
+                                                            $parentConfig = \Modules\CatalogManagement\app\Models\VariantsConfiguration::with('key')->find($parentLink->parent_config_id);
+                                                            if ($parentConfig) {
+                                                                array_unshift($path, [
+                                                                    'key' => $parentConfig->key?->name,
+                                                                    'value' => $parentConfig->name
+                                                                ]);
+                                                                $current = $parentConfig;
+                                                            } else {
+                                                                break;
+                                                            }
+                                                        } else {
+                                                            // No more parent links, add current and break
+                                                            array_unshift($path, [
+                                                                'key' => $current->key?->name,
+                                                                'value' => $current->name
+                                                            ]);
+                                                            break;
+                                                        }
+                                                        $depth++;
+                                                    }
+                                                    
+                                                    // Add the child config (current variant)
+                                                    if ($variant->variantConfiguration) {
+                                                        $path[] = [
+                                                            'key' => $variant->variantConfiguration->key?->name,
+                                                            'value' => $variant->variantConfiguration->name
+                                                        ];
+                                                    }
+                                                } else {
+                                                    // Fallback: use simple path if no link
+                                                    if ($variant->variantConfiguration) {
+                                                        $path = [[
+                                                            'key' => $variant->variantConfiguration->key?->name,
+                                                            'value' => $variant->variantConfiguration->name
+                                                        ]];
+                                                    }
                                                 }
                                             @endphp
-                                            <div class="text-muted small mt-1">
-                                                @foreach ($path as $item)
-                                                    <strong>{{ $item->key->name }}</strong>
-                                                    ->
-                                                    <strong>{{ $item->name }}</strong>
-                                                @endforeach
-                                            </div>
+                                            @if (!empty($path))
+                                                <div class="text-muted small mt-1">
+                                                    @foreach ($path as $item)
+                                                        <strong>{{ $item['key'] }}</strong>
+                                                        <span class="text-primary">→</span>
+                                                        <span>{{ $item['value'] }}</span>
+                                                        @if (!$loop->last)
+                                                            <span class="text-primary mx-1">→</span>
+                                                        @endif
+                                                    @endforeach
+                                                </div>
+                                            @endif
                                         @endif
                                     </div>
                                 </td>

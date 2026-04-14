@@ -7,9 +7,6 @@ use Illuminate\Foundation\Support\Providers\RouteServiceProvider as ServiceProvi
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\URL;
-use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
-use Modules\AreaSettings\app\Models\Country;
 
 class RouteServiceProvider extends ServiceProvider
 {
@@ -52,14 +49,18 @@ class RouteServiceProvider extends ServiceProvider
                 ->group(base_path('routes/web.php'));
 
             // Admin routes with authentication and country code
-            Route::middleware('web', 'auth', 'setLanguageCountry',
-            'setAdminRouteDefaults',
-            'localizationRedirect',
-            'localeViewPath')
+            Route::middleware(
+                'web',
+                'auth',
+                'setLanguageCountry',
+                'setAdminRouteDefaults',
+                'localizationRedirect',
+                'localeViewPath'
+            )
                 ->as('admin.')
                 ->prefix('{lang}/{countryCode}/admin')
                 ->where(['lang' => '[a-z]{2}', 'countryCode' => '[a-z]{2,3}'])
-                ->group(function() {
+                ->group(function () {
                     require base_path('routes/admin.php');
                 });
         });

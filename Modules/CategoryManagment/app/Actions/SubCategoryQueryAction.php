@@ -19,7 +19,8 @@ class SubCategoryQueryAction
                         'category.department' => function($q) {
                             $q->withCount(['activeVendorProducts as active_products_count']);  // Count vendor products
                         },
-                        'translations'
+                        'translations',
+                        'attachments'  // Eager load attachments to prevent N+1 queries
                     ])
                     ->filter($filters);
 

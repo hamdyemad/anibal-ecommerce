@@ -361,6 +361,33 @@ class Product extends BaseModel
             });
         }
 
+        // Sorting
+        if (!empty($filters['sort_by']) && !empty($filters['sort_type'])) {
+            $sortBy = $filters['sort_by'];
+            $sortType = strtolower($filters['sort_type']);
+            
+            // Map sort fields to actual database columns/relationships
+            switch ($sortBy) {
+                case 'price':
+                case 'rating':
+                case 'views':
+                case 'sales':
+                    // These will be handled at VendorProduct level, don't add ordering here
+                    return;
+                case 'name':
+                    // Sort by translated title
+                    $query->orderBy('slug', $sortType);
+                    return;
+                case 'created_at':
+                    $query->orderBy('created_at', $sortType);
+                    return;
+                default:
+                    $query->orderBy('created_at', $sortType);
+                    return;
+            }
+        }
+        
+        // Default sorting only if no sort parameters provided
         $query->orderBy('created_at', 'desc');
     }
 

@@ -20,8 +20,22 @@ class CalculateShippingRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'customer_address_id' => 'required|integer|exists:customer_addresses,id',
+            'customer_address_id' => 'nullable|integer|exists:customer_addresses,id',
+            'city_id' => 'nullable|integer|exists:cities,id',
         ];
+    }
+
+    /**
+     * Configure the validator instance.
+     */
+    public function withValidator($validator)
+    {
+        $validator->after(function ($validator) {
+            // Require at least one: customer_address_id or city_id
+            if (!$this->input('customer_address_id') && !$this->input('city_id')) {
+                $validator->errors()->add('city_id', trans('shipping.address_or_city_required'));
+            }
+        });
     }
 
     /**
@@ -30,8 +44,8 @@ class CalculateShippingRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'customer_address_id.required' => trans('shipping.address_id_required'),
             'customer_address_id.exists' => trans('shipping.address_not_found'),
+            'city_id.exists' => trans('shipping.city_not_found'),
         ];
     }
 }

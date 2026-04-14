@@ -22,22 +22,35 @@ class ShippingCalculationController extends Controller
     /**
      * Calculate shipping cost for cart items
      * POST /api/shipping/calculate
+     * Supports both authenticated users (with cart) and guests (with city_id only)
      */
     public function calculate(CalculateShippingRequest $request)
     {
-        $customerId = auth()->user()->id;
+        // Get authenticated user if available (optional)
+        $user = auth()->guard('sanctum')->user();
+        $customerId = $user?->id;
         $customerAddressId = $request->input('customer_address_id');
+        $cityId = $request->input('city_id');
 
         \Log::info('Shipping calculation API called', [
             'customer_id' => $customerId,
             'customer_address_id' => $customerAddressId,
-            'auth_user' => auth()->user()->email ?? 'N/A',
+            'city_id' => $cityId,
+            'auth_user' => $user?->email ?? 'guest',
         ]);
 
-        $result = $this->shippingCalculationService->calculateShippingForCart(
-            $customerId,
-            $customerAddressId
-        );
+        // For guests, only city_id is required (no cart calculation)
+        if (!$customerId && $cityId) {
+            // Guest user - return shipping info for city only
+            $result = $this->shippingCalculationService->calculateShippingForCity($cityId);
+        } else {
+            // Authenticated user - calculate shipping for cart
+            $result = $this->shippingCalculationService->calculateShippingForCart(
+                $customerId,
+                $customerAddressId,
+                $cityId
+            );
+        }
 
         \Log::info('Shipping calculation result', $result);
 

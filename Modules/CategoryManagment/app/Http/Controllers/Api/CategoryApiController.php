@@ -29,7 +29,12 @@ class CategoryApiController extends Controller
             );
         }
 
-        $categories = $this->CategoryService->getAllCategories($dto);
+        // Cache categories forever - will be cleared automatically when data changes
+        $cacheKey = 'api_categories_' . md5(json_encode($dto->toArray()) . app()->getLocale());
+        
+        $categories = \Cache::rememberForever($cacheKey, function() use ($dto) {
+            return $this->CategoryService->getAllCategories($dto);
+        });
 
         return $this->sendRes(config('responses.success')[app()->getLocale()], true, CategoryApiResource::collection($categories));
     }
