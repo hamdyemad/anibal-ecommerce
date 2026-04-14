@@ -16,7 +16,8 @@ class SliderResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'image' => ($this->image) ? $this->image : '',
+            'media_type' => $this->media_type ?? 'image',
+            'media_url' => $this->media_url ?: '',
             'title' => $this->title,
             'description' => $this->description,
             'slider_link' => $this->slider_link,

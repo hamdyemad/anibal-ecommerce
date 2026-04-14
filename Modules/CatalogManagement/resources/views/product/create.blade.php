@@ -475,7 +475,7 @@
                                                         ? $product->product->mainImage->path
                                                         : null" placeholder="{{ __('common.click_to_upload') }}"
                                                     recommendedSize="{{ __('common.recommended_logo_size') }}"
-                                                    accept="image/jpeg,image/png,image/jpg,image/webp"
+                                                    accept="image/jpeg,image/png,image/jpg,image/webp,.glb,.gltf,.obj,.mtl"
                                                     aspectRatio="square" />
                                             </div>
                                         </div>
@@ -490,8 +490,9 @@
                                         </h5>
                                         <div class="row">
                                             <div class="col-md-12 mb-3">
-                                                <input type="file" multiple class="form-control" accept="image/*"
+                                                <input type="file" multiple class="form-control" accept="image/*,.glb,.gltf,.obj,.mtl"
                                                     name="additional_images[]">
+                                                <small class="text-muted">{{ __('catalogmanagement::product.additional_images_help') }} (Supports: Images & 3D Models .glb/.gltf/.obj/.mtl)</small>
                                                 <div id="gallery-preview-container" class="mt-3 d-flex flex-wrap gap-2">
                                                     <!-- Gallery images dynamically here -->
                                                 </div>

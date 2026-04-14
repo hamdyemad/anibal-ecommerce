@@ -15,11 +15,13 @@ class SliderRequest extends FormRequest
     {
         return [
             'slider_link' => 'nullable|url',
+            'media_type' => 'nullable|in:image,video',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
+            'video' => 'nullable|file|mimes:mp4,mov,avi,wmv,flv,webm|max:51200',
             'sort_order' => 'nullable|integer',
             'active' => 'nullable|boolean',
-            'translations' => 'required|array',
-            'translations.*.title' => 'required|string|max:255',
+            'translations' => 'nullable|array',
+            'translations.*.title' => 'nullable|string|max:255',
             'translations.*.description' => 'nullable|string',
         ];
     }
@@ -28,7 +30,9 @@ class SliderRequest extends FormRequest
     {
         return [
             'slider_link' => __('systemsetting::sliders.slider_link'),
+            'media_type' => __('systemsetting::sliders.media_type'),
             'image' => __('systemsetting::sliders.slider_image'),
+            'video' => __('systemsetting::sliders.slider_video'),
             'sort_order' => __('systemsetting::sliders.sort_order'),
             'active' => __('systemsetting::sliders.status'),
         ];
@@ -38,6 +42,7 @@ class SliderRequest extends FormRequest
     {
         $this->merge([
             'active' => $this->has('active') ? (int) $this->active : 0,
+            'media_type' => $this->input('media_type', 'image'),
         ]);
     }
 }

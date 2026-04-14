@@ -429,8 +429,17 @@ class ProductRepository implements ProductInterface
                 }
             }
 
-            // Store new main image
-            $mainImagePath = $data['main_image']->store('products/images', 'public');
+            // Detect if it's a 3D model or image
+            $extension = strtolower($data['main_image']->getClientOriginalExtension());
+            $is3DModel = in_array($extension, ['glb', 'gltf', 'obj', 'mtl']);
+            
+            // Store in appropriate directory with proper extension
+            $storagePath = $is3DModel ? 'products/3d-models' : 'products/images';
+            
+            // Generate unique filename with original extension
+            $filename = uniqid() . '_' . time() . '.' . $extension;
+            $mainImagePath = $data['main_image']->storeAs($storagePath, $filename, 'public');
+            
             Attachment::create([
                 'attachable_type' => Product::class,
                 'attachable_id' => $product->id,
@@ -461,15 +470,27 @@ class ProductRepository implements ProductInterface
                 }
             }
 
-            // Store new additional images
-            foreach ($data['additional_images'] as $image) {
-                if ($image) {
-                    $imagePath = $image->store('products/images', 'public');
+            // Store new additional images and 3D models
+            foreach ($data['additional_images'] as $file) {
+                if ($file) {
+                    $extension = strtolower($file->getClientOriginalExtension());
+                    $is3DModel = in_array($extension, ['glb', 'gltf', 'obj', 'mtl']);
+                    
+                    // Store in appropriate directory with proper extension
+                    $storagePath = $is3DModel ? 'products/3d-models' : 'products/images';
+                    
+                    // Generate unique filename with original extension
+                    $filename = uniqid() . '_' . time() . '.' . $extension;
+                    $filePath = $file->storeAs($storagePath, $filename, 'public');
+                    
+                    // Determine attachment type
+                    $attachmentType = $is3DModel ? '3d_model' : 'additional_image';
+                    
                     Attachment::create([
                         'attachable_type' => Product::class,
                         'attachable_id' => $product->id,
-                        'type' => 'additional_image',
-                        'path' => $imagePath,
+                        'type' => $attachmentType,
+                        'path' => $filePath,
                     ]);
                 }
             }

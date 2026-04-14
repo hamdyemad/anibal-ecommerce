@@ -362,7 +362,7 @@
                                                         ? $product->product->mainImage->path
                                                         : null" placeholder="{{ __('common.click_to_upload') }}"
                                                     recommendedSize="{{ __('common.recommended_logo_size') }}"
-                                                    accept="image/jpeg,image/png,image/jpg,image/webp"
+                                                    accept="image/jpeg,image/png,image/jpg,image/webp,.glb,.gltf,.obj,.mtl"
                                                     aspectRatio="square" />
                                             </div>
                                         </div>
@@ -384,9 +384,21 @@
                                                 <div class="d-flex flex-wrap gap-2" id="existing-additional-images">
                                                     @foreach($product->product->additionalImages as $image)
                                                     <div class="position-relative image-item" data-image-id="{{ $image->id }}" style="width: 120px; height: 120px;">
-                                                        <img src="{{ asset('storage/' . $image->path) }}" 
-                                                            class="img-thumbnail" 
-                                                            style="width: 100%; height: 100%; object-fit: cover;">
+                                                        @if(in_array(pathinfo($image->path, PATHINFO_EXTENSION), ['glb', 'gltf', 'obj', 'mtl']))
+                                                            {{-- 3D Model Preview --}}
+                                                            <div class="d-flex align-items-center justify-content-center bg-light" style="width: 100%; height: 100%; border: 2px solid #ddd; border-radius: 4px;">
+                                                                <div class="text-center">
+                                                                    <i class="uil uil-cube" style="font-size: 40px; color: #6c757d;"></i>
+                                                                    <small class="d-block text-muted mt-1">3D Model</small>
+                                                                    <small class="d-block text-muted">.{{ pathinfo($image->path, PATHINFO_EXTENSION) }}</small>
+                                                                </div>
+                                                            </div>
+                                                        @else
+                                                            {{-- Regular Image --}}
+                                                            <img src="{{ asset('storage/' . $image->path) }}" 
+                                                                class="img-thumbnail" 
+                                                                style="width: 100%; height: 100%; object-fit: cover;">
+                                                        @endif
                                                         <button type="button" 
                                                             class="btn btn-danger btn-sm position-absolute top-0 end-0 m-1 delete-image-btn"
                                                             data-image-id="{{ $image->id }}"
@@ -405,9 +417,9 @@
                                         <div class="row">
                                             <div class="col-md-12 mb-3">
                                                 <label class="form-label">{{ __('catalogmanagement::product.upload_new_images') }}</label>
-                                                <input type="file" multiple class="form-control" accept="image/*"
-                                                    name="additional_images[]">
-                                                <small class="text-muted">{{ __('catalogmanagement::product.additional_images_help') }}</small>
+                                                <input type="file" multiple class="form-control" accept="image/*,.glb,.gltf,.obj,.mtl"
+                                                    name="additional_images[]" id="additional_images_input">
+                                                <small class="text-muted">{{ __('catalogmanagement::product.additional_images_help') }} (Supports: Images & 3D Models .glb/.gltf/.obj/.mtl)</small>
                                             </div>
                                         </div>
                                     </div>

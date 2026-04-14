@@ -67,11 +67,25 @@ class SliderController extends Controller
                 return Str::limit($slider->description, 50) ?? '-';
             })
             ->addColumn('image_preview', function ($slider) {
-                $image = ($slider->attachments->first()) ? asset('storage/' . $slider->attachments->first()->path) : null;
-                if ($image) {
-                    return '<div class="userDatatable-content"><img src="' . $image . '" alt="Slider" style="max-width: 100px; max-height: 60px; border-radius: 4px;"></div>';
+                $attachment = $slider->attachments->first();
+                
+                if (!$attachment) {
+                    return '<span class="text-muted">-</span>';
                 }
-                return '<span class="text-muted">-</span>';
+                
+                $mediaUrl = asset('storage/' . $attachment->path);
+                
+                if ($slider->media_type === 'video' || $attachment->type === 'video') {
+                    return '<div class="userDatatable-content">
+                        <video autoplay loop muted playsinline style="max-width: 100px; max-height: 60px; border-radius: 4px; object-fit: cover;">
+                            <source src="' . $mediaUrl . '" type="video/mp4">
+                        </video>
+                    </div>';
+                } else {
+                    return '<div class="userDatatable-content">
+                        <img src="' . $mediaUrl . '" alt="Slider" style="max-width: 100px; max-height: 60px; border-radius: 4px; object-fit: cover;">
+                    </div>';
+                }
             })
             ->addColumn('link_display', function ($slider) {
                 $html = '<div class="userDatatable-content d-flex justify-content-center">';

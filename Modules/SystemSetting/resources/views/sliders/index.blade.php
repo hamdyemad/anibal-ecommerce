@@ -120,7 +120,7 @@
                             <thead>
                                 <tr class="userDatatable-header">
                                     <th class="text-center"><span class="userDatatable-title">#</span></th>
-                                    <th><span class="userDatatable-title">{{ __('systemsetting::sliders.slider_image') }}</span></th>
+                                    <th><span class="userDatatable-title">{{ __('systemsetting::sliders.media') }}</span></th>
                                     <th><span class="userDatatable-title">{{ __('systemsetting::sliders.title') }}</span></th>
                                     <th><span class="userDatatable-title">{{ __('systemsetting::sliders.description') }}</span></th>
                                     <th><span class="userDatatable-title">{{ __('systemsetting::sliders.slider_link') }}</span></th>

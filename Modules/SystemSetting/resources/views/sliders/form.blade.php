@@ -55,7 +55,6 @@
                                             <div class="form-group mb-25">
                                                 <label for="title_{{ $language->id }}" class="form-label">
                                                     {{ __('systemsetting::sliders.title') }} ({{ $language->name }})
-                                                    <span class="text-danger">*</span>
                                                 </label>
                                                 <input type="text"
                                                        name="translations[{{ $language->id }}][title]"
@@ -85,16 +84,48 @@
                                         </div>
                                     @endforeach
 
+                                    {{-- Media Type Selection --}}
+                                    <div class="col-md-12">
+                                        <div class="form-group mb-25">
+                                            <label for="media_type" class="form-label">
+                                                {{ __('systemsetting::sliders.media_type') }}
+                                            </label>
+                                            <select name="media_type" id="media_type" class="form-control ih-medium ip-gray radius-xs b-light px-15 @error('media_type') is-invalid @enderror">
+                                                <option value="image" {{ old('media_type', isset($slider) ? $slider->media_type : 'image') == 'image' ? 'selected' : '' }}>
+                                                    {{ __('systemsetting::sliders.image') }}
+                                                </option>
+                                                <option value="video" {{ old('media_type', isset($slider) ? $slider->media_type : 'image') == 'video' ? 'selected' : '' }}>
+                                                    {{ __('systemsetting::sliders.video') }}
+                                                </option>
+                                            </select>
+                                            @error('media_type')
+                                                <div class="text-danger">{{ $message }}</div>
+                                            @enderror
+                                        </div>
+                                    </div>
+
                                     {{-- Slider Image --}}
-                                    <div class="col-md-6">
+                                    <div class="col-md-6" id="image-upload-section">
                                         <x-image-upload
                                             id="image"
                                             name="image"
                                             :label="__('systemsetting::sliders.slider_image')"
-                                            :existingImage="isset($slider) && $slider->image ? $slider->attachments()->first()->path : null"
+                                            :existingImage="isset($slider) && $slider->image ? $slider->attachments()->where('type', 'image')->first()?->path : null"
                                             :placeholder="__('systemsetting::sliders.slider_image')"
                                             :recommendedSize="__('systemsetting::sliders.recommended_size')"
                                             aspectRatio="wide"
+                                        />
+                                    </div>
+
+                                    {{-- Slider Video --}}
+                                    <div class="col-md-6" id="video-upload-section">
+                                        <x-video-upload
+                                            id="video"
+                                            name="video"
+                                            :label="__('systemsetting::sliders.slider_video')"
+                                            :existingVideo="isset($slider) && $slider->media_type == 'video' && $slider->video ? $slider->attachments()->where('type', 'video')->first()?->path : null"
+                                            :placeholder="__('systemsetting::sliders.slider_video')"
+                                            :recommendedSize="__('systemsetting::sliders.max_size') . ': 50MB'"
                                         />
                                     </div>
 
@@ -155,6 +186,27 @@
 @push('scripts')
 <script>
 $(document).ready(function() {
+    // Function to toggle between image and video upload sections
+    function toggleMediaSections() {
+        const mediaType = $('#media_type').val();
+        
+        if (mediaType === 'image') {
+            $('#image-upload-section').show();
+            $('#video-upload-section').hide();
+        } else if (mediaType === 'video') {
+            $('#image-upload-section').hide();
+            $('#video-upload-section').show();
+        }
+    }
+
+    // Initialize on page load
+    toggleMediaSections();
+
+    // Toggle on change
+    $('#media_type').on('change', function() {
+        toggleMediaSections();
+    });
+
     const sliderForm = document.getElementById('sliderForm');
 
     if (sliderForm) {

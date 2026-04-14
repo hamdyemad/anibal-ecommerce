@@ -37,13 +37,11 @@ Route::middleware('throttle:products')->prefix('products')->group(function () {
     Route::get('/featured', [ProductApiController::class, 'featured']);
     Route::get('/best-selling', [ProductApiController::class, 'bestSelling']);
     Route::get('/latest', [ProductApiController::class, 'latest']);
-    Route::get('/special-offers', [ProductApiController::class, 'specialOffers']);
     Route::get('/variants-all', [ProductApiController::class, 'variantsAll']);
     Route::get('/{departmentId}/department', [ProductApiController::class, 'getByDepartment']);
     Route::get('/top', [ProductApiController::class, 'top']);
     Route::get('specific-product/{id}/{vendorId}', [ProductApiController::class, 'show']);
     Route::get('product-by-slug/{slug}', [ProductApiController::class, 'getProductBySlug']);
-    Route::get('/hot-deals', [ProductApiController::class, 'hotDeals']);
     Route::get('/filters', [ProductApiController::class, 'filters']);
     Route::get('/filters-by-type', [ProductApiController::class, 'filterByType']);
     Route::get('/variants', [ProductApiController::class, 'variants']);

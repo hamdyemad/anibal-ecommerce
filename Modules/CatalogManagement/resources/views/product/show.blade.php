@@ -4,6 +4,30 @@
 
 @push('styles')
     <style>
+        /* 3D Model Viewer Styles */
+        model-viewer {
+            width: 100%;
+            height: 400px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+        }
+        
+        .model-viewer-container {
+            position: relative;
+            width: 100%;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+        
+        /* Three.js Canvas Container */
+        #threejs-canvas-container {
+            width: 100%;
+            height: 400px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            position: relative;
+        }
+        
         /* Product View HTML Content Styling */
         .fs-15.color-dark {
             line-height: 1.6;
@@ -548,11 +572,52 @@
                                                     <div class="mb-3">
                                                         <label class="il-gray fs-14 fw-500 align-text-top d-block mb-2">{{ __('catalogmanagement::product.main_image') }}</label>
                                                         <div class="position-relative image-item" data-image-id="{{ $product->product->mainImage->id }}" style="max-width: 400px; margin: 0 auto;">
-                                                            <img src="{{ asset('storage/' . $product->product->mainImage->path) }}"
-                                                                alt="{{ $product->product->getTranslation('title') }}"
-                                                                class="product-image img-fluid rounded w-100"
-                                                                style="max-height: 400px; object-fit: contain; cursor: pointer;"
-                                                                onclick="window.open('{{ asset('storage/' . $product->product->mainImage->path) }}', '_blank')">
+                                                            @php
+                                                                $extension = strtolower(pathinfo($product->product->mainImage->path, PATHINFO_EXTENSION));
+                                                                $is3DModel = in_array($extension, ['glb', 'gltf', 'obj', 'mtl']);
+                                                            @endphp
+                                                            
+                                                            @if($is3DModel)
+                                                                {{-- 3D Model Viewer --}}
+                                                                <div class="model-viewer-container">
+                                                                    @if(in_array($extension, ['glb', 'gltf']))
+                                                                        {{-- GLB/GLTF Viewer --}}
+                                                                        <model-viewer
+                                                                            src="{{ asset('storage/' . $product->product->mainImage->path) }}"
+                                                                            alt="{{ $product->product->getTranslation('title') }}"
+                                                                            auto-rotate
+                                                                            camera-controls
+                                                                            shadow-intensity="1"
+                                                                            style="width: 100%; height: 400px;"
+                                                                        ></model-viewer>
+                                                                    @elseif($extension === 'obj')
+                                                                        {{-- OBJ Viewer with Three.js --}}
+                                                                        <div id="threejs-canvas-container" data-obj-url="{{ asset('storage/' . $product->product->mainImage->path) }}"></div>
+                                                                        <div class="text-center mt-2">
+                                                                            <small class="text-muted">Drag to rotate • Scroll to zoom</small>
+                                                                        </div>
+                                                                    @else
+                                                                        {{-- MTL Preview (fallback to download) --}}
+                                                                        <div class="d-flex align-items-center justify-content-center bg-light rounded" 
+                                                                             style="width: 100%; min-height: 300px; cursor: pointer; border: 2px solid #ddd;"
+                                                                             onclick="window.open('{{ asset('storage/' . $product->product->mainImage->path) }}', '_blank')">
+                                                                            <div class="text-center p-4">
+                                                                                <i class="uil uil-cube" style="font-size: 80px; color: #6c757d;"></i>
+                                                                                <h5 class="mt-3 text-muted">Material File (.mtl)</h5>
+                                                                                <p class="text-muted mb-2">This is a material definition file</p>
+                                                                                <small class="text-muted">Click to download</small>
+                                                                            </div>
+                                                                        </div>
+                                                                    @endif
+                                                                </div>
+                                                            @else
+                                                                {{-- Regular Image --}}
+                                                                <img src="{{ asset('storage/' . $product->product->mainImage->path) }}"
+                                                                    alt="{{ $product->product->getTranslation('title') }}"
+                                                                    class="product-image img-fluid rounded w-100"
+                                                                    style="max-height: 400px; object-fit: contain; cursor: pointer;"
+                                                                    onclick="window.open('{{ asset('storage/' . $product->product->mainImage->path) }}', '_blank')">
+                                                            @endif
                                                             <button type="button" 
                                                                 class="btn btn-danger btn-sm position-absolute top-0 end-0 m-2 delete-image-btn"
                                                                 data-bs-toggle="modal" 
@@ -593,12 +658,32 @@
                                                 <div class="card-body">
                                                     <div class="d-flex flex-wrap gap-2">
                                                         @foreach ($product->product->additionalImages as $index => $image)
+                                                            @php
+                                                                $extension = strtolower(pathinfo($image->path, PATHINFO_EXTENSION));
+                                                                $is3DModel = in_array($extension, ['glb', 'gltf', 'obj', 'mtl']);
+                                                            @endphp
+                                                            
                                                             <div class="position-relative image-item" data-image-id="{{ $image->id }}" style="width: 150px; height: 150px;">
-                                                                <img src="{{ asset('storage/' . $image->path) }}"
-                                                                    alt="{{ __('catalogmanagement::product.additional_image') ?? 'Additional Image' }}"
-                                                                    class="img-thumbnail"
-                                                                    style="width: 100%; height: 100%; object-fit: cover; cursor: pointer;"
-                                                                    onclick="window.open('{{ asset('storage/' . $image->path) }}', '_blank')">
+                                                                @if($is3DModel)
+                                                                    {{-- 3D Model Preview --}}
+                                                                    <div class="d-flex align-items-center justify-content-center bg-light img-thumbnail" 
+                                                                         style="width: 100%; height: 100%; cursor: pointer;"
+                                                                         data-bs-toggle="modal" 
+                                                                         data-bs-target="#model3DModal{{ $image->id }}">
+                                                                        <div class="text-center">
+                                                                            <i class="uil uil-cube" style="font-size: 50px; color: #6c757d;"></i>
+                                                                            <small class="d-block text-muted mt-1 fw-bold">3D Model</small>
+                                                                            <small class="d-block text-muted">.{{ $extension }}</small>
+                                                                        </div>
+                                                                    </div>
+                                                                @else
+                                                                    {{-- Regular Image --}}
+                                                                    <img src="{{ asset('storage/' . $image->path) }}"
+                                                                        alt="{{ __('catalogmanagement::product.additional_image') ?? 'Additional Image' }}"
+                                                                        class="img-thumbnail"
+                                                                        style="width: 100%; height: 100%; object-fit: cover; cursor: pointer;"
+                                                                        onclick="window.open('{{ asset('storage/' . $image->path) }}', '_blank')">
+                                                                @endif
                                                                 <button type="button" 
                                                                     class="btn btn-danger btn-sm position-absolute top-0 end-0 m-1 delete-image-btn"
                                                                     data-bs-toggle="modal" 
@@ -611,6 +696,30 @@
                                                                     <i class="uil uil-times m-0"></i>
                                                                 </button>
                                                             </div>
+                                                            
+                                                            {{-- 3D Model Modal --}}
+                                                            @if($is3DModel && in_array($extension, ['glb', 'gltf']))
+                                                                <div class="modal fade" id="model3DModal{{ $image->id }}" tabindex="-1" aria-labelledby="model3DModalLabel{{ $image->id }}" aria-hidden="true">
+                                                                    <div class="modal-dialog modal-lg modal-dialog-centered">
+                                                                        <div class="modal-content">
+                                                                            <div class="modal-header">
+                                                                                <h5 class="modal-title" id="model3DModalLabel{{ $image->id }}">3D Model Viewer</h5>
+                                                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                                            </div>
+                                                                            <div class="modal-body">
+                                                                                <model-viewer
+                                                                                    src="{{ asset('storage/' . $image->path) }}"
+                                                                                    alt="3D Model"
+                                                                                    auto-rotate
+                                                                                    camera-controls
+                                                                                    shadow-intensity="1"
+                                                                                    style="width: 100%; height: 500px;"
+                                                                                ></model-viewer>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            @endif
                                                         @endforeach
                                                     </div>
                                                 </div>
@@ -1252,6 +1361,110 @@
             // Reset on modal close
             $('#deleteImageModal').on('hidden.bs.modal', function() {
                 imageToDelete = null;
+            });
+        });
+    </script>
+    
+    {{-- Google Model Viewer Script for GLB/GLTF --}}
+    <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+    
+    {{-- Three.js for OBJ files --}}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/OBJLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    
+    <script>
+        // Three.js OBJ Viewer
+        document.addEventListener('DOMContentLoaded', function() {
+            const container = document.getElementById('threejs-canvas-container');
+            if (!container) return;
+            
+            const objUrl = container.dataset.objUrl;
+            if (!objUrl) return;
+            
+            // Scene setup
+            const scene = new THREE.Scene();
+            scene.background = new THREE.Color(0xf8f9fa);
+            
+            // Camera setup
+            const camera = new THREE.PerspectiveCamera(
+                75,
+                container.clientWidth / container.clientHeight,
+                0.1,
+                1000
+            );
+            camera.position.z = 5;
+            
+            // Renderer setup
+            const renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            container.appendChild(renderer.domElement);
+            
+            // Lights
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+            scene.add(ambientLight);
+            
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            directionalLight.position.set(10, 10, 10);
+            scene.add(directionalLight);
+            
+            // Controls
+            const controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+            controls.autoRotate = true;
+            controls.autoRotateSpeed = 2.0;
+            
+            // Load OBJ
+            const loader = new THREE.OBJLoader();
+            loader.load(
+                objUrl,
+                function(object) {
+                    // Center and scale the object
+                    const box = new THREE.Box3().setFromObject(object);
+                    const center = box.getCenter(new THREE.Vector3());
+                    const size = box.getSize(new THREE.Vector3());
+                    
+                    const maxDim = Math.max(size.x, size.y, size.z);
+                    const scale = 3 / maxDim;
+                    object.scale.multiplyScalar(scale);
+                    
+                    object.position.sub(center.multiplyScalar(scale));
+                    
+                    // Add material
+                    object.traverse(function(child) {
+                        if (child instanceof THREE.Mesh) {
+                            child.material = new THREE.MeshPhongMaterial({
+                                color: 0x888888,
+                                shininess: 30
+                            });
+                        }
+                    });
+                    
+                    scene.add(object);
+                },
+                function(xhr) {
+                    console.log((xhr.loaded / xhr.total * 100) + '% loaded');
+                },
+                function(error) {
+                    console.error('Error loading OBJ:', error);
+                    container.innerHTML = '<div class="d-flex align-items-center justify-content-center h-100"><p class="text-danger">Error loading 3D model</p></div>';
+                }
+            );
+            
+            // Animation loop
+            function animate() {
+                requestAnimationFrame(animate);
+                controls.update();
+                renderer.render(scene, camera);
+            }
+            animate();
+            
+            // Handle window resize
+            window.addEventListener('resize', function() {
+                camera.aspect = container.clientWidth / container.clientHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(container.clientWidth, container.clientHeight);
             });
         });
     </script>

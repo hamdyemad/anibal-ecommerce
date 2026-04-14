@@ -291,6 +291,39 @@ function formatImage($imagePath): ?string
 }
 
 /**
+ * Format media (image or 3D model) with type information
+ *
+ * @param mixed $media
+ * @return array|null
+ */
+function formatMedia($media): ?array
+{
+    if (!$media) {
+        return null;
+    }
+
+    if ($media instanceof Attachment) {
+        $extension = pathinfo($media->path, PATHINFO_EXTENSION);
+        $is3DModel = in_array(strtolower($extension), ['glb', 'gltf', 'obj', 'mtl']);
+        
+        return [
+            'url' => url(asset('storage/' . $media->path)),
+            'type' => $is3DModel ? '3d_model' : 'image',
+            'extension' => $extension,
+        ];
+    }
+
+    $extension = pathinfo($media, PATHINFO_EXTENSION);
+    $is3DModel = in_array(strtolower($extension), ['glb', 'gltf', 'obj', 'mtl']);
+    
+    return [
+        'url' => url(asset('storage/' . $media)),
+        'type' => $is3DModel ? '3d_model' : 'image',
+        'extension' => $extension,
+    ];
+}
+
+/**
  * Generate route URL with country code prefix
  *
  * @param string $name

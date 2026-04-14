@@ -23,6 +23,7 @@ class SliderRepository
         return DB::transaction(function () use ($data) {
             $slider = Slider::create([
                 'slider_link' => $data['slider_link'] ?? null,
+                'media_type' => $data['media_type'] ?? 'image',
                 'sort_order' => $data['sort_order'] ?? 0,
             ]);
 
@@ -37,8 +38,10 @@ class SliderRepository
                 }
             }
 
-            // Handle image upload
-            if (isset($data['image']) && $data['image']) {
+            // Handle media upload based on type
+            if ($data['media_type'] === 'video' && isset($data['video']) && $data['video']) {
+                $this->storeVideo($slider, $data['video']);
+            } elseif (isset($data['image']) && $data['image']) {
                 $this->storeImage($slider, $data['image']);
             }
 
@@ -53,6 +56,7 @@ class SliderRepository
 
             $slider->update([
                 'slider_link' => $data['slider_link'] ?? null,
+                'media_type' => $data['media_type'] ?? $slider->media_type ?? 'image',
                 'sort_order' => $data['sort_order'] ?? 0,
             ]);
 
@@ -67,11 +71,17 @@ class SliderRepository
                 }
             }
 
-            // Handle image upload
-            if (isset($data['image']) && $data['image']) {
-                // Delete old image
-                $slider->attachments()->where('type', 'image')->delete();
-                $this->storeImage($slider, $data['image']);
+            // Handle media upload based on type
+            if (isset($data['media_type'])) {
+                if ($data['media_type'] === 'video' && isset($data['video']) && $data['video']) {
+                    // Delete old media
+                    $slider->attachments()->delete();
+                    $this->storeVideo($slider, $data['video']);
+                } elseif ($data['media_type'] === 'image' && isset($data['image']) && $data['image']) {
+                    // Delete old media
+                    $slider->attachments()->delete();
+                    $this->storeImage($slider, $data['image']);
+                }
             }
 
             return $slider;
@@ -100,6 +110,15 @@ class SliderRepository
         $path = $image->store('sliders', 'public');
         $slider->attachments()->create([
             'type' => 'image',
+            'path' => $path,
+        ]);
+    }
+
+    private function storeVideo($slider, $video)
+    {
+        $path = $video->store('sliders/videos', 'public');
+        $slider->attachments()->create([
+            'type' => 'video',
             'path' => $path,
         ]);
     }

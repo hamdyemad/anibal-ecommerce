@@ -44,8 +44,34 @@ class UpdateProductRequest extends FormRequest
             'vendor_id' => $this->getVendorValidationRule(),
 
             // Images
-            'main_image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
-            'additional_images.*' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
+            'main_image' => [
+                'nullable',
+                'file',
+                'max:10240',
+                function ($attribute, $value, $fail) {
+                    if ($value) {
+                        $extension = strtolower($value->getClientOriginalExtension());
+                        $allowedExtensions = ['jpeg', 'jpg', 'png', 'webp', 'glb', 'gltf', 'obj', 'mtl'];
+                        if (!in_array($extension, $allowedExtensions)) {
+                            $fail('The ' . $attribute . ' must be a file of type: ' . implode(', ', $allowedExtensions) . '.');
+                        }
+                    }
+                },
+            ],
+            'additional_images.*' => [
+                'nullable',
+                'file',
+                'max:10240',
+                function ($attribute, $value, $fail) {
+                    if ($value) {
+                        $extension = strtolower($value->getClientOriginalExtension());
+                        $allowedExtensions = ['jpeg', 'jpg', 'png', 'webp', 'glb', 'gltf', 'obj', 'mtl'];
+                        if (!in_array($extension, $allowedExtensions)) {
+                            $fail('The ' . $attribute . ' must be a file of type: ' . implode(', ', $allowedExtensions) . '.');
+                        }
+                    }
+                },
+            ],
 
             // Translations
             'translations' => 'required|array|min:1',

@@ -49,6 +49,7 @@ class ProductBySlugResource extends JsonResource
                 $vendorProductData['meta_keywords'] = $product->meta_keywords ?? [];
                 $vendorProductData['image'] = formatImage($product->mainImage);
                 $vendorProductData['images'] = $product->additionalImages?->map(fn($img) => formatImage($img))->filter()->values() ?? [];
+                $vendorProductData['media'] = $product->additionalImages?->map(fn($img) => formatMedia($img))->filter()->values() ?? [];
                 
                 // Add brand, category, department, sub_category, reviews
                 $vendorProductData['brand'] = $product->brand ? [

@@ -20,6 +20,7 @@ class Slider extends Model
 
     protected $casts = [
         'active' => 'boolean',
+        'media_type' => 'string',
     ];
 
     /**
@@ -35,6 +36,11 @@ class Slider extends Model
         return $this->morphOne(Attachment::class, 'attachable')->where('type', 'image');
     }
 
+    public function video()
+    {
+        return $this->morphOne(Attachment::class, 'attachable')->where('type', 'video');
+    }
+
     /**
      * Get the slider image
      */
@@ -42,6 +48,26 @@ class Slider extends Model
     {
         $attachment = $this->attachments()->where('type', 'image')->first();
         return $attachment ? asset('storage/' . $attachment->path) : '';
+    }
+
+    /**
+     * Get the slider video
+     */
+    public function getVideoAttribute()
+    {
+        $attachment = $this->attachments()->where('type', 'video')->first();
+        return $attachment ? asset('storage/' . $attachment->path) : '';
+    }
+
+    /**
+     * Get the media URL based on media_type
+     */
+    public function getMediaUrlAttribute()
+    {
+        if ($this->media_type === 'video') {
+            return $this->video;
+        }
+        return $this->image;
     }
 
     public function getTitleAttribute()
