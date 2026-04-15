@@ -214,6 +214,22 @@ return [
     'customer_id_not_exist' => 'Customer not defined',
     'bundle_not_active' => "Bundle is not active or has expired",
     'occasion_not_active' => "Occasion is not active or has expired",
+    
+    // Guest checkout validation messages
+    'guest_first_name_required' => 'First name is required',
+    'guest_last_name_required' => 'Last name is required',
+    'guest_email_required' => 'Email is required',
+    'guest_email_email' => 'Please provide a valid email address',
+    'guest_phone_required' => 'Phone number is required',
+    'guest_country_id_required' => 'Country is required',
+    'guest_country_id_exists' => 'Selected country does not exist',
+    'guest_city_id_required' => 'City is required',
+    'guest_city_id_exists' => 'Selected city does not exist',
+    'guest_region_id_required' => 'Region is required',
+    'guest_region_id_exists' => 'Selected region does not exist',
+    'guest_subregion_id_required' => 'Sub-region is required',
+    'guest_subregion_id_exists' => 'Selected sub-region does not exist',
+    'guest_address_required' => 'Address is required',
     /*
     |--------------------------------------------------------------------------
     | Custom Validation Attributes

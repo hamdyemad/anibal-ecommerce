@@ -215,6 +215,22 @@ return [
     'customer_id_not_exist' => 'العميل غير موجود                    ',
     "bundle_not_active" => 'الباقة غير مفعلة أو منتهية الصلاحية',
     'occasion_not_active' => 'المناسبة غير مفعلة أو منتهية الصلاحية',
+    
+    // Guest checkout validation messages
+    'guest_first_name_required' => 'الاسم الأول مطلوب',
+    'guest_last_name_required' => 'اسم العائلة مطلوب',
+    'guest_email_required' => 'البريد الإلكتروني مطلوب',
+    'guest_email_email' => 'يرجى إدخال عنوان بريد إلكتروني صالح',
+    'guest_phone_required' => 'رقم الهاتف مطلوب',
+    'guest_country_id_required' => 'الدولة مطلوبة',
+    'guest_country_id_exists' => 'الدولة المحددة غير موجودة',
+    'guest_city_id_required' => 'المدينة مطلوبة',
+    'guest_city_id_exists' => 'المدينة المحددة غير موجودة',
+    'guest_region_id_required' => 'المنطقة مطلوبة',
+    'guest_region_id_exists' => 'المنطقة المحددة غير موجودة',
+    'guest_subregion_id_required' => 'المنطقة الفرعية مطلوبة',
+    'guest_subregion_id_exists' => 'المنطقة الفرعية المحددة غير موجودة',
+    'guest_address_required' => 'العنوان مطلوب',
     /*
     |--------------------------------------------------------------------------
     | Custom Validation Attributes
