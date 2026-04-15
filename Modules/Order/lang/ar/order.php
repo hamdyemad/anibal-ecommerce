@@ -435,4 +435,13 @@ return [
     'all_rights_reserved' => 'جميع الحقوق محفوظة',
     'email_help_text' => 'في حال وجود أي استفسار حول طلبك، يرجى التواصل مع خدمة العملاء.',
     'order_date' => 'تاريخ الطلب',
+    'total_amount' => 'المبلغ الإجمالي',
+    
+    // Stage update email
+    'stage_updated_subject' => 'تحديث حالة الطلب - :order_number',
+    'order_status_updated' => 'تم تحديث حالة الطلب',
+    'order_status_change_notification' => 'تم تحديث حالة طلبك',
+    'order_status_changed_message' => 'تم تحديث حالة طلبك رقم :order_number.',
+    'current_status' => 'الحالة الحالية',
+    'order_status_update_info' => 'سنبقيك على اطلاع بأي تحديثات أخرى على طلبك.',
 ];

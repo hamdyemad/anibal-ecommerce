@@ -4,10 +4,12 @@ namespace Modules\Order\app\Observers;
 
 use App\Helpers\PointsHelper;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Modules\CatalogManagement\app\Models\StockBooking;
 use Modules\Order\app\Models\OrderProduct;
 use Modules\Order\app\Models\OrderStage;
 use Modules\Order\app\Models\VendorOrderStage;
+use Modules\Order\app\Mail\OrderStageUpdated;
 use Modules\SystemSetting\app\Models\PointsSystem;
 use Modules\SystemSetting\app\Models\UserPoints;
 use Modules\SystemSetting\app\Models\UserPointsTransaction;
@@ -32,6 +34,7 @@ class VendorOrderStageObserver
         if ($vendorOrderStage->isDirty('stage_id')) {
             $this->recordHistory($vendorOrderStage, $vendorOrderStage->getOriginal('stage_id'), $vendorOrderStage->stage_id);
             $this->handleStageChange($vendorOrderStage);
+            $this->sendStageChangeEmail($vendorOrderStage);
         }
     }
 
@@ -272,6 +275,71 @@ class VendorOrderStageObserver
                 'order_id' => $vendorOrderStage->order_id,
                 'vendor_id' => $vendorOrderStage->vendor_id,
                 'error' => $e->getMessage()
+            ]);
+        }
+    }
+
+    /**
+     * Send email notification to customer when order stage changes
+     */
+    protected function sendStageChangeEmail(VendorOrderStage $vendorOrderStage): void
+    {
+        try {
+            $order = $vendorOrderStage->order;
+            if (!$order) {
+                Log::warning('No order found for vendor order stage email', [
+                    'vendor_order_stage_id' => $vendorOrderStage->id
+                ]);
+                return;
+            }
+
+            // Get customer email - check both customer relationship and direct email field
+            $customerEmail = null;
+            
+            // First try to get email from customer relationship
+            if ($order->customer_id && $order->customer) {
+                $customerEmail = $order->customer->email;
+            }
+            
+            // If not found, try the direct customer_email field on order
+            if (!$customerEmail && $order->customer_email) {
+                $customerEmail = $order->customer_email;
+            }
+
+            if (!$customerEmail) {
+                Log::warning('No customer email found for order stage change notification', [
+                    'order_id' => $order->id,
+                    'customer_id' => $order->customer_id,
+                    'has_customer_email_field' => !empty($order->customer_email)
+                ]);
+                return;
+            }
+
+            // Get the new stage
+            $newStage = OrderStage::withoutGlobalScopes()->find($vendorOrderStage->stage_id);
+            if (!$newStage) {
+                Log::warning('Stage not found for email notification', [
+                    'stage_id' => $vendorOrderStage->stage_id
+                ]);
+                return;
+            }
+
+            // Send email
+            Mail::to($customerEmail)->send(new OrderStageUpdated($order, $newStage));
+
+            Log::info('Order stage change email sent', [
+                'order_id' => $order->id,
+                'vendor_id' => $vendorOrderStage->vendor_id,
+                'customer_email' => $customerEmail,
+                'new_stage' => $newStage->getTranslation('name', 'en')
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Error sending order stage change email', [
+                'order_id' => $vendorOrderStage->order_id ?? null,
+                'vendor_id' => $vendorOrderStage->vendor_id ?? null,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
             ]);
         }
     }

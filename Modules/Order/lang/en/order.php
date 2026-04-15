@@ -440,4 +440,11 @@ return [
     'email_help_text' => 'If you have any questions about your order, please contact our customer support.',
     'order_date' => 'Order Date',
     'total_amount' => 'Total Amount',
+    
+    // Stage update email
+    'stage_updated_subject' => 'Order Status Updated - :order_number',
+    'order_status_updated' => 'Order Status Updated',
+    'order_status_change_notification' => 'Your order status has been updated',
+    'order_status_changed_message' => 'Your order #:order_number status has been updated.',
+    'order_status_update_info' => 'We will keep you informed about any further updates to your order.',
 ];
