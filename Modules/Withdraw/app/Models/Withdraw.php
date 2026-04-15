@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Modules\Vendor\app\Models\Vendor;
 
-// use Modules\Withdraw\Database\Factories\WithdrawFactory;
+// use Modules\Withdraw\app\Database\Factories\WithdrawFactory;
 
 class Withdraw extends Model
 {

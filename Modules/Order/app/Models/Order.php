@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Modules\Order\database\factories\OrderFactory;
+use Modules\Order\app\database\factories\OrderFactory;
 use App\Models\Traits\CountryCheckIdTrait;
 use App\Models\Traits\HumanDates;
 use App\Models\Traits\AutoStoreCountryId;

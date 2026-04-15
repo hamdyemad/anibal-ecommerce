@@ -6,4 +6,3 @@ interface BalanceRepositoryInterface
 {
     public function getVendorBalances(array $filters = []);
 }
-

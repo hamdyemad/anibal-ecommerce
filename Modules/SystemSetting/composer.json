@@ -17,7 +17,7 @@
     },
     "autoload": {
         "psr-4": {
-            "Modules\\SystemSetting\\": "app/",
+            "Modules\\SystemSetting\\app\\": "app/",
             "Modules\\SystemSetting\\Database\\Factories\\": "database/factories/",
             "Modules\\SystemSetting\\Database\\Seeders\\": "database/seeders/"
         }

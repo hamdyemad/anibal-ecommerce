@@ -13,5 +13,3 @@ class SummaryService
         return $this->repository->getSummaryData($filters);
     }
 }
-
-

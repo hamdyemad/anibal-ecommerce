@@ -35,7 +35,7 @@ use Modules\Order\app\Observers\OrderObserver;
 use Modules\Customer\app\Services\Api\CustomerAuthService;
 use Modules\Customer\app\Services\Api\CustomerAddressService;
 use Modules\CatalogManagement\app\Services\Api\ProductApiService;
-use Modules\Order\Providers\EventServiceProvider;
+use Modules\Order\app\Providers\EventServiceProvider;
 use Nwidart\Modules\Traits\PathNamespace;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;

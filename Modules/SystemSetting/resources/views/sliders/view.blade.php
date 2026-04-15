@@ -51,13 +51,25 @@
                                     </div>
                                     <div class="card-body">
                                         <div class="row">
-                                            {{-- Slider Image --}}
+                                            {{-- Slider Image/Video --}}
                                             <div class="col-md-6 mb-3">
                                                 <div class="view-item">
-                                                    <label
-                                                        class="il-gray fs-14 fw-500 mb-10">{{ __('systemsetting::sliders.slider_image') }}</label>
+                                                    <label class="il-gray fs-14 fw-500 mb-10">
+                                                        @if($slider->media_type === 'video')
+                                                            {{ __('systemsetting::sliders.slider_video') }}
+                                                        @else
+                                                            {{ __('systemsetting::sliders.slider_image') }}
+                                                        @endif
+                                                    </label>
                                                     <div class="fs-15">
-                                                        @if ($slider->image)
+                                                        @if ($slider->media_type === 'video' && $slider->video)
+                                                            {{-- Video Display --}}
+                                                            <video autoplay loop muted playsinline controls style="width: 100%; max-height: 400px; border-radius: 8px; border: 1px solid #eee;">
+                                                                <source src="{{ $slider->video }}" type="video/mp4">
+                                                                Your browser does not support the video tag.
+                                                            </video>
+                                                        @elseif ($slider->image)
+                                                            {{-- Image Display --}}
                                                             @php
                                                                 $width = '-';
                                                                 $height = '-';

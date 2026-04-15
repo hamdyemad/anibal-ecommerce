@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\Refund\app\Database\Seeders;
+namespace Modules\Refund\Database\Seeders;
 
 use Illuminate\Database\Seeder;
 

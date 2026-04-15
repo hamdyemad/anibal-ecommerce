@@ -13,5 +13,3 @@ class BalanceService
         return $this->repository->getVendorBalances($filters);
     }
 }
-
-

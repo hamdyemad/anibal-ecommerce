@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Log;
 use Modules\AreaSettings\app\Services\SubRegionService;
 use App\Services\LanguageService;
 
-class SubRegionAction
+class SubregionAction
 {
     public function __construct(
         protected SubRegionService $subregionService,

@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\Report\Providers;
+namespace Modules\Report\app\Providers;
 
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
 

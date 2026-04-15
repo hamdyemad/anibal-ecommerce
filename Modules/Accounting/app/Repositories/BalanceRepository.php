@@ -9,15 +9,20 @@ class BalanceRepository implements BalanceRepositoryInterface
 {
     public function getVendorBalances(array $filters = [])
     {
-        return VendorBalance::with('vendor')
-            ->filter($filters)
-            ->latest()
-            ->paginate(
-                perPage: $filters['per_page'] ?? 20,
-                page: $filters['page'] ?? 1,
-                columns: ['*']
-            );
+        $query = VendorBalance::with('vendor');
+        
+        if (!empty($filters['search'])) {
+            $search = $filters['search'];
+            $query->whereHas('vendor', function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%");
+            });
+        }
+        
+        if (!empty($filters['min_balance'])) {
+            $query->where('available_balance', '>=', $filters['min_balance']);
+        }
+        
+        return $query->latest()->paginate(20);
     }
 }
-
-

@@ -17,7 +17,7 @@
     },
     "autoload": {
         "psr-4": {
-            "Modules\\Withdraw\\": "app/",
+            "Modules\\Withdraw\\app\\": "app/",
             "Modules\\Withdraw\\Database\\Factories\\": "database/factories/",
             "Modules\\Withdraw\\Database\\Seeders\\": "database/seeders/"
         }

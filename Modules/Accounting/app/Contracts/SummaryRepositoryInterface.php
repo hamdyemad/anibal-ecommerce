@@ -6,4 +6,3 @@ interface SummaryRepositoryInterface
 {
     public function getSummaryData(array $filters = []): array;
 }
-

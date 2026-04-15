@@ -5,7 +5,7 @@
     "keywords": [],
     "priority": 0,
     "providers": [
-        "Modules\\Report\\Providers\\ReportServiceProvider"
+        "Modules\\Report\\app\\Providers\\ReportServiceProvider"
     ],
     "files": []
 }

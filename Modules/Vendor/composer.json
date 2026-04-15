@@ -17,7 +17,7 @@
     },
     "autoload": {
         "psr-4": {
-            "Modules\\Vendor\\": "app/",
+            "Modules\\Vendor\\app\\": "app/",
             "Modules\\Vendor\\Database\\Factories\\": "database/factories/",
             "Modules\\Vendor\\Database\\Seeders\\": "database/seeders/"
         }

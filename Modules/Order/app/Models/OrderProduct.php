@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Modules\CatalogManagement\app\Models\Bundle;
 use Modules\CatalogManagement\app\Models\Occasion;
-use Modules\Order\database\factories\OrderProductFactory;
+use Modules\Order\app\database\factories\OrderProductFactory;
 use Modules\CatalogManagement\app\Models\VendorProduct;
 use Modules\CatalogManagement\app\Models\VendorProductVariant;
 
