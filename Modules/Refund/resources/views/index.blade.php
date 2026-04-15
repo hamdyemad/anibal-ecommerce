@@ -1,5 +1,9 @@
-<x-refund::layouts.master>
+@extends('layout.app')
+
+@section('title', 'Refund Module')
+
+@section('content')
     <h1>Hello World</h1>
 
     <p>Module: {!! config('refund.name') !!}</p>
-</x-refund::layouts.master>
+@endsection
