@@ -118,7 +118,6 @@
                     @endphp
                     <a href="{{ $url }}" style="display: inline-block; padding: 14px 40px; background: linear-gradient(135deg, #2d7a3e 0%, #5cb85c 100%); background-color: #2d7a3e; color: #ffffff; text-decoration: none; border-radius: 8px; font-size: 16px; font-weight: 600; box-shadow: 0 4px 12px rgba(45, 122, 62, 0.3);">
                         {{ trans('order::order.track_order') }}
-                        {{ $url }}
                     </a>
                                   
                 </div>

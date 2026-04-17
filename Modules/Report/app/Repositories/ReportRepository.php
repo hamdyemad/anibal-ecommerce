@@ -751,4 +751,267 @@ class ReportRepository implements ReportRepositoryInterface
             ]
         ];
     }
+
+    /**
+     * Get profitability report
+     */
+    public function getProfitabilityReport(ReportFilterDTO $filter): array
+    {
+        $dateFrom = $filter->from ?? now()->startOfMonth();
+        $dateTo = $filter->to ?? now()->endOfMonth();
+        
+        // Get delivered orders in date range
+        $orders = Order::withoutCountryFilter()
+            ->whereBetween('created_at', [$dateFrom, $dateTo])
+            ->whereHas('stage', function($q) {
+                $q->where('type', 'deliver');
+            })
+            ->with(['orderProducts'])
+            ->get();
+        
+        // Calculate metrics
+        $totalRevenue = $orders->sum('total_price');
+        $totalCosts = $orders->sum(function($order) {
+            return $order->orderProducts->sum('commission');
+        });
+        $netProfit = $totalRevenue - $totalCosts;
+        $profitMargin = $totalRevenue > 0 ? ($netProfit / $totalRevenue) * 100 : 0;
+        $ordersCount = $orders->count();
+        $averageOrderValue = $ordersCount > 0 ? $totalRevenue / $ordersCount : 0;
+        
+        // Get previous period for comparison
+        $periodLength = $dateFrom->diffInDays($dateTo);
+        $prevDateFrom = $dateFrom->copy()->subDays($periodLength);
+        $prevDateTo = $dateFrom->copy()->subDay();
+        
+        $prevOrders = Order::withoutCountryFilter()
+            ->whereBetween('created_at', [$prevDateFrom, $prevDateTo])
+            ->whereHas('stage', function($q) {
+                $q->where('type', 'deliver');
+            })
+            ->with(['orderProducts'])
+            ->get();
+        
+        $prevRevenue = $prevOrders->sum('total_price');
+        $prevCosts = $prevOrders->sum(function($order) {
+            return $order->orderProducts->sum('commission');
+        });
+        $prevProfit = $prevRevenue - $prevCosts;
+        $growthRate = $prevRevenue > 0 ? (($totalRevenue - $prevRevenue) / $prevRevenue) * 100 : 0;
+        
+        return [
+            'kpis' => [
+                'total_revenue' => round($totalRevenue, 2),
+                'total_costs' => round($totalCosts, 2),
+                'net_profit' => round($netProfit, 2),
+                'profit_margin' => round($profitMargin, 2),
+                'orders_count' => $ordersCount,
+                'average_order_value' => round($averageOrderValue, 2),
+                'growth_rate' => round($growthRate, 2),
+            ],
+            'comparison' => [
+                'current_period' => [
+                    'revenue' => round($totalRevenue, 2),
+                    'costs' => round($totalCosts, 2),
+                    'profit' => round($netProfit, 2),
+                ],
+                'previous_period' => [
+                    'revenue' => round($prevRevenue, 2),
+                    'costs' => round($prevCosts, 2),
+                    'profit' => round($prevProfit, 2),
+                ],
+            ],
+            'monthly_trend' => $this->getMonthlyProfitTrend($dateFrom, $dateTo),
+        ];
+    }
+
+    /**
+     * Get monthly profit trend
+     */
+    private function getMonthlyProfitTrend($dateFrom, $dateTo): array
+    {
+        $months = [];
+        $current = $dateFrom->copy()->startOfMonth();
+        
+        while ($current <= $dateTo) {
+            $monthOrders = Order::withoutCountryFilter()
+                ->whereYear('created_at', $current->year)
+                ->whereMonth('created_at', $current->month)
+                ->whereHas('stage', function($q) {
+                    $q->where('type', 'deliver');
+                })
+                ->with(['orderProducts'])
+                ->get();
+            
+            $revenue = $monthOrders->sum('total_price');
+            $costs = $monthOrders->sum(function($o) {
+                return $o->orderProducts->sum('commission');
+            });
+            
+            $months[] = [
+                'month' => $current->format('M Y'),
+                'revenue' => round($revenue, 2),
+                'costs' => round($costs, 2),
+                'profit' => round($revenue - $costs, 2),
+            ];
+            
+            $current->addMonth();
+        }
+        
+        return $months;
+    }
+
+    /**
+     * Get sales analysis report
+     */
+    public function getSalesAnalysisReport(ReportFilterDTO $filter): array
+    {
+        $dateFrom = $filter->from ?? now()->startOfMonth();
+        $dateTo = $filter->to ?? now()->endOfMonth();
+        
+        // Get all orders in date range
+        $orders = Order::withoutCountryFilter()
+            ->whereBetween('created_at', [$dateFrom, $dateTo])
+            ->with(['stage', 'orderProducts'])
+            ->get();
+        
+        // Calculate metrics
+        $totalOrders = $orders->count();
+        $totalRevenue = $orders->sum('total_price');
+        $averageOrderValue = $totalOrders > 0 ? $totalRevenue / $totalOrders : 0;
+        
+        // Orders by stage
+        $ordersByStage = $orders->groupBy(function($order) {
+            return $order->stage ? $order->stage->name : 'Unknown';
+        })->map(function($group) {
+            return $group->count();
+        })->toArray();
+        
+        // Daily sales trend
+        $dailySales = $orders->groupBy(function($order) {
+            return $order->created_at->format('Y-m-d');
+        })->map(function($group) {
+            return [
+                'orders' => $group->count(),
+                'revenue' => round($group->sum('total_price'), 2),
+            ];
+        })->toArray();
+        
+        // Top selling days
+        $topDays = collect($dailySales)->sortByDesc('revenue')->take(5)->toArray();
+        
+        return [
+            'kpis' => [
+                'total_orders' => $totalOrders,
+                'total_revenue' => round($totalRevenue, 2),
+                'average_order_value' => round($averageOrderValue, 2),
+            ],
+            'orders_by_stage' => $ordersByStage,
+            'daily_sales' => $dailySales,
+            'top_days' => $topDays,
+        ];
+    }
+
+    /**
+     * Get product performance report
+     */
+    public function getProductPerformanceReport(ReportFilterDTO $filter): array
+    {
+        $dateFrom = $filter->from ?? now()->startOfMonth();
+        $dateTo = $filter->to ?? now()->endOfMonth();
+        
+        // Get order products in date range
+        $orderProducts = \Modules\Order\app\Models\OrderProduct::query()
+            ->whereHas('order', function($q) use ($dateFrom, $dateTo) {
+                $q->whereBetween('created_at', [$dateFrom, $dateTo]);
+            })
+            ->with(['vendorProduct.product', 'order'])
+            ->get();
+        
+        // Group by product
+        $productStats = $orderProducts->groupBy('vendor_product_id')->map(function($group) {
+            $product = $group->first()->vendorProduct;
+            $productName = $product && $product->product ? $product->product->name : 'Unknown';
+            
+            return [
+                'product_name' => $productName,
+                'quantity_sold' => $group->sum('quantity'),
+                'revenue' => round($group->sum('price'), 2),
+                'orders_count' => $group->count(),
+            ];
+        })->values();
+        
+        // Sort by revenue
+        $topProducts = $productStats->sortByDesc('revenue')->take(10)->values()->toArray();
+        $lowProducts = $productStats->sortBy('revenue')->take(10)->values()->toArray();
+        
+        // Calculate totals
+        $totalProducts = $productStats->count();
+        $totalRevenue = $productStats->sum('revenue');
+        $totalQuantity = $productStats->sum('quantity_sold');
+        
+        return [
+            'kpis' => [
+                'total_products' => $totalProducts,
+                'total_revenue' => round($totalRevenue, 2),
+                'total_quantity' => $totalQuantity,
+            ],
+            'top_products' => $topProducts,
+            'low_products' => $lowProducts,
+        ];
+    }
+
+    /**
+     * Get customer analysis report
+     */
+    public function getCustomerAnalysisReport(ReportFilterDTO $filter): array
+    {
+        $dateFrom = $filter->from ?? now()->startOfMonth();
+        $dateTo = $filter->to ?? now()->endOfMonth();
+        
+        // Get orders with customers in date range
+        $orders = Order::withoutCountryFilter()
+            ->whereBetween('created_at', [$dateFrom, $dateTo])
+            ->with(['customer'])
+            ->get();
+        
+        // Group by customer
+        $customerStats = $orders->groupBy('customer_id')->map(function($group) {
+            $customer = $group->first()->customer;
+            $customerName = $customer ? ($customer->first_name . ' ' . $customer->last_name) : 'Guest';
+            
+            return [
+                'customer_name' => $customerName,
+                'orders_count' => $group->count(),
+                'total_spent' => round($group->sum('total_price'), 2),
+                'average_order' => round($group->avg('total_price'), 2),
+            ];
+        })->values();
+        
+        // Sort by total spent
+        $topCustomers = $customerStats->sortByDesc('total_spent')->take(10)->values()->toArray();
+        
+        // Calculate metrics
+        $totalCustomers = $customerStats->count();
+        $totalRevenue = $customerStats->sum('total_spent');
+        $averageCustomerValue = $totalCustomers > 0 ? $totalRevenue / $totalCustomers : 0;
+        
+        // New vs returning customers
+        $newCustomers = Customer::whereBetween('created_at', [$dateFrom, $dateTo])->count();
+        $returningCustomers = $totalCustomers - $newCustomers;
+        
+        return [
+            'kpis' => [
+                'total_customers' => $totalCustomers,
+                'new_customers' => $newCustomers,
+                'returning_customers' => max(0, $returningCustomers),
+                'average_customer_value' => round($averageCustomerValue, 2),
+            ],
+            'top_customers' => $topCustomers,
+            'customer_distribution' => [
+                'new' => $newCustomers,
+                'returning' => max(0, $returningCustomers),
+            ],
+        ];
+    }
 }

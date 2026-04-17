@@ -29,4 +29,20 @@ Route::middleware(['auth', 'verified'])->group(function () {
         // Points Report
         Route::get('reports/points', [ReportController::class, 'points'])->name('reports.points');
         Route::get('reports/data/points', [ReportController::class, 'getPointsData'])->name('reports.data.points');
+        
+        // Profitability Report
+        Route::get('reports/profitability', [ReportController::class, 'profitability'])->name('reports.profitability');
+        Route::get('reports/data/profitability', [ReportController::class, 'getProfitabilityData'])->name('reports.profitability.data');
+        
+        // Sales Analysis Report
+        Route::get('reports/sales-analysis', [ReportController::class, 'salesAnalysis'])->name('reports.sales-analysis');
+        Route::get('reports/data/sales-analysis', [ReportController::class, 'getSalesAnalysisData'])->name('reports.sales-analysis.data');
+        
+        // Product Performance Report
+        Route::get('reports/product-performance', [ReportController::class, 'productPerformance'])->name('reports.product-performance');
+        Route::get('reports/data/product-performance', [ReportController::class, 'getProductPerformanceData'])->name('reports.product-performance.data');
+        
+        // Customer Analysis Report
+        Route::get('reports/customer-analysis', [ReportController::class, 'customerAnalysis'])->name('reports.customer-analysis');
+        Route::get('reports/data/customer-analysis', [ReportController::class, 'getCustomerAnalysisData'])->name('reports.customer-analysis.data');
 });

@@ -55,4 +55,40 @@ class ReportService
         $filterDTO = ReportFilterDTO::fromRequest($filters);
         return $this->reportRepository->getPointsReport($filterDTO);
     }
+
+    /**
+     * Get profitability report
+     */
+    public function getProfitabilityReport(array $filters): array
+    {
+        $filterDTO = ReportFilterDTO::fromRequest($filters);
+        return $this->reportRepository->getProfitabilityReport($filterDTO);
+    }
+
+    /**
+     * Get sales analysis report
+     */
+    public function getSalesAnalysisReport(array $filters): array
+    {
+        $filterDTO = ReportFilterDTO::fromRequest($filters);
+        return $this->reportRepository->getSalesAnalysisReport($filterDTO);
+    }
+
+    /**
+     * Get product performance report
+     */
+    public function getProductPerformanceReport(array $filters): array
+    {
+        $filterDTO = ReportFilterDTO::fromRequest($filters);
+        return $this->reportRepository->getProductPerformanceReport($filterDTO);
+    }
+
+    /**
+     * Get customer analysis report
+     */
+    public function getCustomerAnalysisReport(array $filters): array
+    {
+        $filterDTO = ReportFilterDTO::fromRequest($filters);
+        return $this->reportRepository->getCustomerAnalysisReport($filterDTO);
+    }
 }

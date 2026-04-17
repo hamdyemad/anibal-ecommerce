@@ -4,60 +4,22 @@ namespace Modules\Customer\app\Observers;
 
 use Illuminate\Support\Facades\Log;
 use Modules\Customer\app\Models\Customer;
-use Modules\SystemSetting\app\Models\UserPoints;
-use Modules\SystemSetting\app\Models\PointsSetting;
-use Modules\SystemSetting\app\Models\PointsSystem;
-use Modules\SystemSetting\app\Models\UserPointsTransaction;
+use Modules\SystemSetting\app\Services\WelcomePointsService;
 
 class CustomerObserver
 {
+    public function __construct(
+        protected WelcomePointsService $welcomePointsService
+    ) {}
+
     /**
      * Handle the Customer "created" event.
      */
     public function created(Customer $customer): void
     {
-        try {
-
-            $pointSystem = PointsSystem::latest()->first();
-            if ($pointSystem->is_enabled) {
-
-                // Get customer's country
-                $currency = $customer->country->currency;
-                // Get points settings for this currency
-                $pointsSetting = PointsSetting::where('currency_id', $currency->id)->first();
-                if (!$pointsSetting) {
-                    return; // No points setting found, skip
-                }
-
-                // Create customer points record with welcome bonus
-                $welcomePoints = $pointsSetting->welcome_points ?? 0;
-
-                $userPoint = UserPoints::create([
-                    'user_id' => $customer->id,
-                    'total_points' => $welcomePoints,
-                    'earned_points' => $welcomePoints,
-                    'redeemed_points' => 0,
-                    'expired_points' => 0,
-                ]);
-
-                // Create transaction record for the welcome points
-                $descriptionEn = "Earned {$welcomePoints} points from registration";
-                $descriptionAr = "حصلت على {$welcomePoints} نقطة من التسجيل";
-
-                $transaction = $userPoint->transactions()->create([
-                    'user_id' => $customer->id,
-                    'points' => $welcomePoints,
-                    'type' => 'earned',
-                ]);
-                // Store English translation
-                $transaction->setTranslation('description', 'en', $descriptionEn);
-                // Store Arabic translation
-                $transaction->setTranslation('description', 'ar', $descriptionAr);
-            }
-        } catch (\Exception $e) {
-            // Silently fail - don't block customer creation
-            Log::error('Error creating user points for customer ' . $customer->id . ': ' . $e->getMessage());
-        }
+        // Award welcome points to new customer
+        // This is handled by WelcomePointsService which uses proper service/repository layers
+        $this->welcomePointsService->awardWelcomePoints($customer);
     }
 
     /**
@@ -73,11 +35,15 @@ class CustomerObserver
      */
     public function deleted(Customer $customer): void
     {
-        // Soft delete user points when customer is deleted
+        // Handle customer points when customer is soft deleted
+        // Points transactions are preserved for audit purposes
         try {
-            UserPoints::where('user_id', $customer->id)->delete();
+            $this->welcomePointsService->deleteCustomerPoints($customer->id);
         } catch (\Exception $e) {
-            Log::error('Error deleting user points for customer ' . $customer->id . ': ' . $e->getMessage());
+            Log::error('Error handling customer points deletion in observer', [
+                'customer_id' => $customer->id,
+                'error' => $e->getMessage()
+            ]);
         }
     }
 
@@ -86,11 +52,14 @@ class CustomerObserver
      */
     public function restored(Customer $customer): void
     {
-        // Restore user points when customer is restored
+        // Handle customer points when customer is restored
         try {
-            UserPoints::where('user_id', $customer->id)->restore();
+            $this->welcomePointsService->restoreCustomerPoints($customer->id);
         } catch (\Exception $e) {
-            Log::error('Error restoring user points for customer ' . $customer->id . ': ' . $e->getMessage());
+            Log::error('Error handling customer points restoration in observer', [
+                'customer_id' => $customer->id,
+                'error' => $e->getMessage()
+            ]);
         }
     }
 
@@ -99,11 +68,10 @@ class CustomerObserver
      */
     public function forceDeleted(Customer $customer): void
     {
-        // Force delete user points when customer is force deleted
-        try {
-            UserPoints::where('user_id', $customer->id)->forceDelete();
-        } catch (\Exception $e) {
-            Log::error('Error force deleting user points for customer ' . $customer->id . ': ' . $e->getMessage());
-        }
+        // When customer is force deleted, points transactions are also removed
+        // This is handled automatically by database cascading or model events
+        Log::info('Customer force deleted, points transactions will be handled by cascade', [
+            'customer_id' => $customer->id
+        ]);
     }
 }

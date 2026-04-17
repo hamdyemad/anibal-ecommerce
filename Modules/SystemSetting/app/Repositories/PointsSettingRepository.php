@@ -2,119 +2,66 @@
 
 namespace Modules\SystemSetting\app\Repositories;
 
-use Modules\SystemSetting\app\Interfaces\PointsSettingRepositoryInterface;
 use Modules\SystemSetting\app\Models\PointsSetting;
-use Illuminate\Support\Facades\DB;
-use Modules\SystemSetting\app\Models\PointsSystem;
+use Illuminate\Database\Eloquent\Collection;
 
-class PointsSettingRepository implements PointsSettingRepositoryInterface
+class PointsSettingRepository
 {
     /**
-     * Get all points settings with currencies
+     * Get points setting by currency ID
      */
-    public function getAllSettings(array $filters = [], $perPage = 10)
+    public function getByCurrencyId(int $currencyId): ?PointsSetting
     {
-        $query = PointsSetting::with(['currency']);
+        return PointsSetting::where('currency_id', $currencyId)
+            ->where('is_active', true)
+            ->first();
+    }
 
-        return ($perPage == 0) ? $query->get() : $query->paginate($perPage);
+    /**
+     * Get all active points settings
+     */
+    public function getAllActive(): Collection
+    {
+        return PointsSetting::where('is_active', true)->get();
     }
 
     /**
      * Get points setting by ID
      */
-    public function getSettingById($id)
+    public function findById(int $id): ?PointsSetting
     {
-        return PointsSetting::with(['currency'])
-            ->where('id', $id)
-            ->first();
+        return PointsSetting::find($id);
     }
 
     /**
-     * Get points setting by currency ID
+     * Create points setting
      */
-    public function getSettingByCurrencyId($currencyId)
+    public function create(array $data): PointsSetting
     {
-        return PointsSetting::with(['currency'])
-            ->where('currency_id', $currencyId)
-            ->first();
-    }
-
-    /**
-     * Create new points setting
-     */
-    public function createSetting(array $data)
-    {
-        return DB::transaction(function () use ($data) {
-            return PointsSetting::create([
-                'currency_id' => $data['currency_id'],
-                'is_active' => $data['is_active'] ?? false,
-                'points_value' => $data['points_value'] ?? 0,
-                'welcome_points' => $data['welcome_points'] ?? 0,
-            ]);
-        });
+        return PointsSetting::create($data);
     }
 
     /**
      * Update points setting
      */
-    public function updateSetting($id, array $data)
+    public function update(int $id, array $data): bool
     {
-        return DB::transaction(function () use ($id, $data) {
-            $setting = $this->getSettingById($id);
-
-            $setting->update([
-                'currency_id' => $data['currency_id'] ?? $setting->currency_id,
-                'is_active' => $data['is_active'] ?? $setting->is_active,
-                'points_value' => $data['points_value'] ?? $setting->points_value,
-                'welcome_points' => $data['welcome_points'] ?? $setting->welcome_points,
-            ]);
-
-            return $setting->fresh();
-        });
+        $pointsSetting = $this->findById($id);
+        if (!$pointsSetting) {
+            return false;
+        }
+        return $pointsSetting->update($data);
     }
 
     /**
-     * Toggle points setting active status
+     * Delete points setting
      */
-    public function toggleStatus($id)
+    public function delete(int $id): bool
     {
-        $setting = $this->getSettingById($id);
-        $setting->update(['is_active' => !$setting->is_active]);
-        return $setting->fresh();
+        $pointsSetting = $this->findById($id);
+        if (!$pointsSetting) {
+            return false;
+        }
+        return $pointsSetting->delete();
     }
-
-
-    public function getPointSystem() {
-        return PointsSystem::latest()->first();
-    }
-
-    public function updatePointSystem($data) {
-        return DB::transaction(function () use ($data) {
-            $pointSystem = $this->getPointSystem();
-
-            if (!$pointSystem) {
-                $pointSystem = PointsSystem::create($data);
-            } else {
-                $pointSystem->update($data);
-            }
-
-            return $pointSystem->fresh();
-        });
-    }
-
-    public function togglePointsSystemEnabled() {
-        return DB::transaction(function () {
-            $pointSystem = $this->getPointSystem();
-
-            if (!$pointSystem) {
-                $pointSystem = PointsSystem::create(['is_enabled' => true]);
-            } else {
-                $pointSystem->update(['is_enabled' => !$pointSystem->is_enabled]);
-            }
-
-            return $pointSystem->fresh();
-        });
-    }
-
-
 }
