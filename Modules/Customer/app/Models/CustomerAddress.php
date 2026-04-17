@@ -11,7 +11,7 @@ use App\Models\Traits\AutoStoreCountryId;
 use Modules\AreaSettings\app\Models\City;
 use Modules\AreaSettings\app\Models\Country;
 use Modules\AreaSettings\app\Models\Region;
-use Modules\AreaSettings\app\Models\Subregion;
+use Modules\AreaSettings\app\Models\SubRegion;
 
 class CustomerAddress extends BaseModel
 {
@@ -50,7 +50,7 @@ class CustomerAddress extends BaseModel
 
     public function subregion()
     {
-        return $this->belongsTo(Subregion::class)->withTrashed();
+        return $this->belongsTo(SubRegion::class)->withTrashed();
     }
 
     // Scopes
