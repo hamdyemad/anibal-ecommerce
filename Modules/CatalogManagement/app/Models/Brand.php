@@ -105,6 +105,16 @@ class Brand extends BaseModel
      */
     public function scopeFilter($query, array $filters)
     {
+        // Search filter (search in brand name)
+        if (isset($filters['search']) && !empty($filters['search'])) {
+            $search = $filters['search'];
+            $query->whereHas('translations', function ($q) use ($search) {
+                $q->where('translatable_type', Brand::class)
+                    ->where('lang_key', 'name')
+                    ->where('lang_value', 'like', '%' . $search . '%');
+            });
+        }
+
         // Char filter (filter by first letter)
         if (isset($filters['char']) && !empty($filters['char'])) {
             $char = $filters['char'];
