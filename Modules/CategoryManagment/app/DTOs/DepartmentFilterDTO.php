@@ -17,6 +17,7 @@ class DepartmentFilterDTO extends FilterDTO
         public ?string $brand_id = null,
         public ?int $per_page = null,
         public ?string $paginated = null,
+        public ?int $page = null,
     ) {}
 
     /**
@@ -31,7 +32,8 @@ class DepartmentFilterDTO extends FilterDTO
             vendor_id: $request->input('vendor_id'),
             brand_id: $request->input('brand_id'),
             per_page: $request->integer('per_page', 10), // Default 20 items per page
-            paginated: $request->input('paginated', 'true') // Default pagination enabled
+            paginated: $request->input('paginated', 'true'), // Default pagination enabled
+            page: $request->integer('page', 1) // Default page 1
         );
     }
 
@@ -45,6 +47,7 @@ class DepartmentFilterDTO extends FilterDTO
             'brand_id' => $this->brand_id,
             'per_page' => $this->per_page,
             'paginated' => $this->paginated,
+            'page' => $this->page,
         ], fn($value) => $value !== null);
     }
 

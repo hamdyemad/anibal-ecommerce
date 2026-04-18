@@ -18,7 +18,7 @@ class DepartmentApiRepository implements DepartmentApiRepositoryInterface
     {
         $filters = $dto->toArray();
         $query = $this->query->handle($filters);
-        $result = $this->paginated->handle($query, $dto->per_page, $dto->paginated);
+        $result = $this->paginated->handle($query, $dto->per_page, $dto->paginated, $dto->page);
         return $result;
     }
 

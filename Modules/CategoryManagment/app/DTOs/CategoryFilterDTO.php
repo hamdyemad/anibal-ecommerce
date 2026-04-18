@@ -20,6 +20,7 @@ class CategoryFilterDTO extends FilterDTO
         public ?string $paginated = null,
         public ?string $sort = null,
         public ?string $sort_type = null,
+        public ?int $page = null,
     ) {}
 
     /**
@@ -38,6 +39,7 @@ class CategoryFilterDTO extends FilterDTO
             paginated: $request->input('paginated', 'true'), // Default pagination enabled
             sort: $request->input('sort'),
             sort_type: $request->input('sort_type', 'asc'), // Default ascending for sort_number
+            page: $request->integer('page', 1) // Default page 1
         );
     }
 
@@ -54,6 +56,7 @@ class CategoryFilterDTO extends FilterDTO
             'paginated' => $this->paginated,
             'sort' => $this->sort,
             'sort_type' => $this->sort_type,
+            'page' => $this->page,
         ], fn($value) => $value !== null);
     }
 
