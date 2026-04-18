@@ -25,6 +25,7 @@ class BrandFilterDTO extends FilterDTO
         public ?string $char = null,
         public ?int $per_page = null,
         public ?string $paginated = null,
+        public ?int $page = null,
     ) {}
 
     /**
@@ -43,7 +44,8 @@ class BrandFilterDTO extends FilterDTO
             sort_type: $request->input('sort_type'),
             char: $request->input('char'),
             per_page: $request->integer('per_page', 12),
-            paginated: $request->input('paginated', null),
+            paginated: $request->input('paginated', 'true'),
+            page: $request->integer('page', 1),
         );
     }
 
@@ -61,6 +63,7 @@ class BrandFilterDTO extends FilterDTO
             'char' => $this->char,
             'per_page' => $this->per_page,
             'paginated' => $this->paginated,
+            'page' => $this->page,
         ], fn($value) => $value !== null);
     }
 

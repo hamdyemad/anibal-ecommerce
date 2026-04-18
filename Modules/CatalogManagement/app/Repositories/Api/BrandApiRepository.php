@@ -18,7 +18,7 @@ class BrandApiRepository implements BrandApiRepositoryInterface
     {
         $filters = $dto->toArray();
         $query = $this->query->handle($filters);
-        $result = $this->paginated->handle($query, $dto->per_page, $dto->paginated);
+        $result = $this->paginated->handle($query, $dto->per_page, $dto->paginated, $dto->page);
         return $result;
     }
 
@@ -30,7 +30,7 @@ class BrandApiRepository implements BrandApiRepositoryInterface
     {
         $filters = $dto;
         $query = $this->query->handle($filters);
-        $result = $this->paginated->handle($query, $dto['per_page'], $dto['paginated']);
+        $result = $this->paginated->handle($query, $dto['per_page'], $dto['paginated'], $dto['page'] ?? 1);
         return $result;
     }
 
